@@ -1,2 +1,2 @@
-## Code Repository for DxRx Laboratory at Stanford University
+## DxRx Laboratory at Stanford University
 ## PI: Jonathan Chen
