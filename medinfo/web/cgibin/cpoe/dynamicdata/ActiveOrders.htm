@@ -1,0 +1,16 @@
+    <table class="dataTable" cellspacing=0 cellpadding=4 style="width: 100%%">
+        <tr valign=top>
+            <td class="subheading" colspan=3>
+                <input type=button value="Notes" onClick="loadNotes(this.form);">
+                <input type=button value="Results Review" onClick="loadResults(this.form);">
+                <input type=button value="Active Orders" onClick="loadActiveOrders(this.form);" class="%(activeOrderButtonClass)s">
+                <input type=button value="Order History" onClick="loadOrderHistory(this.form);" class="%(completedOrderButtonClass)s">
+            </td>
+        </tr>
+        <tr>
+            <td class="labelCell" align=center>Category</td>
+            <td class="labelCell">%(activeCompleted)s Order</td>
+            <td class="labelCell" align=center>%(historyTime)s&nbsp;</td>
+        </tr>
+        %(detailTable)s
+    </table>

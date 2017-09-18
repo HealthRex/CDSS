@@ -1,0 +1,79 @@
+== Medication IDs ==
+select count(distinct pat_id)
+from stride_order_med
+where medication_id in
+...
+
+Buprenorphine 
+('125498','114474','212560','114475','114467','114468')
+
+Fentanyl Patches
+('2680','27908','125379','27905','27906','540107','540638','540101','27907')
+
+Methadone
+('540483','4953','4951','10546','214468','15996','41938','4954','4952')
+
+
+select count(*)
+from stride_order_med
+where medication_id in
+('2680','27908','125379','27905','27906','540107','540638','540101','27907')
+
+== Diagnosis IDs??? ==
+select dx_id, dx_name, count(distinct pat_id)
+from stride_problem_list 
+group by dx_id, dx_name
+order by count(distinct pat_id) desc;
+
+== Diagnosis Groups ==
+select distinct dx_group, count(*)
+from stride_problem_list
+group by dx_group
+order by count(*) desc
+
+== Base Reference (ICD9) Codes ==
+select base_bill_code, icd9.str, count(distinct pat_id)
+from 
+   stride_problem_list as prob left join stride_icd9_cm as icd9 on base_bill_code = icd9.code
+group by base_bill_code, icd9.str
+order by count(distinct pat_id) desc
+
+select base_bill_code, count(distinct pat_id)
+from 
+   stride_problem_list as prob 
+group by base_bill_code
+order by count(distinct pat_id) desc
+
+
+
+
+== Baseline Rx Rates ==
+
+== Rx Rates per Diagnosis ==
+
+== Rx Rates per Diagnosis Pair ==
+
+
+. Plot combo rates expected (based on product of dx components) vs. actual, chi-square calculation for significance
+
+select distinct prob1.pat_id
+from 
+	stride_problem_list as prob1,
+	stride_problem_list as prob2
+where 
+   prob1.pat_id = prob2.pat_id and
+   prob1.dx_group in ('V CODES') and
+   prob2.dx_group in ('E CODES')
+limit 100
+
+
+select prob1.dx_group, prob2.dx_group, count(distinct prob1.pat_id)
+from 
+	stride_problem_list as prob1,
+	stride_problem_list as prob2
+where 
+   prob1.pat_id = prob2.pat_id and
+   prob1.dx_group < prob2.dx_group
+group by prob1.dx_group, prob2.dx_group
+order by count(distinct prob1.pat_id) desc
+limit 100

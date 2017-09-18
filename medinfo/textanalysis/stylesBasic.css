@@ -1,0 +1,66 @@
+BODY, TD, P, TH
+{
+  font-family: Arial,Verdana,Helvetica,sans-serif;
+  font-size: 10pt;
+}
+
+PRE
+{
+   font-family: Lucida Console,monospace;
+   font-size: 10pt;
+}
+
+A
+{
+   text-decoration:  none;
+}
+
+A:hover
+{
+   text-decoration:  underline;
+}
+
+input
+{
+    font-family: Arial, Verdana, Helvetica, sans-serif; 
+    font-size: 12px;
+    font-weight: bold;
+}
+
+textarea
+{
+    font-family: Arial, Verdana, Helvetica, sans-serif; 
+    font-size: 12px;
+}
+
+select
+{
+    font-family: Arial, Verdana, Helvetica, sans-serif; 
+    font-size: 12px;
+}
+
+hr
+{
+   border: solid black 1px;
+}
+
+.spacer
+{
+}
+
+.featureTitle
+{
+   font-size:  14pt;
+   font-style: italic;
+}
+
+.featureContent
+{
+   font-size:  12pt;
+}
+
+.question
+{
+   font-weight:   bold;
+   font-style:    italic;
+}

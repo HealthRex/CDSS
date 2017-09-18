@@ -1,0 +1,3 @@
+Content-Type: text/html
+TO: %(ERROR_EMAIL)s
+Subject: [CDB Error] %(errorMsg)s

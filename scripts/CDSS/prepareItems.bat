@@ -1,0 +1,10 @@
+python medinfo\cpoe\analysis\PreparePatientItems.py -c 135 -q 14400 -v 86400 -o 8174 -t 2592000 temp\patientIds.1year.0.tab temp\first24hourItems.1year.0.tab.gz
+python medinfo\cpoe\analysis\PreparePatientItems.py -c 135 -q 14400 -v 86400 -o 8174 -t 2592000 temp\patientIds.1year.1.tab temp\first24hourItems.1year.1.tab.gz
+python medinfo\cpoe\analysis\PreparePatientItems.py -c 135 -q 14400 -v 86400 -o 8174 -t 2592000 temp\patientIds.1year.2.tab temp\first24hourItems.1year.2.tab.gz
+python medinfo\cpoe\analysis\PreparePatientItems.py -c 135 -q 14400 -v 86400 -o 8174 -t 2592000 temp\patientIds.1year.3.tab temp\first24hourItems.1year.3.tab.gz
+python medinfo\cpoe\analysis\PreparePatientItems.py -c 135 -q 14400 -v 86400 -o 8174 -t 2592000 temp\patientIds.1year.4.tab temp\first24hourItems.1year.4.tab.gz
+python medinfo\cpoe\analysis\PreparePatientItems.py -c 135 -q 14400 -v 86400 -o 8174 -t 2592000 temp\patientIds.1year.5.tab temp\first24hourItems.1year.5.tab.gz
+python medinfo\cpoe\analysis\PreparePatientItems.py -c 135 -q 14400 -v 86400 -o 8174 -t 2592000 temp\patientIds.1year.6.tab temp\first24hourItems.1year.6.tab.gz
+python medinfo\cpoe\analysis\PreparePatientItems.py -c 135 -q 14400 -v 86400 -o 8174 -t 2592000 temp\patientIds.1year.7.tab temp\first24hourItems.1year.7.tab.gz
+python medinfo\cpoe\analysis\PreparePatientItems.py -c 135 -q 14400 -v 86400 -o 8174 -t 2592000 temp\patientIds.1year.8.tab temp\first24hourItems.1year.8.tab.gz
+python medinfo\cpoe\analysis\PreparePatientItems.py -c 135 -q 14400 -v 86400 -o 8174 -t 2592000 temp\patientIds.1year.9.tab temp\first24hourItems.1year.9.tab.gz

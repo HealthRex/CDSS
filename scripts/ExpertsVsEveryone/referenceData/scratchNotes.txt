@@ -1,0 +1,43 @@
+
+-- Query to find guideline referenced orders without a respective recommendation level
+--	Find these to manually fill in or just default to level 2.1
+
+select ic.item_collection_id, ic.section, ic.name, refici.item_collection_item_id, ci.clinical_item_id, ci.name, ci.description
+from item_collection as ic, item_collection_item as refici, clinical_item as ci
+where refici.collection_type_id = 3
+and refici.clinical_item_id = ci.clinical_item_id
+and ic.item_collection_id = refici.item_collection_id
+and not exists
+(
+	select 1
+	from item_collection_item as recici
+	where recici.collection_type_id = 1
+	and recici.clinical_item_id = refici.clinical_item_id
+	and recici.item_collection_id = refici.item_collection_id
+)
+
+
+
+
+
+
+-- Query to find Patients for whom a GI Bleed Order Set was used
+-- Use these later to exclude from training, lest we just relearn existing order set behavior
+
+select distinct patient_id
+from item_collection_item as dxici, item_collection_item as ici, patient_item_collection_link as picl, patient_item as pi
+where dxici.collection_type_id = 5
+and dxici.value = 4
+and dxici.clinical_item_id = 41788
+and dxici.item_collection_id = ici.item_collection_id
+and ici.collection_type_id = 4
+and ici.item_collection_item_id = picl.item_collection_item_id
+and picl.patient_item_id = pi.patient_item_id
+
+-- Query to find Patients who were assigned to either Med Univ or PAMF Primary and had an admission diagnosis of GI Bleed
+
+select distinct ttpi.patient_id
+from patient_item as ttpi, patient_item as dxpi
+where ttpi.clinical_item_id in (73823,73830)
+and ttpi.patient_id = dxpi.patient_id
+and dxpi.clinical_item_id = 41788

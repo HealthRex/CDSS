@@ -1,0 +1,188 @@
+======== AWS Server Setup Notes ==============
+- Sign-up for AWS account
+- Free Tier eligible EC2 Micro Instance create
+- Change Security Group for instance to allow TCP ports 22 for SSH connection any others
+- Connect as ec2-user (or ubuntu) first off using public-private key default method (requires local download)
+  ssh -i privateKey.pem ec2-user@xxx.xxx.xxx.xxx
+- Need to prefix "sudo " to most commands to act as root
+- Create user to login as
+sudo adduser jonc101
+sudo passwd jonc101
+- Grant user sudo privileges
+sudo visudo
+	jonc101 ALL=(ALL) ALL
+- Change setting to allow SSH password login. Beware that this is less secure!
+sudo vi /etc/ssh/sshd_config
+PasswordAuthentication yes
+sudo service sshd restart
+
+Should now be able to SSH to instance using the created username and password
+
+- Install Amazon packages
+sudo yum install svn
+sudo yum install postgresql93
+sudo yum install python27-psycopg2
+sudo yum install httpd
+sudo yum install mod_wsgi-python27
+sudo yum install python27-scipy
+
+sudo easy_install gensim
+
+sudo yum install mysql
+sudo yum install MySQL-python
+
+(Consider general SciPy dev environment setup)
+(http://blog.yhathq.com/posts/setting-up-scientific-python.html)
+  Avoid mixing installation modalities (PIP, downloadable executables, Enthought Canopy distribution) as tend to be incompatible
+
+- Use AWS Console interface (RDService) to create a PostgreSQL or MySQL relational database if want separate DB server (vs. installed on local EC2 instance)
+  Consider Provisioned IOPS on a "large' instance for computation periods to better handle high I/O cost
+  Additional MySQL configurations that helped with local installation to move more processing to memory than disk:
+	query_cache_size=128M
+	innodb_buffer_pool_size=6000M
+	innodb_log_file_size=2000M
+
+
+==============================================
+Local Installation Dependencies
+- Python 2.7
+- PostgreSQL
+- Apache 2.2
+- Scipy
+- Numpy
+- Psycopg2
+- Mod_WSGI
+
+
+==============================================
+Download code from source control
+
+svn checkout https://xp-dev.com/svn/jonc101-Projects/CDSS
+
+=============================================
+Update ~/.bash_profile with paths and references
+
+vi ~/.bash_profile
+
+	BASE_DIR=$HOME/CDSS
+	export BASE_DIR
+
+	PYTHONPATH=$PYTHONPATH:$BASE_DIR
+	export PYTHONPATH
+
+then
+
+source ~/.bash_profile
+
+==============================================
+
+
+#   Create blank database to work with
+PostgreSQL: 
+	createdb -U postgres -O jonc101 medinfo
+
+# Create DB users and access privileges from remote connections
+PostgreSQL:
+    CREATE USER jonc101 PASSWORD '<yourPassword>';
+
+
+# If restoring from a previously pre-processed database, than just restore each data table's contents in turn
+restoreCPOETables.sh (should be stored with data dump source)
+# See setupDataPreprocessingNotes.txt for details on reconstructing the pre-processing steps from scratch
+
+#   Create data definitions (If did direct restore from previous data dump, OK to expect many errors regarding "Relation already exists")
+PostgreSQL: # Use timestamp data type
+	psql -f medinfo/db/definition/strideData.sql -U jonc101 medinfo		# This may be in the source data directory as schema.strideData.sql
+	psql -f medinfo/db/definition/cpoeStats.sql -U jonc101 medinfo
+	psql -f medinfo/db/definition/cpoeSimulation.sql -U jonc101 medinfo
+
+# Point Python scripts to database
+vi medinfo/db/Env.py
+
+#	Database connection test
+python medinfo/db/test/TestDBUtil.py
+
+#   Basic stat table unit tests
+python medinfo/cpoe/test/TestAssociationAnalysis.py
+python medinfo/cpoe/test/TestItemRecommender.py
+
+#   Data Conversion unit test
+python medinfo/dataconversion/test/TestSTRIDEOrderProcConversion.py
+python medinfo/dataconversion/test/TestSTRIDEOrderMedConversion.py
+python medinfo/dataconversion/test/TestSTRIDEOrderResultsConversion.py
+
+# Multiple Unit tests, auto discover
+python -m unittest discover -v -p "Test*.py" -s medinfo/analysis
+
+# Remote copying / synchronizing data files
+pscp * jonc101@corn.stanford.edu:private/data
+# Patching / resuming incompletely transmitted files.  Do for one file at a time to allow for proper interrupt / resume function?
+rsync --partial --progress order_results.txt jonc101@corn.stanford.edu:private/data/order_results.txt
+
+
+===================================================================
+
+#  Setup Web Server (Apache HTTP, mod_wsgi, psycopg2 or MySQL DB access).  
+# Install mod_wsgi using an install or Copy the version appropriate mod_wsgi.so file to the 
+#	apache modules directory and rename to simply mod_wsgi.so
+# Sample Apache Config:
+sudo vi /etc/httpd/conf/httpd.conf
+
+	LoadModule wsgi_module modules/mod_wsgi.so
+	DocumentRoot "/home/jonc101/CDSS/medinfo/web"
+
+	# Medical Informatics web application configuration
+	WSGIPythonPath /home/jonc101/CDSS
+	Alias /medinfo/web/ "/home/jonc101/CDSS/medinfo/web/"
+	<Directory "/home/jonc101/CDSS/medinfo/web">
+		DirectoryIndex index.html index.htm
+
+		AllowOverride None
+		Allow from all
+
+		Order allow,deny
+	</Directory>
+	<Directory "/home/jonc101/CDSS/medinfo/web/cgibin">
+		# Handler setup for Python CGI scripts (works on files ending in .py)
+		Options +ExecCGI
+
+		# Basic CGI support
+		#AddHandler cgi-script py
+		#SetEnv PYTHONPATH /home/jonc101/CDSS
+
+		# mod_wsgi support.  # Need to define PythonPAth and other environment variables at level of user starting Apache process, or PythonPath in above WSGIPythonPath
+		AddHandler wsgi-script py
+		WSGIApplicationGroup %{GLOBAL}
+
+		AllowOverride None
+		Allow from all
+
+		Order allow,deny
+	</Directory>
+
+
+# Update medinfo/web/cgibin/Env.py, CGI_TEXT_RESPONSE depending on if using CGI or WSGI setup
+# Windows: May need to add Apache directive, so CGI knows how to run .py files
+	ScriptInterpreterResoruce Registry
+
+# Link with tips on setting up apache environment variable configuration if needed
+# Basically adding values to a configuration file like below, though CGI and WSGI should accept PYTHONPATH specification as above
+sudo vi /etc/sysconfig/httpd 
+	TEST_ENV_VAR=TestValue
+	export TEXT_ENV_VAR
+# If use "apachectl" rather than "service httpd" for control, can use starting user's environment as well
+# For Windows environment, add via My Computer > Advanced Settings > Environment Variables
+http://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-apache-startstop.html
+
+# Need read/execute permission on directory tree up to web files, so may need to
+chmod 755 /home/jonc101
+
+# Web server start / control
+sudo service httpd restart
+
+
+#  Test Pages:
+http://localhost/medinfo/web/cgibin/admin/DebugWeb.py
+http://localhost/medinfo/web/cgibin/admin/DBUtilWeb.py
+http://localhost/medinfo/web/cgibin/cpoe/ItemRecommenderWeb.py
+

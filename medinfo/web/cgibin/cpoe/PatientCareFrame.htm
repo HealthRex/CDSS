@@ -1,0 +1,93 @@
+<html>
+<head>
+<title>Patient Management Simulation</title>
+<link rel="stylesheet" type="text/css" href="../../resource/stylesBasic.css">
+<link rel="stylesheet" type="text/css" href="../../resource/stylesBlue.css">
+
+<script src="../../resource/toolkit.js"></script>
+<script src="PatientCareFrame.js"></script>
+
+<script language="JavaScript">
+/**
+ * Initial load and startup
+ */
+function initPage()
+{
+    if ('%(autoQuery)s')
+    {
+        loadRelatedOrders();
+    }
+}
+</script>
+
+</head>
+<body topmargin=0 leftmargin=0 onLoad="initPage();">
+
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 width="100%%" class="headingTable">
+   <TR>
+      <TD class="heading" nowrap>
+         &nbsp; <a href="SimSetup.py" class="breadcrumb">Patient Management</a>
+      </td>
+      <td class="heading" nowrap align=right colspan=99>
+        <input type=button value="<< -60" onClick="updateTime(-60*60);">
+        <input type=button value="< -15" onClick="updateTime(-15*60);">
+        <input type=button value="> +15" onClick="updateTime(+15*60);">
+        <input type=button value=">> +60" onClick="updateTime(+60*60);">
+      </td>
+   </tr>
+   <tr>
+      <td height=1 class="line" colspan=100></td>
+   </tr>
+   <tr class="navLinks">
+        <td align=left>User %(sim_user_id)s: %(sim_user.name)s</td>
+        <td align=center>Patient %(sim_patient_id)s.%(sim_patient.sim_state_id)s: %(sim_patient.name)s (%(sim_patient.age_years)s %(sim_patient.gender)s)</td>
+        <td align=right>%(sim_time.format)s</td>
+   </tr>
+   <tr>
+      <td height=1 class="line" colspan=100></td>
+   </tr>
+</table>
+
+<table border=0 cellpadding=0 cellspacing=10 width="100%%">
+<tr>
+<td>
+
+<form name="%(WEB_CLASS)s" action="%(WEB_CLASS)s.py" method=post>
+    <input type=hidden name="sim_user_id" value="%(sim_user_id)s">
+    <input type=hidden name="sim_patient_id" value="%(sim_patient_id)s">
+    <input type=hidden name="sim_time" value="%(sim_time)s">
+
+    <input type=hidden name="currentDataPage" value="%(currentDataPage)s">
+    <input type=hidden name="autoQuery" value="%(autoQuery)s">
+    <input type=hidden name="maxResults" value="%(maxResults)s">
+
+    <table cellspacing=0 cellpadding=0 border=0 style="width:100%%;">
+        <tr valign=top>
+            <td align=center style="width: 50%%;">
+                <div id="currentDataTableSpace">
+                %(currentDataTable)s
+                </div>
+            </td>
+            <td class="spacer">&nbsp;</td>
+            <td align=center>
+                <div id="dataEntryTableSpace">
+                %(dataEntryTable)s
+                </div>
+
+                <div id="searchResultsTableSpace">
+                %(searchResultsTable)s
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    </select>
+
+</form>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

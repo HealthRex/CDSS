@@ -1,0 +1,27 @@
+item_collection_id	name	section	subgroup	description
+1000001	EHJ 2009 Syncope	Syncope	JHC	doi:10.1093/eurheartj/ehp298
+1000002	UpToDate Syncope	Syncope	JHC	https://www-uptodate-com/contents/approach-to-the-adult-patient-with-syncope-in-the-emergency-department
+1000003	ICSI-ChestPainACS	Chest Pain	JHC	https://www.icsi.org/guidelines__more/catalog_guidelines_and_more/catalog_guidelines/catalog_cardiovascular_guidelines/acute_coronary_syndrome/
+1000004	NICE-ChestPain	Chest Pain	JHC	https://www.nice.org.uk/guidance/cg95
+1000005	ACG-UlcerBleedMgmt	GI Bleed	JHC	https://gi.org/guideline/management-of-patients-with-ulcer-bleeding/
+1000006	ACR-LowerGIBleed	GI Bleed	JHC	https://www.guideline.gov/summaries/summary/49074/acr-appropriateness-criteria--radiologic-management-of-lower-gastrointestinal-tract-bleeding
+1000007	NICE-AcuteGIBleedMgmt	GI Bleed	JHC	https://www.nice.org.uk/Guidance/CG141
+1000008	WGO-EsophagealVarices	GI Bleed	JHC	https://www.guideline.gov/summaries/summary/47781
+1000009	BritishThoracic-Pneumonia	Pneumonia	JHC	http://dx.doi.org/10.1136/thx.2009.121434
+1000010	IDSA-Pneumonia	Pneumonia	JHC	http://www.idsociety.org/Guidelines/Patient_Care/IDSA_Practice_Guidelines/Infections_by_Organ_System/Lower/Upper_Respiratory/Community-Acquired_Pneumonia_(CAP)/
+1000011	NICE-Heart Failure	Heart Failure	JHC	https://www.nice.org.uk/guidance/cg187
+1000012	ACCF/AHA-Heart Failure	Heart Failure	JHC	doi: 10.1161/CIR.0b013e31829e8776
+1000013	ACEP-Altered Mental Status	Altered Mental Status	JHC	doi: 10.1016/S0196-0644(99)70406-3
+1000014	EHJ 2009 Syncope	Syncope	JH	doi:10.1093/eurheartj/ehp298
+1000015	UpToDate Syncope	Syncope	JH	https://www-uptodate-com/contents/approach-to-the-adult-patient-with-syncope-in-the-emergency-department
+1000016	ICSI-ChestPainACS	Chest Pain	JH	https://www.icsi.org/guidelines__more/catalog_guidelines_and_more/catalog_guidelines/catalog_cardiovascular_guidelines/acute_coronary_syndrome/
+1000017	NICE-ChestPain	Chest Pain	JH	https://www.nice.org.uk/guidance/cg95
+1000018	ACG-UlcerBleedMgmt	GI Bleed	JH	https://gi.org/guideline/management-of-patients-with-ulcer-bleeding/
+1000019	ACR-LowerGIBleed	GI Bleed	JH	https://www.guideline.gov/summaries/summary/49074/acr-appropriateness-criteria--radiologic-management-of-lower-gastrointestinal-tract-bleeding
+1000020	NICE-AcuteGIBleedMgmt	GI Bleed	JH	https://www.nice.org.uk/Guidance/CG141
+1000021	WGO-EsophagealVarices	GI Bleed	JH	https://www.guideline.gov/summaries/summary/47781
+1000022	BritishThoracic-Pneumonia	Pneumonia	JH	http://dx.doi.org/10.1136/thx.2009.121434
+1000023	IDSA-Pneumonia	Pneumonia	JH	http://www.idsociety.org/Guidelines/Patient_Care/IDSA_Practice_Guidelines/Infections_by_Organ_System/Lower/Upper_Respiratory/Community-Acquired_Pneumonia_(CAP)/
+1000024	NICE-Heart Failure	Heart Failure	JH	https://www.nice.org.uk/guidance/cg187
+1000025	ACCF/AHA-Heart Failure	Heart Failure	JH	doi: 10.1161/CIR.0b013e31829e8776
+1000026	ACEP-Altered Mental Status	Altered Mental Status	JH	doi: 10.1016/S0196-0644(99)70406-3

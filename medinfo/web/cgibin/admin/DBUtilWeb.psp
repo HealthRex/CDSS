@@ -1,0 +1,183 @@
+<%
+from medinfo.web.cgibin.admin.DBUtilWeb import DBUtilWeb;
+
+controller = DBUtilWeb();
+controller.disableResponse = True;  # PSP content below will be the response / output
+controller.handleRequest(req.form, req); # Process any actions and parameter maintenance
+reqData = controller.requestData;   # Short-hand reference to form and output data
+%>
+<html>
+<head>
+<title>DBUtil: General Purpose Database Communication</title>
+<link rel="stylesheet" type="text/css" href="../../resource/stylesBasic.css">
+<link rel="stylesheet" type="text/css" href="../../resource/stylesGrey.css">
+</head>
+<body onLoad="document.forms[0].input.focus(); document.forms[0].input.select();" topmargin=0 leftmargin=0>
+
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 width="100%" class="headingTable">
+   <TR>
+      <TD class="heading" colspan=100 nowrap>
+         &nbsp;
+         <%= reqData['HEADER_LINKS'] %> /
+         <a class="breadcrumb" href="<%= reqData['WEB_CLASS'] %>.psp">DBUtil</a>:
+         General Purpose Database Interface
+      </td>
+   </tr>
+   <tr>
+      <td height=1 class="line" colspan=100></td>
+   </tr>
+   <tr class="navLinks" align=center>
+        <%= reqData['NAV_LINKS'] %>
+   </tr>
+   <tr>
+      <td height=1 class="line" colspan=100></td>
+   </tr>
+</table>
+
+<table border=0 cellpadding=0 cellspacing=10 width="100%">
+<tr>
+<td>
+
+<table cellspacing=0 cellpadding=0 border=0>
+<tr valign=top>
+<td>
+
+    <form name="<%= reqData['WEB_CLASS'] %>" action="<%= reqData['WEB_CLASS'] %>.psp" method=post>
+    <table class="dataTable" cellspacing=0 cellpadding=4>
+        <tr valign=top>
+            <td colspan=2 class="subheading">
+                Connection Parameters
+            </td>
+            <td colspan=2 class="subheading">
+                SQL Query
+            </td>
+            <td colspan=2 class="subheading">
+                Data Input
+            </td>
+        </tr>
+        <tr valign=top>
+            <td class="labelCell">Host / <a href="javascript:alert('PostgreSQL default is 5432')">Port</a> / DSN</td>
+            <td>
+                <input tabindex=100 type="text" name="dbHOST" size=10 value=<%= reqData['dbHOST'] %>>
+                <input tabindex=100 type="text" name="dbPORT" size=4 value=<%= reqData['dbPORT'] %>>
+                <input tabindex=100 type="text" name="dbDSN" size=10 value=<%= reqData['dbDSN'] %>>
+            </td>
+            <td class="labelCell" rowspan=3><a href="javascript:alert('SQL Query to execute, or whitespace-delimted data to insert or update under a table.');">SQL<br>Input</a></td>
+            <td rowspan=3>
+                <textarea tabindex=200 rows=5 cols=40 name="input" wrap=off><%= reqData['input'] %></textarea>
+            </td>
+            <td class="labelCell"><a href="javascript:alert('Name of the table to insert or update input data under.');">Table</a></td>
+            <td>
+                <input tabindex=300 type="text" name="table" style="width:100%;" value=<%= reqData['table'] %>>
+            </td>
+        </tr>
+        <tr valign=top>
+            <td class="labelCell">User / Password</td>
+            <td>
+                <input tabindex=100 type="text" name="dbUID" size=10 value=<%= reqData['dbUID'] %>>
+                <input type="text" size=4 disabled style="visibility: hidden;">
+                <input tabindex=100 type="password" name="dbPWD" size=10 value=<%= reqData['dbPWD'] %>>
+            </td>
+            <td class="labelCell" rowspan=2><a href="javascript:alert('Ordered names of columns to insert or update data under.  Leave blank to use first row of data as the column names.');">Columns</a></td>
+            <td rowspan=2>
+                <textarea tabindex=300 rows=3 cols=20 name="columnNames" wrap=off><%= reqData['columnNames'] %></textarea>
+            </td>
+        </tr>
+        <tr valign=top>
+            <td class="labelCell">Options</td>
+            <td>
+                <input tabindex=100 type="checkbox" name="incCols" value="checked" <%= reqData['incCols'] %>>Include Column Headers
+                <br>
+                <input tabindex=100 type="checkbox" name="outputOnly" value="checked" <%= reqData['outputOnly'] %>>Output Only
+            </td>
+        </tr>
+        <tr valign=top>
+            <td class="labelCell">Examples</td>
+            <td>
+                <select tabindex=100 onChange="this.form.input.value = this.value">
+<option value="select *
+from pg_tables
+where schemaname = 'public'">Show Tables
+
+<option value="select *
+from pg_class
+where relnamespace = 2200">Show Objects
+
+<option value="explain
+select abbrev, a.name, count(a.*)
+from
+   source as s,
+   source2chemicalmix as s2c,
+   annotation as a
+where
+   s.source_id = s2c.source_id and
+   s2c.source2chemicalmix_id = a.source2chemicalmix_id
+group by abbrev, a.name
+order by count(a.*) desc">Explain Query
+
+<option value="CREATE USER chenjh
+    PASSWORD 'XXXX'">Create User
+
+<option value="ALTER USER chenjh
+    PASSWORD 'XXXX'">Change User Password
+
+<option value="CREATE GROUP cdbview">Create User Group
+
+<option value="ALTER GROUP cdbview
+    ADD USER cdbweb">Assign User Group
+
+<option value="GRANT ALL ON tablename
+    TO GROUP &quot;groupname&quot;;
+GRANT SELECT ON tablename
+    TO public; ">Grant Privileges
+
+<option value="select relname, relacl
+   from pg_class
+   where relnamespace = 2200
+   and reltype &gt; 0">Grantable Objects
+
+                </select>
+            </td>
+            <td class="labelCell">&nbsp;</td>
+            <td align=right>
+                <input tabindex=200 type="submit" name="<%= reqData['WEB_CLASS'] %>" value="Execute Query">
+            </td>
+            <td class="labelCell"><a href="javascript:alert('Delimiter character to separate items in data.  Leave blank to default to any whitespace, unless items enclosed in double quotes (&quot;).  Enter \\t to specify the tab character.');">Delim</a></td>
+            <td>
+                <input tabindex=300 type="text" name="delim" value="<%= reqData['delim'] %>" size=1>
+                <input tabindex=300 type="submit" name="insert" value="Insert">
+                <input tabindex=300 type="submit" name="update" value="Update">
+            </td>
+        </tr>
+    </table>
+    </form>
+
+</td>
+</tr>
+</table>
+
+<table class="dataTable" cellspacing=0 cellpadding=2 border=1>
+    <tr valign=top>
+        <td colspan=100 class="subheading">
+            Query Results <%= reqData['resultsInfo'] %>
+        </td>
+    </tr>
+
+    <%= reqData['resultsHtml'] %>
+
+    <tr valign=top>
+        <td colspan=100>
+            <textarea tabindex=500 rows=10 style="width:100%;" name="resultsText" wrap=off><%= reqData['resultsText'] %></textarea>
+        </td>
+    </tr>
+</table>
+
+</td>
+</tr>
+<tr>
+    <td><address><%= reqData['FOOTER_LINKS'] %></address></td>
+</tr>
+</table>
+
+</body>
+</html>

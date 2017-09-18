@@ -1,0 +1,99 @@
+# Aggregate primary Treatment Team designations into broad care categories
+treatment_team	team_category
+Tt Cardiac Adult (Primary)	Cardiology
+Tt Cardiology (Primary)	Cardiology
+Tt Cardiology Arrhythmia (Primary)	Cardiology
+Tt Cardiology Ep (Primary)	Cardiology
+Tt Cardiology Interventional (Primary)	Cardiology
+Tt Gen Cards (Primary)	Cardiology
+Tt Pamf(Ep) (Primary)	Cardiology
+Tt Ccu/Hf (Primary)	CCU-HF
+Tt Cvicu Team (Primary)	CVICU
+Tt Hematology (Primary)	HemeOnc
+Tt Med9 (Primary)	HemeOnc
+Tt Oncology (Primary)	HemeOnc
+Tt Acute Pain 2Pain (Primary)	Medicine
+Tt Chris Mow (Primary)	Medicine
+Tt Chronic Pain (Primary)	Medicine
+Tt Cystic Fibrosis Adult (Primary)	Medicine
+Tt Med Nocturnist (Primary)	Medicine
+Tt Med Pamf (Primary)	Medicine
+Tt Med Team (Primary)	Medicine
+Tt Med Univ (Primary)	Medicine
+Tt Pain (Primary)	Medicine
+Tt Pamf Med (Primary)	Medicine
+Tt Pamf Med/Cards Admitting (Primary)	Medicine
+Tt Physical Med Rehab (Primary)	Medicine
+Tt Pulm Htn (Primary)	Medicine
+Tt Micu (Primary)	MICU
+Tt Neurosurgery Icu/Resident On-Call (Primary)	MICU
+Tt Neuro Epilepsy Monitor Unit (Primary)	Neurology
+Tt Neuro Stroke (Primary)	Neurology
+Tt Neurology (Primary)	Neurology
+Tt Psychiatry (Primary)	Psychiatry
+Tt Neurosurgery Spine Icu (Primary)	SICU
+Tt Neurosurgery Tumor Icu (Primary)	SICU
+Tt Neurosurgery Vascular Icu (Primary)	SICU
+Tt Sicu (Primary)	SICU
+Tt Breast Surgery (Primary)	SurgerySpecialty
+Tt Colorectal Surgery (Primary)	SurgerySpecialty
+Tt Craniofacial Surgery (Primary)	SurgerySpecialty
+Tt Ent Head And Neck (Primary)	SurgerySpecialty
+Tt Ent Head Neck (Primary)	SurgerySpecialty
+Tt Ent Specialty (Primary)	SurgerySpecialty
+Tt Gen Surg (Primary)	SurgerySpecialty
+Tt General Thoracic (Primary)	SurgerySpecialty
+Tt Gyn Onc (Primary)	SurgerySpecialty
+Tt Gyn Private (Primary)	SurgerySpecialty
+Tt Gyn Univ (Primary)	SurgerySpecialty
+Tt Hand Surgery (Primary)	SurgerySpecialty
+Tt Hearttransplant Surgery (Primary)	SurgerySpecialty
+Tt Hpb Surgery (Primary)	SurgerySpecialty
+Tt Interventional Radiology (Primary)	SurgerySpecialty
+Tt Interventional Radiology 2Rads (Primary)	SurgerySpecialty
+Tt Minimally Invasive Surgery (Primary)	SurgerySpecialty
+Tt Neurosurgery (Primary)	SurgerySpecialty
+Tt Neurosurgery Floor (Primary)	SurgerySpecialty
+Tt Neurosurgery Spine Floor (Primary)	SurgerySpecialty
+Tt Neurosurgery Tumor Floor (Primary)	SurgerySpecialty
+Tt Neurosurgery Vascular Floor (Primary)	SurgerySpecialty
+Tt Ob San Mateo County (Primary)	SurgerySpecialty
+Tt Ob University (Primary)	SurgerySpecialty
+Tt Ophthalmology (Primary)	SurgerySpecialty
+Tt Ortho Arthritis (Joint) (Primary)	SurgerySpecialty
+Tt Ortho Foot Ankle (Primary)	SurgerySpecialty
+Tt Ortho Foot/Ankle (Primary)	SurgerySpecialty
+Tt Ortho Hand (Primary)	SurgerySpecialty
+Tt Ortho Joint (Primary)	SurgerySpecialty
+Tt Ortho Oncology (Primary)	SurgerySpecialty
+Tt Ortho Shoulder/Elbow (Primary)	SurgerySpecialty
+Tt Ortho Spine (Primary)	SurgerySpecialty
+Tt Ortho Sports (Primary)	SurgerySpecialty
+Tt Ortho Surgery (Primary)	SurgerySpecialty
+Tt Ortho Trauma (Primary)	SurgerySpecialty
+Tt Ortho Tumor (Primary)	SurgerySpecialty
+Tt Pamf (Gen Surg) (Primary)	SurgerySpecialty
+Tt Pamf (Neurosurg) (Primary)	SurgerySpecialty
+Tt Pamf(Ent) (Primary)	SurgerySpecialty
+Tt Pamf(Ortho) (Primary)	SurgerySpecialty
+Tt Pamf(Plastics) (Primary)	SurgerySpecialty
+Tt Pamf(Urology) (Primary)	SurgerySpecialty
+Tt Plastic Surgery (Primary)	SurgerySpecialty
+Tt Plastic Surgery Consults (Primary)	SurgerySpecialty
+Tt Surgical Oncology (Primary)	SurgerySpecialty
+Tt Urology (Primary)	SurgerySpecialty
+Tt Vad (Primary)	SurgerySpecialty
+Tt Vascular Surgery (Primary)	SurgerySpecialty
+Tt Bmt (Bmt) (Primary)	Transplant
+Tt Bmt (Primary)	Transplant
+Tt Heart Lung Transplant (Primary)	Transplant
+Tt Heart Transplant/Vad (Primary)	Transplant
+Tt Kidney Pancreas Transplant (Primary)	Transplant
+Tt Liver Transplant (Primary)	Transplant
+Tt Lung Transplant (Primary)	Transplant
+Tt Med Tx Cards (Primary)	Transplant
+Tt Med Tx Hep (Primary)	Transplant
+Tt Med Tx Renal (Primary)	Transplant
+Tt Med Tx-Hep (Primary)	Transplant
+Tt Pulmonary Transplant (Primary)	Transplant
+Tt Acute Care Surgery Trauma (Primary)	Trauma

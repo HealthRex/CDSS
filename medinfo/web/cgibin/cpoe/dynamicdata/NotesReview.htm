@@ -1,0 +1,25 @@
+    <table class="dataTable" cellspacing=0 cellpadding=4 style="width: 100%%">
+        <tr valign=top>
+            <td class="subheading" colspan=100>
+                <input type=button value="Notes" onClick="loadNotes(this.form);" class="buttonSelected">
+                <input type=button value="Results Review" onClick="loadResults(this.form);">
+                <input type=button value="Active Orders" onClick="loadActiveOrders(this.form);">
+                <input type=button value="Order History" onClick="loadOrderHistory(this.form);">
+            </td>
+        </tr>
+        <tr>
+            <td class="labelCell" align=center>Type</td>
+            <td class="labelCell" align=center>Service</td>
+            <td class="labelCell" align=center>Author</td>
+            <td class="labelCell" align=center>Time</td>
+        </tr>
+        %(detailTable)s
+        <tr>
+            <td class="labelCell" colspan=100>Note Content</td>
+        </tr>
+        <tr>
+            <td colspan=100>
+                <div id="noteContentSpace" style="overflow-y: scroll; height: 600px">%(initialNoteContent)s</div>
+            </td>
+        </tr>
+    </table>

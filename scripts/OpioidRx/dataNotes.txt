@@ -1,0 +1,107 @@
+Data description for analysis of opioid prescribing patterns from the Stanford primary clinics (Family Medicine, SIM East, SIM West). Data notes:
+
+- Intervention: Introduction of Stanford Opioid Working group practice guidelines starting 9/2013
+
+- Pre- and Post- Intervention time periods assessed:
+11/1/2012-6/1/2013 vs.
+11/1/2013-6/1/2014
+
+============================
+== Clinic Wide Comparison ==
+============================
+
+[Pre] and [Post] Excel worksheets include summary statistics on the overall most common opioids prescribed in the clinics (across all patients, not just the chronic users), organized by active ingredient
+
+- 12879 total patients seen in the primary clinics during pre-period
+- 13066 total patients seen in the primary clinics during post-period
+
+- 5995 patients from pre-period, excluding possible oncology
+- 6477 patients from post-period, excluding possible oncology
+(??? Strange how this is less than half the total patient count.  I doubt the primary clinics see 50% current or former cancer patients.  We should probably just report these latter two numbers to avoid distracting confusion)
+
+[PrePostDifferenceAssess] Excel Worksheet
+Shows the counts, rates or averages for several opioid Rx metrics across all patients in the clinics during the pre- and post-periods, including the following.
+
+(Opioid Rx counted if active ingredients included Buprenorphine, Fentanyl, Hydrocodone, Hydromorphone, Methadone, Morphine, Oxycodone, Oxymorphone.  
+Notably, codeine was excluded to avoid confusion in prescription indication for pain/dependence vs. cough suppression)
+
+. Number of patients receiving 3 or more opioid Rx during time
+. Number of patients receiving 1 or more opioid Rx during time
+. Number of opioid Rx averaged across all patients
+. Morphine equivalents prescribed averaged across all patients
+Morphine equivalent quantities were based on conversion numbers in OpioidEquivalencyWorksheet.xlsx
+
+
+========================================
+== "Chronic User" Pre-Post Comparison ==
+========================================
+
+- Inclusion criteria:
+Receiving 3 or more opioid prescriptions from the primary clinics during the assessed time period.
+
+- Exclusion criteria:
+Possible cancer patient, defined as having any problem list entry with a cancer-related diagnosis or ever having an encounter / office visit with an oncology clinic
+
+== [PrePostDifferenceAssess] Excel worksheet with summary statistics, including: ==
+- 119 "chronic user" patients identified in pre-intervention group
+- 104 "chronic user" patients identified in post-intervention group
+(56 patients were in both groups)
+
+- Metrics were checked for pre- and post- intervention groups during their respective time periods assessed, including
+. Number of primary clinic opioid prescriptions
+. Morphine equivalents prescribed
+. Whether a urine drug screen was ordered by the primary clinic
+. Whether a referral was made to PT, Psych, Pain by the primary clinic
+. Number of actual visits to one of the above referrals at a Stanford site
+. Whether the patient had at least 2 office visits to the primary clinic
+. Number of visits to the Stanford ER
+. Number of opioid prescriptions from the Stanford ER
+
+- Baseline demographics were also checked for both groups, including:
+. Age
+. Gender
+. Race
+. Top unresolved problem list items
+
+
+== Comparison Methods ==
+Numerical metrics were compared between the groups by t-test. Categorical / percentage metrics were compared by chi-square test of the observed post-period counts vs. expected counts based on pre-period rates.
+
+(??? For simplicity, can just report pre-rate, post-rate, relative change = relative risk reduction, and P-value based on chi-square for categorical metrics.
+Relative Risk and Odds Ratios are calculated as well, but with the 95% CI calculated, the borderline significant findings by chi-square end up not appearing significant.  Maybe avoid or deemphasize these metrics then, unless reviewers request.???)
+
+
+
+
+===================================
+== Longitudinal Cohort Follow-up ==
+===================================
+Longitudinal cohort 
+- Inclusion criteria
+Same as pre-intervention group above
+- Exclusion criteria
+Same as pre-intervention group above, but also exclude those that do not have follow-up data in the post-intervention period.  Assess this based on whether the patient has any encounter data with a primary clinic during the post-intervention period (including office visits, phone calls, refills, emails).
+
+The above narrowed the 119 patients down to 100
+- Metrics assessed for the cohort were then assessed during the pre-intervention and post-intervention follow-up time periods, including:
+. Number of clinic opioid prescriptions
+. Morphine equivalents prescribed
+. Whether a urine drug screen was ordered by the primary clinic
+. Number of actual visits to one of the above referrals at a Stanford site
+. Number of visits to the Stanford ER
+. Number of opioid prescriptions from the Stanford ER
+
+[CohortPreFollowupDiffAssess]
+Shows the summary results of the above, some itemized below
+
+100 chronic users in pre-intervention group with longitudinal data
+7.67 average opioid Rx count in pre-period, down to
+5.52 average in post-period
+Difference with P<10^-6 by t-test
+ 
+100 chronic users in pre-intervention group with longitudinal data
+All 100 receive at least 1 opioid Rx in pre-period (by definition they receive at least 3)
+75 are still receiving 1 or more opioid Rx in post-period (means 25 stopped receiving opioids altogether)
+56 are still “chronic users” receiving 3 or more opioid Rx in post-period
+I can’t even calculate P-values by chi-square above since the pre-intervention non-opioidRx count is 0 by definition of the patient selection
+ 

@@ -1,0 +1,159 @@
+<html>
+<head>
+<title>Patient Management Simulation Setup</title>
+<link rel="stylesheet" type="text/css" href="../../resource/stylesBasic.css">
+<link rel="stylesheet" type="text/css" href="../../resource/stylesBlue.css">
+
+<script src="../../resource/toolkit.js"></script>
+
+<script language="JavaScript">
+var AJAX_LOADER_HTML = '<br><br><img src="../../resource/ajax-loader.gif">';
+
+/**
+ * Initial load and startup
+ */
+function initPage()
+{
+}
+
+</script>
+
+</head>
+<body topmargin=0 leftmargin=0 onLoad="initPage();">
+
+<TABLE BORDER=0 CELLPADDING=0 CELLSPACING=0 width="100%%" class="headingTable">
+   <TR>
+      <TD class="heading" nowrap>
+         &nbsp; Patient Management Simulation Setup
+      </td>
+      <td class="heading" nowrap align=right colspan=99>
+        &nbsp;
+      </td>
+   </tr>
+   <tr>
+      <td height=1 class="line" colspan=100></td>
+   </tr>
+   <tr>
+      <td height=1 class="line" colspan=100></td>
+   </tr>
+</table>
+
+<table border=0 cellpadding=0 cellspacing=10 width="100%%">
+<tr>
+<td>
+
+<form name="%(WEB_CLASS)s" action="PatientCareFrame.py" method=post>
+    <table cellspacing=0 cellpadding=4 border=0 class="dataTable">
+        <tr valign=bottom>
+            <th class="subheading" colspan=3>Simulation Setup</th>
+        </tr>
+        <tr valign=bottom>
+            <th>User</th>
+            <th>Patient</th>
+            <th>Options</th>
+        </tr>
+        <tr valign=top>
+            <td>
+                <select name="sim_user_id" size=10>
+                %(userOptions)s
+                </select>
+            </td>
+            <td>
+                <select name="sim_patient_id" size=10>
+                %(patientOptions)s
+                </select>
+            </td>
+            <td>
+                <input type="checkbox" name="autoQuery" value="checked" checked>Auto Query<br>
+            </td>
+        </tr>
+        <tr>
+            <td colspan=100>
+                <input type=submit value="Proceed to Simulation">
+            </td>
+        </tr>
+    </table>
+</form>
+<form name="%(WEB_CLASS)s" action="%(WEB_CLASS)s.py" method=post>
+    <table cellspacing=0 cellpadding=4 border=0 class="dataTable">
+        <tr valign=bottom>
+            <th class="subheading">New User</th>
+        </tr>
+        <tr valign=bottom>
+            <th>Name</th>
+        </tr>
+
+        <tr valign=top>
+            <td><input type=text name="sim_user_name" size=10></td>
+        </tr>
+        <tr>
+            <td colspan=100>
+                <input type=submit name="createUser" value="Create User">
+            </td>
+        </tr>
+    </table>
+    <br>
+    <table cellspacing=0 cellpadding=4 border=0 class="dataTable">
+        <tr valign=bottom>
+            <th class="subheading" colspan=100>Copy Patient Template</th>
+        </tr>
+        <tr valign=bottom>
+            <th>New Name</th>
+            <th>Template Patient</th>
+        </tr>
+        <tr valign=top>
+            <td><input type=text name="sim_patient_name" size=10></td>
+            <td>
+                <select name="sim_patient_id">
+                %(patientOptions)s
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan=100>
+                <input type=submit name="copyPatientTemplate" value="Copy Patient Template">
+            </td>
+        </tr>
+    </table>
+    <!--
+    <table cellspacing=0 cellpadding=4 border=0 class="dataTable">
+        <tr valign=bottom>
+            <th class="subheading" colspan=100>New Patient</th>
+        </tr>
+        <tr valign=bottom>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Name</th>
+            <th>Initial State</th>
+        </tr>
+        <tr valign=top>
+            <td><input type=text name="sim_patient_age_years" size=3></td>
+            <td>
+                <select name="sim_patient_gender">
+                    <option>Male</option>
+                    <option>Female</option>
+                </select>
+            </td>
+            <td><input type=text name="sim_patient_name" size=10></td>
+            <td>
+                <select name="sim_state_id">
+                %(stateOptions)s
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td colspan=100>
+                <input type=submit name="createPatient" value="Create Patient">
+            </td>
+        </tr>
+    </table>
+    -->
+
+</form>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

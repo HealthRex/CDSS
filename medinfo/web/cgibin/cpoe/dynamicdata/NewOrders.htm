@@ -1,0 +1,31 @@
+    <table class="dataTable" cellspacing=0 cellpadding=4 style="width: 100%%">
+        <tr valign=bottom>
+            <th class="subheading" style="width: 80%%" align=right>
+                <input type=text name="orderSearch" style="width:100%%">
+            </th>
+            <th class="subheading" align=right nowrap>
+                <!-- First Submit button so will be default action when click Enter in search box.  Return false so won't actually change current page (defer to dynamic subjection load) -->
+                <input type=submit value="Find Orders" onClick="searchOrders(this.form.orderSearch); return false;">
+                <input type=button value="Order Sets" onClick="searchOrderSets(this.form.orderSearch)">
+                <input type=button value="Diagnoses" onClick="searchDiagnoses(this.form.orderSearch)">
+            </th>
+        </tr>
+        <tr>
+            <td class="labelCell" colspan=2>
+                New Orders
+            </td>
+        </tr>
+        <tr valign=top>
+            <td colspan=2>
+                <table cellspacing=0 cellpadding=0 width=100%%>
+                    <tr valign=top>
+                        <td id="newOrdersDetailSpace">
+                        </td>
+                        <td align=right valign=bottom>
+                            <input type=submit name="signOrders" value="Sign Orders">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>

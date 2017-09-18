@@ -1,0 +1,95 @@
+BODY, TD, P, PRE
+{
+   color: #000000;
+}
+
+a
+{
+   color: #0000ff;
+}
+
+a.breadcrumb
+{
+   color:   #ffffff;
+}
+
+.navLinks
+{
+   color:            #00000;
+   background-color: #99BDDB; 
+   font-weight:      bold;
+}
+
+
+.text
+{
+   color: #000000;
+   font-weight: normal;
+}
+
+.content
+{
+   color: #000000;
+   background-color: #ffffff;
+}
+
+.labelCell
+{
+   color: #000000;
+   background-color: #99BDDB; 
+   font-weight:      bold;
+}
+
+.subheading
+{
+   color:            #ffffff;
+   background-color: #637B9C;
+   font-weight:      bold;
+}
+
+TH
+{
+   color:            #000000;
+   background-color: #99BDDB;
+   font-weight:      bold;
+}
+
+.heading
+{
+   color:            #ffffff;
+   background-color: #637B9C;
+   font-weight:      bold;
+   font-style:       italic;
+   font-size:        16pt;
+}
+
+.dataTable
+{
+   border: solid #000000 1px;
+   color: #000000;
+   background-color: #ffffff;
+}
+
+.line
+{
+   background-color: #000000;
+   padding: 0px;
+}
+
+.softLine
+{
+   background-color: #99BDDB;
+   padding: 0px;
+}
+
+input
+{
+   /*border:              solid #000000 1px;*/
+   color:               #000000;
+   /*background-color:    #e0e0e0;*/
+}
+
+.buttonSelected
+{
+   font-weight:      bold;
+}

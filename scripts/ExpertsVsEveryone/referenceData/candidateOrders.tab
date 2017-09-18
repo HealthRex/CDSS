@@ -1,0 +1,1966 @@
+clinical_item_category_id	source_table	description	external_id	clinical_item_id	name	description	item_count	patient_count
+4	stride_order_proc	Nursing	472897	45755	NUR1018	MONITOR INTAKE AND OUTPUT	13536	8435
+72	stride_order_med	Med (Intravenous)	9863	44198	RXCUI9863	Sodium Chloride (Intravenous)	28321	8401
+4	stride_order_proc	Nursing	508587	45849	NUR301	SEQUENTIAL COMPRESSION DEVICE (SCD)	14462	8336
+6	stride_order_proc	Lab	472837	45763	LABMETB	METABOLIC PANEL, BASIC	27200	8252
+6	stride_order_proc	Lab	471944	45788	LABCBCD	CBC WITH DIFF	23093	7664
+4	stride_order_proc	Nursing	4.73E+05	45750	NUR1043	NURSING PULSE OXIMETRY	13512	7544
+4	stride_order_proc	Nursing	489387	61823	NUR1613	PERIPHERAL IV INSERTION CARE	12439	7394
+6	stride_order_proc	Lab	471943	45793	LABCBCO	CBC	20118	6797
+73	stride_order_med	Med (Oral)	82003	44205	RXCUI82003	Docusate (Oral)	13143	6468
+6	stride_order_proc	Lab	472838	45771	LABMETC	METABOLIC PANEL, COMPREHENSIVE	16933	6391
+4	stride_order_proc	Nursing	472898	45781	NUR1019	INCENTIVE SPIROMETER (WHILE AWAKE)	8638	6174
+14	stride_order_proc	REHAB	473186	45776	PT4	PT EVALUATE AND TREAT	12748	6111
+6	stride_order_proc	Lab	473178	45759	LABPT	PROTHROMBIN TIME	19314	5915
+17	stride_order_proc	ECG	472256	45866	EKG5	ECG 12-LEAD	15464	5820
+4	stride_order_proc	Nursing	472966	48515	NUR1060	EARLY AMBULATION	7812	5774
+6	stride_order_proc	Lab	472785	45806	LABMGN	MAGNESIUM, SERUM/PLASMA	18878	5731
+14	stride_order_proc	REHAB	473044	45787	OT1	OT EVALUATE AND TREAT	10499	5477
+4	stride_order_proc	Nursing	871568	61824	NUR30024	DISCHARGE PATIENT WHEN CRITERIA MET	6686	5420
+4	stride_order_proc	Nursing	539845	61974	NUR30022	ADMIT TO PHASE	6611	5390
+9	stride_order_proc	Diet	472172	45811	DIET102	DIET NPO	10886	5276
+4	stride_order_proc	Nursing	472903	45911	NUR1024	VITAL SIGNS PER PROTOCOL	6360	5250
+4	stride_order_proc	Nursing	472977	45766	NUR1068	WEIGHT	8833	5162
+4	stride_order_proc	Nursing	489147	61978	NUR1373	FOLEY RETENTION CATHETER	6401	4790
+4	stride_order_proc	Nursing	572442	45900	NUR4030	OXYGEN: NASAL CANNULA(NURSING ONLY)	7232	4740
+8	stride_order_proc	Imaging	473939	45818	IMGDXCH1	XR CHEST 1V	16557	4713
+21	stride_order_proc	PT	508694	45758	PT6	PT ONGOING TREATMENT	5911	4468
+6	stride_order_proc	Lab	473190	45770	LABPTT	PTT PARTIAL THROMBOPLASTIN TIME	12141	4312
+6	stride_order_proc	Lab	473702	45945	LABTYPSNI	TYPE AND SCREEN	8660	4185
+72	stride_order_med	Med (Intravenous)	3423	44319	RXCUI3423	Hydromorphone (Intravenous)	10392	4014
+72	stride_order_med	Med (Intravenous)	2180	44255	RXCUI2180	Cefazolin (Intravenous)	6634	3976
+73	stride_order_med	Med (Oral)	40790	44236	RXCUI40790	Pantoprazole (Oral)	6770	3963
+6	stride_order_proc	Lab	633173	45823	LABARVI	BLOOD TYPE VERIFICATION	4334	3899
+15	stride_order_proc	Microbiology	473204	45792	LABROMRS	MRSA SCREEN	9786	3876
+9	stride_order_proc	Diet	472154	45784	DIET101	DIET CLEAR LIQUID	5553	3856
+10	stride_order_proc	OT	489056	45854	OT2	OT ONGOING TREATMENT	4718	3852
+4	stride_order_proc	Nursing	624803	45864	NUR4067	OXYGEN ADMINISTRATION	4250	3628
+4	stride_order_proc	Nursing	473760	45827	NUR1231	CARDIAC MONITOR	6441	3599
+74	stride_order_med	Med (Subcutaneous)	5224	44222	RXCUI5224	Heparin (Subcutaneous)	5955	3596
+24	stride_order_proc	Pathology	473385	45879	LABSURG	SURGICAL PROCEDURE	4297	3537
+6	stride_order_proc	Lab	473730	45751	LABUA	URINALYSIS WITH MICROSCOPIC	7090	3407
+6	stride_order_proc	Lab	473103	45778	LABPHOS	PHOSPHORUS, SERUM/PLASMA	10076	3348
+74	stride_order_med	Med (Subcutaneous)	67108	44250	RXCUI67108	Enoxaparin (Subcutaneous)	6761	3213
+4	stride_order_proc	Nursing	472939	46041	NUR1044	NURSING PULSE OXIMETRY (SPOT CHECK)	4228	3210
+73	stride_order_med	Med (Oral)	161	44281	RXCUI161	Acetaminophen (Oral)	5415	3198
+4	stride_order_proc	Nursing	489437	45795	NUR1664	SALINE LOCK AND FLUSH	4202	3184
+73	stride_order_med	Med (Oral)	221147	44317	RXCUI221147	Polyethylene Glycol 3350 (Oral)	5023	3127
+72	stride_order_med	Med (Intravenous)	14863	44201	MED14863	Glucose-Potassium Chloride-Sodium Chloride (Intravenous)	4469	3124
+4	stride_order_proc	Nursing	518145	45808	NUR323	TEMPERATURE THERAPY	3400	3035
+16	stride_order_proc	Blood Bank	473215	45927	LABBBPRBC	RED BLOOD CELLS	8804	2969
+8	stride_order_proc	Imaging	473940	45801	IMGDXCH2	XR CHEST 2V	5053	2965
+4	stride_order_proc	Nursing	668490	48547	20100002	MODERATE RISK DVT/PE PROPHYLAXIS	3480	2934
+15	stride_order_proc	Microbiology	471779	45752	LABBLC	BLOOD CULTURE (AEROBIC & ANAEROBIC BOTTLES)	6212	2909
+6	stride_order_proc	Lab	473732	45873	LABUAPRN	URINALYSIS, SCREEN FOR CULTURE	6575	2873
+73	stride_order_med	Med (Oral)	8591	44231	RXCUI8591	Potassium Chloride (Oral)	8668	2860
+15	stride_order_proc	Microbiology	497231	45901	LABBLC2	BLOOD CULTURE (2 AEROBIC BOTTLES)	5915	2835
+72	stride_order_med	Med (Intravenous)	40790	44219	RXCUI40790	Pantoprazole (Intravenous)	4476	2818
+73	stride_order_med	Med (Oral)	1191	44206	RXCUI1191	Aspirin (Oral)	6074	2803
+73	stride_order_med	Med (Oral)	36387	44274	RXCUI36387	Sennosides, Usp (Oral)	4439	2785
+6	stride_order_proc	Lab	471780	45760	LABABG	BLOOD GASES, ARTERIAL	9445	2730
+25	stride_order_proc	Precaution	624829	45841	PRE5	FALL RISK PRECAUTIONS	3593	2709
+6	stride_order_proc	Lab	471818	45887	LABCAI	CALCIUM IONIZED, SERUM/PLASMA	5456	2591
+4	stride_order_proc	Nursing	473059	45924	NUR1094	AMBULATE WITH ASSISTANCE	2865	2555
+4	stride_order_proc	Nursing	471838	45973	NUR672	CONVERT IV TO SALINE LOCK	2820	2462
+6	stride_order_proc	Lab	473684	45870	LABTNI	TROPONIN I	6734	2461
+15	stride_order_proc	Microbiology	473734	45782	LABURNC	URINE CULTURE	5339	2434
+74	stride_order_med	Med (Subcutaneous)	86009	44215	RXCUI86009	Insulin Lispro (Subcutaneous)	8035	2422
+6	stride_order_proc	Lab	472505	45797	LABA1C	HEMOGLOBIN A1C	3926	2417
+72	stride_order_med	Med (Intravenous)	4318	44439	MED4318	Calcium Chloride-Lactate-Potassium Chloride-Sodium Chloride (Intravenous)	2978	2241
+32	stride_order_proc	ECHO	472301	61832	ECH15	ECHO - TRANSTHORACIC ECHO +DOPPLER	3694	2223
+72	stride_order_med	Med (Intravenous)	11124	43997	RXCUI11124	Vancomycin (Intravenous)	7652	2220
+9	stride_order_proc	Diet	560454	46008	DIET131	DIET NPO AFTER MIDNIGHT	3950	2179
+4	stride_order_proc	Nursing	473420	45912	NUR1208	BEDREST	2724	2168
+72	stride_order_med	Med (Intravenous)	6585	44213	RXCUI6585	Magnesium Sulfate (Intravenous)	5568	2146
+31	stride_order_proc	NOURISHMENTS	472173	45937	DIET122	DIET NUTRITIONAL SUPPLEMENTS	4786	2119
+72	stride_order_med	Med (Intravenous)	161	56492	RXCUI161	Acetaminophen (Intravenous)	2981	2115
+73	stride_order_med	Med (Oral)	25480	44229	RXCUI25480	Gabapentin (Oral)	5219	2056
+3	stride_order_proc	Point of Care Testing	572612	45838	LABPCTNI	ISTAT TROPONIN I	2860	2053
+34	stride_order_proc	Consult	472669	46050	CON100	CONSULT TO NUTRITION	2892	2053
+4	stride_order_proc	Nursing	472091	61830	NUR810	I&O DRAINS OUPUT	2306	2052
+4	stride_order_proc	Nursing	472892	45799	NUR1013	OOB/UP IN CHAIR WITH ASSIST	2415	2028
+9	stride_order_proc	Diet	589836	65639	DC1	DISCHARGE DIET	2276	1982
+72	stride_order_med	Med (Intravenous)	26225	44216	RXCUI26225	Ondansetron (Intravenous)	3139	1953
+73	stride_order_med	Med (Oral)	7804	44023	RXCUI7804	Oxycodone (Oral)	5004	1924
+73	stride_order_med	Med (Oral)	89905	44291	RXCUI89905	Multivitamin Preparation (Oral)	3128	1865
+72	stride_order_med	Med (Intravenous)	16426	44220	MED16426	Potassium Chloride-Sodium Chloride (Intravenous)	2372	1839
+3	stride_order_proc	Point of Care Testing	591304	45914	POC24	POC ISTAT TROPONIN I	2455	1835
+72	stride_order_med	Med (Intravenous)	4603	44004	RXCUI4603	Furosemide (Intravenous)	9644	1822
+6	stride_order_proc	Lab	472517	45910	LABHFP	HEPATIC FUNCTION PANEL A	3507	1809
+4	stride_order_proc	Nursing	519463	45785	20100001	NO PHARMALOGICAL PROPHYLAXIS INDICATED	2101	1791
+73	stride_order_med	Med (Oral)	6918	44005	RXCUI6918	Metoprolol (Oral)	4735	1762
+4	stride_order_proc	Nursing	572384	46150	NUR4005	DRAIN CARE	2094	1758
+4	stride_order_proc	Nursing	471971	45777	NUR762	NEUROLOGICAL CHECKS	2835	1749
+3	stride_order_proc	Point of Care Testing	591288	45955	POC16	POC ISTAT,VENOUS BLOOD GASES AND LACTATE (CG4)	2402	1734
+4	stride_order_proc	Nursing	489176	61983	NUR1402	HEAD OF BED 30 DEGREE	2081	1725
+6	stride_order_proc	Lab	473689	45772	LABTSH	TSH	2382	1719
+6	stride_order_proc	Lab	473107	46090	LABPLTS	PLATELET COUNT	2684	1712
+4	stride_order_proc	Nursing	472914	45934	NUR1035	HEIGHT	2080	1707
+3	stride_order_proc	Point of Care Testing	472682	46020	LABPCCG4V	ISTAT CG4,VENOUS	2366	1702
+4	stride_order_proc	Nursing	489556	45925	NUR1783	WEIGHT BEARING STATUS	2345	1658
+7	stride_order_proc	Respiratory Care	549822	45830	RT109	RESP - NEBULIZER	4585	1641
+72	stride_order_med	Med (Intravenous)	8591	44283	RXCUI8591	Potassium Chloride (Intravenous)	4938	1597
+6	stride_order_proc	Lab	472752	45894	LABLIPS	LIPASE	2480	1517
+73	stride_order_med	Med (Oral)	4278	44264	RXCUI4278	Famotidine (Oral)	2933	1512
+34	stride_order_proc	Consult	508096	49207	CON310	CONSULT TO MEDICINE	1853	1510
+79	stride_order_med	Med (Injection)	6387	44244	RXCUI6387	Lidocaine (Injection)	2322	1499
+6	stride_order_proc	Lab	890505	62151	LABLACWB	LACTATE, WHOLE BLOOD	4793	1499
+71	stride_order_med	Med (Topical)	6387	46307	RXCUI6387	Lidocaine (Topical)	2372	1493
+6	stride_order_proc	Lab	472500	45891	LABHCTX	HEMATOCRIT	2261	1492
+8	stride_order_proc	Imaging	473818	45983	IMGCTH	CT HEAD	2666	1492
+6	stride_order_proc	Lab	497520	45972	LABVANPRL	VANCOMYCIN TROUGH LEVEL	5764	1464
+72	stride_order_med	Med (Intravenous)	2193	35733	RXCUI2193	Ceftriaxone (Intravenous)	2530	1447
+29	stride_order_proc	Nursing Referral	496694	45816	CON301	CONSULT TO CASE MANAGEMENT	1643	1439
+12	stride_order_proc	Procedures	3.04E+09	63763	2109357B	CENTRAL LINE SEPTEMBER	2233	1431
+29	stride_order_proc	Nursing Referral	496695	46076	CON302	CONSULT TO SOCIAL WORK	1842	1429
+4	stride_order_proc	Nursing	489285	46025	NUR1511	MAY GO OFF MONITOR FOR PROCEDURE	1658	1424
+4	stride_order_proc	Nursing	471973	46216	NUR764	NEUROVASCULAR ASSESSMENT	1784	1418
+8	stride_order_proc	Imaging	473962	46096	IMGDXAB1	XR ABDOMEN 1V	3738	1408
+72	stride_order_med	Med (Intravenous)	96559	44237	MED96559	Glucose-Piperacillin-Tazobactam (Intravenous)	2314	1406
+4	stride_order_proc	Nursing	877055	61840	NUR30029	PATIENT ON ACTIVE PROTOCOL	2890	1384
+73	stride_order_med	Med (Oral)	83367	44240	RXCUI83367	Atorvastatin (Oral)	2334	1377
+6	stride_order_proc	Lab	473371	61842	LABCDTPCR	C.DIFF TOXIN B GENE, QUAL. REAL-TIME PCR	3359	1375
+30	stride_order_proc	Cast Room	489371	45881	CR131	OVERHEAD BED FRAME & TRAPEZE	1591	1349
+72	stride_order_med	Med (Intravenous)	4337	44297	RXCUI4337	Fentanyl (Intravenous)	2563	1345
+4	stride_order_proc	Nursing	660646	61825	NUR3001	SWALLOW ASSESSSMENT	1752	1342
+3	stride_order_proc	Point of Care Testing	472691	45753	LABPCG3	ISTAT G3+, ARTERIAL	20746	1331
+8	stride_order_proc	Imaging	473830	45858	IMGCTAP	CT ABDOMEN PELVIS	2116	1328
+74	stride_order_med	Med (Subcutaneous)	95140	44202	MED95140	Pneumococcal Capsular Polysaccharide Type 1 Vaccine-Pneumococcal Capsular Polysaccharide Type 10A Vaccine-Pneumococcal Capsular Polysaccharide Type 11A Vaccine-Pneumococcal Capsular Polysaccharide Type 12F Vaccine-Pneumococcal Capsular Polysaccharide Type (...)	1563	1314
+57	stride_order_proc	Transfusion Communication	472138	61975	NUR821	TRANSFUSE RBC (DOES NOT ORDER PRODUCT)	4336	1307
+73	stride_order_med	Med (Oral)	10582	35847	RXCUI10582	Thyroxine (Oral)	2272	1298
+9	stride_order_proc	Diet	472153	45796	DIET112	DIET CARBOHYDRATE CONTROLLED	2458	1283
+4	stride_order_proc	Nursing	472891	45930	NUR1012	OOB/UP IN CHAIR	1411	1279
+73	stride_order_med	Med (Oral)	17767	44207	RXCUI17767	Amlodipine (Oral)	2739	1278
+74	stride_order_med	Med (Subcutaneous)	253182	44268	RXCUI253182	Regular Insulin, Human (Subcutaneous)	2624	1274
+34	stride_order_proc	Consult	621219	48916	CON403	CONSULT TO DIABETES TEAM	1772	1271
+72	stride_order_med	Med (Intravenous)	1908	44307	RXCUI1908	Calcium Gluconate (Intravenous)	2777	1265
+73	stride_order_med	Med (Oral)	4603	44022	RXCUI4603	Furosemide (Oral)	3452	1265
+73	stride_order_med	Med (Oral)	52356	44411	RXCUI52356	Magnesium Citrate (Oral)	1489	1233
+73	stride_order_med	Med (Oral)	29046	44357	RXCUI29046	Lisinopril (Oral)	2576	1225
+4	stride_order_proc	Nursing	572444	45965	NUR4031	KEEP HEAD OF BED ELEVATED	1485	1211
+4	stride_order_proc	Nursing	506537	46160	NUR2116	ED VITALS	1364	1204
+73	stride_order_med	Med (Oral)	24947	44227	RXCUI24947	Ferrous Sulfate (Oral)	2063	1185
+43	stride_order_proc	NSG PICC Refer	489388	48555	NUR1614	PICC LINE PLACEMENT	1681	1169
+6	stride_order_proc	Lab	472249	45941	LABDOA	DRUGS OF ABUSE SCREEN, URINE	1976	1154
+73	stride_order_med	Med (Oral)	2551	44249	RXCUI2551	Ciprofloxacin (Oral)	2339	1143
+6	stride_order_proc	Lab	471781	45919	LABVBG	BLOOD GASES, VENOUS	3701	1129
+4	stride_order_proc	Nursing	489302	46119	NUR1528	MONITOR ARTERIAL LINE	1261	1120
+72	stride_order_med	Med (Intravenous)	5224	44359	RXCUI5224	Heparin (Intravenous)	4047	1113
+86	stride_order_med	Med (Swish & Spit)	2358	44287	RXCUI2358	Chlorhexidine (Swish & Spit)	1472	1108
+72	stride_order_med	Med (Intravenous)	7052	44294	RXCUI7052	Morphine (Intravenous)	1800	1085
+6	stride_order_proc	Lab	473019	45853	LABNTBNP	NT - PROBNP	1752	1080
+72	stride_order_med	Med (Intravenous)	14858	44316	MED14858	Glucose-Potassium Chloride-Sodium Chloride (Intravenous)	1209	1077
+21	stride_order_proc	PT	876753	61854	PT20	PT - NO SKILLED THERAPY NEEDS	1151	1076
+4	stride_order_proc	Nursing	489313	65649	NUR1539	INSERT NASOGASTRIC TUBE	1945	1072
+9	stride_order_proc	Diet	472168	61989	DIET103	DIET SODIUM RESTRICTED	2114	1069
+34	stride_order_proc	Consult	506905	46037	CON361	NSG REFERRAL TO CASE MGMT	1313	1067
+75	stride_order_med	Med (Inhalation)	78668	44349	MED78668	Albuterol-Ipratropium (Inhalation)	2002	1064
+6	stride_order_proc	Lab	473125	45861	LABK	POTASSIUM, SERUM/PLASMA	1969	1057
+7	stride_order_proc	Respiratory Care	549820	45857	RT108	RESP - MDI	2012	1056
+4	stride_order_proc	Nursing	489361	48593	NUR1587	OK TO USE PICC LINE	1425	1052
+22	stride_order_proc	Code Status	472206	63717	COD1	DNR/DNI	2148	1023
+6	stride_order_proc	Lab	472035	45892	LABMB	CK, MB (MASS)	2222	1016
+72	stride_order_med	Med (Intravenous)	4278	44245	RXCUI4278	Famotidine (Intravenous)	1212	1011
+8	stride_order_proc	Imaging	473912	45852	IMGCTAPW	CT ABDOMEN PELVIS W CONTRAST	1331	998
+7	stride_order_proc	Respiratory Care	3.50E+10	45832	RT104	RESP - VENTILATOR SETTINGS	5338	995
+73	stride_order_med	Med (Oral)	8640	44011	RXCUI8640	Prednisone (Oral)	3135	993
+4	stride_order_proc	Nursing	489362	45842	NUR1588	OOB	1168	989
+4	stride_order_proc	Nursing	471970	46177	NUR761	CHANGE IV TUBING	1234	989
+4	stride_order_proc	Nursing	489397	46055	NUR1623	PRESSURE ULCER PREVENTION PROTOCOL	1226	980
+4	stride_order_proc	Nursing	471975	61831	NUR766	CHANGE PICC DRESSING	1231	980
+76	stride_order_med	Med (Rectal)	1596	44217	RXCUI1596	Bisacodyl (Rectal)	1355	974
+6	stride_order_proc	Lab	4.73E+05	61837	LABLPD	LIPID PANEL WITH DIRECT LDL	1229	968
+72	stride_order_med	Med (Intravenous)	540115	44290	MED540115	Calcium Chloride-Lactate-Potassium Chloride-Sodium Chloride (Intravenous)	2609	967
+6	stride_order_proc	Lab	471806	46044	LABCRP	C - REACTIVE PROTEIN	1614	955
+6	stride_order_proc	Lab	472730	45903	LABLDH	LDH TOTAL, SERUM / PLASMA	2230	952
+72	stride_order_med	Med (Intravenous)	48937	35969	RXCUI48937	Dexmedetomidine (Intravenous)	2021	952
+37	stride_order_proc	Restraints	472829	62006	RES5	NON-VIOLENT RESTRAINTS	3394	950
+73	stride_order_med	Med (Oral)	36567	44254	RXCUI36567	Simvastatin (Oral)	1527	948
+4	stride_order_proc	Nursing	668489	48852	20100005	VTE NOT ORDERED	1108	947
+72	stride_order_med	Med (Intravenous)	6470	44276	RXCUI6470	Lorazepam (Intravenous)	1712	941
+25	stride_order_proc	Precaution	473079	45893	PRE3	ASPIRATION PRECAUTIONS	1170	935
+72	stride_order_med	Med (Intravenous)	35827	44301	RXCUI35827	Ketorolac (Intravenous)	1164	910
+4	stride_order_proc	Nursing	572446	46168	NUR4032	DISCONTINUE	1105	907
+9	stride_order_proc	Diet	879421	62081	DIET137	DIET NPO AFTER MIDNIGHT FOR SURGERY	1415	902
+72	stride_order_med	Med (Intravenous)	828529	44275	RXCUI828529	Albumin Human, Usp (Intravenous)	4215	891
+8	stride_order_proc	Imaging	474106	46039	IMGMRH	MR BRAIN	1396	891
+15	stride_order_proc	Microbiology	472484	46006	LABGRAM	GRAM STAIN	1893	884
+8	stride_order_proc	Imaging	474086	62052	IMGDXFL1HRGR	XR FLUORO OVER 1 HOUR WO RADIOLOGIST	1014	879
+4	stride_order_proc	Nursing	572375	46080	NUR4001	SPECIALTY BEDS	1206	874
+73	stride_order_med	Med (Oral)	1151	44325	RXCUI1151	Ascorbic Acid (Oral)	1315	872
+15	stride_order_proc	Microbiology	473239	46179	LABRESP	RESPIRATORY CULTURE	2400	872
+8	stride_order_proc	Imaging	473996	46118	IMGDXPEL	XR PELVIS 1V	1335	862
+4	stride_order_proc	Nursing	668491	48535	20100003	HIGH RISK DVT/PE PROPHYLAXIS	937	851
+3	stride_order_proc	Point of Care Testing	473370	50267	POC5	POC STOOL - OCCULT BLOOD EXAM (UNIT PERFORMED)	1216	851
+72	stride_order_med	Med (Intravenous)	15861	44203	MED15861	Glucose-Sodium Chloride (Intravenous)	1084	847
+15	stride_order_proc	Microbiology	472432	46103	LABFCUL	FUNGAL CULTURE	1889	847
+4	stride_order_proc	Nursing	891498	61999	NUR0830	REMOVE COBAN WRAP	1010	842
+3	stride_order_proc	Point of Care Testing	472684	46098	LABPCCR	ISTAT CREATININE	896	835
+4	stride_order_proc	Nursing	871152	62012	NUR130000	OK TO USE TUBE/LINE	1369	834
+15	stride_order_proc	Microbiology	471619	45826	LABANER	ANAEROBIC CULTURE	1525	830
+14	stride_order_proc	REHAB	473336	46148	SLP2	SLP EVALUATE AND TREAT	1352	827
+73	stride_order_med	Med (Oral)	11289	44234	RXCUI11289	Warfarin (Oral)	3912	824
+4	stride_order_proc	Nursing	489222	45952	NUR1448	JACKSON PRATT DRAIN	874	823
+21	stride_order_proc	PT	667706	45961	PT11	PT GAIT TRAINING	936	822
+10	stride_order_proc	OT	876754	61863	OT20	OT - NO SKILLED THERAPY NEEDS	860	822
+72	stride_order_med	Med (Intravenous)	96560	44391	MED96560	Glucose-Piperacillin-Tazobactam (Intravenous)	1243	819
+16	stride_order_proc	Blood Bank	472423	45872	LABBBPFFP	FRESH FROZEN PLASMA PRODUCT	2419	819
+84	stride_order_med	Med (Intramuscular)	540894	60166	MED540894	INFLUENZA 2013-14 VAC (PF) (FLUZONE) SYRG (FOR AGE >= 36 MO)	1132	816
+8	stride_order_proc	Imaging	519244	65672	IMGUSNVLOW	US RADIOLOGY VEIN LOWER EXTREMITY BILATERAL RULE OUT DVT	989	800
+73	stride_order_med	Med (Oral)	77492	44345	RXCUI77492	Tamsulosin (Oral)	1447	789
+35	stride_order_proc	SLP	644244	45916	SLP11	SLP SWALLOW ONGOING TREATMENT	957	785
+7	stride_order_proc	Respiratory Care	473052	45921	RT84	RESP - OXYGEN ADMINISTRATION	1275	779
+7	stride_order_proc	Respiratory Care	472340	45768	RT75	RESP - EXTUBATION	1001	776
+35	stride_order_proc	SLP	644242	45960	SLP10	SLP SWALLOW EVALUATE AND TREAT (AT BEDSIDE)	1017	772
+8	stride_order_proc	Imaging	474322	45869	IMGUSAB1	US ABDOMEN	1047	770
+73	stride_order_med	Med (Oral)	26225	44420	RXCUI26225	Ondansetron (Oral)	1413	768
+6	stride_order_proc	Lab	472104	45895	LABCK	CREATINE KINASE, TOTAL	1387	761
+73	stride_order_med	Med (Oral)	20352	44340	RXCUI20352	Carvedilol (Oral)	2076	760
+73	stride_order_med	Med (Oral)	140587	46789	RXCUI140587	Celecoxib (Oral)	1330	756
+4	stride_order_proc	Nursing	518164	46034	NUR324	PAIN ASSESSMENT	960	751
+72	stride_order_med	Med (Intravenous)	6918	44327	RXCUI6918	Metoprolol (Intravenous)	1559	751
+6	stride_order_proc	Lab	472369	45922	LABFER	FERRITIN	1025	746
+72	stride_order_med	Med (Intravenous)	3498	44358	RXCUI3498	Diphenhydramine (Intravenous)	1398	744
+16	stride_order_proc	Blood Bank	473112	45875	LABBBPPLT	PLATELET APHERESIS PRODUCT	3725	744
+6	stride_order_proc	Lab	473764	46024	LABB12	VITAMIN B12	984	743
+9	stride_order_proc	Diet	870928	61841	DIET150	DIET FULL LIQUID	985	743
+6	stride_order_proc	Lab	473295	48790	LABESRP	SEDIMENTATION RATE (ESR)	1147	737
+6	stride_order_proc	Lab	473413	45929	LABFT4	T4, FREE	971	732
+4	stride_order_proc	Nursing	508589	45998	NUR2247	MONITOR CENTRAL LINE	845	725
+72	stride_order_med	Med (Intravenous)	-1.20E+17	44006	RXCUI55018,34322	Dibasic Potassium Phosphate-Potassium Phosphate (Intravenous)	1659	724
+7	stride_order_proc	Respiratory Care	549818	45890	RT107	RESP - ABG PUNCTURE	1372	723
+15	stride_order_proc	Microbiology	472395	46128	LABFLDC	FLUID CULTURE AND GRAM STAIN	1605	723
+6	stride_order_proc	Lab	472720	45918	LABLAC	LACTIC ACID	2516	718
+72	stride_order_med	Med (Intravenous)	253182	35850	RXCUI253182	Regular Insulin, Human (Intravenous)	1531	715
+9	stride_order_proc	Diet	472169	45824	DIET107	DIET LOW SODIUM LOW CHOLESTEROL LOW SAT FAT	1011	708
+72	stride_order_med	Med (Intravenous)	8410	44417	RXCUI8410	Alteplase (Intravenous)	1605	703
+72	stride_order_med	Med (Intravenous)	6387	44366	RXCUI6387	Lidocaine (Intravenous)	1028	695
+4	stride_order_proc	Nursing	471984	48534	NUR775	WOUND CARE	1385	694
+9	stride_order_proc	Diet	572456	45896	DIET132	DIET CARB CONTROL/LOW SODIUM/LOW CHOL/LOW SAT FAT	1148	693
+3	stride_order_proc	Point of Care Testing	591290	46064	POC17	POC ISTAT CREATININE	747	690
+72	stride_order_med	Med (Intravenous)	3264	44017	RXCUI3264	Dexamethasone (Intravenous)	1189	680
+4	stride_order_proc	Nursing	872142	62043	NUR201022	HOLD MEDICATION X 1 DOSE	1020	679
+9	stride_order_proc	Diet	624769	61836	DIET133	DIET POST SURGICAL - STEP ONE	969	679
+72	stride_order_med	Med (Intravenous)	2551	44262	RXCUI2551	Ciprofloxacin (Intravenous)	1055	675
+6	stride_order_proc	Lab	473473	45908	LABTRFS	TRANSFERRIN SATURATION	892	675
+4	stride_order_proc	Nursing	572435	46122	NUR4027	SURGICAL PREPARATION	785	665
+41	stride_order_proc	Isolation	473004	48711	ISO8	CONTACT ISOLATION	1215	664
+4	stride_order_proc	Nursing	596343	46061	NUR4044	WEAN O2 THERAPY	898	662
+6	stride_order_proc	Lab	472514	63714	LABHEPAR	HEPARIN, UNFRACTIONATED, ANTI XA	3428	662
+4	stride_order_proc	Nursing	473800	46013	NUR1249	CHEST TUBE	1510	661
+4	stride_order_proc	Nursing	624799	48628	NUR4094	NO ASPIRIN OR NSAIDS	1160	661
+4	stride_order_proc	Nursing	472901	56841	NUR1022	RESPIRATORY RATE	775	659
+4	stride_order_proc	Nursing	489185	45967	NUR1411	HEMOVAC	718	658
+4	stride_order_proc	Nursing	472912	45977	NUR1033	ACTUAL WEIGHT (KG)	1185	658
+72	stride_order_med	Med (Intravenous)	36676	44267	RXCUI36676	Sodium Bicarbonate (Intravenous)	1585	651
+73	stride_order_med	Med (Oral)	3498	46281	RXCUI3498	Diphenhydramine (Oral)	1038	650
+74	stride_order_med	Med (Subcutaneous)	253181	46234	RXCUI253181	Nph Insulin, Human (Subcutaneous)	3001	647
+73	stride_order_med	Med (Oral)	5487	44226	RXCUI5487	Hydrochlorothiazide (Oral)	1015	646
+72	stride_order_med	Med (Intravenous)	7476	35133	RXCUI7476	Nitroprusside (Intravenous)	869	645
+99	stride_order_med	Med (None)	540103	44372	MED540103	HELP ORDER	859	641
+9	stride_order_proc	Diet	472177	48492	DIET123	DIET TUBE FEEDING ONLY	3672	637
+4	stride_order_proc	Nursing	489487	48675	NUR1714	STRICT I AND O	777	634
+4	stride_order_proc	Nursing	489381	46210	NUR1607	PATIENT MAY SHOWER	692	629
+41	stride_order_proc	Isolation	506542	49054	ISO9	DROPLET ISOLATION	1059	629
+4	stride_order_proc	Nursing	876709	61985	NUR30027	2% CHLORHEXIDINE GLUCONATE WIPES	684	628
+72	stride_order_med	Med (Intravenous)	82122	44299	RXCUI82122	Levofloxacin (Intravenous)	1169	625
+6	stride_order_proc	Lab	977655	63725	LABSPLAC	SEPSIS PROTOCOL LACTATE	1557	624
+72	stride_order_med	Med (Intravenous)	6922	44235	RXCUI6922	Metronidazole (Intravenous)	946	607
+8	stride_order_proc	Imaging	872169	63727	IMGDXCHLP	CHEST 1 VIEW FOR LINE PLACEMENT	771	607
+8	stride_order_proc	Imaging	473821	48698	IMGCTT	CT THORAX	920	605
+73	stride_order_med	Med (Oral)	6470	44258	RXCUI6470	Lorazepam (Oral)	1119	605
+72	stride_order_med	Med (Intravenous)	15882	46399	MED15882	Glucose-Sodium Chloride (Intravenous)	734	604
+4	stride_order_proc	Nursing	867814	61992	NURWAR	WARFARIN MANAGED BY PHARMACY	1049	601
+29	stride_order_proc	Nursing Referral	621218	49035	CON402	CONSULT TO WOUND/OSTOMY	926	599
+4	stride_order_proc	Nursing	472895	45951	NUR1016	MEASURE URINARY OUTPUT	642	594
+6	stride_order_proc	Lab	472670	46019	LABFE	IRON, TOTAL	728	593
+6	stride_order_proc	Lab	471945	45966	LABCBCS	CBC WITH DIFF AND SLIDE REVIEW	868	593
+8	stride_order_proc	Imaging	474166	46065	IMGMRHWWO	MR BRAIN WITH AND WITHOUT CONTRAST	699	592
+74	stride_order_med	Med (Subcutaneous)	6387	51592	RXCUI6387	Lidocaine (Subcutaneous)	916	591
+4	stride_order_proc	Nursing	518291	45936	NUR351	CIRCULATORY MOTOR SENSORY CHECKS (CMS)	691	590
+72	stride_order_med	Med (Intravenous)	6902	44586	RXCUI6902	Methylprednisolone (Intravenous)	1683	589
+72	stride_order_med	Med (Intravenous)	4850	44682	RXCUI4850	Glucose (Intravenous)	1217	588
+73	stride_order_med	Med (Oral)	82122	44324	RXCUI82122	Levofloxacin (Oral)	1201	574
+6	stride_order_proc	Lab	472149	46286	LABDIC	DIC SCREEN	1408	574
+72	stride_order_med	Med (Intravenous)	2189	43992	RXCUI2189	Cefoxitin (Intravenous)	763	569
+73	stride_order_med	Med (Oral)	6205	46321	RXCUI6205	Lactobacillus Acidophilus (Oral)	812	568
+6	stride_order_proc	Lab	473773	46236	LABVOLTL	VOLATILE SCREEN	748	563
+8	stride_order_proc	Imaging	898658	62362	IMGDXCHROF	XR CHEST OUTSIDE STUDY FOR REFERENCE ONLY	759	562
+73	stride_order_med	Med (Oral)	10737	44760	RXCUI10737	Trazodone (Oral)	847	561
+72	stride_order_med	Med (Intravenous)	8782	44292	RXCUI8782	Propofol (Intravenous)	1056	557
+73	stride_order_med	Med (Oral)	2231	46394	RXCUI2231	Cephalexin (Oral)	955	555
+72	stride_order_med	Med (Intravenous)	6960	44000	RXCUI6960	Midazolam (Intravenous)	1286	553
+72	stride_order_med	Med (Intravenous)	6915	44199	RXCUI6915	Metoclopramide (Intravenous)	758	550
+73	stride_order_med	Med (Oral)	3264	44257	RXCUI3264	Dexamethasone (Oral)	1394	547
+15	stride_order_proc	Microbiology	541702	46157	LABBLCTIP	BLOOD CULT - 2ND SET VIA CATHETER	1136	545
+6	stride_order_proc	Lab	472976	46082	LABNONGYN	NON-GYN CYTOLOGY EXAM	727	544
+15	stride_order_proc	Microbiology	541700	46291	LABBLCSTK	BLOOD CULT - FIRST SET, VIA PHLEBOTOMY	1103	543
+103	stride_order_med	Med (Nerve Block)	1815	44009	RXCUI1815	Bupivacaine (Nerve Block)	675	538
+79	stride_order_med	Med (Injection)	36676	46225	RXCUI36676	Sodium Bicarbonate (Injection)	699	538
+73	stride_order_med	Med (Oral)	32968	44212	RXCUI32968	Clopidogrel (Oral)	1131	536
+38	stride_order_proc	HIV Lab Restricted	472553	61864	LABHIVWBL	ANTI-HIV	633	532
+72	stride_order_med	Med (Intravenous)	5492	44230	RXCUI5492	Hydrocortisone (Intravenous)	1451	530
+73	stride_order_med	Med (Oral)	7555	44282	MED7555	Sulfamethoxazole-Trimethoprim (Oral)	1196	528
+4	stride_order_proc	Nursing	572452	46070	NUR4035	DRESSING CHANGE OCCLUSIVE	597	526
+4	stride_order_proc	Nursing	660658	46056	NUR6500	INSERTION SITE CARE	572	522
+7	stride_order_proc	Respiratory Care	472975	46030	RT73	RESP - NON INVASIVE POS. PRESS VENT (BIPAP/CPAP)	1087	516
+9	stride_order_proc	Diet	8.71E+05	62007	DIET135	DIET POST SURGICAL - STEP TWO	700	516
+4	stride_order_proc	Nursing	472092	48820	NUR811	IRRIGATE TUBE/DRAIN	747	515
+83	stride_order_med	Med (Transdermal)	6387	46535	RXCUI6387	Lidocaine (Transdermal)	956	511
+6	stride_order_proc	Lab	473132	65644	LABPALB	PREALBUMIN	929	509
+6	stride_order_proc	Lab	473345	48929	LABURNA	SODIUM, URINE (RANDOM)	982	508
+72	stride_order_med	Med (Intravenous)	20481	36210	RXCUI20481	Cefepime (Intravenous)	1027	507
+73	stride_order_med	Med (Oral)	519	44334	RXCUI519	Allopurinol (Oral)	829	505
+4	stride_order_proc	Nursing	471676	46035	NUR629	DRESSING CHECKS	550	503
+72	stride_order_med	Med (Intravenous)	49737	44248	RXCUI49737	Esmolol (Intravenous)	647	502
+6	stride_order_proc	Lab	473331	46197	LABSLHELD	SLIDE HELD FOR REVIEW	790	500
+3	stride_order_proc	Point of Care Testing	472683	50253	LABPCCG4O	ISTAT CG4, OTHER	548	499
+6	stride_order_proc	Lab	471569	48744	LABALB	ALBUMIN, SERUM/PLASMA	714	495
+4	stride_order_proc	Nursing	473274	49579	NUR1153	RN ESCORT NEEDED IF PATIENT LEAVES FLOOR	647	491
+4	stride_order_proc	Nursing	508688	46155	NUR2255	REINFUSE CONTENTS	530	491
+72	stride_order_med	Med (Intravenous)	29561	44008	RXCUI29561	Meropenem (Intravenous)	1216	490
+4	stride_order_proc	Nursing	889668	65638	NUR01373	URINARY CATHETER REMOVAL	565	487
+7	stride_order_proc	Respiratory Care	473357	46106	RT90	RESP - SPONTANEOUS BREATHING TRIAL	1017	484
+27	stride_order_proc	Neurology	624813	48702	NEUR18	INTRA OP NEUROPHYS MONITOR PER HOUR	544	481
+73	stride_order_med	Med (Oral)	39993	44246	RXCUI39993	Zolpidem (Oral)	681	480
+72	stride_order_med	Med (Intravenous)	8163	43993	RXCUI8163	Phenylephrine (Intravenous)	865	479
+73	stride_order_med	Med (Oral)	52175	44374	RXCUI52175	Losartan (Oral)	1042	477
+6	stride_order_proc	Lab	473254	46046	LABRETIC	RETICULOCYTE COUNT AUTOMATED	679	475
+12	stride_order_proc	Procedures	885235	63723	2109368	ARTERIAL LINE	640	475
+73	stride_order_med	Med (Oral)	7646	44376	RXCUI7646	Omeprazole (Oral)	601	472
+57	stride_order_proc	Transfusion Communication	472137	61976	NUR820	TRANSFUSE PLT (DOES NOT ORDER PRODUCT)	2452	472
+34	stride_order_proc	Consult	518192	49678	CON350	CONSULT TO PSYCHIATRY	564	472
+6	stride_order_proc	Lab	668085	48815	LABSTOBGD	OCCULT BLD, GUAIAC, STOOL, DIAG TEST	834	472
+75	stride_order_med	Med (Inhalation)	435	46309	RXCUI435	Albuterol (Inhalation)	820	471
+4	stride_order_proc	Nursing	508585	46232	NUR2245	VASCULAR CHECKS	591	469
+73	stride_order_med	Med (Oral)	6711	47190	RXCUI6711	Melatonin (Oral)	965	467
+73	stride_order_med	Med (Oral)	5640	44271	RXCUI5640	Ibuprofen (Oral)	673	463
+4	stride_order_proc	Nursing	489239	46063	NUR1465	KEEP MAP GREATER THAN	732	460
+74	stride_order_med	Med (Subcutaneous)	274783	44293	RXCUI274783	Insulin Glargine (Subcutaneous)	1702	458
+34	stride_order_proc	Consult	647340	48502	CON417	CONSULT TO IR	607	455
+4	stride_order_proc	Nursing	489238	46213	NUR1464	KEEP MAP LESS THAN	989	453
+3	stride_order_proc	Point of Care Testing	591306	46167	POC25	POC ISTAT INR AND PROTIME	487	453
+73	stride_order_med	Med (Oral)	4511	44361	RXCUI4511	Folic Acid (Oral)	856	452
+6	stride_order_proc	Lab	472376	46028	LABFIB	FIBRINOGEN	962	450
+8	stride_order_proc	Imaging	473814	48522	IMGCT3T	CT ANGIO CHEST	519	447
+53	stride_order_proc	Nursing Transfusion	927925	65640	NUR700	TRANSFUSE RED BLOOD CELLS	1262	446
+8	stride_order_proc	Imaging	618895	48676	IMGCTPE	CT PULMONARY EMBOLISM CHEST ONLY	494	444
+73	stride_order_med	Med (Oral)	9997	44430	RXCUI9997	Spironolactone (Oral)	1235	444
+57	stride_order_proc	Transfusion Communication	472135	61993	NUR819	TRANSFUSE FFP (DOES NOT ORDER PRODUCT)	1244	444
+4	stride_order_proc	Nursing	473676	48775	NUR1218	BLADDER SCAN	547	441
+84	stride_order_med	Med (Intramuscular)	225803	60167	MED225803	INFLUENZA 2012-13 VAC (PF) (FLUZONE) SYRG (FOR AGE >= 36 MO)	540	441
+4	stride_order_proc	Nursing	471910	45829	NUR744	ASSESS LEVEL OF SEDATION	517	440
+72	stride_order_med	Med (Intravenous)	3.77E+18	44021	RXCUI236719,235496	Sodium Phosphate, Dibasic-Sodium Phosphate, Monobasic (Intravenous)	866	440
+4	stride_order_proc	Nursing	489485	62009	NUR1712	STRAIGHT CATHETER	516	438
+4	stride_order_proc	Nursing	871150	62616	NUR30019	DELIRIUM ASSESSMENT	468	437
+72	stride_order_med	Med (Intravenous)	3992	44020	RXCUI3992	Epinephrine (Intravenous)	830	436
+75	stride_order_med	Med (Inhalation)	7213	44211	RXCUI7213	Ipratropium (Inhalation)	769	435
+15	stride_order_proc	Microbiology	471556	48770	LABAFBD	AFB CULTURE, NON - RESPIRATORY	842	435
+4	stride_order_proc	Nursing	472307	46059	NUR852	ELEVATE EXTREMITY	542	433
+72	stride_order_med	Med (Intravenous)	3628	44323	RXCUI3628	Dopamine (Intravenous)	626	432
+73	stride_order_med	Med (Oral)	6218	44302	RXCUI6218	Lactulose (Oral)	1212	432
+72	stride_order_med	Med (Intravenous)	7512	36086	RXCUI7512	Norepinephrine (Intravenous)	758	429
+6	stride_order_proc	Lab	876711	62023	LABDVERVP	RESPIRATORY DFA PANEL	871	426
+7	stride_order_proc	Respiratory Care	473786	45990	RT97	RESP - WEAN VENTILATOR	501	426
+34	stride_order_proc	Consult	489046	49251	CON303	CONSULT TO CARDIOLOGY	477	425
+6	stride_order_proc	Lab	472489	45819	LABHAP	HAPTOGLOBIN	669	424
+7	stride_order_proc	Respiratory Care	660689	63743	RT111	RESP-CPAP/BIPAP FOR OBSTRUCTIVE SLEEP APNEA	630	424
+87	stride_order_med	Med (Epidural)	1815	44012	RXCUI1815	Bupivacaine (Epidural)	617	423
+6	stride_order_proc	Lab	473134	49134	LABUPREG	PREGNANCY TEST, URINE	697	419
+4	stride_order_proc	Nursing	898767	62263	NUR12121	NURSING COMMUNICATION POSTOP	549	419
+73	stride_order_med	Med (Oral)	1202	44200	RXCUI1202	Atenolol (Oral)	743	418
+15	stride_order_proc	Microbiology	471771	65664	LABBXTG	BIOPSY/TISSUE WITH GRAM STAIN	634	418
+73	stride_order_med	Med (Oral)	281	44318	RXCUI281	Acyclovir (Oral)	1174	417
+35	stride_order_proc	SLP	489057	46303	SLP7	SLP ONGOING TREATMENT	501	415
+72	stride_order_med	Med (Intravenous)	2582	44364	RXCUI2582	Clindamycin (Intravenous)	612	414
+6	stride_order_proc	Lab	473729	45880	LABUAS	URINALYSIS MACROSCOPIC ONLY	752	414
+34	stride_order_proc	Consult	508105	49055	CON322	CONSULT TO GENERAL SURGERY	462	414
+76	stride_order_med	Med (Rectal)	1191	44315	RXCUI1191	Aspirin (Rectal)	500	411
+73	stride_order_med	Med (Oral)	3443	44393	RXCUI3443	Diltiazem (Oral)	1104	411
+73	stride_order_med	Med (Oral)	703	44352	RXCUI703	Amiodarone (Oral)	1203	410
+3	stride_order_proc	Point of Care Testing	473185	45942	LABPCINR	ISTAT INR AND PROTIME	435	410
+25	stride_order_proc	Precaution	624834	46101	PRE10	SEIZURE PRECAUTIONS	530	407
+6	stride_order_proc	Lab	472109	46095	LABUCR	CREATININE, URINE (RANDOM)	747	407
+6	stride_order_proc	Lab	471954	48493	LABBFCT	CELL COUNT AND DIFF, FLUID	969	406
+6	stride_order_proc	Lab	471610	46136	LABNH3	AMMONIA, PLASMA	810	405
+6	stride_order_proc	Lab	471820	46217	LABCA	CALCIUM, SERUM/PLASMA	543	405
+72	stride_order_med	Med (Intravenous)	703	35968	RXCUI703	Amiodarone (Intravenous)	1240	405
+4	stride_order_proc	Nursing	471666	45815	NUR619	DRESSING CHANGE	469	403
+73	stride_order_med	Med (Oral)	6922	44338	RXCUI6922	Metronidazole (Oral)	784	402
+6	stride_order_proc	Lab	472407	46204	LABFOL	FOLIC ACID	512	402
+7	stride_order_proc	Respiratory Care	870868	62047	RT998	RN/RT PERFORM SAFETY SCREEN	468	400
+6	stride_order_proc	Lab	473041	46319	LABUOSM	OSMOLALITY, URINE	883	400
+83	stride_order_med	Med (Transdermal)	9601	44273	RXCUI9601	Scopolamine (Transdermal)	605	399
+28	stride_order_proc	GI	473718	45969	GIEGD	UPPER GI ENDOSCOPY	922	397
+21	stride_order_proc	PT	647377	46361	PT9	REHAB ENGINEERING	530	397
+7	stride_order_proc	Respiratory Care	472011	45920	RT72	RESP - CHEST PHYSIOTHERAPY	741	392
+6	stride_order_proc	Lab	472527	48618	LABHBSAG	HBSAG	568	391
+4	stride_order_proc	Nursing	518172	61988	NUR336	MONITOR RESPIRATIONS AND SEDATION SCALE	468	391
+73	stride_order_med	Med (Oral)	33228	44398	MED33228	Amoxicillin-Clavulanate (Oral)	711	390
+4	stride_order_proc	Nursing	472886	46057	NUR1006	AMBULATE	427	389
+73	stride_order_med	Med (Oral)	1897	44386	RXCUI1897	Calcium Carbonate (Oral)	601	387
+4	stride_order_proc	Nursing	518166	61828	NUR326	EPIDURAL/ INTERTHECAL INSERTION SITE CARE	463	387
+3	stride_order_proc	Point of Care Testing	610670	48561	POC26	POC URINE PREGNANCY	453	385
+73	stride_order_med	Med (Oral)	8308	44404	RXCUI8308	Vitamin K 1 (Oral)	638	384
+3	stride_order_proc	Point of Care Testing	591300	46185	POC22	POC ISTAT, ARTERIAL BLOOD GASES (G3+)	429	383
+8	stride_order_proc	Imaging	473822	48716	IMGCTTAP	CT CHEST ABDOMEN PELVIS	509	383
+31	stride_order_proc	NOURISHMENTS	471503	46004	DIET129	DIET NOURISHMENTS	587	380
+6	stride_order_proc	Lab	473260	48586	LABPATHR	REVIEW BY PATHOLOGIST	583	380
+6	stride_order_proc	Lab	473682	46133	LABTRIG	TRIGLYCERIDES, SERUM / PLASMA	741	376
+73	stride_order_med	Med (Oral)	6809	44243	RXCUI6809	Metformin (Oral)	648	373
+6	stride_order_proc	Lab	869056	62042	LABPROCT	PROCALCITONIN	572	372
+4	stride_order_proc	Nursing	518219	49164	NUR345	PSYCH PROGRAMMING	485	371
+4	stride_order_proc	Nursing	489398	48798	NUR1624	PRIVILEGES-LEVEL 1 (PSYCH UNIT)	491	370
+6	stride_order_proc	Lab	473343	48942	LABNA	SODIUM, SERUM / PLASMA	1047	370
+6	stride_order_proc	Lab	886807	62105	LABTSHFT4	TSH W/ REFLEX FT4	453	369
+4	stride_order_proc	Nursing	498222	62049	NUR1991	DC IV	482	365
+6	stride_order_proc	Lab	497498	45757	LABFK506L	TACROLIMUS (FK506)	1767	365
+9	stride_order_proc	Diet	472155	65658	DIET127	COMBINATION DIET	665	365
+85	stride_order_med	Med (Nasal)	41126	44329	RXCUI41126	Fluticasone (Nasal)	561	362
+8	stride_order_proc	Imaging	474367	65659	IMGUSKID	US RADIOLOGY KIDNEY SCAN	452	360
+72	stride_order_med	Med (Intravenous)	18631	35849	RXCUI18631	Azithromycin (Intravenous)	459	359
+72	stride_order_med	Med (Intravenous)	325642	43998	RXCUI325642	Ertapenem (Intravenous)	566	359
+73	stride_order_med	Med (Oral)	36437	44427	RXCUI36437	Sertraline (Oral)	761	359
+73	stride_order_med	Med (Oral)	42316	44218	RXCUI42316	Tacrolimus (Oral)	2390	357
+4	stride_order_proc	Nursing	489547	45917	NUR1774	VOID ON CALL TO OR/PROCEDURE	418	356
+6	stride_order_proc	Lab	471521	48829	LABACETA	ACETAMINOPHEN, SERUM	486	356
+8	stride_order_proc	Imaging	898590	62246	IMGCTHROF	CT HEAD OUTSIDE STUDY FOR REFERENCE ONLY	437	356
+6	stride_order_proc	Lab	472043	65645	LABCMVQT	CMV DNA PCR QUANT, PLASMA	781	356
+73	stride_order_med	Med (Oral)	3322	44408	RXCUI3322	Diazepam (Oral)	539	354
+34	stride_order_proc	Consult	506981	46255	CON367	NSG REFERRAL TO WOUND/OSTOMY	459	354
+73	stride_order_med	Med (Oral)	51272	44674	RXCUI51272	Quetiapine (Oral)	987	353
+73	stride_order_med	Med (Oral)	18631	44388	RXCUI18631	Azithromycin (Oral)	691	352
+73	stride_order_med	Med (Oral)	2418	44433	RXCUI2418	Cholecalciferol (Oral)	549	352
+72	stride_order_med	Med (Intravenous)	78963	46251	MED78963	Egg Yolk Phospholipids-Glycerin-Safflower Oil-Soybean Oil (Intravenous)	4354	352
+4	stride_order_proc	Nursing	472923	45868	NUR1042	ORTHOSTATIC BLOOD PRESSURE	481	351
+30	stride_order_proc	Cast Room	519271	46194	CR130	CPM	389	351
+72	stride_order_med	Med (Intravenous)	4917	44241	RXCUI4917	Nitroglycerin (Intravenous)	454	349
+7	stride_order_proc	Respiratory Care	472400	49144	RT101	RESP - FLUTTER/PEP THERAPY	505	348
+4	stride_order_proc	Nursing	647327	49765	NUR7001	BELONGINGS SEARCH	433	348
+72	stride_order_med	Med (Intravenous)	5093	44269	RXCUI5093	Haloperidol (Intravenous)	931	346
+4	stride_order_proc	Nursing	473137	48531	NUR1106	ASSESSMENT FREQUENCY (PSYCH UNIT)	629	341
+73	stride_order_med	Med (Oral)	114477	44225	RXCUI114477	Levetiracetam (Oral)	819	340
+6	stride_order_proc	Lab	472101	45978	LABCORT	CORTISOL, SERUM	533	338
+73	stride_order_med	Med (Oral)	28889	46235	RXCUI28889	Loratadine (Oral)	556	338
+34	stride_order_proc	Consult	519274	57862	CON357	CONSULT TO TRAUMA-ACUTE CARE SURGERY	355	338
+73	stride_order_med	Med (Oral)	5470	44412	RXCUI5470	Hydralazine (Oral)	1067	337
+4	stride_order_proc	Nursing	871151	61995	NUR30020	RASS SEDATION ASSESSMENT	370	337
+73	stride_order_med	Med (Oral)	42463	45359	RXCUI42463	Pravastatin (Oral)	661	337
+73	stride_order_med	Med (Oral)	10454	44418	RXCUI10454	Thiamine (Oral)	659	337
+15	stride_order_proc	Microbiology	611926	48544	LABRESPG	RESPIRATORY CULTURE AND GRAM STAIN	604	336
+73	stride_order_med	Med (Oral)	61381	44363	RXCUI61381	Olanzapine (Oral)	1064	333
+73	stride_order_med	Med (Oral)	42347	44394	RXCUI42347	Bupropion (Oral)	664	333
+6	stride_order_proc	Lab	471953	48880	LABCSFCT	CELL COUNT AND DIFF, CSF	1062	332
+4	stride_order_proc	Nursing	572417	45845	NUR4019	ICE PACK TO	372	324
+8	stride_order_proc	Imaging	473865	48524	IMGCTHSC	CT HEAD C SPINE	342	324
+71	stride_order_med	Med (Topical)	82190	44233	MED82190	Benzocaine-Tetracaine-Butamben (Topical)	416	323
+73	stride_order_med	Med (Oral)	19483	44343	MED19483	Calcium Carbonate-Cholecalciferol (Oral)	621	323
+6	stride_order_proc	Lab	473200	63730	LABQFTBG	QUANTIFERON TEST FOR LATENT TB	422	323
+4	stride_order_proc	Nursing	489067	46027	NUR1293	D/C BY ESCORT IF D/C CRITERIA IS MET	441	322
+72	stride_order_med	Med (Intravenous)	11149	44580	RXCUI11149	Vasopressin (Usp) (Intravenous)	486	322
+4	stride_order_proc	Nursing	508684	45840	NUR2252	ORAL CARE	422	321
+93	stride_order_med	Med (Swish & Swallow)	7597	44351	RXCUI7597	Nystatin (Swish & Swallow)	554	320
+4	stride_order_proc	Nursing	472972	45915	NUR1066	TURN, COUGH, DEEP BREATHE	335	319
+73	stride_order_med	Med (Oral)	2556	44648	RXCUI2556	Citalopram (Oral)	586	318
+15	stride_order_proc	Microbiology	473372	63729	LABSTLCX	STOOL CULTURE	563	318
+6	stride_order_proc	Lab	472756	46011	LABLPDC	LIPID PANEL WITH CALCULATED LDL	397	316
+73	stride_order_med	Med (Oral)	72625	44369	RXCUI72625	Duloxetine (Oral)	616	313
+73	stride_order_med	Med (Oral)	203465	46379	MED203465	Potassium Phosphate-Sodium Phosphate (Oral)	554	311
+72	stride_order_med	Med (Intravenous)	89444	44252	MED89444	Glucose-Piperacillin-Tazobactam (Intravenous)	519	310
+6	stride_order_proc	Lab	473039	49353	LABOSM	OSMOLALITY, SERUM	533	310
+73	stride_order_med	Med (Oral)	2598	44407	RXCUI2598	Clonazepam (Oral)	757	308
+4	stride_order_proc	Nursing	471972	49163	NUR763	NEUROVASCULAR AND GROIN CHECKS	344	308
+72	stride_order_med	Med (Intravenous)	5470	46299	RXCUI5470	Hydralazine (Intravenous)	487	308
+3	stride_order_proc	Point of Care Testing	472688	48624	LABPCEG7	ISTAT EG7, ARTERIAL	1343	307
+34	stride_order_proc	Consult	518222	50202	CON333	CONSULT TO NEUROLOGY	332	307
+15	stride_order_proc	Microbiology	471555	49516	LABAFBC	AFB CULTURE, RESPIRATORY	807	306
+27	stride_order_proc	Neurology	519481	46200	NEUR2	EEG	443	305
+34	stride_order_proc	Consult	497729	46120	CON311	CONSULT TO PALLIATIVE CARE	359	305
+74	stride_order_med	Med (Subcutaneous)	105694	44272	RXCUI105694	Epoetin Alfa (Subcutaneous)	458	302
+6	stride_order_proc	Lab	473341	45851	LABUNA	SODIUM WITH CREATININE, URINE (RANDOM)	530	301
+6	stride_order_proc	Lab	473726	45995	LABURIC	URIC ACID, SERUM / PLASMA	956	300
+6	stride_order_proc	Lab	472474	48577	LABCSFGL	GLUCOSE, CSF	822	299
+8	stride_order_proc	Imaging	519237	46343	IMGUSABDD	US ABDOMEN W DUPLEX	364	299
+8	stride_order_proc	Imaging	898598	62552	IMGCTAPROF	CT ABDOMEN/PELVIS OUTSIDE STUDY FOR REFERENCE ONLY	381	299
+83	stride_order_med	Med (Transdermal)	7407	44228	RXCUI7407	Nicotine (Transdermal)	559	298
+7	stride_order_proc	Respiratory Care	473712	45834	RT82	RESP - UNLISTED RESPIRATORY CARE ORDER	488	297
+8	stride_order_proc	Imaging	474066	62055	IMGDXFLP	PHYSIATRY FLUORO	312	297
+6	stride_order_proc	Lab	473171	49020	LABCSFTP	PROTEIN TOTAL, CSF	811	297
+4	stride_order_proc	Nursing	489312	62062	NUR1538	FEEDING TUBE	460	297
+6	stride_order_proc	Lab	4.72E+05	46078	LABUEP	ELECTROLYTE PANEL, URINE WITH CREATININE	562	296
+73	stride_order_med	Med (Oral)	3407	44389	RXCUI3407	Digoxin (Oral)	722	295
+6	stride_order_proc	Lab	978516	63923	LABRESPCR	RESPIRATORY VIRUS PCR PANEL	605	295
+4	stride_order_proc	Nursing	624823	49032	NUR4074	GUIDELINES FOR MD ORDERING 1	446	294
+87	stride_order_med	Med (Epidural)	3423	44018	RXCUI3423	Hydromorphone (Epidural)	394	293
+73	stride_order_med	Med (Oral)	68149	46222	RXCUI68149	Mycophenolate Mofetil (Oral)	902	293
+73	stride_order_med	Med (Oral)	187832	44442	RXCUI187832	Pregabalin (Oral)	660	293
+73	stride_order_med	Med (Oral)	9796	44401	RXCUI9796	Simethicone (Oral)	416	293
+6	stride_order_proc	Lab	497490	48949	LABLIDOL	LIDOCAINE	712	292
+73	stride_order_med	Med (Oral)	7052	44641	RXCUI7052	Morphine (Oral)	785	292
+76	stride_order_med	Med (Rectal)	90206	44197	MED90206	Sodium Phosphate, Dibasic-Sodium Phosphate, Monobasic (Rectal)	364	292
+6	stride_order_proc	Lab	473287	49173	LABSALICY	SALICYLATE LEVEL	367	290
+73	stride_order_med	Med (Oral)	15996	44210	RXCUI15996	Mirtazapine (Oral)	799	289
+4	stride_order_proc	Nursing	489366	45974	NUR1592	ORTHOPAT	300	289
+15	stride_order_proc	Microbiology	472117	49083	LABCSFC	CSF CULTURE AND GRAM STAIN	757	288
+73	stride_order_med	Med (Oral)	602811	46891	RXCUI602811	Lactobacillus Rhamnosus Gg (Oral)	521	288
+3	stride_order_proc	Point of Care Testing	1007411	65655	LABPCCH8	ISTAT CR, HCT/HB, CL , BUN, NA, K, GLUCOSE, ICA, TCO2	428	287
+6	stride_order_proc	Lab	473351	49024	LABPROC	SPECIMEN PROCESSING	353	285
+73	stride_order_med	Med (Oral)	4450	46437	RXCUI4450	Fluconazole (Oral)	623	282
+73	stride_order_med	Med (Oral)	2599	44406	RXCUI2599	Clonidine (Oral)	671	279
+34	stride_order_proc	Consult	515841	49481	CON400	CONSULT TO GASTROENTEROLOGY	319	279
+73	stride_order_med	Med (Oral)	321988	44858	RXCUI321988	Escitalopram (Oral)	493	277
+9	stride_order_proc	Diet	472178	48542	DIET124	DIET TUBE FEEDING AND MEAL TRAY	1502	277
+84	stride_order_med	Med (Intramuscular)	230510	60163	MED230510	FLU VAC TS 2013-14(36MOS+)(PF) 45 MCG (15 MCG X 3)/0.5 ML IM SYRG	380	277
+3	stride_order_proc	Point of Care Testing	472686	45888	LABPCEC4V	ISTAT EC4, VENOUS	314	277
+4	stride_order_proc	Nursing	472410	46115	NUR881	FOLLOW EPIDURAL PROTOCOL	315	276
+4	stride_order_proc	Nursing	11971474	50275	NUR11561	BEACON COMMUNICATION	872	276
+75	stride_order_med	Med (Inhalation)	237159	44375	RXCUI237159	Levalbuterol (Inhalation)	486	275
+3	stride_order_proc	Point of Care Testing	472693	48818	LABPCG3V	ISTAT G3+, VENOUS	996	274
+4	stride_order_proc	Nursing	644738	45876	NUR4065	DIALYZE PATIENT	1352	273
+6	stride_order_proc	Lab	471768	48513	LABTBILFR	BILIRUBIN TOTAL AND FRACTIONATED, SERUM	454	273
+6	stride_order_proc	Lab	471635	48797	LABANAS	ANTI - NUCLEAR AB	323	272
+4	stride_order_proc	Nursing	593092	48566	NUR4042	OK TO USE CENTRAL LINE	310	271
+12	stride_order_proc	Procedures	885236	62022	2109371	INTUBATION	343	271
+74	stride_order_med	Med (Subcutaneous)	68442	45225	RXCUI68442	Filgrastim (Subcutaneous)	654	271
+73	stride_order_med	Med (Oral)	2623	46435	RXCUI2623	Clotrimazole (Oral)	541	270
+24	stride_order_proc	Pathology	871228	61852	PATH20	NON-GYN CYTOLOGY	401	270
+73	stride_order_med	Med (Oral)	69749	44347	RXCUI69749	Valsartan (Oral)	488	270
+6	stride_order_proc	Lab	471616	45837	LABAMY	AMYLASE, SERUM	406	267
+40	stride_order_proc	Legal	489265	61838	LEG7	LEGAL STATUS: VOLUNTARY	343	267
+6	stride_order_proc	Lab	633373	46131	LABSTSS	SYPHILIS TREPONEMAL SCREEN	324	266
+8	stride_order_proc	Imaging	474063	65670	IMGFLESO	XR ESOPHAGRAM	323	266
+43	stride_order_proc	NSG PICC Refer	660648	50554	NUR6147	PICC REMOVAL	296	265
+72	stride_order_med	Med (Intravenous)	9788	44395	MED9788	Calcium Chloride-Glucose-Lactate-Potassium Chloride-Sodium Chloride (Intravenous)	293	264
+75	stride_order_med	Med (Inhalation)	9863	46611	RXCUI9863	Sodium Chloride (Inhalation)	433	264
+4	stride_order_proc	Nursing	610658	46108	NUR4050	HEMODIALYSIS	1890	263
+73	stride_order_med	Med (Oral)	6915	44209	RXCUI6915	Metoclopramide (Oral)	436	262
+75	stride_order_med	Med (Inhalation)	69120	44313	RXCUI69120	Tiotropium (Inhalation)	452	262
+8	stride_order_proc	Imaging	473900	48604	IMGCTTAPW	CT CHEST ABDOMEN PELVIS W CONTRAST	304	262
+4	stride_order_proc	Nursing	489488	49141	NUR1715	STRICT I & O AFTER FOLEY DC\'D	277	262
+9	stride_order_proc	Diet	472176	46159	DIET108	DIET RENAL	593	259
+34	stride_order_proc	Consult	519845	49228	CON371	CONSULT TO ONCOLOGY	313	259
+72	stride_order_med	Med (Intravenous)	4450	44384	RXCUI4450	Fluconazole (Intravenous)	445	259
+73	stride_order_med	Med (Oral)	4493	44392	RXCUI4493	Fluoxetine (Oral)	513	258
+34	stride_order_proc	Consult	508106	50405	CON321	CONSULT TO ORTHOPEDICS	272	257
+72	stride_order_med	Med (Intravenous)	140108	44684	RXCUI140108	Caspofungin (Intravenous)	651	256
+24	stride_order_proc	Pathology	624416	46192	PATH10	SURGICAL GENERAL	306	256
+75	stride_order_med	Med (Inhalation)	77973	44208	MED77973	Fluticasone-Salmeterol (Inhalation)	423	252
+15	stride_order_proc	Microbiology	473802	45938	LABWDC	WOUND CULTURE	413	252
+8	stride_order_proc	Imaging	473965	46123	IMGDXSP1	XR SPINE 1V	283	252
+34	stride_order_proc	Consult	506907	50225	CON363	NSG REFERRAL TO DIABETES CNS	299	251
+9	stride_order_proc	Diet	472165	45899	DIET104	DIET LOW CHOLESTEROL LOW SATURATED FAT	302	251
+74	stride_order_med	Med (Subcutaneous)	139825	44314	RXCUI139825	Insulin Detemir (Subcutaneous)	1004	248
+6	stride_order_proc	Lab	473720	48917	LABBUN	UREA NITROGEN, SERUM/PLASMA	531	247
+83	stride_order_med	Med (Transdermal)	4337	46239	RXCUI4337	Fentanyl (Transdermal)	868	246
+73	stride_order_med	Med (Oral)	200273	46427	MED200273	Polyethylene Glycol 3350-Potassium Chloride-Sodium Bicarbonate-Sodium Chloride-Sodium Sulfate (Oral)	349	246
+6	stride_order_proc	Lab	978544	63845	LABPTEG	TEG, PERIOPERATIVE	514	244
+8	stride_order_proc	Imaging	473956	45773	IMGDXSPL2	XR SPINE, LUMBAR 2V	296	243
+34	stride_order_proc	Consult	647344	48940	CON421	CONSULT TO PHYSICAL MED REHAB	281	243
+4	stride_order_proc	Nursing	472982	50537	NUR1070	ABDOMINAL BINDER	277	243
+7	stride_order_proc	Respiratory Care	473360	46336	RT76	RESP - SPUTUM INDUCTION	337	242
+6	stride_order_proc	Lab	471766	46048	LABDBIL	BILIRUBIN DIRECT, SERUM/PLASMA	385	241
+25	stride_order_proc	Precaution	506899	48960	PRE12	NEUTROPENIC PRECAUTIONS	378	241
+6	stride_order_proc	Lab	473472	46193	LABTRFN	TRANSFERRIN	277	241
+4	stride_order_proc	Nursing	472386	46166	NUR872	FLAT IN BED	310	241
+72	stride_order_med	Med (Intravenous)	8308	44001	RXCUI8308	Vitamin K 1 (Intravenous)	521	240
+72	stride_order_med	Med (Intravenous)	1901	44691	RXCUI1901	Calcium Chloride (Intravenous)	482	240
+72	stride_order_med	Med (Intravenous)	281	44615	RXCUI281	Acyclovir (Intravenous)	455	239
+9	stride_order_proc	Diet	472167	48686	DIET106	DIET LOW MICROBIAL	591	239
+4	stride_order_proc	Nursing	489061	49065	NUR1244	CERVICAL SPINE STATUS	364	236
+15	stride_order_proc	Microbiology	472435	46033	LABFKOH	FUNGAL CULTURE AND KOH	399	235
+6	stride_order_proc	Lab	473723	46209	LABURUN	UREA, URINE (RANDOM)	420	235
+72	stride_order_med	Med (Intravenous)	114477	43995	RXCUI114477	Levetiracetam (Intravenous)	468	235
+4	stride_order_proc	Nursing	519467	46161	NUR354	REINFORCE DRESSING	250	235
+25	stride_order_proc	Precaution	624838	48966	PRE17	TOTAL HIP PRECAUTIONS	269	234
+6	stride_order_proc	Lab	473133	45798	LABPREG	PREGNANCY TEST, SERUM	271	233
+71	stride_order_med	Med (Topical)	855	44415	MED855	Bacitracin-Polymyxin B (Topical)	269	232
+6	stride_order_proc	Lab	473172	49053	LABFTP	PROTEIN TOTAL, FLUID	491	232
+72	stride_order_med	Med (Intravenous)	14862	44239	MED14862	Glucose-Potassium Chloride-Sodium Chloride (Intravenous)	249	231
+22	stride_order_proc	Code Status	473066	48737	COD3	PARTIAL CODE	369	227
+6	stride_order_proc	Lab	472528	62029	LABHCVA	HEPATITIS C AB IGG	259	226
+3	stride_order_proc	Point of Care Testing	591294	46067	POC19	POC ISTAT, VENOUS NA, K, GLUCOSE, HCT, HEMOGLOBIN (EC4)	255	225
+9	stride_order_proc	Diet	472174	49746	DIET110	DIET POST GASTRIC SURGERY	271	224
+4	stride_order_proc	Nursing	519848	63719	NUR372	CDU VITAL SIGNS	244	224
+4	stride_order_proc	Nursing	473447	46112	NUR1212	BEDREST POST SHEATH REMOVAL	247	222
+4	stride_order_proc	Nursing	472889	61862	NUR1009	ANTIMICROBIAL SHOWER/BATH PREOP	268	222
+87	stride_order_med	Med (Epidural)	4337	44311	RXCUI4337	Fentanyl (Epidural)	348	221
+8	stride_order_proc	Imaging	474094	46256	IMGDXKN2RT	XR KNEE 1 OR 2V RT	294	221
+39	stride_order_proc	Outpatient Referral	505839	49988	REF27	REFERRAL TO NEUROLOGY	238	221
+73	stride_order_med	Med (Oral)	56512	44354	RXCUI56512	Sodium Polystyrene Sulfonate (Oral)	391	220
+73	stride_order_med	Med (Oral)	301542	44312	RXCUI301542	Rosuvastatin (Oral)	321	219
+6	stride_order_proc	Lab	472131	48871	LABDDIM	D - DIMER	308	218
+4	stride_order_proc	Nursing	4.89E+05	61827	NUR1684	SHEATH TO BE REMOVED BY RN	239	218
+3	stride_order_proc	Point of Care Testing	472692	46071	LABPCG3O	ISTAT G3+, OTHER	492	217
+73	stride_order_med	Med (Oral)	11248	46419	RXCUI11248	Vitamin B 12 (Oral)	336	217
+15	stride_order_proc	Microbiology	473049	48681	LABOAPE	OVA AND PARASITES	404	217
+73	stride_order_med	Med (Oral)	197	44416	RXCUI197	Acetylcysteine (Oral)	306	216
+7	stride_order_proc	Respiratory Care	472665	50116	RT100	RESP - INTRAPULMONARY PERCUSSIVE VENTILATION	458	216
+4	stride_order_proc	Nursing	489287	46208	NUR1513	MAY HAVE ICE CHIPS	240	214
+72	stride_order_med	Med (Intravenous)	3443	35846	RXCUI3443	Diltiazem (Intravenous)	570	214
+73	stride_order_med	Med (Oral)	8928	46254	RXCUI8928	Psyllium (Oral)	320	213
+80	stride_order_med	Med (Feeding Tube)	82003	46323	RXCUI82003	Docusate (Feeding Tube)	252	213
+27	stride_order_proc	Neurology	624820	48943	NEUR25	EPILEPSY MONITORING EPM-EEG	236	211
+73	stride_order_med	Med (Oral)	5940	46229	MED5940	Acetaminophen-Oxycodone (Oral)	279	211
+4	stride_order_proc	Nursing	472963	49527	NUR1057	TAP WATER ENEMA	312	209
+6	stride_order_proc	Lab	862881	62019	LABHITAB	HEPARIN (HIT) AB	284	208
+72	stride_order_med	Med (Intravenous)	7396	44010	RXCUI7396	Nicardipine (Intravenous)	348	208
+4	stride_order_proc	Nursing	624826	49027	NUR4077	TREATMENT PARAMETERS 1	415	208
+30	stride_order_proc	Cast Room	473334	49120	CR107	SLING	229	207
+4	stride_order_proc	Nursing	472921	48613	NUR1041	CHECK PUNCTURE SITE	234	206
+4	stride_order_proc	Nursing	489466	46023	NUR1693	SITTER REQUIRED	238	205
+6	stride_order_proc	Lab	497488	48812	LABDIGL	DIGOXIN, SERUM	512	205
+72	stride_order_med	Med (Intravenous)	4177	44444	RXCUI4177	Etomidate (Intravenous)	251	205
+73	stride_order_med	Med (Oral)	14966	44310	MED14966	Acetaminophen-Hydrocodone (Oral)	237	204
+6	stride_order_proc	Lab	496776	46051	LABHGBX	HEMOGLOBIN	299	204
+4	stride_order_proc	Nursing	489139	62001	NUR1365	FEEDING TUBE(KAO FEED)	284	204
+36	stride_order_proc	Cath Angio	474726	62037	IMG11CCP	CAR CATH CORS POSSIBLE	247	203
+73	stride_order_med	Med (Oral)	10355	46431	RXCUI10355	Temazepam (Oral)	274	202
+6	stride_order_proc	Lab	472729	48548	LABFLDH	LDH TOTAL, FLUID	417	202
+6	stride_order_proc	Lab	471644	48585	LABABIDI	AB ID	403	201
+4	stride_order_proc	Nursing	668133	49235	NUR1156	BEACON NURSING COMMUNICATION 1	351	201
+74	stride_order_med	Med (Subcutaneous)	8308	44382	RXCUI8308	Vitamin K 1 (Subcutaneous)	262	200
+73	stride_order_med	Med (Oral)	39954	44435	RXCUI39954	Zinc Sulfate (Oral)	389	200
+83	stride_order_med	Med (Transdermal)	2599	46253	RXCUI2599	Clonidine (Transdermal)	439	200
+56	stride_order_proc	Vascular Ultrasound	519231	62070	VSC05	VSC VENOUS ULTRASOUND	243	199
+4	stride_order_proc	Nursing	508686	46058	NUR2254	MONITOR PULMONARY ARTERY CATHETER	208	198
+7	stride_order_proc	Respiratory Care	871225	62003	RT997	RESP - LUNG PROTECTIVE VENTILATION PROTOCOL	383	198
+4	stride_order_proc	Nursing	644737	49975	NUR6143	DIABETES EDUCATION	241	198
+71	stride_order_med	Med (Topical)	4917	44285	RXCUI4917	Nitroglycerin (Topical)	300	197
+34	stride_order_proc	Consult	5.08E+05	49587	CON317	CONSULT TO NEUROSURGERY SERVICE	217	197
+73	stride_order_med	Med (Oral)	4821	44825	RXCUI4821	Glipizide (Oral)	400	197
+73	stride_order_med	Med (Oral)	88249	44321	RXCUI88249	Montelukast (Oral)	322	196
+73	stride_order_med	Med (Oral)	7557	44390	MED7557	Sulfamethoxazole-Trimethoprim (Oral)	437	196
+6	stride_order_proc	Lab	472619	48584	LABIGG	IGG, SERUM	305	196
+34	stride_order_proc	Consult	589656	48980	CON351	CONSULT TO INFECTIOUS DISEASE	213	196
+72	stride_order_med	Med (Intravenous)	36063	46298	MED36063	Potassium Chloride-Sodium Chloride (Intravenous)	242	196
+4	stride_order_proc	Nursing	498234	50228	NUR2004	RECTAL TUBE	241	196
+6	stride_order_proc	Lab	472522	65688	LABDGHBP	DIAG. HEPATITIS B PANEL	210	196
+73	stride_order_med	Med (Oral)	8787	44646	RXCUI8787	Propranolol (Oral)	433	195
+4	stride_order_proc	Nursing	473244	45907	NUR1139	RESTRICT FLUID INTAKE	288	195
+4	stride_order_proc	Nursing	668134	49229	NUR1157	BEACON NURSING COMMUNICATION 2	347	195
+28	stride_order_proc	GI	472052	50005	GICOLO	COLONOSCOPY	395	195
+73	stride_order_med	Med (Oral)	25025	46230	RXCUI25025	Finasteride (Oral)	340	194
+6	stride_order_proc	Lab	862879	57817	LABVD25H	VITAMIN D, 25-HYDROXYVITAMIN	273	194
+8	stride_order_proc	Imaging	473963	65673	IMGDXAB2	ABDOMEN WITH DECUB AND/OR UPRIGHT	276	193
+73	stride_order_med	Med (Oral)	2582	44410	RXCUI2582	Clindamycin (Oral)	348	192
+6	stride_order_proc	Lab	497053	49008	LABRFRPT	REFERENCE REPORT	274	192
+85	stride_order_med	Med (Nasal)	7812	46426	RXCUI7812	Oxymetazoline (Nasal)	237	191
+4	stride_order_proc	Nursing	471979	51706	NUR770	RESPIRATORY ASSESSMENT	200	191
+35	stride_order_proc	SLP	883986	62060	SLP50	SLP FEES SWALLOW EVALUATE AND TREAT	285	191
+40	stride_order_proc	Legal	489264	48699	LEG2	LEGAL STATUS: 72 HR HOLD (5150)	243	190
+73	stride_order_med	Med (Oral)	39786	44438	RXCUI39786	Venlafaxine (Oral)	422	189
+6	stride_order_proc	Lab	472402	46359	LABRBCFOL	FOLATE, RBC	234	189
+4	stride_order_proc	Nursing	472637	45898	NUR925	INCISION ASSESSMENT	202	188
+72	stride_order_med	Med (Intravenous)	10154	44441	RXCUI10154	Succinylcholine (Intravenous)	230	188
+4	stride_order_proc	Nursing	660691	62027	NUR3018	CIWA (CLINICAL INSTITUTE WITHDRAWAL ASSESSMENT OF ALCOHOL)	266	188
+72	stride_order_med	Med (Intravenous)	6185	44247	RXCUI6185	Labetalol (Intravenous)	305	187
+8	stride_order_proc	Imaging	473980	45923	IMGDXKN2LT	XR KNEE 1 OR 2V LT	249	187
+8	stride_order_proc	Imaging	473817	46139	IMGCT3HN	CT ANGIO HEAD AND NECK	221	187
+8	stride_order_proc	Imaging	898596	62235	IMGCTTROF	CT CHEST OUTSIDE STUDY FOR REFERENCE ONLY	222	187
+72	stride_order_med	Med (Intravenous)	7617	43996	RXCUI7617	Octreotide (Intravenous)	346	187
+6	stride_order_proc	Lab	472057	63720	LABVP4	COMP HEPATITIS PANEL	209	186
+4	stride_order_proc	Nursing	669735	62030	NUR11518	BEACON NURSING TRANSFUSION PARAMETERS	228	185
+4	stride_order_proc	Nursing	489303	49458	NUR1529	MONITOR CO/CI	194	185
+73	stride_order_med	Med (Oral)	6581	46342	RXCUI6581	Magnesium Hydroxide (Oral)	207	184
+71	stride_order_med	Med (Topical)	7597	46568	RXCUI7597	Nystatin (Topical)	260	183
+6	stride_order_proc	Lab	898802	62134	LABEBVQP	EBV PCR QUANT, PLASMA	287	182
+73	stride_order_med	Med (Oral)	275891	44350	RXCUI275891	Valganciclovir (Oral)	704	181
+6	stride_order_proc	Lab	472108	48574	LABCR	CREATININE, SERUM/PLASMA	245	180
+4	stride_order_proc	Nursing	668150	61860	NUR8000	BMT PROTOCOL OR TREATMENT PLAN	189	180
+22	stride_order_proc	Code Status	472216	62911	COD5	DNR/DNE	279	180
+30	stride_order_proc	Cast Room	472997	48673	CR103	ABDUCTION WEDGE (HIP)	197	179
+6	stride_order_proc	Lab	472111	49867	LABBBPCRY	CRYOPRECIPITATE	340	179
+73	stride_order_med	Med (Oral)	62427	44843	RXCUI62427	Ursodeoxycholate (Oral)	426	179
+6	stride_order_proc	Lab	473062	49215	LABPTH	PARATHYROID HORMONE	277	179
+4	stride_order_proc	Nursing	667699	49768	NUR2003	BMT NURSING INSTRUCTION	203	179
+6	stride_order_proc	Lab	472193	45958	LABDATBSI	DIRECT COOMBS BROAD SPECTRUM	249	178
+6	stride_order_proc	Lab	473301	45980	LABSPIE	PROTEIN IMMUNOFIX ELECTROPHORESIS, SERUM	208	177
+6	stride_order_proc	Lab	472040	63716	LABCMVIGG	CMV IGG	199	177
+72	stride_order_med	Med (Intravenous)	190376	46248	RXCUI190376	Linezolid (Intravenous)	293	176
+4	stride_order_proc	Nursing	867751	61833	NUR1599	MONITOR CARDIAC ASSIST DEVICE	206	176
+8	stride_order_proc	Imaging	516589	65656	IMGUSVULOLT	US RADIOLOGY VEIN LOWER EXTREMITY LEFT RULE OUT DVT	191	176
+73	stride_order_med	Med (Oral)	540702	56498	MED540702	BLUE FOOD COLORING-FD&C BLUE1 (FEES PROTOCOL)	244	175
+6	stride_order_proc	Lab	471531	45932	LABAHP2	ACUTE HEPATITIS PANEL	218	174
+73	stride_order_med	Med (Oral)	139462	46445	RXCUI139462	Moxifloxacin (Oral)	330	174
+73	stride_order_med	Med (Oral)	10156	46439	RXCUI10156	Sucralfate (Oral)	304	173
+39	stride_order_proc	Outpatient Referral	505843	49995	REF29	REFERRAL TO CARDIOLOGY	190	173
+4	stride_order_proc	Nursing	4.73E+05	62119	NUR900	ICE CHIPS & SIPS H20 WHEN AWAKE AND ALERT	187	173
+6	stride_order_proc	Lab	472441	46105	LABGGT	GAMMA - GLUTAMYL TRANSFERASE	270	173
+4	stride_order_proc	Nursing	473423	45943	NUR1210	BEDREST (STRICT)	193	172
+25	stride_order_proc	Precaution	518499	46038	PRE14	HIP PRECAUTIONS	188	172
+4	stride_order_proc	Nursing	870013	61835	NUR30013	COMFORT CARE MEASURES	188	171
+6	stride_order_proc	Lab	471614	48721	LABFAMY	AMYLASE, FLUID	439	170
+8	stride_order_proc	Imaging	517155	49408	IMGUSAB1L	US ABDOMEN LTD	185	170
+73	stride_order_med	Med (Oral)	6058	44367	RXCUI6058	Isosorbide Dinitrate (Oral)	459	168
+8	stride_order_proc	Imaging	473930	48948	IMGCTSL	CT SPINE LUMBAR	195	168
+73	stride_order_med	Med (Oral)	40254	44437	RXCUI40254	Valproate (Oral)	534	168
+8	stride_order_proc	Imaging	473958	45985	IMGDXSPC2	XR SPINE, CERVICAL 2V	218	168
+73	stride_order_med	Med (Oral)	17128	46474	RXCUI17128	Lansoprazole (Oral)	239	168
+104	stride_order_med	Med (Intranasal)	6387	54419	RXCUI6387	Lidocaine (Intranasal)	233	168
+73	stride_order_med	Med (Oral)	208479	46596	MED208479	Magnesium Oxide-Magnesium Amino Acid Chelate (Oral)	410	168
+34	stride_order_proc	Consult	519476	48819	CON359	CONSULT TO NEPHROLOGY	215	167
+73	stride_order_med	Med (Oral)	28439	44266	RXCUI28439	Lamotrigine (Oral)	410	167
+73	stride_order_med	Med (Oral)	32675	45052	RXCUI32675	Oxybutynin (Oral)	306	167
+6	stride_order_proc	Lab	497368	61850	LABFLGL	GLUCOSE, FLUID	303	167
+72	stride_order_med	Med (Intravenous)	6754	44224	RXCUI6754	Meperidine (Intravenous)	197	166
+6	stride_order_proc	Lab	472317	45976	LABUEOS	EOSINOPHILS, URINE	330	166
+39	stride_order_proc	Outpatient Referral	505849	49005	REF32	REFERRAL TO GASTROENTEROLOGY	186	166
+84	stride_order_med	Med (Intramuscular)	204238	46629	MED204238	Acellular Pertussis Vaccine-Diphtheria Toxoid Vaccine-Tetanus Toxoid Vaccine (Intramuscular)	173	166
+87	stride_order_med	Med (Epidural)	-5.40E+18	55965	RXCUI1815,4337,9863	Bupivacaine-Fentanyl-Sodium Chloride (Epidural)	227	166
+8	stride_order_proc	Imaging	516591	65692	IMGUSVULORT	US RADIOLOGY VEIN LOWER EXTREMITY RIGHT RULE OUT DVT	182	166
+34	stride_order_proc	Consult	647343	49156	CON420	CONSULT TO PAIN	182	165
+6	stride_order_proc	Lab	668091	49072	LAB11125R	COCCI ID	197	165
+4	stride_order_proc	Nursing	472094	50372	NUR813	VERIFY INFORMED CONSENT	186	165
+4	stride_order_proc	Nursing	624824	48908	NUR4075	GUIDELINES FOR MD ORDERING 2	243	163
+4	stride_order_proc	Nursing	872129	62013	NUR201019	HOLD TUBE FEEDING X1	305	163
+71	stride_order_med	Med (Topical)	1291	44443	RXCUI1291	Bacitracin (Topical)	215	163
+73	stride_order_med	Med (Oral)	18867	45035	RXCUI18867	Benazepril (Oral)	283	163
+72	stride_order_med	Med (Intravenous)	68139	46486	RXCUI68139	Rocuronium (Intravenous)	211	162
+4	stride_order_proc	Nursing	660471	48830	NUR6541	WARM PATIENT	207	162
+4	stride_order_proc	Nursing	518292	45883	NUR352	SKIN GRAFT CARE	166	162
+73	stride_order_med	Med (Oral)	35636	44400	RXCUI35636	Risperidone (Oral)	479	161
+73	stride_order_med	Med (Oral)	121243	44867	RXCUI121243	Voriconazole (Oral)	549	161
+8	stride_order_proc	Imaging	474111	49406	IMGMRSC	MR C-SPINE	204	159
+4	stride_order_proc	Nursing	471883	62302	NUR716	CHECK TUBE FEEDING	229	159
+73	stride_order_med	Med (Oral)	6057	44242	RXCUI6057	Isosorbide (Oral)	322	158
+53	stride_order_proc	Nursing Transfusion	927934	65646	NUR701	TRANSFUSE PLATELETS	748	158
+73	stride_order_med	Med (Oral)	214824	44399	RXCUI214824	Sevelamer (Oral)	385	157
+72	stride_order_med	Med (Intravenous)	10454	45049	RXCUI10454	Thiamine (Intravenous)	245	157
+72	stride_order_med	Med (Intravenous)	2396	44309	RXCUI2396	Chlorothiazide (Intravenous)	629	156
+4	stride_order_proc	Nursing	489375	46145	NUR1601	PACING WIRE/GROUND PLATE IN SITU	171	156
+6	stride_order_proc	Lab	473097	49334	LABPHEN	PHENYTOIN LEVEL	398	156
+16	stride_order_proc	Blood Bank	889176	63759	LABERURBC	EMERGENCY RELEASE RBC	236	156
+75	stride_order_med	Med (Inhalation)	92811	44330	MED92811	Albuterol-Ipratropium (Inhalation)	282	155
+8	stride_order_proc	Imaging	473872	45762	IMGCTPEP	CT PULMONARY EMBOLISM & LOWER EXTREMITY	172	155
+12	stride_order_proc	Procedures	885239	62144	2109388	LIMITED ULTRASOUND	157	155
+8	stride_order_proc	Imaging	898644	62239	IMGUSABROF	US ABDOMEN OUTSIDE STUDY FOR REFERENCE ONLY	188	155
+8	stride_order_proc	Imaging	473829	46084	IMGCT3TAP	CT ANGIO CHEST ABDOMEN PELVIS	207	155
+22	stride_order_proc	Code Status	472217	62758	COD7	DNR/C	198	154
+73	stride_order_med	Med (Oral)	6813	44591	RXCUI6813	Methadone (Oral)	498	154
+4	stride_order_proc	Nursing	471962	45790	NUR755	GROIN PUNCTURE CHECKS (R AND/OR L)	204	153
+8	stride_order_proc	Imaging	473816	46036	IMGCTFAC	CT FACIAL BONES OR SINUS	182	153
+34	stride_order_proc	Consult	979722	65695	CON468	CONSULT TO HEART FAILURE CNS	184	153
+73	stride_order_med	Med (Oral)	11124	44872	RXCUI11124	Vancomycin (Oral)	459	153
+73	stride_order_med	Med (Oral)	89013	45415	RXCUI89013	Aripiprazole (Oral)	402	153
+73	stride_order_med	Med (Oral)	1292	44370	RXCUI1292	Baclofen (Oral)	298	152
+28	stride_order_proc	GI	472324	46016	GIEERCP	ERCP PROCEDURE	363	152
+4	stride_order_proc	Nursing	489399	49547	NUR1625	PRIVILEGES-LEVEL 2 (PSYCH UNIT)	178	152
+8	stride_order_proc	Imaging	473975	48506	IMGDXFEMLT	XR FEMUR LT	238	152
+8	stride_order_proc	Imaging	473917	45804	IMGCTHPRW	CT HEAD PERFUSION W CONTRAST	180	151
+72	stride_order_med	Med (Intravenous)	4.71E+18	44649	RXCUI3264,4850,26225	Dexamethasone-Glucose-Ondansetron (Intravenous)	202	151
+6	stride_order_proc	Lab	473173	48985	LABTP	PROTEIN TOTAL, SERUM/PLASMA	178	151
+41	stride_order_proc	Isolation	506541	48728	ISO7	RESPIRATORY ISOLATION	205	150
+6	stride_order_proc	Lab	471568	48745	LABFAL	ALBUMIN, FLUID	353	150
+56	stride_order_proc	Vascular Ultrasound	519229	61865	VSC03	VSC ARTERIAL EXAM/ABI\'S	223	150
+73	stride_order_med	Med (Oral)	35619	44424	RXCUI35619	Rifaximin (Oral)	383	150
+80	stride_order_med	Med (Feeding Tube)	8591	46318	RXCUI8591	Potassium Chloride (Feeding Tube)	279	150
+15	stride_order_proc	Microbiology	893889	65691	LABORAERO	ORTHOPEDIC AEROBIC CULT W/GS	298	149
+6	stride_order_proc	Lab	473704	49290	LABREF1	LAB UNLISTED 1	232	148
+4	stride_order_proc	Nursing	489365	50614	NUR1591	OROGASTRIC TUBE	201	148
+72	stride_order_med	Med (Intravenous)	99	43994	RXCUI99	6-Aminocaproic Acid (Intravenous)	172	147
+75	stride_order_med	Med (Inhalation)	197	46562	RXCUI197	Acetylcysteine (Inhalation)	297	147
+15	stride_order_proc	Microbiology	893884	65654	LABORANER	ORTHOPEDIC ANAEROBIC CULTURE	295	147
+85	stride_order_med	Med (Nasal)	9863	44413	RXCUI9863	Sodium Chloride (Nasal)	210	146
+8	stride_order_proc	Imaging	473815	46072	IMGCTA	CT ABDOMEN	180	146
+73	stride_order_med	Med (Oral)	10689	46837	RXCUI10689	Tramadol (Oral)	230	146
+72	stride_order_med	Med (Intravenous)	8745	46586	RXCUI8745	Promethazine (Intravenous)	175	145
+42	stride_order_proc	Pharmacy Consult	541711	48490	CON377	CONSULT TO PHARMACY	156	145
+3	stride_order_proc	Point of Care Testing	472690	48732	LABPCEG7V	ISTAT EG7, VENOUS	1520	144
+72	stride_order_med	Med (Intravenous)	121243	44643	RXCUI121243	Voriconazole (Intravenous)	310	143
+6	stride_order_proc	Lab	472106	49442	LABFCR	CREATININE, FLUID	370	143
+73	stride_order_med	Med (Oral)	6703	45130	RXCUI6703	Megestrol (Oral)	310	143
+8	stride_order_proc	Imaging	474145	46077	IMGMRHSDX	MR DIAGNOSIS STROKE PROTOCOL	149	143
+17	stride_order_proc	ECG	792931	62057	EKG29	CARDIAC PATCH RHYTHM MONITOR	177	142
+73	stride_order_med	Med (Oral)	214688	46259	RXCUI214688	Magnesium Lactate (Oral)	204	142
+6	stride_order_proc	Lab	473170	49534	LABUTPRAN	PROTEIN WITH CREATININE, URINE (RANDOM)	270	142
+35	stride_order_proc	SLP	473338	48608	SLP5	SLP VIDEO SWALLOW EVALUATE AND TREAT	167	141
+4	stride_order_proc	Nursing	668427	48602	NUR823	INFUSE HCT/P	150	141
+6	stride_order_proc	Lab	471770	48645	LABTBIL	BILIRUBIN TOTAL, SERUM/PLASMA	183	140
+73	stride_order_med	Med (Oral)	704	44810	RXCUI704	Amitriptyline (Oral)	235	140
+8	stride_order_proc	Imaging	473995	48817	IMGFLDYSS	XR DYSPHAGIA WITH SPEECH PATHOLOGIST	165	139
+73	stride_order_med	Med (Oral)	3423	44735	RXCUI3423	Hydromorphone (Oral)	238	139
+24	stride_order_proc	Pathology	669501	58184	PATH16	BONE MARROW BIOPSY, ASPIRATE	229	139
+8	stride_order_proc	Imaging	473932	48722	IMGCTST	CT SPINE THORACIC	149	138
+15	stride_order_proc	Microbiology	473804	48696	LABWDCS	WOUND CULTURE AND GRAM STAIN, DEEP / SURGICAL / ASP	181	138
+73	stride_order_med	Med (Oral)	5032	46355	RXCUI5032	Guaifenesin (Oral)	204	137
+15	stride_order_proc	Microbiology	473117	45843	LABPCYS	PNEUMOCYSTIS STAIN	280	137
+4	stride_order_proc	Nursing	519225	62032	NUR353	BEDSIDE PROCEDURE	170	137
+72	stride_order_med	Med (Intravenous)	3251	44575	RXCUI3251	Desmopressin (Intravenous)	222	137
+73	stride_order_med	Med (Oral)	3640	46261	RXCUI3640	Doxycycline (Oral)	235	137
+41	stride_order_proc	Isolation	506544	50841	ISO11	CONTACT AND DROPLET ISOLATION	175	137
+6	stride_order_proc	Lab	472321	63718	LABEBVPAN	EPSTEIN-BARR VIRUS AB PANEL	153	137
+72	stride_order_med	Med (Intravenous)	42386	46219	RXCUI42386	Immunoglobulins, Intravenous (Intravenous)	313	136
+79	stride_order_med	Med (Injection)	15955	46472	MED15955	Epinephrine-Lidocaine (Injection)	151	136
+8	stride_order_proc	Imaging	473916	50241	IMGCTHWWO	CT HEAD WWO CONTRAST	144	136
+4	stride_order_proc	Nursing	489513	49477	NUR1740	THORACIC SPINE STATUS	232	136
+72	stride_order_med	Med (Intravenous)	14866	46505	MED14866	Glucose-Potassium Chloride-Sodium Chloride (Intravenous)	158	136
+73	stride_order_med	Med (Oral)	1596	46241	RXCUI1596	Bisacodyl (Oral)	179	135
+43	stride_order_proc	NSG PICC Refer	660627	51048	NUR6145	PICC EVALUATION	156	135
+4	stride_order_proc	Nursing	489272	49238	NUR1498	LUMBAR SPINE STATUS	235	135
+4	stride_order_proc	Nursing	870012	62090	NUR9002	LIBERALIZE VISITATION POLICY	145	133
+72	stride_order_med	Med (Intravenous)	10582	45397	RXCUI10582	Thyroxine (Intravenous)	203	133
+75	stride_order_med	Med (Inhalation)	89401	44409	MED89401	Fluticasone-Salmeterol (Inhalation)	218	132
+73	stride_order_med	Med (Oral)	32937	44403	RXCUI32937	Paroxetine (Oral)	240	132
+8	stride_order_proc	Imaging	474118	45889	IMGMRAH	MR ANGIO HEAD	151	132
+3	stride_order_proc	Point of Care Testing	472681	49301	LABPCCG4	ISTAT CG4, ARTERIAL	178	132
+72	stride_order_med	Med (Intravenous)	3002	44605	RXCUI3002	Cyclophosphamide (Intravenous)	197	132
+39	stride_order_proc	Outpatient Referral	505897	62166	REF56	REFERRAL TO STANFORD INTERNAL MEDICINE	142	132
+72	stride_order_med	Med (Intravenous)	107044	43999	RXCUI107044	Rabbit Anti-Human T-Lymphocyte Globulin (Intravenous)	303	131
+8	stride_order_proc	Imaging	474016	46175	IMGDXHIP2RT	XR HIP 2V RT	170	131
+8	stride_order_proc	Imaging	474088	46172	IMGDXFEMRT	XR FEMUR RT	261	131
+98	stride_order_med	Med (Sublingual)	4917	44256	RXCUI4917	Nitroglycerin (Sublingual)	155	130
+72	stride_order_med	Med (Intravenous)	3616	44251	RXCUI3616	Dobutamine (Intravenous)	258	130
+4	stride_order_proc	Nursing	668136	48835	NUR1159	BEACON NURSING COMMUNICATION 3	171	130
+4	stride_order_proc	Nursing	861125	50913	NUR5500	CMV STATUS	195	130
+4	stride_order_proc	Nursing	4.89E+05	61851	NUR1377	FOLEY RETENTION CATHETER 2-WAY	138	130
+16	stride_order_proc	Blood Bank	889178	63746	LABERUFFP	EMERGENCY RELEASE PLASMA	206	130
+4	stride_order_proc	Nursing	472983	46116	NUR1071	ABDUCTION PILLOW	136	129
+36	stride_order_proc	Cath Angio	589694	46352	CON106	CONSULT TO IR - TUBE DRAIN	156	129
+8	stride_order_proc	Imaging	473964	46018	IMGDXAB3	XR ABDOMEN W AP, UPRIGHT, DECUB & DIAPHRAGM	152	128
+6	stride_order_proc	Lab	910608	63778	LABCMVIGT	CMV IGG (TRANSFUSION)	130	127
+72	stride_order_med	Med (Intravenous)	-5.50E+18	44003	RXCUI4511,4850,89905,10454,8308	Folic Acid-Glucose-Multivitamin Preparation-Thiamine-Vitamin K 1 (Intravenous)	173	127
+8	stride_order_proc	Imaging	474108	46142	IMGMRAK	MR ANGIO NECK	159	126
+73	stride_order_med	Med (Oral)	21949	46304	RXCUI21949	Cyclobenzaprine (Oral)	212	126
+73	stride_order_med	Med (Oral)	7454	46320	RXCUI7454	Nitrofurantoin (Oral)	213	126
+88	stride_order_med	Med (Both Eyes)	43611	46443	RXCUI43611	Latanoprost (Both Eyes)	197	126
+39	stride_order_proc	Outpatient Referral	505855	51481	REF35	REFERRAL TO INFECTIOUS DISEASE	144	126
+4	stride_order_proc	Nursing	624784	46127	NUR6020	TEDS BILATERAL THIGH HIGH	131	125
+72	stride_order_med	Med (Intravenous)	105694	46375	RXCUI105694	Epoetin Alfa (Intravenous)	372	125
+8	stride_order_proc	Imaging	474077	48623	IMGDXSH2RT	XR SHOULDER 2V RT	159	125
+4	stride_order_proc	Nursing	872047	62008	NUR0731	ADVANCE FEEDING TUBE	155	125
+8	stride_order_proc	Imaging	474040	50200	IMGDXCH1P	XR CHEST 1V PORTABLE	129	125
+34	stride_order_proc	Consult	508110	50463	CON315	CONSULT TO ENDOCRINOLOGY	134	125
+72	stride_order_med	Med (Intravenous)	2.87E+18	44650	RXCUI4850,8591,56443,9863	Glucose-Potassium Chloride-Sodium Acetate-Sodium Chloride (Intravenous)	148	125
+4	stride_order_proc	Nursing	621229	57733	NUR6001	RISK FOR DELIRIUM	142	125
+73	stride_order_med	Med (Oral)	135447	44204	RXCUI135447	Donepezil (Oral)	193	124
+73	stride_order_med	Med (Oral)	37798	44436	RXCUI37798	Terazosin (Oral)	334	124
+73	stride_order_med	Med (Oral)	6963	44756	RXCUI6963	Midodrine (Oral)	378	124
+72	stride_order_med	Med (Intravenous)	4179	44611	RXCUI4179	Etoposide (Intravenous)	169	124
+24	stride_order_proc	Pathology	472129	49152	LABCYTOG	CYTOGENETICS REPORT	155	123
+72	stride_order_med	Med (Intravenous)	16427	46589	MED16427	Potassium Chloride-Sodium Chloride (Intravenous)	142	123
+6	stride_order_proc	Lab	472110	49016	LABUCRT	CREATININE, URINE (TIMED)	218	123
+8	stride_order_proc	Imaging	473812	49836	IMGCT3AP	CT ANGIO ABDOMEN PELVIS	160	123
+4	stride_order_proc	Nursing	489400	49715	NUR1626	PRIVILEGES-LEVEL 3 (G2)	143	123
+8	stride_order_proc	Imaging	473879	50259	IMGCTTA	CT CHEST ABDOMEN	161	123
+72	stride_order_med	Med (Intravenous)	229690	59632	MED229690	SODIUM GLYCEROPHOSPHATE 1 MMOL/ML IV SOLN	206	123
+34	stride_order_proc	Consult	518286	49113	CON341	REQUEST FOR LANGUAGE SVS	162	122
+73	stride_order_med	Med (Oral)	8183	44885	RXCUI8183	Phenytoin (Oral)	301	122
+72	stride_order_med	Med (Intravenous)	114200	46247	RXCUI114200	Citrate (Intravenous)	202	122
+107	stride_order_med	Med (Nebulization)	6387	46546	RXCUI6387	Lidocaine (Nebulization)	179	122
+32	stride_order_proc	ECHO	472299	45963	ECH16	ECHO - TRANSESOPHAGEAL ECHO	139	121
+72	stride_order_med	Med (Intravenous)	26237	46386	RXCUI26237	Granisetron (Intravenous)	170	121
+73	stride_order_med	Med (Oral)	6468	46610	RXCUI6468	Loperamide (Oral)	235	121
+73	stride_order_med	Med (Oral)	33227	46609	MED33227	Amoxicillin-Clavulanate (Oral)	218	121
+34	stride_order_proc	Consult	519219	50547	CON345	CONSULT TO HEMATOLOGY	140	121
+4	stride_order_proc	Nursing	491495	62016	NUR2075	PREVALON BOOTS	133	120
+8	stride_order_proc	Imaging	474717	62087	IMG4NA	ANGIOGRAM CEREBRAL	166	120
+73	stride_order_med	Med (Oral)	28384	44278	MED28384	Acetaminophen-Hydrocodone (Oral)	144	119
+6	stride_order_proc	Lab	497524	48486	LABVANUNL	VANCOMYCIN SINGLE DAILY DOSE LEVEL	263	119
+73	stride_order_med	Med (Oral)	3008	44704	RXCUI3008	Cyclosporine (Oral)	505	119
+6	stride_order_proc	Lab	472740	45835	LABLEGU	LEGIONELLA AG, URINE	204	118
+4	stride_order_proc	Nursing	519482	46143	NUR368	TED HOSE	130	118
+8	stride_order_proc	Imaging	474102	48936	IMGDXHIP2LT	XR HIP 2V LT	149	118
+8	stride_order_proc	Imaging	474009	52426	IMGFLERCPS	XR ERCP W SPHICTEROTOMY, BILIARY AND PANCREAS	165	118
+8	stride_order_proc	Imaging	473969	45769	IMGDXSH2LT	XR SHOULDER 2V LT	162	117
+4	stride_order_proc	Nursing	472918	46146	NUR1039	CHECK DISTAL PULSES, COLOR, TEMP	156	117
+72	stride_order_med	Med (Intravenous)	68149	44612	RXCUI68149	Mycophenolate Mofetil (Intravenous)	215	117
+4	stride_order_proc	Nursing	624825	50864	NUR4076	GUIDELINES FOR MD ORDERING 3	146	117
+6	stride_order_proc	Lab	471955	50930	LABSYNCT	CELL COUNT AND DIFF, SYNOVIAL FLUID	180	117
+4	stride_order_proc	Nursing	870011	61829	NUR9001	INSTRUCTIONS TO PHYSICIANS	122	117
+24	stride_order_proc	Pathology	624482	62264	CG05	CHROMOSOME ANALYSIS, CANCER DIAGNOSIS	173	117
+6	stride_order_proc	Lab	472041	63739	LABCMVIGM	CMV IGM	136	117
+4	stride_order_proc	Nursing	473006	48663	NUR1076	ABSCESS DRAINAGE TUBE	191	116
+6	stride_order_proc	Lab	473349	48539	LABUSPG	SPECIFIC GRAVITY, URINE	1017	116
+6	stride_order_proc	Lab	896077	63796	10290R	HLA - TYPING	154	116
+73	stride_order_med	Med (Oral)	1114195	60178	RXCUI1114195	Rivaroxaban (Oral)	294	116
+4	stride_order_proc	Nursing	633105	49140	NUR4084	CONT RENAL REPLACEMENT THERAPY	380	115
+4	stride_order_proc	Nursing	872044	62033	NUR0728	USE FRAZIER WATER PROTOCOL	133	115
+72	stride_order_med	Med (Intravenous)	1272	44678	RXCUI1272	Aztreonam (Intravenous)	226	115
+73	stride_order_med	Med (Oral)	3827	45190	RXCUI3827	Enalapril (Oral)	254	115
+73	stride_order_med	Med (Oral)	540141	44280	MED540141	GI COCKTAIL	132	114
+4	stride_order_proc	Nursing	489069	45839	NUR1295	D/C DRESSING GRAFT SITE 48H POST-OP	117	114
+6	stride_order_proc	Lab	497496	48631	LABCYCWBL	CYCLOSPORINE, WHOLE BLOOD	401	114
+73	stride_order_med	Med (Oral)	283742	44308	RXCUI283742	Esomeprazole (Oral)	176	113
+72	stride_order_med	Med (Intravenous)	3.09E+18	44618	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8737,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Proline-Serine-Sodium Acetate-S (...)	201	113
+8	stride_order_proc	Imaging	474113	46088	IMGMRSL	MR L-SPINE	144	113
+6	stride_order_proc	Lab	497486	46054	LABVPAL	VALPROIC ACID	272	113
+6	stride_order_proc	Lab	473234	49078	LABREPT	REPTILASE TIME	224	113
+75	stride_order_med	Med (Inhalation)	225590	60175	MED225590	Albuterol-Ipratropium (Inhalation)	175	113
+72	stride_order_med	Med (Intravenous)	8183	44589	RXCUI8183	Phenytoin (Intravenous)	271	112
+76	stride_order_med	Med (Rectal)	6972	46660	RXCUI6972	Mineral Oil (Rectal)	153	112
+53	stride_order_proc	Nursing Transfusion	927939	65702	NUR702	TRANSFUSE FRESH FROZEN PLASMA	304	112
+8	stride_order_proc	Imaging	516584	65661	IMGUSVUUPLT	US RADIOLOGY VEIN UPPER EXTREMITY LEFT RULE OUT DVT	143	112
+73	stride_order_med	Med (Oral)	6472	44320	RXCUI6472	Lovastatin (Oral)	146	111
+8	stride_order_proc	Imaging	898610	62384	IMGMRHROF	MR HEAD OUTSIDE STUDY FOR REFERENCE ONLY	148	111
+73	stride_order_med	Med (Oral)	5093	44378	RXCUI5093	Haloperidol (Oral)	203	110
+4	stride_order_proc	Nursing	471726	45944	NUR644	CLAMP NASOGASTRIC TUBE	132	110
+8	stride_order_proc	Imaging	473820	45946	IMGCTP	CT PELVIS	129	110
+40	stride_order_proc	Legal	489263	49003	LEG1	LEGAL STATUS: 14 DAY HOLD (5250)	130	110
+4	stride_order_proc	Nursing	489063	49402	NUR1266	CONDOM CATHETER	126	110
+8	stride_order_proc	Imaging	516586	49115	IMGUSVUUPRT	US VEIN UPPER EXTREMITY RIGHT R/O DVT	136	109
+6	stride_order_proc	Lab	621214	48532	LABDDIML	D - DIMER (ELISA)	132	109
+9	stride_order_proc	Diet	472166	62205	DIET109	DIET LOW FIBER	152	109
+6	stride_order_proc	Lab	896084	63822	10330R	HLA - SCREENING IGG	135	109
+76	stride_order_med	Med (Rectal)	6218	44593	RXCUI6218	Lactulose (Rectal)	240	109
+4	stride_order_proc	Nursing	489426	46130	NUR1653	RN ESCORT NEEDED, IF INPATIENT	124	108
+72	stride_order_med	Med (Intravenous)	2.28E+18	44625	RXCUI733,10167	Ampicillin-Sulbactam (Intravenous)	151	108
+15	stride_order_proc	Microbiology	472744	49478	LABLEGDA	LEGIONELLA CULTURE	163	108
+15	stride_order_proc	Microbiology	893886	65663	LABORSHOR	ORTHOPEDIC CULT MULT SPECIMENS	281	108
+6	stride_order_proc	Lab	471580	45902	LABAFP	ALPHA FETOPROTEIN, SERUM	143	107
+6	stride_order_proc	Lab	590435	45948	LABHELAG	HELICOBACTER PYLORI AG, STOOL	177	107
+73	stride_order_med	Med (Oral)	9384	46371	RXCUI9384	Rifampin (Oral)	224	107
+73	stride_order_med	Med (Oral)	6579	46502	RXCUI6579	Magnesium Chloride (Oral)	167	107
+72	stride_order_med	Med (Intravenous)	167	46734	RXCUI167	Acetazolamide (Intravenous)	203	107
+73	stride_order_med	Med (Oral)	2358	47013	RXCUI2358	Chlorhexidine (Oral)	124	107
+73	stride_order_med	Med (Oral)	38404	44851	RXCUI38404	Topiramate (Oral)	239	107
+4	stride_order_proc	Nursing	472919	49087	NUR1040	CHECK PROCEDURE SIDE/SITE PULSES	118	106
+6	stride_order_proc	Lab	471951	49371	LABCEA	CEA	130	106
+8	stride_order_proc	Imaging	474372	49581	IMGUSPLE	US FLUID LOCALIZATION	133	106
+75	stride_order_med	Med (Inhalation)	92914	46263	MED92914	Fluticasone-Salmeterol (Inhalation)	159	106
+74	stride_order_med	Med (Subcutaneous)	7617	46449	RXCUI7617	Octreotide (Subcutaneous)	213	106
+72	stride_order_med	Med (Intravenous)	139462	46335	RXCUI139462	Moxifloxacin (Intravenous)	130	106
+6	stride_order_proc	Lab	471695	48837	LABAGALA	ASPERGILLUS GALACTOMANNAN	142	105
+8	stride_order_proc	Imaging	473934	49031	IMGCTTW	CT THORAX W CONTRAST	111	105
+72	stride_order_med	Med (Intravenous)	7233	45034	RXCUI7233	Nafcillin (Intravenous)	219	105
+73	stride_order_med	Med (Oral)	34505	47726	MED34505	Acetaminophen-Hydrocodone (Oral)	131	105
+7	stride_order_proc	Respiratory Care	549816	49319	RT106	RESP - NITRIC OXIDE VENT	414	104
+15	stride_order_proc	Microbiology	471621	45989	LABANER2	ANAEROBIC CULTURE, SHORT BATTERY	238	104
+4	stride_order_proc	Nursing	489109	49737	NUR1335	DOPPLER CHECKS	139	104
+34	stride_order_proc	Consult	528923	51127	CON373	CONSULT TO ENT	114	104
+8	stride_order_proc	Imaging	898660	62063	IMGDXABROF	XR ABDOMEN OUTSIDE STUDY FOR REFERENCE ONLY	132	104
+6	stride_order_proc	Lab	896083	63750	10335R	HLA - SCREENING C1Q	130	104
+6	stride_order_proc	Lab	472979	50897	LABNORW	NOROVIRUS ANTIGEN, STOOL EIA	238	104
+74	stride_order_med	Med (Subcutaneous)	321208	44429	RXCUI321208	Fondaparinux (Subcutaneous)	132	103
+72	stride_order_med	Med (Intravenous)	3322	44353	RXCUI3322	Diazepam (Intravenous)	186	102
+8	stride_order_proc	Imaging	474004	46124	IMGDXTIBLT	XR TIBIA AND FIBULA LT	189	102
+73	stride_order_med	Med (Oral)	52358	46369	RXCUI52358	Magnesium Gluconate (Oral)	156	102
+15	stride_order_proc	Microbiology	473803	48595	LABWDCG	WOUND CULTURE AND GRAM STAIN	120	102
+6	stride_order_proc	Lab	473715	48811	LABMVSOB	UNLISTED MICROBIOLOGY/VIROLOGY TEST	155	102
+10	stride_order_proc	OT	644232	45987	OT4	OT SWALLOW EVALUATE AND TREAT	104	102
+4	stride_order_proc	Nursing	472916	45993	NUR1037	SALINE MOUTH RINSE	167	102
+71	stride_order_med	Med (Topical)	90841	46890	MED90841	Camphor-Menthol (Topical)	125	102
+84	stride_order_med	Med (Intramuscular)	8745	47015	RXCUI8745	Promethazine (Intramuscular)	125	102
+6	stride_order_proc	Lab	517611	49453	LABCA199	CANCER AG 19-9	130	102
+3	stride_order_proc	Point of Care Testing	471529	61857	LABPCACTK	ISTAT ACTIVATED CLOTTING TIME	130	102
+4	stride_order_proc	Nursing	572373	53255	NUR4000	NOTIFY MD: VITAL SIGNS(ICU)	182	102
+6	stride_order_proc	Lab	473722	45933	LABUUN	UREA WITH CREATININE, URINE (RANDOM)	168	101
+36	stride_order_proc	Cath Angio	589700	50559	CON109	CONSULT TO IR - VENOUS ACCESS	126	101
+6	stride_order_proc	Lab	977657	63752	LABBHB	BETA-HYDROXYBUTYRATE	146	101
+6	stride_order_proc	Lab	904461	63785	LABHSVZL	HSV/VZV PCR QUAL, LESION	193	101
+73	stride_order_med	Med (Oral)	6185	45002	RXCUI6185	Labetalol (Oral)	268	101
+72	stride_order_med	Med (Intravenous)	142438	44581	RXCUI142438	Gentamicin Sulfate (Usp) (Intravenous)	201	100
+71	stride_order_med	Med (Topical)	6932	46345	RXCUI6932	Miconazole (Topical)	118	100
+82	stride_order_med	Med (CRRT)	36676	51019	RXCUI36676	Sodium Bicarbonate (CRRT)	192	100
+73	stride_order_med	Med (Oral)	260101	45480	RXCUI260101	Oseltamivir (Oral)	177	100
+73	stride_order_med	Med (Oral)	2683	44238	RXCUI2683	Colchicine (Oral)	209	99
+8	stride_order_proc	Imaging	473927	48599	IMGCTSC	CT SPINE CERVICAL	111	99
+6	stride_order_proc	Lab	472498	48724	LABHELI	HELICOBACTER PYLORI AB	118	99
+72	stride_order_med	Med (Intravenous)	22299	44609	RXCUI22299	Daptomycin (Intravenous)	292	99
+73	stride_order_med	Med (Oral)	190376	46326	RXCUI190376	Linezolid (Oral)	195	99
+34	stride_order_proc	Consult	589765	50848	CON340	CONSULT TO OPHTHALMOLOGY	106	99
+75	stride_order_med	Med (Inhalation)	19831	46579	RXCUI19831	Budesonide (Inhalation)	172	99
+74	stride_order_med	Med (Subcutaneous)	35780	47255	RXCUI35780	Ropivacaine (Subcutaneous)	164	99
+34	stride_order_proc	Consult	518171	50912	CON335	CONSULT TO UROLOGY	118	98
+73	stride_order_med	Med (Oral)	596	44295	RXCUI596	Alprazolam (Oral)	175	98
+71	stride_order_med	Med (Topical)	9881	46367	RXCUI9881	Sodium Hypochlorite (Topical)	151	98
+8	stride_order_proc	Imaging	474057	49566	IMGDXHIP1RT	XR HIP 1V RT	133	98
+4	stride_order_proc	Nursing	489288	49376	NUR1514	MAY HAVE SIPS OF WATER	116	98
+8	stride_order_proc	Imaging	474441	49853	IMGIRABSDRNFG	IR ABSCESS DRAINAGE FLUORO GUIDED	139	98
+7	stride_order_proc	Respiratory Care	471752	46308	RT74	RESP - BEDSIDE SPIROMETRY	207	98
+73	stride_order_med	Med (Oral)	9143	46932	RXCUI9143	Ranitidine (Oral)	125	98
+4	stride_order_proc	Nursing	876760	62177	NUR30097	MAY GO OFF TELEMETRY	104	98
+6	stride_order_proc	Lab	906955	63744	LABCMVRO	CMV RULE OUT	175	98
+72	stride_order_med	Med (Intravenous)	4678	44701	RXCUI4678	Ganciclovir (Intravenous)	242	97
+86	stride_order_med	Med (Swish & Spit)	6387	46497	RXCUI6387	Lidocaine (Swish & Spit)	111	97
+73	stride_order_med	Med (Oral)	60212	46354	RXCUI60212	Atovaquone (Oral)	232	97
+73	stride_order_med	Med (Oral)	341248	46702	RXCUI341248	Ezetimibe (Oral)	137	97
+4	stride_order_proc	Nursing	489165	49180	NUR1391	GASTROSTOMY TUBE	150	97
+6	stride_order_proc	Lab	473089	49234	LABPHME	PH BY METER	165	97
+73	stride_order_med	Med (Oral)	208092	46971	MED208092	Amylases-Endopeptidases-Lipase (Oral)	233	97
+84	stride_order_med	Med (Intramuscular)	5093	46889	RXCUI5093	Haloperidol (Intramuscular)	138	96
+8	stride_order_proc	Imaging	474056	50323	IMGDXHIP1LT	XR HIP 1V LT	119	95
+73	stride_order_med	Med (Oral)	73645	46567	RXCUI73645	Valacyclovir (Oral)	198	95
+73	stride_order_med	Med (Oral)	1894	45641	RXCUI1894	Calcitriol (Oral)	171	95
+73	stride_order_med	Med (Oral)	20610	47347	RXCUI20610	Cetirizine (Oral)	113	95
+73	stride_order_med	Med (Oral)	5521	46223	RXCUI5521	Hydroxychloroquine (Oral)	173	94
+74	stride_order_med	Med (Subcutaneous)	1815	46797	RXCUI1815	Bupivacaine (Subcutaneous)	120	94
+4	stride_order_proc	Nursing	489081	61839	NUR1307	D/C OXIMETRY WHEN SATS >92% ON ROOM AIR	100	94
+73	stride_order_med	Med (Oral)	5492	44579	RXCUI5492	Hydrocortisone (Oral)	294	94
+72	stride_order_med	Med (Intravenous)	358255	52116	RXCUI358255	Aprepitant (Intravenous)	159	94
+73	stride_order_med	Med (Oral)	91791	44380	MED91791	Ascorbic Acid-Folic Acid-Vitamin B Complex (Oral)	181	93
+34	stride_order_proc	Consult	647336	48568	CON413	CONSULT TO DERMATOLOGY	110	93
+73	stride_order_med	Med (Oral)	9863	46358	RXCUI9863	Sodium Chloride (Oral)	205	93
+71	stride_order_med	Med (Topical)	854	46649	MED854	Bacitracin-Neomycin-Polymyxin B (Topical)	100	93
+6	stride_order_proc	Lab	472802	62130	LABMMAS	METHYLMALONIC ACID, SERUM	114	93
+4	stride_order_proc	Nursing	870879	62086	NUR30018	PATIENT EDUCATION	100	93
+12	stride_order_proc	Procedures	885243	62254	2109394	CHEST TUBE	124	93
+12	stride_order_proc	Procedures	885237	63811	2109358	LUMBAR PUNCTURE	120	93
+6	stride_order_proc	Lab	471767	46245	LABIBIL	BILIRUBIN INDIRECT, SERUM	120	92
+4	stride_order_proc	Nursing	489266	48879	NUR1492	LOG ROLL ONLY	106	92
+72	stride_order_med	Med (Intravenous)	2105	44652	RXCUI2105	Carmustine (Intravenous)	96	92
+74	stride_order_med	Med (Subcutaneous)	37418	46434	RXCUI37418	Sumatriptan (Subcutaneous)	144	92
+94	stride_order_med	Med (Hemodialysis)	5224	46438	RXCUI5224	Heparin (Hemodialysis)	274	92
+4	stride_order_proc	Nursing	624774	49651	NUR6011	SCD/TEDS TO OR WITH PATIENT	115	92
+39	stride_order_proc	Outpatient Referral	660683	52757	REF94	REFERRAL TO PHYSICAL THERAPY	97	92
+30	stride_order_proc	Cast Room	658271	51261	CR101	CERVICAL COLLAR(HARD)	107	91
+32	stride_order_proc	ECHO	472293	62176	ECH25	ECHO - LIMITED TRANSTHORACIC ECHO	108	91
+75	stride_order_med	Med (Inhalation)	41126	44277	RXCUI41126	Fluticasone (Inhalation)	138	90
+6	stride_order_proc	Lab	633410	46228	LABRPRQL	RPR QUALITATIVE	100	90
+73	stride_order_med	Med (Oral)	723	46468	RXCUI723	Amoxicillin (Oral)	144	90
+8	stride_order_proc	Imaging	474005	49665	IMGDXTIBRT	XR TIBIA AND FIBULA RT	164	90
+8	stride_order_proc	Imaging	473827	50098	IMGCT3H	CT ANGIO HEAD	111	90
+8	stride_order_proc	Imaging	474394	50199	IMGNPVQ	NUC LUNG V/Q	106	90
+72	stride_order_med	Med (Intravenous)	5.14E+18	50984	RXCUI4511,9863,10454	Folic Acid-Sodium Chloride-Thiamine (Intravenous)	122	90
+6	stride_order_proc	Lab	471756	46093	LABBHCG	BETA HCG	116	89
+71	stride_order_med	Med (Topical)	42372	46432	RXCUI42372	Mupirocin (Topical)	116	89
+4	stride_order_proc	Nursing	472911	52452	NUR1032	URINARY CATHETER CARE	92	89
+6	stride_order_proc	Lab	472526	63777	LABHBSQT	HEP B SURF AB QUANT	108	89
+72	stride_order_med	Med (Intravenous)	8704	46469	RXCUI8704	Prochlorperazine (Intravenous)	112	88
+73	stride_order_med	Med (Oral)	358255	44306	RXCUI358255	Aprepitant (Oral)	236	88
+4	stride_order_proc	Nursing	489535	49300	NUR1762	WOUND VAC	163	88
+4	stride_order_proc	Nursing	518146	49533	NUR2999	MONITOR SCV02	95	88
+6	stride_order_proc	Lab	471786	46104	LABBMT1	BMT PANEL 1	127	87
+71	stride_order_med	Med (Topical)	10434	46450	MED10434	Lidocaine-Prilocaine (Topical)	110	87
+6	stride_order_proc	Lab	473736	49316	LABUPIE	URINE PROTEIN IMMUNOFIXATION ELECTROPHORESIS	159	87
+4	stride_order_proc	Nursing	660667	61996	NUR1905	ACCESS ELECTRODE PLACEMENT	89	87
+88	stride_order_med	Med (Both Eyes)	10600	46337	RXCUI10600	Timolol (Both Eyes)	126	87
+71	stride_order_med	Med (Topical)	5492	46553	RXCUI5492	Hydrocortisone (Topical)	101	87
+8	stride_order_proc	Imaging	473946	48842	IMGDXPEL3	XR PELVIS 3V	169	87
+4	stride_order_proc	Nursing	473793	50162	NUR1243	CERVICAL COLLAR	95	87
+34	stride_order_proc	Consult	508094	50509	CON308	CONSULT TO PULMONARY	92	87
+39	stride_order_proc	Outpatient Referral	660686	62175	REF96	REFERRAL TO INTERVENTIONAL RADIOLOGY	99	87
+4	stride_order_proc	Nursing	471937	49233	NUR754	FLAP CHECKS	154	87
+43	stride_order_proc	NSG PICC Refer	660647	48729	NUR6146	PICC EXCHANGE	112	86
+72	stride_order_med	Med (Intravenous)	733	44595	RXCUI733	Ampicillin (Intravenous)	142	86
+80	stride_order_med	Med (Feeding Tube)	1191	47146	RXCUI1191	Aspirin (Feeding Tube)	126	86
+15	stride_order_proc	Microbiology	966889	63735	LABVCULR	VIRAL CULTURE, RESPIRATORY	121	86
+6	stride_order_proc	Lab	890826	63771	10150R	HLA ORDER - SUMMARIES	94	86
+72	stride_order_med	Med (Intravenous)	6628	44014	RXCUI6628	Mannitol (Intravenous)	152	86
+34	stride_order_proc	Consult	508108	61323	CON319	CONSULT TO ICU	89	86
+6	stride_order_proc	Lab	472511	46066	LABHCPQ	HEPATITIS C RNA PCR QUANTITATIVE	103	85
+73	stride_order_med	Med (Oral)	5553	44718	RXCUI5553	Hydroxyzine (Oral)	146	85
+6	stride_order_proc	Lab	473262	49250	LABRF	RHUEMATOID FACTOR	100	85
+8	stride_order_proc	Imaging	473819	50244	IMGCTNS	CT NECK	112	85
+6	stride_order_proc	Lab	472551	50520	LABYHISTU	HISTOPLASMA AG, URINE	167	85
+9	stride_order_proc	Diet	472160	48894	DIET113	DIET HIGH CALORIE HIGH PROTEIN	216	84
+7	stride_order_proc	Respiratory Care	660692	48769	RT130	RESP - REPOSITION ET TUBE	98	84
+8	stride_order_proc	Imaging	474144	50324	IMGMRCP	MR CHOLANGIOGRAM	114	84
+73	stride_order_med	Med (Oral)	7417	44333	RXCUI7417	Nifedipine (Oral)	178	83
+4	stride_order_proc	Nursing	489140	46224	NUR1366	FLASH LIGHT/TONGUE BLADES AT BED	109	83
+35	stride_order_proc	SLP	876755	62014	SLP20	SLP - NO SKILLED THERAPY NEEDS	84	83
+71	stride_order_med	Med (Topical)	10759	46680	RXCUI10759	Triamcinolone (Topical)	122	83
+72	stride_order_med	Med (Intravenous)	4955	44253	RXCUI4955	Glycopyrrolate (Intravenous)	118	82
+72	stride_order_med	Med (Intravenous)	42316	44633	RXCUI42316	Tacrolimus (Intravenous)	526	82
+72	stride_order_med	Med (Intravenous)	24909	44717	RXCUI24909	Ferric Oxide, Saccharated (Intravenous)	184	82
+73	stride_order_med	Med (Oral)	214342	46424	RXCUI214342	Calcium Acetate (Oral)	137	82
+8	stride_order_proc	Imaging	474150	50361	IMGMRSTO	MR STEREOTACTIC ON-CALL	119	82
+57	stride_order_proc	Transfusion Communication	472134	62091	NUR818	TRANSFUSE CRYO (DOES NOT ORDER PRODUCT)	160	82
+6	stride_order_proc	Lab	473783	63805	LABVZVIGG	VZ IGG	86	82
+6	stride_order_proc	Lab	473779	65680	LAB12631R	VORICONAZOLE LEVEL	226	82
+8	stride_order_proc	Imaging	474029	48905	IMGFLGI	XR UPPER GI	106	82
+73	stride_order_med	Med (Oral)	4452	46462	RXCUI4452	Fludrocortisone (Oral)	228	81
+6	stride_order_proc	Lab	472475	51920	LABGLF	GLUCOSE FASTING	115	81
+73	stride_order_med	Med (Oral)	28031	46322	RXCUI28031	Itraconazole (Oral)	242	81
+8	stride_order_proc	Imaging	898668	62735	IMGDXELROF	XR LOWER EXTREMITY OUTSIDE STUDY FOR REFERENCE ONLY	95	81
+4	stride_order_proc	Nursing	508582	46205	NUR2241	UP AD LIB	87	80
+72	stride_order_med	Med (Intravenous)	4053	44592	RXCUI4053	Erythromycin (Intravenous)	124	80
+4	stride_order_proc	Nursing	489518	50100	NUR1745	TOBACCO CESSATION: ACTIVE USE	87	80
+39	stride_order_proc	Outpatient Referral	505881	50385	REF48	REFERRAL TO UROLOGY CLINIC	88	80
+8	stride_order_proc	Imaging	474065	62136	IMGDXFL1HR	XR FLUORO UP TO 1 HOUR WO RADIOLOGIST	81	80
+6	stride_order_proc	Lab	472055	49350	LABC4	COMPLEMENT C4, SERUM	106	79
+6	stride_order_proc	Lab	590521	62041	LABARI	ABO/RH (ARI)	85	79
+6	stride_order_proc	Lab	497404	62051	LABLEVETL	LEVETIRACETAM LEVEL	106	79
+72	stride_order_med	Med (Intravenous)	7242	44715	RXCUI7242	Naloxone (Intravenous)	99	79
+74	stride_order_med	Med (Subcutaneous)	51428	46264	RXCUI51428	Insulin, Aspart, Human (Subcutaneous)	146	79
+6	stride_order_proc	Lab	472054	49198	LABC3	COMPLEMENT C3, SERUM	108	79
+25	stride_order_proc	Precaution	624837	52290	PRE16	STERNAL PRECAUTIONS	86	79
+8	stride_order_proc	Imaging	898600	62607	IMGCTAROF	CT ABDOMEN OUTSIDE STUDY FOR REFERENCE ONLY	92	79
+6	stride_order_proc	Lab	473182	46109	LABPSA	PSA	93	78
+8	stride_order_proc	Imaging	474076	48895	IMGDXSH1RT	XR SHOULDER 1V RT	90	78
+6	stride_order_proc	Lab	472932	61858	LABMYCPA	MYCOPHENOLIC ACID	129	78
+24	stride_order_proc	Pathology	473048	48507	LABOSR	OUTSIDE SLIDE REVIEW	80	78
+8	stride_order_proc	Imaging	473983	49449	IMGDXAN2LT	XR ANKLE 2V LT	114	78
+6	stride_order_proc	Lab	472048	49523	LAB11124R	COCCI CF	101	78
+4	stride_order_proc	Nursing	518202	50355	NUR335	TEMPORARY PACEMAKER SETTINGS	124	78
+4	stride_order_proc	Nursing	489416	50640	NUR1643	RESEARCH PROTOCOL LABS (SEE STUDY)	80	78
+34	stride_order_proc	Consult	519844	51165	CON379	CONSULT TO HEPATOLOGY	103	78
+6	stride_order_proc	Lab	472519	62058	LABHAVT	ANTI-HAV	82	77
+72	stride_order_med	Med (Intravenous)	121191	44603	RXCUI121191	Rituximab (Intravenous)	188	77
+73	stride_order_med	Med (Oral)	7393	45358	RXCUI7393	Niacin (Oral)	111	77
+6	stride_order_proc	Lab	472305	49714	LABEP1	ELECTROLYTE PANEL	88	77
+8	stride_order_proc	Imaging	474098	50147	IMGDXAN3RT	XR ANKLE 3V RT	117	77
+32	stride_order_proc	ECHO	472284	62083	ECH29	ECHO - DOBUTAMINE STRESS ECHO	90	77
+73	stride_order_med	Med (Oral)	7531	44936	RXCUI7531	Nortriptyline (Oral)	139	77
+6	stride_order_proc	Lab	590527	46149	LABBMT2	BMT PANEL 2	111	77
+16	stride_order_proc	Blood Bank	889180	63890	LABERUPLT	EMERGENCY RELEASE PLT	134	77
+4	stride_order_proc	Nursing	870882	62397	NUR31000	BMT DIET	90	76
+80	stride_order_med	Med (Feeding Tube)	36387	46383	RXCUI36387	Sennosides, Usp (Feeding Tube)	98	76
+27	stride_order_proc	Neurology	624817	48921	NEUR22	TRANSCRANIAL DOPPLER COMPLETE	115	76
+6	stride_order_proc	Lab	472771	49379	LABLUPUS	LUPUS ANTICOAGULANT	99	76
+16	stride_order_proc	Blood Bank	472562	48496	LABHCLOTI	HOLD CLOT	77	76
+6	stride_order_proc	Lab	906967	63767	LABHSVCSF	HSV DNA PCR QUAL, CSF	135	76
+75	stride_order_med	Med (Inhalation)	337623	44322	RXCUI337623	Dornase Alfa (Inhalation)	200	75
+8	stride_order_proc	Imaging	474003	48756	IMGDXSPT	XR SPINE, THORACIC 2V	92	75
+73	stride_order_med	Med (Oral)	36676	44752	RXCUI36676	Sodium Bicarbonate (Oral)	136	75
+16	stride_order_proc	Blood Bank	473672	48499	LABTRXNWI	TRANSFUSION REACTION WORKUP	85	75
+48	stride_order_proc	General Supply	669736	62249	SUP197301	DME ORDER, AMBULATORY	109	75
+6	stride_order_proc	Lab	889722	63768	LAB12573R	ANCA	83	75
+8	stride_order_proc	Imaging	474382	49697	IMGUSPTV	US PELVIS NON OB W TRANSVAG	83	75
+73	stride_order_med	Med (Oral)	1037042	54380	RXCUI1037042	Dabigatran Etexilate (Oral)	136	75
+73	stride_order_med	Med (Oral)	1808	45065	RXCUI1808	Bumetanide (Oral)	246	74
+72	stride_order_med	Med (Intravenous)	3407	46674	RXCUI3407	Digoxin (Intravenous)	141	74
+73	stride_order_med	Med (Oral)	38285	46786	MED38285	Aluminum Hydroxide-Magnesium Hydroxide-Simethicone (Oral)	81	74
+4	stride_order_proc	Nursing	644482	62148	NUR6132	RECTAL TEMPERATURE	75	74
+4	stride_order_proc	Nursing	471729	61859	NUR646	FREE WATER FOR TUBE FEEDING	154	74
+8	stride_order_proc	Imaging	898604	62870	IMGCTTAPROF	CT CHEST/ABDOMEN/PELVIS OUTSIDE STUDY FOR REFERENCE ONLY	81	74
+4	stride_order_proc	Nursing	668140	51804	NUR11520	GUIDELINES FOR MD ORDERING 4	109	74
+8	stride_order_proc	Imaging	473826	48997	IMGCT3D	CT RECONSTRUCTION	90	73
+6	stride_order_proc	Lab	472521	49381	LABHBCT	ANTI-HBC	85	73
+73	stride_order_med	Med (Oral)	9407	44440	MED9407	Carbidopa-Levodopa (Oral)	171	73
+4	stride_order_proc	Nursing	472881	49273	NUR1001	MONITOR CALORIE COUNT	96	73
+8	stride_order_proc	Imaging	474497	52248	IMGIRDIALRT	IR DIALYSIS CATH DUAL LUMEN RT	108	73
+6	stride_order_proc	Lab	541695	48991	LABDSDNA	ANTI - DSDNA AB	85	72
+8	stride_order_proc	Imaging	474095	46293	IMGDXKN3RT	XR KNEE 3V RT	78	72
+80	stride_order_med	Med (Feeding Tube)	161	46585	RXCUI161	Acetaminophen (Feeding Tube)	97	72
+8	stride_order_proc	Imaging	473984	49264	IMGDXAN3LT	XR ANKLE 3V LT	105	72
+6	stride_order_proc	Lab	472347	49721	LABLEID	FACTOR V LEIDEN	86	72
+88	stride_order_med	Med (Both Eyes)	540744	56496	MED540744	Mineral Oil-Petrolatum, White (Both Eyes)	99	72
+4	stride_order_proc	Nursing	518148	62167	NUR2997	LUMBAR PUNCTURE TRAY TO BEDSIDE	87	72
+72	stride_order_med	Med (Intravenous)	6130	44978	RXCUI6130	Ketamine (Intravenous)	112	72
+4	stride_order_proc	Nursing	489017	62080	NUR3057	SIGNATURE OF MD WHO VERIFIED HEMATOPOIETIC CELLS IN FREEZER	77	72
+4	stride_order_proc	Nursing	498173	48900	NUR1942	EXTERNAL VENTRICULAR DRAIN CARE	350	71
+6	stride_order_proc	Lab	471630	49475	LABACA	ANTI CARDIOLIPIN AB	90	71
+36	stride_order_proc	Cath Angio	589688	49431	CON103	CONSULT TO IR - BIOPSY	79	71
+35	stride_order_proc	SLP	473337	50213	SLP6	SLP PASSY MUIR VALVE EVALUATE AND TREAT	95	71
+10	stride_order_proc	OT	473046	46129	OT29	OT SPLINT EVALUATE AND TREAT	88	70
+73	stride_order_med	Med (Oral)	136411	46422	RXCUI136411	Sildenafil (Oral)	204	70
+75	stride_order_med	Med (Inhalation)	1347	46559	RXCUI1347	Beclomethasone (Inhalation)	125	70
+73	stride_order_med	Med (Oral)	8120	46682	RXCUI8120	Phenazopyridine (Oral)	104	70
+73	stride_order_med	Med (Oral)	1256	46698	RXCUI1256	Azathioprine (Oral)	146	69
+88	stride_order_med	Med (Both Eyes)	8638	46777	RXCUI8638	Prednisolone (Both Eyes)	167	69
+25	stride_order_proc	Precaution	3.50E+10	50068	PRE2	SUICIDE PRECAUTIONS	94	69
+71	stride_order_med	Med (Topical)	3992	45302	RXCUI3992	Epinephrine (Topical)	80	69
+73	stride_order_med	Med (Oral)	623400	47586	RXCUI623400	Lacosamide (Oral)	195	69
+8	stride_order_proc	Imaging	898614	62587	IMGMRSROF	MR C, T, OR L-SPINE OUTSIDE STUDY FOR REFERENCE ONLY	88	69
+4	stride_order_proc	Nursing	868785	62089	NUR30015	NO SKIN PREP NEEDED	72	69
+72	stride_order_med	Med (Intravenous)	236594	44665	RXCUI236594	Amphotericin B Liposomal (Intravenous)	192	68
+6	stride_order_proc	Lab	473439	50516	LABTEGCP	THROMBELASTOGRAPH CLOTTING PROFILE	162	68
+34	stride_order_proc	Consult	647333	57781	CON410	CONSULT TO NEPHROLOGY TRANSPL	70	68
+4	stride_order_proc	Nursing	871562	62317	NUR30023	POST TR BAND	70	68
+73	stride_order_med	Med (Oral)	10402	46871	RXCUI10402	Tetrahydrocannabinol (Oral)	142	68
+72	stride_order_med	Med (Intravenous)	8.97E+18	52105	RXCUI426,1091,4850,4919,5340,6033,6308,6536,6585,6837,89905,8156,54987,8737,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308	Alanine-Arginine-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Proline-Serine-Sodium Acetate-Sodium Chloride-Sodium Phosphate, Dibasic-Sodium Phosphate, Monobasic-T (...)	160	68
+73	stride_order_med	Med (Oral)	49276	45176	RXCUI49276	Doxazosin (Oral)	114	68
+72	stride_order_med	Med (Intravenous)	2890	44379	RXCUI2890	Cosyntropin (Intravenous)	79	67
+6	stride_order_proc	Lab	633412	46026	LABRPRQT	RPR QUANTITATIVE	85	67
+6	stride_order_proc	Lab	472013	49079	LABCLGC2	CHLAMYDIA GC, MOLECULAR DETECTION	103	67
+73	stride_order_med	Med (Oral)	1827	44600	RXCUI1827	Buspirone (Oral)	139	67
+8	stride_order_proc	Imaging	473968	46079	IMGDXSH1LT	XR SHOULDER 1V LT	82	67
+39	stride_order_proc	Outpatient Referral	505833	46295	REF24	REFERRAL TO PULMONARY MEDICINE	71	67
+8	stride_order_proc	Imaging	474093	49933	IMGDXAN2RT	XR ANKLE 2V RT	100	67
+8	stride_order_proc	Imaging	473878	54299	IMGCTSXO	CT STEREOTACTIC ON CALL	91	67
+73	stride_order_med	Med (Oral)	35296	45257	RXCUI35296	Ramipril (Oral)	114	67
+73	stride_order_med	Med (Oral)	11170	44296	RXCUI11170	Verapamil (Oral)	137	66
+73	stride_order_med	Med (Oral)	7514	46382	RXCUI7514	Norethindrone (Oral)	135	66
+4	stride_order_proc	Nursing	473071	48890	NUR1096	AMBULATE WITH PT	73	66
+4	stride_order_proc	Nursing	668141	48915	NUR11521	GUIDELINES FOR MD ORDERING 5	102	66
+6	stride_order_proc	Lab	473763	62046	LAB11060R	THIAMINE	91	66
+80	stride_order_med	Med (Feeding Tube)	17128	46640	RXCUI17128	Lansoprazole (Feeding Tube)	89	66
+86	stride_order_med	Med (Swish & Spit)	7597	47169	RXCUI7597	Nystatin (Swish & Spit)	93	66
+8	stride_order_proc	Imaging	591914	51022	IMGMRST	MR T-SPINE	85	66
+8	stride_order_proc	Imaging	474175	51060	IMGMRSTOW	MR STEREOTACTIC ON-CALL WITH CONTRAST	70	66
+4	stride_order_proc	Nursing	670507	53617	NUR11553	GUIDELINES FOR MD ORDERING 9	168	66
+6	stride_order_proc	Lab	870889	62203	LABTBPCRS	M. TUBERCULOSIS PCR, SPECIMEN	151	66
+4	stride_order_proc	Nursing	489532	62149	NUR1759	USE CVC LINE OR IV FOR TPN/PPN ONLY	77	66
+8	stride_order_proc	Imaging	473981	45780	IMGDXKN3LT	XR KNEE 3V LT	74	65
+6	stride_order_proc	Lab	473410	50329	LABYFT3	T3, FREE	81	65
+72	stride_order_med	Med (Intravenous)	3041	44606	RXCUI3041	Cytarabine (Intravenous)	144	65
+73	stride_order_med	Med (Oral)	2516	46242	MED2516	Atropine-Diphenoxylate (Oral)	133	65
+73	stride_order_med	Med (Oral)	2101	46333	RXCUI2101	Carisoprodol (Oral)	87	65
+6	stride_order_proc	Lab	497500	49283	LABMTXL	METHOTREXATE	354	65
+8	stride_order_proc	Imaging	474149	49256	IMGMRSF	MR SPINE FULL	85	65
+8	stride_order_proc	Imaging	473813	50737	IMGCT3N	CT ANGIO NECK	80	65
+8	stride_order_proc	Imaging	890829	62133	IMGCTLMP	CT TRIPHASIC LIVER MASS PROTOCOL	82	65
+34	stride_order_proc	Consult	879651	62296	CON439	NSG REFERRAL TO GERIATRICS	67	65
+76	stride_order_med	Med (Rectal)	161	44221	RXCUI161	Acetaminophen (Rectal)	72	64
+3	stride_order_proc	Point of Care Testing	507568	46000	POC1	POC URINE DIPSTICK	141	64
+33	stride_order_proc	HIV Lab Non-Restricted	472557	62011	LABHIVQ2	HIV-1 RNA PCR QUANTITATIVE	78	64
+73	stride_order_med	Med (Oral)	321064	46803	RXCUI321064	Olmesartan (Oral)	108	64
+41	stride_order_proc	Isolation	506543	49649	ISO10	CONTACT AND RESPIRATORY ISOLATION	79	64
+12	stride_order_proc	Procedures	885255	62171	2109364	PARACENTESIS	91	64
+6	stride_order_proc	Lab	472314	63761	LABEVPCR	ENTEROVIRUS BY PCR	106	64
+6	stride_order_proc	Lab	472518	48851	LABHAVM	IGM ANTI-HAV	72	64
+71	stride_order_med	Med (Topical)	2582	46385	RXCUI2582	Clindamycin (Topical)	93	63
+6	stride_order_proc	Lab	473179	49904	LABP20210	PROTHROMBIN 20210A	73	63
+56	stride_order_proc	Vascular Ultrasound	519234	62021	VSC08	VSC RENAL ULTRASOUND	76	63
+72	stride_order_med	Med (Intravenous)	14859	46277	MED14859	Glucose-Potassium Chloride-Sodium Chloride (Intravenous)	78	63
+80	stride_order_med	Med (Feeding Tube)	4278	46863	RXCUI4278	Famotidine (Feeding Tube)	86	63
+80	stride_order_med	Med (Feeding Tube)	6918	46791	RXCUI6918	Metoprolol (Feeding Tube)	141	63
+4	stride_order_proc	Nursing	473467	48497	NUR1215	BEDREST W/BRP	65	63
+34	stride_order_proc	Consult	647355	49731	CON432	CONSULT TO GYNECOLOGY	70	63
+8	stride_order_proc	Imaging	473986	50624	IMGDXFT3LT	XR FOOT 3V LT	80	63
+39	stride_order_proc	Outpatient Referral	519671	51696	REF90	REFERRAL TO PSYCHIATRY	70	63
+15	stride_order_proc	Microbiology	966887	63733	LABVCULT	VIRAL CULTURE, TISSUE	110	63
+6	stride_order_proc	Lab	471637	63736	LABAPHSA2	ANTI PHOSPHOLIPID AB PANEL	77	63
+8	stride_order_proc	Imaging	473954	61856	IMGFLERCP	ERCPANCREATOGRAM	92	63
+56	stride_order_proc	Vascular Ultrasound	519228	62214	VSC02	VSC CAROTID VERTEBRAL ARTERY ULTRASOUND	73	63
+79	stride_order_med	Med (Injection)	15954	47605	MED15954	Epinephrine-Lidocaine (Injection)	66	63
+6	stride_order_proc	Lab	472516	48579	LABHIPA	HEPARIN INDUCED PLATELET AGGREGATION	71	62
+39	stride_order_proc	Outpatient Referral	505847	49891	REF31	REFERRAL TO ENDOCRINOLOGY	68	62
+28	stride_order_proc	GI	472389	49563	GIFSIG	FLEXIBLE SIGMOIDOSCOPY	119	62
+4	stride_order_proc	Nursing	871153	62015	NUR1152	VITAL SIGNS - RITUXIMAB INFUSION	150	62
+30	stride_order_proc	Cast Room	660668	49998	CR132	CAST ROOM UNLISTED	86	62
+6	stride_order_proc	Lab	471638	50350	LAB11075R	SMOOTH MUSCLE AB	79	62
+8	stride_order_proc	Imaging	591770	49093	IMGMRABWWO	MR ABDOMEN WITH AND WITHOUT CONTRAST	65	61
+6	stride_order_proc	Lab	497492	49125	LABLIL	LITHIUM	150	61
+73	stride_order_med	Med (Oral)	11246	46911	RXCUI11246	Vitamin A (Oral)	104	61
+34	stride_order_proc	Consult	528926	49428	CON376	CONSULT TO PLASTIC SURGERY	67	61
+29	stride_order_proc	Nursing Referral	497728	50573	CON22	CONSULT TO SPIRITUAL CARE	66	61
+39	stride_order_proc	Outpatient Referral	505821	51727	REF18	REFERRAL TO HEMATOLOGY	67	61
+39	stride_order_proc	Outpatient Referral	519669	49817	REF89	REFERRAL TO ANTICOAG CLINIC	66	61
+73	stride_order_med	Med (Oral)	12729	44339	MED12729	Hydrochlorothiazide-Triamterene (Oral)	74	60
+73	stride_order_med	Med (Oral)	8.38E+18	44628	RXCUI3498,7597	Diphenhydramine-Nystatin (Oral)	70	60
+73	stride_order_med	Med (Oral)	7426	46648	RXCUI7426	Nimodipine (Oral)	153	60
+6	stride_order_proc	Lab	473456	49729	LABIGET	TOTAL IGE	123	60
+8	stride_order_proc	Imaging	473863	49965	IMGCTHFC	CT HEAD, FACIAL BONES & C SPINE	64	60
+6	stride_order_proc	Lab	670953	63780	LABHHV6QT	HHV-6 PCR QUANT	130	60
+72	stride_order_med	Med (Intravenous)	1808	45023	RXCUI1808	Bumetanide (Intravenous)	251	60
+6	stride_order_proc	Lab	473721	49609	LABUUNT	UREA NITROGEN, URINE (TIMED)	114	60
+72	stride_order_med	Med (Intravenous)	52769	45427	RXCUI52769	Milrinone (Intravenous)	91	60
+73	stride_order_med	Med (Oral)	42351	45329	RXCUI42351	Lithium Carbonate (Oral)	189	60
+4	stride_order_proc	Nursing	610660	49201	NUR4051	HEMODIALYSIS WITH PUF	174	60
+4	stride_order_proc	Nursing	473012	48777	NUR1282	COOLING BLANKET FOR SURFACE COOLING	63	59
+72	stride_order_med	Med (Intravenous)	6851	44582	RXCUI6851	Methotrexate (Intravenous)	120	59
+72	stride_order_med	Med (Intravenous)	-6.60E+18	44585	RXCUI10180,10829	Sulfamethoxazole-Trimethoprim (Intravenous)	129	59
+74	stride_order_med	Med (Subcutaneous)	283838	46401	RXCUI283838	Darbepoetin Alfa (Subcutaneous)	110	59
+4	stride_order_proc	Nursing	472820	48715	NUR979	MEASURE AND ASSESS COLOR OF OUTPUT	70	59
+4	stride_order_proc	Nursing	472884	51012	NUR1004	MONITOR CENTRAL VENOUS PRESSURE (CVP)	64	59
+12	stride_order_proc	Procedures	885233	62215	2109372	LACERATION REPAIR	68	59
+80	stride_order_med	Med (Feeding Tube)	25480	47652	RXCUI25480	Gabapentin (Feeding Tube)	111	59
+34	stride_order_proc	Consult	589744	51247	CON318	CONSULT TO VASCULAR	69	59
+6	stride_order_proc	Lab	497357	50529	LABFTRPL	TRIGLYCERIDES, PLEURAL	150	59
+73	stride_order_med	Med (Oral)	236083	44332	RXCUI236083	Alendronic Acid (Oral)	94	58
+6	stride_order_proc	Lab	472550	46268	LABYHISTS	HISTOPLASMA AG, SERUM	74	58
+36	stride_order_proc	Cath Angio	589696	49165	CON107	CONSULT TO IR - UNLISTED PROCEDURE	65	58
+73	stride_order_med	Med (Oral)	6719	46523	RXCUI6719	Memantine (Oral)	95	58
+73	stride_order_med	Med (Oral)	9947	46428	RXCUI9947	Sotalol (Oral)	156	58
+73	stride_order_med	Med (Oral)	4018	46576	RXCUI4018	Ergocalciferol (Oral)	114	58
+73	stride_order_med	Med (Oral)	8703	46934	RXCUI8703	Fenofibrate (Oral)	74	58
+8	stride_order_proc	Imaging	474092	50464	IMGDXEL2RT	XR ELBOW 2V RT	94	58
+8	stride_order_proc	Imaging	474073	50621	IMGDXPEL2	XR PELVIS 2V	61	58
+16	stride_order_proc	Blood Bank	473671	50581	LABEITC	TRANSFUSION EMERGENCY ISSUE	77	58
+9	stride_order_proc	Diet	472157	50919	DIET115	DIET FAT RESTRICTED	85	58
+78	stride_order_med	Med (NG Tube)	82003	46751	RXCUI82003	Docusate (NG Tube)	64	58
+34	stride_order_proc	Consult	647331	51485	CON408	CONSULT TO INF DIS IMMUNOCOMP	63	57
+6	stride_order_proc	Lab	876733	62038	LABDVEHV	HSV/VZV DFA	143	57
+39	stride_order_proc	Outpatient Referral	505873	48576	REF44	REFERRAL TO PAIN CLINIC	60	57
+74	stride_order_med	Med (Subcutaneous)	82472	46554	MED82472	Nph Insulin, Human-Regular Insulin, Human (Subcutaneous)	145	57
+73	stride_order_med	Med (Oral)	407990	46802	RXCUI407990	Cinacalcet (Oral)	109	57
+80	stride_order_med	Med (Feeding Tube)	89905	46851	RXCUI89905	Multivitamin Preparation (Feeding Tube)	83	57
+6	stride_order_proc	Lab	668083	50442	LABSTOBGC	OCCULT BLD, GUAIAC, STOOL, COLORECTAL SC.	95	57
+30	stride_order_proc	Cast Room	658270	50682	CR100	CERVICAL COLLAR (SOFT)	62	57
+6	stride_order_proc	Lab	471641	63731	LABANTIXA	LMWH ACTIVITY BY ANTIXA	102	57
+8	stride_order_proc	Imaging	505782	62959	IMGMRSTL	MR T-SPINE AND L-SPINE	76	57
+4	stride_order_proc	Nursing	489539	46007	NUR1766	VITAL SIGNS DURING INFUSION	76	56
+6	stride_order_proc	Lab	471961	49189	LABYCERU	CERULOPLASMIN	69	56
+6	stride_order_proc	Lab	472721	50510	LABCLACT	LACTIC ACID, CSF	137	56
+4	stride_order_proc	Nursing	489117	52658	NUR1343	ELEVATE HEELS OFF BED	62	56
+4	stride_order_proc	Nursing	498193	62227	NUR1962	ASSESS PAIN LEVEL	62	56
+6	stride_order_proc	Lab	472723	62156	LABLAMOL	LAMOTRIGINE LEVEL	76	55
+6	stride_order_proc	Lab	473114	48669	LABSTPOLY	WBC FOR IBD, STOOL	85	55
+8	stride_order_proc	Imaging	473937	48933	IMGFLBE	XR BARIUM ENEMA	81	55
+4	stride_order_proc	Nursing	489341	48998	NUR1567	NO STRAWS, NO BLOWING NOSE(BEDSIGN)	58	55
+88	stride_order_med	Med (Both Eyes)	134615	44425	RXCUI134615	Brimonidine (Both Eyes)	95	55
+72	stride_order_med	Med (Intravenous)	197	44658	RXCUI197	Acetylcysteine (Intravenous)	110	55
+71	stride_order_med	Med (Topical)	2590	46860	RXCUI2590	Clobetasol (Topical)	82	55
+6	stride_order_proc	Lab	473273	49918	LABRITUX	RITUXAN PANEL	62	55
+8	stride_order_proc	Imaging	668526	50073	IMGDXHIP1PLT	HIP 1 VIEW LEFT AND PELVIS	60	55
+4	stride_order_proc	Nursing	489187	62059	NUR1413	HEPLOCK CENTRAL VENOUS CATHETER	66	55
+37	stride_order_proc	Restraints	471753	62095	RES4	ADULT (>18 YEARS) VIOLENT RESTRAINT	94	55
+73	stride_order_med	Med (Oral)	93483	46526	MED93483	Hydrochlorothiazide-Losartan (Oral)	75	55
+84	stride_order_med	Med (Intramuscular)	798279	46453	RXCUI798279	Haemophilus Influenzae B, Capsular Polysaccharide Inactivated Tetanus Toxoid Conjugate Vaccine (Intramuscular)	64	55
+73	stride_order_med	Med (Oral)	30125	45137	RXCUI30125	Modafinil (Oral)	108	55
+8	stride_order_proc	Imaging	474027	49088	IMGFLGIS	XR UPPER GI SMALL BOWEL SERIES	78	54
+8	stride_order_proc	Imaging	474211	46178	IMGMRSLWWO	MR L-SPINE WITH AND WITHOUT CONTRAST	58	54
+73	stride_order_med	Med (Oral)	5552	44365	RXCUI5552	Hydroxyurea (Oral)	186	54
+6	stride_order_proc	Lab	473127	48810	LABURK	POTASSIUM, URINE (RANDOM)	99	54
+4	stride_order_proc	Nursing	872048	62031	NUR0732	RESTART TUBE FEEDS	67	54
+72	stride_order_med	Med (Intravenous)	4511	44607	RXCUI4511	Folic Acid (Intravenous)	62	54
+4	stride_order_proc	Nursing	473007	48870	NUR1281	CONTINUOUS BLADDER IRRIGATION	66	54
+39	stride_order_proc	Outpatient Referral	505853	50058	REF34	REFERRAL TO IMMUNOLOGY/RHEUMATOLOGY	58	54
+6	stride_order_proc	Lab	472573	62222	LAB11136R	HTLV AB	61	54
+6	stride_order_proc	Lab	590497	63897	LABADVQT	ADENOVIRUS DNA PCR QUANT	103	54
+4	stride_order_proc	Nursing	508685	46003	NUR2253	LUMBAR DRAIN	170	53
+81	stride_order_med	Med (G Tube)	8591	46328	RXCUI8591	Potassium Chloride (G Tube)	105	53
+6	stride_order_proc	Lab	472563	48510	LABHMCY	HOMOCYSTEINE TOTAL, PLASMA	60	53
+34	stride_order_proc	Consult	519847	49592	CON372	CONSULT TO RADIATION ONCOLOGY	56	53
+8	stride_order_proc	Imaging	474099	50449	IMGDXFT2RT	XR FOOT 2V RT	61	53
+4	stride_order_proc	Nursing	507036	50951	NUR2173	NURSE VERIFIES PATIENT HAS PRESCRIPTIONS	90	53
+4	stride_order_proc	Nursing	871226	62064	NUR30021	NURSING TRIAGE ORDER SET INITIATED AND APPR	53	53
+6	stride_order_proc	Lab	473174	48575	LABURTP	PROTEIN, URINE (RANDOM)	80	53
+6	stride_order_proc	Lab	472869	62040	LAB11071R	MITOCHONDRIAL AB	60	52
+8	stride_order_proc	Imaging	473868	46074	IMGCTLLT	CT LOWER EXTREMITY LT	64	52
+76	stride_order_med	Med (Rectal)	5492	46661	RXCUI5492	Hydrocortisone (Rectal)	73	52
+6	stride_order_proc	Lab	472096	49702	LABYCOPPR	COPPER, SERUM	72	52
+6	stride_order_proc	Lab	471701	50163	LABAST	AST, SERUM/PLASMA	75	52
+6	stride_order_proc	Lab	744412	50298	LABCORTS	CORTISOL, POST OP	103	52
+110	stride_order_med	Med (Both Nostrils)	19831	51990	RXCUI19831	Budesonide (Both Nostrils)	94	52
+72	stride_order_med	Med (Intravenous)	15202	44007	RXCUI15202	Argatroban (Intravenous)	181	52
+4	stride_order_proc	Nursing	11971472	54106	11500003	CVC CARE PER PROTOCOL BEACON	54	51
+75	stride_order_med	Med (Inhalation)	10627	44298	RXCUI10627	Tobramycin (Inhalation)	84	51
+73	stride_order_med	Med (Oral)	6902	44698	RXCUI6902	Methylprednisolone (Oral)	103	51
+4	stride_order_proc	Nursing	489309	46188	NUR1535	MONITOR PVR	59	51
+8	stride_order_proc	Imaging	474444	48688	IMGIRABSCESSO	IR ABSCESSOGRAM	79	51
+6	stride_order_proc	Lab	471651	48834	LABAT3	ANTITHROMBIN III	60	51
+8	stride_order_proc	Imaging	474100	49961	IMGDXFT3RT	XR FOOT 3V RT	65	51
+8	stride_order_proc	Imaging	474177	50311	IMGMRSFWWO	MR SPINE FULL WITH AND WITHOUT CONTRAST	55	51
+8	stride_order_proc	Imaging	473988	50690	IMGDXWR3LT	XR WRIST 3V LT	73	51
+6	stride_order_proc	Lab	668192	62129	LABCKITMU	DETECTION OF C-KIT MUTATIONS	86	51
+8	stride_order_proc	Imaging	474129	62335	IMGMRHT	MR HEART MORPHOLOGY AND FUNCTION	69	51
+8	stride_order_proc	Imaging	473889	51896	IMGCTLRT	CT LOWER EXTREMITY RT	66	51
+8	stride_order_proc	Imaging	668524	51307	IMGDXHIP1PRT	HIP 1 VIEW RIGHT AND PELVIS	56	51
+39	stride_order_proc	Outpatient Referral	505851	49463	REF33	REFERRAL TO HEPATOLOGY	58	50
+72	stride_order_med	Med (Intravenous)	6313	44619	RXCUI6313	Leucovorin (Intravenous)	214	50
+4	stride_order_proc	Nursing	473419	49875	NUR1207	BED SIGN:NO BP/IV/VENIPUNCTURE:____	51	50
+28	stride_order_proc	GI	473717	49894	GIUEUS	UPPER ENDOSCOPIC ULTRASOUND (EUS)	95	50
+73	stride_order_med	Med (Oral)	7258	44341	RXCUI7258	Naproxen (Oral)	79	50
+73	stride_order_med	Med (Oral)	72302	44961	RXCUI72302	Ropinirole (Oral)	114	50
+4	stride_order_proc	Nursing	498054	46184	NUR1826	PERIPHERAL PULSES	53	50
+73	stride_order_med	Med (Oral)	20489	46516	RXCUI20489	Cefpodoxime (Oral)	71	50
+81	stride_order_med	Med (G Tube)	82003	47154	RXCUI82003	Docusate (G Tube)	63	50
+15	stride_order_proc	Microbiology	472113	50373	LABCRPLB	CRYPTOCOCCAL AG LATEX, BLOOD	67	50
+6	stride_order_proc	Lab	473022	51110	LABGASBLD	OCCULT BLOOD GASTRIC	75	50
+6	stride_order_proc	Lab	472503	62182	LAB11041R	FREE HEMOGLOBIN	92	50
+6	stride_order_proc	Lab	471588	48831	LABALT	ALT, SERUM/PLASMA	73	50
+78	stride_order_med	Med (NG Tube)	6218	46289	RXCUI6218	Lactulose (NG Tube)	96	50
+4	stride_order_proc	Nursing	489486	45865	NUR1713	STRICT BEDREST WITH HEAD OF BED FLAT	63	49
+24	stride_order_proc	Pathology	624415	49348	PATH11	DERMATOPATHOLOGY	62	49
+72	stride_order_med	Med (Intravenous)	72236	44574	RXCUI72236	Fosphenytoin (Intravenous)	91	49
+84	stride_order_med	Med (Intramuscular)	3423	46812	RXCUI3423	Hydromorphone (Intramuscular)	80	49
+78	stride_order_med	Med (NG Tube)	8591	46952	RXCUI8591	Potassium Chloride (NG Tube)	75	49
+6	stride_order_proc	Lab	472478	49403	LABGLNF	GLUCOSE NON-FASTING, SERUM/PLASMA	67	49
+32	stride_order_proc	ECHO	472280	49780	ECH34	ECHO - 3-DIMENSIONAL ECHO	51	49
+6	stride_order_proc	Lab	471579	50082	LABYA1AS	ALPHA - 1 - ANTITRYPSIN	59	49
+6	stride_order_proc	Lab	472608	50201	LABIGP	IG PANEL, SERUM	61	49
+4	stride_order_proc	Nursing	572382	50863	NUR4004	TUBE CARE	59	49
+3	stride_order_proc	Point of Care Testing	472689	52518	LABPCEG7O	ISTAT EG7, OTHER	65	49
+6	stride_order_proc	Lab	4.72E+05	61826	LAB11123R	COCCI CF AB, CSF	107	49
+74	stride_order_med	Med (Subcutaneous)	29899	47579	RXCUI29899	Methylnaltrexone (Subcutaneous)	90	49
+8	stride_order_proc	Imaging	473919	50337	IMGCTNSW	CT NECK W CONTRAST	58	49
+6	stride_order_proc	Lab	472508	50792	LABHBPQ	HEPATITIS B PCR QUANTITATIVE	56	49
+3	stride_order_proc	Point of Care Testing	591286	50773	POC15	POC ISTAT, ARTERIAL BLOOD GASES AND LACTATE (CG4)	53	48
+8	stride_order_proc	Imaging	474528	53803	IMGIRGASTPMT	IR GASTROSTOMY CATHETER PLCMT	69	48
+4	stride_order_proc	Nursing	518289	46269	NUR349	PATIENT POSITIONING	52	48
+4	stride_order_proc	Nursing	472853	50320	NUR991	MILK/STRIP DRAIN	51	48
+8	stride_order_proc	Imaging	473985	49573	IMGDXFT2LT	XR FOOT 2V LT	52	48
+15	stride_order_proc	Microbiology	472458	49286	LABGIARS	GIARDIA SCREEN	80	48
+4	stride_order_proc	Nursing	498029	50694	NUR1801	STRAIGHT CATH IF UNABLE TO VOID	55	48
+8	stride_order_proc	Imaging	474104	51069	IMGDXWR3RT	XR WRIST 3V RT	74	48
+6	stride_order_proc	Lab	471708	62107	LABSSBABY	ANTI-LA ANTIBODY	50	48
+6	stride_order_proc	Lab	497462	49822	LABFADAG	ADENOVIRUS AG, STOOL	84	48
+39	stride_order_proc	Outpatient Referral	505867	55010	REF41	REFERRAL TO RENAL/NEPHROLOGY	57	48
+73	stride_order_med	Med (Oral)	87636	47400	RXCUI87636	Fexofenadine (Oral)	73	48
+73	stride_order_med	Med (Oral)	10814	44385	RXCUI10814	Triiodothyronine (Oral)	70	47
+15	stride_order_proc	Microbiology	471553	49528	LABAFBCF	AFB CULTURE, RESPIRATORY FOR CYSTIC FIBROSIS	115	47
+72	stride_order_med	Med (Intravenous)	3640	44626	RXCUI3640	Doxycycline (Intravenous)	60	47
+72	stride_order_med	Med (Intravenous)	296	46605	RXCUI296	Adenosine (Intravenous)	73	47
+89	stride_order_med	Med (Drain)	8410	46761	RXCUI8410	Alteplase (Drain)	93	47
+96	stride_order_med	Med (Intradermal)	6387	46940	RXCUI6387	Lidocaine (Intradermal)	51	47
+8	stride_order_proc	Imaging	474021	49006	IMGDXCHPNB	XR CHEST POST NEEDLE BIOPSY	75	47
+8	stride_order_proc	Imaging	516116	50436	IMGDXEL2LT	XR ELBOW 2V LT	66	47
+6	stride_order_proc	Lab	473168	50678	LABPROTS	PROTEIN S ACTIVITY	53	47
+6	stride_order_proc	Lab	472116	50642	LABCRYST	CRYSTAL ANALYSIS, SYNOVIAL FLUID	111	47
+6	stride_order_proc	Lab	497327	50654	LABWNVAB	WEST NILE VIRUS AB PANEL, CSF	84	47
+73	stride_order_med	Med (Oral)	540602	52343	MED540602	CUSTOM INV - SIMPLE	69	47
+8	stride_order_proc	Imaging	474012	46047	IMGDXHUMLT	XR HUMERUS 2V LT	90	47
+4	stride_order_proc	Nursing	572386	49000	NUR4006	CARTER PILLOW	56	47
+6	stride_order_proc	Lab	473175	49426	LABUTP	PROTEIN, URINE (TIMED)	78	46
+4	stride_order_proc	Nursing	489306	48765	NUR1532	MONITOR PULMONARY ARTERY CATH (CCO/SVO2)	47	46
+73	stride_order_med	Med (Oral)	306266	44344	RXCUI306266	Entecavir (Oral)	131	46
+73	stride_order_med	Med (Oral)	746741	44659	RXCUI746741	Pramipexole (Oral)	87	46
+72	stride_order_med	Med (Intravenous)	319864	44850	RXCUI319864	Cisatracurium (Intravenous)	77	46
+75	stride_order_med	Med (Inhalation)	732	46249	RXCUI732	Amphotericin B (Inhalation)	78	46
+71	stride_order_med	Med (Topical)	4462	46221	RXCUI4462	Fluocinonide (Topical)	60	46
+88	stride_order_med	Med (Both Eyes)	60207	46425	RXCUI60207	Dorzolamide (Both Eyes)	82	46
+6	stride_order_proc	Lab	473164	49190	LABPROTC	PROTEIN C ACTIVITY	52	46
+15	stride_order_proc	Microbiology	472114	49594	LABCRPLC	CRYPTOCOCCAL AG LATEX, CSF	79	46
+4	stride_order_proc	Nursing	471722	50075	NUR639	WET TO DRY DRESSING	62	46
+6	stride_order_proc	Lab	670131	50358	LABFLCR	FREE LIGHT CHAIN RATIO	62	46
+4	stride_order_proc	Nursing	984129	65720	NUR310	CONDITIONAL DISCHARGE	48	46
+4	stride_order_proc	Nursing	473325	49814	NUR1183	SIGN AT HOB \'DO NOT MANIPULATE FOLEY\'	47	46
+73	stride_order_med	Med (Oral)	8704	46381	RXCUI8704	Prochlorperazine (Oral)	77	45
+10	stride_order_proc	OT	871149	62025	OT5	OT SWALLOW ONGOING TREATMENT	47	45
+73	stride_order_med	Med (Oral)	4815	44263	RXCUI4815	Glyburide (Oral)	78	45
+73	stride_order_med	Med (Oral)	32624	45053	RXCUI32624	Oxcarbazepine (Oral)	100	45
+4	stride_order_proc	Nursing	4.89E+05	46362	NUR1530	MONITOR INTRACRANIAL PRESSURE (ICP)	55	45
+84	stride_order_med	Med (Intramuscular)	61381	46570	RXCUI61381	Olanzapine (Intramuscular)	76	45
+71	stride_order_med	Med (Topical)	2623	46715	RXCUI2623	Clotrimazole (Topical)	55	45
+88	stride_order_med	Med (Both Eyes)	3008	46914	RXCUI3008	Cyclosporine (Both Eyes)	66	45
+15	stride_order_proc	Microbiology	4.73E+05	48683	LABISOF	ISOLATOR FUNGUS	53	45
+8	stride_order_proc	Imaging	668522	49231	IMGDXHIP2PLT	HIP 2 VIEWS LEFT AND PELVIS	47	45
+8	stride_order_proc	Imaging	474558	50960	IMGIRIVCPMT	IR IVC FILTER PLACEMENT	50	45
+6	stride_order_proc	Lab	889710	63819	LABCSMPBM	CANCER SOMATIC MUTATION PNL, BM	76	45
+15	stride_order_proc	Microbiology	862873	49297	LABCFRESP	CYSTIC FIBROSIS RESPIRATORY CULTURE	123	44
+73	stride_order_med	Med (Oral)	620	46262	RXCUI620	Amantadine (Oral)	86	44
+73	stride_order_med	Med (Oral)	322167	47235	RXCUI322167	Solifenacin (Oral)	53	44
+26	stride_order_proc	PFT	471498	50560	PFT54	SPIROMETRY WITH DLCO	47	44
+6	stride_order_proc	Lab	473440	50588	LABTT	THROMBIN TIME	50	44
+6	stride_order_proc	Lab	590572	50915	LABPROL	PROLACTIN	59	44
+8	stride_order_proc	Imaging	474493	50827	IMGIRCHESTRT	IR CHEST TUBE PCMT W FLUORO RT	55	44
+8	stride_order_proc	Imaging	474025	50989	IMGFLLP	XR LUMBAR PUNCTURE	67	44
+73	stride_order_med	Med (Oral)	613391	47006	RXCUI613391	Prasugrel (Oral)	100	44
+4	stride_order_proc	Nursing	489335	49622	NUR1561	NO PRESSURE ON CHEST	45	44
+4	stride_order_proc	Nursing	489103	50992	NUR1329	DO NOT RAISE ARMS ABOVE SHOULDER LEVEL	46	44
+4	stride_order_proc	Nursing	471882	45847	NUR715	BODY/BELONGINGS SEARCH (PSYCH UNIT)	44	43
+34	stride_order_proc	Consult	506978	48598	CON365	NSG REFERRAL TO SPIRITUAL CARE	44	43
+4	stride_order_proc	Nursing	489493	48771	NUR1720	SUPINE POSITION	45	43
+80	stride_order_med	Med (Feeding Tube)	17767	47086	RXCUI17767	Amlodipine (Feeding Tube)	80	43
+4	stride_order_proc	Nursing	471923	49942	NUR748	BREAST FLAP CHECK	49	43
+8	stride_order_proc	Imaging	474105	50937	IMGDXEL3RT	XR ELBOW 3V RT	54	43
+4	stride_order_proc	Nursing	489305	51218	NUR1531	MONITOR PCWP	46	43
+7	stride_order_proc	Respiratory Care	473431	51857	RT102	RESP - THERAPY VEST	65	43
+76	stride_order_med	Med (Rectal)	5.48E+18	51227	RXCUI197,6218,6972,11295	Acetylcysteine-Lactulose-Mineral Oil-Water (Rectal)	72	43
+15	stride_order_proc	Microbiology	472719	49580	LABKOHP	KOH / CALCOFLUOR	50	42
+98	stride_order_med	Med (Sublingual)	6470	46398	RXCUI6470	Lorazepam (Sublingual)	51	42
+73	stride_order_med	Med (Oral)	18993	47092	RXCUI18993	Benzonatate (Oral)	52	42
+4	stride_order_proc	Nursing	644426	62085	NUR6103	STOP TUBE FEED FOR EXTUBATION	43	42
+8	stride_order_proc	Imaging	473960	50051	IMGDXSPTL	XR SPINE, THORACOLUMBAR, 2V AP LAT	54	42
+4	stride_order_proc	Nursing	489192	54504	NUR1418	HIGH RISK FOR DELIRIUM	43	42
+72	stride_order_med	Med (Intravenous)	3639	44604	RXCUI3639	Doxorubicin (Intravenous)	70	42
+73	stride_order_med	Med (Oral)	2002	44830	RXCUI2002	Carbamazepine (Oral)	112	41
+73	stride_order_med	Med (Oral)	228790	44223	RXCUI228790	Dutasteride (Oral)	55	41
+80	stride_order_med	Med (Feeding Tube)	42316	44300	RXCUI42316	Tacrolimus (Feeding Tube)	298	41
+8	stride_order_proc	Imaging	474026	45939	IMGDXFORLT	XR FOREARM 2V LT	63	41
+8	stride_order_proc	Imaging	474013	48973	IMGDXHUMRT	XR HUMERUS 2V RT	58	41
+4	stride_order_proc	Nursing	489186	49354	NUR1412	HEP LOCK IV WHEN PO>300ML	42	41
+4	stride_order_proc	Nursing	471744	62039	NUR651	NASOGASTRIC TUBE	49	41
+72	stride_order_med	Med (Intravenous)	77655	44577	RXCUI77655	Zoledronic Acid (Intravenous)	58	41
+72	stride_order_med	Med (Intravenous)	11473	44602	RXCUI11473	Pamidronate (Intravenous)	48	41
+72	stride_order_med	Med (Intravenous)	40254	44599	RXCUI40254	Valproate (Intravenous)	103	41
+72	stride_order_med	Med (Intravenous)	10627	44644	RXCUI10627	Tobramycin (Intravenous)	144	41
+76	stride_order_med	Med (Rectal)	4910	46220	RXCUI4910	Glycerin (Rectal)	47	41
+8	stride_order_proc	Imaging	474085	46315	IMGDXFORRT	XR FOREARM 2V RT	51	41
+84	stride_order_med	Med (Intramuscular)	11248	46835	RXCUI11248	Vitamin B 12 (Intramuscular)	57	41
+7	stride_order_proc	Respiratory Care	472852	49004	RT98	RESP - MIF AND VITAL CAPACITY	140	41
+8	stride_order_proc	Imaging	618883	49781	146539	IMAGING PROCEDURE SCANNED REPORT	41	41
+4	stride_order_proc	Nursing	668439	49711	NUR14605	PLASMAPHERESIS	251	41
+8	stride_order_proc	Imaging	473871	50853	IMGCTPAN	CT PANCREAS	51	41
+91	stride_order_med	Med (Right Eye)	4053	47229	RXCUI4053	Erythromycin (Right Eye)	54	41
+32	stride_order_proc	ECHO	472287	52590	ECH30	ECHO - EXERCISE STRESS ECHO	51	41
+72	stride_order_med	Med (Intravenous)	8.64E+18	44651	RXCUI4603,4850,8591,56443,9863	Furosemide-Glucose-Potassium Chloride-Sodium Acetate-Sodium Chloride (Intravenous)	46	41
+73	stride_order_med	Med (Oral)	206739	46920	MED206739	Acetaminophen-Hydrocodone (Oral)	44	40
+75	stride_order_med	Med (Inhalation)	200408	46454	MED200408	Budesonide-Formoterol (Inhalation)	58	40
+4	stride_order_proc	Nursing	498242	46271	NUR2012	MARK PEDAL PULSES	44	40
+88	stride_order_med	Med (Both Eyes)	4053	47128	RXCUI4053	Erythromycin (Both Eyes)	60	40
+4	stride_order_proc	Nursing	498201	48720	NUR1970	REVIEW DISCHARGE INSTRUCTIONS	40	40
+4	stride_order_proc	Nursing	489293	49661	NUR1519	MD TO SEE PATIENT PRIOR TO DISCHARGE	40	40
+8	stride_order_proc	Imaging	591768	49956	IMGMRAB	MR ABDOMEN	57	40
+8	stride_order_proc	Imaging	473978	50102	IMGDXHA3LT	XR HAND 3V LT	47	40
+6	stride_order_proc	Lab	473027	50692	LABOLIG	CSF PROTEIN & IMMUNOFIX ELECT.	77	40
+4	stride_order_proc	Nursing	862585	50618	11500201	TRANSFUSION RBC (DOES NOT ORDER PRODUCT)	44	40
+30	stride_order_proc	Cast Room	472718	51360	CR112	KNEE IMMOBILIZER	45	40
+3	stride_order_proc	Point of Care Testing	591292	50370	POC18	POC ISTAT, ARTERIAL NA, K, GLUCOSE, HCT, HEMOGLOBIN (EC4)	42	40
+4	stride_order_proc	Nursing	473466	49438	NUR1214	BEDREST W/BEDSIDE COMMODE	39	39
+24	stride_order_proc	Pathology	624477	62111	CG08	FISH ANALYSIS,CANCER DIAGNOSIS	57	39
+4	stride_order_proc	Nursing	498203	46257	NUR1972	SHOW PT EPILEPSY STUDY TAPE/INFO BOOKLET	44	39
+8	stride_order_proc	Imaging	474091	49057	IMGDXHA3RT	XR HAND 3V RT	44	39
+6	stride_order_proc	Lab	473412	48953	LABT3	T3, TOTAL	46	39
+4	stride_order_proc	Nursing	572411	61866	NUR4016	NASOGASTRIC/OROGASTRIC	58	39
+73	stride_order_med	Med (Oral)	167	46233	RXCUI167	Acetazolamide (Oral)	68	39
+72	stride_order_med	Med (Intravenous)	1223	46482	RXCUI1223	Atropine (Intravenous)	53	39
+73	stride_order_med	Med (Oral)	1424	46485	RXCUI1424	Benztropine (Oral)	90	39
+73	stride_order_med	Med (Oral)	42954	46652	RXCUI42954	Vitamin B6 (Oral)	80	39
+84	stride_order_med	Med (Intramuscular)	6754	46716	RXCUI6754	Meperidine (Intramuscular)	46	39
+88	stride_order_med	Med (Both Eyes)	283810	46757	RXCUI283810	Bimatoprost (Both Eyes)	55	39
+6	stride_order_proc	Lab	471911	49037	LABC125	CANCER AG 125	55	39
+6	stride_order_proc	Lab	472018	49469	LABURCL	CHLORIDE, URINE (RANDOM)	65	39
+8	stride_order_proc	Imaging	474329	51181	IMGUSP2	US PELVIS NON OB LTD	43	39
+8	stride_order_proc	Imaging	474376	51500	IMGUSTV	US TRANSVAGINAL	45	39
+4	stride_order_proc	Nursing	670503	53413	NUR11543	BEACON NURSING COMM ONCE 5	40	39
+12	stride_order_proc	Procedures	660639	46348	LABUSEOSTS	USE ORDER SET FOR LAB TRANSFUSION	40	39
+72	stride_order_med	Med (Intravenous)	-6.40E+18	44677	RXCUI8591,56443,9863	Potassium Chloride-Sodium Acetate-Sodium Chloride (Intravenous)	56	39
+88	stride_order_med	Med (Both Eyes)	27334	46653	RXCUI27334	Hypromellose (Both Eyes)	60	38
+8	stride_order_proc	Imaging	474467	49040	IMGIRBILTBPLM	IR BILIARY TUBE PCMT DE NOVO	51	38
+6	stride_order_proc	Lab	473329	48989	LABSIROL	SIROLIMUS LEVEL	105	38
+8	stride_order_proc	Imaging	474011	49377	IMGDXEL3LT	XR ELBOW 3V LT	45	38
+73	stride_order_med	Med (Oral)	33738	44428	RXCUI33738	Pioglitazone (Oral)	59	38
+73	stride_order_med	Med (Oral)	4441	44700	RXCUI4441	Flecainide (Oral)	81	38
+73	stride_order_med	Med (Oral)	84857	46395	RXCUI84857	Anastrozole (Oral)	59	38
+73	stride_order_med	Med (Oral)	593411	46601	RXCUI593411	Sitagliptin (Oral)	49	38
+75	stride_order_med	Med (Inhalation)	2709	47103	RXCUI2709	Colistin (Inhalation)	75	38
+4	stride_order_proc	Nursing	489349	51518	NUR1575	NOTHING PER RECTUM (BED SIGN)	38	38
+10	stride_order_proc	OT	644234	57901	OT3	OT SPLINT ONGOING TREATMENT	45	38
+73	stride_order_med	Med (Oral)	31555	46950	RXCUI31555	Nebivolol (Oral)	50	38
+6	stride_order_proc	Lab	473796	50675	LABYWNILE	WEST NILE VIRUS AB, IGG AND IGM	47	38
+4	stride_order_proc	Nursing	670502	53744	NUR11542	BEACON NURSING COMM ONCE 4	40	38
+72	stride_order_med	Med (Intravenous)	623400	45396	RXCUI623400	Lacosamide (Intravenous)	79	37
+4	stride_order_proc	Nursing	489526	61998	NUR1753	T-TUBE /BILIARY TUBE	78	37
+72	stride_order_med	Med (Intravenous)	3008	44642	RXCUI3008	Cyclosporine (Intravenous)	200	37
+4	stride_order_proc	Nursing	473291	46073	NUR1170	SCISSORS/SUTURE REMOVAL KIT AT BEDSIDE	40	37
+73	stride_order_med	Med (Oral)	126066	46404	MED126066	Calcium Carbonate-Cholecalciferol (Oral)	43	37
+34	stride_order_proc	Consult	508091	50400	CON305	CONSULT TO ANESTHESIOLOGY	40	37
+6	stride_order_proc	Lab	472452	50685	LABGCCR2	GC MOLECULAR DETECTION	51	37
+4	stride_order_proc	Nursing	489128	51112	NUR1354	ENCOURAGE PO FLUIDS	39	37
+4	stride_order_proc	Nursing	870880	62190	NUR31002	BMT NURSING INFORMATION/COMMUNICATION	38	37
+8	stride_order_proc	Imaging	884090	62253	CRP221	ANGIOGRAM CEREBRAL W COILING	48	37
+8	stride_order_proc	Imaging	474683	50519	IMGIRTRANSJUG	IR TRANSJUGULAR LIVER BIOPSY	43	37
+4	stride_order_proc	Nursing	498032	53002	NUR1804	CLEAN UMBILICUS WITH PEROXIDE	39	37
+4	stride_order_proc	Nursing	489558	46032	NUR1785	WIRE CUTTERS WITH PATIENT AT ALL TIMES	57	36
+8	stride_order_proc	Imaging	474413	48979	IMGNGASTREMP	NUC GASTRIC EMPTYING	51	36
+6	stride_order_proc	Lab	744410	49363	LABBMCEBP	DETECTION OF CEBPA, BONE MARROW	73	36
+72	stride_order_med	Med (Intravenous)	4.05E+18	44583	RXCUI9863,11202	Sodium Chloride-Vincristine (Intravenous)	66	36
+85	stride_order_med	Med (Nasal)	1.08E+05	46284	RXCUI108118	Mometasone (Nasal)	39	36
+73	stride_order_med	Med (Oral)	4099	46411	RXCUI4099	Estrogens, Conjugated (Usp) (Oral)	49	36
+75	stride_order_med	Med (Inhalation)	66887	46799	RXCUI66887	Racepinephrine (Inhalation)	54	36
+8	stride_order_proc	Imaging	474114	48554	IMGMRP	MR PELVIS	46	36
+6	stride_order_proc	Lab	471625	50194	LAB11068R	ACE	46	36
+6	stride_order_proc	Lab	471640	50299	LABANTIM	ANTI - TPO AB	44	36
+4	stride_order_proc	Nursing	489500	50443	NUR1727	SUTURE SET AT BEDSIDE	39	36
+4	stride_order_proc	Nursing	508583	50993	NUR2242	BATHROOM PRIVILEDGES	36	36
+4	stride_order_proc	Nursing	624783	62082	NUR6019	TEDS BILATERAL KNEE	38	36
+39	stride_order_proc	Outpatient Referral	505835	62069	REF25	REFERRAL TO SURGERY GENERAL	40	36
+97	stride_order_med	Med (Left Eye)	4053	46656	RXCUI4053	Erythromycin (Left Eye)	44	36
+8	stride_order_proc	Imaging	474214	49792	IMGMRSCWWO	MR C-SPINE WITH AND WITHOUT CONTRAST	38	36
+72	stride_order_med	Med (Intravenous)	8825	45573	RXCUI8825	Protamine Sulfate (Usp) (Intravenous)	41	36
+4	stride_order_proc	Nursing	508692	49919	NUR2259	PO CHALLENGE	37	36
+3	stride_order_proc	Point of Care Testing	610680	62219	POC31	POC NITRAZINE PAPER FOR PH MEASUREMENT	59	36
+6	stride_order_proc	Lab	473189	49268	LABPTTINH	PTT INHIBITOR SCREEN	51	36
+8	stride_order_proc	Imaging	474103	51323	IMGDXWR2RT	XR WRIST 2V RT	49	36
+8	stride_order_proc	Imaging	519241	50774	IMGUSAPPY	US APPENDIX	35	35
+84	stride_order_med	Med (Intramuscular)	7617	46451	RXCUI7617	Octreotide (Intramuscular)	50	35
+3	stride_order_proc	Point of Care Testing	472694	48783	LABPCEC4O	ISTAT EC4, OTHER	40	35
+9	stride_order_proc	Diet	472179	50312	DIET114	DIET VEGETARIAN	49	35
+73	stride_order_med	Med (Oral)	35302	44730	RXCUI35302	Sirolimus (Oral)	139	35
+4	stride_order_proc	Nursing	572454	50466	NUR4036	WOUND TREATMENT	49	35
+4	stride_order_proc	Nursing	473080	61991	NUR1103	ASSESS PATIENTS ACTIVITY LEVEL	36	35
+25	stride_order_proc	Precaution	3.50E+10	51471	PRE1	ASSAULT PRECAUTIONS	44	35
+84	stride_order_med	Med (Intramuscular)	204468	46384	MED204468	Neisseria Meningitidis Serogroup A Capsular Polysaccharide Diphtheria Toxoid Protein Conjugate Vaccine-Neisseria Meningitidis Serogroup C Capsular Polysaccharide Diphtheria Toxoid Protein Conjugate Vaccine-Neisseria Meningitidis Serogroup W-135 Capsular Po (...)	40	35
+81	stride_order_med	Med (G Tube)	17128	45110	RXCUI17128	Lansoprazole (G Tube)	62	35
+73	stride_order_med	Med (Oral)	9000	46500	RXCUI9000	Pyridostigmine (Oral)	82	34
+73	stride_order_med	Med (Oral)	4719	44387	RXCUI4719	Gemfibrozil (Oral)	58	34
+72	stride_order_med	Med (Intravenous)	2191	44637	RXCUI2191	Ceftazidime (Intravenous)	98	34
+72	stride_order_med	Med (Intravenous)	56443	44702	RXCUI56443	Sodium Acetate (Intravenous)	69	34
+73	stride_order_med	Med (Oral)	3247	44759	RXCUI3247	Desipramine (Oral)	89	34
+88	stride_order_med	Med (Both Eyes)	2062	46433	RXCUI2062	Carboxymethylcellulose (Both Eyes)	55	34
+73	stride_order_med	Med (Oral)	6676	46347	RXCUI6676	Meclizine (Oral)	52	34
+4	stride_order_proc	Nursing	472902	48836	NUR1023	TEMPERATURE (CELCIUS)	35	34
+39	stride_order_proc	Outpatient Referral	624845	50067	REF93	REFERRAL TO OTHER	38	34
+27	stride_order_proc	Neurology	624794	50406	NEUR6	EMG AND NERVE CONDUCT STUDIES	39	34
+4	stride_order_proc	Nursing	876752	62257	NUR30028	PRE-PROCEDURE INSTRUCTIONS	35	34
+4	stride_order_proc	Nursing	489510	45970	NUR1737	TEMP PROBE FOLEY RC	34	33
+8	stride_order_proc	Imaging	474403	46099	IMGNGHIDA	NUC HIDA SCAN	44	33
+8	stride_order_proc	Imaging	474331	48755	IMGUSIN	US INTRAOPERATIVE	38	33
+15	stride_order_proc	Microbiology	471554	48951	LABBLCA	AFB CULTURE, BLOOD	42	33
+73	stride_order_med	Med (Oral)	4083	46503	RXCUI4083	Estradiol (Oral)	41	33
+8	stride_order_proc	Imaging	519242	46325	IMGUSHEP	US HEPATOMA SURVEY	35	33
+73	stride_order_med	Med (Oral)	21212	46561	RXCUI21212	Clarithromycin (Oral)	63	33
+72	stride_order_med	Med (Intravenous)	5650	47010	RXCUI5650	Idarubicin (Intravenous)	47	33
+6	stride_order_proc	Lab	473391	50272	LABTBLYM	T SUBSETS AND B LYMPHOCYTES, BLOOD	38	33
+35	stride_order_proc	SLP	644239	50518	SLP8	SLP PASSY MUIR VALVE ONGOING	40	33
+9	stride_order_proc	Diet	877796	62097	DIET136	DIET GRAFT VERSUS HOST DISEASE, LOW MICROBIAL	226	33
+8	stride_order_proc	Imaging	668520	49033	IMGDXHIP2PRT	HIP 2 VIEWS RIGHT AND PELVIS	38	33
+6	stride_order_proc	Lab	471566	49992	LABUALB	ALBUMIN WITH CREATININE, URINE (RANDOM)	52	32
+73	stride_order_med	Med (Oral)	8132	46403	MED8132	Hydrochlorothiazide-Triamterene (Oral)	38	32
+83	stride_order_med	Med (Transdermal)	4083	44397	RXCUI4083	Estradiol (Transdermal)	48	32
+72	stride_order_med	Med (Intravenous)	44	44630	RXCUI44	Mesna (Intravenous)	72	32
+71	stride_order_med	Med (Topical)	6135	46463	RXCUI6135	Ketoconazole (Topical)	51	32
+72	stride_order_med	Med (Intravenous)	40048	44587	RXCUI40048	Carboplatin (Intravenous)	47	32
+73	stride_order_med	Med (Oral)	6901	44744	RXCUI6901	Methylphenidate (Oral)	61	32
+4	stride_order_proc	Nursing	624800	46081	NUR4095	NO IM INJECTIONS	35	32
+73	stride_order_med	Med (Oral)	119565	46446	RXCUI119565	Tolterodine (Oral)	46	32
+73	stride_order_med	Med (Oral)	8754	46483	RXCUI8754	Propafenone (Oral)	52	32
+73	stride_order_med	Med (Oral)	6835	46637	RXCUI6835	Methimazole (Oral)	73	32
+73	stride_order_med	Med (Oral)	5781	46906	RXCUI5781	Indomethacin (Oral)	78	32
+73	stride_order_med	Med (Oral)	19831	47049	RXCUI19831	Budesonide (Oral)	64	32
+6	stride_order_proc	Lab	471575	49026	LABALKP	ALKALINE PHOSPHATASE TOTAL SERUM/PLASMA	32	32
+71	stride_order_med	Med (Topical)	2358	50111	RXCUI2358	Chlorhexidine (Topical)	34	32
+3	stride_order_proc	Point of Care Testing	591302	50503	POC23	POC ISTAT, VENOUS BLOOD GASES (G3+)	36	32
+8	stride_order_proc	Imaging	473987	50911	IMGDXWR2LT	XR WRIST 2V LT	51	32
+7	stride_order_proc	Respiratory Care	473084	50297	RT81	RESP - PEAK EXPIRATORY FLOW	54	32
+73	stride_order_med	Med (Oral)	83818	44331	RXCUI83818	Irbesartan (Oral)	45	31
+73	stride_order_med	Med (Oral)	298869	46370	RXCUI298869	Eplerenone (Oral)	83	31
+4	stride_order_proc	Nursing	489299	48876	NUR1525	MEDIPORT CARE	52	31
+8	stride_order_proc	Imaging	473864	49073	IMGCTHR	CT CHEST HIGH RESOLUTION	35	31
+6	stride_order_proc	Lab	497514	49092	LABTOBPRL	TOBRAMYCIN TROUGH LEVEL	114	31
+26	stride_order_proc	PFT	471493	51681	PFT52	PULMONARY SIX MINUTE WALK STUDY	43	31
+72	stride_order_med	Med (Intravenous)	2555	44015	RXCUI2555	Cisplatin (Intravenous)	62	31
+72	stride_order_med	Med (Intravenous)	71535	44578	RXCUI71535	Vecuronium (Intravenous)	45	31
+80	stride_order_med	Med (Feeding Tube)	8640	44805	RXCUI8640	Prednisone (Feeding Tube)	99	31
+73	stride_order_med	Med (Oral)	10572	44816	RXCUI10572	Thyroid (Usp) (Oral)	42	31
+84	stride_order_med	Med (Intramuscular)	6470	46400	RXCUI6470	Lorazepam (Intramuscular)	38	31
+73	stride_order_med	Med (Oral)	2447	46810	RXCUI2447	Cholestyramine Resin (Oral)	69	31
+6	stride_order_proc	Lab	472610	49844	LABIGA	IGA, SERUM	35	31
+8	stride_order_proc	Imaging	473831	49922	IMGCT3AR	CT ANGIO ABDOMEN RUNOFF	39	31
+34	stride_order_proc	Consult	506979	50256	CON366	NSG REFERRAL TO FINANCIAL REP	34	31
+4	stride_order_proc	Nursing	489073	50859	NUR1299	D/C HOME INSTRUCTIONS	34	31
+73	stride_order_med	Med (Oral)	208091	46781	MED208091	Amylases-Endopeptidases-Lipase (Oral)	63	31
+80	stride_order_med	Med (Feeding Tube)	51272	45056	RXCUI51272	Quetiapine (Feeding Tube)	50	31
+25	stride_order_proc	Precaution	624830	46068	PRE6	HEMORRHAGE PRECAUTIONS	31	30
+73	stride_order_med	Med (Oral)	2.58E+04	45239	RXCUI25789	Glimepiride (Oral)	49	30
+25	stride_order_proc	Precaution	624831	46165	PRE7	ICH PRECAUTIONS	31	30
+72	stride_order_med	Med (Intravenous)	75635	46340	RXCUI75635	Eptifibatide (Intravenous)	44	30
+73	stride_order_med	Med (Oral)	4053	46714	RXCUI4053	Erythromycin (Oral)	44	30
+73	stride_order_med	Med (Oral)	3361	46884	RXCUI3361	Dicyclomine (Oral)	52	30
+73	stride_order_med	Med (Oral)	2403	47076	RXCUI2403	Chlorpromazine (Oral)	56	30
+34	stride_order_proc	Consult	589778	49646	CON332	CONSULT TO RHEUMATOLOGY	36	30
+4	stride_order_proc	Nursing	472961	50288	NUR1055	SITZ BATH	38	30
+6	stride_order_proc	Lab	472045	50504	LABCO2	CO2, SERUM/PLASMA	32	30
+34	stride_order_proc	Consult	647350	50749	CON427	CONSULT TO THORACIC SURGERY	37	30
+73	stride_order_med	Med (Oral)	11256	44259	RXCUI11256	Vitamin E (Oral)	48	30
+6	stride_order_proc	Lab	473425	46069	LABTES	TESTOSTERONE	37	30
+72	stride_order_med	Med (Intravenous)	4832	46930	RXCUI4832	Glucagon (Intravenous)	39	30
+8	stride_order_proc	Imaging	618897	48569	IMGDXCH1DLT	XR CHEST 1 VIEW DECUB, LEFT	31	29
+6	stride_order_proc	Lab	473414	48572	LABTT4	T4, TOTAL	32	29
+8	stride_order_proc	Imaging	516671	49548	IMGNBONESCAN	NUC BONE SCAN	44	29
+73	stride_order_med	Med (Oral)	6313	46302	RXCUI6313	Leucovorin (Oral)	78	29
+79	stride_order_med	Med (Injection)	1815	46620	RXCUI1815	Bupivacaine (Injection)	36	29
+73	stride_order_med	Med (Oral)	282446	46545	RXCUI282446	Posaconazole (Oral)	110	29
+6	stride_order_proc	Lab	472304	48695	LAB11118R	ELASTASE, STOOL	41	29
+39	stride_order_proc	Outpatient Referral	505889	50023	REF52	REFERRAL TO ORTHOPEDICS	31	29
+4	stride_order_proc	Nursing	670508	50060	NUR11554	GUIDELINES FOR MD ORDERING 10	39	29
+6	stride_order_proc	Lab	472520	51200	LABHBCA	IGM ANTI-HBC	33	29
+7	stride_order_proc	Respiratory Care	549814	48713	RT105	RESP - TRACHEOSTOMY WEAN/DECANNULATION PROTOCOL	64	29
+6	stride_order_proc	Lab	473188	49687	LABYPTHRP	PTH-RELATED PEPTIDE, PLASMA	38	29
+33	stride_order_proc	HIV Lab Non-Restricted	497075	62103	LABSHIV12	RAPID HIV-1/2 ANTIBODY	31	28
+4	stride_order_proc	Nursing	611791	48662	NUR4057	CCPD PERITONEAL DIALYSIS	126	28
+73	stride_order_med	Med (Oral)	88014	44288	RXCUI88014	Rizatriptan (Oral)	37	28
+78	stride_order_med	Med (NG Tube)	161	44373	RXCUI161	Acetaminophen (NG Tube)	30	28
+73	stride_order_med	Med (Oral)	52582	46365	RXCUI52582	Mesalamine (Oral)	60	28
+6	stride_order_proc	Lab	497508	49299	LABGNTPRL	GENTAMICIN TROUGH LEVEL	107	28
+90	stride_order_med	Med (Intrathecal)	6851	44664	RXCUI6851	Methotrexate (Intrathecal)	45	28
+72	stride_order_med	Med (Intravenous)	261435	44731	RXCUI261435	Sodium Ferric Gluconate Complex (Intravenous)	53	28
+73	stride_order_med	Med (Oral)	8134	44692	RXCUI8134	Phenobarbital (Oral)	88	28
+73	stride_order_med	Med (Oral)	4316	46344	RXCUI4316	Felodipine (Oral)	40	28
+72	stride_order_med	Med (Intravenous)	6813	47265	RXCUI6813	Methadone (Intravenous)	55	28
+4	stride_order_proc	Nursing	489315	51234	NUR1541	NEPHROSTOMY TUBE	43	28
+4	stride_order_proc	Nursing	471682	51427	NUR631	IRRIGATE/CLEANSE WOUND	30	28
+15	stride_order_proc	Microbiology	473205	50282	LABROPK	ISOSPORA/CYCLOSPORA SCREEN	54	27
+73	stride_order_med	Med (Oral)	1998	44801	RXCUI1998	Captopril (Oral)	55	27
+85	stride_order_med	Med (Nasal)	18603	46416	RXCUI18603	Azelastine (Nasal)	38	27
+73	stride_order_med	Med (Oral)	596205	46708	RXCUI596205	Ramelteon (Oral)	36	27
+73	stride_order_med	Med (Oral)	6916	46707	RXCUI6916	Metolazone (Oral)	53	27
+73	stride_order_med	Med (Oral)	300195	46865	RXCUI300195	Tenofovir Disoproxil (Oral)	93	27
+73	stride_order_med	Med (Oral)	80259	47114	MED80259	Diatrizoate-Sodium (Oral)	32	27
+4	stride_order_proc	Nursing	489420	49007	NUR1647	RESTRICT TOTAL PO AND IV FLUIDS	31	27
+6	stride_order_proc	Lab	541668	49752	LABACTHO	ADRENOCORTICOTROPIC HORMONE (ACTH)	41	27
+7	stride_order_proc	Respiratory Care	872150	62154	RT113	RESP - INDIRECT CALORIMETRY	38	27
+4	stride_order_proc	Nursing	473072	52588	NUR1097	BRACE	34	27
+72	stride_order_med	Med (Intravenous)	6878	44657	RXCUI6878	Methylene Blue (Intravenous)	41	26
+73	stride_order_med	Med (Oral)	38413	44697	RXCUI38413	Torsemide (Oral)	104	26
+84	stride_order_med	Med (Intramuscular)	2193	45060	RXCUI2193	Ceftriaxone (Intramuscular)	26	26
+73	stride_order_med	Med (Oral)	10324	46324	RXCUI10324	Tamoxifen (Oral)	42	26
+113	stride_order_med	Med (Ophthalmic)	283809	46776	RXCUI283809	Travoprost (Ophthalmic)	33	26
+73	stride_order_med	Med (Oral)	7597	46758	RXCUI7597	Nystatin (Oral)	29	26
+101	stride_order_med	Med (J Tube)	8591	46842	RXCUI8591	Potassium Chloride (J Tube)	66	26
+4	stride_order_proc	Nursing	518149	50738	NUR2996	PARACENTESIS TRAY TO BEDSIDE	35	26
+4	stride_order_proc	Nursing	472890	51435	NUR1011	OOB TO CHAIR WHEN AWAKE & ALERT	27	26
+72	stride_order_med	Med (Intravenous)	4457	47030	RXCUI4457	Flumazenil (Intravenous)	30	26
+6	stride_order_proc	Lab	472501	48578	LABFHCT	HEMATOCRIT, FLUID	38	25
+4	stride_order_proc	Nursing	489554	48636	NUR1781	WEAR HOSPITAL GOWN ONLY	28	25
+6	stride_order_proc	Lab	472120	49151	LABYCCPIG	ANTI CCP	26	25
+75	stride_order_med	Med (Inhalation)	9344	45186	RXCUI9344	Ribavirin (Inhalation)	67	25
+73	stride_order_med	Med (Oral)	8013	46657	RXCUI8013	Pentoxifylline (Oral)	55	25
+73	stride_order_med	Med (Oral)	9344	46806	RXCUI9344	Ribavirin (Oral)	64	25
+8	stride_order_proc	Imaging	474370	49655	IMGUSPEP	US RENAL ARTERY	26	25
+6	stride_order_proc	Lab	472112	49657	LABCRYO	CRYOPROTEIN SEMI - QUANTITATIVE	39	25
+4	stride_order_proc	Nursing	489525	50300	NUR1752	TRENDELENBURG	25	25
+47	stride_order_proc	Bronchoscopy	471800	51561	RT79	RESP - BRONCHOSCOPY, FLEXIBLE FIBEROPTIC	33	25
+15	stride_order_proc	Microbiology	471757	46042	LABSTREP	BETA STREP THROAT SCREEN RAPID EIA	39	24
+73	stride_order_med	Med (Oral)	7226	46363	RXCUI7226	Nadolol (Oral)	49	24
+72	stride_order_med	Med (Intravenous)	19666	44686	RXCUI19666	Nesiritide (Intravenous)	40	24
+72	stride_order_med	Med (Intravenous)	9384	44719	RXCUI9384	Rifampin (Intravenous)	41	24
+72	stride_order_med	Med (Intravenous)	2.19E+03	44753	RXCUI2186	Cefotaxime (Intravenous)	30	24
+6	stride_order_proc	Lab	472937	46301	LABMYO	MYOGLOBIN, SERUM / PLASMA	27	24
+71	stride_order_med	Med (Topical)	898492	46518	RXCUI898492	Collagenase Clostridium Histolyticum (Topical)	41	24
+73	stride_order_med	Med (Oral)	114979	46603	RXCUI114979	Rabeprazole (Oral)	26	24
+73	stride_order_med	Med (Oral)	8691	46919	RXCUI8691	Primidone (Oral)	32	24
+8	stride_order_proc	Imaging	474078	50813	IMGDXCLAVRT	XR CLAVICLE RT	46	24
+6	stride_order_proc	Lab	472362	51560	LABYFFATQ	FAT, FECAL QUANTITATIVE	49	24
+6	stride_order_proc	Lab	497484	49510	LABCZPL	CARBAMAZEPINE, SERUM	40	24
+73	stride_order_med	Med (Oral)	35208	44934	RXCUI35208	Quinapril (Oral)	46	24
+28	stride_order_proc	GI	473751	57962	GIVCE	VIDEO CAPSULE ENDOSCOPY	37	24
+8	stride_order_proc	Imaging	618899	49454	IMGDXCH1DRT	XR CHEST 1 VIEW DECUB, RIGHT	27	23
+6	stride_order_proc	Lab	471571	50934	LAB11069R	ALDOLASE	28	23
+73	stride_order_med	Med (Oral)	3251	44431	RXCUI3251	Desmopressin (Oral)	106	23
+73	stride_order_med	Med (Oral)	4110	44727	RXCUI4110	Ethambutol (Oral)	59	23
+72	stride_order_med	Med (Intravenous)	7980	44826	RXCUI7980	Penicillin G (Intravenous)	51	23
+73	stride_order_med	Med (Oral)	7676	46327	RXCUI7676	Opium (Oral)	71	23
+73	stride_order_med	Med (Oral)	8745	46724	RXCUI8745	Promethazine (Oral)	31	23
+6	stride_order_proc	Lab	472349	49506	LABFACT8	FACTOR VIII ASSAY	44	23
+6	stride_order_proc	Lab	473346	49982	LABUNAT	SODIUM, URINE (TIMED)	35	23
+36	stride_order_proc	Cath Angio	621223	50289	CON401	CONSULT TO ARRHYTHMIA RN	28	23
+8	stride_order_proc	Imaging	473947	50548	IMGFLSB	XR SMALL BOWEL SERIES	31	23
+72	stride_order_med	Med (Intravenous)	3418	45108	RXCUI3418	Dihydroergotamine (Intravenous)	99	23
+6	stride_order_proc	Lab	471747	50962	LABBCRABL	BCR - ABL, BLOOD	25	23
+72	stride_order_med	Med (Intravenous)	-5.30E+18	44696	RXCUI4511,89905,9863,10454,8308	Folic Acid-Multivitamin Preparation-Sodium Chloride-Thiamine-Vitamin K 1 (Intravenous)	27	23
+8	stride_order_proc	Imaging	474051	52390	IMGDXSHUNT1	XR SHUNT SERIES W SKULL 2V CXR 1V ABDO 1V	25	23
+73	stride_order_med	Med (Oral)	6038	44956	RXCUI6038	Isoniazid (Oral)	57	23
+6	stride_order_proc	Lab	497454	52121	LABFPARVD	PARVOVIRUS B19 PCR QUALITATIVE REALTIME	35	23
+73	stride_order_med	Med (Oral)	6926	44990	RXCUI6926	Mexiletine (Oral)	88	22
+6	stride_order_proc	Lab	472062	46083	LABYUCDA	CONFIRMED DRUG ABUSE SURVEY, URINE	30	22
+8	stride_order_proc	Imaging	474433	48760	IMGNINDWBCS	NUC INDIUM WHITE CELL SCAN	25	22
+4	stride_order_proc	Nursing	489065	49067	NUR1268	CONSTAVAC	24	22
+4	stride_order_proc	Nursing	668556	61861	NUR11516	BEACON NURSING IVIG PARAMETERS	22	22
+73	stride_order_med	Med (Oral)	3638	44661	RXCUI3638	Doxepin (Oral)	62	22
+73	stride_order_med	Med (Oral)	10438	44876	RXCUI10438	Theophylline (Oral)	51	22
+72	stride_order_med	Med (Intravenous)	73137	46408	RXCUI73137	Tirofiban (Intravenous)	28	22
+73	stride_order_med	Med (Oral)	9524	46507	RXCUI9524	Sulfasalazine (Oral)	38	22
+15	stride_order_proc	Microbiology	471557	49444	LABAFBSO	AFB SMEAR ONLY	24	22
+8	stride_order_proc	Imaging	474090	49928	IMGDXHA2RT	XR HAND 2V RT	23	22
+8	stride_order_proc	Imaging	473977	50274	IMGDXHA2LT	XR HAND 2V LT	22	22
+97	stride_order_med	Med (Left Eye)	8638	47159	RXCUI8638	Prednisolone (Left Eye)	39	22
+73	stride_order_med	Med (Oral)	115698	45447	RXCUI115698	Ziprasidone (Oral)	76	22
+73	stride_order_med	Med (Oral)	1886	54673	RXCUI1886	Caffeine (Oral)	56	22
+6	stride_order_proc	Lab	472361	49984	LABSTFAT	FAT STAIN, STOOL	37	21
+83	stride_order_med	Med (Transdermal)	10379	46580	RXCUI10379	Testosterone (Transdermal)	53	21
+72	stride_order_med	Med (Intravenous)	4249	52294	RXCUI4249	Factor Ix (Intravenous)	29	21
+6	stride_order_proc	Lab	497386	50240	LABFTRIGA	TRIGLYCERIDES, NON-PLEURAL	38	21
+6	stride_order_proc	Lab	472022	49086	LABCL	CHLORIDE, SERUM/PLASMA	24	21
+4	stride_order_proc	Nursing	668492	49553	20100004	HIGHEST RISK DVT/PE PROPHYLAXIS	21	21
+34	stride_order_proc	Consult	506977	45906	CON364	NSG REFERRAL TO SOCIAL WORK	22	21
+72	stride_order_med	Med (Intravenous)	5531	46574	RXCUI5531	Hetastarch (Intravenous)	21	21
+6	stride_order_proc	Lab	497468	62078	LABBKVPCU	BK VIRUS PCR, QUANT, URINE	46	21
+72	stride_order_med	Med (Intravenous)	-8.30E+15	45014	RXCUI6585,6628,8591,9863	Magnesium Sulfate-Mannitol-Potassium Chloride-Sodium Chloride (Intravenous)	41	20
+4	stride_order_proc	Nursing	489553	46113	NUR1780	WEAN WITH O2SAT/PETCO2 PER PROTOCOL	22	20
+78	stride_order_med	Med (NG Tube)	42316	46504	RXCUI42316	Tacrolimus (NG Tube)	36	20
+8	stride_order_proc	Imaging	473870	49767	IMGCTO	CT ORBIT SELLA POST FOSSA TEMP BONE	20	20
+4	stride_order_proc	Nursing	489311	53501	NUR1537	MONITOR VENTRICULOSTOMY DRAIN	41	20
+72	stride_order_med	Med (Intravenous)	314504	47141	RXCUI314504	Anti-Inhibitor Coagulant Complex (Intravenous)	38	20
+73	stride_order_med	Med (Oral)	31448	44270	RXCUI31448	Nabumetone (Oral)	28	19
+72	stride_order_med	Med (Intravenous)	3.36E+04	44738	RXCUI33562	Foscarnet (Intravenous)	50	19
+73	stride_order_med	Med (Oral)	7145	47597	RXCUI7145	Mycophenolic Acid (Oral)	37	19
+8	stride_order_proc	Imaging	592927	49471	IMGFLUNLIST	XR FLUORO UNLISTED EXAM	25	19
+6	stride_order_proc	Lab	472467	49434	LABGLOB	GLOBULIN	19	19
+6	stride_order_proc	Lab	472840	50290	LABYMETFF	METANEPHRINES FRACTIONATED FREE, PLASMA	22	19
+73	stride_order_med	Med (Oral)	123767	46686	MED123767	Emtricitabine-Tenofovir Disoproxil (Oral)	56	19
+73	stride_order_med	Med (Oral)	39998	47020	RXCUI39998	Zonisamide (Oral)	42	18
+3	stride_order_proc	Point of Care Testing	505766	48666	POC6	POC PPD SKIN TEST (IP)	24	18
+6	stride_order_proc	Lab	472794	48791	LABMALAR	MALARIA PREP	32	18
+15	stride_order_proc	Microbiology	473203	49320	LABROMSP	MICROSPORIDIUM SCREEN	37	18
+4	stride_order_proc	Nursing	489144	62056	NUR1370	FLEXICARE ECLIPSE	18	18
+73	stride_order_med	Med (Oral)	123723	44342	MED123723	Simvastatin-Ezetimibe (Oral)	22	18
+72	stride_order_med	Med (Intravenous)	22178	46604	RXCUI22178	Cytomegalovirus Immune Globulin (Intravenous)	46	18
+73	stride_order_med	Med (Oral)	103	46924	RXCUI103	Mercaptopurine (Oral)	35	18
+6	stride_order_proc	Lab	472050	51168	LABCDPLI	COLD AGGLUTININ SCREEN	19	18
+4	stride_order_proc	Nursing	489378	50302	NUR1604	PATIENT CAN REGULATE OWN INSULIN	35	17
+96	stride_order_med	Med (Intradermal)	8948	46227	RXCUI8948	Purified Protein Derivative Of Tuberculin (Intradermal)	21	17
+73	stride_order_med	Med (Oral)	2356	46338	RXCUI2356	Chlordiazepoxide (Oral)	43	17
+73	stride_order_med	Med (Oral)	77989	46551	MED77989	Aspirin-Dipyridamole (Oral)	26	17
+73	stride_order_med	Med (Oral)	183379	46665	RXCUI183379	Rivastigmine (Oral)	35	17
+73	stride_order_med	Med (Oral)	85762	46651	RXCUI85762	Ritonavir (Oral)	57	17
+8	stride_order_proc	Imaging	474212	50052	IMGMRSTWWO	MR T-SPINE WITH AND WITHOUT CONTRAST	19	17
+6	stride_order_proc	Lab	497450	62121	LABBKVPC	BK VIRUS PCR, QUANT, PLASMA	34	17
+6	stride_order_proc	Lab	473094	51137	LABPB	PHENOBARBITAL LEVEL	28	17
+72	stride_order_med	Med (Intravenous)	3.08E+18	44623	RXCUI2540,5690	Cilastatin-Imipenem (Intravenous)	33	17
+8	stride_order_proc	Imaging	519248	49393	IMGUSTIPS	US TIPS EVALUATION	21	16
+73	stride_order_med	Med (Oral)	233698	46628	RXCUI233698	Dronedarone (Oral)	33	16
+73	stride_order_med	Med (Oral)	3108	46633	RXCUI3108	Dapsone (Oral)	43	16
+72	stride_order_med	Med (Intravenous)	5657	44629	RXCUI5657	Ifosfamide (Intravenous)	35	16
+72	stride_order_med	Med (Intravenous)	4.43E+18	44631	RXCUI3639,4179,9863,11202	Doxorubicin-Etoposide-Sodium Chloride-Vincristine (Intravenous)	46	16
+6	stride_order_proc	Lab	472656	46107	LABINSLF	INSULIN FASTING	24	16
+6	stride_order_proc	Lab	472841	49135	LABYUMETF	METANEPHRINES FRACTIONATED, 24H URINE	30	16
+72	stride_order_med	Med (Intravenous)	283821	44745	RXCUI283821	Rasburicase (Intravenous)	23	16
+71	stride_order_med	Med (Topical)	9793	46790	RXCUI9793	Silver Sulfadiazine (Topical)	26	16
+4	stride_order_proc	Nursing	644362	48697	NUR6071	BEDSIDE COMMODE	16	16
+6	stride_order_proc	Lab	472030	49784	LABCHOL	CHOLESTEROL TOTAL, SERUM/PLASMA	16	16
+6	stride_order_proc	Lab	497390	50203	LABYSTOSM	OSMOLALITY, STOOL	28	16
+6	stride_order_proc	Lab	472949	62102	LAB11049R	NSE	30	16
+40	stride_order_proc	Legal	3.04E+09	62231	LEG3	LEGAL STATUS: DENIAL OF PATIENT RIGHTS	48	16
+8	stride_order_proc	Imaging	592071	48643	IMGNEPETLYMPH	PET CT LYMPHOMA	20	15
+7	stride_order_proc	Respiratory Care	471565	48882	RT95	RESP - AIRWAY PRESSURE RELEASE VENTILATION	58	15
+7	stride_order_proc	Respiratory Care	472541	49868	RT99	RESP - TRACH HIGH FLOW CPAP	18	15
+73	stride_order_med	Med (Oral)	2626	45132	RXCUI2626	Clozapine (Oral)	110	15
+72	stride_order_med	Med (Intravenous)	4256	46722	RXCUI4256	Factor Viia (Intravenous)	27	15
+73	stride_order_med	Med (Oral)	22560	47061	MED22560	Sulfamethoxazole-Trimethoprim (Oral)	16	15
+6	stride_order_proc	Lab	670760	50309	LAB11234R	VZV TOTAL AND IGM AB PANEL	15	15
+6	stride_order_proc	Lab	472728	50542	LABCSFLD	LDH, CSF	24	15
+6	stride_order_proc	Lab	497510	51224	LABGNTPOL	GENTAMICIN PEAK LEVEL	42	15
+73	stride_order_med	Med (Oral)	358257	46614	RXCUI358257	Tolvaptan (Oral)	64	14
+73	stride_order_med	Med (Oral)	540492	46624	MED540492	SHC TRANSPLANT BEDSIDE MEDS HELP ORDER	15	14
+73	stride_order_med	Med (Oral)	734064	46928	RXCUI734064	Desvenlafaxine (Oral)	33	14
+6	stride_order_proc	Lab	862883	61844	LAB11824R	BUSULFAN	56	14
+72	stride_order_med	Med (Intravenous)	196102	45673	RXCUI196102	Basiliximab (Intravenous)	28	14
+74	stride_order_med	Med (Subcutaneous)	338036	46745	RXCUI338036	Pegfilgrastim (Subcutaneous)	21	13
+8	stride_order_proc	Imaging	473972	51155	IMGDXCLAVLT	XR CLAVICLE LT	31	13
+72	stride_order_med	Med (Intravenous)	384455	44923	RXCUI384455	Tigecycline (Intravenous)	39	12
+4	stride_order_proc	Nursing	489338	48725	NUR1564	NO SMOKING PRIOR TO PROCEDURE	13	12
+26	stride_order_proc	PFT	669779	50092	PFT59	SPIROMETRY	13	12
+72	stride_order_med	Med (Intravenous)	-7.50E+18	44624	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8591,8737,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Potassium Chloride-Proline-Seri (...)	26	11
+72	stride_order_med	Med (Intravenous)	6054	44002	RXCUI6054	Isoproterenol (Intravenous)	18	11
+72	stride_order_med	Med (Intravenous)	7.24E+18	44013	RXCUI4850,6585,8591,9863	Glucose-Magnesium Sulfate-Potassium Chloride-Sodium Chloride (Intravenous)	32	11
+72	stride_order_med	Med (Intravenous)	2709	45318	RXCUI2709	Colistin (Intravenous)	37	11
+98	stride_order_med	Med (Sublingual)	114467	46755	MED114467	Buprenorphine-Naloxone (Sublingual)	67	11
+6	stride_order_proc	Lab	473759	62054	LAB11098R	1 25 OH VITAMIN D	14	10
+72	stride_order_med	Med (Intravenous)	8814	44597	RXCUI8814	Epoprostenol (Intravenous)	28	10
+12	stride_order_proc	Procedures	660673	48500	USEOS	**USE ORDER SET**	10	10
+73	stride_order_med	Med (Oral)	1.20E+18	45348	RXCUI1292,2599,6813,9509,9945	Baclofen-Clonidine-Methadone-Saccharin-Sorbitol (Oral)	34	10
+73	stride_order_med	Med (Oral)	198721	46738	MED198721	Folic Acid-Multivitamin Preparation-Coenzyme Q10 (Oral)	14	9
+72	stride_order_med	Med (Intravenous)	341018	44590	RXCUI341018	Anidulafungin (Intravenous)	10	8
+72	stride_order_med	Med (Intravenous)	-3.30E+17	44768	RXCUI426,1091,1908,4850,4919,5340,6033,6308,6536,6585,6837,89905,8156,54987,8737,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308	Alanine-Arginine-Calcium Gluconate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Proline-Serine-Sodium Acetate-Sodium Chloride-Sodium Phosphate, Dibasic-Sodium Phos (...)	12	8
+72	stride_order_med	Med (Intravenous)	8.49E+18	44669	RXCUI426,1091,1908,21032,21579,4278,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8737,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Famotidine-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Proline-Serine-Sodiu (...)	20	7
+72	stride_order_med	Med (Intravenous)	8134	44793	RXCUI8134	Phenobarbital (Intravenous)	16	7
+80	stride_order_med	Med (Feeding Tube)	3008	46978	RXCUI3008	Cyclosporine (Feeding Tube)	21	7
+6	stride_order_proc	Lab	670770	50379	LAB11242R	VZV QUANT	11	7
+72	stride_order_med	Med (Intravenous)	-1.90E+17	44667	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8737,253182,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Proline-Regular Insulin, Human- (...)	6	5
+72	stride_order_med	Med (Intravenous)	10865	46410	RXCUI10865	Tromethamine (Intravenous)	5	5
+72	stride_order_med	Med (Intravenous)	94959	46252	MED94959	Egg Yolk Phospholipids-Glycerin-Soybean Oil (Intravenous)	3	3
+72	stride_order_med	Med (Intravenous)	8.35E+18	44800	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,8591,8737,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Chloride-Proline-Serine-Sodium Acetate- (...)	10	3
+72	stride_order_med	Med (Intravenous)	5.48E+18	44621	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8737,9671,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Proline-Serine-Sodium Chloride- (...)	7	3
+72	stride_order_med	Med (Intravenous)	-8.10E+18	44668	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8591,8737,253182,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Potassium Chloride-Proline-Regu (...)	22	3
+72	stride_order_med	Med (Intravenous)	6.62E+18	45037	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,8156,54987,8737,9671,56443,9863,236719,235496,10524,10898,10962,11115,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Phenylalanine-Potassium Acetate-Proline-Serine-Sodium Acetate-Sodium Chloride-Sodium Pho (...)	4	3
+4	stride_order_proc	Nursing	668145	48891	NUR3501	INITIATE ROADMAP	1	1
+73	stride_order_med	Med (Oral)	116753	46442	MED116753	Multivitamin Preparation-Zinc Gluconate (Oral)	2	1
+72	stride_order_med	Med (Intravenous)	2.84E+18	45163	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8591,8737,253182,9671,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Potassium Chloride-Proline-Regu (...)	1	1
+77	stride_order_med	Med (Intravenous/Intramuscular)	26225	44284	RXCUI26225	Ondansetron (Intravenous/Intramuscular)	0	0
+77	stride_order_med	Med (Intravenous/Intramuscular)	8745	44402	RXCUI8745	Promethazine (Intravenous/Intramuscular)	0	0
+72	stride_order_med	Med (Intravenous)	4.63E+18	44617	RXCUI426,1091,1908,21032,21579,4278,4850,4919,5224,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8737,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Famotidine-Glucose-Glycine-Heparin-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Proline-Seri (...)	0	0
+4	stride_order_proc	Nursing	489387	45802	NUR1613	PERIPHERAL IV INSERTION/CARE	0	0
+9	stride_order_proc	Diet	472168	45807	DIET103	DIET LOW SODIUM	0	0
+4	stride_order_proc	Nursing	472889	45809	NUR1009	ANTIMICROBIAL SHOWER/BATH PRE-OP	0	0
+72	stride_order_med	Med (Intravenous)	2.23E+18	44634	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8591,8737,9671,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Potassium Chloride-Proline-Seri (...)	0	0
+72	stride_order_med	Med (Intravenous)	2.66E+18	44670	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,8591,8737,9671,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Chloride-Proline-Serine-Sodium Chloride (...)	0	0
+4	stride_order_proc	Nursing	539845	45779	ADT9	ADMIT TO PHASE	0	0
+4	stride_order_proc	Nursing	489147	45783	NUR1373	FOLEY, RETENTION CATHETER	0	0
+6	stride_order_proc	Lab	473371	45813	LABTCDIF	C DIFFICILE TOXIN B, STOOL	0	0
+4	stride_order_proc	Nursing	489081	45846	NUR1307	D/C OXIMETRY WHEN SATS > 92% ON ROOM AIR	0	0
+37	stride_order_proc	Restraints	472829	45855	RES5	MED/SURG RESTRAINTS	0	0
+4	stride_order_proc	Nursing	472091	45859	NUR810	I&O DRAIN OUTPUT	0	0
+4	stride_order_proc	Nursing	518172	45863	NUR336	MONITOR RESPIRATION AND SEDATION SCALE	0	0
+4	stride_order_proc	Nursing	472135	45877	NUR819	TRANSFUSE FFP (DOES NOT ORDER PRODUCT)	0	0
+22	stride_order_proc	Code Status	472206	45905	COD1	DNR	0	0
+8	stride_order_proc	Imaging	519244	45913	IMGUSNVLOW	US VEIN LOWER EXTREMITY BILAT R/O DVT	0	0
+6	stride_order_proc	Lab	472754	45935	LABLPD	LIPID PANEL	0	0
+38	stride_order_proc	HIV Lab Restricted	472553	45953	LABHIVAB	HIV (TYPE 1 AND TYPE 2) ABY	0	0
+4	stride_order_proc	Nursing	472137	45956	NUR820	TRANSFUSE PLT (DOES NOT ORDER PRODUCT)	0	0
+6	stride_order_proc	Lab	472057	45981	LABVP3	COMPREHENSIVE HEPATITIS PANEL	0	0
+32	stride_order_proc	ECHO	472278	45984	ECH17	ECHO - 2D ECHOCARDIOGRAM	0	0
+6	stride_order_proc	Lab	471641	45999	LABANTIXA	ANTI XA / LMWH	0	0
+6	stride_order_proc	Lab	472570	46002	LABHSVGM	HSV 1/2 IGM&TYPE-SPECIFIC IGG	0	0
+8	stride_order_proc	Imaging	474717	46015	IMG4NA	NEURO ANGIOGRAM	0	0
+8	stride_order_proc	Imaging	519250	46021	IMGUSTXL	US LIVER TRANSPLANT	0	0
+9	stride_order_proc	Diet	624769	46031	DIET133	DIET POST SURGICAL	0	0
+15	stride_order_proc	Microbiology	473372	46060	LABSTLC	STOOL CULTURE	0	0
+15	stride_order_proc	Microbiology	471771	46086	LABBXTG	BIOPSY / TISSUE CULTURE AND GRAM STAIN	0	0
+3	stride_order_proc	Point of Care Testing	610672	46091	POC27	POC HEMOCCULT FOR FECAL BLOOD	0	0
+6	stride_order_proc	Lab	472105	46092	LABCRCL	CREATININE CLEARANCE, URINE	0	0
+8	stride_order_proc	Imaging	474063	46102	IMGFLESO	XR ESOPHAGUS	0	0
+32	stride_order_proc	ECHO	472301	46111	ECH15	ECHO - TRANSTHORACIC ECHO	0	0
+9	stride_order_proc	Diet	472155	46114	DIET127	DIET COMBINATION	0	0
+4	stride_order_proc	Nursing	518166	46121	NUR326	EPIDURAL/INTRATHECAL INSERTION SITE CARE	0	0
+6	stride_order_proc	Lab	472043	46132	LABCMVPQ	CMV PCR QUANTITATIVE	0	0
+4	stride_order_proc	Nursing	498222	46135	NUR1991	D/C IV	0	0
+6	stride_order_proc	Lab	472040	46137	LABCMV	CMV AB TOTAL	0	0
+6	stride_order_proc	Lab	472254	46147	LABEBPCRQ	EBV BY PCR QUANTITATIVE	0	0
+6	stride_order_proc	Lab	497325	46198	LABADVDNA	ADENOVIRUS DNA, QUALITATIVE PCR	0	0
+4	stride_order_proc	Nursing	489485	46202	NUR1712	STRAIGHT CATHETERIZATION	0	0
+4	stride_order_proc	Nursing	489457	46272	NUR1684	SHEATHS TO BE REMOVED BY RN	0	0
+8	stride_order_proc	Imaging	517159	48565	IMGMRROF	MRI OSF READING	0	0
+6	stride_order_proc	Lab	472515	48573	LABHIAB	HEPARIN INDUCED AB	0	0
+6	stride_order_proc	Lab	471637	48594	LABAPHSAB	ANTI PHOSPHOLIPID AB PANEL	0	0
+32	stride_order_proc	ECHO	472281	48597	ECH36	ECHO - ADULT	0	0
+6	stride_order_proc	Lab	472042	48603	LABCMVP	CMV DNA PCR QUAL, NON-BLOOD	0	0
+8	stride_order_proc	Imaging	519249	48625	IMGUSTXK	US KIDNEY TRANSPLANT	0	0
+24	stride_order_proc	Pathology	624413	48641	PATH8	CENTRAL NERVOUS SYSTEM SOURCE	0	0
+4	stride_order_proc	Nursing	472584	48644	NUR900	ICE CHIPS & SIPS H2O WHEN AWAKE/ALERT	0	0
+15	stride_order_proc	Microbiology	471942	48653	LABCTC	CATHETER TIP CULTURE	0	0
+9	stride_order_proc	Diet	472166	48665	DIET109	DIET LOW FIBER LOW RESIDUE	0	0
+6	stride_order_proc	Lab	473310	48752	LABSCMV	CMV SHELL VIAL CULTURE	0	0
+8	stride_order_proc	Imaging	474377	48773	IMGUSCAR	US CAROTID ARTERY BILAT	0	0
+6	stride_order_proc	Lab	473783	48779	LABVZAB	VARICELLA ZOSTER VIRUS AB IGG	0	0
+6	stride_order_proc	Lab	472528	48786	LABHCVA	ANTI-HCV	0	0
+6	stride_order_proc	Lab	473200	48796	LABQFTB	QUANTIFERON TEST FOR LATENT TB	0	0
+8	stride_order_proc	Imaging	519229	48911	VSC03	VSC ARTERIAL EXAM/ABI\'S	0	0
+15	stride_order_proc	Microbiology	472394	49080	LABFLDB	FLUID CULTURE / BB GRAM STAIN	0	0
+6	stride_order_proc	Lab	472532	49109	LABHSVPCR	HERPES SIMPLEX PCR, CSF	0	0
+6	stride_order_proc	Lab	472314	49142	LABYENPCR	ENTEROVIRUS PCR	0	0
+4	stride_order_proc	Nursing	519848	49366	NUR372	CDA VITAL SIGNS	0	0
+6	stride_order_proc	Lab	471522	49549	LABASQ	ACETONE SEMI QUALITATIVE	0	0
+8	stride_order_proc	Imaging	516589	49869	IMGUSVULOLT	US VEIN LOWER EXTREMITY LEFT R/O DVT	0	0
+6	stride_order_proc	Lab	471535	49876	LABFADA	ADENOSINE DEAMINASE, FLUID	0	0
+33	stride_order_proc	HIV Lab Non-Restricted	472557	49878	LABHIVQ2	HIV QUANTITATIVE PCR	0	0
+8	stride_order_proc	Imaging	592896	49893	IMGCRROF	XR CR READING OUTSIDE FILM	0	0
+15	stride_order_proc	Microbiology	473372	62000	LABSTOOLC	STOOL CULTURE	0	0
+6	stride_order_proc	Lab	472041	62017	LABCMVM	CMV AB IGM	0	0
+4	stride_order_proc	Nursing	498181	49390	NUR1950	HLA LAB: OTHER	0	0
+12	stride_order_proc	Procedures	885234	62162	2109357	CENTRAL LINE	0	0
+72	stride_order_med	Med (Intravenous)	-5.60E+18	44710	RXCUI426,1091,1908,21032,21579,4278,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8591,8737,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Famotidine-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Potassium Chloride-P (...)	0	0
+72	stride_order_med	Med (Intravenous)	-2.00E+18	44726	RXCUI426,1091,1908,21032,21579,4278,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8737,253182,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Famotidine-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Proline-Regular Insu (...)	0	0
+72	stride_order_med	Med (Intravenous)	-8.10E+18	44741	RXCUI426,1091,1908,21032,21579,4278,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,54987,8591,8737,253182,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Famotidine-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Potassium Chloride-P (...)	0	0
+72	stride_order_med	Med (Intravenous)	-4.80E+18	44787	RXCUI426,1091,1908,21032,21579,4850,4919,5340,6033,6308,6536,6585,29261,6837,89905,8156,8591,8737,253182,9671,9863,236719,235496,10524,10898,10962,11115,8308,39937	Alanine-Arginine-Calcium Gluconate-Chromous Chloride-Copper Sulfate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Manganese Chloride-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Chloride-Proline-Regular Insulin, Human (...)	0	0
+72	stride_order_med	Med (Intravenous)	-9.10E+18	44998	RXCUI426,1091,1908,4850,4919,5340,6033,6308,6536,6585,6837,89905,8156,54987,8737,253182,9671,56443,9863,236719,235496,10524,10898,10962,11115,8308	Alanine-Arginine-Calcium Gluconate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Methionine-Multivitamin Preparation-Phenylalanine-Potassium Acetate-Proline-Regular Insulin, Human-Serine-Sodium Acetate-Sodium Chloride-Sodium Phospha (...)	0	0
+82	stride_order_med	Med (CRRT)	205894	45328	MED205894	BICARB DIALY SOLN W-O CA NO.8 K (2 MEQ/L) -MG (1 MEQ/L) HEMODIAL SOLN (CRRT)	0	0
+72	stride_order_med	Med (Intravenous)	-3.90E+18	45336	RXCUI426,1091,1908,4850,4919,5340,6033,6308,6536,6585,6837,8156,54987,8737,9671,56443,9863,236719,235496,10524,10898,10962,11115	Alanine-Arginine-Calcium Gluconate-Glucose-Glycine-Histidine-Isoleucine-Leucine-Lysine-Magnesium Sulfate-Methionine-Phenylalanine-Potassium Acetate-Proline-Serine-Sodium Acetate-Sodium Chloride-Sodium Phosphate, Dibasic-Sodium Phosphate, Monobasic-Threonin (...)	0	0
+84	stride_order_med	Med (Intramuscular)	540507	46231	MED540507	INFLUENZA 2009-10 VAC (PF) (FLUZONE) SYRG (FOR AGE > 36 MO)	0	0
+4	stride_order_proc	Nursing	489313	45746	NUR1539	NASOGASTRIC TUBE	0	0
+4	stride_order_proc	Nursing	472138	45748	NUR821	TRANSFUSE RBC (DOES NOT ORDER PRODUCT)	0	0
+16	stride_order_proc	Blood Bank	590521	45756	LABARI	ABO/RH (ARI)	0	0
+4	stride_order_proc	Nursing	489176	45828	NUR1402	HEAD OF BED 30 DEGREES	0	0
+16	stride_order_proc	Blood Bank	590524	45909	LABASI	AB SCREEN (ASI)	0	0
+20	stride_order_proc	Imaging Non-Reportable	474086	45996	IMGDXFL1HRGR	XR FLUORO OVER 1 HOUR WO RADIOLOGIST	0	0
+6	stride_order_proc	Lab	472932	46171	LABYMPA	MYCOPHENOLIC ACID	0	0
+6	stride_order_proc	Lab	4.73E+05	46173	LABDHBP	HEPATITIS B DIAGNOSTIC PANEL	0	0
+6	stride_order_proc	Lab	472514	46183	LABHEPAR	HEPARIN ACTIVITY LEVEL	0	0
+8	stride_order_proc	Imaging	473963	46294	IMGDXAB2	XR ABDOMEN 2V	0	0
+6	stride_order_proc	Lab	472321	46297	LABEB	EBV AB PANEL	0	0
+6	stride_order_proc	Lab	472203	48501	LABDVERV	RESPIRATORY DFA PANEL	0	0
+9	stride_order_proc	Diet	472164	48491	DIET105	DIET LIVER	0	0
+6	stride_order_proc	Lab	472130	48503	LABCYTGEN	CYTOGENETICS FISH ORDER	0	0
+6	stride_order_proc	Lab	497464	48519	LABFVARZ	VARICELLA ZOSTER VIR. DNA,QUAL	0	0
+6	stride_order_proc	Lab	497368	48527	LABYFGL	GLUCOSE, FLUID	0	0
+6	stride_order_proc	Lab	473752	48529	LABVCUL	VIRAL CULTURE	0	0
+8	stride_order_proc	Imaging	516591	48559	IMGUSVULORT	US VEIN LOWER EXTREMITY RIGHT R/O DVT	0	0
+6	stride_order_proc	Lab	473132	48684	LABYPREAL	PREALBUMIN	0	0
+8	stride_order_proc	Imaging	519231	48694	VSC05	VSC VENOUS ULTRASOUND	0	0
+44	stride_order_proc	Cardiac Angio	506111	48709	IMGCATH6	CAR DIAGNOSTIC, CARDIAC CATH	0	0
+6	stride_order_proc	Lab	862853	48850	LABFLUAPC	FLU A PCR	0	0
+4	stride_order_proc	Nursing	472134	48856	NUR818	TRANSFUSE CRYO (DOES NOT ORDER PRODUCT)	0	0
+6	stride_order_proc	Lab	472199	48869	LABDVEVH	HSV/VZ DFA (DIRECT VIRAL EXAM)	0	0
+16	stride_order_proc	Blood Bank	590533	48872	LABCMVTSI	CMV AB TOTAL SOLID PHASE (GALILEO)	0	0
+4	stride_order_proc	Nursing	489250	48875	NUR1476	KEOFEED TUBE	0	0
+6	stride_order_proc	Lab	472325	49179	LABYERYTH	ERYTHROPOIETIN	0	0
+6	stride_order_proc	Lab	670955	49204	LAB11020R	EB VIRUS EARLY AG (R+D) IGG	0	0
+8	stride_order_proc	Imaging	474358	49230	IMGUSROF	US READING OUTSIDE FILM	0	0
+6	stride_order_proc	Lab	862881	49246	LABHITAB	HEPARIN PLATELET FACTOR 4 AB	0	0
+4	stride_order_proc	Nursing	471975	49252	NUR766	CHANGE PICC DRESSING/BIOPATCH	0	0
+8	stride_order_proc	Imaging	473876	49282	IMGCTROF	CT READING OUTSIDE FILM	0	0
+20	stride_order_proc	Imaging Non-Reportable	474065	49420	IMGDXFL1HR	XR FLUORO UP TO 1 HOUR WO RADIOLOGIST	0	0
+7	stride_order_proc	Respiratory Care	660689	49485	RT111	RESP-NASAL CPAP FOR OBSTRUCTIVE SLEEP APNEA	0	0
+20	stride_order_proc	Imaging Non-Reportable	474726	49641	IMG11CCP	CAR CATH CORS POSSIBLE	0	0
+8	stride_order_proc	Imaging	519243	49653	IMGUSNVUPP	US VEIN UPPER EXTREMITY BILAT R/O DVT	0	0
+15	stride_order_proc	Microbiology	473756	49666	LABVSTLC	VIRAL STOOL CULTURE	0	0
+6	stride_order_proc	Lab	670957	49676	LAB11023R	EB NUCLEAR AG AB	0	0
+8	stride_order_proc	Imaging	591405	49698	IMG2OA	IR ANGIOGRAM OTHER	0	0
+6	stride_order_proc	Lab	472525	50109	LABHBSQL	ANTI-HBS QUAL	0	0
+6	stride_order_proc	Lab	577063	49713	LABHGBP	HEMOGLOBIN, PLASMA	0	0
+8	stride_order_proc	Imaging	474367	49741	IMGUSKID	US KIDNEY SCAN	0	0
+44	stride_order_proc	Cardiac Angio	506110	49756	IMGCATH5	CAR CORONARY INTERVENTION	0	0
+8	stride_order_proc	Imaging	624765	49766	HIMS10	X-RAY/ULTRASOUND REPORT	0	0
+24	stride_order_proc	Pathology	6.45E+05	49786	PATH12	FLOW CYTOMETRY FOR HEMATOLYMPHOID NEOPLASIA	0	0
+6	stride_order_proc	Lab	590552	49791	LABFHV12	HSV 1 AND 2 PCR, NON CSF	0	0
+6	stride_order_proc	Lab	670961	49841	LAB11030R	EB VIRAL CAPSID AG IGG AB	0	0
+24	stride_order_proc	Pathology	624409	49959	PATH4	BODY CAVITIES SOURCE	0	0
+37	stride_order_proc	Restraints	471753	50034	RES4	ADULT (>18 YEARS) BEHAVIORAL RESTRAINT	0	0
+6	stride_order_proc	Lab	670959	50079	LAB11024R	EB VIRAL CAPSID AG IGM AB	0	0
+20	stride_order_proc	Imaging Non-Reportable	474722	50346	IMG11AR1	CAR CATH HEART RT 1	0	0
+6	stride_order_proc	Lab	590497	50360	LABADPCRQ	ADENOVIRUS REAL TIME PCR,QUANTITATIVE	0	0
+6	stride_order_proc	Lab	497452	50425	LABHV6DNA	HERPES VIRAL 6 DNA QUALITATIVE	0	0
+6	stride_order_proc	Lab	864644	50638	LABFLUAPX	FLU A PCR REFLEX TO 2009 H1N1	0	0
+4	stride_order_proc	Nursing	624783	50659	NUR6019	TEDS BILATERAL KNEE HI	0	0
+6	stride_order_proc	Lab	471762	50850	LABYBOH	BETA-HYDROXYBUTYRATE	0	0
+6	stride_order_proc	Lab	472954	51026	LABANCA	NEUTROPHIL CYTOPLASMA REFLEX AB PANEL	0	0
+9	stride_order_proc	Diet	472152	51190	DIET117	DIET CALORIE CONTROLLED	0	0
+8	stride_order_proc	Imaging	516584	51403	IMGUSVUUPLT	US VEIN UPPER EXTREMITY LEFT R/O DVT	0	0
+6	stride_order_proc	Lab	472201	51737	LABDVERO	ROTAVIRUS EIA (DIRECT VIRAL EXAM)	0	0
+4	stride_order_proc	Nursing	669735	52013	NUR11518	TRANSFUSION PARAMETERS	0	0
+84	stride_order_med	Med (Intramuscular)	540549	52228	MED540549	Influenza Virus Vaccine, Inactivated A-California-07-2009 X-179A (H1N1) Strain-Influenza Virus Vaccine, Inactivated A-Victoria-210-2009 X-187 (H3N2) (A-Perth-16-2009) Strain-Influenza Virus Vaccine, Inactivated B-Brisbane-60-2008 Strain (Intramuscular)	0	0
+82	stride_order_med	Med (CRRT)	205894	52247	MED205894	BICARB DIALYS SOLN NO.8 W-O CA K (2 MEQ/L) -MG (1 MEQ/L) HEMODIAL SOLN	0	0
+88	stride_order_med	Med (Both Eyes)	203654	52272	MED203654	Mineral Oil-Petrolatum, White (Both Eyes)	0	0
+84	stride_order_med	Med (Intramuscular)	540574	56483	MED540574	Influenza Virus Vaccine, Inactivated A-California-07-2009 X-179A (H1N1) Strain-Influenza Virus Vaccine, Inactivated A-Victoria-210-2009 X-187 (H3N2) (A-Perth-16-2009) Strain-Influenza Virus Vaccine, Inactivated B-Brisbane-60-2008 Strain (Intramuscular)	0	0
+82	stride_order_med	Med (CRRT)	211166	56538	MED211166	BICARB DIALYS SOLN #16 W/O CA K (4 MEQ/L) -MG (1.5 MEQ/L) HEMODIAL SOLN	0	0
+6	stride_order_proc	Lab	472254	61843	LABEBPCRQ	EBV PCR QUANTITATIVE	0	0
+6	stride_order_proc	Lab	472040	61846	LABCMV	CMV AB IGG	0	0
+6	stride_order_proc	Lab	473779	61849	LAB11131R	VORICONAZOLE LEVEL	0	0
+6	stride_order_proc	Lab	472043	61853	LABCMVPQ	CMV DNA PCR QUANT, PLASMA	0	0
+6	stride_order_proc	Lab	472042	61973	LABCMVP	CMV DNA PCR QUAL, NON-PLASMA	0	0
+6	stride_order_proc	Lab	876713	62100	LABDVERVR	RESP DFA PANEL-REFLEX PCR	0	0
+12	stride_order_proc	Procedures	2.11E+08	63737	2109357A	CENTRAL LINE GENERAL SURGERY	0	0
+15	stride_order_proc	Microbiology	473752	63758	LABVCUL	VIRAL CULTURE	0	0
