@@ -6,9 +6,11 @@ dataFile = gzfile("featureMatrix.ICUDNR.removeExtraHeaders.tab.gz");
 rawDF = read.table(dataFile, header = T, sep = "\t", na.strings = "None");
 df = rawDF;
 
+df_income = read.csv("Chen_income_vs_zip.csv");
+
 ####RK## 
-df = read.table("/Volumes/QSU/Datasets/HM/Jonathan Chen-DNR/featureMatrix.ICUDNR.removeExtraHeaders.tab", header = T, sep = "\t", na.strings = "None")
-df_income = read.csv("/Volumes/QSU/Datasets/HM/Jonathan Chen-DNR/Chen_income_vs_zip.csv"); #I resaved file without opeing in excel first and now does ok
+#df = read.table("/Volumes/QSU/Datasets/HM/Jonathan Chen-DNR/featureMatrix.ICUDNR.removeExtraHeaders.tab", header = T, sep = "\t", na.strings = "None")
+#df_income = read.csv("/Volumes/QSU/Datasets/HM/Jonathan Chen-DNR/Chen_income_vs_zip.csv"); #I resaved file without opeing in excel first and now does ok
 ###df_income <- read.csv("/Volumes/QSU/Datasets/HM/Jonathan Chen-DNR/Chen_income_vs_zip.csv", colClasses=c(PAT_ID=character))
 ########
 # Join estimated income information
@@ -102,7 +104,12 @@ str(df.fullCode$patid)
 
 ######################################keeping only selected vars from above
 
-selvars<-c("patient_id","patid","encounter_id","ageYears","PO2A.last","CO2.last","PHA.last","RacePacificIslander.pre","RaceNativeAmerican.pre","all_latinos","AnyCRRT.pre","AnyVasoactive.pre", "AnyVentilator.pre","BP_High_Systolic.last","BUN.last","Charlson.CHF.pre","Charlson.COPD.pre","Charlson.Diabetes.pre", "Charlson.DiabetesComplications.pre", "Charlson.HemiplegiaParaplegia.pre", "Charlson.LiverMild.pre","Charlson.LiverModSevere.pre", "Charlson.MalignancyMetastatic.pre","Charlson.MI.pre", "Charlson.PepticUlcer.pre", "Charlson.PeripheralVascular.pre", "Charlson.Renal.pre", "Charlson.Rheumatic.pre", "CR.last", "Female.pre","Glasgow.Coma.Scale.Score.last","HCT.last","K.last","NA.last","Pulse.last","RaceAsian.pre","RaceBlack.pre","RaceUnknown.pre","Resp.last","self_pay",  "TBIL.last","Temp.last", "TT.Cardiology.pre","TT.CCU.HF.pre",  "TT.HemeOnc.pre","TT.Medicine.pre","TT.MICU.pre","TT.Neurology.pre","TT.SICU.pre","TT.SurgerySpecialty.pre", "TT.Transplant.pre","TT.Trauma.pre","WBC.last","Birth.preTimeDays","Charlson.Cerebrovascular.pre","Charlson.Dementia.pre","Charlson.Malignancy.pre","RaceOther.pre","TT.CCU.pre","TT.CVICU.pre","Death.within1day","Death.postTimeDays","Death.preTimeDays","Death.post",  "Death.pre","ComfortCare.within1day","ComfortCare.preTimeDays","ComfortCare.postTimeDays","ComfortCare.pre",  "ComfortCare.post","AnyDNR.pre","AnyDNR.post","AnyDNR.postTimeDays","AnyDNR.within1day","AnyDNR.preTimeDays","daysUntilEnd","income","curr_day","Charlson.DiabetesComplications.pre","Charlson.Rheumatic.pre","TT.SICU.pre","PO2A.proximate","CO2.proximate","PHA.proximate","BP_High_Systolic.proximate","BUN.proximate","CR.proximate","Glasgow.Coma.Scale.Score.proximate","HCT.proximate","K.proximate","NA.proximate","Pulse.proximate","Resp.proximate","TBIL.proximate","Temp.proximate", "WBC.proximate")
+selvars<-c("patient_id","patid","encounter_id","ageYears","PO2A.last","CO2.last","PHA.last","RacePacificIslander.pre","RaceNativeAmerican.pre","all_latinos","AnyCRRT.pre","AnyVasoactive.pre", "AnyVentilator.pre","BP_High_Systolic.last","BUN.last","Charlson.CHF.pre","Charlson.COPD.pre","Charlson.Diabetes.pre", "Charlson.DiabetesComplications.pre", "Charlson.HemiplegiaParaplegia.pre", "Charlson.LiverMild.pre","Charlson.LiverModSevere.pre", "Charlson.MalignancyMetastatic.pre","Charlson.MI.pre", "Charlson.PepticUlcer.pre", "Charlson.PeripheralVascular.pre", "Charlson.Renal.pre", "Charlson.Rheumatic.pre", "CR.last", "Female.pre","Glasgow.Coma.Scale.Score.last","HCT.last","K.last","NA.last","Pulse.last","RaceAsian.pre","RaceBlack.pre","RaceUnknown.pre","Resp.last","self_pay",  "TBIL.last","Temp.last", "TT.Cardiology.pre","TT.CCU.HF.pre",  "TT.HemeOnc.pre","TT.Medicine.pre","TT.MICU.pre","TT.Neurology.pre","TT.SICU.pre","TT.SurgerySpecialty.pre", "TT.Transplant.pre","TT.Trauma.pre","WBC.last","Birth.preTimeDays","Charlson.Cerebrovascular.pre","Charlson.Dementia.pre","Charlson.Malignancy.pre","RaceOther.pre","TT.CCU.pre","TT.CVICU.pre","Death.within1day","Death.postTimeDays","Death.preTimeDays","Death.post",  "Death.pre","ComfortCare.within1day","ComfortCare.preTimeDays","ComfortCare.postTimeDays","ComfortCare.pre",  "ComfortCare.post","AnyDNR.pre","AnyDNR.post","AnyDNR.postTimeDays","AnyDNR.within1day","AnyDNR.preTimeDays","daysUntilEnd","income","curr_day","Charlson.DiabetesComplications.pre","Charlson.Rheumatic.pre","TT.SICU.pre")
 myvars <- names(df.fullCode) %in% selvars
 selvardata <- df.fullCode[myvars]
-write.csv(selvardata, file = "/Volumes/QSU/Datasets/HM/Jonathan Chen-DNR/dnrvars.csv",row.names=FALSE, na="")
+#write.csv(selvardata, file = "/Volumes/QSU/Datasets/HM/Jonathan Chen-DNR/dnrvars.csv",row.names=FALSE, na="")
+
+# Additional deidentification steps (suppress ages >90 years)
+selvardata$ageYears[selvardata$ageYears>90] = 90
+write.csv(selvardata, file = "dnrvars.csv",row.names=TRUE, na="")
+
