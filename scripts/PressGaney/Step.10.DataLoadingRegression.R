@@ -38,6 +38,7 @@ formula.logistic75 = ltr_top_box_over75percentile ~ gender + survey_n + specialt
 #formula.logistic = ltr_top_box_over50percentile ~ opioid_claim_count;
 model.logistic75 = glm(formula.logistic75, family=binomial(link="logit"), data=df.min5data);
 
+
 # Direct linear regression on % likelihood to recommend top box
 formula.ltrTopBox = survey_percent_ltr_top_box ~ gender + specialty + survey_n + total_claim_count + opioid_prescriber_rate;
 #formula.ltrTopBox = survey_percent_ltr_top_box ~ opioid_prescriber_rate;
@@ -49,6 +50,7 @@ formula.ltrAvg = survey_avg ~ gender + specialty + survey_n + total_claim_count 
 #formula.ltrAvg = survey_avg ~ opioid_prescriber_rate;
 #formula.ltrAvg = survey_avg ~ opioid_claim_count;
 model.ltrAvg = glm(formula.ltrAvg, data=df.min5data);
+
 
 
 
