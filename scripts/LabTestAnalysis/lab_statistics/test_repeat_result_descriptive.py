@@ -66,34 +66,38 @@ class TestRepeatResults(unittest.TestCase):
             - Outputs
                 For each window size + consective normal count (0 up to max count)
                 - Number of results in the sequence that occurred where preceded 
-                    by the consecutive number of normal results within the window period
+                    by the EXACT number of consecutive number of normal results within the window period
+                    (So if counting 2 prior consecutive normal results, even if see 3+ consecutive normal results, 
+                    don't count that in this instance, since those can be counted in higher order instances)
                 - Number of the results above that were themselves "normal"
                 - Additional result for consecutive normal count is NULL,
-                    to count results where no prior result existed within the window period
+                    to count results where no prior result (normal or abnormal) existed within the window period
         """
         labTests = [['6385739673941', '12078R(InRange)',    datetime(2000, 1, 1)],
                     ['6385739673941', '12078R(InRange)',    datetime(2000, 1, 2)],
                     ['6385739673941', '12078R(High)',       datetime(2000, 1, 3)],
                     ['6385739673941', '12078R(InRange)',    datetime(2000, 1, 4)],
+
                     ['6385739673941', '12078R(High)',       datetime(2000, 1, 8)],
                     ['6385739673941', '12078R(High)',       datetime(2000, 1, 9)],
                     ['6385739673941', '12078R(High)',       datetime(2000, 1,10)],
                     ['6385739673941', '12078R(InRange)',    datetime(2000, 1,11)],
                     ['6385739673941', '12078R(InRange)',    datetime(2000, 1,12)],
                     ['6385739673941', '12078R(InRange)',    datetime(2000, 1,13)],
+
                     ['6385739673941', '12078R(High)',       datetime(2000, 1,18)],
                     ['6385739673941', '12078R(InRange)',    datetime(2000, 1,19)]]
         actualResults = self.app.calculateConsecutiveNormalStats(labTests, bins=[1,7], maxConsecutive=2);
         expectedResults = \
             { 
-                (1, None):  {"totalCount":2, "normalCount":1},
+                (1, None):  {"totalCount":3, "normalCount":1},
                 (1, 0):     {"totalCount":5, "normalCount":3},
-                (1, 1):     {"totalCount":6, "normalCount":4},
+                (1, 1):     {"totalCount":4, "normalCount":3},
                 (1, 2):     {"totalCount":0, "normalCount":0},
                 (7, None):  {"totalCount":1, "normalCount":1},
                 (7, 0):     {"totalCount":5, "normalCount":3},
-                (7, 1):     {"totalCount":6, "normalCount":4},
-                (7, 2):     {"totalCount":3, "normalCount":1},
+                (7, 1):     {"totalCount":3, "normalCount":2},
+                (7, 2):     {"totalCount":2, "normalCount":1},
             };
         #actualResults = {k:list(v) for k, v in actualResults.iteritems()}
         self.assertEqual(expectedResults, actualResults)
