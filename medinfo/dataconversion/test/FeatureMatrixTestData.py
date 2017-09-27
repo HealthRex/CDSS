@@ -120,9 +120,6 @@ FM_TEST_OUTPUT = {
             "order_proc_id": "-300",
             "order_time": DBUtil.parseDateValue("4/6/2009 15:00") }
     ],
-    "test_buildFeatureMatrix_singleClinicalItem" : [
-
-    ],
     "test_buildFeatureMatrix_multiClinicalItem" : [
         [
             "pat_id", "order_proc_id", "proc_code", "order_time", "normal_results",
@@ -308,5 +305,192 @@ FM_TEST_OUTPUT = {
             "0", "0", "0",
             "0", "0"
         ]
-    ]
+    ],
+    "test_buildFeatureMatrix_multiLabTest" : {
+        "expectedLabResults" : [
+            {
+                "pat_id": -789,
+                "base_name": "CR",
+                "ord_num_value": 1.0,
+                "result_flag": None,
+                "result_in_range_yn": None,
+                "result_time": DBUtil.parseDateValue("4/6/2009 12:00")
+            },
+            {
+                "pat_id": -789,
+                "base_name": "CR",
+                "ord_num_value": 0.7,
+                "result_flag": None,
+                "result_in_range_yn": "Y",
+                "result_time": DBUtil.parseDateValue("4/26/2009 6:00")
+            },
+            {
+                "pat_id": -789,
+                "base_name": "CR",
+                "ord_num_value": 0.3,
+                "result_flag": None,
+                "result_in_range_yn": "Y",
+                "result_time": DBUtil.parseDateValue("4/25/2009 12:00")
+            },
+            {
+                "pat_id": -456,
+                "base_name":"TNI",
+                "ord_num_value": 9999999,
+                "result_flag": None,
+                "result_in_range_yn": None,
+                "result_time": DBUtil.parseDateValue("4/6/2009 16:34")
+            },
+            {
+                "pat_id": -456,
+                "base_name":"CR",
+                "ord_num_value": 0.5,
+                "result_flag": None,
+                "result_in_range_yn":"Y",
+                "result_time": DBUtil.parseDateValue("5/6/2009 15:12")
+            },
+            {
+                "pat_id": -123,
+                "base_name":"TNI",
+                "ord_num_value": 0.2,
+                "result_flag": "High Panic",
+                "result_in_range_yn": "N",
+                "result_time": DBUtil.parseDateValue("4/6/2009 6:36")
+            },
+            {
+                "pat_id": -123,
+                "base_name":"CR",
+                "ord_num_value": 2.1,
+                "result_flag": "High",
+                "result_in_range_yn":"N",
+                "result_time": DBUtil.parseDateValue("4/6/2009 15:12")
+            },
+            {
+                "pat_id": -123,
+                "base_name":"TNI",
+                "ord_num_value": 0,
+                "result_flag": None,
+                "result_in_range_yn": "Y",
+                "result_time": DBUtil.parseDateValue("4/6/2009 16:34")
+            }
+        ],
+        "expectedMatrix" : [
+            [
+                "pat_id", "order_proc_id", "proc_code", "order_time",
+                "normal_results",
+                "TNI.-90_0.count", "TNI.-90_0.countInRange",
+                "TNI.-90_0.min", "TNI.-90_0.max", "TNI.-90_0.median",
+                "TNI.-90_0.mean", "TNI.-90_0.std",
+                "TNI.-90_0.first", "TNI.-90_0.last", "TNI.-90_0.diff",
+                "TNI.-90_0.slope", "TNI.-90_0.proximate",
+                "TNI.-90_0.firstTimeDays", "TNI.-90_0.lastTimeDays",
+                "TNI.-90_0.proximateTimeDays",
+                "CR.-90_0.count", "CR.-90_0.countInRange",
+                "CR.-90_0.min", "CR.-90_0.max",	"CR.-90_0.median",
+                "CR.-90_0.mean", "CR.-90_0.std",
+                "CR.-90_0.first", "CR.-90_0.last", "CR.-90_0.diff",
+                "CR.-90_0.slope", "CR.-90_0.proximate",
+                "CR.-90_0.firstTimeDays", "CR.-90_0.lastTimeDays",
+                "CR.-90_0.proximateTimeDays",
+                "LAC.-90_0.count", "LAC.-90_0.countInRange",
+                "LAC.-90_0.min", "LAC.-90_0.max", "LAC.-90_0.median",
+                "LAC.-90_0.mean", "LAC.-90_0.std",
+                "LAC.-90_0.first", "LAC.-90_0.last", "LAC.-90_0.diff",
+                "LAC.-90_0.slope", "LAC.-90_0.proximate",
+                "LAC.-90_0.firstTimeDays", "LAC.-90_0.lastTimeDays",
+                "LAC.-90_0.proximateTimeDays"
+            ],
+            [
+                "-789", "-900", "LABMETB", "2009-05-06 15:00:00",
+                "0",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None",
+                "None",
+                "3", "2", "0.3", "1.0", "0.7",
+                "0.666666666667", "0.286744175568", "1.0", "0.7", "-0.3",
+                "-0.0151898734177", "0.7", "-30.125", "-10.375", "-10.375",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None",	"None", "None", "None"
+            ],
+            [
+                "-789", "-800", "LABMETB", "2009-04-06 16:00:00",
+                "0",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "1", "0", "1.0", "1.0", "1.0",
+                "1.0", "0.0", "1.0", "1.0", "0.0",
+                "0.0", "1.0", "-0.166666666667", "-0.166666666667",	"-0.166666666667",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None",	"None",	"None",
+                "None",	"None",	"None",	"None",	"None"
+            ],
+            [
+                "-789",	"-750",	"LABMETB",	"2009-04-26 06:00:00",
+                "1",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None",	"None",
+                "2", "1", "0.3", "1.0", "0.65",
+                "0.65", "0.35",	"1.0", "0.3", "-0.7",
+                "-0.0368421052632", "0.3", "-19.75", "-0.75", "-0.75",
+                "0", "0", "None", "None", "None",
+                "None", "None",	"None",	"None",	"None",
+                "None", "None", "None", "None", "None"
+            ],
+            [
+                "-789", "-700", "LABMETB", "2009-04-25 06:00:00",
+                "1",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "1", "0", "1.0", "1.0", "1.0",
+                "1.0", "0.0", "1.0", "1.0", "0.0",
+                "0.0", "1.0", "-18.75", "-18.75", "-18.75",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None"
+            ],
+            [
+                "-456", "-600", "LABMETB", "2009-05-06 15:00:00",
+                "1",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None"
+            ],
+            [
+                "-456", "-400", "LABMETB", "2009-04-25 06:00:00",
+                "1",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None"
+            ],
+            [
+                "-123", "-300", "LABMETB", "2009-04-06 15:00:00",
+                "0",
+                "1", "0", "0.2", "0.2", "0.2",
+                "0.2", "0.0", "0.2", "0.2", "0.0",
+                "0.0", "0.2", "-0.35", "-0.35", "-0.35",
+                "0", "0", "None", "None", "None",
+                "None", "None", "None",	"None",	"None",
+                "None", "None", "None", "None", "None",
+                "0",  "0", "None", "None", "None",
+                "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None"
+            ]
+        ]
+    }
 }
