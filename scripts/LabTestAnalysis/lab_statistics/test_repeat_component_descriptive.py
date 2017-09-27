@@ -41,8 +41,8 @@ class TestRepeatComponents(unittest.TestCase):
     actualResults = RepeatComponents.getStats(
         labTests, RepeatComponents.isNormal, bins=[1])
     expectedResults = {
-        (1, None): [2, 1],
-        (1, 0): [5, 3],
+        (1, None): [10, 5],
+        (1, 0): [2, 1],
         (1, 1): [3, 1]
     }
     actualResults = {k: list(v) for k, v in actualResults.iteritems()}
@@ -64,8 +64,8 @@ class TestRepeatComponents(unittest.TestCase):
     actualResults = RepeatComponents.getStats(
         labTests, RepeatComponents.isNormal, bins=[30])
     expectedResults = {
-        (30, None): [1, 0],
-        (30, 0): [5, 3],
+        (30, None): [10, 5],
+        (30, 0): [1, 0],
         (30, 1): [2, 1],
         (30, 2): [1, 1],
         (30, 3): [1, 0]
@@ -90,11 +90,11 @@ class TestRepeatComponents(unittest.TestCase):
     actualResults = RepeatComponents.getStats(
         labTests, RepeatComponents.isNormal, bins=[1, 30])
     expectedResults = {
-        (1, None): [2, 0],
-        (1, 0): [5, 3],
+        (1, None): [10, 5],
+        (1, 0): [2, 0],
         (1, 1): [3, 2],
-        (30, None): [1, 0],
-        (30, 0): [5, 3],
+        (30, None): [10, 5],
+        (30, 0): [1, 0],
         (30, 1): [2, 1],
         (30, 2): [1, 1],
         (30, 3): [1, 0]
@@ -115,7 +115,7 @@ class TestRepeatComponents(unittest.TestCase):
     actualResults = RepeatComponents.getStats(
         labTests, RepeatComponents.isNormal, max_consecutive=2, bins=[30])
     expectedResults = {
-        (30, None): [1, 1],
+        (30, None): [7, 6],
         (30, 0): [1, 1],
         (30, 1): [2, 2],
         (30, 2): [1, 1]
@@ -135,7 +135,8 @@ class TestRepeatComponents(unittest.TestCase):
     actualResults = RepeatComponents.getStats(
         labTests, RepeatComponents.isNormal, bins=[4])
     expectedResults = {
-        (4, None): [2, 2],
+        (4, None): [5, 4],
+        (4, 0): [2, 2],
         (4, 1): [2, 1],
         (4, 2): [1, 1]
     }

@@ -109,8 +109,9 @@ class RepeatComponents(object):
           (So if counting 2 prior consecutive normal results, even if see 3+ consecutive normal results,
           don't count that in this instance, since those can be counted in higher order instances)
         - Number of the results above that were themselves "normal"
+        - Consecutive normal count of 0 means that there is no result within the window
         - Additional result for consecutive normal count is NULL,
-          to count results where no prior result (normal or abnormal) existed within the window period
+          to count the total number of results and the total number of normal results
     """
     counts = [deque() for _ in xrange(len(bins))]
     # key: (days back, consecutive), value: (total, next_normal)
@@ -156,6 +157,18 @@ class RepeatComponents(object):
         prior_history[0] = True
     # filter out windows that have more consecutive normal results than
     # max_consecutive
+
+    # calculate a new None by summing everything else up with the same 0th index key
+    # loop over keys and get the sum and create a new dict
+    total_counts = defaultdict(lambda: np.array([0, 0]))
+    for k, v in stats.iteritems():
+      total_counts[k[0]] += v
+    for window_size in bins:
+      # then set 1,0 to 1,None
+      stats[(window_size, 0)] = stats[(window_size, None)]
+      # set window_size,None to the sum of calculated above
+      stats[(window_size, None)] = total_counts[window_size]
+
     return {k: v for k, v in stats.iteritems() if k[1] <= max_consecutive}
 
   @staticmethod
