@@ -3,7 +3,7 @@
 
 Shared workspace in development
 
-General Guidlines for Code Repo:
+General Guidelines for Code Repo:
 * Avoid any large data files, so the repo stays lightweight for new devs to quickly download/clone.
 * For one-off or very project specific files and scripts, basically do whatever you want in the workspace areas under the scripts directory (but again, avoid big data files).
 * Try to promote reusable components to the medinfo core application modules.
@@ -13,18 +13,18 @@ General Guidlines for Code Repo:
 ====================================================
 
 Starter Notes:
-?This needs to be organized more, but a sketch of notes I usually email people initially. 
+?This needs to be organized more, but a sketch of notes I usually email people initially.
 ?Perhaps move this to Wiki
 ?Similarly integrate CDSS/scripts/CDSS/setupNotes.txt into a high-level Readme starter
 
 
 General Data / Code Access
 	• Training / Agreements
-		○ Register on CITIProgram.org 
+		○ Register on CITIProgram.org
 			§ Complete the module on "Biomedical Responsible Conduct of Research"
 			§ Send me a copy of the Completion Certificate
 
-(2B) HIPAA Training 
+(2B) HIPAA Training
 	1. 2B) HIPAA Training (required for almost all datasets. Because current CITI training does not offer an excellent data security module, we are requiring HIPAA training for datasets with or derived from health information or containing PII)
 		a. Go to your personal Axess page.
 		b. Log in with your SUNet and password.
@@ -35,7 +35,7 @@ General Data / Code Access
 		g. Click on All Learning.
 		h. If needed, use the search tool and search for  HIPAA. Enroll in HIPAA/Protecting Patient Privacy (PRIV-0010).
 		i. Take the course.
-		j. Once the course(s) is complete, you should receive an email confirming your completion. It should also show up as completed if you click on the “Training History” bar. 
+		j. Once the course(s) is complete, you should receive an email confirming your completion. It should also show up as completed if you click on the “Training History” bar.
 		k. Please save the screen shot as a PDF and name the file: firstinitiallastname_HIPAA_DDMMMYY.  So if Isabella Chu completed her classes July 3, 2016, ichu_HIPAA_03Jul16.
 
 
@@ -74,7 +74,7 @@ General Data / Code Access
 		○ Run a basic application database unit test
 			§ > python medinfo/db/test/TestDBUtil.py
 			§  If that runs, you’re in good shape to have the Python application code interact with the SQL database
-	
+
 	• Data Access
 		○ Box - Share data directories (Stanford Email)
 		○ Google - Work files share
@@ -97,4 +97,3 @@ General Data / Code Access
 	 
 	If you need help, my office hours are Thursdays at SIEPR 334 and Fridays online (by appointment) from 10 AM to 11 AM or by appointment. You can sign up for office hours clicking on the PHS Office Hours Sign Up near the top of this page: https://med.stanford.edu/phs/phs-data-center.html or emailing me at itaylor@stanford.edu.
 	 
-	
