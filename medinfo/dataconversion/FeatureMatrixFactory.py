@@ -439,8 +439,6 @@ class FeatureMatrixFactory:
                                     preTimeDelta,
                                     postTimeDelta)
 
-
-
         # Write column headers to temp file.
         tempFile.write("%s\t%s\t" % (self.patientEpisodeIdColumn, self.patientEpisodeTimeColumn))
         columnNames = self.colsFromBaseNames(labBaseNames, preTimeDays, postTimeDays)
@@ -465,6 +463,100 @@ class FeatureMatrixFactory:
         self._featureTempFileNames.append(tempFileName)
 
         return
+
+    def addFlowsheetFeatures(self, flowsheetBaseNames, preTimeDelta = None, postTimeDelta = None):
+        """
+        Query stride_flowsheet for each patient, and aggregate by episode.
+        """
+        # Verify patient list and/or patient episode has been processed.
+        if not self.patientsProcessed:
+            raise ValueError("Must process patients before lab result.")
+
+        # Open temp file.
+        if len(flowsheetBaseNames) > 1:
+            resultLabel = "-".join([baseName for baseName in flowsheetBaseNames])
+        else:
+            resultLabel = flowsheetBaseNames[0]
+        tempFileName = self._patientItemTempFileNameFormat % (resultLabel)
+        tempFile = open(tempFileName, "w")
+
+        # Query flowsheet results.
+        flowsheetResults = self._queryFlowsheetResultsByName(flowsheetBaseNames)
+        resultsByNameByPatientId = self._parseResultsData(flowsheetResults, \
+            "pat_id", "flowsheet_name", "flowsheet_value", \
+            "shifted_record_dt_tm")
+
+        # Define how far in advance of each episode to look at lab results.
+        preTimeDays = None
+        if preTimeDelta is not None:
+            preTimeDays = preTimeDelta.days
+        postTimeDays = None
+        if postTimeDelta is not None:
+            postTimeDays = postTimeDelta.days
+
+        # Add summary features to patient-time instances.
+        patientEpisodeByIndexTimeById = self._getPatientEpisodeByIndexTimeById()
+        self._processResultEvents(patientEpisodeByIndexTimeById,
+                                    resultsByNameByPatientId,
+                                    flowsheetBaseNames,
+                                    "flowsheet_value",
+                                    "shifted_record_dt_tm",
+                                    preTimeDelta,
+                                    postTimeDelta)
+
+        # Write column headers to temp file.
+        tempFile.write("%s\t%s\t" % (self.patientEpisodeIdColumn, self.patientEpisodeTimeColumn))
+        columnNames = self.colsFromBaseNames(flowsheetBaseNames, preTimeDays, postTimeDays)
+        tempFile.write("\t".join(columnNames))
+        tempFile.write("\n")
+
+        #Write actual patient episode data to temp file.
+        patientEpisodes = self.getPatientEpisodeIterator()
+        for episode in patientEpisodes:
+            patientId = int(episode[self.patientEpisodeIdColumn])
+            indexTime = DBUtil.parseDateValue(episode[self.patientEpisodeTimeColumn])
+            episodeLabData = patientEpisodeByIndexTimeById[patientId][indexTime]
+            tempFile.write("%s\t%s\t" % (patientId, indexTime))
+            # Need to generate columnNames again because colsFromBaseNames
+            # returns generator, which can only be read once.
+            columnNames = self.colsFromBaseNames(flowsheetBaseNames, preTimeDays, postTimeDays)
+            tempFile.write("\t".join(str(episodeLabData[columnName]) for columnName in columnNames))
+            tempFile.write("\n")
+
+        tempFile.close()
+        # Add tempFileName to list of feature temp files.
+        self._featureTempFileNames.append(tempFileName)
+
+        return
+
+    def _queryFlowsheetResultsByName(self, flowsheetBaseNames):
+        """
+        Query stride_flowsheet for each patient.
+        """
+        # Verify patient list and/or patient episode has been processed.
+        if not self.patientsProcessed:
+            raise ValueError("Must process patients before lab results.")
+
+        # Identify which patients to query.
+        patientIds = set()
+        patientEpisodes = self.getPatientEpisodeIterator()
+        for episode in patientEpisodes:
+            patientIds.add(episode[self.patientEpisodeIdColumn])
+
+        # Build SQL query.
+        colNames = ["pat_anon_id AS pat_id", "flo_meas_id", "flowsheet_name", \
+            "flowsheet_value", "shifted_record_dt_tm"]
+        query = SQLQuery()
+        for col in colNames:
+            query.addSelect(col)
+        query.addFrom("stride_flowsheet")
+        query.addWhereIn("flowsheet_name", flowsheetBaseNames)
+        query.addWhereIn("pat_anon_id", patientIds)
+        query.addOrderBy("pat_anon_id")
+        query.addOrderBy("shifted_record_dt_tm")
+
+        # Execute query.
+        return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
 
     def colsFromBaseNames(self, baseNames, preTimeDays, postTimeDays):
         """Enumerate derived column/feature names given a set of (lab) result base names"""
@@ -643,8 +735,7 @@ class FeatureMatrixFactory:
         query.addOrderBy("pat_id")
         query.addOrderBy("sor.result_time")
 
-        results = modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
-        return results
+        return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
 
     def _parseResultsData(self, resultRowIter, patientIdCol, nameCol, valueCol, datetimeCol):
         """
