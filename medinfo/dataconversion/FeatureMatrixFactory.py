@@ -314,7 +314,7 @@ class FeatureMatrixFactory:
         # Determine time buckets for clinical item times.
         if dayBins is None:
             dayBins = DELTA_NAME_BY_DAYS.keys()
-            dayBins.sort();
+            dayBins.sort()
 
         # Find items most proximate before and after the index item per patient
         # Record timedelta separating nearest items found from index item
@@ -369,7 +369,7 @@ class FeatureMatrixFactory:
                                 # Found more recent item event
                                 episodeData[preTimeDaysLabel] = timeDiffDays
                             episodeData[preLabel] += 1
-                            for dayBin in daysBins:
+                            for dayBin in dayBins:
                                 if abs(timeDiffDays) <= dayBin:
                                     episodeData["%s.%dd" % (preLabel, dayBin)] += 1
                         # Event occurred after index time...
