@@ -492,5 +492,111 @@ FM_TEST_OUTPUT = {
                 "None", "None", "None", "None", "None"
             ]
         ]
+    },
+    "test_buildFeatureMatrix_multiFlowsheet" : {
+        "expectedMatrix" : [
+            [
+                "pat_id", "order_proc_id", "proc_code", "order_time",
+                "normal_results",
+                "Resp.-90_0.count", "Resp.-90_0.countInRange",
+                "Resp.-90_0.min", "Resp.-90_0.max", "Resp.-90_0.median",
+                "Resp.-90_0.mean", "Resp.-90_0.std",
+                "Resp.-90_0.first", "Resp.-90_0.last", "Resp.-90_0.diff",
+                "Resp.-90_0.slope", "Resp.-90_0.proximate",
+                "Resp.-90_0.firstTimeDays", "Resp.-90_0.lastTimeDays",
+                "Resp.-90_0.proximateTimeDays",
+                "FiO2.-90_0.count", "FiO2.-90_0.countInRange",
+                "FiO2.-90_0.min", "FiO2.-90_0.max",	"FiO2.-90_0.median",
+                "FiO2.-90_0.mean", "FiO2.-90_0.std",
+                "FiO2.-90_0.first", "FiO2.-90_0.last", "FiO2.-90_0.diff",
+                "FiO2.-90_0.slope", "FiO2.-90_0.proximate",
+                "FiO2.-90_0.firstTimeDays", "FiO2.-90_0.lastTimeDays",
+                "FiO2.-90_0.proximateTimeDays",
+                "Glasgow Coma Scale Score.-90_0.count",
+                "Glasgow Coma Scale Score.-90_0.countInRange",
+                "Glasgow Coma Scale Score.-90_0.min",
+                "Glasgow Coma Scale Score.-90_0.max",
+                "Glasgow Coma Scale Score.-90_0.median",
+                "Glasgow Coma Scale Score.-90_0.mean",
+                "Glasgow Coma Scale Score.-90_0.std",
+                "Glasgow Coma Scale Score.-90_0.first",
+                "Glasgow Coma Scale Score.-90_0.last",
+                "Glasgow Coma Scale Score.-90_0.diff",
+                "Glasgow Coma Scale Score.-90_0.slope",
+                "Glasgow Coma Scale Score.-90_0.proximate",
+                "Glasgow Coma Scale Score.-90_0.firstTimeDays",
+                "Glasgow Coma Scale Score.-90_0.lastTimeDays",
+                "Glasgow Coma Scale Score.-90_0.proximateTimeDays"
+            ],
+            [
+                "-789", "-900", "LABMETB", "2009-05-06 15:00:00",
+                "0",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "3", "0", "0.3", "1.0", "0.7", "0.666666666667", "0.286744175568", "1.0",
+                "0.7", "-0.3", "-0.0151898734177", "0.7", "-30.125", "-10.375", "-10.375"
+            ],
+            [
+                "-789", "-800", "LABMETB", "2009-04-06 16:00:00",
+                "0",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "1", "0", "1.0", "1.0", "1.0", "1.0", "0.0", "1.0", "1.0", "0.0",
+                "0.0", "1.0", "-0.166666666667", "-0.166666666667", "-0.166666666667"
+            ],
+            [
+                "-789", "-750", "LABMETB", "2009-04-26 06:00:00",
+                "1",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "2", "0", "0.3", "1.0", "0.65", "0.65", "0.35", "1.0", "0.3",
+                "-0.7", "-0.0368421052632", "0.3", "-19.75", "-0.75", "-0.75"
+            ],
+            [
+                "-789", "-700", "LABMETB", "2009-04-25 06:00:00",
+                "1", "0", "0", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "1", "0", "1.0", "1.0", "1.0", "1.0", "0.0", "1.0", "1.0", "0.0",
+                "0.0", "1.0", "-18.75", "-18.75", "-18.75"
+            ],
+            [
+                "-456", "-600", "LABMETB", "2009-05-06 15:00:00",
+                "1",
+                "0", "0", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None"
+            ],
+            [
+                "-456", "-400", "LABMETB", "2009-04-25 06:00:00",
+                "1",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None"
+            ],
+            [
+                "-123", "-300", "LABMETB", "2009-04-06 15:00:00",
+                "0",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None",
+                "1", "0", "0.2", "0.2", "0.2", "0.2", "0.0", "0.2", "0.2", "0.0",
+                "0.0", "0.2", "-0.35", "-0.35", "-0.35",
+                "0", "0", "None", "None", "None", "None", "None", "None", "None",
+                "None", "None", "None", "None", "None", "None"
+            ]
+        ]
     }
 }

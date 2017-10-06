@@ -85,68 +85,68 @@ class TestFeatureMatrixFactory(DBTestCase):
         factory = FeatureMatrixFactory()
         self.assertEqual(type(factory.dbCache), type(dict()))
 
-    # def test_processPatientListInput(self):
-    #     """Test processPatientListInput()."""
-    #     # Initialize FeatureMatrixFactory.
-    #     factory = FeatureMatrixFactory()
-    #
-    #     # Verify FeatureMatrixFactory throws Error if patientListInput
-    #     # has not been set.
-    #     with self.assertRaises(ValueError):
-    #         factory.processPatientListInput()
-    #
-    #     # Initialize DB cursor.
-    #     connection = DBUtil.connection()
-    #     cursor = connection.cursor()
-    #
-    #     # Build SQL query for list of patients.
-    #     patientListQuery = SQLQuery()
-    #     patientListQuery.addSelect("CAST(pat_id AS bigint)")
-    #     patientListQuery.addFrom("stride_order_proc")
-    #     patientListQuery.addWhere("proc_code = 'LABMETB'")
-    #     patientListQuery.addGroupBy("pat_id")
-    #     patientListQuery.addOrderBy("1 ASC")
-    #     cursor.execute(str(patientListQuery), patientListQuery.params)
-    #
-    #     # Set and process patientListInput.
-    #     factory.setPatientListInput(cursor, "pat_id")
-    #     factory.processPatientListInput()
-    #     resultPatientIterator = factory.getPatientListIterator()
-    #
-    #     # Verify results.
-    #     expectedPatientList = ["-789", "-456", "-123"]
-    #     for expectedPatientId in expectedPatientList:
-    #         resultPatientId = resultPatientIterator.next()['pat_id']
-    #         self.assertEqual(resultPatientId, expectedPatientId)
-    #
-    #     # Build TSV file for list of patients.
-    #     patientList = \
-    #         "patient_item_id\tpatient_id\tclinical_item_id\titem_date\n\
-    #         -1000\t-123\t-100\t10/6/2113 10:20\n\
-    #         -2000\t-123\t-200\t10/6/2113 11:20\n\
-    #         -2500\t-123\t-100\t10/7/2113 11:20\n\
-    #         -3000\t-456\t-100\t11/6/2113 10:20\n\
-    #         -6000\t-789\t-200\t12/6/2113 11:20\n"
-    #     patientListTsv = open("patient_list.tsv", "w")
-    #     patientListTsv.write(patientList)
-    #     patientListTsv.close()
-    #
-    #     # Initialize new FeatureMatrixFactory.
-    #     factory = FeatureMatrixFactory()
-    #
-    #     # Set and process patientListInput.
-    #     patientListTsv = open("patient_list.tsv", "r")
-    #     factory.setPatientListInput(patientListTsv, "patient_id")
-    #     factory.processPatientListInput()
-    #     resultPatientIterator = factory.getPatientListIterator()
-    #
-    #     # Verify results.
-    #     expectedPatientList = ["-123", "-123", "-123", "-456", "-789"]
-    #     for expectedPatientId in expectedPatientList:
-    #         resultPatientId = resultPatientIterator.next()['patient_id']
-    #         self.assertEqual(resultPatientId, expectedPatientId)
+    def test_processPatientListInput(self):
+        """Test processPatientListInput()."""
+        # Initialize FeatureMatrixFactory.
+        factory = FeatureMatrixFactory()
 
-    def test_buildClinicalItemFeatureMatrix(self):
+        # Verify FeatureMatrixFactory throws Error if patientListInput
+        # has not been set.
+        with self.assertRaises(ValueError):
+            factory.processPatientListInput()
+
+        # Initialize DB cursor.
+        connection = DBUtil.connection()
+        cursor = connection.cursor()
+
+        # Build SQL query for list of patients.
+        patientListQuery = SQLQuery()
+        patientListQuery.addSelect("CAST(pat_id AS bigint)")
+        patientListQuery.addFrom("stride_order_proc")
+        patientListQuery.addWhere("proc_code = 'LABMETB'")
+        patientListQuery.addGroupBy("pat_id")
+        patientListQuery.addOrderBy("1 ASC")
+        cursor.execute(str(patientListQuery), patientListQuery.params)
+
+        # Set and process patientListInput.
+        factory.setPatientListInput(cursor, "pat_id")
+        factory.processPatientListInput()
+        resultPatientIterator = factory.getPatientListIterator()
+
+        # Verify results.
+        expectedPatientList = ["-789", "-456", "-123"]
+        for expectedPatientId in expectedPatientList:
+            resultPatientId = resultPatientIterator.next()['pat_id']
+            self.assertEqual(resultPatientId, expectedPatientId)
+
+        # Build TSV file for list of patients.
+        patientList = \
+            "patient_item_id\tpatient_id\tclinical_item_id\titem_date\n\
+            -1000\t-123\t-100\t10/6/2113 10:20\n\
+            -2000\t-123\t-200\t10/6/2113 11:20\n\
+            -2500\t-123\t-100\t10/7/2113 11:20\n\
+            -3000\t-456\t-100\t11/6/2113 10:20\n\
+            -6000\t-789\t-200\t12/6/2113 11:20\n"
+        patientListTsv = open("patient_list.tsv", "w")
+        patientListTsv.write(patientList)
+        patientListTsv.close()
+
+        # Initialize new FeatureMatrixFactory.
+        factory = FeatureMatrixFactory()
+
+        # Set and process patientListInput.
+        patientListTsv = open("patient_list.tsv", "r")
+        factory.setPatientListInput(patientListTsv, "patient_id")
+        factory.processPatientListInput()
+        resultPatientIterator = factory.getPatientListIterator()
+
+        # Verify results.
+        expectedPatientList = ["-123", "-123", "-123", "-456", "-789"]
+        for expectedPatientId in expectedPatientList:
+            resultPatientId = resultPatientIterator.next()['patient_id']
+            self.assertEqual(resultPatientId, expectedPatientId)
+
+    def test_buildFeatureMatrix_multiClinicalItem(self):
         """Test _buildFeatureMatrix()."""
         # Initialize FeatureMatrixFactory.
         factory = FeatureMatrixFactory()
@@ -254,6 +254,65 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiLabTest"]["expectedMatrix"]
+        self.assertEqualList(resultMatrix, expectedMatrix)
+
+    def test_buildFeatureMatrix_flowsheet(self):
+        """
+        Test buildFeatureMatrix and addFlowsheet.
+        """
+
+        # Initialize FeatureMatrixFactory.
+        factory = FeatureMatrixFactory()
+
+        # Verify FeatureMatrixFactory throws Error if patientEpisodeInput
+        # has not been set.
+        with self.assertRaises(ValueError):
+            factory.processPatientEpisodeInput()
+
+        # Initialize DB cursor.
+        connection = DBUtil.connection()
+        cursor = connection.cursor()
+
+        # Build SQL query for list of patient episodes.
+        patientEpisodeQuery = SQLQuery()
+        patientEpisodeQuery.addSelect("CAST(pat_id AS bigint)")
+        patientEpisodeQuery.addSelect("sop.order_proc_id AS order_proc_id")
+        patientEpisodeQuery.addSelect("proc_code")
+        patientEpisodeQuery.addSelect("order_time")
+        patientEpisodeQuery.addSelect("COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS normal_results")
+        patientEpisodeQuery.addFrom("stride_order_proc AS sop")
+        patientEpisodeQuery.addFrom("stride_order_results AS sor")
+        patientEpisodeQuery.addWhere("sop.order_proc_id = sor.order_proc_id")
+        patientEpisodeQuery.addWhereEqual("proc_code", "LABMETB")
+        patientEpisodeQuery.addGroupBy("pat_id, sop.order_proc_id, proc_code, order_time")
+        patientEpisodeQuery.addOrderBy("pat_id, sop.order_proc_id, proc_code, order_time")
+        cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
+
+        # Set and process patientEpisodeInput.
+        factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
+        factory.processPatientEpisodeInput()
+        resultEpisodeIterator = factory.getPatientEpisodeIterator()
+        resultPatientEpisodes = list()
+        for episode in resultEpisodeIterator:
+            episode["pat_id"] = int(episode["pat_id"])
+            episode["order_time"] = DBUtil.parseDateValue(episode["order_time"])
+            resultPatientEpisodes.append(episode)
+
+        # Verify results (note sort order).
+        expectedPatientEpisodes = FM_TEST_OUTPUT["test_processPatientEpisodeInput"]
+        self.assertEqualList(resultPatientEpisodes, expectedPatientEpisodes)
+
+        # Add flowsheet features.
+        flowsheetNames = ["Resp","FiO2","Glasgow Coma Scale Score"]
+        # Look for lab data 90 days before each episode, but never afterself.
+        preTimeDelta = datetime.timedelta(-90)
+        postTimeDelta = datetime.timedelta(0)
+        factory.addFlowsheetFeatures(flowsheetNames, preTimeDelta, postTimeDelta)
+        factory.buildFeatureMatrix()
+        resultMatrix = factory.readFeatureMatrixFile()
+
+        # Verify results.
+        expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiFlowsheet"]["expectedMatrix"]
         self.assertEqualList(resultMatrix, expectedMatrix)
 
 def suite():
