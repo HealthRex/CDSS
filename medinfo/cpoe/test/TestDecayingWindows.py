@@ -16,6 +16,7 @@ from medinfo.db.test.Util import DBTestCase;
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.cpoe.DecayingWindows import DecayingWindows, DecayAnalysisOptions;
+from medinfo.cpoe.ResetModel import ResetModel;
 from medinfo.cpoe.DataManager import DataManager;
 
 from medinfo.cpoe.AssociationAnalysis import AssociationAnalysis, AnalysisOptions;
