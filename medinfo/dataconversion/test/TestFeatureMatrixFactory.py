@@ -31,33 +31,33 @@ class TestFeatureMatrixFactory(DBTestCase):
         # Populate clinical_item_category.
         testRecords = FM_TEST_INPUT_TABLES.get("clinical_item_category")
         DBUtil.insertFile(StringIO(testRecords), "clinical_item_category", \
-                            delim="\t");
+                            delim="\t")
 
         # Populate clinical_item.
         testRecords = FM_TEST_INPUT_TABLES.get("clinical_item")
-        DBUtil.insertFile(StringIO(testRecords), "clinical_item", delim="\t");
+        DBUtil.insertFile(StringIO(testRecords), "clinical_item", delim="\t")
 
         # Populate patient_item.
         testRecords = FM_TEST_INPUT_TABLES.get("patient_item")
         DBUtil.insertFile(StringIO(testRecords), "patient_item", delim="\t", \
-                            dateColFormats={"item_date": None});
+                            dateColFormats={"item_date": None})
 
         # Populate stride_order_proc.
         testRecords = FM_TEST_INPUT_TABLES.get("stride_order_proc")
         DBUtil.insertFile(StringIO(testRecords), "stride_order_proc", \
                             delim="\t", \
-                            dateColFormats={"item_date": None});
+                            dateColFormats={"item_date": None})
 
         # Populate stride_order_results.
         testRecords = FM_TEST_INPUT_TABLES.get("stride_order_results")
         DBUtil.insertFile(StringIO(testRecords), "stride_order_results", \
-                            delim="\t", dateColFormats={"result_time": None});
+                            delim="\t", dateColFormats={"result_time": None})
 
         # Populate stride_flowsheet.
         testRecords = FM_TEST_INPUT_TABLES.get("stride_flowsheet")
         DBUtil.insertFile(StringIO(testRecords), "stride_flowsheet", \
                             delim="\t", \
-                            dateColFormats={"shifted_record_dt_tm": None});
+                            dateColFormats={"shifted_record_dt_tm": None})
 
         # Populate stride_order_med.
         testRecords = FM_TEST_INPUT_TABLES.get("stride_order_med")
@@ -67,13 +67,17 @@ class TestFeatureMatrixFactory(DBTestCase):
 
     def _deleteTestRecords(self):
         """Delete test records from database."""
-        DBUtil.execute("delete from stride_order_med where order_med_id < 0");
-        DBUtil.execute("delete from stride_flowsheet where flo_meas_id < 0");
-        DBUtil.execute("delete from stride_order_results where order_proc_id < 0");
-        DBUtil.execute("delete from stride_order_proc where order_proc_id < 0");
-        DBUtil.execute("delete from patient_item where clinical_item_id < 0");
-        DBUtil.execute("delete from clinical_item where clinical_item_id < 0");
-        DBUtil.execute("delete from clinical_item_category where clinical_item_category_id < 0");
+        DBUtil.execute("delete from stride_order_med where order_med_id < 0")
+        DBUtil.execute("delete from stride_flowsheet where flo_meas_id < 0")
+        DBUtil.execute("delete from stride_order_results where order_proc_id < 0")
+        DBUtil.execute("delete from stride_order_proc where order_proc_id < 0")
+        DBUtil.execute("delete from patient_item where clinical_item_id < 0")
+        # Must delete from clinical_item_assocatiation in order to make CDSS
+        # test suite pass. Other suites may update this table.
+        DBUtil.execute("delete from clinical_item_association where clinical_item_id < 0")
+        DBUtil.execute("delete from clinical_item where clinical_item_id < 0")
+        DBUtil.execute("delete from clinical_item_category where clinical_item_category_id < 0")
+
 
     def tearDown(self):
         """Restore state from any setUp or test steps."""
