@@ -16,7 +16,6 @@ from medinfo.db.test.Util import DBTestCase;
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.cpoe.DecayingWindows import DecayingWindows, DecayAnalysisOptions;
-from medinfo.cpoe.ResetModel import ResetModel;
 from medinfo.cpoe.DataManager import DataManager;
 
 from medinfo.cpoe.AssociationAnalysis import AssociationAnalysis, AnalysisOptions;
@@ -25,13 +24,13 @@ class TestDecayingWindows(DBTestCase):
 	def setUp(self):
 		"""Prepare state for test cases"""
 		DBTestCase.setUp(self);
-		
+
 		log.info("Populate the database with test data")
-		
+
 		self.clinicalItemCategoryIdStrList = list();
 		headers = ["clinical_item_category_id","source_table"];
 		dataModels = \
-			[   
+			[
 				RowItemModel( [-1, "Labs"], headers ),
 				RowItemModel( [-2, "Imaging"], headers ),
 				RowItemModel( [-3, "Meds"], headers ),
@@ -45,7 +44,7 @@ class TestDecayingWindows(DBTestCase):
 
 		headers = ["clinical_item_id","clinical_item_category_id","name","analysis_status"];
 		dataModels = \
-			[   
+			[
 				RowItemModel( [-1, -1, "CBC",1], headers ),
 				RowItemModel( [-2, -1, "BMP",0], headers ), # Clear analysis status, so this will be ignored unless changed
 				RowItemModel( [-3, -1, "Hepatic Panel",1], headers ),
@@ -68,7 +67,7 @@ class TestDecayingWindows(DBTestCase):
 
 		headers = ["patient_item_id","encounter_id","patient_id","clinical_item_id","item_date"];
 		dataModels = \
-			[   
+			[
 				RowItemModel( [-1,  -111,   -11111, -4,  datetime(2000, 1, 1, 0)], headers ),
 				RowItemModel( [-2,  -111,   -11111, -10, datetime(2000, 1, 1, 0)], headers ),
 				RowItemModel( [-3,  -111,   -11111, -8,  datetime(2000, 1, 1, 2)], headers ),
@@ -112,16 +111,16 @@ class TestDecayingWindows(DBTestCase):
 
 		if os.path.exists("DWTemp.txt"):
 			os.remove("DWTemp.txt")
-		
+
 		DBTestCase.tearDown(self);
 
 	def test_decayingWindowsFromBuffer(self):
-		
+
 		associationQuery = \
 			"""
-			select 
-				clinical_item_id, subsequent_item_id, 
-				count_0, count_3600, count_86400, count_604800, 
+			select
+				clinical_item_id, subsequent_item_id,
+				count_0, count_3600, count_86400, count_604800,
 				count_2592000, count_7776000, count_31536000,
 				count_any
 			from
@@ -131,7 +130,7 @@ class TestDecayingWindows(DBTestCase):
 			order by
 				clinical_item_id, subsequent_item_id
 			""";
-		
+
 		decayAnalysisOptions = DecayAnalysisOptions()
 		decayAnalysisOptions.startD = datetime(2000,1,9)
 		decayAnalysisOptions.endD = datetime(2000,2,11)
@@ -146,20 +145,20 @@ class TestDecayingWindows(DBTestCase):
 		expectedAssociationStats = \
 			[
 				[-11,-11,   1.9, 1.9, 1.9, 1.9, 1.9, 0, 0, 1.9],	# Note that decaying windows approach will not try to update counts for time periods longer than the delta period
-				[-11, -9,   0.0, 0.0, 0.9, 0.9, 0.9, 0, 0, 0.9], 	
+				[-11, -9,   0.0, 0.0, 0.9, 0.9, 0.9, 0, 0, 0.9],
 				[-11, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted. Consider future upgrade. Don't train on all time ever, but train on two deltas at a time, sliding / shifting window so do catch the overlap ranges
-				[-11, -6,   0.9, 0.9, 0.9, 0.9, 0.9, 0, 0, 0.9], 
-				[ -9,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
+				[-11, -6,   0.9, 0.9, 0.9, 0.9, 0.9, 0, 0, 0.9],
+				[ -9,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
 				[ -9, -9,   0.9, 0.9, 0.9, 0.9, 0.9, 0, 0, 0.9],
 				[ -9, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
-				[ -9, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
-				[ -8,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted. 
-				[ -8, -9,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted. 
+				[ -9, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
+				[ -8,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted.
+				[ -8, -9,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted.
 				[ -8, -8,   0.9, 0.9, 0.9, 0.9, 0.9, 0, 0, 0.9],
-				[ -8, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted. 
+				[ -8, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted.
 				[ -6,-11,   0.9, 0.9, 0.9, 1.9, 1.9, 0, 0, 1.9],
-				[ -6, -9,   0.0, 0.0, 0.9, 0.9, 0.9, 0, 0, 0.9], 	
-				[ -6, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted. 
+				[ -6, -9,   0.0, 0.0, 0.9, 0.9, 0.9, 0, 0, 0.9],
+				[ -6, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted.
 				[ -6, -6,   1.9, 1.9, 1.9, 1.9, 1.9, 0, 0, 1.9],
 			];
 
@@ -212,21 +211,21 @@ class TestDecayingWindows(DBTestCase):
 
 		expectedAssociationStats = \
 			[
-				[-11,-11,   1.75, 1.75, 1.75, 1.75, 1.75, 0, 0, 1.75],	
-				[-11, -9,   0.0, 0.0, 0.75, 0.75, 0.75, 0, 0, 0.75], 	
-				[-11, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
-				[-11, -6,   0.75, 0.75, 0.75, 0.75, 0.75, 0, 0, 0.75], 
-				[ -9,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
+				[-11,-11,   1.75, 1.75, 1.75, 1.75, 1.75, 0, 0, 1.75],
+				[-11, -9,   0.0, 0.0, 0.75, 0.75, 0.75, 0, 0, 0.75],
+				[-11, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
+				[-11, -6,   0.75, 0.75, 0.75, 0.75, 0.75, 0, 0, 0.75],
+				[ -9,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
 				[ -9, -9,   0.75, 0.75, 0.75, 0.75, 0.75, 0, 0, 0.75],
 				[ -9, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
-				[ -9, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
-				[ -8,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
-				[ -8, -9,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
+				[ -9, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
+				[ -8,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
+				[ -8, -9,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
 				[ -8, -8,   0.75, 0.75, 0.75, 0.75, 0.75, 0, 0, 0.75],
-				[ -8, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
+				[ -8, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
 				[ -6,-11,   0.75, 0.75, 0.75, 1.75, 1.75, 0, 0, 1.75],
-				[ -6, -9,   0.0, 0.0, 0.75, 0.75, 0.75, 0, 0, 0.75], 	
-				[ -6, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
+				[ -6, -9,   0.0, 0.0, 0.75, 0.75, 0.75, 0, 0, 0.75],
+				[ -6, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
 				[ -6, -6,   1.75, 1.75, 1.75, 1.75, 1.75, 0, 0, 1.75],
 			];
 
@@ -268,9 +267,9 @@ class TestDecayingWindows(DBTestCase):
 
 		associationQuery = \
 			"""
-			select 
-				clinical_item_id, subsequent_item_id, 
-				patient_count_0, patient_count_3600, patient_count_86400, patient_count_604800, 
+			select
+				clinical_item_id, subsequent_item_id,
+				patient_count_0, patient_count_3600, patient_count_86400, patient_count_604800,
 				patient_count_2592000, patient_count_7776000, patient_count_31536000,
 				patient_count_any
 			from
@@ -281,7 +280,7 @@ class TestDecayingWindows(DBTestCase):
 				clinical_item_id, subsequent_item_id
 			""";
 
-		
+
 		decayAnalysisOptions = DecayAnalysisOptions()
 		decayAnalysisOptions.startD = datetime(2000,1,9)
 		decayAnalysisOptions.endD = datetime(2000,2,11)
@@ -295,26 +294,26 @@ class TestDecayingWindows(DBTestCase):
 		expectedAssociationStats = \
 			[
 				[-11,-11,   1.9, 1.9, 1.9, 1.9, 1.9, 0, 0, 1.9],	# Note that decaying windows approach will not try to update counts for time periods longer than the delta period
-				[-11, -9,   0.0, 0.0, 0.9, 0.9, 0.9, 0, 0, 0.9], 	
+				[-11, -9,   0.0, 0.0, 0.9, 0.9, 0.9, 0, 0, 0.9],
 				[-11, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted. Consider future upgrade. Don't train on all time ever, but train on two deltas at a time, sliding / shifting window so do catch the overlap ranges. Problem here is buffer based algorithm, won't be recording analyze_dates as go, so will end up with duplicate counts of items each month?
-				[-11, -6,   0.9, 0.9, 0.9, 0.9, 0.9, 0, 0, 0.9], 
-				[ -9,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
+				[-11, -6,   0.9, 0.9, 0.9, 0.9, 0.9, 0, 0, 0.9],
+				[ -9,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
 				[ -9, -9,   0.9, 0.9, 0.9, 0.9, 0.9, 0, 0, 0.9],
 				[ -9, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
-				[ -9, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	
-				[ -8,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted. 
-				[ -8, -9,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted. 
+				[ -9, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0],
+				[ -8,-11,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted.
+				[ -8, -9,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted.
 				[ -8, -8,   0.9, 0.9, 0.9, 0.9, 0.9, 0, 0, 0.9],
-				[ -8, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted. 
+				[ -8, -6,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted.
 				[ -6,-11,   0.9, 0.9, 0.9, 1.9, 1.9, 0, 0, 1.9],
-				[ -6, -9,   0.0, 0.0, 0.9, 0.9, 0.9, 0, 0, 0.9], 	
-				[ -6, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted. 
+				[ -6, -9,   0.0, 0.0, 0.9, 0.9, 0.9, 0, 0, 0.9],
+				[ -6, -8,   0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0.0], 	# 8 not in same delta as other items so co-occurence not gettign counted.
 				[ -6, -6,   1.9, 1.9, 1.9, 1.9, 1.9, 0, 0, 1.9],
 			];
 
 		associationStats = DBUtil.execute(associationQuery)
 		self.assertEqualTable( expectedAssociationStats, associationStats, precision=3 );
-		
+
 		#DBUtil.execute("delete from clinical_item_association")
 
 		# Add another training period then should get a second decay multiplier for older data?
@@ -369,9 +368,9 @@ class TestDecayingWindows(DBTestCase):
 	def test_resetModel(self):
 		associationQuery = \
 			"""
-			select 
-				clinical_item_id, subsequent_item_id, 
-				patient_count_0, patient_count_3600, patient_count_86400, patient_count_604800, 
+			select
+				clinical_item_id, subsequent_item_id,
+				patient_count_0, patient_count_3600, patient_count_86400, patient_count_604800,
 				patient_count_2592000, patient_count_7776000, patient_count_31536000,
 				patient_count_any
 			from
@@ -384,7 +383,7 @@ class TestDecayingWindows(DBTestCase):
 
 		associationQueryDate = \
 			"""
-			select 
+			select
 				patient_item_id, analyze_date
 			from
 				patient_item
@@ -430,8 +429,8 @@ def suite():
 	#suite.addTest(TestDecayingWindows('test_decayingWindowsFromBuffer'))
 	#suite.addTest(TestDecayingWindows('test_resetModel'))
 	suite.addTest(unittest.makeSuite(TestDecayingWindows));
-	
+
 	return suite;
-	
+
 if __name__=="__main__":
 	unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())
