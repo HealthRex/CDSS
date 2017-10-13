@@ -4,8 +4,9 @@ Test suite for respective module in application package.
 """
 
 import datetime
-import unittest
+import os
 import time
+import unittest
 
 from Const import RUNNER_VERBOSITY
 from cStringIO import StringIO
@@ -152,6 +153,13 @@ class TestFeatureMatrixFactory(DBTestCase):
         for expectedPatientId in expectedPatientList:
             resultPatientId = resultPatientIterator.next()['patient_id']
             self.assertEqual(resultPatientId, expectedPatientId)
+
+        # Clean up patient_list.
+        try:
+            os.remove("patient_list.tsv")
+            os.remove("fmf.patient_list.tsv")
+        except OSError:
+            pass
 
     def test_buildFeatureMatrix_multiClinicalItem(self):
         """Test _buildFeatureMatrix()."""
@@ -598,6 +606,16 @@ class TestFeatureMatrixFactory(DBTestCase):
         factoryTime = factoryStop - factoryStart
         extractorTime = extractorStop - extractorStart
         self.assertTrue(extractorTime > factoryTime)
+
+        # Clean up feature matrix files.
+        try:
+            os.remove("extractor.feature_matrix.tab.gz")
+        except OSError:
+            pass
+        try:
+            os.remove(factory.getMatrixFileName())
+        except OSError:
+            pass
 
 def suite():
     """
