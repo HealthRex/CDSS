@@ -16,7 +16,7 @@ from medinfo.db.test.Util import DBTestCase;
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.cpoe.DecayingWindows import DecayingWindows, DecayAnalysisOptions;
-from medinfo.cpoe.ResetModel import ResetModel;
+#from medinfo.cpoe.ResetModel import ResetModel;
 from medinfo.cpoe.DataManager import DataManager;
 
 from medinfo.cpoe.AssociationAnalysis import AssociationAnalysis, AnalysisOptions;
@@ -97,7 +97,6 @@ class TestDecayingWindows(DBTestCase):
 			(dataItemId, isNew) = DBUtil.findOrInsertItem("clinical_item_link", dataModel );
 
 		self.decayAnalyzer = DecayingWindows() # DecayingWindows instance to test on, *** remember to change database to medinfo_copy
-		self.modelReset = ResetModel()
 		self.dataManager = DataManager();
 
 	def tearDown(self):
@@ -141,7 +140,7 @@ class TestDecayingWindows(DBTestCase):
 		decayAnalysisOptions.patientIds = [-22222, -33333]
 		decayAnalysisOptions.outputFile = "DWTemp.txt"
 
-		self.decayAnalyzer.decayAnalyzePatientItems (decayAnalysisOptions)
+		self.decayAnalyzer.decayAnalyzePatientItems(decayAnalysisOptions)
 
 		expectedAssociationStats = \
 			[
@@ -197,7 +196,7 @@ class TestDecayingWindows(DBTestCase):
 
 
 		######## Reset the model data and rerun with different decay parameters
-		self.modelReset.modelClear()
+		self.dataManager.resetAssociationModel()
 
 		decayAnalysisOptions = DecayAnalysisOptions()
 		decayAnalysisOptions.startD = datetime(2000,1,9)
@@ -404,7 +403,7 @@ class TestDecayingWindows(DBTestCase):
 		self.decayAnalyzer.decayAnalyzePatientItems (decayAnalysisOptions)
 
 		# then clear the table
-		self.modelReset.modelClear()
+		self.dataManager.resetAssociationModel()
 
 		expectedAssociationStats = \
 			[
