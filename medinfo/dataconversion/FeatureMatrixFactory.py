@@ -897,16 +897,6 @@ class FeatureMatrixFactory:
                 os.remove(tempFileName)
             except OSError:
                 pass
-        # Clean up patient_episode file.
-        try:
-            os.remove(self._patientEpisodeTempFileName)
-        except OSError:
-            pass
-        # Clean up patient_list file.
-        try:
-            os.remove(self._patientListTempFileName)
-        except OSError:
-            pass
 
     def _getMatrixIterator(self):
         return TabDictReader(open(self._matrixFileName, "r"))
@@ -917,6 +907,3 @@ class FeatureMatrixFactory:
         featureMatrixData = [episode for episode in reader]
 
         return featureMatrixData
-
-    def getMatrixFileName(self):
-        return self._matrixFileName
