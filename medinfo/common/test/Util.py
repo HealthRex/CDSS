@@ -7,8 +7,7 @@ import re;
 
 import medinfo.common.Util;
 
-log = logging.getLogger(__name__)
-log.setLevel(Const.LOGGER_LEVEL)
+log = logging.getLogger("CDSS")
 
 handler = logging.StreamHandler(sys.stderr)
 formatter = logging.Formatter(Const.LOGGER_FORMAT)

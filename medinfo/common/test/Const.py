@@ -5,7 +5,7 @@ import logging
 """Application name, for example to identify a common logger object"""
 APPLICATION_NAME = "CHEM.Common.test"
 
-"""Default level for application logging.  Modify these for different scenarios.  
+"""Default level for application logging.  Modify these for different scenarios.
 See Python logging package documentation for more information
 """
 LOGGER_LEVEL = logging.DEBUG

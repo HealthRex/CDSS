@@ -6,7 +6,7 @@ from cStringIO import StringIO
 from datetime import datetime, timedelta;
 import unittest
 
-from Const import RUNNER_VERBOSITY;
+from Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
 from Util import log;
 
 from medinfo.common.Util import ProgressDots;
@@ -27,13 +27,13 @@ class TestItemRecommender(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
-        
+
         log.info("Populate the database with test data")
-        
+
         self.clinicalItemCategoryIdStrList = list();
         headers = ["clinical_item_category_id","source_table"];
         dataModels = \
-            [   
+            [
                 RowItemModel( [-1, "Labs"], headers ),
                 RowItemModel( [-2, "Imaging"], headers ),
                 RowItemModel( [-3, "Meds"], headers ),
@@ -47,7 +47,7 @@ class TestItemRecommender(DBTestCase):
 
         headers = ["clinical_item_id","clinical_item_category_id","name"];
         dataModels = \
-            [   
+            [
                 RowItemModel( [-1, -1, "CBC"], headers ),
                 RowItemModel( [-2, -1, "BMP"], headers ),
                 RowItemModel( [-3, -1, "Hepatic Panel"], headers ),
@@ -70,7 +70,7 @@ class TestItemRecommender(DBTestCase):
 
         headers = ["patient_item_id","patient_id","clinical_item_id","item_date","analyze_date"];
         dataModels = \
-            [   
+            [
                 RowItemModel( [-1,  -11111, -4,  datetime(2000, 1, 1, 0), datetime(2010, 1, 1, 0)], headers ),
                 RowItemModel( [-2,  -11111, -10, datetime(2000, 1, 1, 0), datetime(2010, 1, 1, 0)], headers ),
                 RowItemModel( [-3,  -11111, -8,  datetime(2000, 1, 1, 2), datetime(2010, 1, 1, 0)], headers ),
@@ -86,20 +86,20 @@ class TestItemRecommender(DBTestCase):
             (dataItemId, isNew) = DBUtil.findOrInsertItem("patient_item", dataModel );
 
         headers = \
-            [   "clinical_item_id","subsequent_item_id", 
+            [   "clinical_item_id","subsequent_item_id",
                 "patient_count_0","patient_count_3600","patient_count_86400","patient_count_604800","patient_count_any",
                 "time_diff_sum", "time_diff_sum_squares",
             ];
         dataModels = \
-            [   
+            [
                 RowItemModel( [ -1, -1,   30, 30, 30, 30, 30,  0.0, 0.0], headers ),
                 RowItemModel( [ -2, -2,   30, 30, 30, 30, 30,  0.0, 0.0], headers ),
                 RowItemModel( [ -3, -3,   95, 95, 97, 97, 97,  0.0, 0.0], headers ),
                 RowItemModel( [ -4, -4,   40, 40, 40, 40, 40,  0.0, 0.0], headers ),
                 RowItemModel( [ -5, -5,   40, 40, 50, 50, 50,  0.0, 0.0], headers ),
                 RowItemModel( [ -6, -6,   70, 70, 70, 70, 70,  0.0, 0.0], headers ),
-                
-                
+
+
                 RowItemModel( [ -2, -3,    0,  0,  0,  0,  0,    0.0,     0.0], headers ),  # Zero count associations, probably shouldn't even be here. If so, ignore them anyway
                 RowItemModel( [ -2, -4,    0,  2,  3,  3,  3,  200.0, 50000.0], headers ),
                 RowItemModel( [ -2, -6,    2,  2,  5,  5,  5,  300.0, 11990.0], headers ),
@@ -127,7 +127,7 @@ class TestItemRecommender(DBTestCase):
         self.dataManager = DataManager();
         self.dataManager.clearCacheData("analyzedPatientCount");
         self.dataManager.clearCacheData("clinicalItemCountsUpdated");
-        
+
         self.recommender = ItemAssociationRecommender();  # Instance to test on
 
     def tearDown(self):
@@ -138,7 +138,7 @@ class TestItemRecommender(DBTestCase):
         DBUtil.execute("delete from patient_item where patient_item_id < 0");
         DBUtil.execute("delete from clinical_item where clinical_item_id < 0");
         DBUtil.execute("delete from clinical_item_category where clinical_item_category_id in (%s)" % str.join(",", self.clinicalItemCategoryIdStrList) );
-        
+
         DBTestCase.tearDown(self);
 
     def test_recommender(self):
@@ -151,7 +151,7 @@ class TestItemRecommender(DBTestCase):
         #query.timeDeltaMax = None;   # If set to one of the constants (DELTA_ZERO, DELTA_HOUR, etc.), will count item associations that occurred within that time delta as co-occurrent.  If left blank, will just consider all items within a given patient as co-occurrent.
         query.limit = 3;    # Just get top 3 ranks for simplicity
         query.maxRecommendedId = 0; # Artificial constraint to focus only on test data
-        
+
         log.debug("Query with no item key input, just return ranks by general likelihood then.");
         headers = ["clinical_item_id"];
         expectedData = \
@@ -266,7 +266,7 @@ class TestItemRecommender(DBTestCase):
             ];
         recommendedData = self.recommender( query );
         self.assertEqualRecommendedData( expectedData, recommendedData, query );
-        
+
         # Change to unweighted aggregation method
         query.aggregationMethod = "unweighted";
         expectedData = \
@@ -293,7 +293,7 @@ class TestItemRecommender(DBTestCase):
                 RowItemModel( [-6, 0.16667, 7.142857], headers ),
             ];
         recommendedData = self.recommender( query );
-        
+
         self.assertEqualRecommendedData( expectedData, recommendedData, query );
 
         # Apply value filter
@@ -328,7 +328,7 @@ class TestItemRecommender(DBTestCase):
 
     def test_recommender_stats(self):
         # Run the recommender against the mock test data above and verify expected stats calculations
-        
+
         query = RecommenderQuery();
         query.parseParams \
         (   {   "countPrefix": "patient_",
@@ -342,7 +342,7 @@ class TestItemRecommender(DBTestCase):
         log.debug("Query with single item not perturbed by others.");
         headers = ["clinical_item_id","N","nB","nA","nAB","conditionalFreq","baselineFreq","freqRatio","P-Fisher"];
         expectedData = \
-            [   
+            [
                 RowItemModel( [-2, SIMULATED_PATIENT_COUNT, 30.0, 70.0,  7.0,  0.1,    0.0100, 10.0,       3.7e-06], headers ),
                 RowItemModel( [-4, SIMULATED_PATIENT_COUNT, 40.0, 70.0, 20.0,  0.286,  0.0133, 21.42857,   1.2e-23], headers ),
             ];
@@ -382,7 +382,7 @@ class TestItemRecommender(DBTestCase):
         log.debug("Query with single item not perturbed by others.");
         headers = ["clinical_item_id","N","nB","nA","nAB","conditionalFreq","baselineFreq","freqRatio","P-Fisher"];
         expectedData = \
-            [   
+            [
                 RowItemModel( [-2, SIMULATED_PATIENT_COUNT, 30.0, 70.0,  7.0,  0.1,    0.0100, 10.0,       3.7e-06], headers ),
                 RowItemModel( [-4, SIMULATED_PATIENT_COUNT, 40.0, 70.0, 20.0,  0.286,  0.0133, 21.42857,   1.2e-23], headers ),
             ];
@@ -429,7 +429,7 @@ class TestItemRecommender(DBTestCase):
         query.maxRecommendedId = 0; # Artificial constraint to focus only on test data
 
         headers = ["clinical_item_id","conditionalFreq","freqRatio"];
-        
+
         # First query without cache
         self.recommender.dataManager.dataCache = None;
         baselineData = self.recommender( query );
@@ -442,24 +442,22 @@ class TestItemRecommender(DBTestCase):
         self.assertEqualRecommendedData( baselineData, newData, query );    # Ensure getting same results
         self.assertNotEqual( baselineQueryCount, newQueryCount );  # Expect needed more queries since no prior cache
         baselineQueryCount = newQueryCount;
-        
+
         # Again, but should be no new query since have cached results last time
         newData = self.recommender( query );
         newQueryCount = self.recommender.dataManager.queryCount;
-        self.assertEqualRecommendedData( baselineData, newData, query );    
-        self.assertEqual( baselineQueryCount, newQueryCount );  
+        self.assertEqualRecommendedData( baselineData, newData, query );
+        self.assertEqual( baselineQueryCount, newQueryCount );
 
         # Repeat multiple times, should still have no new query activity
         prog = ProgressDots(10,1,"repeats");
         for iRepeat in xrange(10):
             newData = self.recommender( query );
             newQueryCount = self.recommender.dataManager.queryCount;
-            self.assertEqualRecommendedData( baselineData, newData, query );    
-            self.assertEqual( baselineQueryCount, newQueryCount );  
+            self.assertEqualRecommendedData( baselineData, newData, query );
+            self.assertEqual( baselineQueryCount, newQueryCount );
             prog.update();
-        prog.printStatus();
-
-
+        # prog.printStatus();
 
         # Query for subset should still yield no new query
         query.queryItemIds = set([-2]);
@@ -468,10 +466,10 @@ class TestItemRecommender(DBTestCase):
         baselineData = newData; # New baseline for subset
         self.assertEqual( baselineQueryCount, newQueryCount );  # Expect no queries for subsets
 
-        # Repeat query for subset 
+        # Repeat query for subset
         newData = self.recommender( query );
         newQueryCount = self.recommender.dataManager.queryCount;
-        self.assertEqualRecommendedData( baselineData, newData, query );    
+        self.assertEqualRecommendedData( baselineData, newData, query );
         self.assertEqual( baselineQueryCount, newQueryCount );  # Expect no queries for subsets
 
 
@@ -487,7 +485,7 @@ class TestItemRecommender(DBTestCase):
         newData = self.recommender( query );
         newQueryCount = self.recommender.dataManager.queryCount;
         baselineData = newData; # New baseline for subset
-        self.assertEqualRecommendedData( baselineData, newData, query );    
+        self.assertEqualRecommendedData( baselineData, newData, query );
         self.assertEqual( baselineQueryCount, newQueryCount );  # Expect no queries for subsets
 
 def suite():
@@ -505,8 +503,10 @@ def suite():
     #suite.addTest(TestItemRecommender('test_recommender_stats_commandline'));
     #suite.addTest(TestItemRecommender('test_dataCache'));
     suite.addTest(unittest.makeSuite(TestItemRecommender));
-    
+
     return suite;
-    
+
 if __name__=="__main__":
+    log.setLevel(LOGGER_LEVEL)
+
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

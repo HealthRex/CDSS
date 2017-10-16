@@ -3,9 +3,6 @@
 Support module to manage data and statistics
 """
 
-
-
-
 import sys, os
 import time;
 from optparse import OptionParser
@@ -51,10 +48,10 @@ class DataManager:
             #curs.execute("drop index index_patient_item_external_id;")
             #curs.execute("drop index index_patient_item_encounter_id_date;")
             #curs.execute("ALTER TABLE patient_item drop constraint patient_item_composite;")
-            
+
             result = DBUtil.execute("UPDATE patient_item SET analyze_date = NULL where analyze_date is not NULL;", conn=conn);
             log.debug("Analyze_date set to NULL: %s" % result);
-            
+
             # Add  back constraints
             #curs.execute("ALTER TABLE patient_item ADD CONSTRAINT patient_item_pkey PRIMARY KEY (patient_item_id);")
             #curs.execute("ALTER TABLE patient_item ADD CONSTRAINT patient_item_clinical_item_fkey FOREIGN KEY (clinical_item_id) REFERENCES clinical_item(clinical_item_id);")
@@ -82,7 +79,7 @@ class DataManager:
     def updateClinicalItemCounts(self, acceptCache=False, conn=None):
         """Update the summary item_counts for clinical_items based
         on clinical_item_association summary counts.
-        
+
         If acceptCache is True, then will first check for existence of an entry "clinicalItemCountsUpdated"
             in the data_cache table.  If it exists, assume we have done this update already, and no need to force the calculations again
         """
@@ -105,7 +102,7 @@ class DataManager:
                 query += "where clinical_item_id < %s" % DBUtil.SQL_PLACEHOLDER;
                 params.append(self.maxClinicalItemId);
             DBUtil.execute(query, params, conn=conn);
-        
+
             sqlQuery = SQLQuery();
             sqlQuery.addSelect("clinical_item_id");
             sqlQuery.addSelect("count_0 as item_count");
@@ -118,7 +115,7 @@ class DataManager:
 
             resultTable = DBUtil.execute( sqlQuery, includeColumnNames=True, conn=conn );
             resultModels = modelListFromTable( resultTable );
-            
+
             for result in resultModels:
                 DBUtil.updateRow("clinical_item", result, result["clinical_item_id"], conn=conn);
 
@@ -144,16 +141,16 @@ class DataManager:
 
             if countPrefix is None or countPrefix == "":
                 countPrefix = "item_";  # Default to general item counts, allowing for repeats per patient
-            
+
             baseCountQuery = SQLQuery();
             baseCountQuery.addSelect("clinical_item_id");
-            baseCountQuery.addSelect("%scount" % countPrefix); 
+            baseCountQuery.addSelect("%scount" % countPrefix);
             baseCountQuery.addFrom("clinical_item");
             if acceptCache:
                 baseCountResultTable = self.executeCacheOption( baseCountQuery, conn=conn );
             else:
                 baseCountResultTable = DBUtil.execute( baseCountQuery, conn=conn );
-            
+
             baseCountByItemId = dict();
             for (itemId, baseCount) in baseCountResultTable:
                 baseCountByItemId[itemId] = baseCount;
@@ -165,9 +162,9 @@ class DataManager:
 
 
     def deactivateAnalysis(self, clinicalItemIds, conn=None):
-        """The specified clinical_items will be removed from association analysis.  
-        This includes 
-        - Changing analysis_status to 0, 
+        """The specified clinical_items will be removed from association analysis.
+        This includes
+        - Changing analysis_status to 0,
         - Clearing the analyze_date on any patient_items
         - Removing all related clinical_item_association records
         """
@@ -188,25 +185,25 @@ class DataManager:
         finally:
             if not extConn:
                 conn.close();
-    
+
     def deactivateAnalysisByCount(self, thresholdInstanceCount, categoryIds=None, conn=None):
         """Find clinical items to deactivate, based on their instance (patient_item) counts
         being too low to be interesting.  Can restrict to applying to only items under certain categories.
-        
+
         Use data/analysis/queryItemCounts.py to help guide selections with queries like:
-        
-            select count(clinical_item_id), sum(item_count) 
-            from clinical_item 
-            where item_count > %s 
+
+            select count(clinical_item_id), sum(item_count)
+            from clinical_item
+            where item_count > %s
             and clinical_item_category_id in (%s)
-            
+
             (and analysis_status = 1)?  Seems like good filter, but the process itself will change this count
 
         Direct search option as below, but that's usually for pre-processing before activations even start.
         Former meant to count records that have already gone through analysis.
 
             select clinical_item_id, count(distinct patient_id), count(distinct encounter_id), count(patient_item_id)
-            from patient_item 
+            from patient_item
             group by clinical_item_id
 
         """
@@ -226,31 +223,31 @@ class DataManager:
                 query.addWhereIn("clinical_item_category_id", categoryIds );
             query.addWhereOp("item_count","<=", thresholdInstanceCount);
             results = DBUtil.execute(query, conn=conn);
-            
+
             clinicalItemIds = set();
             for row in results:
                 clinicalItemIds.add(row[0]);
-                
+
             self.deactivateAnalysis(clinicalItemIds, conn=conn);
         finally:
             if not extConn:
                 conn.close();
-        
+
     def compositeRelated(self, clinicalItemIds, itemName, itemDescription, categoryId, compositeId=None, conn=None):
-        """A new clinical item will be created, with patient item records created to match every one currently 
-        matching one of the specified clinical items.  
-        Parameters specify new composite item name/code, description, and clinical item category to be created under.  
+        """A new clinical item will be created, with patient item records created to match every one currently
+        matching one of the specified clinical items.
+        Parameters specify new composite item name/code, description, and clinical item category to be created under.
         Option to explicitly specify the composite clinical item Id value rather than taking a sequence number value (convenient for test cases)
         Returns ID of newly created item
-        
+
         Depending on context, may wish to deactivateAnalysis of component items once this composite one is created
         if they are no longer of interest.
-        Newly created composite item's default_recommend attribute will be reset to 0 since it presumably does not represent a 
+        Newly created composite item's default_recommend attribute will be reset to 0 since it presumably does not represent a
         discrete order item.
-        
+
         Linking records will be created in clinical_item_link between the composite and and component clinical items
         so that these relationships can be reconstructed
-                
+
         Examples this could be relevant for:
         ICUVasopressors to include all vasopressor infusions (dopamine, norepinephrine, epinephrine, vasopressin, etc.)
         All blood transfusion indexes, G vs J vs Feeding tube equivalent, Ear, Eyes med routes irrelevant which ear/eye.
@@ -270,7 +267,7 @@ class DataManager:
             compositeItem["default_recommend"] = 0;
             if compositeId is not None:
                 compositeItem["clinical_item_id"] = compositeId;
-            
+
             insertQuery = DBUtil.buildInsertQuery("clinical_item", compositeItem.keys() );
             insertParams= compositeItem.values();
             DBUtil.execute( insertQuery, insertParams, conn=conn);
@@ -296,7 +293,7 @@ class DataManager:
                 linkModel = RowItemModel();
                 linkModel["clinical_item_id"] = compositeId;
                 linkModel["linked_item_id"] = componentId;
-                
+
                 insertQuery = DBUtil.buildInsertQuery("clinical_item_link", linkModel.keys() );
                 insertParams= linkModel.values();
                 DBUtil.execute(insertQuery, insertParams, conn=conn);
@@ -313,17 +310,17 @@ class DataManager:
             query.addWhereIn("clinical_item_id", linkedItemIds);
             results = DBUtil.execute(query, includeColumnNames=True, conn=conn);
             patientItems = modelListFromTable(results);
-            
+
             # Patch component records to instead become composite item records then insert back into database
             progress = ProgressDots(total=len(patientItems));
             for patientItem in patientItems:
                 del patientItem["patient_item_id"];
                 patientItem["clinical_item_id"] = compositeId;
                 patientItem["analyze_date"] = None;
-                
+
                 insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys() );
                 insertParams= patientItem.values();
-                
+
                 try:
                     # Optimistic insert of a new unique item
                     DBUtil.execute( insertQuery, insertParams, conn=conn );
@@ -332,22 +329,22 @@ class DataManager:
                     log.info(err);
                 progress.Update();
 
-            progress.PrintStatus();
+            # progress.PrintStatus();
         finally:
             if not extConn:
                 conn.close();
-        
+
     def mergeRelated(self, baseClinicalItemId, clinicalItemIds, reassignMergedItems=True, conn=None):
-        """The specified clinical items will be merged / composited into the base clinical item provided.  
+        """The specified clinical items will be merged / composited into the base clinical item provided.
         The remaining now redundant items will be deactivated
-        Patient_item instances will be reassigned to the merged clinical_item 
-        (while backup links will be saved to backup_link_patient_item), 
-        clinical_item_association counts for the redundant items will removed and analyze_dates reset, 
+        Patient_item instances will be reassigned to the merged clinical_item
+        (while backup links will be saved to backup_link_patient_item),
+        clinical_item_association counts for the redundant items will removed and analyze_dates reset,
         requiring a re-run of AssociationAnalysis to redo those counts from scratch
         (but will now count as the merged / composite item rather than separate ones).
-        
-        Could theoretically figure out how to combine the association stats without re-running analysis, but 
-            patient_counts are supposed to ignore duplicates, so hard to know how to aggregate stats 
+
+        Could theoretically figure out how to combine the association stats without re-running analysis, but
+            patient_counts are supposed to ignore duplicates, so hard to know how to aggregate stats
             (not enough info in them to tell if unique cooccurrences?)
 
         Examples this could be relevant for:
@@ -362,11 +359,11 @@ class DataManager:
             deactivateIds = set(clinicalItemIds);
             deactivateIds.discard(baseClinicalItemId);
             self.deactivateAnalysis(deactivateIds, conn=conn);
-            
+
             # Build composite item name and description
             allIds = set(deactivateIds);
             allIds.add(baseClinicalItemId);
-            
+
             query = SQLQuery();
             query.addSelect("clinical_item_id");
             query.addSelect("name");
@@ -375,7 +372,7 @@ class DataManager:
             query.addWhereIn("clinical_item_id", allIds);
             query.addOrderBy("name");  # Ensure consistency across multiple runs
             results = DBUtil.execute(query, conn=conn);
-            
+
             nameList = list();
             descrList = list();
             # First pass to get Base Item Description
@@ -399,7 +396,7 @@ class DataManager:
                     descrList.append(description);
             compositeName = str.join("+", nameList );
             compositeDescription = str.join("+", descrList );
-            
+
             DBUtil.updateRow("clinical_item", {"name": compositeName, "description": compositeDescription}, baseClinicalItemId, conn=conn);
 
             if reassignMergedItems:
@@ -434,22 +431,22 @@ class DataManager:
                 conn.close();
 
     def unifyRedundant(self, baseClinicalItemId, clinicalItemIds, conn=None):
-        """The specified clinical items will be collapsed into the first clinical item provide, 
-        assuming the clinical_item pairs have perfect 1-to-1 association, indicating redundancy 
-        (though this sometimes occurs legitimately as well).  
-        Deactivate the duplicate items (remove from analysis as above) except for 1, and relabel that 1 
+        """The specified clinical items will be collapsed into the first clinical item provide,
+        assuming the clinical_item pairs have perfect 1-to-1 association, indicating redundancy
+        (though this sometimes occurs legitimately as well).
+        Deactivate the duplicate items (remove from analysis as above) except for 1, and relabel that 1
         to indicate its unification from the others
-        
+
         Look for examples with query like the following, though it also reveals many potential false positives
         with uncommon orders that coincidentally only occur simultaneously with another order.
 
-            select 
-                preci.description, 
-                cia.clinical_item_id, 
+            select
+                preci.description,
+                cia.clinical_item_id,
                 cia.count_0,
                 cia.subsequent_item_id,
                 postci.description
-            from 
+            from
                 clinical_item as preci,
                 clinical_item_association as precia,
                 clinical_item_association as cia,
@@ -467,7 +464,7 @@ class DataManager:
                 precia.count_0 = cia.count_0 and
                 cia.count_0 = postcia.count_0 and
                 cia.count_0 > 10
-            limit 1000        
+            limit 1000
         """
         # Basically does same thing as merging composite items, just skip the reassignment step
         self.mergeRelated(baseClinicalItemId, clinicalItemIds, reassignMergedItems=False);
@@ -481,7 +478,7 @@ class DataManager:
         extConn = conn is not None;
         if not extConn:
             conn = self.connFactory.connection();
-        
+
         linkedItemIdsByBaseId = None;
         try:
             linkedItemIdsByBaseId = dict();
@@ -502,7 +499,7 @@ class DataManager:
             while lookForNewLinks:
                 lookForNewLinks = False;
                 inheritanceDepth += 1;
-                
+
                 for (clinicalItemId, linkedItemIdSet) in linkedItemIdsByBaseId.iteritems():
                     linkedItemIdSetCopy = set(linkedItemIdSet); # Make copy as could be modifying set as iterate through it
                     for linkedItemId in linkedItemIdSetCopy:
@@ -514,7 +511,7 @@ class DataManager:
                             if postSize > preSize:
                                 # New inherited links were recorded, so will need to do at least one more pass to keep look for further inheritance depth
                                 lookForNewLinks = True;
-                
+
                 if inheritanceDepth > 8 and (math.log(inheritanceDepth,2) % 1) < 0.001:
                     # Very high inheritance depth, caution that may be infinite loop that should be aborted
                     log.warning("Clinical Item Link Inheritance Resolution down to depth %s.  Potential for infinite loop." % inheritanceDepth );
@@ -547,7 +544,7 @@ class DataManager:
 
         # Clear any prior setting to make way for the new one
         self.clearCacheData(key,conn=conn);
-        
+
         insertQuery = DBUtil.buildInsertQuery("data_cache", ("data_key","data_value","last_update") );
         insertParams= ( key, str(value), datetime.now() );
         DBUtil.execute( insertQuery, insertParams, conn=conn );
@@ -570,7 +567,7 @@ class DataManager:
     def executeCacheOption(self, query, parameters=None, includeColumnNames=False, incTypeCodes=False, formatter=None, conn=None, connFactory=None, autoCommit=True):
         """Wrap DBUtil.execute.  If instance's dataCache is present, will check and store any results in there
         to help reduce time for repeat queries.
-        
+
         Beware, bad idea to store lots of varied, huge results in this cache, otherwise memory leak explosion.
         """
         if connFactory is None:
@@ -584,17 +581,17 @@ class DataManager:
         if queryStr not in dataCache:
             dataCache[queryStr] = DBUtil.execute( query, parameters, includeColumnNames, incTypeCodes, formatter, conn, connFactory, autoCommit );
             self.queryCount += 1;
-        
+
         dataCopy = list(dataCache[queryStr]);
-        
+
         return dataCopy;
-    
+
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog [options]\n"
-        
+
         parser = OptionParser(usage=usageStr)
-        
+
         parser.add_option("-d", "--deactivateAnalysis",  dest="deactivateAnalysis", metavar="<clinicalItemIds>",  help="The specified clinical_items will be removed from association analysis.  This includes changing analysis_status to 0, clearing the analyze_date on any patient_items, and removing all related clinical_item_association records.")
         parser.add_option("-D", "--deactivateAnalysisByCount",  dest="deactivateAnalysisByCount", metavar="<instanceCount|categoryIds>",  help="Deactivate analysis as above on all clinical_items with a number patient_item instances less than the specified instanceCount threshold.  Add comma separated list of category IDs after '|' delimiter to specify only certain categories to apply deactivations to")
         parser.add_option("-c", "--compositeRelated", dest="compositeRelated", metavar="<clinicalItemIds|itemName|itemDescription|categoryId(|compositeId)>",  help="A new clinical item will be created, with patient item records created to match every one currently matching one of the specified clinical items.  Expect '|' delimited parameter, with components specifying new composite item name/code, description, and clinical item category to be created under.  ID of newly created item will be printed to stdout.  Option to specify desired composite ID explicitly")
@@ -639,24 +636,24 @@ class DataManager:
             compositeItemId = None;
             if len(compositeParams) > 4:
                 compositeItemId = int(compositeParams[4]);
-            
+
             clinicalItemIds = set();
             for itemIdStr in sourceItemIdsStr.split(","):
                 clinicalItemId = int(itemIdStr);
                 clinicalItemIds.add(clinicalItemId);
-                
+
             compositeItemId = self.compositeRelated(clinicalItemIds, itemName, itemDescription, int(categoryIdStr), compositeId=compositeItemId );
-            print >> sys.stdout, compositeItemId;
+            # print >> sys.stdout, compositeItemId;
         elif options.generatePatientItemsForCompositeId is not None:
             (sourceItemIdsStr, compositeIdStr) = options.generatePatientItemsForCompositeId.split("|");
-            
+
             clinicalItemIds = set();
             for itemIdStr in sourceItemIdsStr.split(","):
                 clinicalItemId = int(itemIdStr);
                 clinicalItemIds.add(clinicalItemId);
-                
+
             self.generatePatientItemsForCompositeId(clinicalItemIds, int(compositeIdStr) );
-        
+
         elif options.unifyRedundant is not None:
             baseClinicalItemId = None;
             clinicalItemIds = set();

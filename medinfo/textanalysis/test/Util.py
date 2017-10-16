@@ -9,7 +9,7 @@ from medinfo.common.test.Util import MedInfoTestCase;
 import medinfo.textanalysis.Util;
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("CDSS")
 log.setLevel(Const.LOGGER_LEVEL)
 
 handler = logging.StreamHandler(sys.stderr)
@@ -19,5 +19,4 @@ handler.setFormatter(formatter)
 log.addHandler(handler)
 
 # Suppress uninteresting application output
-medinfo.textanalysis.Util.log.setLevel(Const.APP_LOGGER_LEVEL) 
-
+medinfo.textanalysis.Util.log.setLevel(Const.APP_LOGGER_LEVEL)

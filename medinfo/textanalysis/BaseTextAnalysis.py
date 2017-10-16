@@ -55,16 +55,16 @@ class BaseTextAnalysis:
         headers = sourceFile.readline().split();
         for i, header in enumerate(headers):
             headers[i] = header.lower();
-        
+
         prog = ProgressDots(50,1);
         summaryRecords = list();
 
         headerData = {"script": HTML_SCRIPT, "style": HTML_STYLE}
-        
+
         print >> outputFile, HTML_START % headerData;
         nextRecord = None;
         lastLine = None;
-        
+
         print >> outputFile, '''<table class="dataTable" cellspacing=0 cellpadding=4>''';
         iRecord = 0;
         for line in sourceFile:
@@ -91,7 +91,7 @@ class BaseTextAnalysis:
                 #nextRecord["contact_date"] = DBUtil.parseDateValue(nextRecord["contact_date"]);
             else:   # documentHeader in nextRecord   # Continuing lines of text
                 nextRecord[self.documentHeader] += line;
-            
+
         # Process the last record
         if iRecord % self.sampleInterval == 0:
             self.processRecord(nextRecord, iRecord);
@@ -99,12 +99,12 @@ class BaseTextAnalysis:
             summaryRecords.append(self.extractSummaryRecord(nextRecord));  # Add just summary information to display later, without keeping whole text file in memory
         iRecord += 1;
         prog.update();
-        prog.printStatus();
+        # prog.printStatus();
 
         print >> outputFile, '''</table>''';
 
         self.outputSummaryRecords(summaryRecords, outputFile);
-        
+
         print >> outputFile, HTML_END;
 
         #for header in headerSet:
@@ -115,7 +115,7 @@ class BaseTextAnalysis:
     def isNewRecordLine(self, line):
         """Determine if this line represents a new record.  Basically look for tab-delimited data values"""
         return (line[:100].find("\t") >= 0);
-    
+
     def processRecord(self, record, iRecord):
         """Find the text field and parse through/process it to get desired information"""
         docText = record[self.documentHeader];
@@ -124,7 +124,7 @@ class BaseTextAnalysis:
 
         # Try to spot new lines by several spaces
         docTextLines = docText.replace("    ","\n");
-        
+
         tokenizeOps = TokenizeOptions();
         tokenizeOps.sectionHeaders = self.sectionHeaders;
         tokenizeOps.sectionHeaderPrefixes = self.sectionHeaderPrefixes;
@@ -133,7 +133,7 @@ class BaseTextAnalysis:
         for questionModule in self.questionModules:
             answer = questionModule(docModel);
             docModel[questionModule.getName()] = answer;
-        
+
         record["docModel"] = docModel;
 
         # Add token level question annotations
@@ -151,7 +151,7 @@ class BaseTextAnalysis:
         for questionModule in self.questionModules:
             questionData = {"iRecord": record["iRecord"], "name": questionModule.getName(), "answer": questionModule.formatAnswer(record["docModel"]), "notes": questionModule.formatNotes(record["docModel"]) }
             record[questionData["name"]] = questionData["answer"];  # Store at record level for summary retrieval later
-    
+
     def outputRecordDetail(self, record, outputFile):
 
         if self.skipDetail:
@@ -174,13 +174,13 @@ class BaseTextAnalysis:
                 </tr>''' % record;
 
         print >> outputFile, '''<tr valign=top><td colspan=4 width="70%"><div style="overflow-y: scroll; height: 400px">''';
-        
+
         lastLineModel = None;
         for lineModel in record["docModel"]["lineModels"]:
             isSectionHeader = lastLineModel is not None and lineModel["section"] != lastLineModel["section"];
             if isSectionHeader:
                 print >> outputFile, "<u>",;
-            
+
             for tokenModel in lineModel["tokenModels"]:
                 if len(tokenModel["questionNames"]) > 0:
                     print >> outputFile, '<a name="%(iRecord)d.%(questionNames)s" href="javascript:setQuestionsByName(\'%(questionNames)s\', %(iRecord)d)">' % tokenModel,;
@@ -189,12 +189,12 @@ class BaseTextAnalysis:
 
                 if len(tokenModel["questionNames"]) > 0:
                     print >> outputFile, "</a>",;
-            
+
             if isSectionHeader:
                 print >> outputFile, "</u>",;
             print >> outputFile, "<br>";
             lastLineModel = lineModel;
-        
+
         print >> outputFile, '''<div></td><td style="padding: 0">'''
         self.outputRecordQuestions(record, outputFile);
         print >> outputFile, '''</td>'''
@@ -211,7 +211,7 @@ class BaseTextAnalysis:
             questionData = {"iRecord": record["iRecord"], "name": questionModule.getName(), "answer": questionModule.formatAnswer(record["docModel"]), "notes": questionModule.formatNotes(record["docModel"]) }
             print >> outputFile, '''<tr id="questionName.%(iRecord)d.%(name)s" onClick="javascript:checkQuestionByName('%(name)s', %(iRecord)d)"><td align=center><input type=checkbox name="questionCheck.%(iRecord)d" value="%(name)s" onClick="return checkQuestion(this);"></td>''' % questionData;
             print >> outputFile, '''<td align=center>%(name)s</td><td align=center>%(answer)s</td><td>%(notes)s</td></tr>''' % questionData;
-        
+
         print >> outputFile, '''</table>''';
 
     def extractSummaryRecord(self, record):
@@ -220,7 +220,7 @@ class BaseTextAnalysis:
             if not key.startswith(self.documentHeader):
                 summaryRecord[key] = value;
         return summaryRecord;
-    
+
     def outputSummaryRecords(self, summaryRecords, outputFile):
         # Field names with or without using data control links instead of just raw values
         headers = list(self.summaryHeaders);
@@ -244,10 +244,10 @@ class BaseTextAnalysis:
                     linkFieldName = questionName+".link";
                     summaryRecord[linkFieldName] = ('<a href="javascript:setQuestionsByName(\''+questionName+'\', %(iRecord)s)">%('+questionName+')s</a>') % summaryRecord;
                 formatter.formatResultDict(summaryRecord, controlHeaders);
-            
+
             textAreaRows = 5;   # If showing detail records, pay less attention to the raw text area
-        
-            
+
+
         # Raw result content for copy-paste to spreadsheet
         print >> outputFile, '''<tr><td class="labelCell" style="color: 808080" colspan=100>Raw Table (Select All and Copy-Paste to Spreadsheet)</td></tr>''';
         print >> outputFile, '''<tr><td colspan=100><textarea style="width: 100%%;" disabled rows=%d>''' % textAreaRows;
@@ -256,15 +256,15 @@ class BaseTextAnalysis:
         for summaryRecord in summaryRecords:
             formatter.formatResultDict(summaryRecord, headers);
         print >> outputFile, '''</textarea></td></tr>''';
-        
+
         print >> outputFile, '''</table>''';
         print >> outputFile, "%d Records Processed" % len(summaryRecords);
 
     def tokenizeDocument(self, rawText, tokenizeOps):
         """Convert raw text string into a structured, tokenized format.
-        Dict with document annotations and 
+        Dict with document annotations and
             List of line data
-                Each line data being a dict with line annotations and 
+                Each line data being a dict with line annotations and
                     List of word/token data
                         Each word/token data item another dict with annotation information and
                             Source raw word/token
@@ -320,7 +320,7 @@ class BaseTextAnalysis:
         """
         parser.add_option("-i", "--sampleInterval", dest="sampleInterval", help="Set to a value >1 to only process a sample of the records based on the specified interval spacing.");
         parser.add_option("-s", "--skipDetail", dest="skipDetail", action="store_true", help="If set, will not output the full record details, just the main summary table.");
-        
+
     def parseOptions(self, options):
         """Base command-line option parsing
         """
@@ -355,7 +355,7 @@ class BaseQuestionModule:
         if questionName.endswith("Question"):
             questionName = questionName[:-len("Question")];
         return questionName;
-    
+
     def formatAnswer(self, docModel):
         """Given a processed document model, return a string representation of this question's answer.
         Default report a count of number of target strings / items found
@@ -365,7 +365,7 @@ class BaseQuestionModule:
             items = docModel[self.getName()];
             answer = len(items);
         return answer;
-        
+
     def formatNotes(self, docModel):
         """Given a processed document model, return a string representation of any notes about this question's answer.
         Default present a pipe-separated list of the target strings / items found
@@ -397,21 +397,21 @@ class BaseQuestionModule:
                     break;
             else:
                 break;  # Non-numeric character, must not be a phone number anymore
-        
+
         # Rebuild into a string can do a regular expression match against
         compositeStrTokens = list();
         for tokenModel in numericTokenModels:
             compositeStrTokens.append( tokenModel["rawToken"] );
         compositeStr = str.join(" ", compositeStrTokens);
-        
+
         phoneMatch = re.match(self.phoneRegExp, compositeStr);
-        
+
         if not phoneMatch:    # Discard if does not match phone number structure
             numericTokenModels = list();
             compositeStr = "";
-            
+
         return (compositeStr, numericTokenModels);
-        
+
 class SectionLineCountQuestion(BaseQuestionModule):
     """Specific implementation of a question which just looks for the named
     expected sections and counts up the number of lines of text under them
@@ -422,14 +422,14 @@ class SectionLineCountQuestion(BaseQuestionModule):
 
     def __call__(self, docModel):
         lines = list();
-    
+
         for iLine, lineModel in enumerate(docModel["lineModels"]):
             line = lineModel["stripLine"];
             if self.isLineInExpectedSection(lineModel):
                 if not line.startswith("Complete by:") and line != "":  # Ignore lines without much meaning
                     lines.append(line);
                     tokenModels = lineModel["tokenModels"];
-                    for iToken, tokenModel in enumerate(tokenModels):   
+                    for iToken, tokenModel in enumerate(tokenModels):
                         tokenModel[self.getName()] = True;
         return lines;
 

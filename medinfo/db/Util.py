@@ -8,8 +8,7 @@ import urllib;
 import time;
 import math;
 
-log = logging.getLogger(__name__)
-log.setLevel(Const.LOGGER_LEVEL)
+log = logging.getLogger("CDSS")
 
 handler = logging.StreamHandler(sys.stderr)
 formatter = logging.Formatter(Const.LOGGER_FORMAT)
@@ -26,4 +25,3 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv)
-    

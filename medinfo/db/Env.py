@@ -46,17 +46,13 @@ DB_PARAM = {}
 #DB_PARAM["HOST"] = "medinfo-5year-time-assoc2010-2013.cxkturzva06i.us-east-1.rds.amazonaws.com"
 #DB_PARAM["HOST"] = "inpatient5year.cxkturzva06i.us-east-1.rds.amazonaws.com"
 DB_PARAM["HOST"] = "localhost"
-
 #DB_PARAM["DSN"]  = "medicare"
-DB_PARAM["DSN"]  = "medinfo"
-#DB_PARAM["DSN"]  = "emr_access"
-#DB_PARAM["DSN"]  = "medinfo5yr"
-#DB_PARAM["DSN"]  = "medinfo-5year-time"
-#DB_PARAM["DSN"] = "/Users/angelicaperez/Documents/JonChen/sqlite_db/dave_chan2.sqlite"
+DB_PARAM["DSN"]  = "medinfo-5year-time"
 #DB_PARAM["DSN"]  = "resident-access-log-2017"
-
-DB_PARAM["UID"]  = "Shivaal"
-DB_PARAM["PWD"]  = ""
+#DB_PARAM["DSN"] = "/Users/angelicaperez/Documents/JonChen/sqlite_db/dave_chan2.sqlite"
+#DB_PARAM["DSN"]  = "medinfo5yr"
+DB_PARAM["UID"]  = "sbala"
+DB_PARAM["PWD"]  = "1234"
 
 
 # Opioid Notes DB
@@ -72,11 +68,12 @@ Dependent upon particular connection interface and database implementation
 TEST_DB_PARAM = {}
 #TEST_DB_PARAM["HOST"] = "inpatient5year.cxkturzva06i.us-east-1.rds.amazonaws.com"
 TEST_DB_PARAM["HOST"] = "localhost"
+TEST_DB_PARAM["DSN"]  = "testdb"
+TEST_DB_PARAM["UID"]  = "sbala"
+TEST_DB_PARAM["PWD"]  = "1234"
+
 #TEST_DB_PARAM["DSN"] = "c:\Box Sync\NoSync\VAAlerts\dave_chan2.sqlite";
 #TEST_DB_PARAM["DSN"] = "/Users/angelicaperez/Documents/JonChen/sqlite_db/dave_chan2.sqlite"
-TEST_DB_PARAM["DSN"]  = "medinfo_test"
-TEST_DB_PARAM["UID"]  = "Shivaal"
-# TEST_DB_PARAM["PWD"]  = "1234"
 
 
 """Parameters on whether to do additional pre-processing when parsing text / CSV files"""
