@@ -6,8 +6,9 @@ from cStringIO import StringIO
 from datetime import datetime, timedelta;
 import unittest
 
-from Const import RUNNER_VERBOSITY;
+from Const import RUNNER_VERBOSITY, LOGGER_LEVEL, APPLICATION_NAME;
 from Util import log;
+import logging
 
 from medinfo.common.Const import NULL_STRING;
 from medinfo.db.test.Util import DBTestCase;
@@ -24,7 +25,7 @@ class TestDataExtractor(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
-        
+
         self.purgeTestRecords();
         log.info("Populate the database with test data")
 
@@ -151,7 +152,7 @@ class TestDataExtractor(DBTestCase):
             row["patient_id"] = int(row["patient_id"]);
             row["item_date"] = DBUtil.parseDateValue(row["item_date"]);
         expectedData = \
-            [   
+            [
                 {"patient_id": -789, "item_date": DBUtil.parseDateValue("12/6/2113 11:20") },
                 {"patient_id": -456, "item_date": DBUtil.parseDateValue("11/6/2113 10:20") },
                 {"patient_id": -123, "item_date": DBUtil.parseDateValue("10/6/2113 10:20") },
@@ -162,7 +163,7 @@ class TestDataExtractor(DBTestCase):
 
 
         # Use like regular expression
-        clinicalItemNames = ["TestItem%"];  
+        clinicalItemNames = ["TestItem%"];
         outFile = StringIO();
         self.extractor.queryClinicalItemsByName(clinicalItemNames, patientById, outFile);
 
@@ -172,7 +173,7 @@ class TestDataExtractor(DBTestCase):
             row["patient_id"] = int(row["patient_id"]);
             row["item_date"] = DBUtil.parseDateValue(row["item_date"]);
         expectedData = \
-            [   
+            [
                 {"patient_id": -789, "item_date": DBUtil.parseDateValue("12/6/2113 11:20") },
                 {"patient_id": -456, "item_date": DBUtil.parseDateValue("11/6/2113 10:20") },
                 {"patient_id": -123, "item_date": DBUtil.parseDateValue("10/6/2113 10:20") },
@@ -183,7 +184,7 @@ class TestDataExtractor(DBTestCase):
 
 
         # Use like regular expression for one item and a fake item
-        clinicalItemNames = ["TestItem1%","FakeItemName"];  
+        clinicalItemNames = ["TestItem1%","FakeItemName"];
         outFile = StringIO();
         self.extractor.queryClinicalItemsByName(clinicalItemNames, patientById, outFile);
 
@@ -193,7 +194,7 @@ class TestDataExtractor(DBTestCase):
             row["patient_id"] = int(row["patient_id"]);
             row["item_date"] = DBUtil.parseDateValue(row["item_date"]);
         expectedData = \
-            [   
+            [
                 {"patient_id": -456, "item_date": DBUtil.parseDateValue("11/6/2113 10:20") },
                 {"patient_id": -123, "item_date": DBUtil.parseDateValue("10/6/2113 10:20") },
                 {"patient_id": -123, "item_date": DBUtil.parseDateValue("10/7/2113 11:20") },
@@ -201,7 +202,7 @@ class TestDataExtractor(DBTestCase):
         self.assertEqualList( expectedData, actualData );
 
         # Expect no results
-        clinicalItemNames = ["FakeItemName"];  
+        clinicalItemNames = ["FakeItemName"];
         outFile = StringIO();
         self.extractor.queryClinicalItemsByName(clinicalItemNames, patientById, outFile);
 
@@ -211,7 +212,7 @@ class TestDataExtractor(DBTestCase):
             row["patient_id"] = int(row["patient_id"]);
             row["item_date"] = DBUtil.parseDateValue(row["item_date"]);
         expectedData = \
-            [   
+            [
             ];
         self.assertEqualList( expectedData, actualData );
 
@@ -231,7 +232,7 @@ class TestDataExtractor(DBTestCase):
             row["patient_id"] = int(row["patient_id"]);
             row["item_date"] = DBUtil.parseDateValue(row["item_date"]);
         expectedData = \
-            [   
+            [
                 {"patient_id": -789, "item_date": DBUtil.parseDateValue("12/6/2113 11:20") },
                 {"patient_id": -456, "item_date": DBUtil.parseDateValue("11/6/2113 10:20") },
                 {"patient_id": -123, "item_date": DBUtil.parseDateValue("10/6/2113 10:20") },
@@ -252,7 +253,7 @@ class TestDataExtractor(DBTestCase):
             row["patient_id"] = int(row["patient_id"]);
             row["item_date"] = DBUtil.parseDateValue(row["item_date"]);
         expectedData = \
-            [   
+            [
                 {"patient_id": -789, "item_date": DBUtil.parseDateValue("12/6/2113 11:20") },
                 {"patient_id": -456, "item_date": DBUtil.parseDateValue("11/6/2113 10:20") },
                 {"patient_id": -123, "item_date": DBUtil.parseDateValue("10/6/2113 10:20") },
@@ -273,7 +274,7 @@ class TestDataExtractor(DBTestCase):
             row["patient_id"] = int(row["patient_id"]);
             row["item_date"] = DBUtil.parseDateValue(row["item_date"]);
         expectedData = \
-            [   
+            [
                 {"patient_id": -456, "item_date": DBUtil.parseDateValue("11/6/2113 10:20") },
                 {"patient_id": -123, "item_date": DBUtil.parseDateValue("10/6/2113 10:20") },
                 {"patient_id": -123, "item_date": DBUtil.parseDateValue("10/7/2113 11:20") },
@@ -281,7 +282,7 @@ class TestDataExtractor(DBTestCase):
         self.assertEqualList( expectedData, actualData );
 
         # Expect no results
-        clinicalItemNames = ["FakeItemName"];  
+        clinicalItemNames = ["FakeItemName"];
         outFile = StringIO();
         self.extractor.queryClinicalItemsByName(clinicalItemNames, patientById, outFile, col="description", operator="~*");
 
@@ -291,7 +292,7 @@ class TestDataExtractor(DBTestCase):
             row["patient_id"] = int(row["patient_id"]);
             row["item_date"] = DBUtil.parseDateValue(row["item_date"]);
         expectedData = \
-            [   
+            [
             ];
         self.assertEqualList( expectedData, actualData );
 
@@ -521,7 +522,7 @@ class TestDataExtractor(DBTestCase):
             row["result_in_range_yn"] = DBUtil.parseValue(row["result_in_range_yn"],"result_in_range_yn");
 
         expectedData = \
-            [   
+            [
                 #{"pat_id": -789, "base_name":"NA", "ord_num_value":123, "result_flag":"Low", "result_in_range_yn":"N", "result_time": DBUtil.parseDateValue("4/6/2009 16:34") },
                 {"pat_id": -789, "base_name":"CR", "ord_num_value":1.0, "result_flag": None, "result_in_range_yn":None, "result_time": DBUtil.parseDateValue("4/6/2009 12:00") },
                 {"pat_id": -789, "base_name":"CR", "ord_num_value":0.3, "result_flag": None, "result_in_range_yn":"Y", "result_time": DBUtil.parseDateValue("4/25/2009 12:00") },
@@ -645,11 +646,11 @@ class TestDataExtractor(DBTestCase):
             if row["flowsheet_value"] is not None and row["flowsheet_value"] != NULL_STRING:
                 row["num_value"] = float(row["flowsheet_value"]);
             row["result_time"] = DBUtil.parseDateValue(row["shifted_record_dt_tm"]);
-            
+
             #print >> sys.stderr, "%(pat_id)s, %(base_name)s, %(num_value)s, %(result_time)s" % row;
 
         expectedData = \
-            [   
+            [
                 #{"pat_id": -789, "base_name":"BP_High_Systolic", "num_value":123, "result_time": DBUtil.parseDateValue("4/6/2009 16:34") },
                 {"pat_id": -789, "base_name":"Glasgow Coma Scale Score", "num_value":1.0, "result_time": DBUtil.parseDateValue("4/6/2009 12:00") },
                 {"pat_id": -789, "base_name":"Glasgow Coma Scale Score", "num_value":0.3, "result_time": DBUtil.parseDateValue("4/25/2009 12:00") },
@@ -674,7 +675,7 @@ class TestDataExtractor(DBTestCase):
         postTimeDelta = timedelta(0);   # Only look for past items
         flowsheetByNameByPatientId = self.extractor.parseFlowsheetFile(StringIO(outFile.getvalue()));
         self.extractor.addFlowsheetFeatures(patientEpisodeByIndexTimeById, flowsheetByNameByPatientId, flowsheetNames, preTimeDelta, postTimeDelta, colNames);
-        
+
         expectedData = \
             {   -123: {DBUtil.parseDateValue("4/6/2009 12:00"): {"patient_id": -123, "index_time":DBUtil.parseDateValue("4/6/2009 12:00"), "days_until_end": 0.0, "FiO2.None_0.count":1, "FiO2.None_0.countInRange":0, "FiO2.None_0.min":0.2, "FiO2.None_0.max":0.2, "FiO2.None_0.median":0.2, "FiO2.None_0.mean":0.2, "FiO2.None_0.std":0, "FiO2.None_0.first":0.2, "FiO2.None_0.last":0.2, "FiO2.None_0.diff":0.0, "FiO2.None_0.slope":0.0, "FiO2.None_0.proximate":0.2, "FiO2.None_0.firstTimeDays":-0.225, "FiO2.None_0.lastTimeDays":-0.225, "FiO2.None_0.proximateTimeDays":-0.225, "Glasgow Coma Scale Score.None_0.count":0, "Glasgow Coma Scale Score.None_0.countInRange":0, "Glasgow Coma Scale Score.None_0.min":None, "Glasgow Coma Scale Score.None_0.max":None, "Glasgow Coma Scale Score.None_0.median":None, "Glasgow Coma Scale Score.None_0.mean":None, "Glasgow Coma Scale Score.None_0.std":None, "Glasgow Coma Scale Score.None_0.first":None, "Glasgow Coma Scale Score.None_0.last":None, "Glasgow Coma Scale Score.None_0.diff":None, "Glasgow Coma Scale Score.None_0.slope":None, "Glasgow Coma Scale Score.None_0.proximate":None, "Glasgow Coma Scale Score.None_0.firstTimeDays":None, "Glasgow Coma Scale Score.None_0.lastTimeDays":None, "Glasgow Coma Scale Score.None_0.proximateTimeDays":None, "Resp.None_0.count":0, "Resp.None_0.countInRange":0, "Resp.None_0.min":None, "Resp.None_0.max":None, "Resp.None_0.median":None, "Resp.None_0.mean":None, "Resp.None_0.std":None, "Resp.None_0.first":None, "Resp.None_0.last":None, "Resp.None_0.diff":None, "Resp.None_0.slope":None, "Resp.None_0.proximate":None, "Resp.None_0.firstTimeDays":None, "Resp.None_0.lastTimeDays":None, "Resp.None_0.proximateTimeDays":None, }},
                 -456: {DBUtil.parseDateValue("5/6/2009 12:00"): {"patient_id": -456, "index_time":DBUtil.parseDateValue("5/6/2009 12:00"), "days_until_end": 0.0, "FiO2.None_0.count":0, "FiO2.None_0.countInRange":0, "FiO2.None_0.min":None, "FiO2.None_0.max":None, "FiO2.None_0.median":None, "FiO2.None_0.mean":None, "FiO2.None_0.std":None, "FiO2.None_0.first":None, "FiO2.None_0.last":None, "FiO2.None_0.diff":None, "FiO2.None_0.slope":None, "FiO2.None_0.proximate":None, "FiO2.None_0.firstTimeDays":None, "FiO2.None_0.lastTimeDays":None, "FiO2.None_0.proximateTimeDays":None, "Glasgow Coma Scale Score.None_0.count":0, "Glasgow Coma Scale Score.None_0.countInRange":0, "Glasgow Coma Scale Score.None_0.min":None, "Glasgow Coma Scale Score.None_0.max":None, "Glasgow Coma Scale Score.None_0.median":None, "Glasgow Coma Scale Score.None_0.mean":None, "Glasgow Coma Scale Score.None_0.std":None, "Glasgow Coma Scale Score.None_0.first":None, "Glasgow Coma Scale Score.None_0.last":None, "Glasgow Coma Scale Score.None_0.diff":None, "Glasgow Coma Scale Score.None_0.slope":None, "Glasgow Coma Scale Score.None_0.proximate":None, "Glasgow Coma Scale Score.None_0.firstTimeDays":None, "Glasgow Coma Scale Score.None_0.lastTimeDays":None, "Glasgow Coma Scale Score.None_0.proximateTimeDays":None, "Resp.None_0.count":0, "Resp.None_0.countInRange":0, "Resp.None_0.min":None, "Resp.None_0.max":None, "Resp.None_0.median":None, "Resp.None_0.mean":None, "Resp.None_0.std":None, "Resp.None_0.first":None, "Resp.None_0.last":None, "Resp.None_0.diff":None, "Resp.None_0.slope":None, "Resp.None_0.proximate":None, "Resp.None_0.firstTimeDays":None, "Resp.None_0.lastTimeDays":None, "Resp.None_0.proximateTimeDays":None, }},
@@ -739,11 +740,11 @@ StringIO("""pat_id\tmedication_id\tstart_taking_time\tend_taking_time\tfreq_name
         checkpointTimes = [0, 0.5*60*60, 1*60*60, 2*60*60, 3*60*60, 4*60*60, 4.5*60*60, 5*60*60, 6*60*60, 7*60*60];  # Time checkpoints (seconds) interested in accumulated fluid volume by that time
         ivFluidsByPatientId = self.extractor.parseIVFluidFile(StringIO(outFile.getvalue()));
         self.extractor.addIVFluidFeatures(patientEpisodeByIndexTimeById, ivFluidsByPatientId, thresholdVolumes, checkpointTimes, colNames);
-        
+
         expectedData = \
-            {   -123: 
-                {   DBUtil.parseDateValue("4/6/2009 12:00"): 
-                    {   "patient_id": -123, 
+            {   -123:
+                {   DBUtil.parseDateValue("4/6/2009 12:00"):
+                    {   "patient_id": -123,
                         "index_time":DBUtil.parseDateValue("4/6/2009 12:00"),
                         "days_until_end": 0.0,
                         "ivf.secondsUntilCC.500": 3600,
@@ -788,8 +789,10 @@ def suite():
     #suite.addTest(TestDataExtractor('test_labResults'));
     #suite.addTest(TestDataExtractor('test_addTimeCycleFeatures'));
     suite.addTest(unittest.makeSuite(TestDataExtractor));
-    
+
     return suite;
-    
+
 if __name__=="__main__":
+    log = logging.getLogger("CDSS")
+    log.setLevel(logging.DEBUG)
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

@@ -12,7 +12,7 @@ import math;
 import json;
 from Const import DEFAULT_DATE_FORMATS, NULL_STRING, FALSE_STRINGS;
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("CDSS")
 log.setLevel(Const.LOGGER_LEVEL)
 
 handler = logging.StreamHandler(sys.stderr)

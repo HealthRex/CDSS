@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-General preparation step whose output can be reviewed in multiple ways 
+General preparation step whose output can be reviewed in multiple ways
     instead of directly applying RecommendationClassification or OutcomePrediction, etc.
 Given set of patient IDs of interest and some query / extraction parameters,
   list out the patients along with the set of clinical_item_ids relevant for that patient's "query" period
@@ -43,22 +43,22 @@ class PreparePatientItems(BaseCPOEAnalysis):
         if conn is None:
             conn = self.connFactory.connection();
             extConn = False;
-        
+
         try:
             # Start building results data
             progress = ProgressDots(50,1,"Patients");
-            
+
             # Query for all of the order / item data for the specified patients.  Load one patient's data at a time
             for patientItemData in self.loadPatientItemData(analysisQuery, conn=conn):
                 patientId = patientItemData["patient_id"];
                 if self.prepareResultModel(patientItemData, analysisQuery, patientId):
                     yield patientItemData;
                 progress.update();
-            progress.printStatus();
+            # progress.printStatus();
         finally:
             if not extConn:
                 conn.close();
-    
+
     def loadPatientItemData(self, analysisQuery, conn=None):
         """Load up patient information based on the analysisQuery from the database
         to find query and verify subsets for subsequent analysis.
@@ -74,7 +74,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
 
         if analysisQuery.preparedPatientItemFile is None:
             for (patientId, patientItemList) in self.queryPatientClinicalItemData(analysisQuery, conn=conn):
-                # Parse through the patient's item list and run a query to get the top recommended IDs for comparison                
+                # Parse through the patient's item list and run a query to get the top recommended IDs for comparison
                 for patientItemData in self.extractPatientItemData(analysisQuery, analysisQuery.baseRecQuery, patientId, patientItemList, self.categoryIdByItemId):
                     yield patientItemData;
         else:
@@ -88,12 +88,12 @@ class PreparePatientItems(BaseCPOEAnalysis):
         at a time.
         Generated iterator over 2-ples (patientId, clinicalItemList)
             - Patient ID: ID of the patient for which the currently yielded item intended for
-            - Clinical Item List: 
+            - Clinical Item List:
                 List of all of the relevant clinical items for this patient
         """
         analysisQuery.filteredPatientIds = set(analysisQuery.patientIds);
         if analysisQuery.baseItemId is not None:
-            # Do a pre-query to only check patients for whom the base item even exists, 
+            # Do a pre-query to only check patients for whom the base item even exists,
             #   otherwise may waste a lot of time pulling up data on patients that are not relevant
             sqlQuery = SQLQuery();
             sqlQuery.addSelect("distinct pi.patient_id");
@@ -158,12 +158,12 @@ class PreparePatientItems(BaseCPOEAnalysis):
         # Don't use items whose default is to be excluded from analysis
         #   Unless part of specifically sought after base category id
         if analysisQuery.baseCategoryId is None and analysisQuery.baseItemId is None:
-            sqlQuery.addWhere("ci.analysis_status <> 0");  
+            sqlQuery.addWhere("ci.analysis_status <> 0");
         elif analysisQuery.baseCategoryId is not None:
             sqlQuery.addWhere("(ci.analysis_status <> 0 or ci.clinical_item_category_id = %s)" % analysisQuery.baseCategoryId);
         elif analysisQuery.baseItemId is not None:
             sqlQuery.addWhere("(ci.analysis_status <> 0 or ci.clinical_item_id = %s)" % analysisQuery.baseItemId);
-        
+
         if analysisQuery.startDate is not None:
             # Look for items within specified date range, but accept old items from designated past categories
             sqlQuery.openWhereOrClause();
@@ -173,9 +173,9 @@ class PreparePatientItems(BaseCPOEAnalysis):
             sqlQuery.closeWhereOrClause();
         if analysisQuery.endDate is not None:
             sqlQuery.addWhereOp("pi.item_date","<", analysisQuery.endDate );
-        
-        #sqlQuery.addWhere("cic.default_recommend <> 0");  
-        #sqlQuery.addWhere("ci.default_recommend <> 0");  
+
+        #sqlQuery.addWhere("cic.default_recommend <> 0");
+        #sqlQuery.addWhere("ci.default_recommend <> 0");
 
         sqlQuery.addWhereIn("pi.patient_id", analysisQuery.filteredPatientIds );
 
@@ -193,7 +193,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
         while row is not None:
             patientItem = RowItemModel( row, rowHeaders );
             patientId = patientItem["patient_id"];
-            
+
             if currentPatientId is None:
                 currentPatientId = patientId;
 
@@ -208,13 +208,13 @@ class PreparePatientItems(BaseCPOEAnalysis):
             patientItemList.append(patientItem);
 
             row = cursor.fetchone();
-        
+
         # Yield / return the last patient data
         orderSetLinkRow = self.linkOrderSetData(orderSetCursor, orderSetHeaders, orderSetLinkRow, currentPatientId, patientItemList);
         yield (currentPatientId, patientItemList);
-        
+
         cursor.close();
-        
+
         if orderSetCursor is not None:
             orderSetCursor.close();
 
@@ -231,7 +231,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
                 orderSetLinkItem = RowItemModel( orderSetLinkRow, orderSetHeaders );
             # Scan through cursor until encounter a later patient or end of cursor data stream
             while orderSetLinkItem is not None and orderSetLinkItem["patient_id"] <= patientId:
-                            
+
                 if orderSetLinkItem["patient_id"] == patientId:
                     # Matched patient, store links in memory for subsequent lookup
                     orderSetLinkByPatientItemId[orderSetLinkItem["patient_item_id"]] = orderSetLinkItem;
@@ -275,7 +275,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
         """Get patientItemData model prepared for output formatting"""
         if "queryItemCountById" not in patientItemData:
             return False;   # Apparently unable to find data for this patient.  Skip it / flag issue then and move on
-        
+
         patientItemData["patient_id"] = patientId;
         patientItemData["queryItemCountByIdJSON"] = json.dumps(patientItemData["queryItemCountById"]);
         patientItemData["verifyItemCountByIdJSON"] = json.dumps(patientItemData["verifyItemCountById"]);
@@ -287,9 +287,9 @@ class PreparePatientItems(BaseCPOEAnalysis):
 
     def resultHeaders(self, analysisQuery):
         headers = \
-            [   "patient_id", 
-                "queryItemCountByIdJSON", 
-                "verifyItemCountByIdJSON", 
+            [   "patient_id",
+                "queryItemCountByIdJSON",
+                "verifyItemCountByIdJSON",
             ];
         if analysisQuery.queryTimeSpan is not None:
             headers.extend \
@@ -337,15 +337,15 @@ class PreparePatientItems(BaseCPOEAnalysis):
             yield dataRow;
             prog.update();
         inputFile.close();
-        prog.printStatus();
+        # prog.printStatus();
 
     def convertResultsFileToFeatureMatrix(self, inputFilename, incHeaders=True):
-        """Convert results file from primary prepare patient items script into a (sparse) feature matrix 
+        """Convert results file from primary prepare patient items script into a (sparse) feature matrix
         to facilitate subsequent analysis.  Implemented as a generator over matrix rows to stream through data
         incHeaders:    Whether to include a header label row with result
         """
         inputFileFactory = FileFactory(inputFilename);
-        
+
         itemColumnHeaders = ["queryItemCountByIdJSON", "verifyItemCountByIdJSON"];
         allItemIds = set();    # Keep track of unique set of all item IDs encountered
         allItemIdList = None;
@@ -360,11 +360,11 @@ class PreparePatientItems(BaseCPOEAnalysis):
         while line.startswith(COMMENT_TAG): # Find the first non-comment line
             line = inputFile.readline().strip();
         headers = line.split("\t");    # Assumes tab-separated
-        
+
         for itemCol in itemColumnHeaders:
             headers.remove(itemCol);
         inputFile.close();
-        
+
         # First full pass through data to determine column list by pulling out the total list of query and verify items
         inputFile = iter(inputFileFactory);
         for inputDict in TabDictReader(inputFile):
@@ -373,17 +373,17 @@ class PreparePatientItems(BaseCPOEAnalysis):
                 allItemIds.update(itemCountById.iterkeys());
             nLines += 1;
         inputFile.close();
-        
+
         # Add sorted, unique list of item IDs to the expected column headers
         baseHeaders = list(headers);    # Copy before hitting item IDs.
         allItemIdList = list(allItemIds);
         allItemIdList.sort();
         itemIdHeaders = [str(itemId) for itemId in allItemIdList];
         headers.extend(itemIdHeaders);
-        
+
         if incHeaders:
             yield headers;
-        
+
         # Now do real pass through to generate one row of results at a time
         prog = ProgressDots(total=nLines);
         inputFile = iter(inputFileFactory);
@@ -392,16 +392,16 @@ class PreparePatientItems(BaseCPOEAnalysis):
             resultRow = list();
             for header in baseHeaders:
                 resultRow.append(inputDict[header]);
-            
+
             # Figure out what items are included in this row
-            rowItemCountById = dict();  
+            rowItemCountById = dict();
             for itemCol in itemColumnHeaders:
                 itemCountById = loadJSONDict(inputDict[itemCol],int,int);
                 for itemId, itemCount in itemCountById.iteritems():
                     if itemId not in rowItemCountById:
                         rowItemCountById[itemId] = 0;
                     rowItemCountById[itemId] += itemCount;
-        
+
             # Populate row values with counts
             for itemId in allItemIdList:
                 if itemId in rowItemCountById:
@@ -409,25 +409,25 @@ class PreparePatientItems(BaseCPOEAnalysis):
                 else:
                     value = 0;
                 resultRow.append(value);
-        
+
             yield resultRow;
             prog.update();
         inputFile.close();
-        prog.printStatus();
-        
+        # prog.printStatus();
+
 
     def convertResultsFileToBagOfWordsCorpus(self, inputFile, queryItems=True, verifyItems=True, outcomeItems=True, excludeCategoryIds=None):
         """Convert results file from primary prepare patient items script into a (sparse) "bag of words"
         format of 2-ples (itemId, itemCount) for each patient/row.
         Implemented as a generator over patient rows to stream through data
-        
+
         queryItems: Whether to include query items in the results
         verifyItems: Whether to include verify items in the results
         incHeaders: Whether to include a header label row with result
         excludeCategoryIds: IDs of item categories that should be excluded / skipped during conversion
         """
         itemsById = DBUtil.loadTableAsDict("clinical_item");
-        
+
         prog = ProgressDots();
         for inputDict in TabDictReader(inputFile):
             resultRow = list();
@@ -440,7 +440,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
                         outcomeId = int(key[len("outcome."):]);
                         resultRow.append( (outcomeId, value) );
                         observedIds.add(outcomeId);
-            
+
             totalCountById = dict();
             if queryItems:
                 # Iterate through query items
@@ -460,14 +460,14 @@ class PreparePatientItems(BaseCPOEAnalysis):
             yield resultRow;
             prog.update();
         inputFile.close();
-        prog.printStatus();
-    
+        # prog.printStatus();
+
     def itemCountByIdToBagOfWords(self, itemCountById, observedIds=None, itemsById=None, excludeCategoryIds=None ):
         """Return 2-ple (itemId, count) representation of item IDs, but filter out those in excluded set,
         or whose category looked up via itemsById is already observed previously or so far.
         """
         return TopicModel.itemCountByIdToBagOfWords(itemCountById, observedIds, itemsById, excludeCategoryIds );
-    
+
     def bagOfWordsToCountById(self, bagOfWords):
         """Convert bag of words collection of 2-ple (itemId, count) representation into a dictionary of itemId: count mappings."""
         return TopicModel.bagOfWordsToCountById(bagOfWords);
@@ -480,7 +480,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
         if len(outcomeIdComponents) > 1:
             sequenceIds = [int(seqIdStr) for seqIdStr in outcomeIdComponents[1].split(":")];
             analysisQuery.sequenceItemIdsByVirtualItemId[outcomeId] = tuple(sequenceIds);
-    
+
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog [options] <inputFile> [<outputFile>]\n"+\
@@ -518,11 +518,11 @@ class PreparePatientItems(BaseCPOEAnalysis):
                 if len(args) > 1:
                     outputFilename = args[1];
                 outputFile = stdOpen(outputFilename,"w");
-                
+
                 queryItems = ("q" in options.bagOfWordsConvert);
                 verifyItems = ("v" in options.bagOfWordsConvert);
                 outcomeItems = ("o" in options.bagOfWordsConvert);
-                
+
                 excludeCategoryIds = None;
                 if options.excludeCategoryIds is not None:
                     excludeCategoryIds = set(int(idStr) for idStr in options.excludeCategoryIds.split(","));
@@ -573,7 +573,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
                 if options.numQuery is not None:
                     query.numQueryItems = int(options.numQuery);
                     query.numVerifyItems = int(options.numVerify);
-                else:                
+                else:
                     query.queryTimeSpan = timedelta(0,int(options.queryTimeSpan));
                     query.verifyTimeSpan = timedelta(0,int(options.verifyTimeSpan));
 
@@ -619,10 +619,10 @@ class PreparePatientItems(BaseCPOEAnalysis):
 
                 formatter = TextResultsFormatter( outputFile );
 
-                colNames = self.resultHeaders(query); 
+                colNames = self.resultHeaders(query);
                 formatter.formatTuple( colNames );    # Insert a mock record to get a header / label row
                 formatter.formatResultDicts( resultsGenerator, colNames );
-            
+
         else:
             parser.print_help()
             sys.exit(-1)
@@ -698,7 +698,7 @@ class ItemsByBaseItemExtractor:
     def __call__(self, analysisQuery, recQuery, patientId, patientItemList, categoryIdByItemId, preparer):
         patientItemData = {"patient_id": patientId };
 
-        # First pass through old items until find base/index item 
+        # First pass through old items until find base/index item
         self.identifyBaseItem(analysisQuery, recQuery, patientId, patientItemList, categoryIdByItemId, preparer, patientItemData);
 
         baseItemId = patientItemData["baseItemId"];  # Item ID of base item found
@@ -716,7 +716,7 @@ class ItemsByBaseItemExtractor:
             log.warning("Unable to find adequate patient items for patient: %s" % patientId );
         else:
             # Track whether the target outcome IDs exist for the patient
-            existsByOutcomeId = dict(); 
+            existsByOutcomeId = dict();
             for outcomeId in recQuery.targetItemIds:
                 existsByOutcomeId[outcomeId] = OUTCOME_ABSENT;   # Default to not found
 
@@ -752,7 +752,7 @@ class ItemsByBaseItemExtractor:
                             if queryStartTime <= midSeqDate and midSeqDate <= patientItem["item_date"]:
                                 foundSequence = True;
                                 break;
-                        isVirtualOutcome = isVirtualOutcome and foundSequence;    
+                        isVirtualOutcome = isVirtualOutcome and foundSequence;
                     if isVirtualOutcome:
                         virtualOutcomeId = virtualItemId;
 
@@ -802,7 +802,7 @@ class ItemsByBaseItemExtractor:
             patientItemData["queryItemCountById"] = queryItemCountById;
             patientItemData["verifyItemCountById"] = verifyItemCountById;
             patientItemData["existsByOutcomeId"] = existsByOutcomeId;
-        
+
         yield patientItemData; # Generator to return a single result
 
 
@@ -815,10 +815,10 @@ class ItemsByBaseItemExtractor:
         verifyEndTime = None;   # Date to stop counting items for verify set
         outcomeEndTime = None;  # Latest date for an outcome item to be present and count as existing for the prediction
 
-        # Front scan through old items until find base/index item 
+        # Front scan through old items until find base/index item
         for patientItem in patientItemList:
             if baseItemDate is None:
-                # Still looking for base item   
+                # Still looking for base item
                 if patientItem["clinical_item_category_id"] == analysisQuery.baseCategoryId or patientItem["clinical_item_id"] == analysisQuery.baseItemId:
                     baseItemId = patientItem["clinical_item_id"];
                     baseItemDate = patientItem["item_date"];
@@ -849,19 +849,19 @@ class ItemsByBaseItemExtractor:
         patientItemData["queryEndTime"] = queryEndTime;
         patientItemData["verifyEndTime"] = verifyEndTime;
         patientItemData["outcomeEndTime"] = outcomeEndTime;
-        
+
 class ItemsByOrderSetExtractor(ItemsByBaseItemExtractor):
     """Given a patient's list of clinical item events (patient items),
     search for orders that derived from clinical order sets.
     For each order set used within the specified query time relative to a base item (typically admission diagnosis).
     Generate a result for each unique order set usage with query items from the base time up to the order set,
-    with a matching verify set of orders actually used (including ones coming from the order set) within 
+    with a matching verify set of orders actually used (including ones coming from the order set) within
     the additional verify time specified.
     """
     def __call__(self, analysisQuery, recQuery, patientId, patientItemList, categoryIdByItemId, preparer):
         patientItemData = {"patient_id": patientId };
 
-        # First pass through old items until find base/index item 
+        # First pass through old items until find base/index item
         self.identifyBaseItem(analysisQuery, recQuery, patientId, patientItemList, categoryIdByItemId, preparer, patientItemData);
 
         baseItemId = patientItemData["baseItemId"];  # Item ID of base item found
@@ -886,11 +886,11 @@ class ItemsByOrderSetExtractor(ItemsByBaseItemExtractor):
                         # First item in an order set not encountered before, occuring within the search time of interest
                         foundOrderSetIds.add(orderSetId);
                         firstOrderSetItems.append(patientItem);
-            
+
             # Now do pass throughs to yield a query / verify item set based on each order set index time
             for firstOrderSetItem in firstOrderSetItems:
                 orderSetId = firstOrderSetItem["order_set_id"];
-                queryStartTime = searchStartTime;   # Date to start counting queryTimeSpan.  
+                queryStartTime = searchStartTime;   # Date to start counting queryTimeSpan.
                 queryEndTime = firstOrderSetItem["item_date"];    # Date to stop counting (up to the use of the order set)
                 verifyEndTime = firstOrderSetItem["item_date"]+analysisQuery.verifyTimeSpan;   # Date to stop counting items for verify set
 
@@ -928,7 +928,7 @@ class ItemsByOrderSetExtractor(ItemsByBaseItemExtractor):
 
                 patientItemData["queryItemCountById"] = queryItemCountById;
                 patientItemData["verifyItemCountById"] = verifyItemCountById;
-        
+
                 yield patientItemData;
 
 if __name__ == "__main__":

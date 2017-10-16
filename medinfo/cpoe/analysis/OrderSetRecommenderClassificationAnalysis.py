@@ -49,9 +49,9 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
             analysisResults = \
                 self.analyzePatientItems \
                 (   patientItemData,
-                    analysisQuery, 
-                    analysisQuery.baseRecQuery, 
-                    patientId, 
+                    analysisQuery,
+                    analysisQuery.baseRecQuery,
+                    patientId,
                     analysisQuery.recommender,
                 );
 
@@ -63,11 +63,11 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
                     analysisQuery.baseItemId = patientItemData["baseItemId"]; # Record something here, so know to report back in result headers
                 yield resultsStatData;
             progress.Update();
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
     def analyzePatientItems(self, patientItemData, analysisQuery, recQuery, patientId, recommender):
         """Given the primary query data and clinical item list for a given test patient,
-        Parse through the item list and run a query to get the top recommended IDs 
+        Parse through the item list and run a query to get the top recommended IDs
         to produce the relevant verify and recommendation item ID sets for comparison
         """
         if "queryItemCountById" not in patientItemData:
@@ -75,10 +75,10 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
             return None;
         queryItemCountById = patientItemData["queryItemCountById"];
         verifyItemCountById = patientItemData["verifyItemCountById"];
-        
+
         recQuery.queryItemIds = queryItemCountById; # Have option to use as dictionary, but will also function as key set
-        # recQuery.limit = analysisQuery.numRecommendations; 
-        
+        # recQuery.limit = analysisQuery.numRecommendations;
+
         # Query for recommended orders / items
         recommendedData = recommender( recQuery );
 
@@ -89,7 +89,7 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
                 break;
             recommendedItemIds.add(recommendationModel["clinical_item_id"]);
         return (queryItemCountById, verifyItemCountById, recommendedItemIds, recommendedData);
- 
+
     def calculateResultStats( self, patientItemData, queryItemCountById, verifyItemCountById, recommendedItemIds, baseCountByItemId, recQuery, recommendedData ):
         resultsStatData = RecommendationClassificationAnalysis.calculateResultStats( self, patientItemData, queryItemCountById, verifyItemCountById, recommendedItemIds, baseCountByItemId, recQuery, recommendedData );
         # Copy elements from any item in recommended list
@@ -102,7 +102,7 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
         headers.append("weightByOrderSetId");
         headers.append("numSelectedOrderSets");
         return headers;
-   
+
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog [options] <inputFile> [<outputFile>]\n"+\
@@ -128,7 +128,7 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
             else:   # Default exclusions if none specified
                 query.baseRecQuery.excludeCategoryIds = query.recommender.defaultExcludedClinicalItemCategoryIds();
                 query.baseRecQuery.excludeItemIds = query.recommender.defaultExcludedClinicalItemIds();
-            
+
             query.baseRecQuery.sortField = options.sortField;
             query.numRecommendations = int(options.numRecs);
 
@@ -140,13 +140,13 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
             if len(args) > 1:
                 outputFilename = args[1];
             outputFile = stdOpen(outputFilename,"w");
-            
+
             # Print comment line with analysis arguments to allow for deconstruction later
             summaryData = {"argv": argv};
             print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
 
             formatter = TextResultsFormatter( outputFile );
-            colNames = self.resultHeaders(query); 
+            colNames = self.resultHeaders(query);
             formatter.formatTuple( colNames );  # Insert a mock record to get a header / label row
             formatter.formatResultDicts( analysisResults, colNames );
         else:

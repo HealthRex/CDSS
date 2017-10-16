@@ -14,7 +14,7 @@ from medinfo.db.test.Util import DBTestCase;
 import medinfo.analysis.Util;
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("CDSS")
 log.setLevel(Const.LOGGER_LEVEL)
 
 handler = logging.StreamHandler(sys.stderr)
@@ -24,7 +24,7 @@ handler.setFormatter(formatter)
 log.addHandler(handler)
 
 # Suppress uninteresting application output
-medinfo.analysis.Util.log.setLevel(Const.APP_LOGGER_LEVEL) 
+medinfo.analysis.Util.log.setLevel(Const.APP_LOGGER_LEVEL)
 
 
 class BaseTestAnalysis(DBTestCase):
@@ -51,7 +51,7 @@ class BaseTestAnalysis(DBTestCase):
             if not nextLine.startswith(COMMENT_TAG):
                 headerLine = nextLine;
         headers = headerLine.strip().split("\t");
-        
+
         analysisResults = list();
         for line in textOutput:
             dataChunks = line.strip().split("\t");
@@ -65,16 +65,16 @@ class BaseTestAnalysis(DBTestCase):
                         resultModel[col] = float(resultModel[col]);
                     except ValueError:
                         pass;   # Not a number, just leave it as original value then
-            analysisResults.append(resultModel);        
-        
+            analysisResults.append(resultModel);
+
         self.assertEqualStatResults( expectedResults, analysisResults, colNames );
-        
+
     def extractJSONComment(self, dataFile):
-        """Iterate through lines of the file until find a comment line to 
+        """Iterate through lines of the file until find a comment line to
         extract out a JSON data object."""
         for line in dataFile:
             if line.startswith(COMMENT_TAG):
                 jsonStr = line[1:].strip(); # Remove comment tag and any flanking whitespace
                 jsonData = json.loads(jsonStr);
                 return jsonData;
-        return None;                
+        return None;

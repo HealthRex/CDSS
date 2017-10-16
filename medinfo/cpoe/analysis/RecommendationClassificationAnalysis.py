@@ -48,11 +48,11 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
         if conn is None:
             conn = self.connFactory.connection();
             extConn = False;
-        
+
         try:
             # Preload some lookup data to facilitate subsequent checks
             baseCountByItemId = self.dataManager.loadClinicalItemBaseCountByItemId(conn=conn);
-            
+
             # Recommender to test with
             recommender = analysisQuery.recommender;
 
@@ -62,23 +62,23 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
             # Start building results data
             resultsStatDataList = list();
             progress = ProgressDots(50,1,"Patients");
-            
+
             # Query for all of the order / item data for the test patients.  Load one patient's data at a time
             preparer = PreparePatientItems();
             for patientItemData in preparer.loadPatientItemData(analysisQuery, conn=conn):
                 patientId = patientItemData["patient_id"];
-                
+
                 analysisResults = \
                     self.analyzePatientItems \
                     (   patientItemData,
-                        analysisQuery, 
-                        recQuery, 
-                        patientId, 
-                        recommender, 
+                        analysisQuery,
+                        recQuery,
+                        patientId,
+                        recommender,
                         preparer,
                         conn=conn
                     );
-                
+
                 if analysisResults is not None:
                     (queryItemCountById, verifyItemCountById, recommendedItemIds, recommendedData) = analysisResults;  # Unpack results
                     # Start aggregating and calculating result stats
@@ -86,9 +86,9 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
                     if "baseItemId" in patientItemData:
                         analysisQuery.baseItemId = patientItemData["baseItemId"]; # Record something here, so know to report back in result headers
                     resultsStatDataList.append(resultsStatData);
-                
+
                 progress.Update();
-            progress.PrintStatus();
+            # progress.PrintStatus();
 
             return resultsStatDataList;
 
@@ -99,19 +99,19 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
 
     def analyzePatientItems(self, patientItemData, analysisQuery, recQuery, patientId, recommender, preparer, conn):
         """Given the primary query data and clinical item list for a given test patient,
-        Parse through the item list and run a query to get the top recommended IDs 
+        Parse through the item list and run a query to get the top recommended IDs
         to produce the relevant verify and recommendation item ID sets for comparison
         """
-        
+
         if "queryItemCountById" not in patientItemData:
             # Apparently not able to find / extract relevant data, so skip this record
             return None;
         queryItemCountById = patientItemData["queryItemCountById"];
         verifyItemCountById = patientItemData["verifyItemCountById"];
-        
+
         recQuery.queryItemIds = queryItemCountById.keys();
         recQuery.targetItemIds = set(); # Ensure not restricted to some specified outcome target
-        
+
         # Query for recommended orders / items
         recommendedData = recommender( recQuery, conn=conn );
 
@@ -154,7 +154,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
             - numQueryItems: Count of queryItemIds
             - numVerifyItems: Count of verifyItemIds
             - numRecommendedItems: Count of recommendedItemIds
-            
+
             - TP: Number of True Positives (items in both the recommended and verify sets)
             - FN: Number of False Negatives (items in verify set, but not recommended)
             - FP: Number of False Positives (items recommended, but not in verify set)
@@ -162,7 +162,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
             - recall = sensitivity: TP / (TP + FN)
             - precision = PPV (positive predictive value): TP / (TP + FP)
             - F1-score:  2*precision*recall / (precision+recall)
-            
+
             - ROC-AUC: ROC area-under-curve
 
         Additional result stat set that provides weighted scores to correct predictions / classifications.
@@ -183,13 +183,13 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
         stats["numQueryItems"] = len(queryItemCountById);
         stats["numVerifyItems"] = len(verifyItemCountById);
         stats["numRecommendedItems"] = len(recommendedItemIds);
-        
+
         verifyItemIds = set(stats["verifyItemIds"]);    # Convenience reference in set form for set operators (intersection)
-        
+
         stats["TP"] = len(verifyItemIds.intersection(recommendedItemIds));
         stats["FN"] = stats["numVerifyItems"] - stats["TP"];
         stats["FP"] = stats["numRecommendedItems"] - stats["TP"];
-        
+
         stats["recall"] = stats["sensitivity"] = None;
         if (stats["TP"]+stats["FN"]) > 0:
             stats["recall"] = stats["sensitivity"] = float(stats["TP"]) / (stats["TP"]+stats["FN"]);
@@ -238,7 +238,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
             if baseCount <= 0: baseCount = 0.5; # Normalization to avoid possible divide by zero
             weightByRecommendedItemId[itemId] = 1.0/baseCount;
         stats["weightRecommendedItems"] = sum(weightByRecommendedItemId.itervalues());
-        
+
         stats["weightTP"] = 0.0;
         for itemId in verifyItemIds.intersection(recommendedItemIds):
             baseCount = 0;
@@ -249,7 +249,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
 
         stats["weightFN"] = stats["weightVerifyItems"] - stats["weightTP"];
         stats["weightFP"] = stats["weightRecommendedItems"] - stats["weightTP"];
-        
+
         stats["weightRecall"] = stats["weightSensitivity"] = None;
         if (stats["weightTP"]+stats["weightFN"]) > 0:
             stats["weightRecall"] = stats["weightSensitivity"] = float(stats["weightTP"]) / (stats["weightTP"]+stats["weightFN"]);
@@ -262,20 +262,20 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
             stats["weightF1-score"] = 0.0;
             if (stats["weightPrecision"]+stats["weightRecall"]) > 0:
                 stats["weightF1-score"] = 2*stats["weightPrecision"]*stats["weightRecall"] / (stats["weightPrecision"]+stats["weightRecall"]);
-        
+
         # Convert sets into more easily readable, sorted tuples
         stats["queryItemIdTuple"] = list(stats["queryItemIds"]);
         stats["queryItemIdTuple"].sort();
         stats["queryItemIdTuple"] = tuple(stats["queryItemIdTuple"]);
-        
+
         stats["verifyItemIdTuple"] = list(stats["verifyItemIds"]);
         stats["verifyItemIdTuple"].sort();
         stats["verifyItemIdTuple"] = tuple(stats["verifyItemIdTuple"]);
-        
+
         stats["recommendedItemIdTuple"] = list(stats["recommendedItemIds"]);
         stats["recommendedItemIdTuple"].sort();
         stats["recommendedItemIdTuple"] = tuple(stats["recommendedItemIdTuple"]);
-        
+
         try:
             # Build list of outcome results and scores to generate ROC curve analysis
             outcomes = list();
@@ -288,7 +288,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
                     score = recommendedItemModel["score"];
                 outcomes.append( recommendedItemModel["clinical_item_id"] in verifyItemIds );
                 scores.append( score );
-            
+
             stats["ROC-AUC"] = ROCPlot.aucScore(outcomes,scores);
         except ValueError:
             # Undefined ROC score when all outcomes of same value (i.e., no verify items, so all recommendations are false)
@@ -298,14 +298,14 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
 
     def resultHeaders(self, analysisQuery=None):
         headers = \
-            [   "patient_id", 
-                "queryItemIdTuple", 
-                "verifyItemIdTuple", 
-                "recommendedItemIdTuple", 
-                "numQueryItems", 
-                "numVerifyItems", 
-                "numRecommendedItems", 
-                "TP", "FN", "FP", 
+            [   "patient_id",
+                "queryItemIdTuple",
+                "verifyItemIdTuple",
+                "recommendedItemIdTuple",
+                "numQueryItems",
+                "numVerifyItems",
+                "numRecommendedItems",
+                "TP", "FN", "FP",
                 "recall", "precision", "F1-score",
                 "weightRecall", "weightPrecision", "weightF1-score",
                 "normalRecall","normalPrecision",
@@ -371,7 +371,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
                 if options.numQuery is not None:
                     query.numQueryItems = int(options.numQuery);
                     query.numVerifyItems = int(options.numVerify);
-                else:                
+                else:
                     # Alternative to specify query time span starting from a key category
                     query.queryTimeSpan = timedelta(0,int(options.queryTimeSpan));
                     query.verifyTimeSpan = timedelta(0,int(options.verifyTimeSpan));
@@ -421,13 +421,13 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
             if len(args) > 1:
                 outputFilename = args[1];
             outputFile = stdOpen(outputFilename,"w");
-            
+
             # Print comment line with analysis arguments to allow for deconstruction later
             summaryData = {"argv": argv};
             print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
 
             formatter = TextResultsFormatter( outputFile );
-            colNames = self.resultHeaders(query); 
+            colNames = self.resultHeaders(query);
             formatter.formatTuple( colNames );  # Insert a mock record to get a header / label row
             formatter.formatResultDicts( analysisResults, colNames );
 

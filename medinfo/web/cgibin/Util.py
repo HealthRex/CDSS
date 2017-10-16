@@ -6,7 +6,7 @@ import Const
 import sys, os
 import logging
 
-log = logging.getLogger(Const.APPLICATION_NAME)
+log = logging.getLogger("CDSS")
 log.setLevel(Const.LOGGER_LEVEL)
 
 handler = logging.StreamHandler(sys.stderr)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-Go through prepared patient items, query back to database to see how many order sets 
+Go through prepared patient items, query back to database to see how many order sets
 were used in those cases, and the density of order set usage.
-Looks at overall stats of usage during verify period (e.g., within 24 hours), 
+Looks at overall stats of usage during verify period (e.g., within 24 hours),
 unless specify evaluation numRecsByOrderSet then only looking at one specified key order set at a time
 
 Multiple versions of stats to get out of module:
@@ -39,7 +39,7 @@ from RecommendationClassificationAnalysis import RecommendationClassificationAna
 # When doing validation calculations, number of items to recommend when calculating precision and recall
 # If set to value < 1, then interpret as sentinel value, meaning just use all available order set items.
 # Otherwise, choose a subset sorted by how common the top items are
-DEFAULT_RECOMMENDED_ITEM_COUNT = -1;    
+DEFAULT_RECOMMENDED_ITEM_COUNT = -1;
 
 # Default field to sort by if selecting a subset of order set items to consider
 DEFAULT_SORT_FIELD = "patient_count";
@@ -55,7 +55,7 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
         if conn is None:
             conn = self.connFactory.connection();
             extConn = False;
-        
+
         try:
             conn = DBUtil.connection();
 
@@ -66,9 +66,9 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
                 analysisResults = \
                     self.analyzePatientItems \
                     (   patientItemData,
-                        analysisQuery, 
-                        analysisQuery.baseRecQuery, 
-                        patientId, 
+                        analysisQuery,
+                        analysisQuery.baseRecQuery,
+                        patientId,
                         analysisQuery.recommender,
                         conn=conn
                     );
@@ -94,14 +94,14 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
                         resultsStatData["recommendableQueryVerifyItemFromOrderSetRate"] = float(resultsStatData["numRecommendableUsedOrderSetItems"]) / resultsStatData["numRecommendableQueryVerifyItems"];
                     yield resultsStatData;
                 progress.Update();
-            progress.PrintStatus();
+            # progress.PrintStatus();
         finally:
             if not extConn:
                 conn.close();
 
     def analyzePatientItems(self, patientItemData, analysisQuery, recQuery, patientId, recommender, conn):
         """Given the primary query data and clinical item list for a given test patient,
-        Parse through the item list and run a query to get the top recommended IDs 
+        Parse through the item list and run a query to get the top recommended IDs
         to produce the relevant verify and recommendation item ID sets for comparison
         """
         if "queryItemCountById" not in patientItemData:
@@ -109,13 +109,13 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
             return None;
         queryItemCountById = patientItemData["queryItemCountById"];
         verifyItemCountById = patientItemData["verifyItemCountById"];
-        
+
         ## Query for orderset linked items
         orderSetQuery = \
             """
             select ic.external_id, pi.clinical_item_id, pi.item_date >= %(p)s as is_verify_item
-            from 
-               patient_item as pi, 
+            from
+               patient_item as pi,
                patient_item_collection_link as picl,
                item_collection_item as ici,
                item_collection as ic
@@ -148,8 +148,8 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
         # Pre-cache order set item data
         if self.supportRecommender.itemIdsByOrderSetId is None:
             self.supportRecommender.initItemLookups(analysisQuery.baseRecQuery);
-        
-        # For each order set, count up how many order set linked items used.  
+
+        # For each order set, count up how many order set linked items used.
         #   Count up how many items used indirectly that would have been within order set.
         # Organize by whether the item occurred during the "verify" vs. "query" time period
         usedItemIdsByOrderSetIdByIsVerifyItem = {True:dict(), False:dict()};
@@ -170,12 +170,12 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
         allUsedOrderSetIds = set();
         recommendableUsedOrderSetItemIds = set();
         allAvailableOrderSetItemIds = set();
-        allAvailableVerifyOrderSetItemIds = set();        
+        allAvailableVerifyOrderSetItemIds = set();
         recommendableAvailableOrderSetItemIds = set();
         for isVerifyItem, usedItemIdsByOrderSetId in usedItemIdsByOrderSetIdByIsVerifyItem.iteritems():
             for orderSetId, usedItemIds in usedItemIdsByOrderSetId.iteritems():
                 allUsedOrderSetIds.add(orderSetId);
-                if isVerifyItem: 
+                if isVerifyItem:
                     allAvailableVerifyOrderSetItemIds.update(self.supportRecommender.itemIdsByOrderSetId[orderSetId]);
 
                 for itemId in usedItemIds:
@@ -192,8 +192,8 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
         recommendedData = list();
         for itemId in allAvailableVerifyOrderSetItemIds:
             if not self.supportRecommender.isItemRecommendable(itemId, None, recQuery, self.supportRecommender.categoryIdByItemId):
-                continue;   # Skip items that do not fit recommendable criteria (i.e., excluded categories) for fair comparison 
-                
+                continue;   # Skip items that do not fit recommendable criteria (i.e., excluded categories) for fair comparison
+
             recItemModel = dict(self.supportRecommender.itemsById[itemId]);
             recItemModel["score"] = recItemModel[recQuery.sortField];
             recommendedData.append(recItemModel);
@@ -205,13 +205,13 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
             if analysisQuery.numRecommendations > 0 and i >= analysisQuery.numRecommendations:
                 break;
             recommendedItemIds.add(recommendationModel["clinical_item_id"]);
-        
+
         # Summary metrics on how many order items in query and verify periods are recommendable
         # Outer join query for order set items should work same way, but maybe simpler to follow as second query
         itemQuery = \
             """
             select pi.clinical_item_id, pi.item_date >= %(p)s as is_verify_item
-            from 
+            from
                patient_item as pi
             where patient_id = %(p)s
             and item_date >= %(p)s and item_date < %(p)s
@@ -227,11 +227,11 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
                     recommendableQueryItemIds.add(itemId);
                 else:
                     recommendableVerifyItemIds.add(itemId);
-        
+
         # Order Set Usage Summary Data
         orderSetItemData = \
-            {   "allUsedOrderSetIds": allUsedOrderSetIds, 
-                "allUsedOrderSetItemIds": allUsedOrderSetItemIds, 
+            {   "allUsedOrderSetIds": allUsedOrderSetIds,
+                "allUsedOrderSetItemIds": allUsedOrderSetItemIds,
                 "allAvailableOrderSetItemIds": allAvailableOrderSetItemIds,
                 "recommendableUsedOrderSetItemIds": recommendableUsedOrderSetItemIds,
                 "recommendableAvailableOrderSetItemIds": recommendableAvailableOrderSetItemIds,
@@ -239,7 +239,7 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
                 "recommendableVerifyItemIds": recommendableVerifyItemIds,
             };
         return (queryItemCountById, verifyItemCountById, recommendedItemIds, recommendedData, orderSetItemData);
- 
+
     def calculateResultStats( self, patientItemData, queryItemCountById, verifyItemCountById, recommendedItemIds, baseCountByItemId, recQuery, recommendedData ):
         resultsStatData = RecommendationClassificationAnalysis.calculateResultStats( self, patientItemData, queryItemCountById, verifyItemCountById, recommendedItemIds, baseCountByItemId, recQuery, recommendedData );
         # Copy elements from patient data
@@ -263,7 +263,7 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
         headers.append("recommendableQueryVerifyItemFromOrderSetRate");
 
         return headers;
-   
+
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog [options] <inputFile> [<outputFile>]\n"+\
@@ -297,13 +297,13 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
             if len(args) > 1:
                 outputFilename = args[1];
             outputFile = stdOpen(outputFilename,"w");
-            
+
             # Print comment line with analysis arguments to allow for deconstruction later
             summaryData = {"argv": argv};
             print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
 
             formatter = TextResultsFormatter( outputFile );
-            colNames = self.resultHeaders(query); 
+            colNames = self.resultHeaders(query);
             formatter.formatTuple( colNames );  # Insert a mock record to get a header / label row
             formatter.formatResultDicts( analysisResults, colNames );
         else:
