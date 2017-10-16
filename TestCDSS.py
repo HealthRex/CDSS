@@ -13,24 +13,10 @@ log = logging.getLogger("CDSS")
 # Check on each individual test module...
 # medinfo.cpoe
 # medinfo.dataconversion
-# medinfo.db
-# medinfo.geography
-# medinfo.textanalysis
-# medinfo.web
-# scripts.CDSS
-# scripts.ExpertsVsEveryone
-# scripts.Ferritin
-# scripts.ICUDNR
-# scripts.LabTestAnalysis
-# scripts.MuthuDecayingWindows
-# scripts.OpioidRx
-# scripts.PressGaney
-# scripts.ResidentLogs
-# scripts.SepsisICU
 
 # Load test suite.
 loader = unittest.TestLoader()
-suite = loader.discover('./medinfo/cpoe', pattern="Test*.py")
+suite = loader.discover('./medinfo/dataconversion', pattern="Test*.py")
 log.setLevel(logging.ERROR)
 
 # Run test suite.
