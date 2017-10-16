@@ -51,9 +51,10 @@ General Data / Code Access
 			• I'd recommend working on a (laptop) computer with at least 16gb RAM and 512gb hard drive. I can help you get this if you do not already have it.
 
 	• Code:
-		○ I sent you a link to create an account on XP-Dev.com. I’ve been using them for free source control hosting. I think most people use GitHub nowadays, but I’m still used to using SVN (Subversion).
-		○ Use an SVN client to download the codebase
-			§ > svn checkout https://xp-dev.com/svn/jonc101-Projects/CDSS
+		○ Use Git or an SVN client to download the codebase
+			§ > git clone https://github.com/HealthRex/CDSS.git
+				or 
+			§ > svn checkout https://github.com/HealthRex/CDSS.git
 			§ If that works, it should download a bunch of Python 2.7 code to your computer
 	 
 	• Dev Environment:
