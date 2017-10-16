@@ -2,28 +2,49 @@
 
 ##### INSTALL LIBRARIES #####
 
-# Python
+# Homebrew
 
-# pip
+# Python (https://www.python.org/)
+# if [ "whereis python" ]
+# then
+#   PYTHON_VERSION ="$(python --version)"
+#   echo -n "Installed: "
+#   echo "$PYTHON_VERSION"
+# else
+#   echo "Installing python..."
+# fi
 
-# PostgreSQL
+# psycopg2 (http://initd.org/psycopg/)
 
-# SciPy (https://scipy.org/index.html)
-pip install --user numpy scipy matplotlib ipython jupyter pandas sympy nose
+# NumPy (https://scipy.org/index.html)
+# pip install --user numpy
 
 # Pandas (http://pandas.pydata.org/)
-pip install --user pandas
+PANDAS_VERSION="$(pip list --format=legacy | grep 'pandas' | sed 's/[)(]//g' | awk '{print $2}')"
+if [ -z "$PANDAS" ]
+then
+  echo -n "Installing pandas..."
+  pip install --user pandas
+  echo "OK"
+else
+  echo -n "Installed: pandas "
+  echo "$PANDAS"
+fi
+
 
 # SciKit Learn (http://scikit-learn.org/stable/)
-pip install --user sklearn
+# pip install --user sklearn
 
 # gensim (https://radimrehurek.com/gensim/)
-pip install --user gensim
+# pip install --user gensim
 
 ##### INITIALIZE DATABASE #####
 
 ## Production and Test DBs ##
 # Production DB
+# read -p "Enter your PostgreSQL DB username: " psqluname
+# echo $psqluname
+# psql -f medinfo/db/definition/cpoeStats.sql -U <YourDBUsername> testdb
 
 # Test DB
 
@@ -36,3 +57,5 @@ pip install --user gensim
 
 
 ##### VERIFY TESTS PASS #####
+
+# Print success state.
