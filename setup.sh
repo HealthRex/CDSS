@@ -5,14 +5,17 @@
 # Homebrew
 
 # Python (https://www.python.org/)
-# if [ "whereis python" ]
-# then
-#   PYTHON_VERSION ="$(python --version)"
-#   echo -n "Installed: "
-#   echo "$PYTHON_VERSION"
-# else
-#   echo "Installing python..."
-# fi
+if [ "whereis python" ]
+then
+  PYTHON_VERSION ="$(python --version)"
+  echo -n "Installed: "
+  echo "$PYTHON_VERSION"
+else
+  echo "Installing python..."
+fi
+
+# PYTHONPATH
+export PYTHONPATH="${PYTHONPATH}:~/healthrex/CDSS"
 
 # psycopg2 (http://initd.org/psycopg/)
 
@@ -55,6 +58,8 @@ fi
 # sim_patient_order
 # Definition: CDSS/medinfo/db/definition/cpoeSimultation.sql
 
+
+#####
 
 ##### VERIFY TESTS PASS #####
 
