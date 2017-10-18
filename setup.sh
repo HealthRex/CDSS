@@ -7,9 +7,8 @@
 # Python (https://www.python.org/)
 if [ "whereis python" ]
 then
-  PYTHON_VERSION ="$(python --version)"
-  echo -n "Installed: "
-  echo "$PYTHON_VERSION"
+  PYTHON_VERSION=$(python --version 2>&1)
+  echo "Installed: $PYTHON_VERSION"
 else
   echo "Installing python..."
 fi
@@ -24,14 +23,14 @@ export PYTHONPATH="${PYTHONPATH}:~/healthrex/CDSS"
 
 # Pandas (http://pandas.pydata.org/)
 PANDAS_VERSION="$(pip list --format=legacy | grep 'pandas' | sed 's/[)(]//g' | awk '{print $2}')"
-if [ -z "$PANDAS" ]
+if [ -z "$PANDAS_VERSION" ]
 then
   echo -n "Installing pandas..."
   pip install --user pandas
   echo "OK"
 else
   echo -n "Installed: pandas "
-  echo "$PANDAS"
+  echo "$PANDAS_VERSION"
 fi
 
 
