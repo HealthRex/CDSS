@@ -1,12 +1,28 @@
 #!/bin/bash
 
+##### IDENTIFY PLATFORM #####
+echo "IDENTIFY PLATFORM"
+
+# OSX
+if [ $(uname) = "Darwin" ]
+then
+    PKG_MGR="brew"
+    echo "Running setup.sh on OSX..."
+    echo ""
+fi
+# Amazon
+if [ "$(uname) | grep 'amzn'" ]
+then
+    PKG_MGR="yum"
+    echo "Running setup.sh on Amazon Linux..."
+    echo ""
+fi
+
 ##### INSTALL LIBRARIES #####
 echo "INSTALL LIBRARIES"
 
-# Homebrew
-
 # Python (https://www.python.org/)
-if [ "whereis python" ]
+if [ "$(command -v python)" ]
 then
   PYTHON_VERSION=$(python --version 2>&1)
   echo "Installed: $PYTHON_VERSION"
@@ -17,6 +33,26 @@ fi
 # PYTHONPATH
 export PYTHONPATH="${PYTHONPATH}:~/healthrex/CDSS"
 printf 'export PYTHONPATH="${PYTHONPATH}:~/healthrex/CDSS"\n' >> ~/.bashrc
+
+# PostgreSQL (https://www.postgresql.org/)
+# psql (http://postgresguide.com/utilities/psql.html)
+if [ "$(command -v postgres)" ]
+then
+    POSTGRES_VERSION=$(postgres --version 2>&1)
+    echo "Installed: $POSTGRES_VERSION"
+else
+    echo "Installing postgresql-server..."
+    sudo yum install postgresql-server
+fi
+
+if [ "$(command -v psql)" ]
+then
+    PSQL_VERSION=$(psql --version 2>&1)
+    echo "Installed: $PSQL_VERSION"
+else
+    echo "Installing psql..."
+    sudo yum install postgresql
+fi
 
 # psycopg2 (http://initd.org/psycopg/)
 PSYCOPG2_VERSION="$(pip list --format=legacy | grep 'psycopg' | sed 's/[)(]//g' | awk '{print $2}')"
@@ -44,7 +80,6 @@ else
   echo $PANDAS_VERSION
 fi
 
-
 # SciKit Learn (http://scikit-learn.org/stable/)
 # pip install --user sklearn
 
@@ -54,6 +89,10 @@ fi
 ##### INITIALIZE DATABASE #####
 echo ""
 echo "INITIALIZE DATABASE"
+
+## PostgreSQL Server ##
+sudo service postgresql initdb
+sudo service postgresql start
 
 ## Production DB ##
 echo "You will now configure the database environment."
@@ -67,7 +106,11 @@ read -p "Enter production DB user ID: " PROD_DB_UID
 read -s -p "Enter production DB user password: " PROD_DB_PWD
 echo
 
+# Confirm production DB already exists or create it.
+# if [ "$(psql -lqt | cut -d \| -f 1 | grep -qw $PROD_DB_DSN)" ]
+
 # Collect test DB parameters.
+echo ""
 echo "Second, configure the test database, on which unittest will run..."
 read -p "Enter test DB hostname: " TEST_DB_HOST
 read -p "Enter test DB database source name: " TEST_DB_DSN
@@ -106,7 +149,33 @@ echo $TEST_DB_UID >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_TEST_DB_PARAM["PWD"] = ' >> ~/healthrex/CDSS/LocalEnv.py
 echo $TEST_DB_PWD >> ~/healthrex/CDSS/LocalEnv.py
 
-# psql -f medinfo/db/definition/cpoeStats.sql -U <YourDBUsername> testdb
+# Confirm test user already exists or create it.
+#if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname='$TEST_DB_UID'" | grep $TEST_DB_UID)" ]
+#then
+#    echo "user exists"
+#else
+#    echo "user does not exist"
+#fi
+
+# psql --host=$TEST_DB_HOST "CREATE USER $TEST_DB_UID PASSWORD '$TEST_DB_PWD';" 
+
+# Confirm test DSN already exists or create it.
+#if [ "$(psql -lqt | cut -d \| -f 1 | grep -qw $TEST_DB_DSN)" ]
+#then
+#    echo "Initialized: $TEST_DB_DSN"
+#else
+#    echo "Initializing $TEST_DB_DSN..."
+#    createdb -U postgres -O $TEST_DB_UID $TEST_DB_DSN
+#fi
+
+# Write test DB parameters.
+#then
+#fi
+
+# ec2-54-208-212-123.compute-1.amazonaws.com
+
+# Define schema based on medinfo/db/definition/cpoeStats.sql.
+#psql --host=$TEST_DB_HOST --username=$TEST_DB_UID --file=medinfo/db/definition/cpoeStats.sql
 
 # Test DB
 
