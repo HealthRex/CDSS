@@ -31,8 +31,10 @@ else
 fi
 
 # PYTHONPATH
-export PYTHONPATH="${PYTHONPATH}:~/healthrex/CDSS"
-printf 'export PYTHONPATH="${PYTHONPATH}:~/healthrex/CDSS"\n' >> ~/.bashrc
+export PYTHONPATH=${PYTHONPATH}:~/healthrex/CDSS
+printf 'export PYTHONPATH=${PYTHONPATH}:~/healthrex/CDSS\n' >> ~/.bashrc
+printf 'export PYTHONPATH=${PYTHONPATH}:~/healthrex/CDSS\n' >> ~/.bash_profile
+source ~/.bashrc
 
 # PostgreSQL (https://www.postgresql.org/)
 # psql (http://postgresguide.com/utilities/psql.html)
@@ -93,6 +95,12 @@ echo "INITIALIZE DATABASE"
 ## PostgreSQL Server ##
 sudo service postgresql initdb
 sudo service postgresql start
+
+# Allow password-based postgres login.
+echo ""
+echo "Use postgres command line to set password for default postgres user (run '\password postgres')." 
+echo "After setting password, quit with '\q'."
+sudo -u postgres psql postgres
 
 ## Production DB ##
 echo "You will now configure the database environment."
