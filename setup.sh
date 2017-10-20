@@ -6,14 +6,14 @@ echo "IDENTIFY PLATFORM"
 # OSX
 if [ $(uname) = "Darwin" ]
 then
-    PKG_MGR="brew"
+    PLATFORM="brew"
     echo "Running setup.sh on OSX..."
     echo ""
 fi
 # Amazon
 if [ "$(uname) | grep 'amzn'" ]
 then
-    PKG_MGR="yum"
+    PLATFORM="Amazon Linux"
     echo "Running setup.sh on Amazon Linux..."
     echo ""
 fi
@@ -34,7 +34,6 @@ fi
 export PYTHONPATH=${PYTHONPATH}:~/healthrex/CDSS
 printf 'export PYTHONPATH=${PYTHONPATH}:~/healthrex/CDSS\n' >> ~/.bashrc
 printf 'export PYTHONPATH=${PYTHONPATH}:~/healthrex/CDSS\n' >> ~/.bash_profile
-source ~/.bashrc
 
 # PostgreSQL (https://www.postgresql.org/)
 # psql (http://postgresguide.com/utilities/psql.html)
@@ -96,11 +95,20 @@ echo "INITIALIZE DATABASE"
 sudo service postgresql initdb
 sudo service postgresql start
 
-# Allow password-based postgres login.
+# Set password for postgres user.
 echo ""
 echo "Use postgres command line to set password for default postgres user (run '\password postgres')." 
 echo "After setting password, quit with '\q'."
 sudo -u postgres psql postgres
+
+# Allow password-based postgres login.
+if [ PLATFORM="Amazon Linux" ]
+then
+    echo ""
+    echo "Use vi to edit line 80 of pg_hba.conf to read 'local\tall\tall\tmd5'"
+    sudo vi /var/lib/pgsql9/data/pg_hba.conf
+    sudo service postgresql restart
+fi
 
 ## Production DB ##
 echo "You will now configure the database environment."
@@ -158,12 +166,12 @@ echo -n 'LOCAL_TEST_DB_PARAM["PWD"] = ' >> ~/healthrex/CDSS/LocalEnv.py
 echo $TEST_DB_PWD >> ~/healthrex/CDSS/LocalEnv.py
 
 # Confirm test user already exists or create it.
-#if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname='$TEST_DB_UID'" | grep $TEST_DB_UID)" ]
-#then
-#    echo "user exists"
-#else
-#    echo "user does not exist"
-#fi
+if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname='$TEST_DB_UID'" | grep $TEST_DB_UID)" ]
+then
+    echo "user exists"
+else
+    echo "user does not exist"
+fi
 
 # psql --host=$TEST_DB_HOST "CREATE USER $TEST_DB_UID PASSWORD '$TEST_DB_PWD';" 
 
