@@ -98,14 +98,18 @@ sudo service postgresql start
 # Set password for postgres user.
 echo ""
 echo "Use postgres command line to set password for default postgres user (run '\password postgres')." 
+echo "Use the password defined by 'PostgreSQL User `postgres`' in LastPass."
 echo "After setting password, quit with '\q'."
-sudo -u postgres psql postgres
+read -p "Press ENTER to continue."
+sudo -u postgres psql --username=postgres
 
 # Allow password-based postgres login.
 if [ PLATFORM="Amazon Linux" ]
 then
     echo ""
     echo "Use vi to edit line 80 of pg_hba.conf to read 'local\tall\tall\tmd5'"
+    echo "Use vi to edit line 80, 82, and 84 of pg_hba.conf to read 'local\tall\tall\tmd5'"
+    read -p "Press ENTER to continue."
     sudo vi /var/lib/pgsql9/data/pg_hba.conf
     sudo service postgresql restart
 fi
@@ -113,6 +117,7 @@ fi
 ## Production DB ##
 echo "You will now configure the database environment."
 echo "For each prompt, follow the answer recommended by the HealthRex Wiki."
+read -p "Press ENTER to continue."
 echo ""
 # Collect production DB parameters.
 echo "First, configure the production database..."
@@ -154,6 +159,24 @@ echo -n 'LOCAL_PROD_DB_PARAM["PWD"] = ' >> ~/healthrex/CDSS/LocalEnv.py
 echo $PROD_DB_PWD >> ~/healthrex/CDSS/LocalEnv.py
 echo '' >> ~/healthrex/CDSS/LocalEnv.py
 
+# Confirm test user already exists or create it.
+if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname='$TEST_DB_UID'" | grep $TEST_DB_UID)" ]
+then
+    echo "Confirmed: Test user $TEST_DB_UID exists in DB."
+else
+    psql --host=$TEST_DB_HOST --dbname=postgres --username=postgres -c "SET client_min_messages = ERROR; CREATE USER $TEST_DB_UID WITH SUPERUSER CREATEROLE CREATEDB PASSWORD '$TEST_DB_PWD';"
+    echo "Created: Test user $TEST_DB_UID."
+fi
+
+# Confirm test DSN already exists or create it.
+if [ "$(psql --username=postgres -lqt | cut -d \| -f 1 | grep -qw $TEST_DB_DSN)" ]
+then
+    echo "Confirmed: Test data source $TEST_DB_DSN exists in DB."
+else
+    psql --host=$TEST_DB_HOST --username=postgres -c "SET client_min_messages = ERROR; CREATE DATABASE $TEST_DB_DSN OWNER $TEST_DB_UID;"
+    echo "Created: Test data source $TEST_DB_DSN owned by $TEST_DB_UID."
+fi
+
 # Write test DB parameters.
 echo 'LOCAL_PROD_DB_PARAM = {}' >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_TEST_DB_PARAM["HOST"] = ' >> ~/healthrex/CDSS/LocalEnv.py
@@ -165,35 +188,10 @@ echo $TEST_DB_UID >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_TEST_DB_PARAM["PWD"] = ' >> ~/healthrex/CDSS/LocalEnv.py
 echo $TEST_DB_PWD >> ~/healthrex/CDSS/LocalEnv.py
 
-# Confirm test user already exists or create it.
-if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname='$TEST_DB_UID'" | grep $TEST_DB_UID)" ]
-then
-    echo "user exists"
-else
-    echo "user does not exist"
-fi
-
-# psql --host=$TEST_DB_HOST "CREATE USER $TEST_DB_UID PASSWORD '$TEST_DB_PWD';" 
-
-# Confirm test DSN already exists or create it.
-#if [ "$(psql -lqt | cut -d \| -f 1 | grep -qw $TEST_DB_DSN)" ]
-#then
-#    echo "Initialized: $TEST_DB_DSN"
-#else
-#    echo "Initializing $TEST_DB_DSN..."
-#    createdb -U postgres -O $TEST_DB_UID $TEST_DB_DSN
-#fi
-
-# Write test DB parameters.
-#then
-#fi
-
-# ec2-54-208-212-123.compute-1.amazonaws.com
-
 # Define schema based on medinfo/db/definition/cpoeStats.sql.
-#psql --host=$TEST_DB_HOST --username=$TEST_DB_UID --file=medinfo/db/definition/cpoeStats.sql
+psql --host=$TEST_DB_HOST --username=postgres --file=medinfo/db/definition/cpoeStats.sql
 
-# Test DB
+# TODO(sbala): Modularize schema definitions, make their output silent with SET min_client_message=ERROR, and do checks to make sure we're not double-defining any of the schemas or indices.
 
 ## CPOE Simulation Tables ##
 
