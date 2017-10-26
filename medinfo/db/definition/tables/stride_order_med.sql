@@ -1,0 +1,68 @@
+-- Medication Order Data Table.  Source headers need " removed, lower-case, and make sure refills column is numeric
+-- 	Remove " marks and lower-case header lines
+--	(Refills should be numeric 0 not char o.  Just swap "o" for "0")  (Entry 436981419... refills should be numeric, not "prn")
+create table stride_order_med
+(
+	order_med_id bigint not null,
+	pat_id text,
+	pat_enc_csn_id bigint,
+	ordering_datetime datetime,
+	hosp_admsn_time datetime,
+	hosp_dischrg_time datetime,
+	order_class text,
+	medication_id integer,
+	description text,
+	sig text,
+	quantity text,
+	refills integer,
+	start_date datetime,
+	end_date datetime,
+	dispense_as_written_yn text,
+	reason_for_discontinuation text,
+	enc_type_c integer,
+	encounter_type text,
+	patient_location text,
+	login_department text,
+	display_name text,
+	hv_hospitalist_yn text,
+	med_route text,
+	discontinue_time datetime,
+	changed_from_order_med_id bigint,
+	reason_pended_med_refused text,
+	hv_discr_freq_id bigint,
+	discr_freq_name text,
+	discr_freq_display_name text,
+	discr_freq_type text,
+	discr_freq_number_of_times integer,
+	freq_time_unit text,
+	prn_yn text,
+	freq_duplicate_dose_interval integer,
+	freq_missed_dose_interval integer,
+	freqency_or_period text,
+	hv_discrete_dose text,
+	hv_dose_unit text,
+	non_formulary_yn text,
+	order_status text,
+	min_discrete_dose float,
+	max_discrete_dose float,
+	dose_unit text,
+	is_pending_ord_yn text,
+	modify_track text,
+	med_comments text,
+	usr_select_medicn_id integer,
+	lastdose text,
+	amb_med_disp_name text,
+	refills_remaining integer,
+	rule_based_order_transmittl_yn text,
+	outpat_orderstat_before_admsn text,
+	last_dose_time text,
+	pend_approve_flag text,
+	prn_comment text,
+	med_dis_disp_qty integer,
+	med_dis_disp_unit text
+);
+ALTER TABLE stride_order_med ADD CONSTRAINT stride_order_med_pkey PRIMARY KEY (order_med_id);
+CREATE INDEX index_stride_order_med_pat_id ON stride_order_med(pat_id (16));
+CREATE INDEX index_stride_order_med_ordering_datetime ON stride_order_med(ordering_datetime);
+CREATE INDEX index_stride_order_med_pat_enc_csn_id ON stride_order_med(pat_enc_csn_id);
+CREATE INDEX index_stride_order_med_medication_id ON stride_order_med(medication_id);
