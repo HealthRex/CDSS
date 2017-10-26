@@ -213,6 +213,11 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         self.assertEqualList(resultMatrix, expectedMatrix)
 
+        try:
+            os.remove(factory.getMatrixFileName())
+        except OSError:
+            pass
+
     def test_build_FeatureMatrix_multiLabTest(self):
         """
         Test buildFeatureMatrix() and addLabFeatures().
@@ -263,13 +268,18 @@ class TestFeatureMatrixFactory(DBTestCase):
         # Look for lab data 90 days before each episode, but never afterself.
         preTimeDelta = datetime.timedelta(-90)
         postTimeDelta = datetime.timedelta(0)
-        factory.addLabResultFeatures(labBaseNames, preTimeDelta, postTimeDelta)
+        factory.addLabResultFeatures(labBaseNames, False, preTimeDelta, postTimeDelta)
         factory.buildFeatureMatrix()
         resultMatrix = factory.readFeatureMatrixFile()
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiLabTest"]["expectedMatrix"]
         self.assertEqualList(resultMatrix, expectedMatrix)
+
+        try:
+            os.remove(factory.getMatrixFileName())
+        except OSError:
+            pass
 
     def test_buildFeatureMatrix_multiFlowsheet(self):
         """
@@ -329,6 +339,11 @@ class TestFeatureMatrixFactory(DBTestCase):
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiFlowsheet"]["expectedMatrix"]
         self.assertEqualList(resultMatrix, expectedMatrix)
+
+        try:
+            os.remove(factory.getMatrixFileName())
+        except OSError:
+            pass
 
     def test_performance(self):
         """

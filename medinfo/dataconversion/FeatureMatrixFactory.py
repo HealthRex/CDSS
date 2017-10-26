@@ -399,25 +399,27 @@ class FeatureMatrixFactory:
         # Add tempFileName to list of feature temp files.
         self._featureTempFileNames.append(tempFileName)
 
-    def addLabResultFeatures(self, labBaseNames, preTimeDelta = None, postTimeDelta = None):
+    def addLabResultFeatures(self, labNames, labIsPanel = True, preTimeDelta = None, postTimeDelta = None):
         """
         Query stride_order_proc and stride_order_results for the lab orders and
         results for each patient, and aggregate by episode timestamp.
+        Set labIsPanel = False to signify that the labNames are components,
+        rather than panels.
         """
         # Verify patient list and/or patient episode has been processed.
         if not self.patientsProcessed:
             raise ValueError("Must process patients before lab result.")
 
         # Open temp file.
-        if len(labBaseNames) > 1:
-            resultLabel = "-".join([baseName for baseName in labBaseNames])
+        if len(labNames) > 1:
+            resultLabel = "-".join([labName for labName in labNames])
         else:
-            resultLabel = labBaseNames[0]
+            resultLabel = labNames[0]
         tempFileName = self._patientResultTempFileNameFormat % (resultLabel, str(preTimeDelta), str(postTimeDelta))
         tempFile = open(tempFileName, "w")
 
         # Query lab results for the individuals of interest.
-        labResults = self._queryLabResultsByName(labBaseNames)
+        labResults = self._queryLabResultsByName(labNames, labIsPanel)
         resultsByNameByPatientId = self._parseResultsData(labResults, "pat_id",
             "base_name", "ord_num_value", "result_time")
 
@@ -433,7 +435,7 @@ class FeatureMatrixFactory:
         patientEpisodeByIndexTimeById = self._getPatientEpisodeByIndexTimeById()
         self._processResultEvents(patientEpisodeByIndexTimeById,
                                     resultsByNameByPatientId,
-                                    labBaseNames,
+                                    labNames,
                                     "ord_num_value",
                                     "result_time",
                                     preTimeDelta,
@@ -441,7 +443,7 @@ class FeatureMatrixFactory:
 
         # Write column headers to temp file.
         tempFile.write("%s\t%s\t" % (self.patientEpisodeIdColumn, self.patientEpisodeTimeColumn))
-        columnNames = self.colsFromBaseNames(labBaseNames, preTimeDays, postTimeDays)
+        columnNames = self.colsFromBaseNames(labNames, preTimeDays, postTimeDays)
         tempFile.write("\t".join(columnNames))
         tempFile.write("\n")
 
@@ -454,7 +456,7 @@ class FeatureMatrixFactory:
             tempFile.write("%s\t%s\t" % (patientId, indexTime))
             # Need to generate columnNames again because colsFromBaseNames
             # returns generator, which can only be read once.
-            columnNames = self.colsFromBaseNames(labBaseNames, preTimeDays, postTimeDays)
+            columnNames = self.colsFromBaseNames(labNames, preTimeDays, postTimeDays)
             tempFile.write("\t".join(str(episodeLabData[columnName]) for columnName in columnNames))
             tempFile.write("\n")
 
@@ -702,7 +704,7 @@ class FeatureMatrixFactory:
 
         return
 
-    def _queryLabResultsByName(self, labBaseNames):
+    def _queryLabResultsByName(self, labNames, isLabPanel = True):
         """
         Query for all lab results that match with the given result base names.
         """
@@ -730,7 +732,12 @@ class FeatureMatrixFactory:
             query.addSelect(column)
         query.addFrom("stride_order_results AS sor, stride_order_proc AS sop")
         query.addWhere("sor.order_proc_id = sop.order_proc_id")
-        query.addWhereIn("base_name", labBaseNames)
+        if isLabPanel:
+            labProcCodes = labNames
+            query.addWhereIn("proc_code", labProcCodes)
+        else:
+            labBaseNames = labNames
+            query.addWhereIn("base_name", labBaseNames)
         query.addWhereIn("pat_id", patientIds)
         query.addOrderBy("pat_id")
         query.addOrderBy("sor.result_time")
