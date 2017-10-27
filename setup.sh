@@ -128,13 +128,12 @@ echo "Use postgres command line to set password for default postgres user (run '
 echo "Use the password defined by 'PostgreSQL User (postgres)' in LastPass."
 echo "After setting password, quit with '\q'."
 read -p "Press ENTER to continue."
-sudo -u postgres psql --username=postgres
+psql --username=postgres
 
 # Allow password-based postgres login.
 if [ PLATFORM="Amazon Linux" ]
 then
     echo ""
-    echo "Use vi to edit line 80 of pg_hba.conf to read 'local\tall\tall\tmd5'"
     echo "Use vi to edit line 80, 82, and 84 of pg_hba.conf to read 'local\tall\tall\tmd5'"
     read -p "Press ENTER to continue."
     sudo vi /var/lib/pgsql9/data/pg_hba.conf
