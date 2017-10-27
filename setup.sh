@@ -23,7 +23,7 @@ then
 fi
 
 # Amazon
-if [ "$(uname | grep 'amzn')" ]
+if [ "$(uname) | grep 'amzn')" ]
 then
     PLATFORM="Amazon Linux"
     echo "Running setup.sh on Amazon Linux..."
@@ -137,6 +137,7 @@ then
     echo "Use vi to edit line 80, 82, and 84 of pg_hba.conf to read 'local\tall\tall\tmd5'"
     read -p "Press ENTER to continue."
     sudo vi /var/lib/pgsql9/data/pg_hba.conf
+    echo ""
     sudo service postgresql restart
 fi
 
@@ -153,25 +154,22 @@ read -p "Enter production DB user ID: " PROD_DB_UID
 read -s -p "Enter production DB user password: " PROD_DB_PWD
 echo
 
-# Confirm production DB already exists or create it.
-# if [ "$(psql -lqt | cut -d \| -f 1 | grep -qw $PROD_DB_DSN)" ]
-
 # Confirm production user already exists or create it.
-if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname='$PROD_DB_UID'" | grep $PROD_DB_UID)" ]
+if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname = '$PROD_DB_UID'" | grep $PROD_DB_UID)" ]
 then
-    echo "Confirmed: Prod user $PROD_DB_UID exists in DB."
+    echo "Confirmed: Prod user '$PROD_DB_UID' exists in DB."
 else
-    psql --host=$PROD_DB_HOST --dbname=postgres --username=postgres -c "SET client_min_messages = ERROR; CREATE USER $PROD_DB_UID WITH SUPERUSER CREATEROLE CREATEDB PASSWORD '$PROD_DB_PWD';"
-    echo "Created: Prod user $PROD_DB_UID."
+    psql --quiet --host=$PROD_DB_HOST --dbname=postgres --username=postgres -c "CREATE USER $PROD_DB_UID WITH SUPERUSER CREATEROLE CREATEDB PASSWORD '$PROD_DB_PWD';"
+    echo "Created: Prod user '$PROD_DB_UID'."
 fi
 
 # Confirm production DSN already exists or create it.
-if [ "$(psql --username=postgres -lqt | cut -d \| -f 1 | grep -qw $PROD_DB_DSN)" ]
+if [ "$(psql --username=postgres -lqt | cut -d \| -f 1 | grep -w $PROD_DB_DSN)" ]
 then
-    echo "Confirmed: Prod data source $PROD_DB_DSN exists in DB."
+    echo "Confirmed: Prod data source '$PROD_DB_DSN' exists in DB."
 else
-    psql --host=$PROD_DB_HOST --username=postgres -c "SET client_min_messages = ERROR; CREATE DATABASE $PROD_DB_DSN OWNER $PROD_DB_UID;"
-    echo "Created: Prod data source $PROD_DB_DSN owned by $PROD_DB_UID."
+    psql --quiet --host=$PROD_DB_HOST --username=postgres -c "CREATE DATABASE $PROD_DB_DSN OWNER $PROD_DB_UID;"
+    echo "Created: Prod data source '$PROD_DB_DSN' owned by '$PROD_DB_UID'."
 fi
 
 # Collect test DB parameters.
@@ -207,19 +205,19 @@ echo '' >> ~/healthrex/CDSS/LocalEnv.py
 # Confirm test user already exists or create it.
 if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname='$TEST_DB_UID'" | grep $TEST_DB_UID)" ]
 then
-    echo "Confirmed: Test user $TEST_DB_UID exists in DB."
+    echo "Confirmed: Test user '$TEST_DB_UID' exists in DB."
 else
     psql --host=$TEST_DB_HOST --dbname=postgres --username=postgres -c "SET client_min_messages = ERROR; CREATE USER $TEST_DB_UID WITH SUPERUSER CREATEROLE CREATEDB PASSWORD '$TEST_DB_PWD';"
-    echo "Created: Test user $TEST_DB_UID."
+    echo "Created: Test user '$TEST_DB_UID'."
 fi
 
 # Confirm test DSN already exists or create it.
-if [ "$(psql --username=postgres -lqt | cut -d \| -f 1 | grep -qw $TEST_DB_DSN)" ]
+if [ "$(psql --username=postgres -lqt | cut -d \| -f 1 | grep -w $TEST_DB_DSN)" ]
 then
-    echo "Confirmed: Test data source $TEST_DB_DSN exists in DB."
+    echo "Confirmed: Test data source '$TEST_DB_DSN' exists in DB."
 else
     psql --host=$TEST_DB_HOST --username=postgres -c "SET client_min_messages = ERROR; CREATE DATABASE $TEST_DB_DSN OWNER $TEST_DB_UID;"
-    echo "Created: Test data source $TEST_DB_DSN owned by $TEST_DB_UID."
+    echo "Created: Test data source '$TEST_DB_DSN' owned by '$TEST_DB_UID'."
 fi
 
 # Write test DB parameters.
@@ -242,4 +240,4 @@ define_schemata $TEST_DB_HOST $TEST_DB_DSN postgres
 ##### VERIFY TESTS PASS #####
 
 # Print success state.
-#python medinfo/db/test/TestDBUtil.py
+python medinfo/db/test/TestDBUtil.py
