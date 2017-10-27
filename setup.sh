@@ -4,10 +4,9 @@
 echo "IDENTIFY PLATFORM"
 
 # OSX
-if [ $(uname) = "Darwin" ]
+if [ "$(uname)" = "Darwin" ]
 then
     PLATFORM="OSX"
-    echo "Running setup.sh on OSX..."
 
     # Brew (https://brew.sh/)
     if [ "$(command -v brew)" ]
@@ -18,17 +17,16 @@ then
       echo "Installing brew..."
       /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
     fi
-
-    echo ""
 fi
 
 # Amazon
 if [ "$(uname) | grep 'amzn')" ]
 then
     PLATFORM="Amazon Linux"
-    echo "Running setup.sh on Amazon Linux..."
-    echo ""
 fi
+
+echo "Running setup.sh on $PLATFORM..."
+echo ""
 
 ##### INSTALL LIBRARIES #####
 echo "INSTALL LIBRARIES"
@@ -56,11 +54,11 @@ then
     echo "Installed: $POSTGRES_VERSION"
 else
     echo "Installing postgresql-server..."
-    if [ PLATFORM = "Amazon Linux" ]
+    if [ "$PLATFORM" = "Amazon Linux" ]
     then
       sudo yum install postgresql-server
     fi
-    if [ PLATFORM = "OSX" ]
+    if [ "$PLATFORM" = "OSX" ]
     then
       sudo brew install postgresql
     fi
@@ -72,11 +70,11 @@ then
     echo "Installed: $PSQL_VERSION"
 else
     echo "Installing psql..."
-    if [ PLATFORM = "Amazon Linux" ]
+    if [ "$PLATFORM" = "Amazon Linux" ]
     then
       sudo yum install postgresql
     fi
-    if [ PLATFORM = "OSX" ]
+    if [ "$PLATFORM" = "OSX" ]
     then
       sudo brew install postgresql
     fi
@@ -128,7 +126,7 @@ echo "Use postgres command line to set password for default postgres user (run '
 echo "Use the password defined by 'PostgreSQL User (postgres)' in LastPass."
 echo "After setting password, quit with '\q'."
 read -p "Press ENTER to continue."
-psql --username=postgres
+sudo -u postgres psql --username=postgres
 
 # Allow password-based postgres login.
 if [ PLATFORM="Amazon Linux" ]
@@ -155,6 +153,8 @@ read -s -p "Enter production DB user password: " PROD_DB_PWD
 echo
 
 # Confirm production user already exists or create it.
+# TODO(sbala): Move user and DSN creation logic to single sql file
+# so that user only has to authenticate as postgres once for this step.
 if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname = '$PROD_DB_UID'" | grep $PROD_DB_UID)" ]
 then
     echo "Confirmed: Prod user '$PROD_DB_UID' exists in DB."
@@ -187,7 +187,7 @@ if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_
 then
     echo "Confirmed: Test user '$TEST_DB_UID' exists in DB."
 else
-    psql --host=$TEST_DB_HOST --dbname=postgres --username=postgres -c "SET client_min_messages = ERROR; CREATE USER $TEST_DB_UID WITH SUPERUSER CREATEROLE CREATEDB PASSWORD '$TEST_DB_PWD';"
+    psql --quiet --host=$TEST_DB_HOST --dbname=postgres --username=postgres -c "CREATE USER $TEST_DB_UID WITH SUPERUSER CREATEROLE CREATEDB PASSWORD '$TEST_DB_PWD';"
     echo "Created: Test user '$TEST_DB_UID'."
 fi
 
@@ -196,7 +196,7 @@ if [ "$(psql --username=postgres -lqt | cut -d \| -f 1 | grep -w $TEST_DB_DSN)" 
 then
     echo "Confirmed: Test data source '$TEST_DB_DSN' exists in DB."
 else
-    psql --host=$TEST_DB_HOST --username=postgres -c "SET client_min_messages = ERROR; CREATE DATABASE $TEST_DB_DSN OWNER $TEST_DB_UID;"
+    psql --quiet --host=$TEST_DB_HOST --username=postgres -c "SET client_min_messages = ERROR; CREATE DATABASE $TEST_DB_DSN OWNER $TEST_DB_UID;"
     echo "Created: Test data source '$TEST_DB_DSN' owned by '$TEST_DB_UID'."
 fi
 
