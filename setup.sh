@@ -125,7 +125,7 @@ sudo service postgresql start
 # Set password for postgres user.
 echo ""
 echo "Use postgres command line to set password for default postgres user (run '\password postgres')."
-echo "Use the password defined by 'PostgreSQL User `postgres`' in LastPass."
+echo "Use the password defined by 'PostgreSQL User (postgres)' in LastPass."
 echo "After setting password, quit with '\q'."
 read -p "Press ENTER to continue."
 sudo -u postgres psql --username=postgres
