@@ -141,7 +141,7 @@ then
     sudo service postgresql restart
 fi
 
-## Production DB ##
+## Production DB
 echo "You will now configure the database environment."
 echo "For each prompt, follow the answer recommended by the HealthRex Wiki."
 read -p "Press ENTER to continue."
@@ -172,6 +172,7 @@ else
     echo "Created: Prod data source '$PROD_DB_DSN' owned by '$PROD_DB_UID'."
 fi
 
+## Test DB
 # Collect test DB parameters.
 echo ""
 echo "Second, configure the test database, on which unittest will run..."
@@ -181,7 +182,25 @@ read -p "Enter test DB user ID: " TEST_DB_UID
 read -s -p "Enter test DB user password: " TEST_DB_PWD
 echo
 
-# Write production DB parameters to local environment file.
+# Confirm test user already exists or create it.
+if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname='$TEST_DB_UID'" | grep $TEST_DB_UID)" ]
+then
+    echo "Confirmed: Test user '$TEST_DB_UID' exists in DB."
+else
+    psql --host=$TEST_DB_HOST --dbname=postgres --username=postgres -c "SET client_min_messages = ERROR; CREATE USER $TEST_DB_UID WITH SUPERUSER CREATEROLE CREATEDB PASSWORD '$TEST_DB_PWD';"
+    echo "Created: Test user '$TEST_DB_UID'."
+fi
+
+# Confirm test DSN already exists or create it.
+if [ "$(psql --username=postgres -lqt | cut -d \| -f 1 | grep -w $TEST_DB_DSN)" ]
+then
+    echo "Confirmed: Test data source '$TEST_DB_DSN' exists in DB."
+else
+    psql --host=$TEST_DB_HOST --username=postgres -c "SET client_min_messages = ERROR; CREATE DATABASE $TEST_DB_DSN OWNER $TEST_DB_UID;"
+    echo "Created: Test data source '$TEST_DB_DSN' owned by '$TEST_DB_UID'."
+fi
+
+## Write production DB parameters to local environment file.
 echo ""
 echo "Writing database parameters to CDSS/LocalEnv.py, which is *not* source-controlled..."
 # Instantiate LocalEnv.py. "> filename" creates filename if it does not exist,
@@ -201,24 +220,6 @@ echo $PROD_DB_UID >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_PROD_DB_PARAM["PWD"] = ' >> ~/healthrex/CDSS/LocalEnv.py
 echo $PROD_DB_PWD >> ~/healthrex/CDSS/LocalEnv.py
 echo '' >> ~/healthrex/CDSS/LocalEnv.py
-
-# Confirm test user already exists or create it.
-if [ "$(psql --dbname=postgres --username=postgres -tAc "SELECT rolname from pg_roles WHERE rolname='$TEST_DB_UID'" | grep $TEST_DB_UID)" ]
-then
-    echo "Confirmed: Test user '$TEST_DB_UID' exists in DB."
-else
-    psql --host=$TEST_DB_HOST --dbname=postgres --username=postgres -c "SET client_min_messages = ERROR; CREATE USER $TEST_DB_UID WITH SUPERUSER CREATEROLE CREATEDB PASSWORD '$TEST_DB_PWD';"
-    echo "Created: Test user '$TEST_DB_UID'."
-fi
-
-# Confirm test DSN already exists or create it.
-if [ "$(psql --username=postgres -lqt | cut -d \| -f 1 | grep -w $TEST_DB_DSN)" ]
-then
-    echo "Confirmed: Test data source '$TEST_DB_DSN' exists in DB."
-else
-    psql --host=$TEST_DB_HOST --username=postgres -c "SET client_min_messages = ERROR; CREATE DATABASE $TEST_DB_DSN OWNER $TEST_DB_UID;"
-    echo "Created: Test data source '$TEST_DB_DSN' owned by '$TEST_DB_UID'."
-fi
 
 # Write test DB parameters.
 echo 'LOCAL_PROD_DB_PARAM = {}' >> ~/healthrex/CDSS/LocalEnv.py
