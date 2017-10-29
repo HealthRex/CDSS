@@ -196,7 +196,7 @@ if [ "$(psql --username=postgres -lqt | cut -d \| -f 1 | grep -w $TEST_DB_DSN)" 
 then
     echo "Confirmed: Test data source '$TEST_DB_DSN' exists in DB."
 else
-    psql --quiet --host=$TEST_DB_HOST --username=postgres -c "SET client_min_messages = ERROR; CREATE DATABASE $TEST_DB_DSN OWNER $TEST_DB_UID;"
+    psql --quiet --host=$TEST_DB_HOST --username=postgres -c "CREATE DATABASE $TEST_DB_DSN OWNER $TEST_DB_UID;"
     echo "Created: Test data source '$TEST_DB_DSN' owned by '$TEST_DB_UID'."
 fi
 
