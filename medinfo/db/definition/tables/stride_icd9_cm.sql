@@ -1,5 +1,5 @@
 -- ICD9 mapping
-CREATE TABLE stride_icd9_cm
+CREATE TABLE IF NOT EXISTS stride_icd9_cm
 (
 	cui	TEXT,
 	ispref TEXT,
@@ -9,4 +9,4 @@ CREATE TABLE stride_icd9_cm
 	str	TEXT,
 	suppress	TEXT
 );
-CREATE INDEX index_stride_icd9_cm_code ON stride_icd9_cm(code (16));
+CREATE INDEX IF NOT EXISTS index_stride_icd9_cm_code ON stride_icd9_cm(SUBSTRING(code, 1, 16));

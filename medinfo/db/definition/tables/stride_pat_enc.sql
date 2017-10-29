@@ -1,34 +1,34 @@
 -- Encounter dates, types, department.  Lots of inpatient data
 --	Header: Lower-case and remove " marks
-CREATE TABLE stride_pat_enc
+CREATE TABLE IF NOT EXISTS stride_pat_enc
 (
-	pat_id text,
-	pat_enc_csn_id bigint,
-	contact_date timestamp,
-	enc_type text,
-	department_name text,
-	appt_status text,
-	visit_type text,
-	cancel_reason text,
-	hosp_admdn_type text,
-	surgical_service text,
-	phone_reminder_status text,
-	appt_time timestamp,
-	er_arrival_time timestamp,
-	hosp_admsn_time timestamp,
-	hosp_dischrg_time timestamp,
-	adm_for_surg_yn text,
-	outgoing_call_yn text,
-	is_walk_in_yn text,
-	cancel_reason_cmt text,
-	admission_confirmation_status text,
-	discharge_confirmation_status text,
-	inpatient_data_id bigint
+	pat_id TEXT,
+	pat_enc_csn_id BIGINT,
+	contact_date TIMESTAMP,
+	enc_type TEXT,
+	department_name TEXT,
+	appt_status TEXT,
+	visit_type TEXT,
+	cancel_reason TEXT,
+	hosp_admdn_type TEXT,
+	surgical_service TEXT,
+	phone_reminder_status TEXT,
+	appt_time TIMESTAMP,
+	er_arrival_time TIMESTAMP,
+	hosp_admsn_time TIMESTAMP,
+	hosp_dischrg_time TIMESTAMP,
+	adm_for_surg_yn TEXT,
+	outgoing_call_yn TEXT,
+	is_walk_in_yn TEXT,
+	cancel_reason_cmt TEXT,
+	admission_confirmation_status TEXT,
+	discharge_confirmation_status TEXT,
+	inpatient_data_id BIGINT
 );
-CREATE INDEX index_stride_pat_enc_pat_id ON stride_pat_enc(pat_id (16));
-CREATE INDEX index_stride_pat_enc_pat_enc_csn_id ON stride_pat_enc(pat_enc_csn_id);
-CREATE INDEX index_stride_pat_enc_contact_date ON stride_pat_enc(contact_date);
-CREATE INDEX index_stride_pat_enc_inpatient_data_id ON stride_pat_enc(inpatient_data_id);
+CREATE INDEX IF NOT EXISTS index_stride_pat_enc_pat_id ON stride_pat_enc(SUBSTRING(pat_id, 1, 16));
+CREATE INDEX IF NOT EXISTS index_stride_pat_enc_pat_enc_csn_id ON stride_pat_enc(pat_enc_csn_id);
+CREATE INDEX IF NOT EXISTS index_stride_pat_enc_contact_date ON stride_pat_enc(contact_date);
+CREATE INDEX IF NOT EXISTS index_stride_pat_enc_inpatient_data_id ON stride_pat_enc(inpatient_data_id);
 
 -- pat_enc_dx.csv -- Encounter diagnoses (may be multiple per encounter)
 -- pat_enc_profee_dx_px.csv -- Encounter procedures and linked diagnosis and department

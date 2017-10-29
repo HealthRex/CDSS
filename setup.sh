@@ -233,8 +233,8 @@ echo -n 'LOCAL_TEST_DB_PARAM["PWD"] = ' >> ~/healthrex/CDSS/LocalEnv.py
 echo $TEST_DB_PWD >> ~/healthrex/CDSS/LocalEnv.py
 
 # Define schema based on various .sql files in medinfo/db/definition/.
-source ./medinfo/db/definition/define_db_schemata.sh
-define_schemata $TEST_DB_HOST $TEST_DB_DSN postgres
+psql --quiet --host=$TEST_DB_HOST --dbname=$TEST_DB_DSN --username=postgres
+     --file=medinfo/db/definition/define_db_schemata.sql
 
 #####
 

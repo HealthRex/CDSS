@@ -1,43 +1,43 @@
 -- Drug Screen Results
 -- 	Header row: Remove " marks and lower-case header lines
-create table stride_order_proc_drug_screen
+CREATE TABLE IF NOT EXISTS stride_order_proc_drug_screen
 (
-	order_proc_id bigint,
-	pat_id text,
-	pat_enc_csn_id bigint,
-	ordering_date timestamp,
-	proc_id integer,
-	proc_code text,
-	description text,
-	quantity integer,
-	order_status_c text,
-	order_status text,
-	reason_for_cancellation text,
-	future_or_stand text,
-	standing_exp_date timestamp,
-	future_expected_compltn_date timestamp,
-	standing_occurs integer,
-	stand_orig_occur integer,
-	rfl_priority text,
-	order_priority text,
-	stand_interval text,
-	instantiated_time timestamp,
-	ordering_mode text,
-	is_pending_ord_yn text,
-	proc_start_time timestamp,
-	proc_end_time timestamp,
-	id_of_replaced_order_proc_id bigint,
-	patient_location text,
-	login_department text,
-	specimen_taken_time timestamp,
-	specimen_recv_time timestamp,
-	result_line integer,
-	component_id integer,
-	component_name text,
-	ord_value text,
-	ref_normal_vals text
+	order_proc_id BIGINT,
+	pat_id TEXT,
+	pat_enc_csn_id BIGINT,
+	ordering_date TIMESTAMP,
+	proc_id INTEGER,
+	proc_code TEXT,
+	description TEXT,
+	quantity INTEGER,
+	order_status_c TEXT,
+	order_status TEXT,
+	reason_for_cancellation TEXT,
+	future_or_stand TEXT,
+	standing_exp_date TIMESTAMP,
+	future_expected_compltn_date TIMESTAMP,
+	standing_occurs INTEGER,
+	stand_orig_occur INTEGER,
+	rfl_priority TEXT,
+	order_priority TEXT,
+	stand_interval TEXT,
+	instantiated_time TIMESTAMP,
+	ordering_mode TEXT,
+	is_pending_ord_yn TEXT,
+	proc_start_time TIMESTAMP,
+	proc_end_time TIMESTAMP,
+	id_of_replaced_order_proc_id BIGINT,
+	patient_location TEXT,
+	login_department TEXT,
+	specimen_taken_time TIMESTAMP,
+	specimen_recv_time TIMESTAMP,
+	result_line INTEGER,
+	component_id INTEGER,
+	component_name TEXT,
+	ord_value TEXT,
+	ref_normal_vals TEXT
 );
-CREATE INDEX index_stride_order_proc_drug_screen_compkey ON stride_order_proc_drug_screen(order_proc_id, result_line);
-CREATE INDEX index_stride_order_proc_drug_screen_pat_id ON stride_order_proc_drug_screen(pat_id (16));
-CREATE INDEX index_stride_order_proc_drug_screen_pat_enc_csn_id ON stride_order_proc_drug_screen(pat_enc_csn_id);
-CREATE INDEX index_stride_order_proc_drug_screen_component_id ON stride_order_proc_drug_screen(component_id);
+CREATE INDEX IF NOT EXISTS index_stride_order_proc_drug_screen_compkey ON stride_order_proc_drug_screen(order_proc_id, result_line);
+CREATE INDEX IF NOT EXISTS index_stride_order_proc_drug_screen_pat_id ON stride_order_proc_drug_screen(SUBSTRING(pat_id, 1, 16));
+CREATE INDEX IF NOT EXISTS index_stride_order_proc_drug_screen_pat_enc_csn_id ON stride_order_proc_drug_screen(pat_enc_csn_id);
+CREATE INDEX IF NOT EXISTS index_stride_order_proc_drug_screen_component_id ON stride_order_proc_drug_screen(component_id);

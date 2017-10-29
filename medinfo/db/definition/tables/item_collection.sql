@@ -1,19 +1,32 @@
 -- Tables to track manually specified collections of clinical items and their relative relationships
 -- For example, use to track pre-existing order sets
-CREATE TABLE item_collection
+CREATE TABLE IF NOT EXISTS item_collection
 (
 	item_collection_id SERIAL NOT NULL,
-    subject VARCHAR(255) NOT NULL,	-- VARCHAR to allow indexing
+    section VARCHAR(255) NOT NULL,	-- VARCHAR to allow indexing
     name VARCHAR(255) NOT NULL,	-- VARCHAR to allow indexing
-    description TEXT
+    description TEXT,
+		CONSTRAINT item_collection_pkey PRIMARY KEY (item_collection_id)
 );
 -- ALTER TABLE item_collection MODIFY COLUMN item_collection_id BIGINT SIGNED NOT NULL AUTO_INCREMENT;
-ALTER TABLE item_collection ADD CONSTRAINT item_collection_pkey PRIMARY KEY (item_collection_id);
+-- ALTER TABLE item_collection ADD CONSTRAINT item_collection_pkey PRIMARY KEY (item_collection_id);
 
-ALTER TABLE item_collection ADD COLUMN external_id BIGINT;		-- Map to order set protocol ID
+ALTER TABLE item_collection ADD COLUMN IF NOT EXISTS external_id BIGINT;		-- Map to order set protocol ID
 --ALTER TABLE item_collection RENAME COLUMN name TO name; 		-- Map to order set protocol name
-ALTER TABLE item_collection RENAME COLUMN subject TO section;	-- Map to order set section_name
-ALTER TABLE item_collection ADD COLUMN subgroup VARCHAR(255);	-- Map to order set "Smart Group"
+
+DO $$
+BEGIN
+	IF EXISTS (
+		SELECT column_name
+		FROM information_schema.columns
+		WHERE table_name = 'item_collection' AND column_name = 'subject'
+	)
+	THEN
+		ALTER TABLE item_collection RENAME COLUMN subject TO section;	-- Map to order set section_name
+	END IF;
+END$$;
+
+ALTER TABLE item_collection ADD COLUMN IF NOT EXISTS subgroup VARCHAR(255);	-- Map to order set "Smart Group"
 
 -- Longer expected length to allow for long protocol names that are up to 400 characters
 ALTER TABLE item_collection ALTER COLUMN section DROP NOT NULL;
