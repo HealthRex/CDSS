@@ -29,8 +29,16 @@ class ResidentScheduleFormat:
         """
         reader = csv.reader(scheduleFile, dialect=csv.excel_tab);  # Assume tab delimited file
         
-        dateRanges = self.parseDateRanges(reader.next());  # Expect first line to be the primary date ranges
-        splitDates = self.parseSplitDates(reader.next()); # Expect next line to be mid-rotation split dates
+        # Iterate through header lines until find one that looks like key date row
+        # Expect first key line to be the primary date ranges
+        row = reader.next();
+        while row[-1].isalnum() or row[-1].find("-") < 0:    # Expect date rows formatted like "5/25 - 6/24" so look for a non-alphanumeric row with a '-'' in the middle
+            row = reader.next();        
+        dateRanges = self.parseDateRanges(row);  
+
+        # Expect next line to be mid-rotation split dates
+        row = reader.next();    
+        splitDates = self.parseSplitDates(row); 
         
         scheduleItems = list();
         lastResident = None;

@@ -22,15 +22,17 @@ class TestResidentScheduleFormat(DBTestCase):
         DBTestCase.setUp(self);
 
         self.R1_DATA = \
-            """Dates\t6/25 - 7/19\t7/20 - 8/16\t8/17 - 9/13\t9/14 - 10/11\t10/12 - 11/8\t11/9 - 12/6\t12/7 - 1/3\t1/4 - 1/31\t2/1 - 2/28\t3/1 - 3/28\t3/29 - 4/25\t4/26 - 5/23\t5/24 - 6/24
-Split\t(7/6)\t(8/3)\t(8/31)\t(9/28)\t(10/26)\t(11/23)\t(12/21)\t(1/18)\t(2/15)\t(3/15)\t(4/12)\t(5/10)\t(6/7)
+            """Split dates in '( )'\t1\t2\t3\t4\t5\t6\t7\t8\t9\t10\t11\t12\t13
+\t6/25 - 7/19\t7/20 - 8/16\t8/17 - 9/13\t9/14 - 10/11\t10/12 - 11/8\t11/9 - 12/6\t12/7 - 1/3\t1/4 - 1/31\t2/1 - 2/28\t3/1 - 3/28\t3/29 - 4/25\t4/26 - 5/23\t5/24 - 6/24
+\t(7/6)\t(8/3)\t(8/31)\t(9/28)\t(10/26)\t(11/23)\t(12/21)\t(1/18)\t(2/15)\t(3/15)\t(4/12)\t(5/10)\t(6/7)
 "R1VA"\tStanford Wards\tOncology\tStanford Wards\tVA ICU\tVA Night Team | Vacation\tStanford ED\tStanford Wards\tGastroenterology Inpatient | Gastroenterology Outpatient\tGeneral Cardiology\tSCV Wards\tVA Wards\tGeriatrics | VA Night Team\tPulmonology SUH | Vacation
 "R1KC"\tVA ICU\tGeneral Cardiology\tStanford Wards\tSCV Wards\tStanford Night Team | Vacation\tOncology\tVA Wards\tStanford Wards\tHematology\tStanford ED\tInfectious Disease VA | Pulmonology SUH\tStanford Wards\tVacation | Geriatrics
 "R1AC"\tSCV Wards\tVA ICU\tVA Wards\tStanford Wards\tVA Night Team | Vacation\tStanford Wards\tVA Wards\tGeneral Cardiology\tGastroenterology Inpatient | Gastroenterology Outpatient\tPulmonology SUH | Vacation\tStanford Wards\tStanford Night Team | Geriatrics\tOncology
 """;
         self.R2_DATA = \
-            """Dates\t7/1 - 7/26\t7/27 - 8/23\t8/24 - 9/20\t9/21 - 10/18\t10/19 - 11/15\t11/16 - 12/27\t12/28 - 1/10\t1/11 - 2/7\t2/8 - 3/7\t3/8 - 4/4\t4/5 - 5/2\t5/3 - 5/30\t5/31 - 6/30
-Split\t(7/13)\t(8/10)\t(9/7)\t(10/5)\t(11/2)\t(12/7)\t(1/5)\t(1/25)\t(2/22)\t(3/22)\t(4/19)\t(5/17)\t(6/14)
+            """Split dates in '( )'\t1\t2\t3\t4\t5\t6\t7\t8\t9\t10\t11\t12\t13
+\t7/1 - 7/26\t7/27 - 8/23\t8/24 - 9/20\t9/21 - 10/18\t10/19 - 11/15\t11/16 - 12/27\t12/28 - 1/10\t1/11 - 2/7\t2/8 - 3/7\t3/8 - 4/4\t4/5 - 5/2\t5/3 - 5/30\t5/31 - 6/30
+\t(7/13)\t(8/10)\t(9/7)\t(10/5)\t(11/2)\t(12/7)\t(1/5)\t(1/25)\t(2/22)\t(3/22)\t(4/19)\t(5/17)\t(6/14)
 "R2AA"\tStanford ICU\tVA Night Team | Palliative Care VA\tStanford Night Team | Global Health Elective\tCCU Heart Failure\tVA Vacation | Willow Block\tGastroenterology Outpatient | Rheumatology\tHoliday 12/28-1/1\tOutpatient Oncology | Johnson & Johnson\tJohnson & Johnson\tOutpatient Neuro | Nephrology Outpatient\tVA Vacation | Endocrinology\tSCV Wards\tVA Wards
 \t\t\t\t\t\t\tPulmonology SUH\t\t\t\t\t\t
 "R2MB"\tCCU Heart Failure\tStanford ICU\tStanford Wards\tWomen's Health | VA Ambulatory\tVA Wards\tHoliday 12/23-12/27\t\t\t\tSIM Block 4/2-4/4\tOutpatient Neuro | Stanford Night Team\tStanford Night Team | Menlo Clinic\tNephrology Outpatient 6/23-6/30
