@@ -66,6 +66,7 @@ class ResidentScheduleFormat:
             scheduleItems = list();
             for iRow, resTextChunks in enumerate(resTextChunksList):
                 textChunk = resTextChunks[iBlock].strip();
+                #print >> sys.stderr, iRow, textChunk
                 if textChunk != "" and textChunk[-1].isdigit(): # Ends with a number, must be a date specification
                     subChunks = textChunk.split();  # Separate out date
                     dateRangeText = subChunks.pop(-1);
@@ -161,7 +162,7 @@ class ResidentScheduleFormat:
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog <inputFile> <outputFile>\n"+\
-                    "   <inputFile>     Tab-delimited input file taken from schedule Excel file.  Expect first row to have dates as in test case example.  Weird space characters should be converted to regular ASCII characters\n"+\
+                    "   <inputFile>     Tab-delimited input file taken from schedule Excel file. Example data format as seen in test case examples. See support/extractExcelSheets.py for help on pulling out Excel sheets into tab-delimited data files.\n"+\
                     "   <outputFile>    File to output results to.  Designate '-' for stdout.";
         parser = OptionParser(usage=usageStr)
         (options, args) = parser.parse_args(argv[1:])

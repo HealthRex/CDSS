@@ -93,6 +93,10 @@ class TextResultsFormatter(ResultsFormatter):
     Defaults to tab-delimited, but can customize.
     Option to escape / URL quote content text to avoid
     special characters (tabs, new lines, etc.) compromising formatting.
+
+    This is mostly redundant with built-in package:
+        csv.DictWriter( dialect=csv.excel_tab )
+
     """
     mDelim = None;
     quoteContents = None;
