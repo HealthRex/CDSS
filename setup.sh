@@ -117,8 +117,14 @@ echo ""
 echo "INITIALIZE DATABASE"
 
 ## PostgreSQL Server ##
-sudo service postgresql initdb
-sudo service postgresql start
+if [ "$PLATFORM" = "Amazon Linux" ]
+then
+    sudo service postgresql96 initdb
+    sudo service postgresql96 start
+else
+    sudo service postgresql initdb
+    sudo service postgresql start
+fi
 
 # Set password for postgres user.
 echo ""
@@ -134,9 +140,9 @@ then
     echo ""
     echo "Use vi to edit line 80, 82, and 84 of pg_hba.conf to read 'local\tall\tall\tmd5'"
     read -p "Press ENTER to continue."
-    sudo vi /var/lib/pgsql9/data/pg_hba.conf
+    sudo vi /var/lib/pgsql96/data/pg_hba.conf
     echo ""
-    sudo service postgresql restart
+    sudo service postgresql96 restart
 fi
 
 ## Production DB
