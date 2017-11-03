@@ -93,6 +93,10 @@ class TextResultsFormatter(ResultsFormatter):
     Defaults to tab-delimited, but can customize.
     Option to escape / URL quote content text to avoid
     special characters (tabs, new lines, etc.) compromising formatting.
+
+    This is mostly redundant with built-in package:
+        csv.DictWriter( dialect=csv.excel_tab )
+
     """
     mDelim = None;
     quoteContents = None;
@@ -243,6 +247,9 @@ class TabDictReader(csv.DictReader):
 def pandas_read_table(infile, *args, **kwds):
     """Simple wrapper function for default arguments to read a pandas dataframe 
     from a tab-delimited file and ignoring comment lines.
+
+    Beware that using something like a '#' comment tag means that data elements that include '#' in the string 
+        will result in the remainder of the row's contents being ignored as a comment
     """
     import pandas as pd;    # Only import as needed
     return pd.read_table(infile, comment=COMMENT_TAG, na_values=[NULL_STRING], *args, **kwds);
