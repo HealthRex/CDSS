@@ -11,7 +11,6 @@ from medinfo.db.Model import RowItemModel, RowItemFieldComparator, modelListFrom
 
 from Util import log;
 
-BASE_YEAR = 2013;   # Year expect dates to start in
 CHANGE_HOUR = 7;  # Designate 7am as changeover time rather than midnight, otherwise night shift behavior on change dates will be misinterpreted
 
 class ResidentScheduleFormat:
@@ -20,10 +19,9 @@ class ResidentScheduleFormat:
     """
     def __init__(self):
         """Default constructor"""
-        self.baseYear = BASE_YEAR;
         self.changeHour = CHANGE_HOUR;
 
-    def parseScheduleItems(self, scheduleFile):
+    def parseScheduleItems(self, scheduleFile, baseYear):
         """Given a file reference, parse through contents to generate a list of 
         relational (dictionary) schedule items representing each dated user-rotation schedule component.
         """
@@ -34,11 +32,11 @@ class ResidentScheduleFormat:
         row = reader.next();
         while row[-1].isalnum() or row[-1].find("-") < 0:    # Expect date rows formatted like "5/25 - 6/24" so look for a non-alphanumeric row with a '-'' in the middle
             row = reader.next();        
-        dateRanges = self.parseDateRanges(row);  
+        dateRanges = self.parseDateRanges(row, baseYear);  
 
         # Expect next line to be mid-rotation split dates
         row = reader.next();    
-        splitDates = self.parseSplitDates(row); 
+        splitDates = self.parseSplitDates(row, baseYear); 
         
         scheduleItems = list();
         lastResident = None;
@@ -122,11 +120,11 @@ class ResidentScheduleFormat:
                     startDate = item["end"];
         return (startDate, endDate);                
 
-    def parseDateRanges(self, textChunks):
+    def parseDateRanges(self, textChunks, baseYear):
         textChunks = textChunks[1:];    # Discard first chunk, expect to be an unused label
 
         dateRanges = list();
-        lastDate = datetime(self.baseYear,1,1);   # Start with the expected base year
+        lastDate = datetime(baseYear,1,1);   # Start with the expected base year
         for chunk in textChunks:
             (startText, endText) = chunk.split("-");   # Separate out start from end date
             lastDate = startDate = self.parseDateText( startText, lastDate, 0 );
@@ -148,11 +146,11 @@ class ResidentScheduleFormat:
         dateObj += timedelta(incrementDays);
         return dateObj;
     
-    def parseSplitDates(self, textChunks):
+    def parseSplitDates(self, textChunks, baseYear):
         textChunks = textChunks[1:];    # Discard first chunk, expect to be an unused label
 
         splitDates = list();
-        lastDate = datetime(self.baseYear,1,1);   # Start with the expected base year
+        lastDate = datetime(baseYear,1,1);   # Start with the expected base year
         for chunk in textChunks:
             dateText = chunk.replace("(","").replace(")","").strip();   # Drop flanking parantheses
             lastDate = splitDate = self.parseDateText( dateText, lastDate );
@@ -165,14 +163,18 @@ class ResidentScheduleFormat:
                     "   <inputFile>     Tab-delimited input file taken from schedule Excel file. Example data format as seen in test case examples. See support/extractExcelSheets.py for help on pulling out Excel sheets into tab-delimited data files.\n"+\
                     "   <outputFile>    File to output results to.  Designate '-' for stdout.";
         parser = OptionParser(usage=usageStr)
+        parser.add_option("-y", "--baseYear",  dest="baseYear", help="Year expect dates to start in.");
+        parser.add_option("-t", "--changeTime",  dest="changeTime", default=CHANGE_TIME, help="Hour of day that count as delimiter between rotations. Likely should NOT be midnight = 0, because night shifts span midnight. Default to 7 = 7am.");
         (options, args) = parser.parse_args(argv[1:])
 
-        if len(args) >= 2:
+        if len(args) >= 2 and options.baseYear:
             log.info("Starting: "+str.join(" ", argv))
             timer = time.time();
 
+            baseYrar = int(options.baseYear);
+
             inFile = stdOpen(args[0]);
-            scheduleItems = self.parseScheduleItems(inFile);
+            scheduleItems = self.parseScheduleItems(inFile, baseYear);
 
             outFile = stdOpen(args[1],"w");
             formatter = TextResultsFormatter(outFile);

@@ -21,6 +21,8 @@ class TestResidentScheduleFormat(DBTestCase):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
 
+        self.BASE_YEAR = 2013;  # Expected base/start year that the test data represents
+
         self.R1_DATA = \
             """Split dates in '( )'\t1\t2\t3\t4\t5\t6\t7\t8\t9\t10\t11\t12\t13
 \t6/25 - 7/19\t7/20 - 8/16\t8/17 - 9/13\t9/14 - 10/11\t10/12 - 11/8\t11/9 - 12/6\t12/7 - 1/3\t1/4 - 1/31\t2/1 - 2/28\t3/1 - 3/28\t3/29 - 4/25\t4/26 - 5/23\t5/24 - 6/24
@@ -108,7 +110,7 @@ class TestResidentScheduleFormat(DBTestCase):
                 RowItemModel( ['R1AC', 'Geriatrics', datetime(2014, 5, 10, 7, 0), datetime(2014, 5, 24, 7, 0)], headers ),
                 RowItemModel( ['R1AC', 'Oncology', datetime(2014, 5, 24, 7, 0), datetime(2014, 6, 25, 7, 0)], headers ),
             ];
-        actualData = self.converter.parseScheduleItems( StringIO(self.R1_DATA) );
+        actualData = self.converter.parseScheduleItems( StringIO(self.R1_DATA), self.BASE_YEAR );
         self.assertEqualList( expectedData, actualData );
 
         log.debug("Run the formatting process for R2s");
@@ -193,7 +195,7 @@ class TestResidentScheduleFormat(DBTestCase):
                 RowItemModel( ['R2TS','Vacation',datetime(2014,5,31,7),datetime(2014,6,14,7)], headers),
                 RowItemModel( ['R2TS','HIV',datetime(2014,6,14,7),datetime(2014,7,1,7)], headers),
             ];
-        actualData = self.converter.parseScheduleItems( StringIO(self.R2_DATA) );
+        actualData = self.converter.parseScheduleItems( StringIO(self.R2_DATA), self.BASE_YEAR );
         self.assertEqualList( expectedData, actualData );
 
 
