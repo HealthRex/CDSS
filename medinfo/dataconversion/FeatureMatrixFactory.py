@@ -862,7 +862,7 @@ class FeatureMatrixFactory:
             self._parseFooInput()
         """
         # Initialize feature matrix file.
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
         matrixFileName = "feature-matrix_%s.tab" % timestamp
         matrixFile = open(matrixFileName, "w")
         self._matrixFileName = matrixFileName
