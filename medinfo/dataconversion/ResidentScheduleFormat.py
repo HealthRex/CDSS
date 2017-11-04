@@ -171,7 +171,7 @@ class ResidentScheduleFormat:
             log.info("Starting: "+str.join(" ", argv))
             timer = time.time();
 
-            baseYrar = int(options.baseYear);
+            baseYear = int(options.baseYear);
 
             inFile = stdOpen(args[0]);
             scheduleItems = self.parseScheduleItems(inFile, baseYear);
