@@ -80,7 +80,7 @@ class LabTestMatrix:
 
         # Based on average # of results, figure out how many patients we'd
         # need to get for a feature matrix of requested size.
-        numPatientsToQuery = int(numpy.max([numpy.ceil(self.numPatientEpisodes / avgOrdersPerPatient), 1]))
+        numPatientsToQuery = int(numpy.max([self.numPatientEpisodes / avgOrdersPerPatient, 1]))
         self.numPatients = numPatientsToQuery
         randomPatientList = self._getRandomPatientList(numPatientsToQuery)
         patientListStr = ", ".join(randomPatientList)

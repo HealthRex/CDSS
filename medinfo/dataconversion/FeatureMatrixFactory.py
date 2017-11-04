@@ -412,7 +412,7 @@ class FeatureMatrixFactory:
 
         # Open temp file.
         if len(labNames) > 1:
-            resultLabel = "-".join([labName for labName in labNames])
+            resultLabel = "-".join([labName for labName in labNames])[:64]
         else:
             resultLabel = labNames[0]
         tempFileName = self._patientResultTempFileNameFormat % (resultLabel, str(preTimeDelta), str(postTimeDelta))
