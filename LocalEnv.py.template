@@ -1,0 +1,13 @@
+#!/usr/bin/python
+
+LOCAL_PROD_DB_PARAM = {}
+LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'
+LOCAL_PROD_DB_PARAM["DSN"] = 'prod'
+LOCAL_PROD_DB_PARAM["UID"] = 'produid'
+LOCAL_PROD_DB_PARAM["PWD"] = 'prodpwd'
+
+LOCAL_TEST_DB_PARAM = {}
+LOCAL_TEST_DB_PARAM["HOST"] = 'localhost'
+LOCAL_TEST_DB_PARAM["DSN"] = 'test'
+LOCAL_TEST_DB_PARAM["UID"] = 'testuid'
+LOCAL_TEST_DB_PARAM["PWD"] = 'testpwd'
