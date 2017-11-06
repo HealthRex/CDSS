@@ -1,5 +1,18 @@
 #!/usr/bin/python
 
+# This file serves as documentation to help users understand LocalEnv.py.
+#
+# LocalEnv.py is created dynamically by setup.sh, but if you don't need
+# to do any of the other steps in setup.sh (e.g. installing libraries,
+# initializing DB) it may be easier to just make a copy of this file
+# and name it LocalEnv.py before editing the actual values.
+#
+# medinfo/db/Env.py imports these DB variables, so all DB connections will
+# fail if these two environment variables are not defined.
+#
+# Other variables which are likely to vary between dev environments should
+# be added to this template file, then be given default values via setup.sh.
+
 LOCAL_PROD_DB_PARAM = {}
 LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'
 LOCAL_PROD_DB_PARAM["DSN"] = 'prod'
