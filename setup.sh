@@ -56,7 +56,7 @@ else
     echo "Installing postgresql-server..."
     if [ "$PLATFORM" = "Amazon Linux" ]
     then
-      sudo yum install postgresql-server
+      sudo yum install postgresql96-server
     fi
     if [ "$PLATFORM" = "OSX" ]
     then
@@ -72,7 +72,7 @@ else
     echo "Installing psql..."
     if [ "$PLATFORM" = "Amazon Linux" ]
     then
-      sudo yum install postgresql
+      sudo yum install postgresql96
     fi
     if [ "$PLATFORM" = "OSX" ]
     then
@@ -117,8 +117,14 @@ echo ""
 echo "INITIALIZE DATABASE"
 
 ## PostgreSQL Server ##
-sudo service postgresql initdb
-sudo service postgresql start
+if [ "$PLATFORM" = "Amazon Linux" ]
+then
+    sudo service postgresql96 initdb
+    sudo service postgresql96 start
+else
+    sudo service postgresql initdb
+    sudo service postgresql start
+fi
 
 # Set password for postgres user.
 echo ""
@@ -134,9 +140,9 @@ then
     echo ""
     echo "Use vi to edit line 80, 82, and 84 of pg_hba.conf to read 'local\tall\tall\tmd5'"
     read -p "Press ENTER to continue."
-    sudo vi /var/lib/pgsql9/data/pg_hba.conf
+    sudo vi /var/lib/pgsql96/data/pg_hba.conf
     echo ""
-    sudo service postgresql restart
+    sudo service postgresql96 restart
 fi
 
 ## Production DB
@@ -212,29 +218,28 @@ echo '' >> ~/healthrex/CDSS/LocalEnv.py
 # Write production DB parameters.
 echo 'LOCAL_PROD_DB_PARAM = {}' >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_PROD_DB_PARAM["HOST"] = ' >> ~/healthrex/CDSS/LocalEnv.py
-echo $PROD_DB_HOST >> ~/healthrex/CDSS/LocalEnv.py
+echo "'$PROD_DB_HOST'" >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_PROD_DB_PARAM["DSN"] = ' >> ~/healthrex/CDSS/LocalEnv.py
-echo $PROD_DB_DSN >> ~/healthrex/CDSS/LocalEnv.py
+echo "'$PROD_DB_DSN'" >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_PROD_DB_PARAM["UID"] = ' >> ~/healthrex/CDSS/LocalEnv.py
-echo $PROD_DB_UID >> ~/healthrex/CDSS/LocalEnv.py
+echo "'$PROD_DB_UID'" >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_PROD_DB_PARAM["PWD"] = ' >> ~/healthrex/CDSS/LocalEnv.py
-echo $PROD_DB_PWD >> ~/healthrex/CDSS/LocalEnv.py
+echo "'$PROD_DB_PWD'" >> ~/healthrex/CDSS/LocalEnv.py
 echo '' >> ~/healthrex/CDSS/LocalEnv.py
 
 # Write test DB parameters.
-echo 'LOCAL_PROD_DB_PARAM = {}' >> ~/healthrex/CDSS/LocalEnv.py
+echo 'LOCAL_TEST_DB_PARAM = {}' >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_TEST_DB_PARAM["HOST"] = ' >> ~/healthrex/CDSS/LocalEnv.py
-echo $TEST_DB_HOST >> ~/healthrex/CDSS/LocalEnv.py
+echo "'$TEST_DB_HOST'" >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_TEST_DB_PARAM["DSN"] = ' >> ~/healthrex/CDSS/LocalEnv.py
-echo $TEST_DB_DSN >> ~/healthrex/CDSS/LocalEnv.py
+echo "'$TEST_DB_DSN'" >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_TEST_DB_PARAM["UID"] = ' >> ~/healthrex/CDSS/LocalEnv.py
-echo $TEST_DB_UID >> ~/healthrex/CDSS/LocalEnv.py
+echo "'$TEST_DB_UID'" >> ~/healthrex/CDSS/LocalEnv.py
 echo -n 'LOCAL_TEST_DB_PARAM["PWD"] = ' >> ~/healthrex/CDSS/LocalEnv.py
-echo $TEST_DB_PWD >> ~/healthrex/CDSS/LocalEnv.py
+echo "'$TEST_DB_PWD'" >> ~/healthrex/CDSS/LocalEnv.py
 
 # Define schema based on various .sql files in medinfo/db/definition/.
-psql --quiet --host=$TEST_DB_HOST --dbname=$TEST_DB_DSN --username=postgres
-     --file=medinfo/db/definition/define_db_schemata.sql
+psql --quiet --host=$TEST_DB_HOST --dbname=$TEST_DB_DSN --username=postgres --file=medinfo/db/definition/define_db_schemata.sql
 
 #####
 
