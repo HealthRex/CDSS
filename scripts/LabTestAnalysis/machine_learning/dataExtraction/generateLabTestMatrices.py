@@ -13,12 +13,12 @@ TOP_LAB_PANELS_BY_VOLUME = [
     "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
     "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
     "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
-    "LABROMRS", "LABTNI", "LABTYPSNI", "LABUA", "LABUAPRN",
+    "LABROMRS", "LABTNI", "LABTYPSNI", "LABUA", "LABUAPRN", 
     "LABURNC", "LABVANPRL", "LABVBG"
 ]
 
 # How many rows do we need in the feature matrix?
-NUM_ROWS_PER_MATRIX = 10
+NUM_ROWS_PER_MATRIX = 10000
 
 # Format for matrix file names.
 # Includes the name of the lab panel, the names of the components, the number
@@ -57,9 +57,14 @@ def generateLabPanelMatrices(labPanel):
 
     # Generate feature matrix for all components.
     matrix = LabTestMatrix(components, NUM_ROWS_PER_MATRIX)
-    matrix.writeLabTestMatrix(MATRIX_NAME_FORMAT % (labPanel, '-'.join(components), \
+    matrix.writeLabTestMatrix(MATRIX_NAME_FORMAT % (labPanel, 'all', \
         matrix.numPatients, matrix.numPatientEpisodes))
 
+# Generates LabTestMatrices for TOP_LAB_PANELS_BY_VOLUME.
+def generateTopLabPanelMatrices():
+    for panel in TOP_LAB_PANELS_BY_VOLUME:
+        log.info(panel)
+        generateLabPanelMatrices(panel)
+
 if __name__ == "__main__":
-    log.info("A1C")
-    generateLabPanelMatrices("A1C")
+    generateTopLabPanelMatrices()
