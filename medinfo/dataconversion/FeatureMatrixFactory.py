@@ -668,17 +668,18 @@ class FeatureMatrixFactory:
                         filteredResults = list()
                         for result in resultsByName[baseName]:
                             resultTime = result[datetimeCol]
-                            if (preTimeLimit is None or preTimeLimit <= resultTime) \
-                                and (postTimeLimit is None or resultTime < postTimeLimit):
-                                # Occurs within timeframe of interest, so record valueCol
-                                filteredResults.append(result)
-
-                                if firstItem is None or resultTime < firstItem[datetimeCol]:
-                                    firstItem = result
-                                if lastItem is None or lastItem[datetimeCol] < resultTime:
-                                    lastItem = result
-                                if proximateItem is None or (abs(resultTime - indexTime) < abs(proximateItem[datetimeCol] - indexTime)):
-                                    proximateItem = result
+                            if resultTime is not None:
+                                if (preTimeLimit is None or preTimeLimit <= resultTime) \
+                                   and (postTimeLimit is None or resultTime < postTimeLimit):
+                                    # Occurs within timeframe of interest, so record valueCol
+                                    filteredResults.append(result)
+                                    
+                                    if firstItem is None or resultTime < firstItem[datetimeCol]:
+                                        firstItem = result
+                                    if lastItem is None or lastItem[datetimeCol] < resultTime:
+                                        lastItem = result
+                                    if proximateItem is None or (abs(resultTime - indexTime) < abs(proximateItem[datetimeCol] - indexTime)):
+                                        proximateItem = result
 
                         if len(filteredResults) > 0:
                             # Count up number of values specifically labeled "in range"
