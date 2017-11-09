@@ -1,3 +1,10 @@
+"""Look through directory tree for unit test cases to run.
+Comparable to command-line functionality:
+
+python -m unittest discover -v -s <directoryName> -p "Test*.py"
+
+"""
+
 import unittest
 import logging
 

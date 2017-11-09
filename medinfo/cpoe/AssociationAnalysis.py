@@ -400,6 +400,7 @@ class AssociationAnalysis:
     def loadUpdateBufferFromFile(self, filename):
         updateBuffer = None;
         try:
+            #print >> sys.stderr, filename
             log.info("Loading: %s" % filename);
             ifs = stdOpen(filename, "r")
             updateBuffer = json.load(ifs)
