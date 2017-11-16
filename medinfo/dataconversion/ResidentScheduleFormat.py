@@ -19,6 +19,7 @@ class ResidentScheduleFormat:
     """
     def __init__(self):
         """Default constructor"""
+        self.providerById = None;
         self.changeHour = CHANGE_HOUR;
 
     def parseScheduleItems(self, scheduleFile, baseYear):
@@ -56,6 +57,8 @@ class ResidentScheduleFormat:
     def parseResidentScheduleItems(self, resident, resTextChunksList, dateRanges, splitDates):
         """Parse just the text chunks for an individual resident, being aware of potential for list of multiple rows
         """
+        provId = self.inferProvIdFromName(resident);
+
         for iBlock, dateRange in enumerate(dateRanges):    # Iterate through each major rotation block
             dateRange = dateRanges[iBlock];
             splitDate = splitDates[iBlock];
@@ -74,7 +77,7 @@ class ResidentScheduleFormat:
 
                     rotation = str.join(' ', subChunks);    # Reconstruct rotation name
 
-                    scheduleItem = {"resident": resident, "rotation": rotation, "start": startDate, "end": endDate};
+                    scheduleItem = {"prov_id": provId, "name": resident, "rotation": rotation, "start_date": startDate, "end_date": endDate};
                     scheduleItems.append(scheduleItem);
                     
             # Second pass to look for rotations without dates specified based on standard dates
@@ -87,25 +90,32 @@ class ResidentScheduleFormat:
                         rotation = subChunks[0].strip();
                         if rotation[0].isalpha():   # Ensure starts with a letter, and not special character for blank placeholder
                             (startDate, endDate) = self.compressDateRange( dateRange[0], splitDate, scheduleItems );  # End split date
-                            scheduleItem = {"resident": resident, "rotation": rotation, "start": startDate, "end": endDate};
+                            scheduleItem = {"prov_id": provId, "name": resident, "rotation": rotation, "start_date": startDate, "end_date": endDate};
                             scheduleItems.append(scheduleItem);
 
                         rotation = subChunks[-1].strip();
                         if rotation[0].isalpha():   # Ensure starts with a letter, and not special character for blank placeholder
                             (startDate, endDate) = self.compressDateRange( splitDate, dateRange[-1], scheduleItems );  # Start on split date
-                            scheduleItem = {"resident": resident, "rotation": rotation, "start": startDate, "end": endDate};
+                            scheduleItem = {"prov_id": provId, "name": resident, "rotation": rotation, "start_date": startDate, "end_date": endDate};
                             scheduleItems.append(scheduleItem);
                     else:   # Single rotation spanning the full block
                         rotation = subChunks[0].strip();
                         if rotation[0].isalpha():   # Ensure starts with a letter, and not special character for blank placeholder
                             (startDate, endDate) = self.compressDateRange( dateRange[0], dateRange[-1], scheduleItems );
-                            scheduleItem = {"resident": resident, "rotation": rotation, "start": startDate, "end": endDate};
+                            scheduleItem = {"prov_id": provId, "name": resident, "rotation": rotation, "start_date": startDate, "end_date": endDate};
                             scheduleItems.append(scheduleItem);
 
             # Now yield / generate results, but keep sorted in chronologic order
-            scheduleItems.sort( RowItemFieldComparator("start") );
+            scheduleItems.sort( RowItemFieldComparator("start_date") );
             for item in scheduleItems:
                 yield item;
+
+    def inferProvIdFromName(self, name):
+        """Assume name is separated by comma into "LastName, FirstName"
+        Look through providerById dictionary to look for a best match within first X characters of first and last name
+        to back track provider ID. If none found, then fill in a fake ID value.
+        """
+        raise Exception("To Do: Also need to change data structure for lookup by name prefix and add index to track fake ID count")
 
     def compressDateRange( self, startDate, endDate, scheduleItems ):
         """Given a list of schedule item with specific date ranges,
@@ -113,11 +123,11 @@ class ResidentScheduleFormat:
         Simplifying assumption that overlaps will be at ends, not in middle of range or spanning entirety
         """
         for item in scheduleItems:
-            if item["start"] < endDate and startDate < item["end"]: # Overlap
-                if startDate < item["start"] :   # Overlap trim at end
-                    endDate = item["start"];
-                elif item["end"] < endDate: # Overlap trim at start
-                    startDate = item["end"];
+            if item["start_date"] < endDate and startDate < item["end_date"]: # Overlap
+                if startDate < item["start_date"] :   # Overlap trim at end
+                    endDate = item["start_date"];
+                elif item["end_date"] < endDate: # Overlap trim at start
+                    startDate = item["end_date"];
         return (startDate, endDate);                
 
     def parseDateRanges(self, textChunks, baseYear):
@@ -163,6 +173,7 @@ class ResidentScheduleFormat:
                     "   <inputFile>     Tab-delimited input file taken from schedule Excel file. Example data format as seen in test case examples. See support/extractExcelSheets.py for help on pulling out Excel sheets into tab-delimited data files.\n"+\
                     "   <outputFile>    File to output results to.  Designate '-' for stdout.";
         parser = OptionParser(usage=usageStr)
+        parser.add_option("-i", "--providerIdFilename",  dest="providerIdFilename", help="Name of provider ID CSV file. If provided, then add column for prov_id based on resident first and last name, match within first several characters, or generate ID value if no match found");
         parser.add_option("-y", "--baseYear",  dest="baseYear", help="Year expect dates to start in.");
         parser.add_option("-t", "--changeTime",  dest="changeTime", default=CHANGE_TIME, help="Hour of day that count as delimiter between rotations. Likely should NOT be midnight = 0, because night shifts span midnight. Default to 7 = 7am.");
         (options, args) = parser.parse_args(argv[1:])

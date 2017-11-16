@@ -297,7 +297,7 @@ def sanitizeNames(names):
         newNameSet.add(newName);
     return newNames;
 
-def pandas_to_sqlconn(df, tableName="data", conn=None):
+def pandas_to_sqlconn(df, tableName="data", conn=None, *args, **kwds):
     """Turning pandas dataframe into SQL queryable in memory object
     Column names will be cleaned up as per sanitizeNames.
     https://plot.ly/python/big-data-analytics-with-pandas-and-sqlite/
@@ -314,12 +314,12 @@ def pandas_to_sqlconn(df, tableName="data", conn=None):
     df.to_sql(tableName, conn, if_exists='replace');
     return conn;
 
-def df2sql(df, tableName="data", conn=None):
+def df2sql(df, tableName="data", conn=None, *args, **kwds):
     """Synonym function that may be more intuitive"""
-    return pandas_to_sqlconn(df, tableName, conn);
+    return pandas_to_sqlconn(df, tableName, conn, *args, **kwds);
 
 
-def pandas_read_sql_query(query, conn):
+def pandas_read_sql_query(query, conn, *args, **kwds):
     """To query dataframes back out,
     just enter a SQL query, using "data" as the source table name
     (unless a different one was specified in the dataframe_to_sqlconn) process.
@@ -330,9 +330,9 @@ def pandas_read_sql_query(query, conn):
         limit 10
     """
     import pandas as pd; # Only Import as needed
-    return pd.read_sql_query(query, conn);
+    return pd.read_sql_query(query, conn, *args, **kwds);
     
-def sql2df(query, conn):
+def sql2df(query, conn, *args, **kwds):
     """Synonym function that may be more intuitive"""
-    return pandas_read_sql_query(query, conn);
+    return pandas_read_sql_query(query, conn, *args, **kwds);
 
