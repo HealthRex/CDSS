@@ -12,6 +12,9 @@ from medinfo.db.Model import RowItemModel, RowItemFieldComparator, modelListFrom
 from Util import log;
 
 CHANGE_HOUR = 7;  # Designate 7am as changeover time rather than midnight, otherwise night shift behavior on change dates will be misinterpreted
+DEFAULT_INDEX_PREFIX_LENGTH = 5;    # Default number of first letters (prefix) of a provider's name to count as equal / equivalent when guessing provider IDs
+PLACEHOLDER_ID_TEMPLATE = "S%03d";  # Template for fake / placeholder provider ID to generate as needed
+PLACEHOLDER_ID_BASE_COUNTER = -1000;    # Initial value for fake ID sequence counter in negative values
 
 class ResidentScheduleFormat:
     """Data conversion module to take Resident Schedule Excel spreadsheet
@@ -19,8 +22,10 @@ class ResidentScheduleFormat:
     """
     def __init__(self):
         """Default constructor"""
-        self.providerById = None;
         self.changeHour = CHANGE_HOUR;
+        self.indexPrefixLength = None;
+        self.providersByNamePrefix = None;
+        self.placeholderIdCounter = PLACEHOLDER_ID_BASE_COUNTER;
 
     def parseScheduleItems(self, scheduleFile, baseYear):
         """Given a file reference, parse through contents to generate a list of 
@@ -110,12 +115,40 @@ class ResidentScheduleFormat:
             for item in scheduleItems:
                 yield item;
 
+    def loadProviderModels( self, providerModels, indexPrefixLength=DEFAULT_INDEX_PREFIX_LENGTH ):
+        """Store a copy of the given provider models (expect each to be a dictionary with prov_id, last_name, first_name combinations).
+        Prepare an index around these based on first X characters of each name to use when trying to back track
+        provider names to prov_ids.
+        """
+        self.indexPrefixLength = indexPrefixLength;
+        self.providersByNamePrefix = dict();
+        for provider in providerModels:
+            namePrefix = provider["last_name"][:indexPrefixLength] +","+ provider["first_name"][:indexPrefixLength];
+            if namePrefix not in self.providersByNamePrefix:
+                self.providersByNamePrefix[namePrefix] = list();  # Store a collection to track collisions between multiple providers who have the same first and last name (prefixes)
+            self.providersByNamePrefix[namePrefix].append(provider);
+
     def inferProvIdFromName(self, name):
         """Assume name is separated by comma into "LastName, FirstName"
-        Look through providerById dictionary to look for a best match within first X characters of first and last name
+        Look through providersByNamePrefix dictionary to look for a best match within first X characters of first and last name
         to back track provider ID. If none found, then fill in a fake ID value.
         """
-        raise Exception("To Do: Also need to change data structure for lookup by name prefix and add index to track fake ID count")
+        provIdsStr = None;
+
+        if self.providersByNamePrefix is not None and self.indexPrefixLength is not None:
+            chunks = name.split(",");
+            lastName = chunks[0].strip();
+            firstName = chunks[-1].strip();
+            namePrefix = lastName[:self.indexPrefixLength] +","+ firstName[:self.indexPrefixLength];
+
+            if namePrefix in self.providersByNamePrefix:
+                providers = self.providersByNamePrefix[namePrefix];
+                provIdsStr = str.join(",", [provider["prov_id"] for provider in providers])
+        
+        if provIdsStr is None:   # Unable to lookup provider IDs. Just makeup a sequential value then
+            self.placeholderIdCounter -= 1; # Decrement counter as working with negative values
+            provIdsStr = PLACEHOLDER_ID_TEMPLATE % self.placeholderIdCounter;
+        return provIdsStr;
 
     def compressDateRange( self, startDate, endDate, scheduleItems ):
         """Given a list of schedule item with specific date ranges,

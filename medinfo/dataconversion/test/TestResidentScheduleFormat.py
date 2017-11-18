@@ -48,19 +48,21 @@ class TestResidentScheduleFormat(DBTestCase):
 """;
 
         self.converter = ResidentScheduleFormat();  # Instance to test on
-        self.converter.providerById = \
-            {
-                "S001": {"prov_id":"S001", "last_name":"R1", "first_name":"VA"},
-                "S002": {"prov_id":"S002", "last_name":"R1", "first_name":"KC"},
-                "S003": {"prov_id":"S003", "last_name":"R1", "first_name":"AC"},
-                "S004": {"prov_id":"S004", "last_name":"R2", "first_name":"AA"},
-                "S005": {"prov_id":"S005", "last_name":"R2", "first_name":"MB"},
-                "S006": {"prov_id":"S006", "last_name":"R2", "first_name":"DL"},
-                #"S007": {"prov_id":"S007", "last_name":"R2", "first_name":"TS"}, # Deliberately missing an entry to test robustness if missing lookup
-                "S008": {"prov_id":"S008", "last_name":"R3", "first_name":"AB"},
-                "S009": {"prov_id":"S009", "last_name":"R3", "first_name":"CD"},
-                "S010": {"prov_id":"S010", "last_name":"R3", "first_name":"EF"},
-            };
+        self.converter.loadProviderModels \
+        (
+            [
+                {"prov_id":"S001", "last_name":"R1", "first_name":"VA"},
+                {"prov_id":"S002", "last_name":"R1", "first_name":"KC"},
+                {"prov_id":"S003", "last_name":"R1", "first_name":"AC"},
+                {"prov_id":"S004", "last_name":"R2", "first_name":"AA"},
+                {"prov_id":"S005", "last_name":"R2", "first_name":"MB"},
+                {"prov_id":"S006", "last_name":"R2", "first_name":"DL"},
+                #{"prov_id":"S007", "last_name":"R2", "first_name":"TS"}, # Deliberately missing an entry to test robustness if missing lookup
+                {"prov_id":"S008", "last_name":"R3", "first_name":"AB"},
+                {"prov_id":"S009", "last_name":"R3", "first_name":"CD"},
+                {"prov_id":"S010", "last_name":"R3", "first_name":"EF"},
+            ]
+        );
 
     def tearDown(self):
         """Restore state from any setUp or test steps"""
@@ -127,7 +129,7 @@ class TestResidentScheduleFormat(DBTestCase):
         self.assertEqualList( expectedData, actualData );
 
         log.debug("Run the formatting process for R2s");
-        headers = ["name","rotation","start_date","end_date"];
+        headers = ["prov_id","name","rotation","start_date","end_date"];
         expectedData = \
             [
                 RowItemModel( ['S004', 'R2, AA','Stanford ICU',datetime(2013,7,1,7),datetime(2013,7,27,7)], headers),
