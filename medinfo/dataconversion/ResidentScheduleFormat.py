@@ -12,7 +12,7 @@ from medinfo.db.Model import RowItemModel, RowItemFieldComparator, modelListFrom
 from Util import log;
 
 CHANGE_HOUR = 7;  # Designate 7am as changeover time rather than midnight, otherwise night shift behavior on change dates will be misinterpreted
-DEFAULT_INDEX_PREFIX_LENGTH = 5;    # Default number of first letters (prefix) of a provider's name to count as equal / equivalent when guessing provider IDs
+DEFAULT_INDEX_PREFIX_LENGTH = 3;    # Default number of first letters (prefix) of a provider's name to count as equal / equivalent when guessing provider IDs
 PLACEHOLDER_ID_TEMPLATE = "S%03d";  # Template for fake / placeholder provider ID to generate as needed
 PLACEHOLDER_ID_BASE_COUNTER = -1000;    # Initial value for fake ID sequence counter in negative values
 
@@ -123,7 +123,7 @@ class ResidentScheduleFormat:
         self.indexPrefixLength = indexPrefixLength;
         self.providersByNamePrefix = dict();
         for provider in providerModels:
-            namePrefix = provider["last_name"][:indexPrefixLength] +","+ provider["first_name"][:indexPrefixLength];
+            namePrefix = (provider["last_name"][:indexPrefixLength] +","+ provider["first_name"][:indexPrefixLength]).upper();
             if namePrefix not in self.providersByNamePrefix:
                 self.providersByNamePrefix[namePrefix] = list();  # Store a collection to track collisions between multiple providers who have the same first and last name (prefixes)
             self.providersByNamePrefix[namePrefix].append(provider);
@@ -139,7 +139,7 @@ class ResidentScheduleFormat:
             chunks = name.split(",");
             lastName = chunks[0].strip();
             firstName = chunks[-1].strip();
-            namePrefix = lastName[:self.indexPrefixLength] +","+ firstName[:self.indexPrefixLength];
+            namePrefix = (lastName[:self.indexPrefixLength] +","+ firstName[:self.indexPrefixLength]).upper();
 
             if namePrefix in self.providersByNamePrefix:
                 providers = self.providersByNamePrefix[namePrefix];
@@ -206,7 +206,7 @@ class ResidentScheduleFormat:
                     "   <inputFile>     Tab-delimited input file taken from schedule Excel file. Example data format as seen in test case examples. See support/extractExcelSheets.py for help on pulling out Excel sheets into tab-delimited data files.\n"+\
                     "   <outputFile>    File to output results to.  Designate '-' for stdout.";
         parser = OptionParser(usage=usageStr)
-        parser.add_option("-i", "--providerIdFilename",  dest="providerIdFilename", help="Name of provider ID CSV file. If provided, then add column for prov_id based on resident first and last name, match within first several characters, or generate ID value if no match found");
+        parser.add_option("-i", "--providerIdFilename",  dest="providerIdFilename", help="Name of provider ID CSV file. If provided, then add column for prov_id based on resident first_name and last_name, match within first "+DEFAULT_INDEX_PREFIX_LENGTH+" characters, or generate ID value if no match found");
         parser.add_option("-y", "--baseYear",  dest="baseYear", help="Year expect dates to start in.");
         parser.add_option("-t", "--changeTime",  dest="changeTime", default=CHANGE_TIME, help="Hour of day that count as delimiter between rotations. Likely should NOT be midnight = 0, because night shifts span midnight. Default to 7 = 7am.");
         (options, args) = parser.parse_args(argv[1:])
@@ -216,6 +216,10 @@ class ResidentScheduleFormat:
             timer = time.time();
 
             baseYear = int(options.baseYear);
+
+            if options.providerIdFilename is not None:
+                providerReader = csv.DictReader(open(options.providerIdFilename));
+                self.loadProviderModels( providerReader );
 
             inFile = stdOpen(args[0]);
             scheduleItems = self.parseScheduleItems(inFile, baseYear);
