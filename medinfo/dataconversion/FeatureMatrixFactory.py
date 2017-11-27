@@ -26,6 +26,7 @@ from medinfo.db.Model import columnFromModelList, SQLQuery, modelListFromTable
 from medinfo.db.ResultsFormatter import TabDictReader, TextResultsFormatter
 from psycopg2.extensions import cursor
 from Util import log
+import Util
 
 class FeatureMatrixFactory:
     FEATURE_MATRIX_COLUMN_NAMES = [
@@ -209,7 +210,7 @@ class FeatureMatrixFactory:
 
         return patientEpisodeByIndexTimeById
 
-    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None):
+    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None):
         """
         Query patient_item for the clinical item orders and results for each
         patient, and aggregate by episode timestamp.
@@ -218,15 +219,33 @@ class FeatureMatrixFactory:
         if not self.patientsProcessed:
             raise ValueError("Must process patients before clinical item.")
 
-        clinicalItemEvents = self._queryClinicalItemsByName(clinicalItemNames)
+        clinicalItemEvents = self._queryClinicalItemsByName(clinicalItemNames, column=column, operator=operator)
         itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
 
         # Read clinical item features to temp file.
         patientEpisodes = self.getPatientEpisodeIterator()
         self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
-                                        clinicalItemNames, dayBins)
+                                        clinicalItemNames, dayBins, label=label)
 
-    def _queryClinicalItemsByName(self, clinicalItemNames):
+    def addClinicalItemFeaturesByCategory(self, categoryIds, dayBins=None):
+        """
+        Query patient_item for the clinical item orders and results for each
+        patient (based on clinical item category ID instead of item name), and
+        aggregate by episode timestamp.
+        """
+        # Verify patient list and/or patient episode has been processed.
+        if not self.patientsProcessed:
+            raise ValueError("Must process patients before clinical item.")
+
+        clinicalItemEvents = self._queryClinicalItemsByCategory(categoryIds)
+        itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
+
+        # Read clinical item features to temp file.
+        patientEpisodes = self.getPatientEpisodeIterator()
+        self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
+                                        categoryIds, dayBins)
+
+    def _queryClinicalItemsByName(self, clinicalItemNames, column=None, operator=None):
         """
         Query clinicalItemInput for all item times for all patients.
 
@@ -245,8 +264,10 @@ class FeatureMatrixFactory:
         if self.dbCache is not None and cacheKey in self.dbCache:
             clinicalItemIds = self.dbCache[cacheKey]
         else:
-            column = "name"
-            operator = "LIKE"
+            if column is None:
+                column = "name"
+            if operator is None:
+                operator = "LIKE"
 
             query = SQLQuery()
             query.addSelect("clinical_item_id")
@@ -257,6 +278,37 @@ class FeatureMatrixFactory:
                 nameClauses.append("%s %s %%s" % (column, operator))
                 query.params.append(itemName)
             query.addWhere(str.join(" or ", nameClauses))
+
+            results = DBUtil.execute(query)
+            clinicalItemIds = [row[0] for row in results]
+
+        if len(clinicalItemIds) == 0:
+            return list()
+
+        return self.queryClinicalItems(clinicalItemIds)
+
+    def _queryClinicalItemsByCategory(self, categoryIds):
+        """
+        Query for all patient items that match with the given clinical item
+        category ID.
+        """
+        # Identify which columns to pull from patient_item table.
+        self._patientItemIdColumn = "patient_id"
+        self._patientItemTimeColumn = "item_date"
+
+        clinicalItemIds = None
+
+        # If possible, return cached results.
+        cacheKey = str(categoryIds)
+        if self.dbCache is not None and cacheKey in self.dbCache:
+            clinicalItemIds = self.dbCache[cacheKey]
+        else:
+            column = "clinical_item_category_id"
+
+            query = SQLQuery()
+            query.addSelect("clinical_item_id")
+            query.addFrom("clinical_item")
+            query.addWhereIn(column, categoryIds)
 
             results = DBUtil.execute(query)
             clinicalItemIds = [row[0] for row in results]
@@ -295,16 +347,19 @@ class FeatureMatrixFactory:
         clinicalItemEvents = [row for row in results]
         return clinicalItemEvents
 
-    def _processClinicalItemEvents(self, patientEpisodes, itemTimesByPatientId, clinicalItemNames, dayBins):
+    def _processClinicalItemEvents(self, patientEpisodes, itemTimesByPatientId, clinicalItemNames, dayBins, label=None):
         """
         Convert temp file containing all (patient_item, item_date) pairs
         for a given set of clinical_item_ids into temp file containing
         patient_id, order_time, clinical_item.pre, clinical_item.post, etc.
         """
-        if len(clinicalItemNames) > 1:
-            itemLabel = "-".join([itemName for itemName in clinicalItemNames])
+        if label:
+            itemLabel = label
         else:
-            itemLabel = clinicalItemNames[0]
+            if len(clinicalItemNames) > 1:
+                itemLabel = "-".join([itemName for itemName in clinicalItemNames])
+            else:
+                itemLabel = clinicalItemNames[0]
         tempFileName = self._patientItemTempFileNameFormat % itemLabel
         tempFile = open(tempFileName, "w")
 
@@ -670,7 +725,7 @@ class FeatureMatrixFactory:
                                    and (postTimeLimit is None or resultTime < postTimeLimit):
                                     # Occurs within timeframe of interest, so record valueCol
                                     filteredResults.append(result)
-                                    
+
                                     if firstItem is None or resultTime < firstItem[datetimeCol]:
                                         firstItem = result
                                     if lastItem is None or lastItem[datetimeCol] < resultTime:
@@ -890,6 +945,58 @@ class FeatureMatrixFactory:
         # Close tempFile.
         self._featureTempFileNames.append(tempFileName)
         tempFile.close()
+
+    def loadMapData(self,filename):
+        """
+        Read the named file's contents through TabDictReader to enable data
+        extraction. If cannot find file by absolute filename, then look under
+        default mapdata directory.
+        """
+        try:
+            return TabDictReader(open(filename))
+        except IOError:
+            # Unable to open file directly. See if it's in the mapdata directory
+            appDir = os.path.dirname(Util.__file__)
+            defaultFilename = os.path.join(appDir, "mapdata", filename)
+            try:
+                return TabDictReader(open(defaultFilename))
+            except IOError:
+                # May need to add default extension as well
+                defaultFilename = defaultFilename + ".tab"
+                return TabDictReader(open(defaultFilename))
+
+    def addCharlsonComorbidityFeatures(self):
+        """
+        For each of a predefined set of comorbidity categories, add features
+        summarizing occurrence of the associated ICD9 problems.
+        """
+        # Extract ICD9 prefixes per disease category
+        icd9prefixesByDisease = dict()
+        for row in self.loadMapData("CharlsonComorbidity-ICD9CM"):
+            (disease, icd9prefix) = (row["charlson"], row["icd9cm"])
+            if disease not in icd9prefixesByDisease:
+                icd9prefixesByDisease[disease] = list()
+            icd9prefixesByDisease[disease].append("^ICD9." + icd9prefix)
+
+        for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
+            disease = disease.translate(None," ()-/") # Strip off punctuation
+            self.addClinicalItemFeatures(icd9prefixes, operator="~*", label=disease)
+
+    def addTreatmentTeamFeatures(self):
+        """
+        For each of a predefined set of specialty categories, add features
+        summarizing the makeup of the treatment team.
+        """
+        # Extract out lists of treatment team names per care category
+        teamNameByCategory = dict()
+        for row in self.loadMapData("TreatmentTeamGroups"):
+            (category, teamName) = (row["team_category"], row["treatment_team"])
+            if category not in teamNameByCategory:
+                teamNameByCategory[category] = list()
+            teamNameByCategory[category].append(teamName)
+
+        for category, teamNames in teamNameByCategory.iteritems():
+            self.addClinicalItemFeatures(teamNames, column="description", label=category)
 
     def buildFeatureMatrix(self):
         """
