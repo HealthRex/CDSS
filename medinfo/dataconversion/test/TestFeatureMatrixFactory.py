@@ -391,6 +391,23 @@ class TestFeatureMatrixFactory(DBTestCase):
         except OSError:
             pass
 
+    def test_loadMapData(self):
+        factory = FeatureMatrixFactory()
+
+        # Depends on external data file
+        reader = factory.loadMapData("CharlsonComorbidity-ICD9CM")
+        charlsonByICD9 = dict()
+
+        for row in reader:
+            charlsonByICD9[row["icd9cm"]] = row["charlson"]
+
+        self.assertEqual("Dementia", charlsonByICD9["294.1"])
+        self.assertEqual("Dementia", charlsonByICD9["331.2"])
+        self.assertEqual("COPD", charlsonByICD9["490"])
+        self.assertEqual("COPD", charlsonByICD9["416.8"])
+        self.assertEqual("Malignancy Metastatic", charlsonByICD9["199"])
+        self.assertEqual("AIDS/HIV", charlsonByICD9["042"])
+
     def test_performance(self):
         """
         Test performance against DataExtractor.
