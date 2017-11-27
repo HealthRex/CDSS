@@ -345,6 +345,52 @@ class TestFeatureMatrixFactory(DBTestCase):
         except OSError:
             pass
 
+    def test_addTimeCycleFeatures(self):
+        """
+        Test .addTimeCycleFeatures()
+        """
+        # Initialize DB cursor.
+        connection = DBUtil.connection()
+        cursor = connection.cursor()
+
+        # Initialize FeatureMatrixFactory.
+        factory = FeatureMatrixFactory()
+
+        # Build SQL query for list of patient episodes.
+        patientEpisodeQuery = SQLQuery()
+        patientEpisodeQuery.addSelect("CAST(pat_id AS bigint)")
+        patientEpisodeQuery.addSelect("sop.order_proc_id AS order_proc_id")
+        patientEpisodeQuery.addSelect("proc_code")
+        patientEpisodeQuery.addSelect("order_time")
+        patientEpisodeQuery.addSelect("COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS normal_results")
+        patientEpisodeQuery.addFrom("stride_order_proc AS sop")
+        patientEpisodeQuery.addFrom("stride_order_results AS sor")
+        patientEpisodeQuery.addWhere("sop.order_proc_id = sor.order_proc_id")
+        patientEpisodeQuery.addWhereEqual("proc_code", "LABMETB")
+        patientEpisodeQuery.addGroupBy("pat_id, sop.order_proc_id, proc_code, order_time")
+        patientEpisodeQuery.addOrderBy("pat_id, sop.order_proc_id, proc_code, order_time")
+        cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
+
+        # Set and process patientEpisodeInput.
+        factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
+        factory.processPatientEpisodeInput()
+
+        # Add time cycle features.
+        factory.addTimeCycleFeatures("order_time", "month")
+        factory.addTimeCycleFeatures("order_time", "hour")
+
+        # Verify output.
+        factory.buildFeatureMatrix()
+        resultMatrix = factory.readFeatureMatrixFile()
+        expectedMatrix = FM_TEST_OUTPUT["test_addTimeCycleFeatures"]["expectedMatrix"]
+        self.assertEqualList(resultMatrix, expectedMatrix)
+
+        # Clean up feature matrix.
+        try:
+            os.remove(factory.getMatrixFileName())
+        except OSError:
+            pass
+
     def test_performance(self):
         """
         Test performance against DataExtractor.

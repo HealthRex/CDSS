@@ -46,6 +46,7 @@ class FeatureMatrixFactory:
         self._patientListTempFileName = "fmf.patient_list.tsv"
         self._patientEpisodeTempFileName = "fmf.patient_episodes.tsv"
         self._patientItemTempFileNameFormat = "fmf.patient_%s.tsv"
+        self._patientTimeCycleTempFileNameFormat = "fmf.patient_%s_%s.tsv"
         self._patientResultTempFileNameFormat = "fmf.patient_%s_%s_%s.tsv"
         self._matrixFileName = None
 
@@ -171,8 +172,6 @@ class FeatureMatrixFactory:
         elif isinstance(self.patientEpisodeInput, file):
             return self._processPatientEpisodeTsvFile()
 
-
-
     def _processPatientEpisodeDbCursor(self):
         """
         Convert self.patientEpisodeInput from DB cursor to TSV file.
@@ -214,8 +213,6 @@ class FeatureMatrixFactory:
         """
         Query patient_item for the clinical item orders and results for each
         patient, and aggregate by episode timestamp.
-
-
         """
         # Verify patient list and/or patient episode has been processed.
         if not self.patientsProcessed:
@@ -845,11 +842,53 @@ class FeatureMatrixFactory:
         patientEpisodes = self._readPatientEpisodesFile()
         pass
 
-    def _queryClinicalItemInput():
-        pass
+    def addTimeCycleFeatures(self, timeCol, timeAttr):
+        """
+        Look for a datetime value in the patientEpisode identified by timeCol.
+        Add features to the patientEpisode based on the timeAttr string
+        ("month","day","hour","minute","second"), including the sine and cosine
+        of the timeAttr value relative to the maximum possible value to reflect
+        cyclical time patterns (e.g. seasonal patterns over months in a year,
+        or daily cycle patterns over hours in a day).
+        """
+        # Verify patient list and/or patient episode has been processed.
+        if not self.patientsProcessed:
+            raise ValueError("Must process patients before lab result.")
 
-    def _parseClinicalItems():
-        pass
+        # Open temp file.
+        self._patientTimeCycleTempFileNameFormat
+        tempFileName = self._patientTimeCycleTempFileNameFormat % (timeCol, timeAttr)
+        tempFile = open(tempFileName, "w")
+
+        # Write header fields to tempFile.
+        tempFile.write("patient_id\tepisode_time\t")
+        tempFile.write("%s.%s\t" % (timeCol, timeAttr))
+        tempFile.write("%s.%s.sin\t" % (timeCol, timeAttr))
+        tempFile.write("%s.%s.cos\n" % (timeCol, timeAttr))
+
+        # Compute and write time cycle features.
+        patientEpisodes = self.getPatientEpisodeIterator()
+        for episode in patientEpisodes:
+            timeObj = DBUtil.parseDateValue(episode[timeCol])
+            # Use introspection (getattr) to extract some time feature from the
+            # time object, as well as the maximum and minimum possible values
+            # to set the cycle range.
+            maxValue = getattr(timeObj.max, timeAttr)
+            thisValue = getattr(timeObj, timeAttr)
+            minValue = getattr(timeObj.min, timeAttr)
+
+            radians = 2*np.pi * (thisValue-minValue) / (maxValue+1-minValue)
+
+            # Write values to tempFile.
+            tempFile.write("%s\t" % episode[self.patientEpisodeIdColumn])
+            tempFile.write("%s\t" % episode[self.patientEpisodeTimeColumn])
+            tempFile.write("%s\t" % thisValue)
+            tempFile.write("%s\t" % np.sin(radians))
+            tempFile.write("%s\n" % np.cos(radians))
+
+        # Close tempFile.
+        self._featureTempFileNames.append(tempFileName)
+        tempFile.close()
 
     def buildFeatureMatrix(self):
         """
