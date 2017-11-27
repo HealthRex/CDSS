@@ -87,8 +87,9 @@ class LabTestMatrix:
 
         # Build SQL query for list of patient episodes.
         query = "SELECT CAST(pat_id AS bigint), \
-            sop.order_proc_id AS order_proc_id, proc_code, order_time, \
-            COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS normal_results \
+            sop.order_proc_id AS order_proc_id, proc_code, order_time, abnormal_yn, \
+            COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS num_normal_components, \
+            COUNT(ord_num_value) AS num_components, \
             FROM stride_order_proc AS sop, stride_order_results AS sor \
             WHERE sop.order_proc_id = sor.order_proc_id \
             AND base_name IN ('%s') \
