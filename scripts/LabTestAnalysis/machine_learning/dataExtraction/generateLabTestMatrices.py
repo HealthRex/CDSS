@@ -48,16 +48,9 @@ def getComponentsInLabPanel(labPanel):
 def generateLabPanelMatrices(labPanel):
     components = getComponentsInLabPanel(labPanel)
 
-    # Generate feature matrix for each component.
-    for component in components:
-        log.info("\t%s" % component)
-        matrix = LabTestMatrix([component], NUM_ROWS_PER_MATRIX)
-        matrix.writeLabTestMatrix(MATRIX_NAME_FORMAT % (labPanel, component, \
-            matrix.numPatients, matrix.numPatientEpisodes))
-
     # Generate feature matrix for all components.
     matrix = LabTestMatrix(components, NUM_ROWS_PER_MATRIX)
-    matrix.writeLabTestMatrix(MATRIX_NAME_FORMAT % (labPanel, '-'.join(components), \
+    matrix.writeLabTestMatrix(MATRIX_NAME_FORMAT % (labPanel, 'all' \
         matrix.numPatients, matrix.numPatientEpisodes))
 
 if __name__ == "__main__":
