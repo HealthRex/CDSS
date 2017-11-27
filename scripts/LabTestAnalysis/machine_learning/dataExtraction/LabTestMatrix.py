@@ -17,15 +17,22 @@ class LabTestMatrix:
         self.labTests = labTests
         self.numPatients = 1
         self.numPatientEpisodes = numPatientEpisodes
+
         # Initialize DB connection.
         self.connection = DBUtil.connection()
         self._queryPatientEpisodes()
 
-        # Look for lab data 90 days before each episode, but never afterself.
-        preTimeDelta = datetime.timedelta(-90)
-        postTimeDelta = datetime.timedelta(0)
-        # Add lab features.
-        self.factory.addLabResultFeatures(self.labTests, False, preTimeDelta, postTimeDelta)
+        # Add time features.
+        self._addTimeFeatures()
+        # Add demographic features.
+        self._addDemographicFeatures()
+        # Add treatment team features.
+        self.factory.addTreatmentTeamFeatures()
+        # Add Charlson Comorbidity features.
+        self.factory.addCharlsonComorbidityFeatures()
+        # Add lab panel order and component result features.
+        self._addLabTestFeatures()
+
         # Build matrix.
         self.factory.buildFeatureMatrix()
 
@@ -89,12 +96,12 @@ class LabTestMatrix:
         query = "SELECT CAST(pat_id AS bigint), \
             sop.order_proc_id AS order_proc_id, proc_code, order_time, abnormal_yn, \
             COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS num_normal_components, \
-            COUNT(ord_num_value) AS num_components, \
+            COUNT(ord_num_value) AS num_components \
             FROM stride_order_proc AS sop, stride_order_results AS sor \
             WHERE sop.order_proc_id = sor.order_proc_id \
             AND base_name IN ('%s') \
             AND CAST(pat_id AS BIGINT) IN (%s) \
-            GROUP BY pat_id, sop.order_proc_id, proc_code, order_time \
+            GROUP BY pat_id, sop.order_proc_id, proc_code, order_time, abnormal_yn \
             ORDER BY pat_id, sop.order_proc_id, proc_code, order_time;" % ("', '".join(self.labTests), patientListStr)
 
         cursor.execute(query)
@@ -102,6 +109,49 @@ class LabTestMatrix:
         # Set and process patientEpisodeInput.
         self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
         self.factory.processPatientEpisodeInput()
+
+        # Update numPatientEpisodes.
+        self.numPatientEpisodes = 0
+        episodes = self.factory.getPatientEpisodeIterator()
+        for episode in episodes:
+            self.numPatientEpisodes += 1
+
+    def _addTimeFeatures(self):
+        # Add admission date.
+        ADMIT_DX_CATEGORY_ID = 2
+        self.factory.addClinicalItemFeaturesByCategory([ADMIT_DX_CATEGORY_ID])
+
+        # Add time cycle features.
+        self.factory.addTimeCycleFeatures("order_time", "month")
+        self.factory.addTimeCycleFeatures("order_time", "hour")
+
+    def _addDemographicFeatures(self):
+        BIRTH_FEATURE = "Birth"
+        self.factory.addClinicalItemFeatures(BIRTH_FEATURE)
+        self._addSexFeatures()
+        self._addRaceFeatures()
+
+    def _addSexFeatures(self):
+        SEX_FEATURES = ["Male", "Female"]
+        for feature in SEX_FEATURES:
+            self.factory.addClinicalItemFeatures([feature])
+
+    def _addRaceFeatures(self):
+        RACE_FEATURES = ["RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
+                    "RaceHispanicLatino", "RaceBlack", "RaceAsian",
+                    "RacePacificIslander", "RaceNativeAmerican",
+                    "RaceOther", "RaceUnknown"]
+        for feature in RACE_FEATURES:
+            self.factory.addClinicalItemFeatures([feature])
+
+    def _addLabTestFeatures(self):
+        # Add lab panel order features.
+        self.factory.addClinicalItemFeatures(self.labTests)
+        # Look for lab data 90 days before each episode, but never after self.
+        preTimeDelta = datetime.timedelta(-90)
+        postTimeDelta = datetime.timedelta(0)
+        # Add lab component result features.
+        self.factory.addLabResultFeatures(self.labTests, False, preTimeDelta, postTimeDelta)
 
     def writeLabTestMatrix(self, destPath):
         labMatrixFile = open(destPath, "w")
@@ -111,7 +161,7 @@ class LabTestMatrix:
 if __name__ == "__main__":
     start_time = time.time()
     # Initialize lab test matrix.
-    ltm = LabTestMatrix(["BUN"], 10)
+    ltm = LabTestMatrix(["RBC"], 10)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
     ltm.writeLabTestMatrix("RBC-test-RBC-NA-K-10-episodes-%s-sec.tab" % str(elapsed_time))
