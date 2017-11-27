@@ -12,6 +12,9 @@ from medinfo.db.Model import RowItemModel, RowItemFieldComparator, modelListFrom
 from Util import log;
 
 CHANGE_HOUR = 7;  # Designate 7am as changeover time rather than midnight, otherwise night shift behavior on change dates will be misinterpreted
+DEFAULT_INDEX_PREFIX_LENGTH = 3;    # Default number of first letters (prefix) of a provider's name to count as equal / equivalent when guessing provider IDs
+PLACEHOLDER_ID_TEMPLATE = "S%03d";  # Template for fake / placeholder provider ID to generate as needed
+PLACEHOLDER_ID_BASE_COUNTER = -1000;    # Initial value for fake ID sequence counter in negative values
 
 class ResidentScheduleFormat:
     """Data conversion module to take Resident Schedule Excel spreadsheet
@@ -20,6 +23,9 @@ class ResidentScheduleFormat:
     def __init__(self):
         """Default constructor"""
         self.changeHour = CHANGE_HOUR;
+        self.indexPrefixLength = None;
+        self.providersByNamePrefix = None;
+        self.placeholderIdCounter = PLACEHOLDER_ID_BASE_COUNTER;
 
     def parseScheduleItems(self, scheduleFile, baseYear):
         """Given a file reference, parse through contents to generate a list of 
@@ -56,6 +62,8 @@ class ResidentScheduleFormat:
     def parseResidentScheduleItems(self, resident, resTextChunksList, dateRanges, splitDates):
         """Parse just the text chunks for an individual resident, being aware of potential for list of multiple rows
         """
+        provId = self.inferProvIdFromName(resident);
+
         for iBlock, dateRange in enumerate(dateRanges):    # Iterate through each major rotation block
             dateRange = dateRanges[iBlock];
             splitDate = splitDates[iBlock];
@@ -74,7 +82,7 @@ class ResidentScheduleFormat:
 
                     rotation = str.join(' ', subChunks);    # Reconstruct rotation name
 
-                    scheduleItem = {"resident": resident, "rotation": rotation, "start": startDate, "end": endDate};
+                    scheduleItem = {"prov_id": provId, "name": resident, "rotation": rotation, "start_date": startDate, "end_date": endDate};
                     scheduleItems.append(scheduleItem);
                     
             # Second pass to look for rotations without dates specified based on standard dates
@@ -87,25 +95,60 @@ class ResidentScheduleFormat:
                         rotation = subChunks[0].strip();
                         if rotation[0].isalpha():   # Ensure starts with a letter, and not special character for blank placeholder
                             (startDate, endDate) = self.compressDateRange( dateRange[0], splitDate, scheduleItems );  # End split date
-                            scheduleItem = {"resident": resident, "rotation": rotation, "start": startDate, "end": endDate};
+                            scheduleItem = {"prov_id": provId, "name": resident, "rotation": rotation, "start_date": startDate, "end_date": endDate};
                             scheduleItems.append(scheduleItem);
 
                         rotation = subChunks[-1].strip();
                         if rotation[0].isalpha():   # Ensure starts with a letter, and not special character for blank placeholder
                             (startDate, endDate) = self.compressDateRange( splitDate, dateRange[-1], scheduleItems );  # Start on split date
-                            scheduleItem = {"resident": resident, "rotation": rotation, "start": startDate, "end": endDate};
+                            scheduleItem = {"prov_id": provId, "name": resident, "rotation": rotation, "start_date": startDate, "end_date": endDate};
                             scheduleItems.append(scheduleItem);
                     else:   # Single rotation spanning the full block
                         rotation = subChunks[0].strip();
                         if rotation[0].isalpha():   # Ensure starts with a letter, and not special character for blank placeholder
                             (startDate, endDate) = self.compressDateRange( dateRange[0], dateRange[-1], scheduleItems );
-                            scheduleItem = {"resident": resident, "rotation": rotation, "start": startDate, "end": endDate};
+                            scheduleItem = {"prov_id": provId, "name": resident, "rotation": rotation, "start_date": startDate, "end_date": endDate};
                             scheduleItems.append(scheduleItem);
 
             # Now yield / generate results, but keep sorted in chronologic order
-            scheduleItems.sort( RowItemFieldComparator("start") );
+            scheduleItems.sort( RowItemFieldComparator("start_date") );
             for item in scheduleItems:
                 yield item;
+
+    def loadProviderModels( self, providerModels, indexPrefixLength=DEFAULT_INDEX_PREFIX_LENGTH ):
+        """Store a copy of the given provider models (expect each to be a dictionary with prov_id, last_name, first_name combinations).
+        Prepare an index around these based on first X characters of each name to use when trying to back track
+        provider names to prov_ids.
+        """
+        self.indexPrefixLength = indexPrefixLength;
+        self.providersByNamePrefix = dict();
+        for provider in providerModels:
+            namePrefix = (provider["last_name"][:indexPrefixLength] +","+ provider["first_name"][:indexPrefixLength]).upper();
+            if namePrefix not in self.providersByNamePrefix:
+                self.providersByNamePrefix[namePrefix] = list();  # Store a collection to track collisions between multiple providers who have the same first and last name (prefixes)
+            self.providersByNamePrefix[namePrefix].append(provider);
+
+    def inferProvIdFromName(self, name):
+        """Assume name is separated by comma into "LastName, FirstName"
+        Look through providersByNamePrefix dictionary to look for a best match within first X characters of first and last name
+        to back track provider ID. If none found, then fill in a fake ID value.
+        """
+        provIdsStr = None;
+
+        if self.providersByNamePrefix is not None and self.indexPrefixLength is not None:
+            chunks = name.split(",");
+            lastName = chunks[0].strip();
+            firstName = chunks[-1].strip();
+            namePrefix = (lastName[:self.indexPrefixLength] +","+ firstName[:self.indexPrefixLength]).upper();
+
+            if namePrefix in self.providersByNamePrefix:
+                providers = self.providersByNamePrefix[namePrefix];
+                provIdsStr = str.join(",", [provider["prov_id"] for provider in providers])
+        
+        if provIdsStr is None:   # Unable to lookup provider IDs. Just makeup a sequential value then
+            self.placeholderIdCounter -= 1; # Decrement counter as working with negative values
+            provIdsStr = PLACEHOLDER_ID_TEMPLATE % self.placeholderIdCounter;
+        return provIdsStr;
 
     def compressDateRange( self, startDate, endDate, scheduleItems ):
         """Given a list of schedule item with specific date ranges,
@@ -113,11 +156,11 @@ class ResidentScheduleFormat:
         Simplifying assumption that overlaps will be at ends, not in middle of range or spanning entirety
         """
         for item in scheduleItems:
-            if item["start"] < endDate and startDate < item["end"]: # Overlap
-                if startDate < item["start"] :   # Overlap trim at end
-                    endDate = item["start"];
-                elif item["end"] < endDate: # Overlap trim at start
-                    startDate = item["end"];
+            if item["start_date"] < endDate and startDate < item["end_date"]: # Overlap
+                if startDate < item["start_date"] :   # Overlap trim at end
+                    endDate = item["start_date"];
+                elif item["end_date"] < endDate: # Overlap trim at start
+                    startDate = item["end_date"];
         return (startDate, endDate);                
 
     def parseDateRanges(self, textChunks, baseYear):
@@ -163,6 +206,7 @@ class ResidentScheduleFormat:
                     "   <inputFile>     Tab-delimited input file taken from schedule Excel file. Example data format as seen in test case examples. See support/extractExcelSheets.py for help on pulling out Excel sheets into tab-delimited data files.\n"+\
                     "   <outputFile>    File to output results to.  Designate '-' for stdout.";
         parser = OptionParser(usage=usageStr)
+        parser.add_option("-i", "--providerIdFilename",  dest="providerIdFilename", help="Name of provider ID CSV file. If provided, then add column for prov_id based on resident first_name and last_name, match within first "+DEFAULT_INDEX_PREFIX_LENGTH+" characters, or generate ID value if no match found");
         parser.add_option("-y", "--baseYear",  dest="baseYear", help="Year expect dates to start in.");
         parser.add_option("-t", "--changeTime",  dest="changeTime", default=CHANGE_TIME, help="Hour of day that count as delimiter between rotations. Likely should NOT be midnight = 0, because night shifts span midnight. Default to 7 = 7am.");
         (options, args) = parser.parse_args(argv[1:])
@@ -172,6 +216,10 @@ class ResidentScheduleFormat:
             timer = time.time();
 
             baseYear = int(options.baseYear);
+
+            if options.providerIdFilename is not None:
+                providerReader = csv.DictReader(open(options.providerIdFilename));
+                self.loadProviderModels( providerReader );
 
             inFile = stdOpen(args[0]);
             scheduleItems = self.parseScheduleItems(inFile, baseYear);

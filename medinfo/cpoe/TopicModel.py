@@ -27,6 +27,7 @@ class TopicModel:
     def __init__(self):
         self.model = None;   # Means to provide output feedback to caller for debugging purposes
         self.docCountByWordId = None;
+        self.randomState = None;   # Allow caller to set initial (fixed) random_state to facilitate consistent unit/regression testing. E.g., numpy.random.RandomState(10)
 
     def buildModel(self, corpusBOWGenerator, numTopics):
         """Build topic model from corpus (interpret as generator over contents)
@@ -82,9 +83,9 @@ class TopicModel:
         import gensim;  # Only import external module as needed
         if model is None:   # Initialize model
             if numTopics < 1:
-                model = gensim.models.hdpmodel.HdpModel( docBuffer, id2word=id2word);
+                model = gensim.models.hdpmodel.HdpModel( docBuffer, id2word=id2word, random_state=self.randomState );
             else:
-                model = gensim.models.LdaModel( docBuffer, id2word=id2word, num_topics=numTopics );
+                model = gensim.models.LdaModel( docBuffer, id2word=id2word, num_topics=numTopics, random_state=self.randomState );
         else:
             model.update( docBuffer );
         return model;
@@ -116,17 +117,14 @@ class TopicModel:
 
         import gensim; # External import as needed
         if isinstance(model, gensim.models.HdpModel):   # Has different topic API for no good reason
-            topics = model.show_topics(topics=-1, topn=itemsPerCluster, formatted=False);
+            topics = model.show_topics(num_topics=-1, num_words=itemsPerCluster, formatted=False);
             for topicId, topicItems in topics:
                 #for (itemId, itemWeight) in topicItems:  # 2-ple order is also reversed for no good reason
                 #    print topicId, itemDescr, itemWeight;
                 yield topicId, topicItems;
         else:   # Assume default API for LDA based models
             topics = model.show_topics(num_topics=-1, num_words=itemsPerCluster, formatted=False);
-            for topicId, flipTopicItems in enumerate(topics):
-                topicItems = list();
-                for (itemWeight, itemId) in flipTopicItems:
-                    topicItems.append( (itemId, itemWeight) );
+            for topicId, topicItems in topics:
                 yield topicId, topicItems;
 
         model.id2word = id2word;    # Revert back to normal id-word translation
