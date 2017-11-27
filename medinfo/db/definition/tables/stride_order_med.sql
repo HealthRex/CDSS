@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS stride_order_med
 	order_med_id BIGINT NOT NULL,
 	pat_id TEXT,
 	pat_enc_csn_id BIGINT,
+	ordering_date timestamp,	-- date medication ordered, sometimes including specific datetime if available
 	ordering_datetime TIMESTAMP,
 	hosp_admsn_time TIMESTAMP,
 	hosp_dischrg_time TIMESTAMP,
@@ -15,9 +16,13 @@ CREATE TABLE IF NOT EXISTS stride_order_med
 	sig TEXT,
 	quantity TEXT,
 	refills INTEGER,
+	start_taking_time timestamp,	-- first datetime to start taking medication.  maybe use this rather than ordering date to reflect first relevant ordering time?
 	start_date TIMESTAMP,
+	end_taking_time timestamp,
 	end_date TIMESTAMP,
+	freq_name text,
 	dispense_as_written_yn TEXT,
+	number_of_doses integer,
 	reason_for_discontinuation TEXT,
 	enc_type_c INTEGER,
 	encounter_type TEXT,
@@ -43,6 +48,7 @@ CREATE TABLE IF NOT EXISTS stride_order_med
 	hv_dose_unit TEXT,
 	non_formulary_yn TEXT,
 	order_status TEXT,
+	min_rate float,
 	min_discrete_dose FLOAT,
 	max_discrete_dose FLOAT,
 	dose_unit TEXT,
@@ -62,6 +68,88 @@ CREATE TABLE IF NOT EXISTS stride_order_med
 	med_dis_disp_unit TEXT,
 	CONSTRAINT stride_order_med_pkey PRIMARY KEY (order_med_id)
 );
+
+-- -- Medication Order Data Table .  Source headers may need "rx." prefix removed
+-- create table stride_order_med
+-- (
+-- 	order_med_id bigint not null,
+-- 	pat_id text,	-- patient id column to tie orders together
+-- 	pat_enc_csn_id bigint,
+-- 	ordering_date timestamp,	-- date medication ordered, sometimes including specific datetime if available
+-- 	order_class_c integer,
+-- 	order_class_name text,
+-- 	medication_id integer,	-- core medication id number column
+-- 	description text,	-- core medication description, without specifying dose (but includes sometimes redundant pill sizes)
+-- 	quantity text,
+-- 	refills text,
+-- 	start_taking_time timestamp,	-- first datetime to start taking medication.  maybe use this rather than ordering date to reflect first relevant ordering time?
+-- 	order_end_time timestamp,
+-- 	end_taking_time timestamp,
+-- 	rsn_for_discon_c integer,
+-- 	rsn_for_discon text,
+-- 	med_presc_prov_id integer,
+-- 	display_name text,
+-- 	order_priority_c integer,
+-- 	order_priority text,
+-- 	med_route_c integer,
+-- 	med_route text,
+-- 	discon_time timestamp,
+-- 	chng_order_med_id bigint,
+-- 	hv_discr_freq_id integer,
+-- 	freq_name text,
+-- 	discrete_frequency text,
+-- 	hv_discrete_dose text,
+-- 	hv_dose_unit_c integer,
+-- 	hv_dose_unit text,
+-- 	order_status_c integer,
+-- 	order_status text,
+-- 	authrzing_prov_id integer,
+-- 	ord_prov_id integer,
+-- 	min_discrete_dose float,
+-- 	max_discrete_dose float,
+-- 	dose_unit_c integer,
+-- 	dose_unit text,
+-- 	pat_loc_id integer,
+-- 	department_name text,
+-- 	modify_track_c integer,
+-- 	modify_track text,
+-- 	act_order_c integer,
+-- 	active_order text,
+-- 	lastdose text,
+-- 	amb_med_disp_name text,
+-- 	refills_remaining integer,
+-- 	resume_status_c integer,
+-- 	resume_status text,
+-- 	ordering_mode_c integer,
+-- 	ordering_mode text,
+-- 	med_dis_disp_qty float,
+-- 	med_dis_disp_unit_c integer,
+-- 	dispense_unit text,
+-- 	number_of_doses integer,
+-- 	doses_remaining integer,
+-- 	min_rate float,
+-- 	max_rate float,
+-- 	rate_unit_c integer,
+-- 	rate_unit text,
+-- 	min_duration float,
+-- 	max_duration float,
+-- 	med_duration_unit_c integer,
+-- 	duration_unit_name text,
+-- 	min_volume float,
+-- 	max_volume float,
+-- 	volume_unit_c integer,
+-- 	volume_unit text,
+-- 	calc_volume_yn text,
+-- 	calc_min_dose float,
+-- 	calc_max_dose float,
+-- 	calc_dose_unit_c integer,
+-- 	calc_dose_unit text,
+-- 	admin_min_dose float,
+-- 	admin_max_dose float,
+-- 	admin_dose_unit_c integer,
+-- 	admin_dose_unit text
+--   );
+
 -- ALTER TABLE stride_order_med ADD CONSTRAINT stride_order_med_pkey PRIMARY KEY (order_med_id);
 CREATE INDEX IF NOT EXISTS index_stride_order_med_pat_id ON stride_order_med(SUBSTRING(pat_id, 1, 16));
 CREATE INDEX IF NOT EXISTS index_stride_order_med_ordering_datetime ON stride_order_med(ordering_datetime);

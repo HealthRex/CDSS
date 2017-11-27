@@ -31,3 +31,11 @@ ALTER TABLE stride_patient DROP COLUMN IF EXISTS birth_date;
 
 -- Populate oncology label based on patient_possible_onco.csv
 ALTER TABLE stride_patient ADD COLUMN IF NOT EXISTS possible_oncology INTEGER DEFAULT 0;
+ALTER TABLE stride_patient ADD COLUMN IF NOT EXISTS age_yrs INTEGER;
+ALTER TABLE stride_patient ADD COLUMN IF NOT EXISTS sex TEXT;
+ALTER TABLE stride_patient ADD COLUMN IF NOT EXISTS death_date DATE;
+ALTER TABLE stride_patient ADD COLUMN IF NOT EXISTS race TEXT;
+ALTER TABLE stride_patient ADD COLUMN IF NOT EXISTS ethnicity TEXT;
+
+-- alter table STRIDE_PATIENT add column BIRTH_YEAR integer;
+-- alter table STRIDE_PATIENT add column GENDER text;
