@@ -50,7 +50,7 @@ def generateLabPanelMatrices(labPanel):
 
     # Generate feature matrix for all components.
     matrix = LabTestMatrix(components, NUM_ROWS_PER_MATRIX)
-    matrix.writeLabTestMatrix(MATRIX_NAME_FORMAT % (labPanel, 'all' \
+    matrix.writeLabTestMatrix(MATRIX_NAME_FORMAT % (labPanel, 'all', \
         matrix.numPatients, matrix.numPatientEpisodes))
 
 # Generates LabTestMatrices for TOP_LAB_PANELS_BY_VOLUME.
