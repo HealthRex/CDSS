@@ -980,7 +980,7 @@ class FeatureMatrixFactory:
 
         for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
             disease = disease.translate(None," ()-/") # Strip off punctuation
-            self.addClinicalItemFeatures(icd9prefixes, operator="~*", label=disease)
+            self.addClinicalItemFeatures(icd9prefixes, operator="~*", label="Comorbidity."+disease)
 
     def addTreatmentTeamFeatures(self):
         """
@@ -996,7 +996,7 @@ class FeatureMatrixFactory:
             teamNameByCategory[category].append(teamName)
 
         for category, teamNames in teamNameByCategory.iteritems():
-            self.addClinicalItemFeatures(teamNames, column="description", label=category)
+            self.addClinicalItemFeatures(teamNames, column="description", label="Team."+category)
 
     def buildFeatureMatrix(self):
         """
