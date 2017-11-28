@@ -98,7 +98,9 @@ General Data / Code Access
 	 
 	If you need help, my office hours are Thursdays at SIEPR 334 and Fridays online (by appointment) from 10 AM to 11 AM or by appointment. You can sign up for office hours clicking on the PHS Office Hours Sign Up near the top of this page: https://med.stanford.edu/phs/phs-data-center.html or emailing me at itaylor@stanford.edu.
 	
-	* Stanford Medicine Box Access
+	
+	
+	• Stanford Medicine Box Access
 	
 	Due to privacy concerns, you will need to explicitly opt into Stanford Medicine's Box at the following link: http://med.stanford.edu/box/opt-in.html
 	 
