@@ -12,9 +12,10 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 
 class LabTestMatrix:
-    def __init__(self, labTests, numPatientEpisodes):
+    def __init__(self, labPanel, numPatientEpisodes):
         self.factory = FeatureMatrixFactory()
-        self.labTests = labTests
+        self.labPanel = labPanel
+        self.labComponents = self._getComponentsInLabPanel(labPanel)
         self.numPatients = 1
         self.numPatientEpisodes = numPatientEpisodes
 
@@ -38,6 +39,24 @@ class LabTestMatrix:
 
         return
 
+    def _getComponentsInLabPanel(self, labPanel):
+        # Initialize DB connection.
+        connection = DBUtil.connection()
+        cursor = connection.cursor()
+
+        # Build query to get component names for panel.
+        query = SQLQuery()
+        query.addSelect("base_name")
+        query.addFrom("stride_order_proc AS sop")
+        query.addFrom("stride_order_results AS sor")
+        query.addWhere("sop.order_proc_id = sor.order_proc_id")
+        query.addWhere("proc_code = '%s'" % labPanel)
+        query.addGroupBy("base_name")
+
+        # Return component names in list.
+        cursor.execute(str(query))
+        return [ row[0] for row in cursor.fetchall() ]
+
     def _getAverageOrdersPerPatient(self):
         # Initialize DB cursor.
         cursor = self.connection.cursor()
@@ -45,11 +64,11 @@ class LabTestMatrix:
         # Get average number of results for this lab test per patient.
         query = "SELECT AVG(num_orders) \
         FROM ( \
-            SELECT pat_id, COUNT(sor.order_proc_id) AS num_orders \
+            SELECT pat_id, COUNT(sop.order_proc_id) AS num_orders \
             FROM stride_order_proc AS sop, stride_order_results AS sor \
-            WHERE sop.order_proc_id = sor.order_proc_id AND base_name IN ('%s') \
+            WHERE sop.order_proc_id = sor.order_proc_id AND proc_code IN ('%s') \
             GROUP BY pat_id \
-        ) AS num_orders_per_patient" % ("', '".join(self.labTests))
+        ) AS num_orders_per_patient" % (self.labPanel)
 
         cursor.execute(query)
         avgOrdersPerPatient = cursor.fetchone()[0]
@@ -65,9 +84,9 @@ class LabTestMatrix:
         query = "SELECT pat_id \
         FROM stride_order_proc AS sop, stride_order_results AS sor \
         WHERE sop.order_proc_id = sor.order_proc_id AND \
-        base_name IN ('%s') \
+        proc_code IN ('%s') \
         ORDER BY RANDOM() \
-        LIMIT %d;" % ("', '".join(self.labTests), numPatientsToQuery)
+        LIMIT %d;" % (self.labPanel, numPatientsToQuery)
 
         cursor.execute(query)
 
@@ -99,10 +118,10 @@ class LabTestMatrix:
             COUNT(ord_num_value) AS num_components \
             FROM stride_order_proc AS sop, stride_order_results AS sor \
             WHERE sop.order_proc_id = sor.order_proc_id \
-            AND base_name IN ('%s') \
+            AND proc_code IN ('%s') \
             AND CAST(pat_id AS BIGINT) IN (%s) \
             GROUP BY pat_id, sop.order_proc_id, proc_code, order_time, abnormal_yn \
-            ORDER BY pat_id, sop.order_proc_id, proc_code, order_time;" % ("', '".join(self.labTests), patientListStr)
+            ORDER BY pat_id, sop.order_proc_id, proc_code, order_time;" % (self.labPanel, patientListStr)
 
         cursor.execute(query)
 
@@ -127,7 +146,7 @@ class LabTestMatrix:
 
     def _addDemographicFeatures(self):
         BIRTH_FEATURE = "Birth"
-        self.factory.addClinicalItemFeatures(BIRTH_FEATURE)
+        self.factory.addClinicalItemFeatures([BIRTH_FEATURE])
         self._addSexFeatures()
         self._addRaceFeatures()
 
@@ -146,12 +165,12 @@ class LabTestMatrix:
 
     def _addLabTestFeatures(self):
         # Add lab panel order features.
-        self.factory.addClinicalItemFeatures(self.labTests)
+        self.factory.addClinicalItemFeatures([self.labPanel])
         # Look for lab data 90 days before each episode, but never after self.
         preTimeDelta = datetime.timedelta(-90)
         postTimeDelta = datetime.timedelta(0)
         # Add lab component result features.
-        self.factory.addLabResultFeatures(self.labTests, False, preTimeDelta, postTimeDelta)
+        self.factory.addLabResultFeatures(self.labComponents, False, preTimeDelta, postTimeDelta)
 
     def writeLabTestMatrix(self, destPath):
         labMatrixFile = open(destPath, "w")
@@ -161,7 +180,7 @@ class LabTestMatrix:
 if __name__ == "__main__":
     start_time = time.time()
     # Initialize lab test matrix.
-    ltm = LabTestMatrix(["RBC"], 10)
+    ltm = LabTestMatrix("LABABG", 10)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
-    ltm.writeLabTestMatrix("RBC-test-RBC-NA-K-10-episodes-%s-sec.tab" % str(elapsed_time))
+    ltm.writeLabTestMatrix("LABABG-panel-10-episodes-%s-sec.tab" % str(elapsed_time))
