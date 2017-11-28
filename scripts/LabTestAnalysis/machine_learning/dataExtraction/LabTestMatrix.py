@@ -31,6 +31,8 @@ class LabTestMatrix:
         self.factory.addTreatmentTeamFeatures()
         # Add Charlson Comorbidity features.
         self.factory.addCharlsonComorbidityFeatures()
+        # Add flowsheet vitals features.
+        self._addFlowsheetFeatures()
         # Add lab panel order and component result features.
         self._addLabTestFeatures()
 
@@ -113,9 +115,11 @@ class LabTestMatrix:
 
         # Build SQL query for list of patient episodes.
         query = "SELECT CAST(pat_id AS bigint), \
-            sop.order_proc_id AS order_proc_id, proc_code, order_time, abnormal_yn, \
+            sop.order_proc_id AS order_proc_id, proc_code, order_time, \
+            CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel, \
+            COUNT(ord_num_value) AS num_components, \
             COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS num_normal_components, \
-            COUNT(ord_num_value) AS num_components \
+            CAST(COUNT(ord_num_value) = COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS INT) AS all_components_normal \
             FROM stride_order_proc AS sop, stride_order_results AS sor \
             WHERE sop.order_proc_id = sor.order_proc_id \
             AND proc_code IN ('%s') \
@@ -138,7 +142,7 @@ class LabTestMatrix:
     def _addTimeFeatures(self):
         # Add admission date.
         ADMIT_DX_CATEGORY_ID = 2
-        self.factory.addClinicalItemFeaturesByCategory([ADMIT_DX_CATEGORY_ID])
+        self.factory.addClinicalItemFeaturesByCategory([ADMIT_DX_CATEGORY_ID], label="AdmitDxDate")
 
         # Add time cycle features.
         self.factory.addTimeCycleFeatures("order_time", "month")
@@ -146,14 +150,14 @@ class LabTestMatrix:
 
     def _addDemographicFeatures(self):
         BIRTH_FEATURE = "Birth"
-        self.factory.addClinicalItemFeatures([BIRTH_FEATURE])
+        self.factory.addClinicalItemFeatures([BIRTH_FEATURE], daysBins=[])
         self._addSexFeatures()
         self._addRaceFeatures()
 
     def _addSexFeatures(self):
         SEX_FEATURES = ["Male", "Female"]
         for feature in SEX_FEATURES:
-            self.factory.addClinicalItemFeatures([feature])
+            self.factory.addClinicalItemFeatures([feature], daysBins=[])
 
     def _addRaceFeatures(self):
         RACE_FEATURES = ["RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
@@ -161,16 +165,66 @@ class LabTestMatrix:
                     "RacePacificIslander", "RaceNativeAmerican",
                     "RaceOther", "RaceUnknown"]
         for feature in RACE_FEATURES:
-            self.factory.addClinicalItemFeatures([feature])
+            self.factory.addClinicalItemFeatures([feature], daysBins=[])
+
+    def _addFlowsheetFeatures(self):
+        # Look at flowsheet results from the previous days
+        FLOW_PRE_TIME_DELTAS = [ datetime.timedelta(-1), datetime.timedelta(-3),
+            datetime.timedelta(-7), datetime.timedelta(-30),
+            datetime.timedelta(-90) ]
+        # Don't look into the future, otherwise cheating the prediction
+        FLOW_POST_TIME_DELTA = datetime.timedelta(0)
+
+        # Add flowsheet features for a variety of generally useful vitals.
+        BASIC_FLOWSHEET_FEATURES = [
+            "BP_High_Systolic", "BP_Low_Diastolic", "FiO2",
+            "Glasgow Coma Scale Score", "Pulse", "Resp", "Temp", "Urine"
+        ]
+        for preTimeDelta in FLOW_PRE_TIME_DELTAS:
+            self.factory.addFlowsheetFeatures(BASIC_LAB_COMPONENTS, preTimeDelta, FLOW_POST_TIME_DELTA)
 
     def _addLabTestFeatures(self):
         # Add lab panel order features.
         self.factory.addClinicalItemFeatures([self.labPanel])
+
         # Look for lab data 90 days before each episode, but never after self.
-        preTimeDelta = datetime.timedelta(-90)
-        postTimeDelta = datetime.timedelta(0)
-        # Add lab component result features.
-        self.factory.addLabResultFeatures(self.labComponents, False, preTimeDelta, postTimeDelta)
+        # Look at lab results from the previous days
+        LAB_PRE_TIME_DELTAS = [ datetime.timedelta(-1), datetime.timedelta(-3),
+            datetime.timedelta(-7), datetime.timedelta(-30),
+            datetime.timedelta(-90) ]
+        # Don't look into the future, otherwise cheating the prediction
+        LAB_POST_TIME_DELTA = datetime.timedelta(0)
+
+        # Add result features for a variety of generally useful components.
+        BASIC_LAB_COMPONENTS = [
+            'WBC',      # White Blood Cell
+            'HCT',      # Hematocrit
+            'PLT',      # Platelet Count
+            'NA',       # Sodium, Whole Blood
+            'K',        # Potassium, Whole Blood
+            'CO2',      # CO2, Serum/Plasma
+            'BUN',      # Blood Urea Nitrogen
+            'CR',       # Creatinine
+            'TBIL',     # Total Bilirubin
+            'ALB',      # Albumin
+            'CA',       # Calcium
+            'LAC',      # Lactic Acid
+            'ESR',      # Erythrocyte Sedimentation Rate
+            'CRP',      # C-Reactive Protein
+            'TNI',      # Troponin I
+            'PHA',      # Arterial pH
+            'PO2A',     # Arterial pO2
+            'PCO2A',    # Arterial pCO2
+            'PHV',      # Venous pH
+            'PO2V',     # Venous pO2
+            'PCO2V'     # Venous pCO2
+        ]
+        for preTimeDelta in LAB_PRE_TIME_DELTAS:
+            self.factory.addLabResultFeatures(BASIC_LAB_COMPONENTS, False, preTimeDelta, LAB_POST_TIME_DELTA)
+
+        # Add labPanel component result features, for a variety of time deltas.
+        for preTimeDelta in LAB_PRE_TIME_DELTAS:
+            self.factory.addLabResultFeatures(self.labComponents, False, preTimeDelta, LAB_POST_TIME_DELTA)
 
     def writeLabTestMatrix(self, destPath):
         labMatrixFile = open(destPath, "w")
