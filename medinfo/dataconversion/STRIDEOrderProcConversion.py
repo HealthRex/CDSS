@@ -19,19 +19,19 @@ SOURCE_TABLE = "stride_order_proc";
 class STRIDEOrderProcConversion:
     """Data conversion module to take STRIDE provided computerized physician order entry data
     into the structured data analysis tables to facilitate subsequent analysis.
-    
+
     Renormalizes denormalized data back out to order types (clinical_item_category),
     orders (clinical_item), and actual individual patient orders (patient_item).
     Ignores records with instantiated_time not null, so will only be interested
     in originally ordered parent orders, not spawned child orders.
 
-    Consider Ignore PRN orders for now to simplify data set and focus on standing orders 
+    Consider Ignore PRN orders for now to simplify data set and focus on standing orders
         (but a small minority for these orders anyway)
     """
     def __init__(self):
         """Default constructor"""
         self.connFactory = DBUtil.ConnectionFactory();  # Default connection source, but Allow specification of alternative DB connection source
-    
+
         self.categoryBySourceDescr = dict();    # Local cache to track the clinical item category table contents
         self.clinicalItemByCategoryIdExtId = dict(); # Local cache to track clinical item table contents
         self.itemCollectionByKeyStr = dict();   # Local cache to track item collections
@@ -41,7 +41,7 @@ class STRIDEOrderProcConversion:
         """Primary run function to process the contents of the stride_order_proc
         table and convert them into equivalent patient_item, clinical_item, and clinical_item_category entries.
         Should look for redundancies to avoid repeating conversion.
-        
+
         startDate - If provided, only return items whose ordering_date is on or after that date.
         endDate - If provided, only return items whose ordering_date is before that date.
         """
@@ -54,11 +54,11 @@ class STRIDEOrderProcConversion:
                 progress.Update();
         finally:
             conn.close();
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
 
     def querySourceItems(self, startDate=None, endDate=None, progress=None, conn=None):
-        """Query the database for list of all source clinical items (orders, etc.) 
+        """Query the database for list of all source clinical items (orders, etc.)
         and yield the results one at a time.  If startDate provided, only return items whose order_time is on or after that date.
         Ignore entries with instantiated_time not null, as those represent child orders spawned from an original order,
         whereas we are more interested in the decision making to enter the original order.
@@ -70,7 +70,7 @@ class STRIDEOrderProcConversion:
         # Column headers to query for that map to respective fields in analysis table
         queryHeaders = ["op.order_proc_id", "pat_id", "pat_enc_csn_id", "op.order_type", "op.proc_id", "op.proc_code", "description", "order_time","protocol_id","protocol_name","section_name","smart_group"];
         headers = ["order_proc_id", "pat_id", "pat_enc_csn_id", "order_type", "proc_id", "proc_code", "description", "order_time","protocol_id","protocol_name","section_name","smart_group"];
-        
+
         query = SQLQuery();
         for header in queryHeaders:
             query.addSelect( header );
@@ -119,7 +119,7 @@ class STRIDEOrderProcConversion:
             category = self.categoryFromSourceItem(sourceItem, conn=conn);
             clinicalItem = self.clinicalItemFromSourceItem(sourceItem, category, conn=conn);
             patientItem = self.patientItemFromSourceItem(sourceItem, clinicalItem, conn=conn);
-            
+
             if sourceItem["protocol_id"] is not None:
                 # Similarly build up item collection (order set) hierarchy and link
                 itemCollection = self.itemCollectionFromSourceItem(sourceItem, conn=conn);
@@ -145,7 +145,7 @@ class STRIDEOrderProcConversion:
             category["clinical_item_category_id"] = categoryId;
             self.categoryBySourceDescr[categoryKey] = category;
         return self.categoryBySourceDescr[categoryKey];
-    
+
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
         clinicalItemKey = (category["clinical_item_category_id"], sourceItem["proc_id"]);
@@ -163,7 +163,7 @@ class STRIDEOrderProcConversion:
             clinicalItem["clinical_item_id"] = clinicalItemId;
             self.clinicalItemByCategoryIdExtId[clinicalItemKey] = clinicalItem;
         return self.clinicalItemByCategoryIdExtId[clinicalItemKey];
-    
+
     def patientItemFromSourceItem(self, sourceItem, clinicalItem, conn):
         # Produce a patient_item record model for the given sourceItem
         patientItem = \
@@ -183,7 +183,7 @@ class STRIDEOrderProcConversion:
             patientItem["patient_item_id"] = DBUtil.execute( DBUtil.identityQuery("patient_item"), conn=conn )[0][0];
         except IntegrityError, err:
             # If turns out to be a duplicate, okay, pull out existint ID and continue to insert whatever else is possible
-            log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again    
+            log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again
             searchPatientItem = \
                 {   "patient_id":       patientItem["patient_id"],
                     "clinical_item_id": patientItem["clinical_item_id"],
@@ -216,7 +216,7 @@ class STRIDEOrderProcConversion:
             collection["item_collection_id"] = collectionId;
             self.itemCollectionByKeyStr[collectionKey] = collection;
         return self.itemCollectionByKeyStr[collectionKey];
-    
+
     def itemCollectionItemFromSourceItem(self, sourceItem, itemCollection, clinicalItem, conn):
         # Load or produce an item_collection_item record model for the given sourceItem
         itemKey = (itemCollection["item_collection_id"], clinicalItem["clinical_item_id"]);
@@ -233,7 +233,7 @@ class STRIDEOrderProcConversion:
             collectionItem["item_collection_item_id"] = collectionItemId;
             self.itemCollectionItemByCollectionIdItemId[itemKey] = collectionItem;
         return self.itemCollectionItemByCollectionIdItemId[itemKey];
-    
+
     def patientItemCollectionLinkFromSourceItem(self, sourceItem, collectionItem, patientItem, conn):
         # Produce a patient_item_collection_link record model for the given sourceItem
         patientItemCollectionLink = \

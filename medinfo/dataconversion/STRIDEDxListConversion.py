@@ -18,23 +18,23 @@ SOURCE_TABLE = "stride_dx_list";
 SUBCODE_DELIM = ".";    # Delimiter for ICD9 codes to distinguish main categorization vs. detail descriptions
 
 class STRIDEDxListConversion:
-    """Data conversion module to take STRIDE provided diagnosis / problem list 
+    """Data conversion module to take STRIDE provided diagnosis / problem list
     data into the structured data tables to facilitate subsequent analysis.
-    
+
     Renormalizes denormalized data back out to order types (clinical_item_category),
     orders (clinical_item), and individual elements (patient_item).
-    
+
     Only count for new diagnoses with "noted" dates attached.  Historical problem
     list items and encounter diagnoses without dates attached are unclear when or
     where to assign dates.
     """
     connFactory = None; # Allow specification of alternative DB connection source
-    
+
     categoryBySourceDescr = None;   # Local cache to track the clinical item category table contents
     clinicalItemByCategoryIdExtId = None;   # Local cache to track clinical item table contents
-    
+
     icd9StrByCode = None;   # Local cache to facilitate rapid lookups
-    
+
     def __init__(self):
         """Default constructor"""
         self.connFactory = DBUtil.ConnectionFactory();  # Default connection source
@@ -44,10 +44,10 @@ class STRIDEDxListConversion:
         self.icd9StrByCode = None;
 
     def convertSourceItems(self, startDate=None, endDate=None):
-        """Primary run function to process the contents of the source table 
+        """Primary run function to process the contents of the source table
         and convert them into equivalent patient_item, clinical_item, and clinical_item_category entries.
         Should look for redundancies to avoid repeating conversion.
-        
+
         startDate - If provided, only return items whose noted_date is on or after that date.
         endDate - If provided, only return items whose noted_date is before that date.
         """
@@ -59,12 +59,12 @@ class STRIDEDxListConversion:
                 self.convertSourceItem(sourceItem, conn=conn);
         finally:
             conn.close();
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
 
     def querySourceItems(self, startDate=None, endDate=None, progress=None, conn=None):
-        """Query the database for list of all source clinical items (diagnosed probelms in this case) 
-        and yield the results one at a time.  If startDate provided, only return items 
+        """Query the database for list of all source clinical items (diagnosed probelms in this case)
+        and yield the results one at a time.  If startDate provided, only return items
         whose noted_date is on or after that date.
         """
         extConn = conn is not None;
@@ -77,7 +77,7 @@ class STRIDEDxListConversion:
 
         # Column headers to query for that map to respective fields in analysis table
         headers = ["pat_id","pat_enc_csn_id","noted_date","resolved_date","dx_icd9_code","data_source"];
-        
+
         query = SQLQuery();
         for header in headers:
             query.addSelect( header );
@@ -88,7 +88,7 @@ class STRIDEDxListConversion:
             query.addWhereOp("noted_date",">=", startDate);
         if endDate is not None:
             query.addWhereOp("noted_date","<", endDate);
- 
+
         # Query to get an estimate of how long the process will be
         if progress is not None:
             progress.total = DBUtil.execute(query.totalQuery(), conn=conn)[0][0];
@@ -121,7 +121,7 @@ class STRIDEDxListConversion:
                 if rowModel["dx_icd9_code"] in self.icd9StrByCode:
                     rowModel["icd9_str"] = self.icd9StrByCode[rowModel["dx_icd9_code"]];
                     yield rowModel; # Found a matching parent code, so yield this version
-                
+
             row = cursor.fetchone();
             progress.Update();
 
@@ -147,7 +147,7 @@ class STRIDEDxListConversion:
             categoryModel = self.categoryFromSourceItem(sourceItem, conn=conn);
             clinicalItemModel = self.clinicalItemFromSourceItem(sourceItem, categoryModel, conn=conn);
             patientItemModel = self.patientItemModelFromSourceItem(sourceItem, clinicalItemModel, conn=conn);
-            
+
         finally:
             if not extConn:
                 conn.close();
@@ -168,7 +168,7 @@ class STRIDEDxListConversion:
             category["clinical_item_category_id"] = categoryId;
             self.categoryBySourceDescr[categoryKey] = category;
         return self.categoryBySourceDescr[categoryKey];
-    
+
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
         clinicalItemKey = (category["clinical_item_category_id"], sourceItem["dx_icd9_code"]);
@@ -177,16 +177,16 @@ class STRIDEDxListConversion:
             clinicalItem = \
                 RowItemModel \
                 (   {   "clinical_item_category_id": category["clinical_item_category_id"],
-                        "external_id": None, 
+                        "external_id": None,
                         "name": "ICD9.%(dx_icd9_code)s" % sourceItem,
-                        "description": "%(icd9_str)s" % sourceItem,    
+                        "description": "%(icd9_str)s" % sourceItem,
                     }
                 );
             (clinicalItemId, isNew) = DBUtil.findOrInsertItem("clinical_item", clinicalItem, conn=conn);
             clinicalItem["clinical_item_id"] = clinicalItemId;
             self.clinicalItemByCategoryIdExtId[clinicalItemKey] = clinicalItem;
         return self.clinicalItemByCategoryIdExtId[clinicalItemKey];
-    
+
     def patientItemModelFromSourceItem(self, sourceItem, clinicalItem, conn):
         # Produce a patient_item record model for the given sourceItem
         patientItem = \
@@ -215,7 +215,7 @@ class STRIDEDxListConversion:
         results = DBUtil.execute("select code, str from stride_icd9_cm where tty in ('HT','PT')", conn=conn);
         for (code, str) in results:
             self.icd9StrByCode[code] = str;
-            
+
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog [options]\n"

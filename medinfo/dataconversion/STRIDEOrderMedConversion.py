@@ -24,18 +24,18 @@ class STRIDEOrderMedConversion:
     """Data conversion module to take STRIDE provided computerized physician order entry data
     (medications specifically)
     into the structured data analysis tables to facilitate subsequent analysis.
-    
+
     For combination medications (usually same medication but with "1.5x" dosing like
     Metoprolol 75mg ordered as combination of 50mg + 25mg tabs), just record as the
     first component in the mixture.
-    
+
     Ignore PRN orders for now to simplify data set and focus on standing orders.
     """
-    
+
     def __init__(self):
         """Default constructor"""
         self.connFactory = DBUtil.ConnectionFactory();  # Default connection source, but Allow specification of alternative DB connection source
-    
+
         self.categoryBySourceDescr = dict();    # Local cache to track the clinical item category table contents
         self.clinicalItemByCategoryIdCode = dict(); # Local cache to track clinical item table contents
         self.itemCollectionByKeyStr = dict();   # Local cache to track item collections
@@ -45,7 +45,7 @@ class STRIDEOrderMedConversion:
         """Primary run function to process the contents of the stride_order_med
         table and convert them into equivalent patient_item, clinical_item, and clinical_item_category entries.
         Should look for redundancies after the fact to catch repeatEd conversions.
-        
+
         startDate - If provided, only return items whose ordering_date is on or after that date.
         endDate - If provided, only return items whose ordering_date is before that date.
         """
@@ -55,11 +55,11 @@ class STRIDEOrderMedConversion:
         try:
             # Load up the medication mapping table to facilitate subsequent conversions
             rxcuiDataByMedId = self.loadRXCUIData(conn=conn);
-            
+
             # Keep track of which order meds have already been converted based on mixture components (don't repeat for the aggregate order then)
             # Can be a lot to store in local memory for large conversions, so may need to batch smaller sub-processes
             convertedOrderMedIds = set();
-            
+
             # First round for medication combinations that must be extracted from order_medmixinfo table
             for sourceItem in self.queryMixSourceItems(rxcuiDataByMedId, convOptions, progress=progress, conn=conn):
                 self.convertSourceItem(sourceItem, conn=conn);
@@ -71,10 +71,10 @@ class STRIDEOrderMedConversion:
                 if sourceItem["order_med_id"] not in convertedOrderMedIds:  # Don't repeat conversion if mixture components already addressed
                     self.convertSourceItem(sourceItem, conn=conn);
                 progress.Update();
-            
+
         finally:
             conn.close();
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
 
     def loadRXCUIData(self, conn=None):
@@ -87,7 +87,7 @@ class STRIDEOrderMedConversion:
             conn = self.connFactory.connection();
         try:
             rxcuiDataByMedId = dict();
-            
+
             query = \
                 """select medication_id, rxcui, active_ingredient
                 from stride_mapped_meds
@@ -102,9 +102,9 @@ class STRIDEOrderMedConversion:
                 if medId not in rxcuiDataByMedId:
                     rxcuiDataByMedId[medId] = dict();
                 rxcuiDataByMedId[medId][rxcui] = ingredient;
-                
+
                 row = cursor.fetchone();
-            
+
             return rxcuiDataByMedId;
 
         finally:
@@ -112,8 +112,8 @@ class STRIDEOrderMedConversion:
                 conn.close();
 
     def querySourceItems(self, rxcuiDataByMedId, convOptions, progress=None, conn=None):
-        """Query the database for list of all source clinical items (medications, etc.) 
-        and yield the results one at a time.  If startDate provided, only return items whose 
+        """Query the database for list of all source clinical items (medications, etc.)
+        and yield the results one at a time.  If startDate provided, only return items whose
         ordering_date is on or after that date.
         """
         extConn = conn is not None;
@@ -123,7 +123,7 @@ class STRIDEOrderMedConversion:
         # Column headers to query for that map to respective fields in analysis table
         queryHeaders = ["med.order_med_id", "pat_id", "pat_enc_csn_id", "med.medication_id", "med.description", "ordering_date", "med_route","number_of_doses","protocol_id","protocol_name","section_name","smart_group"];
         headers = ["order_med_id", "pat_id", "pat_enc_csn_id", "medication_id", "description", "ordering_date", "med_route","number_of_doses","protocol_id","protocol_name","section_name","smart_group"];
-        
+
         query = SQLQuery();
         for header in queryHeaders:
             query.addSelect( header );
@@ -158,8 +158,8 @@ class STRIDEOrderMedConversion:
             conn.close();
 
     def queryMixSourceItems(self, rxcuiDataByMedId, convOptions, progress=None, conn=None):
-        """Query the database for list of source clinical items (medications from mixes, etc.) 
-        and yield the results one at a time.  
+        """Query the database for list of source clinical items (medications from mixes, etc.)
+        and yield the results one at a time.
         """
         extConn = conn is not None;
         if not extConn:
@@ -168,7 +168,7 @@ class STRIDEOrderMedConversion:
         # Column headers to query for that map to respective fields in analysis table
         queryHeaders = ["med.order_med_id", "med.pat_id", "med.pat_enc_csn_id", "mix.medication_id", "mix.medication_name", "mix.ingredient_type", "med.ordering_date", "med.med_route", "med.number_of_doses","protocol_id","protocol_name","section_name","smart_group"];
         headers = ["order_med_id", "pat_id", "pat_enc_csn_id", "medication_id", "description", "ingredient_type", "ordering_date", "med_route", "number_of_doses","protocol_id","protocol_name","section_name","smart_group"];
-        
+
         query = SQLQuery();
         for header in queryHeaders:
             query.addSelect( header );
@@ -194,7 +194,7 @@ class STRIDEOrderMedConversion:
 
         # Accumulate mixture components one item at a time
         mixByOrderMedId = dict();
-        
+
         row = cursor.fetchone();
         while row is not None:
             rowModel = RowItemModel( row, headers );
@@ -264,7 +264,7 @@ class STRIDEOrderMedConversion:
                     idStrList.append(str(medId));
                     descriptionList.append(ingredientModel["description"]);
                 idComposite = str.join(",", idStrList );
-                descriptionComposite = str.join("-",descriptionList ); 
+                descriptionComposite = str.join("-",descriptionList );
 
                 # Build on last mix item's row model
                 rowModel["medication_id"] = hash(tuple(idStrList));   # Arbitrary integer, hash to try to be unique
@@ -295,7 +295,7 @@ class STRIDEOrderMedConversion:
         Specifically, look for common active ingredients to simplify the data.
         If the medication is actually a compound of multiple active ingredients,
         then break out into active ingredients.
-        
+
         If normalizeMixtures set, then will yield out multiple items to reflect each active ingredient.
         If normalizeMixtures not set, will yield a single item with name being a composite of the active ingredients.
         """
@@ -326,15 +326,15 @@ class STRIDEOrderMedConversion:
                 # Extract out the active ingredient names to make a composite based only on that unique combination
                 ingredientRxcuiList = [ (ingredient, rxcui) for (rxcui, ingredient) in ingredientByRxcui.iteritems()];
                 ingredientRxcuiList.sort();   # Ensure consistent order
-                
+
                 rxcuiStrList = list();
                 ingredientList = list();
                 for (ingredient, rxcui) in ingredientRxcuiList:
                     rxcuiStrList.append(str(rxcui));
                     ingredientList.append(ingredient.title());
                 rxcuiComposite = str.join(",", rxcuiStrList );
-                ingredientComposite = str.join("-",ingredientList ); 
-                
+                ingredientComposite = str.join("-",ingredientList );
+
                 #rowModel["medication_id"] = hash(tuple(rxcuiList));   # Arbitrary integer, hash to try to be unique
                 #rowModel["code"] = RXCUI_CODE_TEMPLATE % rxcuiComposite;
                 # Nah, just stick to medication_id instead of creating a new hash number
@@ -343,7 +343,7 @@ class STRIDEOrderMedConversion:
                 if convOptions.includeRouteInDescription:
                     rowModel["description"] += " (%s)" % (rowModel["med_route"]);
                 yield rowModel;
-               
+
 
     def convertSourceItem(self, sourceItem, conn=None):
         """Given an individual sourceItem record, produce / convert it into an equivalent
@@ -365,7 +365,7 @@ class STRIDEOrderMedConversion:
                 itemCollection = self.itemCollectionFromSourceItem(sourceItem, conn=conn);
                 itemCollectionItem = self.itemCollectionItemFromSourceItem(sourceItem, itemCollection, clinicalItem, conn=conn);
                 patientItemCollectionLink = self.patientItemCollectionLinkFromSourceItem(sourceItem, itemCollectionItem, patientItem, conn=conn);
-            
+
         finally:
             if not extConn:
                 conn.close();
@@ -389,7 +389,7 @@ class STRIDEOrderMedConversion:
             category["clinical_item_category_id"] = categoryId;
             self.categoryBySourceDescr[categoryKey] = category;
         return self.categoryBySourceDescr[categoryKey];
-    
+
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
         clinicalItemKey = (category["clinical_item_category_id"], sourceItem["code"]);
@@ -407,17 +407,17 @@ class STRIDEOrderMedConversion:
             clinicalItem["clinical_item_id"] = clinicalItemId;
             self.clinicalItemByCategoryIdCode[clinicalItemKey] = clinicalItem;
         else:
-            # Clinical Item does exist, but check for redundancies and opportunities to 
+            # Clinical Item does exist, but check for redundancies and opportunities to
             #   simplify different descriptions for the same medication
             priorClinicalItem = self.clinicalItemByCategoryIdCode[clinicalItemKey];
             priorDescription = priorClinicalItem["description"];
             if sourceItem["description"] < priorDescription or priorDescription.startswith(TEMPLATE_MEDICATION_PREFIX):
-                # Prior medication recorded description either a generic template, 
+                # Prior medication recorded description either a generic template,
                 #   or a longer version than necessary, that can be replaced with the current one
                 priorClinicalItem["description"] = sourceItem["description"];
                 DBUtil.updateRow("clinical_item", priorClinicalItem, priorClinicalItem["clinical_item_id"], conn=conn);
         return self.clinicalItemByCategoryIdCode[clinicalItemKey];
-    
+
     def patientItemFromSourceItem(self, sourceItem, clinicalItem, conn):
         # Produce a patient_item record model for the given sourceItem
         patientItem = \
@@ -470,7 +470,7 @@ class STRIDEOrderMedConversion:
             collection["item_collection_id"] = collectionId;
             self.itemCollectionByKeyStr[collectionKey] = collection;
         return self.itemCollectionByKeyStr[collectionKey];
-    
+
     def itemCollectionItemFromSourceItem(self, sourceItem, itemCollection, clinicalItem, conn):
         # Load or produce an item_collection_item record model for the given sourceItem
         itemKey = (itemCollection["item_collection_id"], clinicalItem["clinical_item_id"]);
@@ -487,7 +487,7 @@ class STRIDEOrderMedConversion:
             collectionItem["item_collection_item_id"] = collectionItemId;
             self.itemCollectionItemByCollectionIdItemId[itemKey] = collectionItem;
         return self.itemCollectionItemByCollectionIdItemId[itemKey];
-    
+
     def patientItemCollectionLinkFromSourceItem(self, sourceItem, collectionItem, patientItem, conn):
         # Produce a patient_item_collection_link record model for the given sourceItem
         patientItemCollectionLink = \
@@ -522,7 +522,7 @@ class STRIDEOrderMedConversion:
 
         convOptions = ConversionOptions();
         convOptions.extractParserOptions(options);
-        
+
         self.convertSourceItems(convOptions);
 
         timer = time.time() - timer;
@@ -548,10 +548,10 @@ class ConversionOptions:
             # Parse out the end date parameter
             timeTuple = time.strptime(options.endDate, DATE_FORMAT);
             self.endDate = datetime(*timeTuple[0:3]);
-        
+
         if options.maxMixtureCount is not None:
             self.maxMixtureCount = int(options.maxMixtureCount);
-        
+
         if options.doseCountLimit is not None:
             self.doseCountLimit = int(options.doseCountLimit);
 

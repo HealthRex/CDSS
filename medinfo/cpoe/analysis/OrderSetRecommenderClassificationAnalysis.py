@@ -43,7 +43,7 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
             orderSetCountByItemId[itemId] = len(orderSetIds);
 
         preparer = PreparePatientItems();
-        progress = ProgressDots(50,1,"Patients");
+        # progress = ProgressDots(50,1,"Patients");
         for patientItemData in preparer.loadPatientItemData(analysisQuery):
             patientId = patientItemData["patient_id"];
             analysisResults = \
@@ -62,7 +62,7 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
                 if "baseItemId" in patientItemData:
                     analysisQuery.baseItemId = patientItemData["baseItemId"]; # Record something here, so know to report back in result headers
                 yield resultsStatData;
-            progress.Update();
+            # progress.Update();
         # progress.PrintStatus();
 
     def analyzePatientItems(self, patientItemData, analysisQuery, recQuery, patientId, recommender):

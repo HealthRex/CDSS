@@ -50,16 +50,16 @@ RACE_MAPPINGS = \
 class STRIDEDemographicsConversion:
     """Data conversion module to take STRIDE provided patient demographics data
     into the structured data tables to facilitate subsequent analysis.
-    
+
     Capturing death date for now as an event.  Should eventually incorporate
     patient age and gender into data, though less clear what item event date
     to assign to these to make them useful.
     """
     connFactory = None; # Allow specification of alternative DB connection source
-    
+
     categoryBySourceDescr = None;   # Local cache to track the clinical item category table contents
     clinicalItemByCategoryIdExtId = None;   # Local cache to track clinical item table contents
-    
+
     def __init__(self):
         """Default constructor"""
         self.connFactory = DBUtil.ConnectionFactory();  # Default connection source
@@ -71,7 +71,7 @@ class STRIDEDemographicsConversion:
         """Primary run function to process the contents of the stride_patient
         table and convert them into equivalent patient_item, clinical_item, and clinical_item_category entries.
         Should look for redundancies to avoid repeating conversion.
-        
+
         patientIds - If provided, only process items for patient IDs matching those provided
         """
         log.info("Conversion for patients: %s" % patientIds);
@@ -82,12 +82,12 @@ class STRIDEDemographicsConversion:
                 self.convertSourceItem(sourceItem, conn=conn);
         finally:
             conn.close();
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
 
     def querySourceItems(self, patientIds=None, progress=None, conn=None):
-        """Query the database for list of all patient demographics 
-        and yield the results one at a time.  If patientIds provided, only return items 
+        """Query the database for list of all patient demographics
+        and yield the results one at a time.  If patientIds provided, only return items
         matching those IDs.
         """
         extConn = conn is not None;
@@ -96,7 +96,7 @@ class STRIDEDemographicsConversion:
 
         # Column headers to query for that map to respective fields in analysis table
         headers = ["pat_id","birth_year","gender","death_date","race","ethnicity"];
-        
+
         query = SQLQuery();
         for header in headers:
             query.addSelect( header );
@@ -150,8 +150,8 @@ class STRIDEDemographicsConversion:
                     rowModel["name"] = "Death";
                     rowModel["description"] = "Death Date";
                     rowModel["itemDate"] = rowModel["death_date"];
-                    yield rowModel; 
-            
+                    yield rowModel;
+
             row = cursor.fetchone();
             progress.Update();
 
@@ -167,7 +167,7 @@ class STRIDEDemographicsConversion:
         raceEthnicity = RACE_MAPPINGS[rowModel["race"]];
         if raceEthnicity in UNSPECIFIED_RACE_ETHNICITY and rowModel["ethnicity"] == HISPANIC_LATINO_ETHNICITY:
             raceEthnicity = RACE_MAPPINGS[HISPANIC_LATINO_ETHNICITY];   # Use Hispanic/Latino as basis if no other information
-        if raceEthnicity.find("%s") >= 0:    # Found replacement string.  Look to ethnicity for more information            
+        if raceEthnicity.find("%s") >= 0:    # Found replacement string.  Look to ethnicity for more information
             if rowModel["ethnicity"] == HISPANIC_LATINO_ETHNICITY:
                 raceEthnicity = raceEthnicity % RACE_MAPPINGS[HISPANIC_LATINO_ETHNICITY];
             else:
@@ -189,7 +189,7 @@ class STRIDEDemographicsConversion:
             categoryModel = self.categoryFromSourceItem(sourceItem, conn=conn);
             clinicalItemModel = self.clinicalItemFromSourceItem(sourceItem, categoryModel, conn=conn);
             patientItemModel = self.patientItemModelFromSourceItem(sourceItem, clinicalItemModel, conn=conn);
-            
+
         finally:
             if not extConn:
                 conn.close();
@@ -209,7 +209,7 @@ class STRIDEDemographicsConversion:
             category["clinical_item_category_id"] = categoryId;
             self.categoryBySourceDescr[categoryKey] = category;
         return self.categoryBySourceDescr[categoryKey];
-    
+
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
         clinicalItemKey = (category["clinical_item_category_id"], sourceItem["name"]);
@@ -218,7 +218,7 @@ class STRIDEDemographicsConversion:
             clinicalItem = \
                 RowItemModel \
                 (   {   "clinical_item_category_id": category["clinical_item_category_id"],
-                        "external_id": None, 
+                        "external_id": None,
                         "name": sourceItem["name"],
                         "description": sourceItem["description"],
                     }
@@ -227,7 +227,7 @@ class STRIDEDemographicsConversion:
             clinicalItem["clinical_item_id"] = clinicalItemId;
             self.clinicalItemByCategoryIdExtId[clinicalItemKey] = clinicalItem;
         return self.clinicalItemByCategoryIdExtId[clinicalItemKey];
-    
+
     def patientItemModelFromSourceItem(self, sourceItem, clinicalItem, conn):
         # Produce a patient_item record model for the given sourceItem
         patientItem = \

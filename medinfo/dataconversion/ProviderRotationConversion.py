@@ -21,21 +21,21 @@ class ProviderRotationConversion:
     Accomodate multiple sources from attending, resident, and student schedules.
     """
     connFactory = None; # Allow specification of alternative DB connection source
-    
+
     sourceTableName = None;
-    
+
     # Local caches to track lookup values
     userBySID = None;
     metricLineDescriptionsById = None;
     metricById = None;
     metricGroupById = None;
-    
+
     def __init__(self):
         """Default constructor"""
         self.connFactory = DBUtil.ConnectionFactory();  # Default connection source
 
         self.sourceTableName = DEFAULT_SOURCE_TABLE;    # Customizable parameter to facilitate test cases
-        
+
         self.userBySID = dict();
         self.metricLineDescriptionsById = dict();
         self.metricById = dict();
@@ -57,11 +57,11 @@ class ProviderRotationConversion:
             self.updateMetricDescriptionLines();
         finally:
             conn.close();
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
 
     def querySourceItems(self, userSIDs, limit=None, offset=None, progress=None, conn=None):
-        """Query the database for list of all AccessLogs 
+        """Query the database for list of all AccessLogs
         and yield the results one at a time.  If userSIDs provided, only return items matching those IDs.
         """
         extConn = conn is not None;
@@ -70,7 +70,7 @@ class ProviderRotationConversion:
 
         # Column headers to query for that map to respective fields in analysis table
         headers = ["user_id", "user_name", "de_pat_id", "access_datetime", "metric_id", "metric_name", "line_count", "description", "metric_group_num", "metric_group_name"];
-        
+
         query = SQLQuery();
         for header in headers:
             query.addSelect( header );
@@ -137,7 +137,7 @@ class ProviderRotationConversion:
             (userId, isNew) = DBUtil.findOrInsertItem("user", user, conn=conn);
             self.userBySID[userSID] = user;
         return self.userBySID[userSID];
-    
+
     def metricGroupFromSourceItem(self, sourceItem, conn):
         # Load or produce a metricGroup record model for the given sourceItem
         metricGroupId = sourceItem["metric_group_num"]; # Map num to Id
@@ -163,7 +163,7 @@ class ProviderRotationConversion:
             metric = \
                 RowItemModel \
                 (   {   "metric_id": metricId,
-                        "metric_group_id": metricGroup["metric_group_id"], 
+                        "metric_group_id": metricGroup["metric_group_id"],
                         "name": sourceItem["metric_name"],
                     }
                 );
@@ -175,14 +175,14 @@ class ProviderRotationConversion:
         metricId = sourceItem["metric_id"];
         targetLine = sourceItem["line_count"];
         iTargetLine = targetLine-1; # Change from 1 to 0-based indexing
-        
+
         if metricId not in self.metricLineDescriptionsById:
             self.metricLineDescriptionsById[metricId] = list();
         nCurrentLines = len(self.metricLineDescriptionsById[metricId]);
         nMissingLines = targetLine - nCurrentLines;
         for i in xrange(nMissingLines):
             self.metricLineDescriptionsById[metricId].append('XXX');    # Placeholder values
-        
+
         self.metricLineDescriptionsById[metricId][iTargetLine] = sourceItem["description"];
 
         return targetLine;
@@ -232,7 +232,7 @@ class ProviderRotationConversion:
         offset = None;
         if options.offset is not None:
             offset = int(options.offset);
-        
+
         self.convertSourceItems(userSIDs, limit, offset);
 
         timer = time.time() - timer;
