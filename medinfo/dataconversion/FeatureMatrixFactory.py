@@ -227,7 +227,7 @@ class FeatureMatrixFactory:
         self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
                                         clinicalItemNames, dayBins, label=label)
 
-    def addClinicalItemFeaturesByCategory(self, categoryIds, dayBins=None):
+    def addClinicalItemFeaturesByCategory(self, categoryIds, label=None, dayBins=None):
         """
         Query patient_item for the clinical item orders and results for each
         patient (based on clinical item category ID instead of item name), and
@@ -237,13 +237,16 @@ class FeatureMatrixFactory:
         if not self.patientsProcessed:
             raise ValueError("Must process patients before clinical item.")
 
+        if label is None:
+            label = "-".join(categoryIds)
+
         clinicalItemEvents = self._queryClinicalItemsByCategory(categoryIds)
         itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
 
         # Read clinical item features to temp file.
         patientEpisodes = self.getPatientEpisodeIterator()
         self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
-                                        categoryIds, dayBins)
+                                        categoryIds, dayBins, label=label)
 
     def _queryClinicalItemsByName(self, clinicalItemNames, column=None, operator=None):
         """
