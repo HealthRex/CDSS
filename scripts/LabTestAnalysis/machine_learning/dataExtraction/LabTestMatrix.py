@@ -232,7 +232,7 @@ class LabTestMatrix:
             'PO2V',     # Venous pO2
             'PCO2V'     # Venous pCO2
         ]
-        for componment in BASIC_LAB_COMPONENTS:
+        for component in BASIC_LAB_COMPONENTS:
             print "\t%s" % component
             for preTimeDelta in LAB_PRE_TIME_DELTAS:
                 print "\t\t%s" % preTimeDelta
