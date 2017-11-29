@@ -17,26 +17,35 @@ class LabTestMatrix:
         self.labPanel = labPanel
         self.labComponents = self._getComponentsInLabPanel(labPanel)
         self.numPatients = 1
+        self.numRequestedEpisodes = numPatientEpisodes
         self.numPatientEpisodes = numPatientEpisodes
 
         # Initialize DB connection.
         self.connection = DBUtil.connection()
+        print "Querying patient episodes..."
         self._queryPatientEpisodes()
 
         # Add time features.
+        print 'Adding time features...'
         self._addTimeFeatures()
         # Add demographic features.
+        print 'Adding demographic features...'
         self._addDemographicFeatures()
         # Add treatment team features.
+        print 'Adding treatment team features...'
         self.factory.addTreatmentTeamFeatures()
         # Add Charlson Comorbidity features.
+        print 'Adding comorbidity features...'
         self.factory.addCharlsonComorbidityFeatures()
         # Add flowsheet vitals features.
+        print 'Adding flowsheet features...'
         self._addFlowsheetFeatures()
         # Add lab panel order and component result features.
+        print 'Adding lab test features...'
         self._addLabTestFeatures()
 
         # Build matrix.
+        print 'Building matrix...'
         self.factory.buildFeatureMatrix()
 
         return
@@ -142,7 +151,8 @@ class LabTestMatrix:
     def _addTimeFeatures(self):
         # Add admission date.
         ADMIT_DX_CATEGORY_ID = 2
-        self.factory.addClinicalItemFeaturesByCategory([ADMIT_DX_CATEGORY_ID], label="AdmitDxDate")
+        self.factory.addClinicalItemFeaturesByCategory([ADMIT_DX_CATEGORY_ID], \
+            dayBins=[], label="AdmitDxDate")
 
         # Add time cycle features.
         self.factory.addTimeCycleFeatures("order_time", "month")
@@ -150,14 +160,14 @@ class LabTestMatrix:
 
     def _addDemographicFeatures(self):
         BIRTH_FEATURE = "Birth"
-        self.factory.addClinicalItemFeatures([BIRTH_FEATURE], daysBins=[])
+        self.factory.addClinicalItemFeatures([BIRTH_FEATURE], dayBins=[])
         self._addSexFeatures()
         self._addRaceFeatures()
 
     def _addSexFeatures(self):
         SEX_FEATURES = ["Male", "Female"]
         for feature in SEX_FEATURES:
-            self.factory.addClinicalItemFeatures([feature], daysBins=[])
+            self.factory.addClinicalItemFeatures([feature], dayBins=[])
 
     def _addRaceFeatures(self):
         RACE_FEATURES = ["RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
@@ -165,7 +175,7 @@ class LabTestMatrix:
                     "RacePacificIslander", "RaceNativeAmerican",
                     "RaceOther", "RaceUnknown"]
         for feature in RACE_FEATURES:
-            self.factory.addClinicalItemFeatures([feature], daysBins=[])
+            self.factory.addClinicalItemFeatures([feature], dayBins=[])
 
     def _addFlowsheetFeatures(self):
         # Look at flowsheet results from the previous days
@@ -180,8 +190,11 @@ class LabTestMatrix:
             "BP_High_Systolic", "BP_Low_Diastolic", "FiO2",
             "Glasgow Coma Scale Score", "Pulse", "Resp", "Temp", "Urine"
         ]
+        print "\tBASIC_FLOWSHEET_FEATURES"
         for preTimeDelta in FLOW_PRE_TIME_DELTAS:
-            self.factory.addFlowsheetFeatures(BASIC_LAB_COMPONENTS, preTimeDelta, FLOW_POST_TIME_DELTA)
+            print "\t\t%s" % preTimeDelta
+            self.factory.addFlowsheetFeatures(BASIC_FLOWSHEET_FEATURES, preTimeDelta, \
+                    FLOW_POST_TIME_DELTA)
 
     def _addLabTestFeatures(self):
         # Add lab panel order features.
@@ -219,17 +232,107 @@ class LabTestMatrix:
             'PO2V',     # Venous pO2
             'PCO2V'     # Venous pCO2
         ]
-        for preTimeDelta in LAB_PRE_TIME_DELTAS:
-            self.factory.addLabResultFeatures(BASIC_LAB_COMPONENTS, False, preTimeDelta, LAB_POST_TIME_DELTA)
+        for componment in BASIC_LAB_COMPONENTS:
+            print "\t%s" % component
+            for preTimeDelta in LAB_PRE_TIME_DELTAS:
+                print "\t\t%s" % preTimeDelta
+                self.factory.addLabResultFeatures([component], False, preTimeDelta, LAB_POST_TIME_DELTA)
 
         # Add labPanel component result features, for a variety of time deltas.
+        print "\tlabComponents"
         for preTimeDelta in LAB_PRE_TIME_DELTAS:
+            print "\t\t%s" % preTimeDelta
             self.factory.addLabResultFeatures(self.labComponents, False, preTimeDelta, LAB_POST_TIME_DELTA)
 
     def writeLabTestMatrix(self, destPath):
-        labMatrixFile = open(destPath, "w")
+        print 'Writing final matrix file...'
+        # Get old matrix file.
         sourcePath = self.factory.getMatrixFileName()
-        os.rename(sourcePath, destPath)
+        # Write to new matrix file.
+        labMatrixFile = open(destPath, "w")
+        self._writeMatrixHeader(destPath, labMatrixFile)
+        for line in open(sourcePath, "r"):
+            labMatrixFile.write(line)
+        # Delete old matrix file.
+        os.remove(sourcePath)
+
+    def _writeMatrixHeader(self, matrixFileName, matrixFile):
+        created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        source = __name__
+        command = "LabTestMatrix('%s', %s).writeMatrixFile('%s')" % (self.labPanel, \
+            self.numRequestedEpisodes, matrixFileName)
+
+        header = """\
+# %s\n\
+# Created: %s\n\
+# Source: %s \n\
+# Command: %s\n\
+# \n\
+# Overview:\n\
+# This file contains %s data rows, representing %s unique orders of \n\
+# the %s lab panel across %s inpatients from the Stanford hospital.\n\
+# Each row contains columns summarizing the patient's demographics, \n\
+# inpatient admit date, prior vitals, prior lab panel orders, and \n\
+# prior lab component results. Note the distinction between a lab\n\
+# panel (e.g. LABMETB) and a lab component within a panel (e.g. Na, RBC). \n\
+# Most cells in matrix represent a count statistic for an event's \n\
+# occurrence or the difference between an event's time and order_time.\n\
+# \n\
+# Fields: \n\
+#   pat_id - ID # for patient in the STRIDE data set. \n\
+#   order_proc_id - ID # for clinical order. \n\
+#   proc_code - code representing ordered lab panel. \n\
+#   order_time - time at which lab panel was ordered. \n\
+#   abnormal_panel - were any components in panel abnormal (binary)? \n\
+#   num_components - # of unique components in lab panel. \n\
+#   num_normal_components - # of normal component results in panel. \n\
+#   all_components_normal - inverse of abnormal_panel (binary). \n\
+#   AdmitDxDate.[clinical_item] - admit diagnosis, pegged to admit date.\n\
+#   order_time.[month|hour] - when was the lab panel ordered? \n\
+#   Birth.preTimeDays - patient's age in days.\n\
+#   [Male|Female].pre - is patient male/female (binary)?\n\
+#   [RaceX].pre - is patient race [X]?\n\
+#   Team.[specialty].[clinical_item] - specialist added to treatment team.\n\
+#   Comorbidity.[disease].[clinical_item] - disease added to problem list.\n\
+#   ___.[flowsheet] - measurements for flowsheet biometrics.\n\
+#       Includes BP_High_Systolic, BP_Low_Diastolic, FiO2,\n\
+#           Glasgow Coma Scale Score, Pulse, Resp, Temp, and Urine.\n\
+#   %s.[clinical_item] - orders of the lab panel of interest.\n\
+#   ___.[lab_result] - lab component results.\n\
+#       Included standard components: WBC, HCT, PLT, NA, K, CO2, BUN,\n\
+#           CR, TBIL, ALB, CA, LAC, ESR, CRP, TNI, PHA, PO2A, PCO2A,\n\
+#           PHV, PO2V, PCO2V\n\
+#       Also included %s panel components: %s\n\
+#   \n\
+#   [clinical_item] fields may have the following suffixes:\n\
+#       ___.pre - how many times has this occurred before order_time?\n\
+#       ___.pre.Xd - how many times has this occurred within X days before order_time?\n\
+#       ___.preTimeDays - how many days before order_time was last occurrence?\n\
+#       ___.post - how many times has this occurred after order_time?\n\
+#       ___.post.Xd - how many times has this occurred within X days after order_time?\n\
+#       ___.postTimeDays - how many days after order_time was next occurrence?\n\
+#   \n\
+#   [flowsheet] and [lab_result] fields may have the following suffixes:\n\
+#       ___.X_Y.count - # of result values between X and Y days of order_time.\n\
+#       ___.X_Y.countInRange - # of result values in normal range.\n\
+#       ___.X_Y.min - minimum result value.\n\
+#       ___.X_Y.max - maximum result value.\n\
+#       ___.X_Y.median - median result value.\n\
+#       ___.X_Y.std - standard deviation of result values.\n\
+#       ___.X_Y.first - first result value.\n\
+#       ___.X_Y.last - last result value.\n\
+#       ___.X_Y.diff - difference between penultimate and proximate values.\n\
+#       ___.X_Y.slope - slope between penultimate and proximate values.\n\
+#       ___.X_Y.proximate - closest result value to order_time.\n\
+#       ___.X_Y.firstTimeDays - time between first and order_time.\n\
+#       ___.X_Y.lastTimeDays - time between last and order_time.\n\
+#       ___.X_Y.proximateTimeDays - time between proximate and order_time.\n\
+#\n""" % \
+            (matrixFileName, created, source, command, \
+            self.numPatientEpisodes, self.numPatientEpisodes, self.labPanel, \
+            self.numPatients, self.labPanel, self.labPanel, self.labComponents)
+
+        matrixFile.write(header)
 
 if __name__ == "__main__":
     start_time = time.time()
