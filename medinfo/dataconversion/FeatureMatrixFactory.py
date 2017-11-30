@@ -470,10 +470,9 @@ class FeatureMatrixFactory:
             resultLabel = "-".join([labName for labName in labNames])[:64]
         else:
             resultLabel = labNames[0]
-            
+
         # Hack to account for fact that Windows filenames can't include ':'.
-        suffix = "0days" if (postTimeDelta == datetime.timedelta(0)) else str(postTimeDelta)
-        tempFileName = self._patientResultTempFileNameFormat % (resultLabel, str(preTimeDelta), suffix)
+        tempFileName = self._patientResultTempFileNameFormat % (resultLabel, str(preTimeDelta.days), str(postTimeDelta.days))
         tempFile = open(tempFileName, "w")
 
         # Query lab results for the individuals of interest.
@@ -537,7 +536,8 @@ class FeatureMatrixFactory:
             resultLabel = "-".join([baseName for baseName in flowsheetBaseNames])
         else:
             resultLabel = flowsheetBaseNames[0]
-        tempFileName = self._patientItemTempFileNameFormat % (resultLabel)
+        # Hack to account for fact that Windows filenames can't include ':'.
+        tempFileName = self._patientResultTempFileNameFormat % (resultLabel, str(preTimeDelta.days), str(postTimeDelta.days))
         tempFile = open(tempFileName, "w")
 
         # Query flowsheet results.
