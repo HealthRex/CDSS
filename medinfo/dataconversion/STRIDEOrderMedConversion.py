@@ -267,6 +267,12 @@ class STRIDEOrderMedConversion:
                 descriptionComposite = str.join("-",descriptionList );
 
                 # Build on last mix item's row model
+                # TODO(sbala): hash() is not guaranteed to product consistent
+                # values across platforms, causing certain tests to fail when
+                # moving between Windows and Linux. Use hashlib.md5() for a
+                # stable cross-platform hash, but this line defines medication_id
+                # values, so don't want to updage this code without updating
+                # the database as well.
                 rowModel["medication_id"] = hash(tuple(idStrList));   # Arbitrary integer, hash to try to be unique
                 rowModel["code"] = RXCUI_CODE_TEMPLATE % idComposite;
                 # Hard to trace back to Order_Med.medication_id from here, since working with Order_Med_MixInfo records
