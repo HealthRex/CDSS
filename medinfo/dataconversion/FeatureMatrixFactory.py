@@ -470,7 +470,10 @@ class FeatureMatrixFactory:
             resultLabel = "-".join([labName for labName in labNames])[:64]
         else:
             resultLabel = labNames[0]
-        tempFileName = self._patientResultTempFileNameFormat % (resultLabel, str(preTimeDelta), str(postTimeDelta))
+            
+        # Hack to account for fact that Windows filenames can't include ':'.
+        suffix = "0days" if (postTimeDelta == datetime.timedelta(0)) else str(postTimeDelta)
+        tempFileName = self._patientResultTempFileNameFormat % (resultLabel, str(preTimeDelta), suffix)
         tempFile = open(tempFileName, "w")
 
         # Query lab results for the individuals of interest.
