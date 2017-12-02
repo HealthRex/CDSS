@@ -442,7 +442,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
                 [ -395700000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 3,10, 3, 0)], 
 
                 # IVF Mixture, composite ingredient description
-                [ -392000000, 1234567, 888, "Med (IV)", -888699365, "RXCUI-4850,-8591,-9863 (<5)", "Glucose-Potassium Chloride-Sodium Chloride (IV) (<5 doses)", datetime(2111, 4, 1, 3, 0)], 
+                [ -392000000, 1234567, 888, "Med (IV)", None, "RXCUI-4850,-8591,-9863 (<5)", "Glucose-Potassium Chloride-Sodium Chloride (IV) (<5 doses)", datetime(2111, 4, 1, 3, 0)], 
 
                 # Mini mixture.  Too many components, just use summary description
                 [ -391000000, 1234567, 888, "Med (IV)", -540000, "MED-540000 (<5)", "Mini TPN (<5 doses)", datetime(2111, 4, 2, 3, 0)], # Still aggregated because breaking up into component amino acids results in too many
