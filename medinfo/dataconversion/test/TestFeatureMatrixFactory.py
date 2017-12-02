@@ -449,10 +449,10 @@ class TestFeatureMatrixFactory(DBTestCase):
         factory.addClinicalItemFeatures(["PerfItem500"])
 
         # Add lab result features.
-        factory.addLabResultFeatures(["Foo"], preTimeDelta, postTimeDelta)
-        factory.addLabResultFeatures(["Bar"], preTimeDelta, postTimeDelta)
-        factory.addLabResultFeatures(["Baz"], preTimeDelta, postTimeDelta)
-        factory.addLabResultFeatures(["Qux"], preTimeDelta, postTimeDelta)
+        factory.addLabResultFeatures(["Foo"], False, preTimeDelta, postTimeDelta)
+        factory.addLabResultFeatures(["Bar"], False, preTimeDelta, postTimeDelta)
+        factory.addLabResultFeatures(["Baz"], False, preTimeDelta, postTimeDelta)
+        factory.addLabResultFeatures(["Qux"], False, preTimeDelta, postTimeDelta)
 
         # Add flowsheet features.
         factory.addFlowsheetFeatures(["Perflow"], preTimeDelta, postTimeDelta)
@@ -702,6 +702,7 @@ def suite():
     methods for the given class whose name starts with "test".
     """
     suite = unittest.TestSuite()
+    #suite.addTest(TestFeatureMatrixFactory('test_performance'));
     suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
     return suite
 
