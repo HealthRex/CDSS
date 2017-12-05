@@ -210,10 +210,14 @@ class FeatureMatrixFactory:
 
         return patientEpisodeByIndexTimeById
 
-    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None):
+    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None, features="all"):
         """
         Query patient_item for the clinical item orders and results for each
         patient, and aggregate by episode timestamp.
+        column: determines column in clinical_item to match clinicalItemNames.
+        operator: determines how to match clinicalItemNames against column.
+        label: sets the column prefix in the final feature matrix.
+        features: determines whether to include "pre", "post" or "all".
         """
         # Verify patient list and/or patient episode has been processed.
         if not self.patientsProcessed:
@@ -227,11 +231,12 @@ class FeatureMatrixFactory:
         self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
                                         clinicalItemNames, dayBins, label=label)
 
-    def addClinicalItemFeaturesByCategory(self, categoryIds, label=None, dayBins=None):
+    def addClinicalItemFeaturesByCategory(self, categoryIds, label=None, dayBins=None, features="all"):
         """
         Query patient_item for the clinical item orders and results for each
         patient (based on clinical item category ID instead of item name), and
         aggregate by episode timestamp.
+        features: determines whether to include "pre", "post" or "all".
         """
         # Verify patient list and/or patient episode has been processed.
         if not self.patientsProcessed:
@@ -246,7 +251,7 @@ class FeatureMatrixFactory:
         # Read clinical item features to temp file.
         patientEpisodes = self.getPatientEpisodeIterator()
         self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
-                                        categoryIds, dayBins, label=label)
+                                        categoryIds, dayBins, label=label, features=features)
 
     def _queryClinicalItemsByName(self, clinicalItemNames, column=None, operator=None):
         """
@@ -350,11 +355,12 @@ class FeatureMatrixFactory:
         clinicalItemEvents = [row for row in results]
         return clinicalItemEvents
 
-    def _processClinicalItemEvents(self, patientEpisodes, itemTimesByPatientId, clinicalItemNames, dayBins, label=None):
+    def _processClinicalItemEvents(self, patientEpisodes, itemTimesByPatientId, clinicalItemNames, dayBins, label=None, features="all"):
         """
         Convert temp file containing all (patient_item, item_date) pairs
         for a given set of clinical_item_ids into temp file containing
         patient_id, order_time, clinical_item.pre, clinical_item.post, etc.
+        features: determines whether to include "pre", "post" or "all".
         """
         if label:
             itemLabel = label
@@ -380,14 +386,21 @@ class FeatureMatrixFactory:
         postLabel = "%s.post" % itemLabel
 
         # Write header fields to tempFile.
-        tempFile.write("patient_id\tepisode_time\t")
-        tempFile.write("%s\t" % preTimeDaysLabel)
-        tempFile.write("%s\t" % preLabel)
-        tempFile.write("\t".join("%s.%dd" % (preLabel, dayBin) for dayBin in dayBins))
-        tempFile.write("\t")
-        tempFile.write("%s\t" % postTimeDaysLabel)
-        tempFile.write("%s\t" % postLabel)
-        tempFile.write("\t".join("%s.%dd" % (postLabel, dayBin) for dayBin in dayBins))
+        tempFile.write("patient_id\tepisode_time")
+        # Include counts for events before episode_time.
+        if features != "post":
+            tempFile.write("\t%s" % preTimeDaysLabel)
+            tempFile.write("\t%s" % preLabel)
+            if len(dayBins) > 0:
+                tempFile.write("\t")
+                tempFile.write("\t".join("%s.%dd" % (preLabel, dayBin) for dayBin in dayBins))
+        # Include counts for events after episode_time.
+        if features != "pre":
+            tempFile.write("\t%s" % postTimeDaysLabel)
+            tempFile.write("\t%s" % postLabel)
+            if len(dayBins) > 0:
+                tempFile.write("\t")
+                tempFile.write("\t".join("%s.%dd" % (postLabel, dayBin) for dayBin in dayBins))
         tempFile.write("\n")
 
         # Write patient episode data to tempFile.
@@ -440,14 +453,21 @@ class FeatureMatrixFactory:
                                     episodeData["%s.%dd" % (postLabel, dayBin)] += 1
 
             # Write data to tempFile.
-            tempFile.write("%s\t%s\t" % (patientId, episodeTime))
-            tempFile.write("%s\t" % episodeData[preTimeDaysLabel])
-            tempFile.write("%s\t" % episodeData[preLabel])
-            tempFile.write("\t".join([str(episodeData["%s.%dd" % (preLabel, dayBin)]) for dayBin in dayBins]))
-            tempFile.write("\t")
-            tempFile.write("%s\t" % episodeData[postTimeDaysLabel])
-            tempFile.write("%s\t" % episodeData[postLabel])
-            tempFile.write("\t".join([str(episodeData["%s.%dd" % (postLabel, dayBin)]) for dayBin in dayBins]))
+            tempFile.write("%s\t%s" % (patientId, episodeTime))
+            # Include counts for events before episode_time.
+            if features != "post":
+                tempFile.write("\t%s" % episodeData[preTimeDaysLabel])
+                tempFile.write("\t%s" % episodeData[preLabel])
+                if len(dayBins) > 0:
+                    tempFile.write("\t")
+                    tempFile.write("\t".join([str(episodeData["%s.%dd" % (preLabel, dayBin)]) for dayBin in dayBins]))
+            # Include counts for events after episode_time.
+            if features != "pre":
+                tempFile.write("\t%s" % episodeData[postTimeDaysLabel])
+                tempFile.write("\t%s" % episodeData[postLabel])
+                if len(dayBins) > 0:
+                    tempFile.write("\t")
+                    tempFile.write("\t".join([str(episodeData["%s.%dd" % (postLabel, dayBin)]) for dayBin in dayBins]))
             tempFile.write("\n")
 
         tempFile.close()
