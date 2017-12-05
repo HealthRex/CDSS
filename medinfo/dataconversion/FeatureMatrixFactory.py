@@ -210,7 +210,7 @@ class FeatureMatrixFactory:
 
         return patientEpisodeByIndexTimeById
 
-    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None, features="all"):
+    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None, features=None):
         """
         Query patient_item for the clinical item orders and results for each
         patient, and aggregate by episode timestamp.
@@ -229,9 +229,9 @@ class FeatureMatrixFactory:
         # Read clinical item features to temp file.
         patientEpisodes = self.getPatientEpisodeIterator()
         self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
-                                        clinicalItemNames, dayBins, label=label)
+                                        clinicalItemNames, dayBins, label=label, features=features)
 
-    def addClinicalItemFeaturesByCategory(self, categoryIds, label=None, dayBins=None, features="all"):
+    def addClinicalItemFeaturesByCategory(self, categoryIds, label=None, dayBins=None, features=None):
         """
         Query patient_item for the clinical item orders and results for each
         patient (based on clinical item category ID instead of item name), and
@@ -355,7 +355,7 @@ class FeatureMatrixFactory:
         clinicalItemEvents = [row for row in results]
         return clinicalItemEvents
 
-    def _processClinicalItemEvents(self, patientEpisodes, itemTimesByPatientId, clinicalItemNames, dayBins, label=None, features="all"):
+    def _processClinicalItemEvents(self, patientEpisodes, itemTimesByPatientId, clinicalItemNames, dayBins, label=None, features=None):
         """
         Convert temp file containing all (patient_item, item_date) pairs
         for a given set of clinical_item_ids into temp file containing
@@ -371,6 +371,9 @@ class FeatureMatrixFactory:
                 itemLabel = clinicalItemNames[0]
         tempFileName = self._patientItemTempFileNameFormat % itemLabel
         tempFile = open(tempFileName, "w")
+
+        if features is None:
+            features = "all"
 
         # Determine time buckets for clinical item times.
         if dayBins is None:
@@ -991,7 +994,7 @@ class FeatureMatrixFactory:
                 defaultFilename = defaultFilename + ".tab"
                 return TabDictReader(open(defaultFilename))
 
-    def addCharlsonComorbidityFeatures(self):
+    def addCharlsonComorbidityFeatures(self, features=None):
         """
         For each of a predefined set of comorbidity categories, add features
         summarizing occurrence of the associated ICD9 problems.
@@ -1006,9 +1009,10 @@ class FeatureMatrixFactory:
 
         for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
             disease = disease.translate(None," ()-/") # Strip off punctuation
-            self.addClinicalItemFeatures(icd9prefixes, operator="~*", label="Comorbidity."+disease)
+            self.addClinicalItemFeatures(icd9prefixes, operator="~*", \
+                label="Comorbidity."+disease, features=features)
 
-    def addTreatmentTeamFeatures(self):
+    def addTreatmentTeamFeatures(self, features=None):
         """
         For each of a predefined set of specialty categories, add features
         summarizing the makeup of the treatment team.
@@ -1022,7 +1026,8 @@ class FeatureMatrixFactory:
             teamNameByCategory[category].append(teamName)
 
         for category, teamNames in teamNameByCategory.iteritems():
-            self.addClinicalItemFeatures(teamNames, column="description", label="Team."+category)
+            self.addClinicalItemFeatures(teamNames, column="description", \
+                label="Team."+category, features=features)
 
     def buildFeatureMatrix(self):
         """

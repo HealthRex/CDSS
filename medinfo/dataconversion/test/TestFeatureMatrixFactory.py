@@ -179,7 +179,6 @@ class TestFeatureMatrixFactory(DBTestCase):
             pass
 
     def test_buildFeatureMatrix_multiClinicalItem(self):
-        """Test _buildFeatureMatrix()."""
         # Verify FeatureMatrixFactory throws Error if patientEpisodeInput
         # has not been set.
         with self.assertRaises(ValueError):
@@ -231,6 +230,61 @@ class TestFeatureMatrixFactory(DBTestCase):
             os.remove(self.factory.getMatrixFileName())
         except OSError:
             pass
+
+    def test_buildFeatureMatrix_prePostFeatures(self):
+        """
+        Test features parameter in addClinicalItemFeatures which allows
+        client to specify they only want .pre* or .post* columns in feature
+        matrix.
+        """
+        # Verify FeatureMatrixFactory throws Error if patientEpisodeInput
+        # has not been set.
+        with self.assertRaises(ValueError):
+            self.factory.processPatientEpisodeInput()
+
+        # Initialize DB cursor.
+        connection = DBUtil.connection()
+        cursor = connection.cursor()
+
+        # Build SQL query for list of patient episodes.
+        patientEpisodeQuery = SQLQuery()
+        patientEpisodeQuery.addSelect("CAST(pat_id AS bigint)")
+        patientEpisodeQuery.addSelect("sop.order_proc_id AS order_proc_id")
+        patientEpisodeQuery.addSelect("proc_code")
+        patientEpisodeQuery.addSelect("order_time")
+        patientEpisodeQuery.addSelect("COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS normal_results")
+        patientEpisodeQuery.addFrom("stride_order_proc AS sop")
+        patientEpisodeQuery.addFrom("stride_order_results AS sor")
+        patientEpisodeQuery.addWhere("sop.order_proc_id = sor.order_proc_id")
+        patientEpisodeQuery.addWhereEqual("proc_code", "LABMETB")
+        patientEpisodeQuery.addGroupBy("pat_id, sop.order_proc_id, proc_code, order_time")
+        patientEpisodeQuery.addOrderBy("pat_id, sop.order_proc_id, proc_code, order_time")
+        cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
+
+        # Set and process patientEpisodeInput.
+        self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
+        self.factory.processPatientEpisodeInput()
+        resultEpisodeIterator = self.factory.getPatientEpisodeIterator()
+        resultPatientEpisodes = list()
+        for episode in resultEpisodeIterator:
+            episode["pat_id"] = int(episode["pat_id"])
+            episode["order_time"] = DBUtil.parseDateValue(episode["order_time"])
+            resultPatientEpisodes.append(episode)
+
+        # Add TestItem100 and TestItem200 clinical item data.
+        self.factory.addClinicalItemFeatures(["TestItem100"], features="pre")
+        self.factory.addClinicalItemFeatures(["TestItem200"], features="post")
+        self.factory.buildFeatureMatrix()
+        resultMatrix = self.factory.readFeatureMatrixFile()
+        expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_prePostFeatures"]
+
+        self.assertEqualList(resultMatrix, expectedMatrix)
+
+        try:
+            os.remove(self.factory.getMatrixFileName())
+        except OSError:
+            pass
+
 
     def test_build_FeatureMatrix_multiLabTest(self):
         """
