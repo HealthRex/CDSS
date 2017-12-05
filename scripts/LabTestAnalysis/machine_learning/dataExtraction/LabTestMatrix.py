@@ -33,10 +33,10 @@ class LabTestMatrix:
         self._addDemographicFeatures()
         # Add treatment team features.
         print 'Adding treatment team features...'
-        self.factory.addTreatmentTeamFeatures()
+        self.factory.addTreatmentTeamFeatures(features="pre")
         # Add Charlson Comorbidity features.
         print 'Adding comorbidity features...'
-        self.factory.addCharlsonComorbidityFeatures()
+        self.factory.addCharlsonComorbidityFeatures(features="pre")
         # Add flowsheet vitals features.
         print 'Adding flowsheet features...'
         self._addFlowsheetFeatures()
@@ -152,7 +152,7 @@ class LabTestMatrix:
         # Add admission date.
         ADMIT_DX_CATEGORY_ID = 2
         self.factory.addClinicalItemFeaturesByCategory([ADMIT_DX_CATEGORY_ID], \
-            dayBins=[], label="AdmitDxDate")
+            dayBins=[], label="AdmitDxDate", features="pre")
 
         # Add time cycle features.
         self.factory.addTimeCycleFeatures("order_time", "month")
@@ -160,14 +160,15 @@ class LabTestMatrix:
 
     def _addDemographicFeatures(self):
         BIRTH_FEATURE = "Birth"
-        self.factory.addClinicalItemFeatures([BIRTH_FEATURE], dayBins=[])
+        self.factory.addClinicalItemFeatures([BIRTH_FEATURE], dayBins=[], features="pre")
         self._addSexFeatures()
         self._addRaceFeatures()
 
     def _addSexFeatures(self):
         SEX_FEATURES = ["Male", "Female"]
         for feature in SEX_FEATURES:
-            self.factory.addClinicalItemFeatures([feature], dayBins=[])
+            self.factory.addClinicalItemFeatures([feature], dayBins=[], \
+                features="pre")
 
     def _addRaceFeatures(self):
         RACE_FEATURES = ["RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
@@ -175,7 +176,8 @@ class LabTestMatrix:
                     "RacePacificIslander", "RaceNativeAmerican",
                     "RaceOther", "RaceUnknown"]
         for feature in RACE_FEATURES:
-            self.factory.addClinicalItemFeatures([feature], dayBins=[])
+            self.factory.addClinicalItemFeatures([feature], dayBins=[], \
+                features="pre")
 
     def _addFlowsheetFeatures(self):
         # Look at flowsheet results from the previous days
@@ -198,7 +200,7 @@ class LabTestMatrix:
 
     def _addLabTestFeatures(self):
         # Add lab panel order features.
-        self.factory.addClinicalItemFeatures([self.labPanel])
+        self.factory.addClinicalItemFeatures([self.labPanel], features="pre")
 
         # Look for lab data 90 days before each episode, but never after self.
         # Look at lab results from the previous days
@@ -308,9 +310,6 @@ class LabTestMatrix:
 #       ___.pre - how many times has this occurred before order_time?\n\
 #       ___.pre.Xd - how many times has this occurred within X days before order_time?\n\
 #       ___.preTimeDays - how many days before order_time was last occurrence?\n\
-#       ___.post - how many times has this occurred after order_time?\n\
-#       ___.post.Xd - how many times has this occurred within X days after order_time?\n\
-#       ___.postTimeDays - how many days after order_time was next occurrence?\n\
 #   \n\
 #   [flowsheet] and [lab_result] fields may have the following suffixes:\n\
 #       ___.X_Y.count - # of result values between X and Y days of order_time.\n\
