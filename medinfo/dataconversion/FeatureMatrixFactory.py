@@ -1069,8 +1069,14 @@ class FeatureMatrixFactory:
             matrixFile.write("\t".join(matrixData))
             matrixFile.write("\n")
 
+        self.cleanTempFiles()
+
+    def cleanTempFiles(self):
         # Close temp files.
-        [tempFile.close() for tempFile in tempFiles]
+        try:
+            [tempFile.close() for tempFile in tempFiles]
+        except:
+            pass
         # Clean up temp files.
         for tempFileName in self._featureTempFileNames:
             try:
