@@ -13,6 +13,10 @@ log = logging.getLogger("CDSS")
 log.setLevel(logging.CRITICAL)
 
 # Load test suite.
+# TODO(sbala): Prevent test suite from running twice.
+# For some reason, the entire test suite runs on loader.discover().
+# Already ruled out hypotheses that this is due to invoking python interpreter
+# in individual test files or calling test suite in main() functions.
 loader = unittest.TestLoader()
 suite = loader.discover('.', pattern="Test*.py")
 
