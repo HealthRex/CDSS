@@ -110,7 +110,16 @@ fi
 # pip install --user sklearn
 
 # gensim (https://radimrehurek.com/gensim/)
-# pip install --user gensim
+GENSIM_VERSION="$(pip list --format=legacy | grep 'gensim' | sed 's/[)(]//g' | awk '{print $2}')"
+if [ -z "$GENSIM_VERSION" ]
+then
+  echo -n "Installing gensim..."
+  pip install --user gensim
+  echo "OK"
+else
+  echo -n "Installed: gensim "
+  echo $GENSIM_VERSION
+fi
 
 ##### INITIALIZE DATABASE #####
 echo ""
