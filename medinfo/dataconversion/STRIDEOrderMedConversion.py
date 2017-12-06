@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys, os
+import hashlib
 import time;
 from datetime import datetime;
 from optparse import OptionParser
@@ -267,13 +268,10 @@ class STRIDEOrderMedConversion:
                 descriptionComposite = str.join("-",descriptionList );
 
                 # Build on last mix item's row model
-                # TODO(sbala): hash() is not guaranteed to product consistent
-                # values across platforms, causing certain tests to fail when
-                # moving between Windows and Linux. Use hashlib.md5() for a
-                # stable cross-platform hash, but this line defines medication_id
-                # values, so don't want to updage this code without updating
-                # the database as well.
-                rowModel["medication_id"] = hash(tuple(idStrList));   # Arbitrary integer, hash to try to be unique
+                # Create arbitrary integer, hash to try to be unique
+                # https://stackoverflow.com/questions/16008670/python-how-to-hash-a-string-into-8-digits
+                number = int(hashlib.sha1(idComposite).hexdigest(), 16) % (10 ** 12)
+                rowModel["medication_id"] = number
                 rowModel["code"] = RXCUI_CODE_TEMPLATE % idComposite;
                 # Hard to trace back to Order_Med.medication_id from here, since working with Order_Med_MixInfo records
                 #rowModel["code"] = GENERIC_CODE_TEMPLATE % rowModel["medication_id"];
