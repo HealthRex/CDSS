@@ -23,7 +23,7 @@ from Util import log
 class TestFeatureMatrixFactory(DBTestCase):
     def setUp(self):
         """Prepare state for test cases."""
-        DBTestCase.setUp(self);
+        DBTestCase.setUp(self)
         self._deleteTestRecords()
         self._insertTestRecords()
 
@@ -84,8 +84,8 @@ class TestFeatureMatrixFactory(DBTestCase):
 
     def tearDown(self):
         """Restore state from any setUp or test steps."""
-        self._deleteTestRecords();
-        DBTestCase.tearDown(self);
+        self._deleteTestRecords()
+        DBTestCase.tearDown(self)
 
         # Clean up files that might have lingered from failed tests.
         try:
@@ -763,7 +763,6 @@ def suite():
     methods for the given class whose name starts with "test".
     """
     suite = unittest.TestSuite()
-    #suite.addTest(TestFeatureMatrixFactory('test_performance'));
     suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
     return suite
 
