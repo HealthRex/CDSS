@@ -1,2 +1,3 @@
 *.pyc
 LocalEnv.py
+.DS_Store
