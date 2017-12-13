@@ -14,8 +14,6 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 from medinfo.db.test.Util import DBTestCase
 
-
-
 class TestEventDigraph(DBTestCase):
     def setUp(self):
         """Prepare state for test cases."""
@@ -109,7 +107,7 @@ class TestEventDigraph(DBTestCase):
         query = SQLQuery()
         query.addSelect('pi.patient_id AS sequence_id')
         query.addSelect('pi.item_date AS event_time')
-        query.addSelect('cic.description AS event_id')
+        query.addSelect('ci.description AS event_id')
         query.addFrom('patient_item AS pi')
         query.addJoin('clinical_item AS ci', 'pi.clinical_item_id = ci.clinical_item_id')
         query.addJoin('clinical_item_category AS cic', 'ci.clinical_item_category_id = cic.clinical_item_category_id')
@@ -121,14 +119,14 @@ class TestEventDigraph(DBTestCase):
         # Build graph based on clinical_item.
         itemDigraph = EventDigraph(events)
         # Sort for easier comparison against test data.
-        actualCategoryNodes = sorted(itemDigraph.nodes())
-        actualCategoryEdges = sorted(itemDigraph.edges())
+        actualItemNodes = sorted(itemDigraph.nodes())
+        actualItemEdges = sorted(itemDigraph.edges())
 
         # Validate results.
         expectedItemNodes = ED_TEST_OUTPUT_TABLES['test_init']['item_nodes']
-        self.assertEqualList(actualCategoryNodes, expectedCategoryNodes)
+        self.assertEqualList(actualItemNodes, expectedItemNodes)
         expectedItemEdges = ED_TEST_OUTPUT_TABLES['test_init']['item_edges']
-        self.assertEqualList(actualCategoryEdges, expectedCategoryEdges)
+        self.assertEqualList(actualItemEdges, expectedItemEdges)
 
     def test_draw(self):
         # Query events by clinical_item_category.
