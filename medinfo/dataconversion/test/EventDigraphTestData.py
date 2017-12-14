@@ -71,6 +71,7 @@ ED_TEST_OUTPUT_TABLES = {
         ],
         'item_nodes' : [
             ('Test Item 100', {'count': 1}),
+            ('Test Item 1000', {'count': 2}),
             ('Test Item 200', {'count': 1}),
             ('Test Item 300', {'count': 2}),
             ('Test Item 400', {'count': 2}),
@@ -78,21 +79,22 @@ ED_TEST_OUTPUT_TABLES = {
             ('Test Item 600', {'count': 2}),
             ('Test Item 700', {'count': 2}),
             ('Test Item 800', {'count': 3}),
-            ('Test Item 900', {'count': 3}),
-            ('Test Item 1000', {'count': 2})
+            ('Test Item 900', {'count': 3})
         ],
         'item_edges' : [
+            (('Test Item 1000', 'Test Item 1000'), {'count': 1}),
+            (('Test Item 1000', 'Test Item 600'), {'count': 1}),
             (('Test Item 400', 'Test Item 300'), {'count': 1}),
-            (('Test Item 500', 'Test Item 100'), {'count', 1}),
+            (('Test Item 500', 'Test Item 100'), {'count': 1}),
             (('Test Item 500', 'Test Item 200'), {'count': 1}),
             (('Test Item 600', 'Test Item 500'), {'count': 1}),
             (('Test Item 700', 'Test Item 300'), {'count': 1}),
             (('Test Item 700', 'Test Item 700'), {'count': 1}),
             (('Test Item 800', 'Test Item 400'), {'count': 1}),
             (('Test Item 800', 'Test Item 800'), {'count': 2}),
-            (('Test Item 900', 'Test Item 900'), {'count': 2}),
-            (('Test Item 1000', 'Test Item 600'), {'count': 1}),
-            (('Test Item 1000', 'Test Item 1000'), {'count': 1})
+            (('Test Item 900', 'Test Item 900'), {'count': 2})
+
+
         ]
     }
 }
