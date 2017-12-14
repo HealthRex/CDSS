@@ -14,8 +14,6 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 from medinfo.db.test.Util import DBTestCase
 
-
-
 class TestEventDigraph(DBTestCase):
     def setUp(self):
         """Prepare state for test cases."""
@@ -82,8 +80,8 @@ class TestEventDigraph(DBTestCase):
         # Build graph based on clinical_item_category.
         categoryDigraph = EventDigraph(events)
         # Sort for easier comparison against test data.
-        actualCategoryNodes = sorted(categoryDigraph.nodes.items())
-        actualCategoryEdges = sorted(categoryDigraph.edges.items())
+        actualCategoryNodes = sorted(categoryDigraph.nodes())
+        actualCategoryEdges = sorted(categoryDigraph.edges())
 
         # Validate results.
         expectedCategoryNodes = ED_TEST_OUTPUT_TABLES['test_init']['category_nodes']
@@ -109,7 +107,7 @@ class TestEventDigraph(DBTestCase):
         query = SQLQuery()
         query.addSelect('pi.patient_id AS sequence_id')
         query.addSelect('pi.item_date AS event_time')
-        query.addSelect('cic.description AS event_id')
+        query.addSelect('ci.description AS event_id')
         query.addFrom('patient_item AS pi')
         query.addJoin('clinical_item AS ci', 'pi.clinical_item_id = ci.clinical_item_id')
         query.addJoin('clinical_item_category AS cic', 'ci.clinical_item_category_id = cic.clinical_item_category_id')
@@ -121,14 +119,51 @@ class TestEventDigraph(DBTestCase):
         # Build graph based on clinical_item.
         itemDigraph = EventDigraph(events)
         # Sort for easier comparison against test data.
-        actualCategoryNodes = sorted(itemDigraph.nodes.items())
-        actualCategoryEdges = sorted(itemDigraph.edges.items())
+        actualItemNodes = sorted(itemDigraph.nodes())
+        actualItemEdges = sorted(itemDigraph.edges())
 
         # Validate results.
         expectedItemNodes = ED_TEST_OUTPUT_TABLES['test_init']['item_nodes']
-        self.assertEqualList(actualCategoryNodes, expectedCategoryNodes)
+        self.assertEqualList(actualItemNodes, expectedItemNodes)
         expectedItemEdges = ED_TEST_OUTPUT_TABLES['test_init']['item_edges']
-        self.assertEqualList(actualCategoryEdges, expectedCategoryEdges)
+        self.assertEqualList(actualItemEdges, expectedItemEdges)
+
+    def test_draw(self):
+        # Query events by clinical_item_category.
+        # SELECT
+        #     pi.patient_id AS sequence_id,
+        #     pi.item_date AS event_time,
+        #     cic.description AS event_id
+        # FROM
+        #     patient_item AS pi
+        # JOIN
+        #     clinical_item AS ci
+        # ON
+        #     pi.clinical_item_id = ci.clinical_item_id
+        # JOIN
+        #     clinical_item_category AS cic
+        # ON
+        #     ci.clinical_item_category_id = cic.clinical_item_category_id
+        # ORDER BY
+        #     sequence_id,
+        #     event_time,
+        #     event_id
+        query = SQLQuery()
+        query.addSelect('pi.patient_id AS sequence_id')
+        query.addSelect('pi.item_date AS event_time')
+        query.addSelect('cic.description AS event_id')
+        query.addFrom('patient_item AS pi')
+        query.addJoin('clinical_item AS ci', 'pi.clinical_item_id = ci.clinical_item_id')
+        query.addJoin('clinical_item_category AS cic', 'ci.clinical_item_category_id = cic.clinical_item_category_id')
+        query.addOrderBy('sequence_id')
+        query.addOrderBy('event_time')
+        query.addOrderBy('event_id')
+        events = DBUtil.execute(query)
+
+        # Build graph based on clinical_item_category.
+        categoryDigraph = EventDigraph(events)
+        categoryDigraphVizFileName = "test-category-digraph.png"
+        categoryDigraph.draw(categoryDigraphVizFileName)
 
 def suite():
     """
