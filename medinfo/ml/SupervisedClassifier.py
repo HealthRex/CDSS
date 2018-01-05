@@ -10,14 +10,13 @@ from sklearn.ensemble import RandomForestClassifier
 class SupervisedClassifier:
     # Define string constants for all supported ML algorithms so that
     # clients can define which algorithm to call.
-    # Rather than defining custom strings, model these off of meaningful
-    # nomenclature in scikit-learn or whatever ML utility is being used
-    # to drive the implementation.
-    DECISION_TREE = DecisionTreeClassifier
-    LOGISTIC_REGRESSION = LogisticRegressionCV
-    RANDOM_FOREST = RandomForestClassifier
+    DECISION_TREE = 'decision-tree'
+    LOGISTIC_REGRESSION = 'l1-logistic-regression-cross-validation'
+    RANDOM_FOREST = 'random-forest'
+    REGRESS_AND_ROUND = 'regress-and-round'
 
-    SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION]
+    SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST, \
+        REGRESS_AND_ROUND]
 
     def __init__(self, algorithm=None):
         if algorithm is None:
@@ -30,6 +29,9 @@ class SupervisedClassifier:
     def algorithm(self):
         return self._algorithm
 
+    def coefs(self):
+        return self._model.coef_[0]
+
     def train(self, X, y):
         if self._algorithm == SupervisedClassifier.DECISION_TREE:
             self._train_decision_tree(X, y)
@@ -37,6 +39,8 @@ class SupervisedClassifier:
             self._train_logistic_regression(X, y)
         elif self._algorithm == SupervisedClassifier.RANDOM_FOREST:
             self._train_random_forest(X, y)
+        elif self._algorithm == SupervisedClassifier.REGRESS_AND_ROUND:
+            self._train_regress_and_round(X, y)
 
     def _train_decision_tree(self, X, y):
         self._model = DecisionTreeClassifier()
@@ -49,6 +53,10 @@ class SupervisedClassifier:
     def _train_random_forest(self, X, y):
         self._model = RandomForestClassifier()
         self._model.fit(X, y)
+
+    def _train_regress_and_round(self, X, y):
+        self._train_logistic_regression(X, y)
+        self._model.coef_[0] = [round(c) for c in self._model.coef_[0]]
 
     def predict(self, X):
         return self._model.predict(X)
