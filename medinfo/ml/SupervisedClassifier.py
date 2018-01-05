@@ -35,6 +35,8 @@ class SupervisedClassifier:
             self._train_decision_tree(X, y)
         elif self._algorithm == SupervisedClassifier.LOGISTIC_REGRESSION:
             self._train_logistic_regression(X, y)
+        elif self._algorithm == SupervisedClassifier.RANDOM_FOREST:
+            self._train_random_forest(X, y)
 
     def _train_decision_tree(self, X, y):
         self._model = DecisionTreeClassifier()
