@@ -41,6 +41,31 @@ class TestSupervisedClassifier(MedInfoTestCase):
         accuracy = classifier.accuracy(X_test, y_test)
         self.assertTrue(accuracy > 0.5)
 
+    def test_regress_and_round(self):
+        # Load data set.
+        X = RANDOM_CLASSIFICATION_TEST_CASE["X"]
+        y = RANDOM_CLASSIFICATION_TEST_CASE["y"]
+
+        # Generate train/test split.
+        X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+        # Train logistic regression model.
+        decimalCoeffs = SupervisedClassifier(algorithm=SupervisedClassifier.LOGISTIC_REGRESSION)
+        decimalCoeffs.train(X_train, y_train)
+
+        integerCoeffs = SupervisedClassifier(algorithm=SupervisedClassifier.REGRESS_AND_ROUND)
+        integerCoeffs.train(X_train, y_train)
+
+        # Test coefficients.
+        for decimal, integer in zip(decimalCoeffs.coefs(), integerCoeffs.coefs()):
+            self.assertEqual(round(decimal), integer)
+
+        # Test performance.
+        decimalAccuracy = decimalCoeffs.accuracy(X_test, y_test)
+        integerAccuracy = integerCoeffs.accuracy(X_test, y_test)
+        diff = abs(decimalAccuracy - integerAccuracy)
+        self.assertTrue(diff < 0.05)
+
 def suite():
     """
     Returns the suite of tests to run for this test class / module.

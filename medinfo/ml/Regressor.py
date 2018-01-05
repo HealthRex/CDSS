@@ -12,8 +12,8 @@ class Regressor:
     # Rather than defining custom strings, model these off of meaningful
     # nomenclature in scikit-learn or whatever ML utility is being used
     # to drive the implementation.
-    LASSO = LassoCV
-    LINEAR_REGRESSION = LinearRegression
+    LASSO = 'lasso-regression'
+    LINEAR_REGRESSION = 'linear-regression'
 
     SUPPORTED_ALGORITHMS = [LASSO, LINEAR_REGRESSION]
 
@@ -28,7 +28,7 @@ class Regressor:
     def algorithm(self):
         return self._algorithm
 
-    def coef(self):
+    def coefs(self):
         return self._model.coef_
 
     def train(self, X, y):
