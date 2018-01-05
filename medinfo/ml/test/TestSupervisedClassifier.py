@@ -38,7 +38,7 @@ class TestSupervisedClassifier(MedInfoTestCase):
 
         # Test prediction values.
         y_predicted = classifier.predict(X_test)
-        accuracy = classifier.accuracy(X_test, y_test)
+        accuracy = classifier.compute_accuracy(X_test, y_test)
         self.assertTrue(accuracy > 0.5)
 
     def test_regress_and_round(self):
@@ -61,8 +61,8 @@ class TestSupervisedClassifier(MedInfoTestCase):
             self.assertEqual(round(decimal), integer)
 
         # Test performance.
-        decimalAccuracy = decimalCoeffs.accuracy(X_test, y_test)
-        integerAccuracy = integerCoeffs.accuracy(X_test, y_test)
+        decimalAccuracy = decimalCoeffs.compute_accuracy(X_test, y_test)
+        integerAccuracy = integerCoeffs.compute_accuracy(X_test, y_test)
         diff = abs(decimalAccuracy - integerAccuracy)
         self.assertTrue(diff < 0.05)
 

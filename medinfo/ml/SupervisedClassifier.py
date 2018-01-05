@@ -61,5 +61,5 @@ class SupervisedClassifier:
     def predict(self, X):
         return self._model.predict(X)
 
-    def accuracy(self, X, y):
+    def compute_accuracy(self, X, y):
         return self._model.score(X, y)
