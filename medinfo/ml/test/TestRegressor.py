@@ -91,8 +91,8 @@ class TestRegressor(MedInfoTestCase):
             self.assertEqual(round(decimal), integer)
 
         # Test performance.
-        decimalAccuracy = decimalCoeffs.accuracy(X_test, y_test)
-        integerAccuracy = integerCoeffs.accuracy(X_test, y_test)
+        decimalAccuracy = decimalCoeffs.compute_accuracy(X_test, y_test)
+        integerAccuracy = integerCoeffs.compute_accuracy(X_test, y_test)
         diff = abs(decimalAccuracy - integerAccuracy)
         self.assertTrue(diff < 0.05)
 
