@@ -42,7 +42,7 @@ class TestRegressor(MedInfoTestCase):
 
         # Test value of coefficients.
         expected_coef = RANDOM_REGRESSION_TEST_CASE["coef"]
-        actual_coef = regressor.coef()
+        actual_coef = regressor.coefs()
         for expected, actual in zip(expected_coef, actual_coef):
             if expected == 0:
                 self.assertTrue(actual < 0.01)
@@ -70,6 +70,31 @@ class TestRegressor(MedInfoTestCase):
             else:
                 error = (actual - predicted)/actual
                 self.assertTrue(abs(error) < 0.01)
+
+    def test_regress_and_round(self):
+        # Load data set.
+        X = RANDOM_REGRESSION_TEST_CASE["X"]
+        y = RANDOM_REGRESSION_TEST_CASE["y"]
+
+        # Generate train/test split.
+        X_train, X_test, y_train, y_test = train_test_split(X, y)
+
+        # Train logistic regression model.
+        decimalCoeffs = Regressor(algorithm=Regressor.LASSO)
+        decimalCoeffs.train(X_train, y_train)
+
+        integerCoeffs = Regressor(algorithm=Regressor.REGRESS_AND_ROUND)
+        integerCoeffs.train(X_train, y_train)
+
+        # Test coefficients.
+        for decimal, integer in zip(decimalCoeffs.coefs(), integerCoeffs.coefs()):
+            self.assertEqual(round(decimal), integer)
+
+        # Test performance.
+        decimalAccuracy = decimalCoeffs.accuracy(X_test, y_test)
+        integerAccuracy = integerCoeffs.accuracy(X_test, y_test)
+        diff = abs(decimalAccuracy - integerAccuracy)
+        self.assertTrue(diff < 0.05)
 
 def suite():
     """

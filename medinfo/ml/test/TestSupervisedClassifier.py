@@ -66,6 +66,7 @@ class TestSupervisedClassifier(MedInfoTestCase):
         diff = abs(decimalAccuracy - integerAccuracy)
         self.assertTrue(diff < 0.05)
 
+
 def suite():
     """
     Returns the suite of tests to run for this test class / module.

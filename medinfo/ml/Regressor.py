@@ -3,6 +3,7 @@
 Generic class for linear and logistic regression.
 """
 
+from numpy import array
 from sklearn.linear_model import LassoCV
 from sklearn.linear_model import LinearRegression
 
@@ -14,8 +15,9 @@ class Regressor:
     # to drive the implementation.
     LASSO = 'lasso-regression'
     LINEAR_REGRESSION = 'linear-regression'
+    REGRESS_AND_ROUND = 'regress-and-round'
 
-    SUPPORTED_ALGORITHMS = [LASSO, LINEAR_REGRESSION]
+    SUPPORTED_ALGORITHMS = [LASSO, LINEAR_REGRESSION, REGRESS_AND_ROUND]
 
     def __init__(self, algorithm=None):
         if algorithm is None:
@@ -36,6 +38,8 @@ class Regressor:
             self._train_lasso(X, y)
         elif self._algorithm == Regressor.LINEAR_REGRESSION:
             self._train_linear_regression(X, y)
+        elif self._algorithm == Regressor.REGRESS_AND_ROUND:
+            self._train_regress_and_round(X, y)
 
     def _train_lasso(self, X, y):
         self._model = LassoCV()
@@ -45,5 +49,12 @@ class Regressor:
         self._model = LinearRegression()
         self._model.fit(X, y)
 
+    def _train_regress_and_round(self, X, y):
+        self._train_lasso(X, y)
+        self._model.coef_ = array([round(c) for c in self._model.coef_])
+
     def predict(self, X):
         return self._model.predict(X)
+
+    def accuracy(self, X, y):
+        return self._model.score(X, y)
