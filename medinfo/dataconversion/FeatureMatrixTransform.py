@@ -3,9 +3,11 @@
 Module for transforming the values within an existing feature matrix.
 """
 
+
 import numpy as np
 import pandas as pd
 
+from scipy.stats import norm
 from sklearn.preprocessing import Imputer
 
 class FeatureMatrixTransform():
@@ -13,6 +15,7 @@ class FeatureMatrixTransform():
     IMPUTE_STRATEGY_MEDIAN = 'median'
     IMPUTE_STRATEGY_MODE = 'most-frequent'
     IMPUTE_STRATEGY_ZERO = 'zero'
+    IMPUTE_STRATEGY_DISTRIBUTION = 'distribution'
 
     LOG_BASE_10 = 'log-base-10'
     LOG_BASE_E = 'log-base-e'
@@ -31,10 +34,9 @@ class FeatureMatrixTransform():
     def fetch_matrix(self):
         return self._matrix
 
-    def impute(self, feature=None, strategy=None):
+    def impute(self, feature=None, strategy=None, distribution=None):
         if self._matrix is None:
             raise ValueError('Must call set_input_matrix() before impute().')
-
         # If user does not specify which feature to impute, impute values
         # for all columns in the matrix.
         if feature is None:
@@ -44,16 +46,20 @@ class FeatureMatrixTransform():
         if strategy is None:
             strategy = FeatureMatrixTransform.IMPUTE_STRATEGY_MEAN
 
+        # If distribution is not specified, default to norm.
+        if distribution is None:
+            distribution = norm.rvs
+
         if feature == FeatureMatrixTransform.ALL_FEATURES:
-            self._impute_all_features(strategy)
+            self._impute_all_features(strategy, distribution=distribution)
         else:
-            self._impute_single_feature(feature, strategy)
+            self._impute_single_feature(feature, strategy, distribution=distribution)
 
-    def _impute_all_features(self, strategy):
+    def _impute_all_features(self, strategy, distribution=None):
         for column in self._matrix:
-            self._impute_single_feature(column, strategy)
+            self._impute_single_feature(column, strategy, distribution=distribution)
 
-    def _impute_single_feature(self, feature, strategy):
+    def _impute_single_feature(self, feature, strategy, distribution=None):
         if strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_MEAN:
             self._matrix[feature] =  self._matrix[feature].fillna(self._matrix[feature].mean(0))
         elif strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_MODE:
@@ -62,6 +68,8 @@ class FeatureMatrixTransform():
             self._matrix[feature] = self._matrix[feature].fillna(0.0)
         elif strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_MEDIAN:
             self._matrix[feature] = self._matrix[feature].fillna(self._matrix[feature].median())
+        elif strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_DISTRIBUTION:
+            self._matrix[feature] = self._matrix[feature].apply(lambda x: distribution() if pd.isnull(x) else x)
 
     def remove_feature(self, feature):
         del self._matrix[feature]
@@ -81,12 +89,6 @@ class FeatureMatrixTransform():
             new_col = self._matrix[base_feature].apply(np.log10)
             self._matrix.insert(col_index, log_feature, new_col)
 
-    def _boolean_indicator(self, value):
-        return pd.notnull(value)
-
-    def _numeric_indicator(self, value):
-        return 1 if pd.notnull(value) else 0
-
     def add_indicator_feature(self, base_feature, boolean_indicator=None):
         # boolean: determines whether to add True/False labels or 1/0
         if boolean_indicator is None or boolean_indicator is False:
@@ -98,3 +100,9 @@ class FeatureMatrixTransform():
         indicator_feature = 'I(' + base_feature + ')'
         new_col = self._matrix[base_feature].apply(indicator)
         self._matrix.insert(col_index + 1, indicator_feature, new_col)
+
+    def _numeric_indicator(self, value):
+        return 1 if pd.notnull(value) else 0
+
+    def _boolean_indicator(self, value):
+        return pd.notnull(value)

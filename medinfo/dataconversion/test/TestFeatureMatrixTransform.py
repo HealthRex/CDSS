@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from pandas.util.testing import assert_frame_equal
+from scipy.stats import powerlaw
 import unittest
 
 from LocalEnv import TEST_RUNNER_VERBOSITY
@@ -104,8 +105,16 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
         actual_matrix = self.fmt.fetch_matrix()
         assert_frame_equal(expected_matrix, actual_matrix)
 
+    def _power_law_dist(self):
+        return powerlaw.rvs(1.66, random_state=2)
+
     def test_distrbution_data_imputation(self):
+        # Impute distribution(f2).
+        self.fmt.impute(feature="f2", distribution=self._power_law_dist, \
+            strategy=FeatureMatrixTransform.IMPUTE_STRATEGY_DISTRIBUTION)
+
         # Verify feature addition.
+        expected_matrix = MANUAL_FM_TEST_CASE['test_distribution_data_imputation']
         actual_matrix = self.fmt.fetch_matrix()
         assert_frame_equal(expected_matrix, actual_matrix)
 
