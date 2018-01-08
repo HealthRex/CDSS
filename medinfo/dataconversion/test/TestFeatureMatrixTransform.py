@@ -87,7 +87,11 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
         assert_frame_equal(expected_matrix, actual_matrix)
 
     def test_zero_data_imputation(self):
+        # Impute zero(f2).
+        self.fmt.impute(feature="f2", strategy=FeatureMatrixTransform.IMPUTE_STRATEGY_ZERO)
+
         # Verify feature addition.
+        expected_matrix = MANUAL_FM_TEST_CASE['test_zero_data_imputation']
         actual_matrix = self.fmt.fetch_matrix()
         assert_frame_equal(expected_matrix, actual_matrix)
 

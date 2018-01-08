@@ -12,9 +12,12 @@ class FeatureMatrixTransform():
     IMPUTE_STRATEGY_MEAN = 'mean'
     IMPUTE_STRATEGY_MEDIAN = 'median'
     IMPUTE_STRATEGY_MODE = 'most-frequent'
+    IMPUTE_STRATEGY_ZERO = 'zero'
 
     LOG_BASE_10 = 'log-base-10'
     LOG_BASE_E = 'log-base-e'
+
+    ALL_FEATURES = 'all-features'
 
     def __init__(self):
         self._matrix = None
@@ -35,26 +38,30 @@ class FeatureMatrixTransform():
         # If user does not specify which feature to impute, impute values
         # for all columns in the matrix.
         if feature is None:
-            feature = 'all-features'
+            feature = FeatureMatrixTransform.ALL_FEATURES
 
         # If an imputation strategy is not specified, default to mean.
         if strategy is None:
             strategy = FeatureMatrixTransform.IMPUTE_STRATEGY_MEAN
 
-        self._impute_single_feature(feature=feature, strategy=strategy)
+        if feature == FeatureMatrixTransform.ALL_FEATURES:
+            self._impute_all_features(strategy)
+        else:
+            self._impute_single_feature(feature, strategy)
+
+    def _impute_all_features(self, strategy):
+        for column in self._matrix:
+            self._impute_single_feature(column, strategy)
 
     def _impute_single_feature(self, feature, strategy):
         if strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_MEAN:
-            if feature == 'all-features':
-                for column in self._matrix:
-                    self._matrix[column] =  self._matrix[column].fillna(self._matrix[column].mean(0))
             self._matrix[feature] =  self._matrix[feature].fillna(self._matrix[feature].mean(0))
         elif strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_MODE:
-            if feature == 'all-features':
-                for column in self._matrix:
-                    self._matrix[column] = self._matrix[column].fillna(self._matrix[column].mode().iloc[0])
-            else:
-                self._matrix[feature] = self._matrix[feature].fillna(self._matrix[feature].mode().iloc[0])
+            self._matrix[feature] = self._matrix[feature].fillna(self._matrix[feature].mode().iloc[0])
+        elif strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_ZERO:
+            self._matrix[feature] = self._matrix[feature].fillna(0.0)
+        elif strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_MEDIAN:
+            self._matrix[feature] = self._matrix[feature].fillna(self._matrix[feature].median())
 
     def remove_feature(self, feature):
         del self._matrix[feature]
