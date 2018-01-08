@@ -70,6 +70,37 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
         actual_matrix = self.fmt.fetch_matrix()
         assert_frame_equal(expected_matrix, actual_matrix)
 
+    def test_add_indicator_feature(self):
+        # Add indicator feature.
+        self.fmt.add_indicator_feature('f2')
+
+        # Hack: pandas automatically sorts the columns of a DataFrame on
+        # init. To make the test data match our intended behavior, need to
+        # rearrange the columns here so that ln(f2) follows f2.
+        expected_matrix = MANUAL_FM_TEST_CASE['test_add_indicator_feature']
+        cols = list(expected_matrix.columns)
+        cols.insert(2, cols.pop(0))
+        expected_matrix = expected_matrix[cols]
+
+        # Verify feature addition.
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
+
+    def test_zero_data_imputation(self):
+        # Verify feature addition.
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
+
+    def test_median_data_imputation(self):
+        # Verify feature addition.
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
+
+    def test_distrbution_data_imputation(self):
+        # Verify feature addition.
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
+
 if __name__=="__main__":
     suite = make_test_suite(TestFeatureMatrixTransform)
     unittest.TextTestRunner(verbosity=TEST_RUNNER_VERBOSITY).run(suite)

@@ -73,3 +73,21 @@ class FeatureMatrixTransform():
             log_feature = 'log10(' + base_feature + ')'
             new_col = self._matrix[base_feature].apply(np.log10)
             self._matrix.insert(col_index, log_feature, new_col)
+
+    def _boolean_indicator(self, value):
+        return pd.notnull(value)
+
+    def _numeric_indicator(self, value):
+        return 1 if pd.notnull(value) else 0
+
+    def add_indicator_feature(self, base_feature, boolean_indicator=None):
+        # boolean: determines whether to add True/False labels or 1/0
+        if boolean_indicator is None or boolean_indicator is False:
+            indicator = self._numeric_indicator
+        else:
+            indicator = self._boolean_indicator
+
+        col_index = self._matrix.columns.get_loc(base_feature)
+        indicator_feature = 'I(' + base_feature + ')'
+        new_col = self._matrix[base_feature].apply(indicator)
+        self._matrix.insert(col_index + 1, indicator_feature, new_col)
