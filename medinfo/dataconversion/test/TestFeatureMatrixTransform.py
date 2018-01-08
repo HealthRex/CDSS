@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from pandas.util.testing import assert_frame_equal
 import unittest
 
 from LocalEnv import TEST_RUNNER_VERBOSITY
@@ -9,36 +10,65 @@ from medinfo.dataconversion.test.FMTransformTestData import MANUAL_FM_TEST_CASE
 
 class TestFeatureMatrixTransform(MedInfoTestCase):
     def setUp(self):
-        pass
+        self.fmt = FeatureMatrixTransform()
+        input_matrix = MANUAL_FM_TEST_CASE['input']
+        self.fmt.set_input_matrix(input_matrix)
 
     def tearDown(self):
         pass
 
-    def test_init(self):
-        self.assertEqual(1, 1)
-        pass
-
     def test_mean_data_imputation(self):
-        fmt = FeatureMatrixTransform()
-
         # Impute data.
-        input_matrix = MANUAL_FM_TEST_CASE['input']
-        fmt.set_input_matrix(input_matrix)
-        fmt.impute(feature="f2", strategy="mean")
+        self.fmt.impute(feature="f2", strategy=FeatureMatrixTransform.IMPUTE_STRATEGY_MEAN)
 
         # Verify output.
         expected_matrix = MANUAL_FM_TEST_CASE['test_mean_data_imputation']
-        actual_matrix = fmt.fetch_matrix()
-        self.assertEqualList(expected_matrix, actual_matrix)
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
 
-    def test_mode_data_imputation(self):
-        pass
+    def test_mode_data_imputation_single_feature(self):
+        # Impute single feature.
+        self.fmt.impute(feature='f4', strategy=FeatureMatrixTransform.IMPUTE_STRATEGY_MODE)
+
+        # Verify single feature imputation.
+        expected_matrix = MANUAL_FM_TEST_CASE['test_mode_data_imputation_single_feature']
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
+
+    def test_mode_data_imputation_all_features(self):
+        # Impute all features.
+        self.fmt.impute(strategy=FeatureMatrixTransform.IMPUTE_STRATEGY_MODE)
+
+        # Verify all feature imputation.
+        expected_matrix = MANUAL_FM_TEST_CASE['test_mode_data_imputation_all_features']
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
 
     def test_add_logarithm_feature(self):
-        pass
+        # Impute mean(f2) and add ln(f2) feature.
+        self.fmt.impute(feature="f2")
+        self.fmt.add_logarithm_feature('f2')
+
+        # Hack: pandas automatically sorts the columns of a DataFrame on
+        # init. To make the test data match our intended behavior, need to
+        # rearrange the columns here so that ln(f2) follows f2.
+        expected_matrix = MANUAL_FM_TEST_CASE['test_add_logarithm_feature']
+        cols = list(expected_matrix.columns)
+        cols.insert(2, cols.pop(5))
+        expected_matrix = expected_matrix[cols]
+
+        # Verify feature addition.
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
 
     def test_remove_feature(self):
-        pass
+        # Remove f2.
+        self.fmt.remove_feature('f2')
+
+        # Verify feature removal.
+        expected_matrix = MANUAL_FM_TEST_CASE['test_remove_feature']
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
 
 if __name__=="__main__":
     suite = make_test_suite(TestFeatureMatrixTransform)
