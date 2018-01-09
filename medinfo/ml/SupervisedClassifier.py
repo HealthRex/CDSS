@@ -32,7 +32,7 @@ class SupervisedClassifier:
     def coefs(self):
         return self._model.coef_[0]
 
-    def train(self, X, y):
+    def train(self, X, y, coef_max=None):
         if self._algorithm == SupervisedClassifier.DECISION_TREE:
             self._train_decision_tree(X, y)
         elif self._algorithm == SupervisedClassifier.LOGISTIC_REGRESSION:
@@ -40,7 +40,7 @@ class SupervisedClassifier:
         elif self._algorithm == SupervisedClassifier.RANDOM_FOREST:
             self._train_random_forest(X, y)
         elif self._algorithm == SupervisedClassifier.REGRESS_AND_ROUND:
-            self._train_regress_and_round(X, y)
+            self._train_regress_and_round(X, y, coef_max=coef_max)
 
     def _train_decision_tree(self, X, y):
         self._model = DecisionTreeClassifier()
@@ -54,12 +54,27 @@ class SupervisedClassifier:
         self._model = RandomForestClassifier()
         self._model.fit(X, y)
 
-    def _train_regress_and_round(self, X, y):
+    def _train_regress_and_round(self, X, y, coef_max=None):
         self._train_logistic_regression(X, y)
-        self._model.coef_[0] = [round(c) for c in self._model.coef_[0]]
+
+        if coef_max is None:
+            # This is the optimal M value from Jung et al.
+            # The choice here is completely arbitrary, but we need something.
+            # https://arxiv.org/abs/1702.04690
+            coef_max = 3
+
+        # Based on Jung et al. https://arxiv.org/abs/1702.04690
+        # w_j = round((M * beta_j) / (max_i|beta_i|))
+        # coef_max = M = max rounded coefficient value
+        # beta_max = max_i|beta_i| = largest unrounded regression coefficient
+        beta_max = max([abs(c) for c in self._model.coef_[0]])
+        self._model.coef_[0] = [round((coef_max * c) / (beta_max)) for c in self._model.coef_[0]]
 
     def predict(self, X):
         return self._model.predict(X)
+
+    def predict_probability(self, X):
+        return self._model.predict_proba(X)
 
     def compute_accuracy(self, X, y):
         return self._model.score(X, y)
