@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import MedInfoTestCase
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
+from numpy import array
 
 from SupervisedClassifierTestData import RANDOM_CLASSIFICATION_TEST_CASE
 
@@ -57,15 +58,20 @@ class TestSupervisedClassifier(MedInfoTestCase):
         integerCoeffs.train(X_train, y_train)
 
         # Test coefficients.
-        for decimal, integer in zip(decimalCoeffs.coefs(), integerCoeffs.coefs()):
-            self.assertEqual(round(decimal), integer)
+        # TODO(sbala): Replace inline expectedCoefs with imported coefs from
+        # SupervisedClassifierTestData. For some reason, the dictionary
+        # instantation fails to include that data...
+        # expectedCoefs = RANDOM_CLASSIFICATION_TEST_CASE["rounded_coefs"]
+        beta_max = max([abs(c) for c in decimalCoeffs.coefs()])
+        expectedCoefs = [round((3.0 * c) / beta_max) for c in decimalCoeffs.coefs()]
+        actualCoefs = integerCoeffs.coefs()
+        self.assertEqualList(expectedCoefs, actualCoefs)
 
         # Test performance.
         decimalAccuracy = decimalCoeffs.compute_accuracy(X_test, y_test)
         integerAccuracy = integerCoeffs.compute_accuracy(X_test, y_test)
         diff = abs(decimalAccuracy - integerAccuracy)
         self.assertTrue(diff < 0.05)
-
 
 def suite():
     """
