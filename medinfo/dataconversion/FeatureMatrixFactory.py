@@ -1029,6 +1029,23 @@ class FeatureMatrixFactory:
             self.addClinicalItemFeatures(teamNames, column="description", \
                 label="Team."+category, features=features)
 
+    def addSexFeatures(self):
+        SEX_FEATURES = ["Male", "Female"]
+        for feature in SEX_FEATURES:
+            self.addClinicalItemFeatures([feature], dayBins=[], \
+                features="pre")
+
+    def addRaceFeatures(self):
+        RACE_FEATURES = [
+            "RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
+            "RaceHispanicLatino", "RaceBlack", "RaceAsian",
+            "RacePacificIslander", "RaceNativeAmerican",
+            "RaceOther", "RaceUnknown"
+        ]
+        for feature in RACE_FEATURES:
+            self.addClinicalItemFeatures([feature], dayBins=[], \
+                features="pre")
+
     def buildFeatureMatrix(self):
         """
         Given a set of factory inputs, build a feature matrix which
