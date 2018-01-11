@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LassoCV
 from sklearn.feature_selection import f_classif, f_regression, RFE, RFECV, SelectKBest, SelectPercentile
 
 from medinfo.dataconversion.FeatureMatrixTransform import FeatureMatrixTransform
@@ -121,7 +122,7 @@ class FeatureSelector:
         if self._problem == FeatureSelector.CLASSIFICATION:
             estimator = RandomForestClassifier()
         else:
-            estimator = RandomForestRegressor()
+            estimator = LassoCV()
         # If k is not specified, then use RFECV to automatically decide on
         # optimal number of features. If specified, then use RFE.
         if k is None:
