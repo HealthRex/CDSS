@@ -10,7 +10,7 @@ import pandas as pd
 from scipy.stats import norm
 from sklearn.preprocessing import Imputer
 
-class FeatureMatrixTransform():
+class FeatureMatrixTransform:
     IMPUTE_STRATEGY_MEAN = 'mean'
     IMPUTE_STRATEGY_MEDIAN = 'median'
     IMPUTE_STRATEGY_MODE = 'most-frequent'
