@@ -115,12 +115,14 @@ class FeatureMatrixFactory:
         tsvFile.write("%s\n" % columns[numColumns - 1][0])
 
         # By default, cursor iterates through both header and data rows.
+        self._numRows = 0
         row = dbCursor.fetchone()
         while row is not None:
             for i in range(numColumns - 1):
                 tsvFile.write("%s\t" % row[i])
             tsvFile.write("%s\n" % row[numColumns - 1])
             row = dbCursor.fetchone()
+            self._numRows += 1
 
     def _processPatientListTsvFile(self):
         """
@@ -1046,7 +1048,7 @@ class FeatureMatrixFactory:
             self.addClinicalItemFeatures([feature], dayBins=[], \
                 features="pre")
 
-    def buildFeatureMatrix(self):
+    def buildFeatureMatrix(self, header=None):
         """
         Given a set of factory inputs, build a feature matrix which
         can then be output.
@@ -1056,6 +1058,15 @@ class FeatureMatrixFactory:
             self._queryFooInput()
             self._parseFooInput()
         """
+        if header is None:
+            # file_name.tab
+            # Created: timestamp
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            header = [
+                '%s' % self._matrixFileName,
+                'Created: %s' % timestamp
+            ]
+
         # Initialize feature matrix file.
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
         matrixFileName = "feature-matrix_%s.tab" % timestamp
@@ -1075,6 +1086,10 @@ class FeatureMatrixFactory:
             tempFileReader = csv.reader(tempFile, delimiter="\t")
             tempFiles.append(tempFile)
             tempFileReaders.append(tempFileReader)
+
+        # Write header to matrix file.
+        for line in header:
+            matrixFile.write('# %s\n' % line)
 
         # Write data to matrix file.
         for patientEpisode in patientEpisodeReader:
@@ -1128,3 +1143,6 @@ class FeatureMatrixFactory:
 
     def getMatrixFileName(self):
         return self._matrixFileName
+
+    def getNumRows(self):
+        return self._numRows
