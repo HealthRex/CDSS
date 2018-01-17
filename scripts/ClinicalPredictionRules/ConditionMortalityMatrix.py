@@ -362,6 +362,7 @@ class ConditionMortalityMatrix:
 
     def _add_demographic_features(self):
         self.factory.addClinicalItemFeatures(['Birth'], dayBins=[], features="pre")
+        self.factory.addClinicalItemFeatures(['Death'], dayBins=[], features="post")
         self.factory.addSexFeatures()
         self.factory.addRaceFeatures()
 
