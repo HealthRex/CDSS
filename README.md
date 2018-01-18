@@ -1,6 +1,8 @@
 # HealthRex Laboratory at Stanford University
 ## PI: Jonathan Chen (http://web.stanford.edu/~jonc101)
 
+Review the Wiki (https://github.com/HealthRex/CDSS/wiki) for Starter Notes on using some of the common data sources and codebase as well as general lab/group infrastructure.
+
 General Guidelines for Code Repo:
 * Avoid any large data files, so the repo stays lightweight for new devs to quickly download/clone.
 * For one-off or very project specific files and scripts, basically do whatever you want in the workspace areas under the /scripts directory (but again, avoid big data files).
@@ -16,5 +18,4 @@ Broad description of core application directories
 * medinfo/textanalysis - Not much here yet. One example of a project specific parsing script that translates a stream of text documents into an interactive HTML file that attempts to auto-annotate features of the documents based on Python coded annotator classes.
 * medinfo/web - View and Controller layer for web interface to application functions.
 
-Review the Wiki (https://github.com/HealthRex/CDSS/wiki) for Starter Notes on using some of the common data sources and codebase as well as general lab/group infrastructure.
 	 
