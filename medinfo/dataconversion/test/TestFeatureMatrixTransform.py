@@ -87,6 +87,22 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
         actual_matrix = self.fmt.fetch_matrix()
         assert_frame_equal(expected_matrix, actual_matrix)
 
+    def test_add_threshold_feature(self):
+        # Add threshold feature.
+        self.fmt.add_threshold_feature('f2', upper_bound=3.5)
+
+        # Hack: pandas automatically sorts the columns of a DataFrame on
+        # init. To make the test data match our intended behavior, need to
+        # rearrange the columns here so that I(f2<=3.5) follows f2.
+        expected_matrix = MANUAL_FM_TEST_CASE['test_add_threshold_feature']
+        cols = list(expected_matrix.columns)
+        cols.insert(2, cols.pop(0))
+        expected_matrix = expected_matrix[cols]
+
+        # Verify feature addition.
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
+
     def test_zero_data_imputation(self):
         # Impute zero(f2).
         self.fmt.impute(feature="f2", strategy=FeatureMatrixTransform.IMPUTE_STRATEGY_ZERO)

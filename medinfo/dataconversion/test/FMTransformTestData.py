@@ -146,6 +146,26 @@ MANUAL_FM_TEST_CASE = {
         'f3': [True, None, True, False, True, False, True, False, True],
         'f4': ['Foo', 'Bar', 'Baz', 'Foo', None, 'Baz', 'Foo', 'Bar', None]
     }),
+    # test_add_threshold_feature: Add threshold(f2, upper_bound=3.5)
+    'test_add_threshold_feature': pd.DataFrame({
+        'patient_id': [1, 2, 3, 1, 2, 3, 1, 2, 3],
+        'index_time': [
+            pd.Timestamp('2018-01-01 01:00:00'),
+            pd.Timestamp('2018-01-02 02:00:00'),
+            pd.Timestamp('2018-01-03 03:00:00'),
+            pd.Timestamp('2018-01-04 04:00:00'),
+            pd.Timestamp('2018-01-05 05:00:00'),
+            pd.Timestamp('2018-01-06 06:00:00'),
+            pd.Timestamp('2018-01-07 07:00:00'),
+            pd.Timestamp('2018-01-08 08:00:00'),
+            pd.Timestamp('2018-01-09 09:00:00')],
+        'output': ['Y', 'Y', 'N', 'Y', 'N', 'Y', 'N', 'Y', 'Y'],
+        'f1': [100, 200, 300, 400, 500, 600, 700, 800, 900],
+        'f2': [1.0, 1.5, 2.0, None, 3.0, 3.5, None, 4.5, 5.0],
+        'I(f2<=3.5)': [1, 1, 1, 0, 1, 1, 0, 0, 0],
+        'f3': [True, None, True, False, True, False, True, False, True],
+        'f4': ['Foo', 'Bar', 'Baz', 'Foo', None, 'Baz', 'Foo', 'Bar', None]
+    }),
     # test_zero_data_imputation: Impute zero(f2).
     "test_zero_data_imputation": pd.DataFrame({
         'patient_id': [1, 2, 3, 1, 2, 3, 1, 2, 3],
