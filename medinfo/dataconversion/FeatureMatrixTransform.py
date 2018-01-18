@@ -101,6 +101,28 @@ class FeatureMatrixTransform:
         new_col = self._matrix[base_feature].apply(indicator)
         self._matrix.insert(col_index + 1, indicator_feature, new_col)
 
+    def add_threshold_feature(self, base_feature, lower_bound=None, upper_bound=None):
+        # Add feature which indicates whether base_feature is >= lower_bound
+        # and <= upper_bound.
+        if lower_bound is None and upper_bound is None:
+            raise ValueError('Must specify either lower_bound or upper_bound.')
+        elif lower_bound is None:
+            # base_feature <= upper_bound
+            threshold_feature = 'I(%s<=%s)' % (base_feature, upper_bound)
+            indicator = lambda x: 1 if x <= upper_bound else 0
+        elif upper_bound is None:
+            # base_feature >= lower_bound
+            threshold_feature = 'I(%s>=%s)' % (base_feature, lower_bound)
+            indicator = lambda x: 1 if x >= lower_bound else 0
+        else:
+            # lower_bound <= base_feature <= upper_bound
+            threshold_feature = 'I(%s<=%s<=%s)' % (lower_bound, base_feature, upper_bound)
+            indicator = lambda x: 1 if x <= upper_bound and x >= lower_bound else 0
+
+        col_index = self._matrix.columns.get_loc(base_feature)
+        new_col = self._matrix[base_feature].apply(indicator)
+        self._matrix.insert(col_index + 1, threshold_feature, new_col)
+
     def _numeric_indicator(self, value):
         return 1 if pd.notnull(value) else 0
 
