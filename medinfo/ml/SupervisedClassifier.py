@@ -6,6 +6,7 @@ Generic module for supervised machine learning classification.
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score
 
 class SupervisedClassifier:
     # Define string constants for all supported ML algorithms so that
@@ -78,3 +79,7 @@ class SupervisedClassifier:
 
     def compute_accuracy(self, X, y):
         return self._model.score(X, y)
+
+    def compute_roc_auc(self, X, y):
+        y_predicted = self.predict_probability(X)
+        return roc_auc_score(y, y_predicted[:,1])
