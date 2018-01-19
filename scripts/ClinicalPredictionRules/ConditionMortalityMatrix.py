@@ -13,7 +13,7 @@ from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
 class ConditionMortalityMatrix:
-    def __init__(self, condition, num_patients, icd_list=None):
+    def __init__(self, condition, num_patients, dest_path, icd_list=None):
         # Initialize FeatureMatrixFactory.
         self.factory = FeatureMatrixFactory()
 
@@ -55,8 +55,9 @@ class ConditionMortalityMatrix:
         self._add_lab_component_features()
         # Build matrix.
         print 'Building feature matrix...'
+        self._dest_path = dest_path
         header = self._build_matrix_header()
-        self.factory.buildFeatureMatrix(header)
+        self.factory.buildFeatureMatrix(header, self._dest_path)
 
     def icd_list(self):
         return self._icd_list
@@ -205,30 +206,13 @@ class ConditionMortalityMatrix:
         self.factory.setPatientEpisodeInput(cursor, 'pat_id', 'index_time')
         self.factory.processPatientEpisodeInput()
 
-    def write_matrix(self, dest_path, header=None):
-        fm_io = FeatureMatrixIO()
-
-        if header is None:
-            header = self._build_matrix_header()
-
-        # Get old matrix file.
-        source_path = self.factory.getMatrixFileName()
-        print source_path
-        # Write to new matrix file.
-        cmm_file = open(dest_path, "w")
-        self._write_matrix_header(cmm_file, dest_path)
-        for line in open(source_path, "r"):
-            cmm_file.write(line)
-        # Delete old matrix file.
-        os.remove(source_path)
-
-    def _build_matrix_header(self, dest_path):
+    def _build_matrix_header(self):
         # FeatureMatrixFactory and FeatureMatrixIO expect a list of strings.
         # Each comment below represents the line in the comment.
         header = list()
 
         # <file_name.tab>
-        file_name = dest_path.split('/')[-1]
+        file_name = self._dest_path.split('/')[-1]
         header.append(file_name)
         # Created: <timestamp>
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -425,6 +409,5 @@ class ConditionMortalityMatrix:
                 self.factory.addLabResultFeatures([component], False, preTimeDelta, LAB_POST_TIME_DELTA)
 
 if __name__ == "__main__":
-    pneumonia = ConditionMortalityMatrix('pneumonia', 10)
     dest_path = 'pneumonia-morbidity-10-epi.tab'
-    pneumonia.write_matrix(dest_path)
+    pneumonia = ConditionMortalityMatrix('pneumonia', 10, dest_path)
