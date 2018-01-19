@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LassoCV
 from sklearn.feature_selection import f_classif, f_regression, RFE, RFECV, SelectKBest, SelectPercentile
@@ -92,8 +93,15 @@ class FeatureSelector:
 
         return ranks
 
-    def transform_matrix(self):
-        pass
+    def transform_matrix(self, X):
+        if type(X) == pd.DataFrame:
+            # Try to preserve labels.
+            columns = X.columns
+            old_index = X.index
+            labels = [columns[x] for x in self._selector.get_support(indices=True)]
+            return pd.DataFrame(self._selector.transform(X), columns=labels, index=old_index)
+        else:
+            return self._selector.transform(X)
 
     def _remove_high_variance(self):
         pass
