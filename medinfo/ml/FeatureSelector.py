@@ -136,7 +136,7 @@ class FeatureSelector:
         if k is None:
             self._selector = RFECV(estimator)
         else:
-            self._selector = RFE(estimator, n_features_to_select=k)
+            self._selector = RFE(estimator, n_features_to_select=k, step=0.05)
 
     def _select_recursively(self):
         pass
