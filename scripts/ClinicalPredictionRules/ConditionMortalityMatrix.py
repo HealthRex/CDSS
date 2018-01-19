@@ -186,6 +186,8 @@ class ConditionMortalityMatrix:
         # for the death, not just the death date. Both stride_patient and
         # patient_item only have death date, but stride_order_proc might.
         # Haven't been able to find the corresponding order_proc_id.
+        DECISION_ORDER_TYPES = ['Lab', 'ECHO', 'Pharmacy Consult',
+            'Point of Care Testing']
         query = SQLQuery()
         query.addSelect('CAST(sop.pat_id AS bigint)')
         query.addSelect('sop.order_time AS index_time')
@@ -193,6 +195,8 @@ class ConditionMortalityMatrix:
         query.addFrom('stride_order_proc AS sop')
         query.addFrom('stride_patient AS sp')
         query.addWhere('sop.pat_id = sp.pat_id')
+        query.addWhereEqual('order_class', 'Normal')
+        query.addWhere('NOT sop.order_time IS NULL')
         query.addWhereIn('CAST(sop.pat_id AS bigint)', random_patient_list)
         query.addGroupBy('sop.pat_id')
         query.addGroupBy('index_time')
