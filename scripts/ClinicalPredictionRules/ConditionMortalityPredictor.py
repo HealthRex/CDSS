@@ -36,12 +36,16 @@ class ConditionMortalityPredictor:
             'RaceOther.preTimeDays',
             'RaceUnknown.preTimeDays'
             ]
+        self._eliminated_features = list()
 
         self._build_cmm_names()
         if use_cache is None:
             self._build_raw_feature_matrix()
+        print 'Processing raw feature matrix...'
         self._process_raw_feature_matrix()
+        print 'Training predictor...'
         self._train_predictor()
+        print 'Testing predictor...'
         self._test_predictor()
 
     def _build_cmm_names(self):
@@ -64,12 +68,15 @@ class ConditionMortalityPredictor:
     def _process_raw_feature_matrix(self):
         # Read raw CMM.
         self._fm_io = FeatureMatrixIO()
+        print 'Reading raw matrix...'
         self._cmm_raw = self._fm_io.read_file_to_data_frame(self._cmm_name_raw)
 
         # Add and remove features to _cmm_processed.
         self._fmt = FeatureMatrixTransform()
         self._fmt.set_input_matrix(self._cmm_raw)
+        print 'Adding features...'
         self._add_features()
+        print 'Imputing data...'
         self._impute_data()
         self._remove_features()
         self._fmt.drop_duplicate_rows()
@@ -79,6 +86,7 @@ class ConditionMortalityPredictor:
         # This must happen before feature selection so that we don't
         # accidentally learn information from the test data.
         self._train_test_split()
+        print 'Selecting features...'
         self._select_features()
 
         # Write output to new matrix.
@@ -145,12 +153,8 @@ class ConditionMortalityPredictor:
         #       The following features were eliminated.
         line = '      The following features were eliminated:'
         header.append(line)
-        # List all features with rank >100.        _____
-        eliminated_features = list()
-        for i in range(len(self._cmm_raw.columns.values) - len(self._FEATURES_TO_REMOVE)):
-            if self._feature_ranks[i] > 100:
-                eliminated_features.append(self._cmm_raw.columns[i])
-        line = '        %s' % str(eliminated_features)
+        # List all features with rank >100.
+        line = '        %s' % str(self._eliminated_features)
         header.append(line)
         #
         line = ''
@@ -271,8 +275,14 @@ class ConditionMortalityPredictor:
         for feature in self._cmm_raw.columns.values:
             if feature in self._FEATURES_TO_REMOVE:
                 continue
+            # If all values are null, just remove the feature.
+            # Otherwise, imputation will fail (there's no mean value),
+            # and sklearn will ragequit.
+            if self._cmm_raw[feature].isnull().all():
+                self._fmt.remove_feature(feature)
+                self._eliminated_features.append(feature)
             # Only try to impute if some of the values are null.
-            if self._cmm_raw[feature].isnull().any():
+            elif self._cmm_raw[feature].isnull().any():
                 # TODO(sbala): Impute all time features with non-mean value.
                 self._fmt.impute(feature)
 
@@ -294,9 +304,15 @@ class ConditionMortalityPredictor:
             problem=FeatureSelector.CLASSIFICATION)
 
         fs.set_input_matrix(self._X_train, column_or_1d(self._y_train))
-        fs.select(k=100)
+        num_features_to_select = int(0.01*len(self._X_train.columns.values))
+        fs.select(k=num_features_to_select)
 
+        # Enumerate eliminated features pre-transformation.
         self._feature_ranks = fs.compute_ranks()
+        for i in range(len(self._feature_ranks)):
+            if self._feature_ranks[i] > num_features_to_select:
+                self._eliminated_features.append(self._X_train.columns[i])
+
         self._X_train = fs.transform_matrix(self._X_train)
         self._X_test = fs.transform_matrix(self._X_test)
 
@@ -333,6 +349,15 @@ class ConditionMortalityPredictor:
         line = 'Model: logistic(%s)' % linear_model
         summary_lines.append(line)
 
+        # Baseline Episode Mortality: episode_mortality
+        counts = self._y_test[self._y_test.columns[0]].value_counts()
+        line = 'Baseline Episode Mortality: %s/%s' % (counts[1], test_size)
+        summary_lines.append(line)
+
+        # AUC: auc
+        auc = self._predictor.compute_roc_auc(self._X_test, self._y_test)
+        line = 'AUC: %s' % auc
+        summary_lines.append(line)
         # Accuracy: accuracy
         line = 'Accuracy: %s' % self._accuracy
         summary_lines.append(line)
@@ -340,6 +365,10 @@ class ConditionMortalityPredictor:
         return '\n'.join(summary_lines)
 
 if __name__=="__main__":
-    pneumonia = ConditionMortalityPredictor('pneumonia', 100)
-    summary = pneumonia.summarize()
-    print summary
+    conditions = ['pneumonia', 'tuberculosis', 'meningitis', 'influenza',
+        'nephritis', 'diabetes'
+        # 'tetanus' – there aren't any tetanus mortality events.
+        ]
+    for condition in conditions:
+        predictor = ConditionMortalityPredictor(condition, 1000)
+        print condition.summarize()
