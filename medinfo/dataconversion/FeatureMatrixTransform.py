@@ -123,6 +123,9 @@ class FeatureMatrixTransform:
         new_col = self._matrix[base_feature].apply(indicator)
         self._matrix.insert(col_index + 1, threshold_feature, new_col)
 
+    def drop_duplicate_rows(self):
+        self._matrix.drop_duplicates(inplace=True)
+
     def _numeric_indicator(self, value):
         return 1 if pd.notnull(value) else 0
 
