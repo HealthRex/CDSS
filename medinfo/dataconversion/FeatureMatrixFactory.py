@@ -432,6 +432,11 @@ class FeatureMatrixFactory:
                 itemTimes = itemTimesByPatientId[patientId]
                 if itemTimes is not None:
                     for itemTime in itemTimes:
+                        # Need this extra check because if a given event
+                        # has not occurred yet, but will occur, itemTime will
+                        # be none while itemTimes is not None.
+                        if itemTime is None:
+                            continue
                         timeDiffSeconds = (itemTime - episodeTime).total_seconds()
                         timeDiffDays = timeDiffSeconds / SECONDS_PER_DAY
                         # If event occurred before index time...
