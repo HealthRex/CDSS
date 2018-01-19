@@ -1048,7 +1048,7 @@ class FeatureMatrixFactory:
             self.addClinicalItemFeatures([feature], dayBins=[], \
                 features="pre")
 
-    def buildFeatureMatrix(self, header=None):
+    def buildFeatureMatrix(self, header=None, matrixFileName=None):
         """
         Given a set of factory inputs, build a feature matrix which
         can then be output.
@@ -1068,10 +1068,13 @@ class FeatureMatrixFactory:
             ]
 
         # Initialize feature matrix file.
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
-        matrixFileName = "feature-matrix_%s.tab" % timestamp
-        matrixFile = open(matrixFileName, "w")
+        if matrixFileName is None:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+            matrixFileName = "feature-matrix_%s.tab" % timestamp
+            self._matrixFileName = matrixFileName
         self._matrixFileName = matrixFileName
+        matrixFile = open(self._matrixFileName, "w")
+
 
         # Read arbitrary number of input temp files.
         # Use csv tab reader so we can just read the lists while being agnostic
