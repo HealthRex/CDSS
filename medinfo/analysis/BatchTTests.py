@@ -42,15 +42,15 @@ class BatchTTests(BaseAnalysis):
 
     def __call__(self, inputFile, labelCols, valueCols, matchCols, baseLabels=None):
         prog = ProgressDots();
-        
+
         self.labelCols = labelCols;
         self.valueCols = valueCols;
         self.matchCols = matchCols;
         self.baseLabels = baseLabels;
-        
+
         labelModelByLabelKey = dict();
         dataByLabelKey = dict();
-        
+
         reader = TabDictReader(inputFile);
         for rowModel in reader:
             labelKey = list();
@@ -59,7 +59,7 @@ class BatchTTests(BaseAnalysis):
                 labelModel[labelCol] = rowModel[labelCol];
                 labelKey.append(rowModel[labelCol]);
             labelKey = tuple(labelKey); # Change to immutable object that can be hashed
-            
+
             # Copy just items of interest
             valueModel = {};
             if self.matchCols:
@@ -70,15 +70,15 @@ class BatchTTests(BaseAnalysis):
                     valueModel[valueCol] = float(rowModel[valueCol]);
                 except ValueError:  # Maybe None string, could not parse into a number
                     valueModel[valueCol] = None;
-                
+
             if labelKey not in dataByLabelKey:
                 labelModelByLabelKey[labelKey] = labelModel;
                 dataByLabelKey[labelKey] = list();
-            dataByLabelKey[labelKey].append(valueModel);    
+            dataByLabelKey[labelKey].append(valueModel);
 
-            prog.update();        
-        
-        prog.printStatus();
+            prog.update();
+
+        # prog.printStatus();
 
         # Another pass to ensure data is consistently sorted in each group to allow later paired t-tests
         if self.matchCols:
@@ -89,16 +89,16 @@ class BatchTTests(BaseAnalysis):
         baseLabelKey = None;
         if self.baseLabels is not None:
             baseLabelKey = tuple(self.baseLabels);
-        
+
         # Result pass to compare all group pair-wise combinations
         prog = ProgressDots();
         for labelKey0, data0 in dataByLabelKey.iteritems():
             prefix0 = "Group0.";
             labelModel0 = labelModelByLabelKey[labelKey0];
-        
+
             if baseLabelKey is not None and labelKey0 != baseLabelKey:
                 continue;   # Skip entries where the base label does not match specified key
-        
+
             for labelKey1, data1 in dataByLabelKey.iteritems():
                 prefix1 = "Group1.";
                 labelModel1 = labelModelByLabelKey[labelKey1];
@@ -121,7 +121,7 @@ class BatchTTests(BaseAnalysis):
                     for summaryFunction in SUMMARY_FUNCTIONS:
                         result[prefix0 +valueCol+"."+ summaryFunction.__name__] = summaryFunction(values0);
                         result[prefix1 +valueCol+"."+ summaryFunction.__name__] = summaryFunction(values1);
-                    
+
                     for compTest in COMPARISON_TESTS:
                         (t, p) = compTest(values0,values1);
                         if np.isnan(p):
@@ -130,28 +130,28 @@ class BatchTTests(BaseAnalysis):
 
                 yield result;
 
-                prog.update();        
-        prog.printStatus();
-    
+                prog.update();
+        # prog.printStatus();
+
     def resultHeaders(self, labelCols, valueCols, matchCol):
         headers = list();
         prefixes = ["Group0.","Group1."];
         for labelCol in labelCols:
             for prefix in prefixes:
                 headers.append(prefix+labelCol);
-        
+
         for valueCol in valueCols:
             for summaryFunction in SUMMARY_FUNCTIONS:
                 for prefix in prefixes:
                     headers.append(prefix +valueCol+"."+ summaryFunction.__name__);
-        
+
         compTests = COMPARISON_TESTS;
         for compTest in compTests:
             for valueCol in valueCols:
                 headers.append(compTest.__name__ +"."+valueCol);
-        
+
         return headers;
-    
+
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog [options] <inputFile> <outputFile>\n"+\
@@ -169,7 +169,7 @@ class BatchTTests(BaseAnalysis):
         if len(args) > 1:
             inputFile = stdOpen(args[0]);
             outputFile = stdOpen(args[1],"w");
-            
+
             labelCols = options.labelCols.split(",");
             valueCols = options.valueCols.split(",");
             matchCols = None;

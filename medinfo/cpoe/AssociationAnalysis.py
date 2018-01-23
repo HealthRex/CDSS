@@ -66,7 +66,7 @@ class AssociationAnalysis:
     patientsPerCommit = None; # Commit any bufferred analysis results to the database after analyzing this many patients.  If None, will wait until the end before committing, so less DB hits, but will lose  progress if script cancelled midway
     associationsPerCommit = None;   # Commit buffered analysis results if accrue this many association results to avoid risk of running over runtime memory limitations
     itemsPerUpdate = None;  # When updating analyze_dates for patient_items, do so for this many blocks at a time to avoid avoid loading MySQL query time
-    
+
     def __init__(self):
         """Default constructor"""
         self.connFactory = DBUtil.ConnectionFactory();  # Default connection source
@@ -92,12 +92,12 @@ class AssociationAnalysis:
         return updateBuffer;
 
     def analyzePatientItems(self, analysisOptions):
-        """Primary run function to analyze patient clinical item data and 
+        """Primary run function to analyze patient clinical item data and
         record updated stats to the respective database tables.
-        
+
         Does the analysis only for records pertaining to the given patient IDs
         (provides a way to limit the extent of analysis depending on params).
-        
+
         Will also record analyze_date timestamp on any records analyzed,
         so that analysis will not be repeated if called again on the same records.
         """
@@ -107,7 +107,7 @@ class AssociationAnalysis:
         try:
             # Preload lookup data to facilitate rapid checks and filters later
             linkedItemIdsByBaseId = self.dataManager.loadLinkedItemIdsByBaseId(conn=conn);
-        
+
             # Keep an in memory buffer of the updates to be done so can stall and submit them
             #   to the database in batch to minimize inefficient DB hits
             updateBuffer = self.makeUpdateBuffer();
@@ -118,17 +118,17 @@ class AssociationAnalysis:
                 if self.readyForIntervalCommit(iPatient, updateBuffer, analysisOptions):
                     log.info("Commit after %s patients" % (iPatient+1) );
                     self.persistUpdateBuffer(updateBuffer, linkedItemIdsByBaseId, analysisOptions, iPatient, conn=conn);  # Periodically commit update buffer
-                else:   # If not committing, still send a quick arbitrary query to DB, 
+                else:   # If not committing, still send a quick arbitrary query to DB,
                         # otherwise connection may get recycled because DB thinks timeout with no interaction
                     DBUtil.execute("select 1+1", conn=conn);
             log.info("Final commit / persist");
             self.persistUpdateBuffer(updateBuffer, linkedItemIdsByBaseId, analysisOptions, -1, conn=conn);  # Final update buffer commit. Don't use iPatient here, as may collide if interval commit happened to land on last patient
         finally:
             conn.close();
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
     def queryPatientItemsPerPatient(self, analysisOptions, progress=None, conn=None):
-        """Query the database for an ordered list of patient clinical items, 
+        """Query the database for an ordered list of patient clinical items,
         in the order in which they occurred.
         This could be a large amount of data, so option to provide
         list of specific patientIds or date ranges to query for.  In either case,
@@ -143,9 +143,9 @@ class AssociationAnalysis:
         extConn = conn is not None;
         if not extConn:
             conn = self.connFactory.connection();
-        
+
         # Reset for actual data selects
-        query= SQLQuery(); 
+        query= SQLQuery();
         query.addSelect("pi.patient_item_id");
         query.addSelect("pi.patient_id");
         query.addSelect("pi.encounter_id");
@@ -197,7 +197,7 @@ class AssociationAnalysis:
 
             rowModel = RowItemModel( row, headers );
             currentPatientData.append( rowModel );
-            
+
             row = cursor.fetchone();
 
         # Yield the final user's data
@@ -209,16 +209,16 @@ class AssociationAnalysis:
 
         if not extConn:
             conn.close();
-    
+
     def updateItemAssociationsBuffer(self, patientItemList, updateBuffer, analysisOptions, linkedItemIdsByBaseId=None,  progress=None):
-        """Given a list of data on patient clinical items, 
-        ordered by item event date, increment information in the 
+        """Given a list of data on patient clinical items,
+        ordered by item event date, increment information in the
         updateBuffer to inform subsequent updates to the clinical_item_association
         stats based on all item pairs observed.
-        
+
         Will discount item pairs where both have their analyze_date already recorded.
-        After done, also provide updateBuffer info for subsequent setting the analyze_date 
-        for all (completed) patient_items from this patient to the current time so that 
+        After done, also provide updateBuffer info for subsequent setting the analyze_date
+        for all (completed) patient_items from this patient to the current time so that
         subsequent queries will know they have already been accounted for.
         """
         # Keep track of which items to mark as newly analyzed
@@ -251,7 +251,7 @@ class AssociationAnalysis:
                         isNewPairWithinEncounter = (encounterIdPair[0]==encounterIdPair[-1]) and (isNewPair or encounterIdPair not in encounterIdPairsByItemIdPair[itemIdPair]);    # Pair ever seen for a common encounter combination
 
                         self.updateClinicalItemAssociationBuffer( patientItem1, patientItem2, isNewSubsequentItem, isNewPair, isNewPairWithinEncounter, updateBuffer, analysisOptions );
-                    
+
                         if patientItem1["analyze_date"] is None:
                             newlyAnalyzedPatientItemIdSet.add(patientItem1["patient_item_id"]);
                         if patientItem2["analyze_date"] is None:
@@ -271,17 +271,19 @@ class AssociationAnalysis:
             updateBuffer["analyzedPatientItemIds"] = set();
         updateBuffer["analyzedPatientItemIds"].update(newlyAnalyzedPatientItemIdSet);
 
-    def updateClinicalItemAssociationBuffer(self, patientItem1, patientItem2, isNewSubsequentItem, isNewPair, isNewPairWithinEncounter, updateBuffer, analysisOptions, itemIdPair=None):
-        """Identify and record in the updateBuffer which statistics on associations 
-        between the two clinical items based on the new piece of observed item pair evidence given.  
+    def updateClinicalItemAssociationBuffer(self, patientItem1, patientItem2, isNewSubsequentItem, isNewPair, isNewPairWithinEncounter, updateBuffer, analysisOptions=None, itemIdPair=None):
+        """Identify and record in the updateBuffer which statistics on associations
+        between the two clinical items based on the new piece of observed item pair evidence given.
         Use isNew parameters to delineate uniqueness parameters to determine whether to count this pair for different metrics.
-        
+
         Default to recording increments for pair (patientItem1["clinical_item_id"],patientItem2["clinical_item_id"]).
         If itemIdPair explicitly specified, then use that instead.
         """
         # Determine which time threshold count windows to update
-        deltaSecondsOptions = analysisOptions.deltaSecondsOptions;
-        if deltaSecondsOptions is None:
+        deltaSecondsOptions = None;
+        if analysisOptions is not None and analysisOptions.deltaSecondsOptions is not None:
+            deltaSecondsOptions = analysisOptions.deltaSecondsOptions;
+        else:
             deltaSecondsOptions = DELTA_NAME_BY_SECONDS.keys();
 
         # Convert timeDelta object into simple numerical representation (seconds as a real number) to facilitate some arithmetic
@@ -291,7 +293,7 @@ class AssociationAnalysis:
         if secondsDelta < 0:
             # Shouldn't have been called in the first place. Extra check to only record forward / non-negative associations
             return;
-        
+
         if itemIdPair is None:
             clinicalItemId1 = patientItem1["clinical_item_id"];
             clinicalItemId2 = patientItem2["clinical_item_id"];
@@ -303,7 +305,7 @@ class AssociationAnalysis:
             countPrefixes.append("patient_");
         if isNewPairWithinEncounter:
             countPrefixes.append("encounter_");
-        
+
         if "incrementDataByItemIdPair" not in updateBuffer:
             updateBuffer["incrementDataByItemIdPair"] = dict();
             updateBuffer["nAssociations"] = 0;
@@ -311,7 +313,7 @@ class AssociationAnalysis:
             updateBuffer["incrementDataByItemIdPair"][str(itemIdPair)] = dict();
             updateBuffer["nAssociations"] += 1;
         incrementData = updateBuffer["incrementDataByItemIdPair"][str(itemIdPair)];
-        
+
         # Decide on columns to increment pair association with time dependency
         for countPrefix in countPrefixes:
             countField = countPrefix+"count_any";
@@ -341,10 +343,10 @@ class AssociationAnalysis:
         isReady = isReady or (self.patientsPerCommit is not None and (iPatient % self.patientsPerCommit) == 0);
         isReady = isReady or (self.associationsPerCommit is not None and "nAssociations" in updateBuffer and updateBuffer["nAssociations"] > self.associationsPerCommit);
         return isReady;
-    
-    
+
+
     def mergeBuffers(self, bufferOne, bufferTwo):
-        if "analyzedPatientItemIds" not in bufferOne: 
+        if "analyzedPatientItemIds" not in bufferOne:
             bufferOne["analyzedPatientItemIds"] = set();
         else:
             bufferOne["analyzedPatientItemIds"].update(bufferTwo["analyzedPatientItemIds"]);
@@ -367,7 +369,7 @@ class AssociationAnalysis:
                 for key2, value2 in bufferTwo["incrementDataByItemIdPair"][key].iteritems():
                     if key2 not in bufferOne["incrementDataByItemIdPair"][key]:
                         bufferOne["incrementDataByItemIdPair"][key][key2]=bufferTwo["incrementDataByItemIdPair"][key][key2]
-                    else: 
+                    else:
                         bufferOne["incrementDataByItemIdPair"][key][key2]+=bufferTwo["incrementDataByItemIdPair"][key][key2]
 
         return bufferOne
@@ -377,8 +379,8 @@ class AssociationAnalysis:
             for key, value in bufferDecay["incrementDataByItemIdPair"].iteritems():
                 for key2, value2 in bufferDecay["incrementDataByItemIdPair"][key].iteritems():
                     bufferDecay["incrementDataByItemIdPair"][key][key2] *= decayValue
-        return bufferDecay    
-    
+        return bufferDecay
+
 
     def persistUpdateBuffer(self, updateBuffer, linkedItemIdsByBaseId, analysisOptions, iPatient=None, conn=None):
         if analysisOptions.bufferFile is None:
@@ -387,7 +389,7 @@ class AssociationAnalysis:
         else:
             bufferFilename = "%s.%s.json.gz" % (analysisOptions.bufferFile, iPatient);    # Modify filename with which patient done so far, in case saving several sequential results
             self.saveBufferToFile(bufferFilename, updateBuffer);
-    
+
     def saveBufferToFile (self, filename, updateBuffer):
         ofs = stdOpen (filename, "w");
         updateBuffer["analyzedPatientItemIds"] = list(updateBuffer["analyzedPatientItemIds"]);
@@ -400,6 +402,7 @@ class AssociationAnalysis:
     def loadUpdateBufferFromFile(self, filename):
         updateBuffer = None;
         try:
+            #print >> sys.stderr, filename
             log.info("Loading: %s" % filename);
             ifs = stdOpen(filename, "r")
             updateBuffer = json.load(ifs)
@@ -420,7 +423,7 @@ class AssociationAnalysis:
                     else:    # Have existing update buffer. Just update it's contents with the next one
                         updateBuffer = self.mergeBuffers(updateBuffer, nextUpdateBuffer);
                         del nextUpdateBuffer;	# Make sure memory gets reclaimed
-                        
+
         return updateBuffer;
 
     def commitUpdateBufferFromFile(self, filename):
@@ -428,10 +431,10 @@ class AssociationAnalysis:
         updateBuffer = self.loadUpdateBufferFromFile(filename);
         linkedItemIdsByBaseId = self.dataManager.loadLinkedItemIdsByBaseId(conn=conn);
         self.commitUpdateBuffer(updateBuffer,linkedItemIdsByBaseId, conn=conn);
-    
+
 
     def commitUpdateBuffer(self, updateBuffer, linkedItemIdsByBaseId, conn=None):
-        """Take data accumulated in updateBuffer from prior update methods and 
+        """Take data accumulated in updateBuffer from prior update methods and
         commit them as incremental changes to the database.
         Clear buffer thereafter.
         """
@@ -462,7 +465,7 @@ class AssociationAnalysis:
                         itemIdPair = eval(itemIdPair)
                         cursor.execute(query, itemIdPair);
                         incrementProg.update();
-                    incrementProg.printStatus();
+                    # incrementProg.printStatus();
                 finally:
                     cursor.close();
 
@@ -477,7 +480,7 @@ class AssociationAnalysis:
                     for itemId in patientItemIdSet:
                         paramList.append(itemId);
                         updateSize += 1;
-                    
+
                         if self.itemsPerUpdate is not None and updateSize > self.itemsPerUpdate:
                             # Update what we have so far to avoid excessive single mass query that may overwhelm database timeout
                             DBUtil.execute \
@@ -506,10 +509,10 @@ class AssociationAnalysis:
             # Flag that any cached association metrics will be out of date
             self.dataManager.clearCacheData("analyzedPatientCount");
             self.dataManager.clearCacheData("clinicalItemCountsUpdated");
-            
+
             # Database commit
             conn.commit();
-    
+
             # Wipe out buffer to reflect incremental changes done, so any new ones should be recorded fresh
             updateBuffer.clear();
             updateBuffer["nAssociations"] = 0;
@@ -531,7 +534,7 @@ class AssociationAnalysis:
             clinicalItemIdSet.add(itemId1);
             clinicalItemIdSet.add(itemId2);
         nItems = len(clinicalItemIdSet);
-        
+
         # Now go through all needed item pairs and create default records as needed
         log.debug("Ensure %d baseline records ready" % (nItems*nItems) );
         for itemId1 in clinicalItemIdSet:
@@ -573,7 +576,7 @@ class AssociationAnalysis:
         isAcceptable = isAcceptable and timeDeltaSeconds >= 0; # Only record forward / non-negative associations
         isAcceptable = isAcceptable and self.acceptableClinicalItemIdPair(itemId1, itemId2, linkedItemIdsByBaseId )
         return isAcceptable;
-    
+
     def acceptableClinicalItemIdPair(self, itemId1, itemId2, linkedItemIdsByBaseId):
         isAcceptable = True;
         isAcceptable = isAcceptable and (itemId1 not in linkedItemIdsByBaseId or itemId2 not in linkedItemIdsByBaseId[itemId1]);
@@ -618,7 +621,7 @@ class AssociationAnalysis:
             # Just commit buffer file directly to database
             self.commitUpdateBufferFromFile(analysisOptions.bufferFile);
         else:
-            # Usual association analysis from scratch with option to commit direct to database or save to buffer file 
+            # Usual association analysis from scratch with option to commit direct to database or save to buffer file
             analysisOptions.startDate = None;
             if options.startDate is not None:
                 # Parse out the start date parameter
@@ -634,7 +637,7 @@ class AssociationAnalysis:
                 # Disallow running without specifying some kind of filter
                 parser.print_help();
                 sys.exit(-1)
-            
+
             if options.patientsPerCommit is not None:
                 self.patientsPerCommit = int(options.patientsPerCommit);
             if options.associationsPerCommit is not None:

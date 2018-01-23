@@ -29,7 +29,7 @@ class ConcatenateDataFiles(BaseAnalysis):
 
     def resultHeaders(self):
         return tuple(self.colNames);
-    
+
     def __call__(self, inputFiles):
         """Return generator over dictionary objects representing
         the concatenated contents of the input files after adding and accounting for argv parameter columns.
@@ -56,9 +56,9 @@ class ConcatenateDataFiles(BaseAnalysis):
                 if col not in colSet:
                     colSet.add(col);
                     self.colNames.append(col);
-        
+
         prog = ProgressDots(50,1,"Files");
-        
+
         # Now generate each file in succession, but "outer-joined" to include the master column header list
         for argvDict, reader in zip(argvDicts, readers):
             for resultDict in reader:
@@ -68,8 +68,8 @@ class ConcatenateDataFiles(BaseAnalysis):
                         resultDict[col] = None;
                 yield resultDict;
             prog.update();
-        prog.printStatus();
-    
+        # prog.printStatus()
+
     def extract_argvDict(self, commentLines):
         argvDict = dict();
         for line in commentLines:
@@ -108,10 +108,10 @@ class ConcatenateDataFiles(BaseAnalysis):
                     # Not a JSON parsable string, ignore it then
                     log.debug(exc);
                     pass;
-                    
+
         return argvDict;
 
-        
+
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog [options] <inputFile1> <inputFile2> ... <inputFileN>\n"+\
@@ -147,9 +147,9 @@ class ConcatenateDataFiles(BaseAnalysis):
             # Begin the file parsing so can at least get the total list of column headers
             rowGenerator = self(inputFiles);
             firstRow = rowGenerator.next();
-            
+
             # Insert a mock record to get a header / label row
-            colNames = self.resultHeaders(); 
+            colNames = self.resultHeaders();
             formatter.formatTuple(colNames);
 
             # Stream the concatenated data rows to the output to avoid storing all in memory

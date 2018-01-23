@@ -98,9 +98,18 @@ class ContingencyStats:
         
         # Reference for SE(prevalence):
         # https://stats.stackexchange.com/questions/9449/how-do-you-compute-confidence-intervals-for-positive-predictive-value
-        elif statId in ("SE(prevalence)"):  # Standard error for PPV
+        elif statId in ("SE(prevalence)"):  # Standard error for prevalence
             return sqrt( (self["prevalence"]*(1-self["prevalence"]))/self["total"] );
 
+        # Note that this assumes the prevalence estimate is normally / Gaussian distributed
+        #   if we assume that ~2 std errors from mean estimate reflect ~95% confidence interval.
+        # This is not true however, as probabilities like prevalence and PPV have values constrained
+        #   to [0,1], so a Beta distribution is a better description. 
+        # I'm not sure that there is a closed form expression for the 95% confidence interval of
+        #   a Beta distribution parameter estimate. This one may be good enough in most cases,
+        #   but may sometimes yield negative of >1 values that don't make sense if limited data.
+        #   If you want a more robust estimate, it would likely require bootstrapping 
+        #   to empirically estimate confidence intervals by simulating random resampling.
         elif statId in ("prevalence95CILow"):
             return self["prevalence"] - 1.96*self["SE(prevalence)"]
 

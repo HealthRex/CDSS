@@ -1,1 +1,4 @@
 *.pyc
+LocalEnv.py
+.DS_Store
+scripts/LabTestAnalysis/output*

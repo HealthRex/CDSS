@@ -31,20 +31,20 @@ class OrderSetRecommender(BaseItemRecommender):
     If multiple order sets match base on initial orders (likely),
     then weight/rank suggestions based on apparent relevance of each order set
     as suggested by the ratio of order set items already in the query divided by the total number of items in the order set.
-    
+
     End up ranking items by P(item|queryItems) = Sum_j[ P(item|OrderSet_j)*P(OrderSet_j|queryItems) ]
     Estimate P(item|OrderSet) = |Insersect(item,OrderSet)| / |OrderSet|
         Above intersection is simply 1 or 0 depending on if item is present in the given OrderSet
     Estimate P(OrderSet|queryItems) = |Intersect(OrderSet,queryItems)| / |queryItems in Any OrderSet|
         Consider the contrary: P(queryItems|OrderSet) = |Intersect(queryItems,OrderSet)| / |OrderSet|
         Previous don't directly scale by size of order set.  Bigger order set more likely to be relevant, but proportionally more likely to hit an intersection by chance
-   
-    If blank query provided, then use adapt estimates 
+
+    If blank query provided, then use adapt estimates
         P(OrderSet|queryItems) -> P(OrderSet) = |OrderSet| / |Items in Any OrderSet|
-        
+
     Estimate P(item) = |OrderSets containing item| / |Items in Any Order Set|
         Can derive this by summing over all order sets for P(item|OrderSet_j)*P(OrderSet_j);
-    Use above to generate TF*IDF, lift estimates with P(item|query) / P(item)    
+    Use above to generate TF*IDF, lift estimates with P(item|query) / P(item)
     """
     def __init__(self):
         """Initialize module with prior generated model and word document counts from TopicModel module.
@@ -56,10 +56,10 @@ class OrderSetRecommender(BaseItemRecommender):
         self.patientCountByItemId = None;
         self.categoryIdByItemId = None;
         self.candidateItemIds = None;
-        
+
         self.itemIdsByOrderSetId = None;
         self.orderSetIdsByItemId = None;
-    
+
     def initItemLookups(self, query):
         """Load lookup info and save into local member variables for reuse later
         so don't have to do wasteful repeat DB lookups for serial queries
@@ -80,7 +80,7 @@ class OrderSetRecommender(BaseItemRecommender):
             if orderSetId not in self.itemIdsByOrderSetId:
                 self.itemIdsByOrderSetId[orderSetId] = set();
             self.itemIdsByOrderSetId[orderSetId].add(itemId);
-            
+
             if itemId not in self.orderSetIdsByItemId:
                 self.orderSetIdsByItemId[itemId] = set();
             self.orderSetIdsByItemId[itemId].add(orderSetId);
@@ -96,7 +96,7 @@ class OrderSetRecommender(BaseItemRecommender):
         for itemId in self.orderSetIdsByItemId.keys():
             if self.isItemRecommendable(itemId, emptyQuerySet, query, self.categoryIdByItemId):
                 self.candidateItemIds.add(itemId);
-        
+
     def __call__(self, query):
         # Given query items, lookup existing order sets to find and score related items
 
@@ -149,7 +149,7 @@ class OrderSetRecommender(BaseItemRecommender):
         """
         Estimate each P(OrderSet|queryItems) = |Intersect(OrderSet,queryItems)| / |queryItems in Any OrderSets|
 
-        If blank query or no order set matches found, then use alternative estimate for 
+        If blank query or no order set matches found, then use alternative estimate for
             P(OrderSet|queryItems) -> P(OrderSet), based on the size of the OrderSet relative to the size of all OrderSets combined
         """
         numItemsInAnyOrderSet = float(len(orderSetIdsByItemId));
@@ -158,11 +158,11 @@ class OrderSetRecommender(BaseItemRecommender):
         for orderSetId, itemIds in itemIdsByOrderSetId.iteritems():
             queryItemsInAnyOrderSet.update( itemIds.intersection(queryItemIds) );
         numQueryItemsInAnyOrderSet = float(len(queryItemsInAnyOrderSet));
-        if numQueryItemsInAnyOrderSet < 1:  # Blank query or otherwise searching for things we have no data.  
+        if numQueryItemsInAnyOrderSet < 1:  # Blank query or otherwise searching for things we have no data.
             # Treat as if effectively querying for all possible query items equally
             queryItemIds = queryItemsInAnyOrderSet = set(orderSetIdsByItemId.keys());
             numQueryItemsInAnyOrderSet = float(len(queryItemsInAnyOrderSet));
-        
+
         weightByOrderSetId = dict();
         for orderSetId, itemIds in itemIdsByOrderSetId.iteritems():
             numQueryItemsInOrderSet = len(itemIds.intersection(queryItemIds));
@@ -202,7 +202,7 @@ class OrderSetRecommender(BaseItemRecommender):
             if len(args) > 1:
                 outputFilename = args[1];
             outputFile = stdOpen(outputFilename,"w");
-            
+
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
             print >> outputFile, COMMENT_TAG, json.dumps(summaryData);

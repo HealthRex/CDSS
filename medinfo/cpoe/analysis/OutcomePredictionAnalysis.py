@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Analysis module to assess results of ItemRecommender, but framed as prediction / classification 
+Analysis module to assess results of ItemRecommender, but framed as prediction / classification
 of specific outcome items rather than general recommendations.
 
 Rough approach
@@ -39,8 +39,8 @@ from medinfo.analysis.Const import OUTCOME_IN_QUERY;
 DEFAULT_SCORE = None;
 
 class OutcomePredictionAnalysis(BaseCPOEAnalysis):
-    """Driver class to review given patient data and run sample 
-    recommendation / prediction queries against them and collect score statistics 
+    """Driver class to review given patient data and run sample
+    recommendation / prediction queries against them and collect score statistics
     between the recommended items vs. their actual presence for the patients.
     """
     def __init__(self):
@@ -51,7 +51,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
         if conn is None:
             conn = self.connFactory.connection();
             extConn = False;
-        
+
         try:
             # Recommender to test with
             recommender = analysisQuery.recommender;
@@ -61,22 +61,22 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
 
             # Start building results data
             resultsStatDataList = list();
-            progress = ProgressDots(50,1,"Patients");
-            
+            # progress = ProgressDots(50,1,"Patients");
+
             # Query for all of the order / item data for the test patients.  Load one patient's data at a time
             preparer = PreparePatientItems();
             for patientItemData in preparer.loadPatientItemData(analysisQuery, conn=conn):
                 patientId = patientItemData["patient_id"];
                 (queryItemCountById, scoreByOutcomeId, existsByOutcomeId) = \
                     self.analyzePatientItems \
-                    (   analysisQuery, 
-                        recQuery, 
+                    (   analysisQuery,
+                        recQuery,
                         patientId,
-                        patientItemData, 
-                        recommender, 
+                        patientItemData,
+                        recommender,
                         conn=conn
                     );
-                
+
                 if existsByOutcomeId is not None:
                     # Verify that at least one of the labels is not trivial with the outcome occuring during the query period
                     nonTrivialOutcomeExists = False;
@@ -87,10 +87,10 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
                         # Start aggregating and calculating result stats
                         resultsStatData = self.prepareResultStats( patientId, queryItemCountById, scoreByOutcomeId, existsByOutcomeId);
                         resultsStatDataList.append(resultsStatData);
-                
-                progress.Update();
 
-            progress.PrintStatus();
+                # progress.Update();
+
+            # progress.PrintStatus();
 
             return resultsStatDataList;
 
@@ -100,7 +100,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
 
     def analyzePatientItems(self, analysisQuery, recQuery, patientId, patientItemData, recommender, conn):
         """Given the primary query data and clinical item list for a given test patient,
-        Parse through the item list and run a query to get the top recommended IDs 
+        Parse through the item list and run a query to get the top recommended IDs
         to produce the relevant verify and recommendation item ID sets for comparison
         """
         if "existsByOutcomeId" not in patientItemData:
@@ -114,7 +114,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
 
         # Query for recommended orders / items
         recommendedData = recommender( recQuery, conn=conn );
-        
+
         """
         # Print component scores to help with debugging degenerate cases
         print >> sys.stderr, patientId, existsByOutcomeId, "%(nAB)s, %(nA)s, %(nB)s, %(N)s" % recommendedData[0]
@@ -137,11 +137,11 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
         postOdds = preOdds * productLR;
         postProb = postOdds / (1+postOdds);
         print >> sys.stderr, postOdds, postProb;
-        
+
         aggregate_nAB = product_nAB_nB * recommendedData[0]["nB"];
         aggregate_nA = product_nA_N * recommendedData[0]["N"];
         print >> sys.stderr, aggregate_nAB, aggregate_nA, (aggregate_nAB/aggregate_nA);
-        
+
         """
 
         # Record scores per outcome
@@ -159,7 +159,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
         stats = RowItemModel();
         stats["patient_id"] = patientId;
         stats["queryItemIds"] = queryItemCountById.keys();
-        
+
         # Convert sets into more easily readable, sorted lists
         queryItemIdList = list(stats["queryItemIds"]);
         queryItemIdList.sort();
@@ -175,16 +175,16 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
         """Column headers for stats results printing by default
         """
         colNames = list();
-        
+
         outcomeIds = list(analysisQuery.baseRecQuery.targetItemIds);
         outcomeIds.sort();
         for outcomeId in outcomeIds:
             colNames.append("outcome.%s" % outcomeId );
             colNames.append("score.%s" % outcomeId );
-        
+
         colNames.append("patient_id");
         colNames.append("queryItemIdList");
-        
+
         return colNames;
 
     def main(self, argv):
@@ -198,7 +198,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
         parser.add_option("-Q", "--queryTimeSpan",  dest="queryTimeSpan",  help="Time frame specified in seconds over which to look for initial query items (e.g., 24hrs = 86400) after the base item found from the category above.  Start the time counting from the first item time occuring after the category item above since the ADMIT Dx items are often keyed to dates only without times (defaulting to midnight of the date specified).");
         parser.add_option("-o", "--outcomeItemIds", dest="outcomeItemIds", help="Comma separated list of outcome item IDs to get prediction / recommendation scores for, as well as to label whether they actually appeared for the given patients.  Can specify virtual items representing the end of item triples (e.g., 5-Readmission being the end of any item followed by 3591-Discharge then 3671-Admit), by adding the component items in expected sequence.  For example, '5=3591:3671'");
         parser.add_option("-t", "--timeDeltaMax",  dest="timeDeltaMax",  help="Time delta in seconds maximum by which recommendations should be based on.  Defaults to recommending items that occur at ANY time after the key orders.  If provided, will apply limits to only orders placed within 0 seconds, 1 hour (3600), 1 day (86400), or 1 week (604800) of the key orders / items.  If set, will also only count presence of labeled target items if occurs within the given time delta of the first query item.");
-        
+
         parser.add_option("-P", "--preparedPatientItemFile",  dest="preparedPatientItemFile", action="store_true", help="If set, will expect primary argument to instead be name of file to read input data from, instead of using above parameters to query from database.");
 
         parser.add_option("-R", "--recommender",  dest="recommender",  help="Name of the recommender to run the analysis against.  Options: %s" % RECOMMENDER_CLASS_BY_NAME.keys());
@@ -216,7 +216,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
             query = AnalysisQuery();
             query.recommender = RECOMMENDER_CLASS_BY_NAME[options.recommender]();
             query.recommender.dataManager.dataCache = dict(); # Use local cache to speed up repeat queries
-            
+
             query.baseRecQuery = RecommenderQuery();
             if options.preparedPatientItemFile:
                 # Don't reconstruct validation data through database, just read off validation file
@@ -256,25 +256,25 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
                 query.baseRecQuery.aggregationMethod = options.aggregationMethod;
             if options.maxRecommendedId is not None:
                 query.baseRecQuery.maxRecommendedId = int(options.maxRecommendedId);
-            
+
             if options.skipIfOutcomeInQuery is not None:
                 query.skipIfOutcomeInQuery = options.skipIfOutcomeInQuery;
-            
+
             # Run the actual analysis
             analysisResults = self(query);
-            
+
             # Format the results for output
             outputFilename = None;
             if len(args) > 1:
                 outputFilename = args[1];
             outputFile = stdOpen(outputFilename,"w");
-            
+
             # Print comment line with analysis arguments to allow for deconstruction later
-            print >> outputFile, COMMENT_TAG, json.dumps({"argv":argv});  
+            print >> outputFile, COMMENT_TAG, json.dumps({"argv":argv});
 
             colNames = self.analysisHeaders(query);
             analysisResults.insert(0, RowItemModel(colNames,colNames) );    # Insert a mock record to get a header / label row
-            
+
             formatter = TextResultsFormatter( outputFile );
             formatter.formatResultDicts( analysisResults, colNames );
 

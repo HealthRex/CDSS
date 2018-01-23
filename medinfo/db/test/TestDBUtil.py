@@ -7,7 +7,7 @@ import unittest
 
 from datetime import datetime;
 
-from Const import RUNNER_VERBOSITY;
+from Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
 from Util import log;
 
 from Util import DBTestCase;
@@ -28,19 +28,19 @@ class TestDBUtil(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
-        
+
         self.SCRIPT_FILE = StringIO()
         self.SCRIPT_FILE.write("# Create table to test on.  Also testing that comment tag is recognized\n")
         self.SCRIPT_FILE.write("\n")
         self.SCRIPT_FILE.write("create table TestTypes\n")
         self.SCRIPT_FILE.write("(\n")
-        self.SCRIPT_FILE.write("    TestTypes_id    serial,\n")  
+        self.SCRIPT_FILE.write("    TestTypes_id    serial,\n")
         self.SCRIPT_FILE.write("    MyText          varchar(50),    /* Same as character varying, also test standard SQL comment tags */\n")
         self.SCRIPT_FILE.write("    MyInteger       integer,\n")
         self.SCRIPT_FILE.write("    MyReal          real,   -- Floating point number, also test standard SQL comment tag\n")
         self.SCRIPT_FILE.write("    MyDateTime      TIMESTAMP,   -- PostgreSQL uses TIMESTAMP, but MySQL doesn't do NULL values right, so have to use DATETIME for MySQL?\n")
         self.SCRIPT_FILE.write("    MyYesNo         boolean\n")
-        self.SCRIPT_FILE.write(");\n")  
+        self.SCRIPT_FILE.write(");\n")
         self.SCRIPT_FILE.write("ALTER TABLE TestTypes ADD CONSTRAINT TestTypes_id PRIMARY KEY (TestTypes_id);\n");  # Should auto-create testtypes_testtypes_id_seq sequence
         self.SCRIPT_FILE.write("CREATE INDEX TestTypes_MyInteger_INDEX ON TestTypes(MyInteger);\n")
         self.SCRIPT_FILE.write("\n")
@@ -94,9 +94,9 @@ class TestDBUtil(DBTestCase):
         self.DATA_QUERY.addFrom(self.DATA_TABLE);
         self.DATA_QUERY.addWhereIn(self.ID_COL,self.ID_DATA);
         self.DATA_QUERY.addOrderBy(self.ID_COL);
-        
 
-        
+
+
     def tearDown(self):
         """Restore state from any setUp or test steps"""
         try:
@@ -105,7 +105,7 @@ class TestDBUtil(DBTestCase):
         except Exception, err:
             log.warning(err)
             pass
-        
+
         DBTestCase.tearDown(self);
 
     def test_runDBScript(self):
@@ -124,17 +124,17 @@ class TestDBUtil(DBTestCase):
             results[0][iCol] = results[0][iCol].lower();
         self.assertEqual( expected, results[0] )
         self.assertEqual( 0, len(results)-1 )
-    
-    
+
+
     def test_runDBScript_commandline(self):
-        # Equivalent to test_runDBScript, but try higher level interface 
+        # Equivalent to test_runDBScript, but try higher level interface
         #   through command-line "main" method
         origStdin = sys.stdin
         sys.stdin = self.SCRIPT_FILE
         argv = ["DBUtil.py","--script","-"]
         DBUtil.main(argv)
         sys.stdin = origStdin
-        
+
         # Run some other commands to see if scripts produced expected results
         results = DBUtil.execute("select * from TestTypes where MyInteger > %s", (200,))
         self.assertEqual( 2, len(results) )
@@ -149,7 +149,7 @@ class TestDBUtil(DBTestCase):
         argv = ["DBUtil.py","--script","-"]
         DBUtil.main(argv)
         sys.stdin = origStdin
-        
+
         # Run script again.  Should generate errors from redundant create table, etc.  But skip
         self.SCRIPT_FILE.seek(0)
         origStdin = sys.stdin
@@ -171,12 +171,12 @@ class TestDBUtil(DBTestCase):
             actualErr = True
         self.assertEqual(expectErr,actualErr)
         sys.stdin = origStdin
-        
+
 
     def test_execute_commandline(self):
-        # Run basic executes for both an update and a select query, but 
+        # Run basic executes for both an update and a select query, but
         #   using the higher-level command-line "main" method interface
-        
+
         DBUtil.runDBScript( self.SCRIPT_FILE, False ) # Assume this works based on test_runDBScript method
 
         origStdout  = sys.stdout
@@ -208,8 +208,8 @@ class TestDBUtil(DBTestCase):
         sampleLines = sys.stdout.getvalue().split("\n")
         expected = ["TestTypes_id","MyText","MyInteger","MyReal","MyDateTime","MyYesNo"]
         sampleColumns = sampleLines[0].split()
-        for iCol in range(len(expected)):   # Case-insensitive comparison 
-            expected[iCol] = expected[iCol].lower()   
+        for iCol in range(len(expected)):   # Case-insensitive comparison
+            expected[iCol] = expected[iCol].lower()
             sampleColumns[iCol] = sampleColumns[iCol].lower();
         for iCol, col in enumerate(sampleColumns):
             self.assertEqual(expected[iCol],col)
@@ -230,7 +230,7 @@ class TestDBUtil(DBTestCase):
         self.assertEqual( len(self.MULTI_LINE_DATA_ROWS), idFile.getvalue().count("\n") )
         results = DBUtil.execute( self.DATA_QUERY );
         self.assertEqual( self.MULTI_LINE_DATA_ROWS, results );
-        
+
     def test_insertFile_commandline(self):
         # Similar to test_insertFile, but from higher-level command-line interface
         DBUtil.runDBScript( self.SCRIPT_FILE, False ) # Assume this works based on test_runDBScript method
@@ -239,7 +239,7 @@ class TestDBUtil(DBTestCase):
         columnNames = self.DATA_COLS.split();
 
         idFile = StringIO()
-        
+
         # Slightly different test, specify tab as delimiter, not just any whitespace
         origStdin = sys.stdin
         origStdout = sys.stdout
@@ -249,7 +249,7 @@ class TestDBUtil(DBTestCase):
         DBUtil.main(argv)
         sys.stdout = origStdout
         sys.stdin = origStdin
-        
+
         self.assertEqual( 3, idFile.getvalue().count("\n") )
         results = DBUtil.execute( self.DATA_QUERY );
         self.assertEqual( self.MULTI_LINE_DATA_ROWS, results );
@@ -263,7 +263,7 @@ class TestDBUtil(DBTestCase):
         columnNames = ["MyReal","MyYesNo","MyText","MyInteger"]
 
         idFile = StringIO()
-        
+
         # Try with bogus data that should generate errors
 
         dataFile = StringIO()
@@ -271,9 +271,9 @@ class TestDBUtil(DBTestCase):
         dataFile.write("700.7\t"+FALSE_STR+"\tXTest\t777\n");
         dataFile.write("1,099\tNegative\tMoBadTest\tfoo\n");
         dataFile = StringIO(dataFile.getvalue())
-        
+
         idFile = StringIO()
-        
+
         origStdin = sys.stdin
         origStdout = sys.stdout
         sys.stdin = dataFile
@@ -289,22 +289,22 @@ class TestDBUtil(DBTestCase):
         self.assertEqual(expectErr,actualErr)
         sys.stdout = origStdout
         sys.stdin = origStdin
-        
+
         # Expect no rows succesffuly inserted since errors in input
         self.assertEqual( 0, idFile.getvalue().count("\n") )
         results = DBUtil.execute("select count(*) from TestTypes where MyText like %s",("%Test",))
         self.assertEqual( 0, results[0][0] )
 
-        
+
         # Try again, with bogus data that should generate errors
         dataFile = StringIO()
         dataFile.write("ABCD\tPositive\tBadTest\t100.123\n");
         dataFile.write("700.7\t"+FALSE_STR+"\tXTest\t777\n");
         dataFile.write("1,099\tNegative\tMoBadTest\tfoo\n");
         dataFile = StringIO(dataFile.getvalue())
-        
+
         idFile = StringIO()
-        
+
         origStdin = sys.stdin
         origStdout = sys.stdout
         sys.stdin = dataFile
@@ -314,7 +314,7 @@ class TestDBUtil(DBTestCase):
         DBUtil.main(argv)
         sys.stdout = origStdout
         sys.stdin = origStdin
-        
+
         # Still expect 1 row to get through successfuly, despite other invalid input
         self.assertEqual( 1, idFile.getvalue().count("\n") )
         results = DBUtil.execute("select count(*) from TestTypes where MyText like %s",("%Test",))
@@ -339,9 +339,9 @@ class TestDBUtil(DBTestCase):
         DBUtil.insertFile( dataFile, tableName, columnNames, dateColFormats=dateColFormats)
 
         verifyQuery = \
-            """select MyInteger, MyText, MyDateTime 
-            from TestTypes 
-            where MyInteger < 0 
+            """select MyInteger, MyText, MyDateTime
+            from TestTypes
+            where MyInteger < 0
             order by MyInteger desc
             """;
 
@@ -351,8 +351,8 @@ class TestDBUtil(DBTestCase):
                 [   -3, "2003-04-15 10:45:21", datetime(2003,4,15,10,45,21) ],
                 [   -4, "4/11/12 6:20", datetime(2012,4,11,6,20) ],
             ];
-        
-        # Verify rows inserted with properly parsed dates 
+
+        # Verify rows inserted with properly parsed dates
         results = DBUtil.execute(verifyQuery);
         self.assertEqual( expectedData, results );
 
@@ -374,8 +374,8 @@ class TestDBUtil(DBTestCase):
 
         verifyQuery = \
             """select MyInteger, MyText
-            from TestTypes 
-            where MyInteger < 0 
+            from TestTypes
+            where MyInteger < 0
             order by MyInteger desc
             """;
 
@@ -385,8 +385,8 @@ class TestDBUtil(DBTestCase):
                 [   -3, "C"],
                 [   -4, "D"],
             ];
-        
-        # Verify rows inserted with properly parsed dates 
+
+        # Verify rows inserted with properly parsed dates
         results = DBUtil.execute(verifyQuery);
         self.assertEqual( expectedData, results );
 
@@ -396,7 +396,7 @@ class TestDBUtil(DBTestCase):
         # Run some other commands to see if scripts produced expected results
         results = DBUtil.execute("select max(TestTypes_id) from TestTypes");
         lastSeq = results[0][0]
-        
+
         conn = DBUtil.connection()
         try:
             cur  = conn.cursor()
@@ -416,7 +416,7 @@ class TestDBUtil(DBTestCase):
         try:
             DBUtil.execute("insert into TestTypes (MyText,MyInteger) values ('Test With Null', 255)",conn=conn);
             DBUtil.execute("insert into TestTypes (MyText,MyInteger,MyReal,MyDateTime) values ('Test With Not Null', 255, 1.23, '2005-03-06')",conn=conn);
-            
+
             result = DBUtil.execute("select MyText from TestTypes where MyInteger = 255 and MyReal is null",conn=conn);
             self.assertEqual('Test With Null', result[0][0] )
             result = DBUtil.execute("select MyText from TestTypes where MyInteger = 255 and MyReal is not null",conn=conn);
@@ -427,7 +427,7 @@ class TestDBUtil(DBTestCase):
             self.assertEqual('Test With Null', result[0][0] )
             result = DBUtil.execute("select MyText from TestTypes where MyInteger = 255 and MyDateTime is not null",conn=conn);
             self.assertEqual('Test With Not Null', result[0][0] )
-            
+
         finally:
             conn.close()
 
@@ -453,7 +453,7 @@ class TestDBUtil(DBTestCase):
         (data,isNew) = DBUtil.findOrInsertItem("TestTypes", searchDict, insertDict)
         self.assertEqual(+123,data)
         self.assertEqual(False,isNew)
-        
+
         searchDict["TestTypes_id"] = +789
         insertDict["TestTypes_id"] = +789
         insertDict["MyInteger"] = 123
@@ -488,7 +488,7 @@ class TestDBUtil(DBTestCase):
         (data,isNew) = DBUtil.findOrInsertItem("TestTypes", searchDict, insertDict, retrieveCol="MyText", forceUpdate=True)
         self.assertEqual("newText",data)
         self.assertEqual(False,isNew)
-        
+
 
     def test_updateFromFile(self):
         # Create a test data file to insert, and verify no errors
@@ -501,14 +501,14 @@ class TestDBUtil(DBTestCase):
         # Negative test case
         results = DBUtil.execute( self.DATA_QUERY );
         self.assertNotEqual( self.DATA_ROWS, results );
-        
+
         # Now do the actual update from the file
         DBUtil.updateFromFile( self.DATA_FILE, self.DATA_TABLE, self.COL_NAMES, delim="\t" );
-        
+
         results = DBUtil.execute( self.DATA_QUERY );
         self.assertEqual( self.DATA_ROWS, results );
-        
-        
+
+
     def test_updateFromFile_commandline(self):
         # Similar to test_updateFromFile, but from higher-level command-line interface
         DBUtil.runDBScript( self.SCRIPT_FILE, False ) # Assume this works based on test_runDBScript method
@@ -520,7 +520,7 @@ class TestDBUtil(DBTestCase):
         # Negative test case
         results = DBUtil.execute( self.DATA_QUERY );
         self.assertNotEqual( self.DATA_ROWS, results );
-        
+
         # Now do the actual update from the file, but build in column names to data file
         dataFileWithCols = StringIO();
         dataFileWithCols.write(self.DATA_COLS);
@@ -531,7 +531,7 @@ class TestDBUtil(DBTestCase):
         argv = ["DBUtil.py","-u-","-t"+self.DATA_TABLE,"-d\\t"]
         DBUtil.main(argv)
 
-        # Verify positive results        
+        # Verify positive results
         results = DBUtil.execute( self.DATA_QUERY );
         self.assertEqual( self.DATA_ROWS, results );
 
@@ -555,13 +555,13 @@ class TestDBUtil(DBTestCase):
         # Negative test case
         results = DBUtil.execute( self.DATA_QUERY );
         self.assertNotEqual( self.DATA_ROWS, results );
-        
+
         # Now do the actual update from the file, but with an extra parameter specifying 2 key columns
         sys.stdin = dataFileWithCols;
         argv = ["DBUtil.py","-u-","-t"+self.DATA_TABLE,"-n2"]
         DBUtil.main(argv)
 
-        # Verify positive results        
+        # Verify positive results
         results = DBUtil.execute( self.DATA_QUERY );
         self.assertEqual( self.DATA_ROWS, results );
 
@@ -578,11 +578,11 @@ class TestDBUtil(DBTestCase):
         query = "select %s from TestTypes;" % str.join(",",cols);
 
         results = DBUtil.execute( query, includeColumnNames=True, incTypeCodes=True );
-        
+
         self.assertEqual( cols, results[0] );
         for verifyCode, typeCode in zip(types, results[1]):
             print verifyCode, typeCode
-        
+
             #self.assertEqual( verifyCode, typeCode );
 
 
@@ -603,18 +603,18 @@ class TestDBUtil(DBTestCase):
         initialCount = DBUtil.execute( query )[0][0];
         DBUtil.deleteRows("TestTypes", idValues);
         afterCount = DBUtil.execute( query )[0][0];
-        
+
         self.assertEqual( initialCount-len(idValues), afterCount );
 
         # Reinsert the test data to try deleting them by a non-default Id column
         idFile = StringIO()
         DBUtil.insertFile( self.DATA_FILE, tableName, columnNames, None, idFile )
-        
+
         nonDefaultIds = [100,200];
         initialCount = DBUtil.execute( query )[0][0];
         DBUtil.deleteRows("TestTypes", nonDefaultIds, "MyInteger");
         afterCount = DBUtil.execute( query )[0][0];
-    
+
 
 def suite():
     """Returns the suite of tests to run for this test class / module.
@@ -628,6 +628,8 @@ def suite():
     #suite.addTest(TestDBUtil('test_deleteRows'));
     suite.addTest(unittest.makeSuite(TestDBUtil));
     return suite;
-    
+
 if __name__=="__main__":
+    log.setLevel(LOGGER_LEVEL)
+
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

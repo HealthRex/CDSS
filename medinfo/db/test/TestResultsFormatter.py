@@ -7,7 +7,7 @@ import unittest
 
 from datetime import datetime;
 
-from Const import RUNNER_VERBOSITY;
+from Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
 from Util import log;
 
 from Util import DBTestCase;
@@ -20,15 +20,15 @@ class TestResultsFormatter(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
-        
+
     def tearDown(self):
         """Restore state from any setUp or test steps"""
         DBTestCase.tearDown(self);
 
     def test_TabDictReader(self):
         """Verify expected results when reading from different delimited file examples,
-        particularly cases of messed up quoting or internal delimiter characters.
-        """
+        particularly cases of messed up quoting or internal delimiter characters."""
+        
         inFileStr = \
             """# Test comment line
             order_proc_id,"pat_id",pat_enc_csn_id,ordering_date,"order_type",proc_id,"proc_code","description","display_name","cpt_code","proc_cat_name","order_class","authrzing_prov_id","abnormal_yn","lab_status","order_status",quantity,"future_or_stand",standing_exp_date,standing_occurs,stand_orig_occur,"radiology_status",proc_bgn_time,proc_end_time,order_inst,"stand_interval","discrete_interval",instantiated_time,order_time,result_time,proc_start_time,problem_list_id,proc_ending_time,chng_order_proc_id,last_stand_perf_dt,last_stand_perf_tm,parent_ce_order_id,"ordering_mode"
@@ -82,6 +82,8 @@ def suite():
     #suite.addTest(TestResultsFormatter('test_deleteRows'));
     suite.addTest(unittest.makeSuite(TestResultsFormatter));
     return suite;
-    
+
 if __name__=="__main__":
+    log.setLevel(LOGGER_LEVEL)
+
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

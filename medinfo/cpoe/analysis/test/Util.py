@@ -14,8 +14,8 @@ from medinfo.analysis.test.Util import BaseTestAnalysis;
 import medinfo.cpoe.analysis.Util;
 
 
-log = logging.getLogger(Const.APPLICATION_NAME)
-log.setLevel(Const.LOGGER_LEVEL)
+log = logging.getLogger("CDSS")
+# log.setLevel(Const.LOGGER_LEVEL)
 
 handler = logging.StreamHandler(sys.stderr)
 formatter = logging.Formatter(Const.LOGGER_FORMAT)
@@ -24,11 +24,10 @@ handler.setFormatter(formatter)
 log.addHandler(handler)
 
 # Suppress uninteresting application output
-medinfo.cpoe.analysis.Util.log.setLevel(Const.APP_LOGGER_LEVEL) 
+medinfo.cpoe.analysis.Util.log.setLevel(Const.APP_LOGGER_LEVEL)
 
 
 class BaseCPOETestAnalysis(BaseTestAnalysis):
 
     def nofunction(self):
         pass;
-        

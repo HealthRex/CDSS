@@ -14,15 +14,19 @@ matrix = factory.getMatrixAsBaz()
 
 import csv
 import datetime
+import numpy as np
 import os
 import time
 
+from Const import SENTINEL_RESULT_VALUE
+from medinfo.common.Const import NULL_STRING
 from medinfo.cpoe.Const import SECONDS_PER_DAY, DELTA_NAME_BY_DAYS
 from medinfo.db import DBUtil
-from medinfo.db.Model import columnFromModelList, SQLQuery
+from medinfo.db.Model import columnFromModelList, SQLQuery, modelListFromTable
 from medinfo.db.ResultsFormatter import TabDictReader, TextResultsFormatter
 from psycopg2.extensions import cursor
 from Util import log
+import Util
 
 class FeatureMatrixFactory:
     FEATURE_MATRIX_COLUMN_NAMES = [
@@ -43,15 +47,18 @@ class FeatureMatrixFactory:
         self._patientListTempFileName = "fmf.patient_list.tsv"
         self._patientEpisodeTempFileName = "fmf.patient_episodes.tsv"
         self._patientItemTempFileNameFormat = "fmf.patient_%s.tsv"
+        self._patientTimeCycleTempFileNameFormat = "fmf.patient_%s_%s.tsv"
+        self._patientResultTempFileNameFormat = "fmf.patient_%s_%s_%s.tsv"
         self._matrixFileName = None
 
         # Look at lab results from the previous days
         LAB_PRE_TIME_DELTAS = [
-            timedelta(-1), timedelta(-3), timedelta(-7), timedelta(-30),
-            timedelta(-90)
+            datetime.timedelta(-1), datetime.timedelta(-3),
+            datetime.timedelta(-7), datetime.timedelta(-30),
+            datetime.timedelta(-90)
         ]
         # Don't look into the future, otherwise cheating the prediction
-        LAB_POST_TIME_DELTA = timedelta(+0)
+        LAB_POST_TIME_DELTA = datetime.timedelta(+0)
 
         self._featureTempFileNames = []
         if cacheDBResults:
@@ -108,12 +115,14 @@ class FeatureMatrixFactory:
         tsvFile.write("%s\n" % columns[numColumns - 1][0])
 
         # By default, cursor iterates through both header and data rows.
+        self._numRows = 0
         row = dbCursor.fetchone()
         while row is not None:
             for i in range(numColumns - 1):
                 tsvFile.write("%s\t" % row[i])
             tsvFile.write("%s\n" % row[numColumns - 1])
             row = dbCursor.fetchone()
+            self._numRows += 1
 
     def _processPatientListTsvFile(self):
         """
@@ -166,8 +175,6 @@ class FeatureMatrixFactory:
         elif isinstance(self.patientEpisodeInput, file):
             return self._processPatientEpisodeTsvFile()
 
-
-
     def _processPatientEpisodeDbCursor(self):
         """
         Convert self.patientEpisodeInput from DB cursor to TSV file.
@@ -192,7 +199,7 @@ class FeatureMatrixFactory:
         Return dictionary containing patientId : episodeTime : {} map.
         """
         patientEpisodeByIndexTimeById = {}
-        patientEpisodeIterator = getPatientEpisodeIterator()
+        patientEpisodeIterator = self.getPatientEpisodeIterator()
 
         for episode in patientEpisodeIterator:
             patientId = int(episode[self.patientEpisodeIdColumn])
@@ -200,31 +207,55 @@ class FeatureMatrixFactory:
 
             if patientId not in patientEpisodeByIndexTimeById:
                 patientEpisodeByIndexTimeById[patientId] = {episodeTime: {}}
-            else if episodeTime not in patientEpisodeByIndexTimeById[patientId]:
+            elif episodeTime not in patientEpisodeByIndexTimeById[patientId]:
                 patientEpisodeByIndexTimeById[patientId][episodeTime] = {}
 
         return patientEpisodeByIndexTimeById
 
-    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None):
+    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None, features=None):
         """
         Query patient_item for the clinical item orders and results for each
         patient, and aggregate by episode timestamp.
-
-
+        column: determines column in clinical_item to match clinicalItemNames.
+        operator: determines how to match clinicalItemNames against column.
+        label: sets the column prefix in the final feature matrix.
+        features: determines whether to include "pre", "post" or "all".
         """
         # Verify patient list and/or patient episode has been processed.
         if not self.patientsProcessed:
             raise ValueError("Must process patients before clinical item.")
 
-        clinicalItemEvents = self._queryClinicalItemsByName(clinicalItemNames)
+        clinicalItemEvents = self._queryClinicalItemsByName(clinicalItemNames, column=column, operator=operator)
         itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
 
         # Read clinical item features to temp file.
         patientEpisodes = self.getPatientEpisodeIterator()
         self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
-                                        clinicalItemNames, dayBins)
+                                        clinicalItemNames, dayBins, label=label, features=features)
 
-    def _queryClinicalItemsByName(self, clinicalItemNames):
+    def addClinicalItemFeaturesByCategory(self, categoryIds, label=None, dayBins=None, features=None):
+        """
+        Query patient_item for the clinical item orders and results for each
+        patient (based on clinical item category ID instead of item name), and
+        aggregate by episode timestamp.
+        features: determines whether to include "pre", "post" or "all".
+        """
+        # Verify patient list and/or patient episode has been processed.
+        if not self.patientsProcessed:
+            raise ValueError("Must process patients before clinical item.")
+
+        if label is None:
+            label = "-".join(categoryIds)
+
+        clinicalItemEvents = self._queryClinicalItemsByCategory(categoryIds)
+        itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
+
+        # Read clinical item features to temp file.
+        patientEpisodes = self.getPatientEpisodeIterator()
+        self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
+                                        categoryIds, dayBins, label=label, features=features)
+
+    def _queryClinicalItemsByName(self, clinicalItemNames, column=None, operator=None):
         """
         Query clinicalItemInput for all item times for all patients.
 
@@ -243,8 +274,10 @@ class FeatureMatrixFactory:
         if self.dbCache is not None and cacheKey in self.dbCache:
             clinicalItemIds = self.dbCache[cacheKey]
         else:
-            column = "name"
-            operator = "LIKE"
+            if column is None:
+                column = "name"
+            if operator is None:
+                operator = "LIKE"
 
             query = SQLQuery()
             query.addSelect("clinical_item_id")
@@ -255,6 +288,37 @@ class FeatureMatrixFactory:
                 nameClauses.append("%s %s %%s" % (column, operator))
                 query.params.append(itemName)
             query.addWhere(str.join(" or ", nameClauses))
+
+            results = DBUtil.execute(query)
+            clinicalItemIds = [row[0] for row in results]
+
+        if len(clinicalItemIds) == 0:
+            return list()
+
+        return self.queryClinicalItems(clinicalItemIds)
+
+    def _queryClinicalItemsByCategory(self, categoryIds):
+        """
+        Query for all patient items that match with the given clinical item
+        category ID.
+        """
+        # Identify which columns to pull from patient_item table.
+        self._patientItemIdColumn = "patient_id"
+        self._patientItemTimeColumn = "item_date"
+
+        clinicalItemIds = None
+
+        # If possible, return cached results.
+        cacheKey = str(categoryIds)
+        if self.dbCache is not None and cacheKey in self.dbCache:
+            clinicalItemIds = self.dbCache[cacheKey]
+        else:
+            column = "clinical_item_category_id"
+
+            query = SQLQuery()
+            query.addSelect("clinical_item_id")
+            query.addFrom("clinical_item")
+            query.addWhereIn(column, categoryIds)
 
             results = DBUtil.execute(query)
             clinicalItemIds = [row[0] for row in results]
@@ -293,23 +357,30 @@ class FeatureMatrixFactory:
         clinicalItemEvents = [row for row in results]
         return clinicalItemEvents
 
-    def _processClinicalItemEvents(self, patientEpisodes, itemTimesByPatientId, clinicalItemNames, dayBins):
+    def _processClinicalItemEvents(self, patientEpisodes, itemTimesByPatientId, clinicalItemNames, dayBins, label=None, features=None):
         """
         Convert temp file containing all (patient_item, item_date) pairs
         for a given set of clinical_item_ids into temp file containing
         patient_id, order_time, clinical_item.pre, clinical_item.post, etc.
+        features: determines whether to include "pre", "post" or "all".
         """
-        if len(clinicalItemNames) > 1:
-            itemLabel = "-".join([itemName for itemName in clinicalItemNames])
+        if label:
+            itemLabel = label
         else:
-            itemLabel = clinicalItemNames[0]
+            if len(clinicalItemNames) > 1:
+                itemLabel = "-".join([itemName for itemName in clinicalItemNames])
+            else:
+                itemLabel = clinicalItemNames[0]
         tempFileName = self._patientItemTempFileNameFormat % itemLabel
         tempFile = open(tempFileName, "w")
+
+        if features is None:
+            features = "all"
 
         # Determine time buckets for clinical item times.
         if dayBins is None:
             dayBins = DELTA_NAME_BY_DAYS.keys()
-            dayBins.sort();
+            dayBins.sort()
 
         # Find items most proximate before and after the index item per patient
         # Record timedelta separating nearest items found from index item
@@ -320,14 +391,21 @@ class FeatureMatrixFactory:
         postLabel = "%s.post" % itemLabel
 
         # Write header fields to tempFile.
-        tempFile.write("patient_id\tepisode_time\t")
-        tempFile.write("%s\t" % preTimeDaysLabel)
-        tempFile.write("%s\t" % preLabel)
-        tempFile.write("\t".join("%s.%dd" % (preLabel, dayBin) for dayBin in dayBins))
-        tempFile.write("\t")
-        tempFile.write("%s\t" % postTimeDaysLabel)
-        tempFile.write("%s\t" % postLabel)
-        tempFile.write("\t".join("%s.%dd" % (postLabel, dayBin) for dayBin in dayBins))
+        tempFile.write("patient_id\tepisode_time")
+        # Include counts for events before episode_time.
+        if features != "post":
+            tempFile.write("\t%s" % preTimeDaysLabel)
+            tempFile.write("\t%s" % preLabel)
+            if len(dayBins) > 0:
+                tempFile.write("\t")
+                tempFile.write("\t".join("%s.%dd" % (preLabel, dayBin) for dayBin in dayBins))
+        # Include counts for events after episode_time.
+        if features != "pre":
+            tempFile.write("\t%s" % postTimeDaysLabel)
+            tempFile.write("\t%s" % postLabel)
+            if len(dayBins) > 0:
+                tempFile.write("\t")
+                tempFile.write("\t".join("%s.%dd" % (postLabel, dayBin) for dayBin in dayBins))
         tempFile.write("\n")
 
         # Write patient episode data to tempFile.
@@ -354,6 +432,11 @@ class FeatureMatrixFactory:
                 itemTimes = itemTimesByPatientId[patientId]
                 if itemTimes is not None:
                     for itemTime in itemTimes:
+                        # Need this extra check because if a given event
+                        # has not occurred yet, but will occur, itemTime will
+                        # be none while itemTimes is not None.
+                        if itemTime is None:
+                            continue
                         timeDiffSeconds = (itemTime - episodeTime).total_seconds()
                         timeDiffDays = timeDiffSeconds / SECONDS_PER_DAY
                         # If event occurred before index time...
@@ -364,7 +447,7 @@ class FeatureMatrixFactory:
                                 # Found more recent item event
                                 episodeData[preTimeDaysLabel] = timeDiffDays
                             episodeData[preLabel] += 1
-                            for dayBin in daysBins:
+                            for dayBin in dayBins:
                                 if abs(timeDiffDays) <= dayBin:
                                     episodeData["%s.%dd" % (preLabel, dayBin)] += 1
                         # Event occurred after index time...
@@ -380,40 +463,54 @@ class FeatureMatrixFactory:
                                     episodeData["%s.%dd" % (postLabel, dayBin)] += 1
 
             # Write data to tempFile.
-            tempFile.write("%s\t%s\t" % (patientId, episodeTime))
-            tempFile.write("%s\t" % episodeData[preTimeDaysLabel])
-            tempFile.write("%s\t" % episodeData[preLabel])
-            tempFile.write("\t".join([str(episodeData["%s.%dd" % (preLabel, dayBin)]) for dayBin in dayBins]))
-            tempFile.write("\t")
-            tempFile.write("%s\t" % episodeData[postTimeDaysLabel])
-            tempFile.write("%s\t" % episodeData[postLabel])
-            tempFile.write("\t".join([str(episodeData["%s.%dd" % (postLabel, dayBin)]) for dayBin in dayBins]))
+            tempFile.write("%s\t%s" % (patientId, episodeTime))
+            # Include counts for events before episode_time.
+            if features != "post":
+                tempFile.write("\t%s" % episodeData[preTimeDaysLabel])
+                tempFile.write("\t%s" % episodeData[preLabel])
+                if len(dayBins) > 0:
+                    tempFile.write("\t")
+                    tempFile.write("\t".join([str(episodeData["%s.%dd" % (preLabel, dayBin)]) for dayBin in dayBins]))
+            # Include counts for events after episode_time.
+            if features != "pre":
+                tempFile.write("\t%s" % episodeData[postTimeDaysLabel])
+                tempFile.write("\t%s" % episodeData[postLabel])
+                if len(dayBins) > 0:
+                    tempFile.write("\t")
+                    tempFile.write("\t".join([str(episodeData["%s.%dd" % (postLabel, dayBin)]) for dayBin in dayBins]))
             tempFile.write("\n")
 
         tempFile.close()
         # Add tempFileName to list of feature temp files.
         self._featureTempFileNames.append(tempFileName)
 
-    def addLabResultFeatures(self, labBaseNames):
+    def addLabResultFeatures(self, labNames, labIsPanel = True, preTimeDelta = None, postTimeDelta = None):
         """
         Query stride_order_proc and stride_order_results for the lab orders and
         results for each patient, and aggregate by episode timestamp.
+        Set labIsPanel = False to signify that the labNames are components,
+        rather than panels.
         """
         # Verify patient list and/or patient episode has been processed.
         if not self.patientsProcessed:
             raise ValueError("Must process patients before lab result.")
 
-        labResults = self._queryLabResultsByName(labBaseNames)
+        # Open temp file.
+        if len(labNames) > 1:
+            resultLabel = "-".join([labName for labName in labNames])[:64]
+        else:
+            resultLabel = labNames[0]
+
+        # Hack to account for fact that Windows filenames can't include ':'.
+        tempFileName = self._patientResultTempFileNameFormat % (resultLabel, str(preTimeDelta.days), str(postTimeDelta.days))
+        tempFile = open(tempFileName, "w")
+
+        # Query lab results for the individuals of interest.
+        labResults = self._queryLabResultsByName(labNames, labIsPanel)
         resultsByNameByPatientId = self._parseResultsData(labResults, "pat_id",
             "base_name", "ord_num_value", "result_time")
 
-        # Read lab result features to temp file.
-        patientEpisodeByIndexTimeById = self._getPatientEpisodeByIndexTimeById()
-        self._processResultEvents(patientEpisodeByIndexTimeById,
-                                    resultsByNameByPatientId,
-                                    labBaseNames, valueCol, datetimeCol,
-                                    preTimeDelta, postTimeDelta)
-        patientEpisodes = self.getPatientEpisodeIterator()
+        # Define how far in advance of each episode to look at lab results.
         preTimeDays = None
         if preTimeDelta is not None:
             preTimeDays = preTimeDelta.days
@@ -421,22 +518,148 @@ class FeatureMatrixFactory:
         if postTimeDelta is not None:
             postTimeDays = postTimeDelta.days
 
-        for episode in patientEpisodes:
-            patientId = episode[self.patientEpisodeIdColumn]
-            indexTime = episode[self.patientEpisodeTimeColumn]
-            columnNames = self.colsFromBaseNames(baseNames, preTimeDays, postTimeDays)
+        # Add summary features to patient-time instances.
+        patientEpisodeByIndexTimeById = self._getPatientEpisodeByIndexTimeById()
+        self._processResultEvents(patientEpisodeByIndexTimeById,
+                                    resultsByNameByPatientId,
+                                    labNames,
+                                    "ord_num_value",
+                                    "result_time",
+                                    preTimeDelta,
+                                    postTimeDelta)
 
-        # TODO(sbala): Complete implementation based on addResultFeatures
+        # Write column headers to temp file.
+        tempFile.write("%s\t%s\t" % (self.patientEpisodeIdColumn, self.patientEpisodeTimeColumn))
+        columnNames = self.colsFromBaseNames(labNames, preTimeDays, postTimeDays)
+        tempFile.write("\t".join(columnNames))
+        tempFile.write("\n")
+
+        #Write actual patient episode data to temp file.
+        patientEpisodes = self.getPatientEpisodeIterator()
+        for episode in patientEpisodes:
+            patientId = int(episode[self.patientEpisodeIdColumn])
+            indexTime = DBUtil.parseDateValue(episode[self.patientEpisodeTimeColumn])
+            episodeLabData = patientEpisodeByIndexTimeById[patientId][indexTime]
+            tempFile.write("%s\t%s\t" % (patientId, indexTime))
+            # Need to generate columnNames again because colsFromBaseNames
+            # returns generator, which can only be read once.
+            columnNames = self.colsFromBaseNames(labNames, preTimeDays, postTimeDays)
+            tempFile.write("\t".join(str(episodeLabData[columnName]) for columnName in columnNames))
+            tempFile.write("\n")
+
+        tempFile.close()
+        # Add tempFileName to list of feature temp files.
+        self._featureTempFileNames.append(tempFileName)
+
+        return
+
+    def addFlowsheetFeatures(self, flowsheetBaseNames, preTimeDelta = None, postTimeDelta = None):
+        """
+        Query stride_flowsheet for each patient, and aggregate by episode.
+        """
+        # Verify patient list and/or patient episode has been processed.
+        if not self.patientsProcessed:
+            raise ValueError("Must process patients before lab result.")
+
+        # Open temp file.
+        if len(flowsheetBaseNames) > 1:
+            resultLabel = "-".join([baseName for baseName in flowsheetBaseNames])
+        else:
+            resultLabel = flowsheetBaseNames[0]
+        # Hack to account for fact that Windows filenames can't include ':'.
+        tempFileName = self._patientResultTempFileNameFormat % (resultLabel, str(preTimeDelta.days), str(postTimeDelta.days))
+        tempFile = open(tempFileName, "w")
+
+        # Query flowsheet results.
+        flowsheetResults = self._queryFlowsheetResultsByName(flowsheetBaseNames)
+        resultsByNameByPatientId = self._parseResultsData(flowsheetResults, \
+            "pat_id", "flowsheet_name", "flowsheet_value", \
+            "shifted_record_dt_tm")
+
+        # Define how far in advance of each episode to look at lab results.
+        preTimeDays = None
+        if preTimeDelta is not None:
+            preTimeDays = preTimeDelta.days
+        postTimeDays = None
+        if postTimeDelta is not None:
+            postTimeDays = postTimeDelta.days
+
+        # Add summary features to patient-time instances.
+        patientEpisodeByIndexTimeById = self._getPatientEpisodeByIndexTimeById()
+        self._processResultEvents(patientEpisodeByIndexTimeById,
+                                    resultsByNameByPatientId,
+                                    flowsheetBaseNames,
+                                    "flowsheet_value",
+                                    "shifted_record_dt_tm",
+                                    preTimeDelta,
+                                    postTimeDelta)
+
+        # Write column headers to temp file.
+        tempFile.write("%s\t%s\t" % (self.patientEpisodeIdColumn, self.patientEpisodeTimeColumn))
+        columnNames = self.colsFromBaseNames(flowsheetBaseNames, preTimeDays, postTimeDays)
+        tempFile.write("\t".join(columnNames))
+        tempFile.write("\n")
+
+        #Write actual patient episode data to temp file.
+        patientEpisodes = self.getPatientEpisodeIterator()
+        for episode in patientEpisodes:
+            patientId = int(episode[self.patientEpisodeIdColumn])
+            indexTime = DBUtil.parseDateValue(episode[self.patientEpisodeTimeColumn])
+            episodeLabData = patientEpisodeByIndexTimeById[patientId][indexTime]
+            tempFile.write("%s\t%s\t" % (patientId, indexTime))
+            # Need to generate columnNames again because colsFromBaseNames
+            # returns generator, which can only be read once.
+            columnNames = self.colsFromBaseNames(flowsheetBaseNames, preTimeDays, postTimeDays)
+            tempFile.write("\t".join(str(episodeLabData[columnName]) for columnName in columnNames))
+            tempFile.write("\n")
+
+        tempFile.close()
+        # Add tempFileName to list of feature temp files.
+        self._featureTempFileNames.append(tempFileName)
+
+        return
+
+    def _queryFlowsheetResultsByName(self, flowsheetBaseNames):
+        """
+        Query stride_flowsheet for each patient.
+        """
+        # Verify patient list and/or patient episode has been processed.
+        if not self.patientsProcessed:
+            raise ValueError("Must process patients before lab results.")
+
+        # Identify which patients to query.
+        patientIds = set()
+        patientEpisodes = self.getPatientEpisodeIterator()
+        for episode in patientEpisodes:
+            patientIds.add(episode[self.patientEpisodeIdColumn])
+
+        # Build SQL query.
+        colNames = ["pat_anon_id AS pat_id", "flo_meas_id", "flowsheet_name", \
+            "flowsheet_value", "shifted_record_dt_tm"]
+        query = SQLQuery()
+        for col in colNames:
+            query.addSelect(col)
+        query.addFrom("stride_flowsheet")
+        query.addWhereIn("flowsheet_name", flowsheetBaseNames)
+        query.addWhereIn("pat_anon_id", patientIds)
+        query.addOrderBy("pat_anon_id")
+        query.addOrderBy("shifted_record_dt_tm")
+
+        # Execute query.
+        return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
 
     def colsFromBaseNames(self, baseNames, preTimeDays, postTimeDays):
         """Enumerate derived column/feature names given a set of (lab) result base names"""
-        suffixes = ["count","countInRange","min","max","median","mean","std","first","last","diff","slope","proximate","firstTimeDays","lastTimeDays","proximateTimeDays"];
+        suffixes = ["count","countInRange","min","max","median","mean","std","first","last","diff","slope","proximate","firstTimeDays","lastTimeDays","proximateTimeDays"]
+        colNames = list()
         for baseName in baseNames:
             for suffix in suffixes:
                 colName = "%s.%s_%s.%s" % (baseName, preTimeDays, postTimeDays, suffix)
-                yield colName
+                colNames.extend([colName])
 
-    def _processResultEvents(patientEpisodeByIndexTimeById, resultsByNameByPatientId, resultNames):
+        return colNames
+
+    def _processResultEvents(self, patientEpisodeByIndexTimeById, resultsByNameByPatientId, resultNames, valueCol, datetimeCol, preTimeDelta, postTimeDelta):
         """
         Add on summary features to the patient-time instances.
         With respect to each index time, look for results within
@@ -450,34 +673,26 @@ class FeatureMatrixFactory:
 
         Store results in a temp file.
         """
-        if len(resultNames) > 1:
-            resultLabel = "-".join([resultName for resultName in resultNames])
-        else:
-            resultLabel = resultNames[0]
-        tempFileName = self._patientItemTempFileNameFormat % resultLabel
-        tempFile = open(tempFileName, "w")
-
         # Use results generator as outer loop as will not be able to random
         # access the contents.
-        for patientId, resultsByName in patientIdResultsByNameGenerator:
+        for patientId, resultsByName in resultsByNameByPatientId.iteritems():
             # Skip results if not in our list of patients of interest
             if patientId in patientEpisodeByIndexTimeById:
                 patientEpisodeByIndexTime = patientEpisodeByIndexTimeById[patientId]
                 resultsByName = resultsByNameByPatientId[patientId]
-                self._addResultFeatures_singleEpisode(patientEpisodeByIndexTime, \
-                    resultsByName, baseNames, valueCol, datetimeCol, preTimeDelta, \
+                self._addResultFeatures_singlePatient(patientEpisodeByIndexTime, \
+                    resultsByName, resultNames, valueCol, datetimeCol, preTimeDelta, \
                     postTimeDelta)
 
         # Separate loop to verify all patient records addressed, even if no
         # results available (like an outer join).
         resultsByName = None
         for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.iteritems():
-            self._addResultFeatures_singleEpisode(patientEpisodeByIndexTime, \
-                resultsByName, baseNames, valueCol, datetimeCol, preTimeDelta, \
+            self._addResultFeatures_singlePatient(patientEpisodeByIndexTime, \
+                resultsByName, resultNames, valueCol, datetimeCol, preTimeDelta, \
                 postTimeDelta)
 
-
-    def _addResultFeatures_singleEpisode(self, patientEpisodeByIndexTime, resultsByName, baseNames, valueCol, datetimeCol, preTimeDelta, postTimeDelta):
+    def _addResultFeatures_singlePatient(self, patientEpisodeByIndexTime, resultsByName, baseNames, valueCol, datetimeCol, preTimeDelta, postTimeDelta):
         """
         Add summary features to the patient-time instances.
         With respect to each index time, look for results within
@@ -491,7 +706,7 @@ class FeatureMatrixFactory:
         """
         preTimeDays = None
         if preTimeDelta is not None:
-            preTimeDays = pretimeDelta.days
+            preTimeDays = preTimeDelta.days
         postTimeDays = None
         if postTimeDelta is not None:
             postTimeDays = postTimeDelta.days
@@ -521,59 +736,64 @@ class FeatureMatrixFactory:
         if resultsByName is not None:
             for indexTime, patient in patientEpisodeByIndexTime.iteritems():
                 # Time range limits on labs to consider
+                preTimeLimit = None;
+                postTimeLimit = None;
+
+                # Time range limits on labs to consider
                 if preTimeDelta is not None:
                     preTimeLimit = indexTime + preTimeDelta
                 if postTimeDelta is not None:
                     postTimeLimit = indexTime + postTimeDelta
 
-            for baseName in baseNames:
-                proximateValue = None
-                # Not all patients will have all labs checked
-                if resultsByName is not None and basename in resultsByName:
-                    firstItem = None
-                    lastItem = None
-                    # Item closest to the index time in time
-                    proximateItem = None
-                    filteredResults = list()
-                    for result in resultsByName[baseName]:
-                        resultTime = result[datetimeCol]
-                        if (preTimeLimit is None or preTimeLimit <= resultTime) \
-                            and (postTimeLimit is None or resultTime < postTimeLimit):
-                            # Occurs within timeframe of interest, so record valueCol
-                            filteredResults.append(result)
+                for baseName in baseNames:
+                    proximateValue = None
+                    # Not all patients will have all labs checked
+                    if resultsByName is not None and baseName in resultsByName:
+                        firstItem = None
+                        lastItem = None
+                        # Item closest to the index time in time
+                        proximateItem = None
+                        filteredResults = list()
+                        for result in resultsByName[baseName]:
+                            resultTime = result[datetimeCol]
+                            if resultTime is not None:
+                                if (preTimeLimit is None or preTimeLimit <= resultTime) \
+                                   and (postTimeLimit is None or resultTime < postTimeLimit):
+                                    # Occurs within timeframe of interest, so record valueCol
+                                    filteredResults.append(result)
 
-                            if firstItem is None or resultTime < firstItem[datetimeCol]:
-                                firstItem = result
-                            if lastItem is None or lastItem[datetimeCol] < resultTime:
-                                lastTime = result
-                            if proximateItem is None or (abs(result - indexTime) < abs(proximateItem[datetimeCol] - indexTime)):
-                                proximateItem = result
+                                    if firstItem is None or resultTime < firstItem[datetimeCol]:
+                                        firstItem = result
+                                    if lastItem is None or lastItem[datetimeCol] < resultTime:
+                                        lastItem = result
+                                    if proximateItem is None or (abs(resultTime - indexTime) < abs(proximateItem[datetimeCol] - indexTime)):
+                                        proximateItem = result
 
-                    if len(filteredResults) > 0:
-                        # Count up number of values specifically labeled "in range"
-                        valueList = columnFromModelList(filteredResults, valueCol)
-                        patient["%s.%s_%s.count" % (baseName,preTimeDays,postTimeDays)] = len(valueList);
-                        patient["%s.%s_%s.countInRange" % (baseName,preTimeDays,postTimeDays)] = self.countResultsInRange(filteredResults);
-                        patient["%s.%s_%s.min" % (baseName,preTimeDays,postTimeDays)] = np.min(valueList);
-                        patient["%s.%s_%s.max" % (baseName,preTimeDays,postTimeDays)] = np.max(valueList);
-                        patient["%s.%s_%s.median" % (baseName,preTimeDays,postTimeDays)] = np.median(valueList);
-                        patient["%s.%s_%s.mean" % (baseName,preTimeDays,postTimeDays)] = np.mean(valueList);
-                        patient["%s.%s_%s.std" % (baseName,preTimeDays,postTimeDays)] = np.std(valueList);
-                        patient["%s.%s_%s.first" % (baseName,preTimeDays,postTimeDays)] = firstItem[valueCol];
-                        patient["%s.%s_%s.last" % (baseName,preTimeDays,postTimeDays)] = lastItem[valueCol];
-                        patient["%s.%s_%s.diff" % (baseName,preTimeDays,postTimeDays)] = lastItem[valueCol] - firstItem[valueCol];
-                        patient["%s.%s_%s.slope" % (baseName,preTimeDays,postTimeDays)] = 0.0;
-                        timeDiffDays = ((lastItem[datetimeCol]-firstItem[datetimeCol]).total_seconds() / SECONDS_PER_DAY);
-                        if timeDiffDays > 0.0:
-                            patient["%s.%s_%s.slope" % (baseName,preTimeDays,postTimeDays)] = (lastItem[valueCol]-firstItem[valueCol]) / timeDiffDays;
-                        patient["%s.%s_%s.proximate" % (baseName,preTimeDays,postTimeDays)] = proximateItem[valueCol];
-                        patient["%s.%s_%s.firstTimeDays" % (baseName,preTimeDays,postTimeDays)] = (firstItem[datetimeCol]-indexTime).total_seconds() / SECONDS_PER_DAY;
-                        patient["%s.%s_%s.lastTimeDays" % (baseName,preTimeDays,postTimeDays)] = (lastItem[datetimeCol]-indexTime).total_seconds() / SECONDS_PER_DAY;
-                        patient["%s.%s_%s.proximateTimeDays" % (baseName,preTimeDays,postTimeDays)] = (proximateItem[datetimeCol]-indexTime).total_seconds() / SECONDS_PER_DAY;
+                        if len(filteredResults) > 0:
+                            # Count up number of values specifically labeled "in range"
+                            valueList = columnFromModelList(filteredResults, valueCol)
+                            patient["%s.%s_%s.count" % (baseName,preTimeDays,postTimeDays)] = len(valueList);
+                            patient["%s.%s_%s.countInRange" % (baseName,preTimeDays,postTimeDays)] = self._countResultsInRange(filteredResults);
+                            patient["%s.%s_%s.min" % (baseName,preTimeDays,postTimeDays)] = np.min(valueList);
+                            patient["%s.%s_%s.max" % (baseName,preTimeDays,postTimeDays)] = np.max(valueList);
+                            patient["%s.%s_%s.median" % (baseName,preTimeDays,postTimeDays)] = np.median(valueList);
+                            patient["%s.%s_%s.mean" % (baseName,preTimeDays,postTimeDays)] = np.mean(valueList);
+                            patient["%s.%s_%s.std" % (baseName,preTimeDays,postTimeDays)] = np.std(valueList);
+                            patient["%s.%s_%s.first" % (baseName,preTimeDays,postTimeDays)] = firstItem[valueCol];
+                            patient["%s.%s_%s.last" % (baseName,preTimeDays,postTimeDays)] = lastItem[valueCol];
+                            patient["%s.%s_%s.diff" % (baseName,preTimeDays,postTimeDays)] = lastItem[valueCol] - firstItem[valueCol];
+                            patient["%s.%s_%s.slope" % (baseName,preTimeDays,postTimeDays)] = 0.0;
+                            timeDiffDays = ((lastItem[datetimeCol]-firstItem[datetimeCol]).total_seconds() / SECONDS_PER_DAY);
+                            if timeDiffDays > 0.0:
+                                patient["%s.%s_%s.slope" % (baseName,preTimeDays,postTimeDays)] = (lastItem[valueCol]-firstItem[valueCol]) / timeDiffDays;
+                            patient["%s.%s_%s.proximate" % (baseName,preTimeDays,postTimeDays)] = proximateItem[valueCol];
+                            patient["%s.%s_%s.firstTimeDays" % (baseName,preTimeDays,postTimeDays)] = (firstItem[datetimeCol]-indexTime).total_seconds() / SECONDS_PER_DAY;
+                            patient["%s.%s_%s.lastTimeDays" % (baseName,preTimeDays,postTimeDays)] = (lastItem[datetimeCol]-indexTime).total_seconds() / SECONDS_PER_DAY;
+                            patient["%s.%s_%s.proximateTimeDays" % (baseName,preTimeDays,postTimeDays)] = (proximateItem[datetimeCol]-indexTime).total_seconds() / SECONDS_PER_DAY;
 
         return
 
-    def _queryLabResultsByName(self, labBaseNames):
+    def _queryLabResultsByName(self, labNames, isLabPanel = True):
         """
         Query for all lab results that match with the given result base names.
         """
@@ -601,13 +821,17 @@ class FeatureMatrixFactory:
             query.addSelect(column)
         query.addFrom("stride_order_results AS sor, stride_order_proc AS sop")
         query.addWhere("sor.order_proc_id = sop.order_proc_id")
-        query.addWhereIn("base_name", labBaseNames)
+        if isLabPanel:
+            labProcCodes = labNames
+            query.addWhereIn("proc_code", labProcCodes)
+        else:
+            labBaseNames = labNames
+            query.addWhereIn("base_name", labBaseNames)
         query.addWhereIn("pat_id", patientIds)
         query.addOrderBy("pat_id")
         query.addOrderBy("sor.result_time")
 
-        results = DBUtil.execute(query)
-        return results
+        return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
 
     def _parseResultsData(self, resultRowIter, patientIdCol, nameCol, valueCol, datetimeCol):
         """
@@ -615,7 +839,7 @@ class FeatureMatrixFactory:
         patient ID for more consistent structure to parseClinicalItemData.
         """
         resultsByNameByPatientId = dict()
-        for (patientId, resultsByName) in self.parseResultsDataGenerator(resultRowIter, patientIdCol, nameCol, valueCol, datetimeCol)
+        for (patientId, resultsByName) in self._parseResultsDataGenerator(resultRowIter, patientIdCol, nameCol, valueCol, datetimeCol):
             resultsByNameByPatientId[patientId] = resultsByName
         return resultsByNameByPatientId
 
@@ -637,7 +861,7 @@ class FeatureMatrixFactory:
 
                 # Skip apparent placeholder values
                 if resultValue < SENTINEL_RESULT_VALUE:
-                    result[patientIdCol] = result["patient_id"] = patientIdCol
+                    result[patientIdCol] = patientId
                     result[valueCol] = resultValue
                     result[datetimeCol] = resultTime
 
@@ -655,6 +879,17 @@ class FeatureMatrixFactory:
         # Yield last result
         if lastPatientId is not None:
             yield (lastPatientId, resultsByName)
+
+    def _countResultsInRange(self,resultList):
+        """
+        Return the number of result models in the given list that represent
+        "normal" "in range" values.
+        """
+        countInRange = 0
+        for result in resultList:
+            if "result_in_range_yn" in result and result["result_in_range_yn"] == "Y":
+                countInRange += 1
+        return countInRange
 
     def _getItemTimesByPatientId(self, clinicalItemEvents):
         """
@@ -699,13 +934,126 @@ class FeatureMatrixFactory:
         patientEpisodes = self._readPatientEpisodesFile()
         pass
 
-    def _queryClinicalItemInput():
-        pass
+    def addTimeCycleFeatures(self, timeCol, timeAttr):
+        """
+        Look for a datetime value in the patientEpisode identified by timeCol.
+        Add features to the patientEpisode based on the timeAttr string
+        ("month","day","hour","minute","second"), including the sine and cosine
+        of the timeAttr value relative to the maximum possible value to reflect
+        cyclical time patterns (e.g. seasonal patterns over months in a year,
+        or daily cycle patterns over hours in a day).
+        """
+        # Verify patient list and/or patient episode has been processed.
+        if not self.patientsProcessed:
+            raise ValueError("Must process patients before lab result.")
 
-    def _parseClinicalItems():
-        pass
+        # Open temp file.
+        self._patientTimeCycleTempFileNameFormat
+        tempFileName = self._patientTimeCycleTempFileNameFormat % (timeCol, timeAttr)
+        tempFile = open(tempFileName, "w")
 
-    def buildFeatureMatrix(self):
+        # Write header fields to tempFile.
+        tempFile.write("patient_id\tepisode_time\t")
+        tempFile.write("%s.%s\t" % (timeCol, timeAttr))
+        tempFile.write("%s.%s.sin\t" % (timeCol, timeAttr))
+        tempFile.write("%s.%s.cos\n" % (timeCol, timeAttr))
+
+        # Compute and write time cycle features.
+        patientEpisodes = self.getPatientEpisodeIterator()
+        for episode in patientEpisodes:
+            timeObj = DBUtil.parseDateValue(episode[timeCol])
+            # Use introspection (getattr) to extract some time feature from the
+            # time object, as well as the maximum and minimum possible values
+            # to set the cycle range.
+            maxValue = getattr(timeObj.max, timeAttr)
+            thisValue = getattr(timeObj, timeAttr)
+            minValue = getattr(timeObj.min, timeAttr)
+
+            radians = 2*np.pi * (thisValue-minValue) / (maxValue+1-minValue)
+
+            # Write values to tempFile.
+            tempFile.write("%s\t" % episode[self.patientEpisodeIdColumn])
+            tempFile.write("%s\t" % episode[self.patientEpisodeTimeColumn])
+            tempFile.write("%s\t" % thisValue)
+            tempFile.write("%s\t" % np.sin(radians))
+            tempFile.write("%s\n" % np.cos(radians))
+
+        # Close tempFile.
+        self._featureTempFileNames.append(tempFileName)
+        tempFile.close()
+
+    def loadMapData(self,filename):
+        """
+        Read the named file's contents through TabDictReader to enable data
+        extraction. If cannot find file by absolute filename, then look under
+        default mapdata directory.
+        """
+        try:
+            return TabDictReader(open(filename))
+        except IOError:
+            # Unable to open file directly. See if it's in the mapdata directory
+            appDir = os.path.dirname(Util.__file__)
+            defaultFilename = os.path.join(appDir, "mapdata", filename)
+            try:
+                return TabDictReader(open(defaultFilename))
+            except IOError:
+                # May need to add default extension as well
+                defaultFilename = defaultFilename + ".tab"
+                return TabDictReader(open(defaultFilename))
+
+    def addCharlsonComorbidityFeatures(self, features=None):
+        """
+        For each of a predefined set of comorbidity categories, add features
+        summarizing occurrence of the associated ICD9 problems.
+        """
+        # Extract ICD9 prefixes per disease category
+        icd9prefixesByDisease = dict()
+        for row in self.loadMapData("CharlsonComorbidity-ICD9CM"):
+            (disease, icd9prefix) = (row["charlson"], row["icd9cm"])
+            if disease not in icd9prefixesByDisease:
+                icd9prefixesByDisease[disease] = list()
+            icd9prefixesByDisease[disease].append("^ICD9." + icd9prefix)
+
+        for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
+            disease = disease.translate(None," ()-/") # Strip off punctuation
+            self.addClinicalItemFeatures(icd9prefixes, operator="~*", \
+                label="Comorbidity."+disease, features=features)
+
+    def addTreatmentTeamFeatures(self, features=None):
+        """
+        For each of a predefined set of specialty categories, add features
+        summarizing the makeup of the treatment team.
+        """
+        # Extract out lists of treatment team names per care category
+        teamNameByCategory = dict()
+        for row in self.loadMapData("TreatmentTeamGroups"):
+            (category, teamName) = (row["team_category"], row["treatment_team"])
+            if category not in teamNameByCategory:
+                teamNameByCategory[category] = list()
+            teamNameByCategory[category].append(teamName)
+
+        for category, teamNames in teamNameByCategory.iteritems():
+            self.addClinicalItemFeatures(teamNames, column="description", \
+                label="Team."+category, features=features)
+
+    def addSexFeatures(self):
+        SEX_FEATURES = ["Male", "Female"]
+        for feature in SEX_FEATURES:
+            self.addClinicalItemFeatures([feature], dayBins=[], \
+                features="pre")
+
+    def addRaceFeatures(self):
+        RACE_FEATURES = [
+            "RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
+            "RaceHispanicLatino", "RaceBlack", "RaceAsian",
+            "RacePacificIslander", "RaceNativeAmerican",
+            "RaceOther", "RaceUnknown"
+        ]
+        for feature in RACE_FEATURES:
+            self.addClinicalItemFeatures([feature], dayBins=[], \
+                features="pre")
+
+    def buildFeatureMatrix(self, header=None, matrixFileName=None):
         """
         Given a set of factory inputs, build a feature matrix which
         can then be output.
@@ -715,11 +1063,23 @@ class FeatureMatrixFactory:
             self._queryFooInput()
             self._parseFooInput()
         """
+        if header is None:
+            # file_name.tab
+            # Created: timestamp
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            header = [
+                '%s' % self._matrixFileName,
+                'Created: %s' % timestamp
+            ]
+
         # Initialize feature matrix file.
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M")
-        matrixFileName = "feature-matrix_%s.tab" % timestamp
-        matrixFile = open(matrixFileName, "w")
+        if matrixFileName is None:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+            matrixFileName = "feature-matrix_%s.tab" % timestamp
+            self._matrixFileName = matrixFileName
         self._matrixFileName = matrixFileName
+        matrixFile = open(self._matrixFileName, "w")
+
 
         # Read arbitrary number of input temp files.
         # Use csv tab reader so we can just read the lists while being agnostic
@@ -734,6 +1094,10 @@ class FeatureMatrixFactory:
             tempFileReader = csv.reader(tempFile, delimiter="\t")
             tempFiles.append(tempFile)
             tempFileReaders.append(tempFileReader)
+
+        # Write header to matrix file.
+        for line in header:
+            matrixFile.write('# %s\n' % line)
 
         # Write data to matrix file.
         for patientEpisode in patientEpisodeReader:
@@ -750,14 +1114,30 @@ class FeatureMatrixFactory:
             matrixFile.write("\t".join(matrixData))
             matrixFile.write("\n")
 
+        self.cleanTempFiles()
+
+    def cleanTempFiles(self):
         # Close temp files.
-        [tempFile.close() for tempFile in tempFiles]
+        try:
+            [tempFile.close() for tempFile in tempFiles]
+        except:
+            pass
         # Clean up temp files.
         for tempFileName in self._featureTempFileNames:
             try:
                 os.remove(tempFileName)
             except OSError:
                 pass
+        # Clean up patient_episode file.
+        try:
+            os.remove(self._patientEpisodeTempFileName)
+        except OSError:
+            pass
+        # Clean up patient_list file.
+        try:
+            os.remove(self._patientListTempFileName)
+        except OSError:
+            pass
 
     def _getMatrixIterator(self):
         return TabDictReader(open(self._matrixFileName, "r"))
@@ -768,3 +1148,9 @@ class FeatureMatrixFactory:
         featureMatrixData = [episode for episode in reader]
 
         return featureMatrixData
+
+    def getMatrixFileName(self):
+        return self._matrixFileName
+
+    def getNumRows(self):
+        return self._numRows

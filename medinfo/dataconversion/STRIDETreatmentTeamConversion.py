@@ -16,7 +16,7 @@ from Const import COLLECTION_TYPE_ORDERSET;
 from Env import DATE_FORMAT;
 
 SOURCE_TABLE = "stride_treatment_team";
-CATEGORY_TEMPLATE = "Treatment Team";    
+CATEGORY_TEMPLATE = "Treatment Team";
 KEY_PROVIDER_PREFIXES = ("TT ","CON "); # Name Prefixes indicating a special (team) provider
 
 TEAM_PREFIXES = ("Primary", "Consulting");
@@ -32,11 +32,11 @@ class STRIDETreatmentTeamConversion:
     """Data conversion module to take STRIDE data
     into the structured data analysis tables to facilitate subsequent analysis.
     """
-    
+
     def __init__(self):
         """Default constructor"""
         self.connFactory = DBUtil.ConnectionFactory();  # Default connection source, but Allow specification of alternative DB connection source
-    
+
         self.categoryBySourceDescr = dict();    # Local cache to track the clinical item category table contents
         self.clinicalItemByCompositeKey = dict(); # Local cache to track clinical item table contents
 
@@ -44,7 +44,7 @@ class STRIDETreatmentTeamConversion:
         """Primary run function to process the contents of the raw source
         table and convert them into equivalent patient_item, clinical_item, and clinical_item_category entries.
         Should look for redundancies after the fact to catch repeated conversions.
-        
+
         startDate - If provided, only return items whose ordering_date is on or after that date.
         endDate - If provided, only return items whose ordering_date is before that date.
         """
@@ -56,15 +56,15 @@ class STRIDETreatmentTeamConversion:
             for sourceItem in self.querySourceItems(convOptions, progress=progress, conn=conn):
                 self.convertSourceItem(sourceItem, conn=conn);
                 progress.Update();
-            
+
         finally:
             conn.close();
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
 
     def querySourceItems(self, convOptions, progress=None, conn=None):
-        """Query the database for list of all source clinical items (medications, etc.) 
-        and yield the results one at a time.  If startDate provided, only return items whose 
+        """Query the database for list of all source clinical items (medications, etc.)
+        and yield the results one at a time.  If startDate provided, only return items whose
         occurence date is on or after that date.
         """
         extConn = conn is not None;
@@ -73,7 +73,7 @@ class STRIDETreatmentTeamConversion:
 
         # Column headers to query for that map to respective fields in analysis table
         headers = ["stride_treatment_team_id","pat_id","pat_enc_csn_id","trtmnt_tm_begin_date","trtmnt_tm_end_date","treatment_team","prov_name"];
-        
+
         query = SQLQuery();
         for header in headers:
             query.addSelect( header );
@@ -137,7 +137,7 @@ class STRIDETreatmentTeamConversion:
         """Given an input name (e.g., treatment team or provider)
         Return a 2-ple (acronym, cleaned) with an acronym version
         and a cleaned up version (discard extra punctuation, phone/pager numbers, etc.)
-        If keyPrefixes specified, then only accept input names that start with one of them 
+        If keyPrefixes specified, then only accept input names that start with one of them
         (e.g., "TT" or "CON" for provider names, to only look at team names instead of named individuals.
         """
         isPrefixAcceptable = True;
@@ -146,11 +146,11 @@ class STRIDETreatmentTeamConversion:
             for keyPrefix in keyPrefixes:
                 if inputName is not None and inputName.startswith(keyPrefix):
                     isPrefixAcceptable = True;
-        
+
         # Default to blanks
         acronym = "";
         cleanedName = "";
-            
+
         if isPrefixAcceptable and inputName is not None:
             acronymList = list();
             wordList = list();
@@ -198,7 +198,7 @@ class STRIDETreatmentTeamConversion:
                 # Override specific provider names as generic primary team members
                 (acronym, cleanedName) = ("P","Primary");
 
-        return (acronym, cleanedName);        
+        return (acronym, cleanedName);
 
 
 
@@ -216,7 +216,7 @@ class STRIDETreatmentTeamConversion:
             category = self.categoryFromSourceItem(sourceItem, conn=conn);
             clinicalItem = self.clinicalItemFromSourceItem(sourceItem, category, conn=conn);
             patientItem = self.patientItemFromSourceItem(sourceItem, clinicalItem, conn=conn);
-            
+
         finally:
             if not extConn:
                 conn.close();
@@ -240,7 +240,7 @@ class STRIDETreatmentTeamConversion:
             category["clinical_item_category_id"] = categoryId;
             self.categoryBySourceDescr[categoryKey] = category;
         return self.categoryBySourceDescr[categoryKey];
-    
+
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
         clinicalItemKey = (category["clinical_item_category_id"], sourceItem["description"]);
@@ -258,7 +258,7 @@ class STRIDETreatmentTeamConversion:
             clinicalItem["clinical_item_id"] = clinicalItemId;
             self.clinicalItemByCompositeKey[clinicalItemKey] = clinicalItem;
         return self.clinicalItemByCompositeKey[clinicalItemKey];
-    
+
     def patientItemFromSourceItem(self, sourceItem, clinicalItem, conn):
         # Produce a patient_item record model for the given sourceItem
         patientItem = \
@@ -301,7 +301,7 @@ class STRIDETreatmentTeamConversion:
 
         convOptions = ConversionOptions();
         convOptions.extractParserOptions(options);
-        
+
         self.convertSourceItems(convOptions);
 
         timer = time.time() - timer;
@@ -324,9 +324,9 @@ class ConversionOptions:
             # Parse out the end date parameter
             timeTuple = time.strptime(options.endDate, DATE_FORMAT);
             self.endDate = datetime(*timeTuple[0:3]);
-        
+
         self.aggregate = options.aggregate;
-        
+
 if __name__ == "__main__":
     instance = STRIDETreatmentTeamConversion();
     instance.main(sys.argv);
