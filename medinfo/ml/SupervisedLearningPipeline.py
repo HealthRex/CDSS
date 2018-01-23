@@ -33,6 +33,8 @@ class SupervisedLearningPipeline:
         self._processed_matrix = None
         self._predictor = None
         self._eliminated_features = list()
+        self._removed_features = list()
+        self._added_features = list()
 
     def _build_raw_matrix_path(self, file_name_template, pipeline_module_file):
         # Build raw matrix file name.
@@ -45,20 +47,20 @@ class SupervisedLearningPipeline:
 
         return raw_matrix_path
 
-    def _build_matrix_path(self, file_name_template, pipeline_module_file):
+    def _build_matrix_path(self, file_name_template, pipeline_module_path):
         # Build matrix file name.
         slugified_var = '-'.join(self._var.split())
         matrix_name = file_name_template % (slugified_var, self._num_rows)
 
         # Build path.
-        data_dir = self._fetch_data_dir_path(pipeline_module_file)
+        data_dir = self._fetch_data_dir_path(pipeline_module_path)
         matrix_path = '/'.join([data_dir, matrix_name])
 
         return matrix_path
 
-    def _fetch_data_dir_path(self, pipeline_module_file):
+    def _fetch_data_dir_path(self, pipeline_module_path):
         # e.g. app_dir = CDSS/scripts/LabTestAnalysis/machine_learning
-        app_dir = os.path.dirname(os.path.abspath(pipeline_module_file))
+        app_dir = os.path.dirname(os.path.abspath(pipeline_module_path))
 
         # e.g. data_dir = CDSS/scripts/LabTestAnalysis/data
         parent_dir_list = app_dir.split('/')[:-1]
@@ -80,24 +82,24 @@ class SupervisedLearningPipeline:
             matrix = matrix_class(self._lab_panel, self._num_episodes)
             matrix.write_matrix(raw_matrix_path)
 
-    def _build_processed_feature_matrix(self, processed_matrix_path):
-        fm_io = FeatureMatrixIO()
-
-        # Write output to new matrix file.
-        train = self._y_train.join(self._X_train)
-        test = self._y_test.join(self._X_test)
-        processed_matrix = train.append(test)
-
-        header = self._build_processed_matrix_header()
-
-        fm_io.write_data_frame_to_file(processed_matrix, processed_matrix_path, header)
-
-
-    def _process_raw_feature_matrix(self, raw_matrix_path, processed_matrix_path, features_to_add, features_to_add, imputation_strategies):
-        # Note that the majority of the business logic should be kept in
-        # _add_features() and _remove_features(), which should be overridden
-        # by SubClasses.
-
+    def _build_processed_feature_matrix(self, params):
+        # params is a dict defining the details of how the raw feature matrix
+        # should be transformed into the processed matrix. Given the sequence
+        # of steps will be identical across all pipelines, sbala decided to
+        # pack all the variability into this dict. It's not ideal because the
+        # dict has 10+ values, but that seems better than forcing all pipelines
+        # to reproduce the logic of the processing steps.
+        # Principle: Minimize overridden function calls.
+        #   params['features_to_add'] = features_to_add
+        #   params['imputation_strategies'] = imputation_strategies
+        #   params['features_to_remove'] = features_to_remove
+        #   params['outcome_label'] = outcome_label
+        #   params['selection_problem'] = selection_problem
+        #   params['selection_algorithm'] = selection_algorithm
+        #   params['percent_features_to_select'] = percent_features_to_select
+        #   params['matrix_class'] = matrix_class
+        #   params['pipeline_file_path'] = pipeline_file_path
+        
         # If processed matrix exists, and the client has not requested to flush
         # the cache, just use the matrix that already exists and return.
         if os.path.exists(processed_matrix_path) and not self._flush_cache:
@@ -105,23 +107,41 @@ class SupervisedLearningPipeline:
         else:
             # Read raw matrix.
             fm_io = FeatureMatrixIO()
-            raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+            raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
 
-            # Add and remove features to processed matrix.
+            # Initialize FMT.
             fmt = FeatureMatrixTransform()
             fmt.set_input_matrix(raw_matrix)
-            self._add_features(fmt, features_to_add)
-            self._impute_data(fmt, raw_matrix, imputation_strategies, \
-                features_to_remove)
-            self._remove_features(fmt)
+
+            # Add features.
+            self._add_features(fmt, params['features_to_add'])
+            # Remove features.
+            self._remove_features(fmt, params['features_to_remove'])
+            # Impute data.
+            self._impute_data(fmt, raw_matrix, params['imputation_strategies'])
+            # Remove duplicate data.
             fmt.drop_duplicate_rows()
+
+            # Build interim matrix.
             processed_matrix = fmt.fetch_matrix()
 
             # Divide processed_matrix into training and test data.
             # This must happen before feature selection so that we don't
             # accidentally learn information from the test data.
-            self._train_test_split()
-            self._select_features()
+            self._train_test_split(processed_matrix, params['outcome_label'])
+            self._select_features(params['selection_problem'],
+                params['percent_features_to_select'],
+                params['selection_algorithm'])
+            train = self._y_train.join(self._X_train)
+            test = self._y_test.join(self._X_test)
+            processed_matrix = train.append(test)
+
+            # Write output to new matrix file.
+            # TODO(sbala): Pipe the necessary data into
+            # _build_processed_matrix_header, and modularize.
+            header = self._build_processed_matrix_header(params)
+            fm_io.write_data_frame_to_file(processed_matrix, \
+                params['processed_matrix_path'], header)
 
     def _add_features(self, fmt, features_to_add):
         # Expected format for features_to_add:
@@ -138,31 +158,34 @@ class SupervisedLearningPipeline:
             for feature in indicator_features:
                 base_feature = feature.get('base_feature')
                 boolean_indicator = feature.get('boolean_indicator')
-                fmt.add_indicator_feature(base_feature, boolean_indicator)
+                added_feature = fmt.add_indicator_feature(base_feature, boolean_indicator)
+                self._added_features.append(added_feature)
 
         if threshold_features:
             for feature in threshold_features:
                 base_feature = feature.get('base_feature')
                 lower_bound= feature.get('lower_bound')
                 upper_bound = feature.get('upper_bound')
-                fmt.add_threshold_feature(base_feature, lower_bound, upper_bound)
+                added_feature = fmt.add_threshold_feature(base_feature, lower_bound, upper_bound)
+                self._added_features.append(added_feature)
 
         if logarithm_features:
             for feature in logarithm_features:
                 base_feature = feature.get('base_feature')
                 logarithm = feature.get('logarithm')
-                fmt.add_threshold_feature(base_feature, logarithm)
+                added_feature = fmt.add_threshold_feature(base_feature, logarithm)
+                self._added_features.append(added_feature)
 
-    def _impute_data(self, fmt, raw_matrix, imputation_strategies, features_to_remove):
+    def _impute_data(self, fmt, raw_matrix, imputation_strategies):
         for feature in raw_matrix.columns.values:
-            if feature in features_to_remove:
+            if feature in self._removed_features:
                 continue
             # If all values are null, just remove the feature.
             # Otherwise, imputation will fail (there's no mean value),
             # and sklearn will ragequit.
             if raw_matrix[feature].isnull().all():
                 fm.remove_feature(feature)
-                self._eliminated_features.append(feature)
+                self._removed_features.append(feature)
             # Only try to impute if some of the values are null.
             elif raw_matrix[feature].isnull().any():
                 # If an imputation strategy is specified, follow it.
@@ -179,6 +202,7 @@ class SupervisedLearningPipeline:
         # reason not to help it out a little bit.
         for feature in features_to_remove:
             fmt.remove_feature(feature)
+            self._removed_features.append(feature)
 
     def _train_test_split(self, processed_matrix, outcome_label):
         y = pd.DataFrame(processed_matrix.pop(outcome_label))
@@ -203,27 +227,12 @@ class SupervisedLearningPipeline:
         self._X_train = fs.transform_matrix(self._X_train)
         self._X_test = fs.transform_matrix(self._X_test)
 
-    def _build_processed_matrix_header(self):
+    def _build_processed_matrix_header(self, processed_matrix_path):
         # FeatureMatrixFactory and FeatureMatrixIO expect a list of strings.
         # Each comment below represents the line in the comment.
         header = list()
 
-        # <file_name.tab>
-        file_name = self._cmm_name_processed
-        header.append(file_name)
-        # Created: <timestamp>
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        header.append('Created: %s' % timestamp)
-        # Source: __name__
-        header.append('Source: %s' % __name__)
-        # Command: ConditionMortalityMatrix()
-        if self._icd_list:
-            command = 'ConditionMortalityPredictor(%s, %s, %s)' % \
-                (self._condition, self._num_patients, self._icd_list)
-        else:
-            command = 'ConditionMortalityPredictor(%s, %s)' % \
-                (self._condition, self._num_patients)
-        header.append('Command: %s' % command)
+        file_summary = self._build_file_summary()
         #
         header.append('')
         # Overview:
@@ -240,27 +249,9 @@ class SupervisedLearningPipeline:
         # of the time index represented by a given row.
         line = 'of the time index represented by a given row.'
         header.append(line)
-        # This matrix is the result of the following processing steps on the raw matrix:
-        line = 'This matrix is the result of the following processing steps on the raw matrix:'
-        header.append(line)
-        #   (1) Imputing missing values with the mean value of each column.
-        line = '  (1) Imputing missing values with the mean value of each column.'
-        header.append(line)
-        #   (2) Manually removing low-information features:
-        line = '  (2) Manually removing low-information features:'
-        header.append(line)
-        #       ___
-        line = '      %s' % str(self._FEATURES_TO_REMOVE)
-        header.append(line)
-        #   (3) Algorithmically selecting the top 100 features via recursive feature elimination.
-        line = '  (3) Algorithmically selecting the top 100 features via recursive feature elimination.'
-        header.append(line)
-        #       The following features were eliminated.
-        line = '      The following features were eliminated:'
-        header.append(line)
-        # List all features with rank >100.
-        line = '        %s' % str(self._eliminated_features)
-        header.append(line)
+
+        processing_summary = self._build_processing_steps_summary()
+
         #
         line = ''
         header.append(line)
@@ -323,6 +314,60 @@ class SupervisedLearningPipeline:
         lab_field_summary = self._build_flowsheet_and_lab_results_field_summary()
 
         return header
+
+    def _build_file_summary(self, processed_matrix_path, pipeline_file_path):
+        summary = list()
+
+        # <file_name.tab>
+        matrix_file_name = processed_matrix_path.split('/')[-1]
+        header.append(matrix_file_name)
+        # Created: <timestamp>
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        header.append('Created: %s' % timestamp)
+        # Source: __name__
+        header.append('Source: %s' % pipeline_file_path.split('/')[-1])
+        # Command: Pipeline()
+        if self._icd_list:
+            command = 'ConditionMortalityPredictor(%s, %s, %s)' % \
+                (self._condition, self._num_patients, self._icd_list)
+        else:
+            command = 'ConditionMortalityPredictor(%s, %s)' % \
+                (self._condition, self._num_patients)
+        header.append('Command: %s' % command)
+
+    def _build_processing_steps_summary(self):
+        summary = []
+
+        # This matrix is the result of the following processing steps on the raw matrix:
+        line = 'This matrix is the result of the following processing steps on the raw matrix:'
+        summary.append(line)
+        #   * Adding the following features.
+        line = '  * Adding the following features:'
+        summary.append(line)
+        #   *   ___
+        for feature in self._added_features:
+            line = '      %s' % feature
+            summary.append(line)
+        #   * Imputing missing values with the mean value of each column.
+        line = '  * Imputing missing values with the mean value of each column.'
+        summary.append(line)
+        #   (2) Manually removing low-information features:
+        line = '  * Manually removing low-information features:'
+        summary.append(line)
+        #       ___
+        line = '      %s' % str(self._removed_features)
+        summary.append(line)
+        #   (3) Algorithmically selecting the top 100 features via recursive feature elimination.
+        line = '  * Algorithmically selecting the top 100 features via recursive feature elimination.'
+        summary.append(line)
+        #       The following features were eliminated.
+        line = '      The following features were eliminated:'
+        summary.append(line)
+        # List all features with rank >100.
+        line = '        %s' % str(self._eliminated_features)
+        summary.append(line)
+
+        return summary
 
     def _build_clinical_item_field_description(self):
         description = list()
