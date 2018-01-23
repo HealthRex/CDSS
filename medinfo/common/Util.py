@@ -12,7 +12,7 @@ import math;
 import json;
 from Const import DEFAULT_DATE_FORMATS, NULL_STRING, FALSE_STRINGS;
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("CDSS")
 log.setLevel(Const.LOGGER_LEVEL)
 
 handler = logging.StreamHandler(sys.stderr)
@@ -175,7 +175,9 @@ def fileLineCount(inputFile):
 def parseDateValue(chunk,dateFormat=None):
     """Parse the string chunk into a datetime object using specified or default date format strings
     """
-    if chunk == NULL_STRING:
+    # Check for both NULL_STRING and None value, as timestamp fields
+    # seem to return None value (e.g. stride_order_proc.result_time).
+    if chunk == NULL_STRING or chunk == None:
         return None;
     if isinstance(chunk,datetime):
         # Already parsed, no reason to repeat

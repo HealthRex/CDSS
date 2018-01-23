@@ -9,8 +9,8 @@ from medinfo.db.test.Util import DBTestCase
 import medinfo.dataconversion.Util
 
 
-log = logging.getLogger(Const.APPLICATION_NAME)
-log.setLevel(Const.LOGGER_LEVEL)
+log = logging.getLogger("CDSS")
+# log.setLevel(Const.LOGGER_LEVEL)
 
 handler = logging.StreamHandler(sys.stderr)
 formatter = logging.Formatter(Const.LOGGER_FORMAT)

@@ -6,7 +6,7 @@ from cStringIO import StringIO
 from datetime import datetime, timedelta;
 import unittest
 
-from Const import RUNNER_VERBOSITY;
+from Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
 from Util import log;
 
 from medinfo.common.Util import ProgressDots;
@@ -27,13 +27,13 @@ class TestOrderSetRecommender(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
-        
+
         log.info("Populate the database with test data")
-        
+
         self.clinicalItemCategoryIdStrList = list();
         headers = ["clinical_item_category_id","source_table"];
         dataModels = \
-            [   
+            [
                 RowItemModel( [-1, "Labs"], headers ),
                 RowItemModel( [-2, "Imaging"], headers ),
                 RowItemModel( [-3, "Meds"], headers ),
@@ -47,7 +47,7 @@ class TestOrderSetRecommender(DBTestCase):
 
         headers = ["clinical_item_id","clinical_item_category_id","name"];
         dataModels = \
-            [   
+            [
                 RowItemModel( [-1, -1, "CBC"], headers ),
                 RowItemModel( [-2, -1, "BMP"], headers ),
                 RowItemModel( [-3, -1, "Hepatic Panel"], headers ),
@@ -70,7 +70,7 @@ class TestOrderSetRecommender(DBTestCase):
 
         headers = ["patient_item_id","patient_id","clinical_item_id","item_date","analyze_date"];
         dataModels = \
-            [   
+            [
                 RowItemModel( [-1,  -11111, -4,  datetime(2000, 1, 1, 0), datetime(2010, 1, 1, 0)], headers ),
                 RowItemModel( [-2,  -11111, -10, datetime(2000, 1, 1, 0), datetime(2010, 1, 1, 0)], headers ),
                 RowItemModel( [-3,  -11111, -8,  datetime(2000, 1, 1, 2), datetime(2010, 1, 1, 0)], headers ),
@@ -130,7 +130,7 @@ class TestOrderSetRecommender(DBTestCase):
         DBUtil.execute("delete from patient_item where patient_item_id < 0");
         DBUtil.execute("delete from clinical_item where clinical_item_id < 0");
         DBUtil.execute("delete from clinical_item_category where clinical_item_category_id in (%s)" % str.join(",", self.clinicalItemCategoryIdStrList) );
-        
+
         DBTestCase.tearDown(self);
 
     def test_recommender(self):
@@ -144,7 +144,7 @@ class TestOrderSetRecommender(DBTestCase):
         query.sortField = "tf";
         query.limit = 16;    # Go ahead and query for all since short list and can get expected calculation results for all
         query.maxRecommendedId = 0; # Artificial constraint to focus only on test data
-        
+
         log.debug("Query with no item key input, just return ranks by general likelihood then.");
         headers = ["clinical_item_id","score"];
         expectedData = \
@@ -237,7 +237,7 @@ class TestOrderSetRecommender(DBTestCase):
             [   RowItemModel( [-6, (1.0/6)*(2.0/2)+(1.0/4)*(1.0/2)], headers ),
                 #RowItemModel( [-5, (1.0/6)*(2.0/2)+(1.0/4)*(1.0/2)], headers ),
                 #RowItemModel( [-2, (1.0/6)*(1.0/2)+(1.0/6)*(2.0/2)], headers ),
-                
+
                 RowItemModel( [-3, (1.0/6)*(2.0/2)], headers ),
                 RowItemModel( [-7, (1.0/6)*(2.0/2)], headers ),
                 RowItemModel( [-8, (1.0/6)*(2.0/2)], headers ),
@@ -253,7 +253,7 @@ class TestOrderSetRecommender(DBTestCase):
             ];
         recommendedData = self.recommender( query );
         self.assertEqualRecommendedData( expectedData, recommendedData, query );
-        
+
         log.debug("General query with category limit");
         query.queryItemIds = set([-2,-5,-100]);
         query.excludeItemIds = set();
@@ -262,7 +262,7 @@ class TestOrderSetRecommender(DBTestCase):
             [   #RowItemModel( [-6, (1.0/6)*(2.0/2)+(1.0/4)*(1.0/2)], headers ),
                 #RowItemModel( [-5, (1.0/6)*(2.0/2)+(1.0/4)*(1.0/2)], headers ),
                 #RowItemModel( [-2, (1.0/6)*(1.0/2)+(1.0/6)*(2.0/2)], headers ),
-                
+
                 RowItemModel( [-3, (1.0/6)*(2.0/2)], headers ),
                 #RowItemModel( [-7, (1.0/6)*(2.0/2)], headers ),
                 #RowItemModel( [-8, (1.0/6)*(2.0/2)], headers ),
@@ -287,7 +287,7 @@ class TestOrderSetRecommender(DBTestCase):
             [   RowItemModel( [-6, (1.0/6)*(2.0/2)+(1.0/4)*(1.0/2)], headers ),
                 #RowItemModel( [-5, (1.0/6)*(2.0/2)+(1.0/4)*(1.0/2)], headers ),
                 #RowItemModel( [-2, (1.0/6)*(1.0/2)+(1.0/6)*(2.0/2)], headers ),
-                
+
                 #RowItemModel( [-3, (1.0/6)*(2.0/2)], headers ),
                 RowItemModel( [-7, (1.0/6)*(2.0/2)], headers ),
                 RowItemModel( [-8, (1.0/6)*(2.0/2)], headers ),
@@ -314,13 +314,13 @@ class TestOrderSetRecommender(DBTestCase):
         expectedData = \
             [   #RowItemModel( [-5, (13.0/2)*((1.0/6)*(2.0/2)+(1.0/4)*(1.0/2))], headers ),
                 #RowItemModel( [-2, (13.0/2)*((1.0/6)*(1.0/2)+(1.0/6)*(2.0/2))], headers ),
-                
+
                 RowItemModel( [-3, (13.0/1)*((1.0/6)*(2.0/2))], headers ),
                 RowItemModel( [-7, (13.0/1)*((1.0/6)*(2.0/2))], headers ),
                 RowItemModel( [-8, (13.0/1)*((1.0/6)*(2.0/2))], headers ),
-                
+
                 RowItemModel( [-6, (13.0/2)*((1.0/6)*(2.0/2)+(1.0/4)*(1.0/2))], headers ),
-                
+
                 RowItemModel( [-14,(13.0/1)*((1.0/4)*(1.0/2))], headers ),
                 RowItemModel( [-15,(13.0/1)*((1.0/4)*(1.0/2))], headers ),
 
@@ -360,8 +360,10 @@ def suite():
     suite = unittest.TestSuite();
     #suite.addTest(TestOrderSetRecommender('test_recommender'));
     suite.addTest(unittest.makeSuite(TestOrderSetRecommender));
-    
+
     return suite;
-    
+
 if __name__=="__main__":
+    log.setLevel(LOGGER_LEVEL)
+    
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

@@ -3,6 +3,7 @@
 
 import sys, os
 import cStringIO
+import logging
 import unittest
 from math import sqrt, exp, log as ln;
 
@@ -20,23 +21,23 @@ class TestAggregateStats(MedInfoTestCase):
 
         # Data weights to test against
         self.WEIGHTS =[  0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5 ]
-    
+
         # Expected function results
         self.MIN = -5.0
         self.MAX = +5.0
-        
+
         self.MEAN   = 0.0
         self.MEAN_W = 1.8
 
         self.STD_DEV    = 3.31662479
         self.STD_DEV_W  = 2.264950331
-        
+
         self.RMSD   = self.STD_DEV
         self.RMSD_W = self.STD_DEV_W
-        
+
         self.N_NON_NAN_VALUES           = 11
         self.N_NON_ZERO_WEIGHTED_VALUES = 9
-        
+
         # Instance to test on
         self.aAggregateStats = AggregateStats(self.DATA,self.WEIGHTS)
 
@@ -72,16 +73,16 @@ class TestAggregateStats(MedInfoTestCase):
         mean = 3.0;
         variance = 2.5;
         totalWeight = 5;
-        
+
         value = 6;
         weight = 2;
-        
+
         (newMean, newVariance, newWeight) = AggregateStats.incrementStats(value, weight, mean, variance, totalWeight);
 
         expectedMean = 3.857;
         expectedVariance = 3.81;
         expectedWeight = 7;
-        
+
         self.assertAlmostEquals(expectedMean, newMean, 3);
         self.assertAlmostEquals(expectedVariance, newVariance, 3);
         self.assertAlmostEquals(expectedWeight, newWeight, 3);
@@ -95,7 +96,7 @@ class TestContingencyStats(MedInfoTestCase):
         self.TEST_NA = 30;
         self.TEST_NB = 40;
         self.TEST_TOTAL = 100;
-        
+
         # Corresponds to contingency table:
         #           B+  B-  Total
         #   A+      20  10  30
@@ -108,7 +109,7 @@ class TestContingencyStats(MedInfoTestCase):
                 "nA": 30,
                 "nB": 40,
                 "N": 100,
-            
+
                 "support": 20,
                 "confidence":  20/30.0,
                 "prevalence":  40/100.0,
@@ -125,7 +126,7 @@ class TestContingencyStats(MedInfoTestCase):
 
                 "positiveLikelihoodRatio": (20/40.0) / (1-50/60.0),
                 "negativeLikelihoodRatio": (1-20/40.0) / (50/60.0),
-                
+
                 "oddsRatio": (20/10.0) / (20/50.0),
                 "oddsRatio95CILow": exp( ln((20/10.0)/(20/50.0)) - 1.96*sqrt(1/20.0 + 1/10.0 + 1/20.0 + 1/50.0) ),
                 "oddsRatio95CIHigh": exp( ln((20/10.0)/(20/50.0)) + 1.96*sqrt(1/20.0 + 1/10.0 + 1/20.0 + 1/50.0) ),
@@ -133,7 +134,7 @@ class TestContingencyStats(MedInfoTestCase):
                 "relativeRisk": (20/30.0) / (20/70.0),
                 "relativeRisk95CILow": exp( ln((20/30.0)/(20/70.0)) - 1.96*sqrt(1/20.0 + 1/20.0 + 1/30.0 + 1/70.0) ),
                 "relativeRisk95CIHigh": exp( ln((20/30.0)/(20/70.0)) + 1.96*sqrt(1/20.0 + 1/20.0 + 1/30.0 + 1/70.0) ),
-                
+
                 "P-Chi2": 0.00036,
                 "P-Chi2-NegLog": 3.437,
                 "YatesChi2": 11.161,
@@ -143,7 +144,7 @@ class TestContingencyStats(MedInfoTestCase):
                 "P-Fisher-Complement": 0.999,
                 "P-Fisher-NegLog": 3.167,
             };
-            
+
         # Add some synonyms
         synonymsByStatId = \
             {   "confidence":   ("conditionalFreq",),
@@ -160,7 +161,7 @@ class TestContingencyStats(MedInfoTestCase):
 
                 "positiveLikelihoodRatio": ("+LR",),
                 "negativeLikelihoodRatio": ("-LR",),
-                
+
                 "oddsRatio": ("OR",),
                 "oddsRatio95CILow": ("OR95CILow",),
                 "oddsRatio95CIHigh": ("OR95CIHigh",),
@@ -172,12 +173,13 @@ class TestContingencyStats(MedInfoTestCase):
         for statId, synonymIds in synonymsByStatId.iteritems():
             for synonymId in synonymIds:
                 self.EXPECTED[synonymId] = self.EXPECTED[statId];
-            
+
     def test_contingencyStats(self):
         contStats = ContingencyStats( self.TEST_NAB, self.TEST_NA, self.TEST_NB, self.TEST_TOTAL );
-        
+
         for statId, expectedValue in self.EXPECTED.iteritems():
             Util.log.debug(statId);
+            # log.debug(statId)
             testValue = contStats.calc(statId);
             self.assertAlmostEquals( expectedValue, testValue, 3 );
 
@@ -187,24 +189,24 @@ class TestContingencyStats(MedInfoTestCase):
         nA = 15;
         nB = 25;    # nB exceeds N, which should not make sense
         N = 20;
-        
+
         # Makes table like
         #       B+  B-
         #   A+  10  5
-        #   A-  15 -10        
+        #   A-  15 -10
 
         # Normalization should negative values to make
         #       B+  B-
         #   A+  10  5
         #   A-  15  0
-        
+
         # Add small delta to all values to avoid zeros
         #       B+      B-
         #   A+  10.5    5.5
         #   A-  15.5    0.5
 
         contStats = ContingencyStats( nAB, nA, nB, N );
-        
+
         expected = \
             {   "sensitivity": 0.4,
                 "specificity": 2.0, # Makes no sense with negative numbers
@@ -213,7 +215,7 @@ class TestContingencyStats(MedInfoTestCase):
             Util.log.debug(statId);
             testValue = contStats.calc(statId);
             self.assertAlmostEquals( expectedValue, testValue, 3 );
-        
+
         expected = \
             {   "P-Fisher": 1.0,    # Cannot calculate this properly with negative numbers
                 "P-Fisher-Complement": 0.0,
@@ -225,7 +227,7 @@ class TestContingencyStats(MedInfoTestCase):
             Util.log.debug(statId);
             testValue = contStats.calc(statId);
             self.assertAlmostEquals( expectedValue, testValue, 3 );
-        
+
         Util.log.debug("Now redo while adding normalization option");
         expected = \
             {   "oddsRatio": (10.5/5.5) / (15.5/0.5),
@@ -250,7 +252,7 @@ class TestContingencyStats(MedInfoTestCase):
         nB = 1000.0;
         N =  15000.0;
         contStats = ContingencyStats( nAB, nA, nB, N );
-        
+
         expected = \
             {   "PPV": 5e+19,
                 "sensitivity": 1.5e-163,
@@ -299,10 +301,10 @@ class TestUnitTestTools(MedInfoTestCase):
         self.assertEqualGeneral(-12345.0, -12400.0, 2);   # Equal within 2 sig digits
 
         self.assertEqualGeneral(0.0, 0.0, 3);   # Zero Equal within 3 sig digits
-        self.assertEqualGeneral(0.0, 0.0001, 3);   
-        self.assertEqualGeneral(0.0, -0.0001, 3);   
-        self.assertEqualGeneral(0.0001, 0.0, 3);   
-        self.assertEqualGeneral(-0.0001, 0.0, 3);   
+        self.assertEqualGeneral(0.0, 0.0001, 3);
+        self.assertEqualGeneral(0.0, -0.0001, 3);
+        self.assertEqualGeneral(0.0001, 0.0, 3);
+        self.assertEqualGeneral(-0.0001, 0.0, 3);
         foundError = False;
         try:
             self.assertEqualGeneral(0.0, -0.01, 3);   # NOT equal within 3 sig digits, expect exception
@@ -317,7 +319,7 @@ class TestUnitTestTools(MedInfoTestCase):
         self.assertTrue(foundError);
 
         # Positive values can still be equivalent to negative values if small enough difference
-        self.assertEqualGeneral(-0.0001, +0.0001, 3);   
+        self.assertEqualGeneral(-0.0001, +0.0001, 3);
         foundError = False;
         try:
             self.assertEqualGeneral(-0.0001, +0.0001, 4); # Not equal within 4 digits  expect exception
@@ -335,7 +337,8 @@ def suite():
     suite.addTest(unittest.makeSuite(TestContingencyStats));
     suite.addTest(unittest.makeSuite(TestUnitTestTools));
     return suite;
-    
-if __name__=="__main__":
-    unittest.TextTestRunner(verbosity=Const.RUNNER_VERBOSITY).run(suite())
 
+if __name__=="__main__":
+    Util.log.setLevel(Const.LOGGER_LEVEL)
+
+    unittest.TextTestRunner(verbosity=Const.RUNNER_VERBOSITY).run(suite())

@@ -2,7 +2,7 @@
 """
 Primary query module, allowing caller to submit
 a set of clinical items (orders, etc.) to prime with,
-then this "suggestion / recommendation" module will 
+then this "suggestion / recommendation" module will
 return with a ranked and scored list of associated
 items / orders.
 """
@@ -54,16 +54,16 @@ class RecommenderQuery:
     invertQuery = None; # If set, will invert query direction, based on subsequent items and then "recommend" preceding items
     countPrefix = None;    # Prefix to specify what item counts to base stats on (defaults to item counts, allowing repeats, other options include "patient_" for counting per patient or per "encounter_")
     aggregationMethod = None; # Determines what type of weighting (if any) will be used when aggregating recommendations based on multiple query items
-    
+
     itemsPerCluster = None;   # When using clusters/topics to generate scores, how many top items to consider
     minClusterWeight = None;   # Minimum weight a cluster/topic/orderset contributes to consider it at all
-    
+
     def __init__(self):
         self.queryItemIds = set();
         self.targetItemIds = set();
         self.excludeItemIds = set();
         self.excludeCategoryIds = set();
-        self.timeDeltaMax = None;   
+        self.timeDeltaMax = None;
         self.sortField = "PPV"; # Default choice
         self.sortReverse = True;    # Default to descending order
         self.fieldFilters = dict();
@@ -74,7 +74,7 @@ class RecommenderQuery:
         self.invertQuery = False;
         self.countPrefix = "";
         self.aggregationMethod = "weighted";    # Default to weighted average
-        
+
         self.itemsPerCluster = None;
         self.minClusterWeight = 0;
 
@@ -83,7 +83,7 @@ class RecommenderQuery:
             return "clinical_item_id";
         else:
             return "subsequent_item_id";
-    
+
     def targetCol(self):
         if not self.invertQuery:
             return "subsequent_item_id";
@@ -110,7 +110,7 @@ class RecommenderQuery:
             self.timeDeltaMax = timedelta(0, int(paramDict["timeDeltaMax"]) );  # Convert to numerical representation (seconds) representing time delta to consider.  # If set to one of the constants (DELTA_ZERO, DELTA_HOUR, etc.), will count item associations that occurred within that time delta as co-occurrent.  If left blank, will just consider all items within a given patient as co-occurrent.
         if "invertQuery" in paramDict:
             self.invertQuery = (paramDict["invertQuery"].lower() not in FALSE_STRINGS);
-        
+
         if "countPrefix" in paramDict:
             self.countPrefix = paramDict["countPrefix"];
         if "aggregationMethod" in paramDict:
@@ -119,7 +119,7 @@ class RecommenderQuery:
             self.limit = int(paramDict["resultCount"]);
         if "maxRecommendedId" in paramDict:
             self.maxRecommendedId = int(paramDict["maxRecommendedId"]);
-        
+
         # Break out sort method into components
         if "sortField" in paramDict:
             self.sortField = paramDict["sortField"];
@@ -142,13 +142,13 @@ class RecommenderQuery:
                 parsedValue = float(filterValue);
             self.fieldFilters[fieldOp] = parsedValue;
             self.fieldList.append(field);
-        
+
             i += 1;
             fieldKey = "filterField%s" % i;
 
     def getDisplayFields(self):
         """Infer display fields based on sort and field options.  Check for duplicates."""
-        displayFields = [self.sortField];   
+        displayFields = [self.sortField];
         fieldsFound = set(displayFields);
         for field in self.fieldList:
             if field not in fieldsFound:
@@ -169,7 +169,7 @@ class BaseItemRecommender:
 
     def __call__(self, query):
         """Primary function.  Given a query object representing
-        key clinical items (orders, etc.), return a set of 
+        key clinical items (orders, etc.), return a set of
         clinical items, rank ordered and scored, based on
         pre-computed association strengths.
         Returns as a list of RowItemModels / dictionaries,
@@ -253,7 +253,7 @@ class BaseItemRecommender:
             itemIds = set();
             for result in results:
                 itemIds.add(result["clinical_item_id"]);
-        
+
             # Query out clinical item and category text based descriptions
             lookupQuery = SQLQuery();
             lookupQuery.addSelect("ci.clinical_item_id");
@@ -288,29 +288,29 @@ class BaseItemRecommender:
         """
         Calculate several derived statistics based on the component item counts in the resultModel,
         largely based on a 2x2 contingency table.
-        
+
         This can include chi-square stats as well as many other items from StatsUtil.ContingencyStats
-        
+
         Several good calculator examples with references:
         http://www.medcalc.org/calc/diagnostic_test.php
-        """        
+        """
         if "nAB" not in resultModel:    # Baseline query, so just populate with full correlations
             resultModel["nAB"] = resultModel["nB"];
             resultModel["nA"] = resultModel["N"];
-        
+
         nAB = resultModel["nAB"];
         nA = resultModel["nA"];
         nB = resultModel["nB"];
         N = resultModel["N"];
-        
+
         #print >> sys.stderr, nAB, nA, nB, N
-        
+
         # Defer to StatsUtil for most general calculations
         contStats = ContingencyStats( nAB, nA, nB, N );
         # Adjust values to prevent abnormal stats.  Particularly, avoid divide by zero or negative counts.
         # Later consider if item count exceeds patient count, then artificially suppress that excess for the purposes of the stat calculation
         contStats.normalize(truncateNegativeValues=False);
-        
+
         #print >> sys.stderr, resultModel["clinical_item_id"], nAB, nA, nB, N
         for statId in statIds:
             if statId not in resultModel:   # Skip stats that have already been populated
@@ -320,25 +320,25 @@ class BaseItemRecommender:
     populateDerivedStats = staticmethod(populateDerivedStats);
 
     def populateAggregateStats(aggregateResult, query, statIds=None):
-        """Calculate and populate the aggregate result item with stats based 
+        """Calculate and populate the aggregate result item with stats based
         on its component items (expected in item keyed by "componentResults"
         to enable subsequent sorting and filtering.
-        
+
         Will look for stats named in statIds to populate, or if None, then default
         based on the query.sortField and query.fieldFields.
-        
+
         Look to query.aggregationMethod when have multiple options for how to aggregate components.
-        
+
         =========================================================
-        
-        Notes on NaiveBayes style aggregation below        
-        
+
+        Notes on NaiveBayes style aggregation below
+
         Can default aggregation by weighted average of recommendations from each query item.
         Weighting currently based on inverse frequency of the query item, so less
         common (but thus more specific) items will be offerred more weight.  Hopefully
         this yields more specific recommendations, though on the flip-side, means
         aggregate is based on recommendations that have less supporting data.
-        
+
         Separate optional scaling should be considered to similarly scale down the recommended item
         side by the same background frequency, so that the recommended items won't always
         have very common (but very boring) recommendations
@@ -347,61 +347,61 @@ class BaseItemRecommender:
         Naive Bayes aggregation
         Nice primer at
         https://www.bionicspirit.com/blog/2012/02/09/howto-build-naive-bayes-classifier.html
-        
-        P(B|A1 & A2 & A3) 
+
+        P(B|A1 & A2 & A3)
         = P(A1 & A2 & A3 & B) / P(A1 & A2 & A3)
         = P(A1 & A2 & A3 | B) * P(B) / P(A1 & A2 & A3)
-        
-        Key assumption of assuming independence between query items / features (Ax), 
+
+        Key assumption of assuming independence between query items / features (Ax),
             then joint probability is just product of component probabilities
-            
+
         = P(A1|B)*P(A2|B)*P(A3|B) * P(B) / P(A1)*P(A2)*P(A3)
-        
+
         Approximating P(A|B) = nAB/nB and P(B) = nB/N
-        
+
         = (nA1B/nA1 / nB/N) * (nA2B/nA2 / nB/N) * (nA3B/nA3 / nB/N) * nB/N
-        
+
         = ( (nA1B/nB)*(nA2B/nB)*(nA3B/nB) * nB ) / ( (nA1/N)*(nA2/N)*(nA3/N) * N )
-        
+
         Above numerator and denominators can then be used to approximate the nAB and nA
         metrics needed to calculate expected vs. observed chi-square statistics.
 
         ===================================
-        
+
         Likelihood ratios for genome medicine
         DOI: 10.1186/gm151
-        
+
         Discusses concepts of using Serial Bayes estimates by compositing multiple likelihood ratios.
-        
+
         In general,
         PostTestOdds = PreTestOdds * TestLikelihoodRatio
-        
-        where               Probability =        Odds / (1+Odds) 
+
+        where               Probability =        Odds / (1+Odds)
         or equivalently,           Odds = Probability / (1-Probability)
-        
+
         And a test's Positive Likelihood Ratio = (Sensitivity)/(1-Specificity) (for when the test result is positive)
         and a test's Negative Likelihood Ratio = (1-Sensitivity)/(Specificity) (for when the test result is positive)
-        
-        For a single test then, can update PreTestProbability -> PostTestProbability by converting to Odds and 
+
+        For a single test then, can update PreTestProbability -> PostTestProbability by converting to Odds and
         applying (multiplying) the appropriate TestLikelihoodRatio.  Use this new PostTestProbability as a new
         PreTestProbability to apply subsequent TestLikelihoodRatios repeatedly.
         This should theoretically only be valid if each test's result is independent / uncorrelated with all others,
         thus making the testing order irrelevant, but can still be useful for an efficiently computable result.
-        
+
         No direct equivalent, but try to produce virtual nAB and nA composite counts to facilitate other simulated contingency stats.
         Ends up similar but not identical to NaiveBayes approach.
-        
+
         PreTestProb = nB/N
         PreTestOdds = nB/(N-nB)
-        
+
         PositiveLikelihoodRatio(Ai) = (nAiB/nB) / ((nAi-nAiB)/(N-nB))
-        
+
         PostTestOdds = PreTestOdds * Product(PositiveLikelihoodRatio(Ai))
                      = (nB/(N-nB)) * Product(nAiB/nB) / Product((nAi-nAiB)/(N-nB))
                      = nAB' / (nA'-nAB') (Estimates for conditional counts)
-        
+
             Thus, estimate virtual conditional counts that will yield the appropriate PostTestProb when reuse the virtual counts:
-            
+
             nAB' = Product(nAiB/nB) * nB
             (nA'-nAB') = Product((nAi-nAiB)/(N-nB)) * (N-nB)
             nA' = Product((nAi-nAiB)/(N-nB)) * (N-nB) + nAB'
@@ -412,7 +412,7 @@ class BaseItemRecommender:
                 if value is not None:
                     field = fieldOp[:-1];
                     statIds.add(field);
-        
+
         if "componentResultsById" in aggregateResult:
             componentResultsById = aggregateResult["componentResultsById"];
 
@@ -429,13 +429,13 @@ class BaseItemRecommender:
                 for componentId, component in componentResultsById.iteritems():
                     component["weight"] = 1.0;
                     if query.aggregationMethod == "weighted":
-                        # Weighted scaling of scores inversely proportional to the query item frequency, 
-                        #   so less common (and thus more specific) query items are paid more attention to in the aggregate recommendations    
+                        # Weighted scaling of scores inversely proportional to the query item frequency,
+                        #   so less common (and thus more specific) query items are paid more attention to in the aggregate recommendations
                         #   Though should beware this may give disproportionate weight to unusually rare query items
                     	component["weight"] = 1.0 / component["nA"];
 
-                    aggregateResult["sum(nAB*weight)"] += (component["nAB"] * component["weight"]);    
-                    aggregateResult["sum(nA*weight)"] += (component["nA"] * component["weight"]);    
+                    aggregateResult["sum(nAB*weight)"] += (component["nAB"] * component["weight"]);
+                    aggregateResult["sum(nA*weight)"] += (component["nA"] * component["weight"]);
                     aggregateResult["sum(weight)"] += component["weight"];
 
             	aggregateResult["nAB"] = aggregateResult["sum(nAB*weight)"] / aggregateResult["sum(weight)"];   # Complete the weighted average score calculation
@@ -456,22 +456,22 @@ class BaseItemRecommender:
                 aggregateResult["nA"] = aggregateResult["product(nA/N)"] * aggregateResult["N"];
 
             elif query.aggregationMethod in ("SerialBayes"):
-                # "Serial" Bayes method with NaiveBayes assumption, 
+                # "Serial" Bayes method with NaiveBayes assumption,
                 #   but past Post-Test Odds based on Pre-Test Odds and successive products of Positive Likelihood Ratios
                 """
                 # Direct calculation approach
                 preTestProbB = float(aggregateResult["nB"]) / aggregateResult["N"];
                 preTestOddsB = preTestProbB / (1.0-preTestProbB);
-                
+
                 productLR = 1.0;
                 for componentId, component in componentResultsById.iteritems():
                     contStats = ContingencyStats( component["nAB"], component["nA"], component["nB"], component["N"] );
                     contStats.normalize(truncateNegativeValues=True);
                     productLR *= contStats["LR+"];
-                
+
                 postTestOddsB = preTestOddsB * productLR;
                 postTestProbB = postTestOddsB / (1+postTestOddsB);
-                
+
                 aggregateResult["nAB"] = postTestProbB*100.0;
                 aggregateResult["nA"] = 100.0;  # Arbitrary selection?  Could have done weighted average of component nAs?
                 """
@@ -486,7 +486,7 @@ class BaseItemRecommender:
 
                 aggregateResult["nAB"] = aggregateResult["Product(nAB/nB)"] * aggregateResult["nB"];
                 aggregateResult["nA"] = aggregateResult["Product((nA-nAB)/(N-nB))"] * (aggregateResult["N"]-aggregateResult["nB"]) + aggregateResult["nAB"];
-        
+
         # Populate derived statistics that may be used as scoring measures
         BaseItemRecommender.populateDerivedStats(aggregateResult, statIds);
         aggregateResult["score"] = aggregateResult[query.sortField];
@@ -507,7 +507,7 @@ class BaseItemRecommender:
             # Calculate and populate the aggregate result item with stats based on its component items
             #   to enable subsequent sorting and filtering
             self.populateAggregateStats(aggregateResult, query);
-            
+
             # Look for value filters
             excludeResult = False;
             for (fieldOp, value) in query.fieldFilters.iteritems():
@@ -540,16 +540,16 @@ class ItemAssociationRecommender(BaseItemRecommender):
     """Concrete implementation class for item (e.g., order) recommendation.
     Based on simple item-associations, similar to Amazon recommendations.
     That is, prior analysis module should have pre-computed and stored
-    association strengths between all items (e.g., orders), and this 
+    association strengths between all items (e.g., orders), and this
     recommender will query just to find those most related items given
     the query set and return them in a rank listed order.
-    
+
     Score Interpretation:  Average number of times that order is placed for a patient
     given the query set.  Values >1 reflect orders that are typically
     entered multiple times for individual patients (though does not mean 100% of all
     patients get that order).  Thus, values < 1 can be roughly interpreted as a percentage
     of patients who get that order.
-    
+
     If default is set, will just return whatever are the most common
     clinical items overall as recommendations.  Useful for "cold starts"
     when don't have much initial information to key recommendations from.
@@ -560,7 +560,7 @@ class ItemAssociationRecommender(BaseItemRecommender):
         if conn is None:
             conn = self.connFactory.connection();
             extConn = False;
-        
+
         try:
             # Determine sorting / scoring field based on time limit parameters
             countField = "count_any";
@@ -568,7 +568,7 @@ class ItemAssociationRecommender(BaseItemRecommender):
                 timeDeltaSeconds = (query.timeDeltaMax.days*SECONDS_PER_DAY + query.timeDeltaMax.seconds);
                 countField = "count_%d" % timeDeltaSeconds;
             countField = query.countPrefix+countField;
-            
+
             sqlQuery = SQLQuery();
             sqlQuery.addSelect("cia."+query.sourceCol()+"");
             sqlQuery.addSelect("cia."+query.targetCol()+"");
@@ -580,7 +580,7 @@ class ItemAssociationRecommender(BaseItemRecommender):
             # Test / Debug case, want to put an artificial limit on items recommended
             if query.maxRecommendedId is not None:
                 sqlQuery.addWhere("cia."+query.targetCol()+" <= %s" % query.maxRecommendedId );
-            
+
             # Caller may want to filter recommendations to exclude certain category of items
             if query.excludeCategoryIds:
                 sqlQuery.addFrom("clinical_item as ci");
@@ -598,16 +598,16 @@ class ItemAssociationRecommender(BaseItemRecommender):
                 resultTable = self.dataManager.executeCacheOption( sqlQuery, includeColumnNames=True, conn=conn );
                 resultModels = modelListFromTable( resultTable );
                 resultModels = self.filterResultItems(resultModels, query);
-                
+
                 # Direct DB query results will basically work, just add a score column
                 #   Use total number of patient records as a denominator as theoretical number of distinct times an order could be made
                 #   Technically not perfectly accurate, since a single patient can have the same order entered in multiple times.
                 totalPatients = self.totalPatientCount(query, conn);
-                
+
                 for result in resultModels:
                     nB = result["nB"] = result[query.countPrefix+"count_0"];
                     N = result["N"] = totalPatients;
-                    
+
                     self.populateDerivedStats(result, [query.sortField]);
                     result["score"] = result[query.sortField];
                 return resultModels;
@@ -623,7 +623,7 @@ class ItemAssociationRecommender(BaseItemRecommender):
                     timeDeltaSeconds = (query.timeDeltaMax.days*SECONDS_PER_DAY + query.timeDeltaMax.seconds);
                     countField = "count_%d" % timeDeltaSeconds;
                 countField = query.countPrefix+countField;
-                
+
                 #if query.limit is not None:
                     # Don't need to return whole data table?  Maybe just get enough to fulfill query quantity?
                     # But need to expand by query item count however, since aggregating across multiple queries
@@ -634,7 +634,7 @@ class ItemAssociationRecommender(BaseItemRecommender):
                 #   # and really should be applying cut-off limit to each "sub-query"
                 #print >> sys.stderr, "AssocQuery:", sqlQuery, sqlQuery.params;
                 resultModels = self.loadResultModels( query, sqlQuery, conn=conn );
-                
+
                 if len(resultModels) < 1:
                     # Not able to find any recommendations based on this query data.  Just return default recommendations then.
                     return self( query, default=True, conn=conn );
@@ -648,11 +648,11 @@ class ItemAssociationRecommender(BaseItemRecommender):
     def loadResultModels( self, query, sqlQuery, conn ):
         """Query for the results from the SQL query, but if the dataCache is set on this instance,
         see if this can be retrieved/stored from there as well, to minimize repetitive database hits.
-        Instead of serial small DB queries, just do one massive DB query for all possible query items 
+        Instead of serial small DB queries, just do one massive DB query for all possible query items
         and store in memory (few GB for upto 100K items) and return select subsets as requested for much more rapid serial queries.
         """
         simpleSQLQuery = str(sqlQuery).replace(",%s" % DBUtil.SQL_PLACEHOLDER,"");   # Strip down multiple consecutive placeholders
-        
+
         # Populate a cache if it has not already been so
         dataCache = self.dataManager.dataCache;
         if dataCache is None: dataCache = dict();
@@ -682,13 +682,13 @@ class ItemAssociationRecommender(BaseItemRecommender):
                     resultCopy = dict(result);
                     resultModels.append( resultCopy );
                     #print >> sys.stderr, "PULL IT", resultCopy;
-        
+
         resultModels = self.filterResultItems(resultModels, query);
         return resultModels;
-    
+
 
     def filterResultItems(self,resultModels,query):
-        """Application level item filtering so get more DB results that can be cached in local memory 
+        """Application level item filtering so get more DB results that can be cached in local memory
         for rapid retrieval again, but retaining filtering options.
         """
         #print >> sys.stderr, "PreFilter", len(resultModels), query.targetCol(), query.queryItemIds, query.targetItemIds, query.excludeItemIds
@@ -699,18 +699,18 @@ class ItemAssociationRecommender(BaseItemRecommender):
                     continue;   # Skip this itme as caller only interested in certain target items
             elif result[query.targetCol()] in query.queryItemIds:
                 continue; # Query items generally have no reason to be in recommended set, but only apply if not already specifying targets
-                
+
             if query.excludeItemIds and result[query.targetCol()] in query.excludeItemIds:
                 continue; # Caller does not want these to be among the suggested items (explicitly excluded ones)
-            
+
             filteredModels.append(result);
         return filteredModels;
 
     def aggregateRecommendations( self, resultModels, query, countField, conn=None ):
         """Given all of the resultModels from an association query from multiple
-        key clinical items, aggregate them into a single recommendation list 
+        key clinical items, aggregate them into a single recommendation list
         (with option of link back to component results).
-        
+
         Should be sorted and filtered by any sort and filter options as specified in the query.
         """
         if len(resultModels) < 1:
@@ -735,11 +735,11 @@ class ItemAssociationRecommender(BaseItemRecommender):
         nA = Number of occurrences of item A
         nB = Number of occurrences of item B
         N = Total number of occurrences
-        
+
         N is usually based on total number of patients, whereas the item n values are based on total orders,
         which may supercede the patient count, resulting in degenerate 2x2 table analyses, but can provide
         meaning such as the average number of item B ordered per patient, instead of the probability.
-        
+
         Query options should be available to specify preference for n counts to be based on patient occurrences
         ("Number of patients where item B occurs after item A") to fill a properly scaled 2x2 table.
         """
@@ -770,19 +770,19 @@ class ItemAssociationRecommender(BaseItemRecommender):
                 queryItemId = result[""+query.sourceCol()+""];
                 targetItemId = result[""+query.targetCol()+""];
                 baseCountResultsByItemId[queryItemId][countPrefix+"count"]
-                
+
                 # Ensure component items have core association counts.  Convert to floats to facilitate calculations
                 nAB = result["nAB"] = float(result[countField]);
                 nA = result["nA"] = float(baseCountResultsByItemId[queryItemId][countPrefix+"count"]);
                 nB = result["nB"] = float(baseCountResultsByItemId[targetItemId][countPrefix+"count"]);
                 N = result["N"] = float(totalPatients);
-                
+
         finally:
             if not extConn:
                 conn.close();
 
     def collateAggregateResuls( self, resultModels, query ):
-        """Organize result models into a new set per target item ID, 
+        """Organize result models into a new set per target item ID,
         with links back to the component result models.
         """
         aggregateResultsByItemId = dict();
@@ -809,7 +809,7 @@ class ItemAssociationRecommender(BaseItemRecommender):
             if categoryId not in cumulativeScoreByCategoryId:
                 cumulativeScoreByCategoryId[categoryId] = 0.0;
             cumulativeScoreByCategoryId[categoryId] += resultModel["score"];
-        
+
         # Assign category score to each result for sorting
         for resultModel in resultModels:
             categoryId = resultModel["clinical_item_category_id"];
@@ -817,7 +817,7 @@ class ItemAssociationRecommender(BaseItemRecommender):
 
         # Re-sort result models first by category (score) then individual item score (descending order)
         resultModels.sort(RowItemFieldComparator(["categoryScore","score"]), reverse=True);
-        
+
         return resultModels;
 
 
@@ -827,23 +827,23 @@ class ItemAssociationRecommender(BaseItemRecommender):
         Should only count patients for which association analysis has been done,
         otherwise will be trying to scale against all patients even when only
         a small subset has been analyzed.
-        
+
         ??? Should probably revise this to total number of encounters rather than patients
         since individual patients may have multiple encounters that each play out differently ???
-        
+
         Return result as float as most callers will be using in floating point arithmetic (ratios)
         """
         # Check if test query working on simulated data
         isSpecializedQuery = (query.maxRecommendedId is not None);
         if isSpecializedQuery:
             return SIMULATED_PATIENT_COUNT;
-        
+
         # First do optimistic check that results will already be in database result cache
         dataStr = self.dataManager.getCacheData("analyzedPatientCount", conn=conn);
         if dataStr is not None:
             totalPatients = float(dataStr);
             return totalPatients;
-        
+
         # No result returned from cache, so do raw query
         totalPatientQuery = SQLQuery();
         totalPatientQuery.addSelect("count(distinct patient_id)")
@@ -852,10 +852,10 @@ class ItemAssociationRecommender(BaseItemRecommender):
         if query.maxRecommendedId is not None:  # Artificial filter to facilitate calculating only on test data
             totalPatientQuery.addWhere(""+query.sourceCol()+" <= %s" % query.maxRecommendedId );
         totalPatients = float(self.dataManager.executeCacheOption(totalPatientQuery, conn=conn)[0][0]);
-        
+
         # Store the results in the data cache to expedite future repeat queries
         self.dataManager.setCacheData("analyzedPatientCount", str(totalPatients), conn=conn);
-        
+
         return totalPatients;
 
     def main(self, argv):
@@ -880,7 +880,7 @@ class ItemAssociationRecommender(BaseItemRecommender):
             if len(args) > 1:
                 outputFilename = args[1];
             outputFile = stdOpen(outputFilename,"w");
-            
+
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
             print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
@@ -923,7 +923,7 @@ class BaselineFrequencyRecommender(ItemAssociationRecommender):
         return ItemAssociationRecommender.__call__(self,query,default=True,conn=conn);
 
 class RandomItemRecommender(BaseItemRecommender):
-    """Absolute baseline for comparison.  
+    """Absolute baseline for comparison.
     Recommender that just randomly scores and recommends items regardless of input.
     """
     def __call__(self, query, conn=None):
@@ -944,7 +944,7 @@ class RandomItemRecommender(BaseItemRecommender):
             # Test / Debug case, want to put an artificial limit on items recommended
             if query.maxRecommendedId is not None:
                 sqlQuery.addWhere("cia."+query.targetCol()+" <= %s" % query.maxRecommendedId );
-            
+
             # Caller may want to filter recommendations to exclude certain category of items
             if query.excludeCategoryIds:
                 sqlQuery.addFrom("clinical_item as ci");
@@ -953,7 +953,7 @@ class RandomItemRecommender(BaseItemRecommender):
 
             # Just query for individual items, no particular associations / key item priming
             sqlQuery.addWhere("cia."+query.sourceCol()+" = cia."+query.targetCol()+"");
-            
+
             # Randomize scoring and ordering
             sqlQuery.addSelect("rand() as random");
             sqlQuery.addOrderBy("rand() desc");
@@ -962,7 +962,7 @@ class RandomItemRecommender(BaseItemRecommender):
 
             resultTable = DBUtil.execute( sqlQuery, includeColumnNames=True, conn=conn );
             resultModels = modelListFromTable( resultTable );
-            
+
             # Use random number as ranking score
             for result in resultModels:
                 result["score"] = result["random"];

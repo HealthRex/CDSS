@@ -27,14 +27,15 @@ class TopicModel:
     def __init__(self):
         self.model = None;   # Means to provide output feedback to caller for debugging purposes
         self.docCountByWordId = None;
+        self.randomState = None;   # Allow caller to set initial (fixed) random_state to facilitate consistent unit/regression testing. E.g., numpy.random.RandomState(10)
 
     def buildModel(self, corpusBOWGenerator, numTopics):
         """Build topic model from corpus (interpret as generator over contents)
-        
+
         Given the bag-of-words corpus, build a docCountByWordId count dictionary
         to facilitate subsequent Term Frequency * Inverse DOCUMENT FREQUENCY calculations.
         In Clinical context, document = patient.
-        
+
         Return (model, docCountByWordId);
         """
         # Load dictionary to translate item IDs to descriptions
@@ -46,11 +47,11 @@ class TopicModel:
             if itemId in itemsById:
                 description = itemsById[itemId]["description"];
             id2word[itemId] = description;
-        
+
         # Stream in progressive updates from corpus generator so don't have to load all into memory
         # Do a batch of many at a time, otherwise very slow to increment one at a time
         docBuffer = list();
-        
+
         prog = ProgressDots();
         self.model = None;
         self.docCountByWordId = {None: 0};   # Use None key to represent count of all documents
@@ -58,8 +59,8 @@ class TopicModel:
             for (wordId, wordCount) in document:    # Assuming uniqueness of wordId keys for each document
                 if wordId not in self.docCountByWordId:
                     self.docCountByWordId[wordId] = 0;
-                self.docCountByWordId[wordId] += 1;    
-            self.docCountByWordId[None] += 1;    
+                self.docCountByWordId[wordId] += 1;
+            self.docCountByWordId[None] += 1;
 
             docBuffer.append(document);
             if i % BUFFER_UPDATE_SIZE == (BUFFER_UPDATE_SIZE-1): # Update model with current buffer of documents
@@ -70,25 +71,25 @@ class TopicModel:
         self.model = self.updateModel( self.model, docBuffer, id2word, numTopics ); # Last update for any remaining documents in buffer
         docBuffer = list(); # Discard committed buffer
 
-        prog.printStatus();
+        # prog.printStatus();
         return (self.model, self.docCountByWordId);
 
 
     def updateModel(self, model, docBuffer, id2word, numTopics):
-        """Update the given model object with the document buffer.  
+        """Update the given model object with the document buffer.
         If the model does not yet exist,
         then instantiate a new one to receive updates.
         """
         import gensim;  # Only import external module as needed
         if model is None:   # Initialize model
             if numTopics < 1:
-                model = gensim.models.hdpmodel.HdpModel( docBuffer, id2word=id2word);
+                model = gensim.models.hdpmodel.HdpModel( docBuffer, id2word=id2word, random_state=self.randomState );
             else:
-                model = gensim.models.LdaModel( docBuffer, id2word=id2word, num_topics=numTopics );
+                model = gensim.models.LdaModel( docBuffer, id2word=id2word, num_topics=numTopics, random_state=self.randomState );
         else:
             model.update( docBuffer );
         return model;
-    
+
     def jsonGeneratorFromFile(self, inputFile):
         """Simple iterator to parse input file rows from JSON format objects"""
         for line in inputFile:
@@ -103,7 +104,7 @@ class TopicModel:
         Each topic data is a 2-ple: (iTopic, List of top item data)
         Each item data is a 2-ple: (itemId, itemTopicWeight)
             Will favor reporting of itemId rather than translated itemDescription / itemWord, since can always map with id2word later
-        
+
         Can take several seconds to extract this information out of the model objects,
             so probably worth it to cache the results if going to do repeated enumeration queries
         """
@@ -116,19 +117,16 @@ class TopicModel:
 
         import gensim; # External import as needed
         if isinstance(model, gensim.models.HdpModel):   # Has different topic API for no good reason
-            topics = model.show_topics(topics=-1, topn=itemsPerCluster, formatted=False);
+            topics = model.show_topics(num_topics=-1, num_words=itemsPerCluster, formatted=False);
             for topicId, topicItems in topics:
                 #for (itemId, itemWeight) in topicItems:  # 2-ple order is also reversed for no good reason
                 #    print topicId, itemDescr, itemWeight;
                 yield topicId, topicItems;
         else:   # Assume default API for LDA based models
             topics = model.show_topics(num_topics=-1, num_words=itemsPerCluster, formatted=False);
-            for topicId, flipTopicItems in enumerate(topics):
-                topicItems = list();
-                for (itemWeight, itemId) in flipTopicItems:
-                    topicItems.append( (itemId, itemWeight) );
+            for topicId, topicItems in topics:
                 yield topicId, topicItems;
-        
+
         model.id2word = id2word;    # Revert back to normal id-word translation
 
     def generateWeightByItemIdByTopicId(self, model, itemsPerCluster):
@@ -145,7 +143,7 @@ class TopicModel:
 
     def printTopicsToFile(self, model, docCountByWordId, topicFile, itemsPerCluster):
         """Print out the topic model contents to file in tab-delimited format for easy review"""
-                
+
         print >> topicFile, "topic_id\titem_id\tdescription\tscore\ttfidf";
         id2word = model.id2word;
         for (topicId, topicItems) in self.enumerateTopics(model, itemsPerCluster):
@@ -164,7 +162,7 @@ class TopicModel:
             print >> topicFile, "%s\t%s\t%s\t%s\t%s" % (None, itemId, itemDescription, docCount, docCountByWordId[None]);
 
     def topTopicFilename(self, baseName):
-        """Generate a name for a top topics summary file given a base output filename"""    
+        """Generate a name for a top topics summary file given a base output filename"""
         return baseName+".topics.tab";
 
     def loadModel(self, filename):
@@ -178,7 +176,7 @@ class TopicModel:
             return gensim.models.hdpmodel.HdpModel.load(filename);
 
     def loadDocCountByWordId(self, filename):
-        """Given the name of a top topics file, 
+        """Given the name of a top topics file,
         load the section reporting the overall word document counts
         """
         docCountByWordId = dict();
@@ -207,12 +205,12 @@ class TopicModel:
         for itemId, itemCount in itemCountById.iteritems():
             categoryId = None;
             if itemsById is not None and itemId in itemsById:
-                categoryId = itemsById[itemId]["clinical_item_category_id"] 
+                categoryId = itemsById[itemId]["clinical_item_category_id"]
             if itemId not in observedIds and (excludeCategoryIds is None or categoryId not in excludeCategoryIds):
                 yield (itemId, itemCount);    # Record presence of item
                 observedIds.add(itemId);
     itemCountByIdToBagOfWords = staticmethod(itemCountByIdToBagOfWords);
-    
+
     def bagOfWordsToCountById(bagOfWords):
         """Convert bag of words collection of 2-ple (itemId, count) representation into a dictionary of itemId: count mappings."""
         itemCountById = dict();
@@ -246,7 +244,7 @@ class TopicModel:
 
             # Parse some options
             numTopics = int(options.numTopics);
-            
+
             # Main Model construction
             (model, docCountByWordId) = self.buildModel(corpusBOWGenerator, numTopics);
 

@@ -1,0 +1,596 @@
+<html>
+<head>
+
+<!--
+Acid-Base Analysis
+Jonathan H. Chen
+jonc101 at gmail.com
+2011
+-->
+
+<script language="JavaScript">
+
+var PH_NORMAL = 7.4;
+var PH_NORMAL_DELTA = 0.01;  // Acceptable deviation from normal
+var PCO2_NORMAL = 40;
+var PCO2_NORMAL_DELTA = 2;
+var HCO3_NORMAL = 24;
+var HCO3_NORMAL_DELTA = 2;
+var ANION_GAP_NORMAL = 12;
+var ANION_GAP_NORMAL_DELTA = 2;
+var DELTA_DELTA_GAP_NORMAL_DELTA = 6;
+var ALBUMIN_NORMAL = 4.0;
+
+var ANION_GAP_ALBUMIN_CORRECTION = 2.5;
+
+var EXPECTED_DELTA_PH_PER_PCO2_ACUTE = -0.008;
+var EXPECTED_DELTA_PH_PER_PCO2_CHRONIC = -0.004;
+
+var EXPECTED_DELTA_HCO3_PER_PCO2_ACIDOSIS_ACUTE = 0.1;
+var EXPECTED_DELTA_HCO3_PER_PCO2_ACIDOSIS_CHRONIC = 0.4;
+var EXPECTED_DELTA_HCO3_PER_PCO2_ALKALOSIS_ACUTE = 0.2;
+var EXPECTED_DELTA_HCO3_PER_PCO2_ALKALOSIS_CHRONIC = 0.4;
+
+var EXPECTED_PCO2_HCO3_COMPENSATION_DIFF = 15;
+
+
+/**
+ * Top level function to just figure out primary acid-base problem, then defer to detailed analysis
+ */
+function doAnalysis(theForm)
+{
+    var pH = parseFloat(theForm.pH.value);
+    var pCO2 = parseInt(theForm.pCO2.value);
+
+    var na = parseInt(theForm.Na.value);
+    var cl = parseInt(theForm.Cl.value);
+    var hco3 = parseInt(theForm.HCO3.value);
+    var albumin = parseFloat(theForm.albumin.value);
+
+    reset();    // Reset the feedback field to blank
+
+    if ( Math.abs(pH-PH_NORMAL) <= PH_NORMAL_DELTA )
+    {
+        println('pH within normal range of expected ('+ PH_NORMAL +'):');
+        println('No primary acid-base disorder, or a mixed disorder');
+    }
+    else if ( pH < PH_NORMAL )
+    {
+        println('Acidemia when pH ('+ pH +') less than expected ('+ PH_NORMAL +')' );
+        if ( pCO2 > PCO2_NORMAL )
+        {
+            analyzeRespiratoryAcidosis( theForm, pH, pCO2, na, cl, hco3, albumin );
+        }
+        else
+        {
+            analyzeMetabolicAcidosis( theForm, pH, pCO2, na, cl, hco3, albumin );
+        }
+    }
+    else // ( pH > PH_NORMAL )
+    {
+        println('Alkalemia when pH ('+ pH +') greater than expected: ('+ PH_NORMAL +')' );
+        if ( pCO2 < PCO2_NORMAL )
+        {
+            analyzeRespiratoryAlkalosis( theForm, pH, pCO2, na, cl, hco3, albumin );
+        }
+        else
+        {
+            analyzeMetabolicAlkalosis( theForm, pH, pCO2, na, cl, hco3, albumin );
+        }
+    }
+
+    // Highlight the primary summary points
+    theForm.feedback.value = theForm.summary.value +'\n'+ theForm.feedback.value;
+}
+
+
+function analyzeRespiratoryAcidosis( theForm, pH, pCO2, na, cl, hco3, albumin )
+{
+    println('[Respiratory Acidosis] when pCO2 ('+ pCO2 +') > expected ('+ PCO2_NORMAL +')');
+    var isAcute = window.confirm('The patient has a respiratory acidosis.  Click OK if this is an acute issue, or Cancel if it is chronic.');
+
+    var pHexpected = PH_NORMAL;
+    var expectedHCO3 = HCO3_NORMAL;
+    if ( isAcute )
+    {
+        summaryPoint('Respiratory Acidosis, Acute');
+        println('[Acute respiratory acidosis] =>');
+        println('Expect metabolic compensation when pH ('+ (EXPECTED_DELTA_PH_PER_PCO2_ACUTE*10) +') per +10 pCO2', 1);
+        println('Expect metabolic compensation when HCO3 (+'+ (EXPECTED_DELTA_HCO3_PER_PCO2_ACIDOSIS_ACUTE*10) +') per +10 pCO2', 1);
+
+        pHexpected += (pCO2-PCO2_NORMAL) * EXPECTED_DELTA_PH_PER_PCO2_ACUTE;
+        expectedHCO3 += (pCO2-PCO2_NORMAL) * EXPECTED_DELTA_HCO3_PER_PCO2_ACIDOSIS_ACUTE;
+    }
+    else
+    {
+        summaryPoint('Respiratory Acidosis, Chronic');
+        println('[Chronic respiratory acidosis] =>');
+        println('Expect metabolic compensation when pH ('+ (EXPECTED_DELTA_PH_PER_PCO2_CHRONIC*10) +') per +10 pCO2', 1);
+        println('Expect metabolic compensation when HCO3 (+'+ (EXPECTED_DELTA_HCO3_PER_PCO2_ACIDOSIS_CHRONIC*10) +') per +10 pCO2', 1);
+
+        pHexpected += (pCO2-PCO2_NORMAL) * EXPECTED_DELTA_PH_PER_PCO2_CHRONIC;
+        expectedHCO3 += (pCO2-PCO2_NORMAL) * EXPECTED_DELTA_HCO3_PER_PCO2_ACIDOSIS_CHRONIC;
+    }
+
+    println('Expected pH ('+ pHexpected +' +/- '+ PH_NORMAL_DELTA +'), actual pH ('+ pH +') =>');
+    println('Expected HCO3 ('+expectedHCO3+'), actual HCO3 ('+ hco3 +') =>');
+    if ( Math.abs(pHexpected-pH) <= PH_NORMAL_DELTA )
+    {
+        summaryPoint('Appropriately Compensated by Metabolic Alkalosis');
+        println('Appropriately [compensated respiratory acidosis]', 1);
+    }
+    else if ( pH < pHexpected )
+    {
+        summaryPoint('Secondary Metabolic Acidosis');
+        println('[Secondary metabolic acidosis]', 1);
+        analyzeAnionGapAcidosis( theForm, pH, pCO2, na, cl, hco3, albumin );
+    }
+    else // ( pH > pHexpected )
+    {
+        summaryPoint('Secondary Metabolic Alkalosis');
+        println('[Secondary metabolic alkalosis]', 1);
+    }
+}
+
+function analyzeRespiratoryAlkalosis( theForm, pH, pCO2, na, cl, hco3, albumin )
+{
+    println('[Respiratory Alkalosis] when pCO2 ('+ pCO2 +') < expected ('+ PCO2_NORMAL +')');
+    var isAcute = window.confirm('The patient has a respiratory alkalosis.  Click OK if this is an acute issue, or Cancel if it is chronic.');
+
+    var pHexpected = PH_NORMAL;
+    var expectedHCO3 = HCO3_NORMAL;
+    if ( isAcute )
+    {
+        summaryPoint('Respiratory Alkalosis, Acute');
+        println('[Acute respiratory alkalosis] =>');
+        println('Expect metabolic compensation when pH ('+ (EXPECTED_DELTA_PH_PER_PCO2_ACUTE*10) +') per +10 pCO2', 1);
+        println('Expect metabolic compensation when HCO3 (-'+ (EXPECTED_DELTA_HCO3_PER_PCO2_ALKALOSIS_ACUTE*10) +') per -10 pCO2', 1);
+
+        pHexpected += (pCO2-PCO2_NORMAL) * EXPECTED_DELTA_PH_PER_PCO2_ACUTE;
+        expectedHCO3 += (pCO2-PCO2_NORMAL) * EXPECTED_DELTA_HCO3_PER_PCO2_ALKALOSIS_ACUTE;
+    }
+    else
+    {
+        summaryPoint('Respiratory Alkalosis, Chronic');
+        println('[Chronic respiratory alkalosis] =>');
+        println('Expect metabolic compensation when pH ('+ (EXPECTED_DELTA_PH_PER_PCO2_CHRONIC*10) +') per +10 pCO2', 1);
+        println('Expect metabolic compensation when HCO3 (-'+ (EXPECTED_DELTA_HCO3_PER_PCO2_ALKALOSIS_CHRONIC*10) +') per -10 pCO2', 1);
+
+        pHexpected += (pCO2-PCO2_NORMAL) * EXPECTED_DELTA_PH_PER_PCO2_CHRONIC;
+        expectedHCO3 += (pCO2-PCO2_NORMAL) * EXPECTED_DELTA_HCO3_PER_PCO2_ALKALOSIS_CHRONIC;
+    }
+
+    println('Expected pH ('+ pHexpected +' +/- '+ PH_NORMAL_DELTA +'), actual pH ('+ pH +') =>');
+    println('Expected HCO3 ('+expectedHCO3+'), actual HCO3 ('+ hco3 +') =>');
+    if ( Math.abs(pHexpected-pH) <= PH_NORMAL_DELTA )
+    {
+        summaryPoint('Appropriately Compensated by Metabolic Acidosis');
+        println('Appropriately [compensated respiratory alkalosis]', 1);
+    }
+    else if ( pH < pHexpected )
+    {
+        summaryPoint('Secondary Metabolic Acidosis');
+        println('[Secondary metabolic acidosis]', 1);
+        analyzeAnionGapAcidosis( theForm, pH, pCO2, na, cl, hco3, albumin );
+    }
+    else // ( pH > pHexpected )
+    {
+        summaryPoint('Secondary Metabolic Alkalosis');
+        println('[Secondary metabolic alkalosis]', 1);
+    }
+}
+
+
+function analyzeMetabolicAcidosis( theForm, pH, pCO2, na, cl, hco3, albumin )
+{
+    summaryPoint('Metabolic Acidosis');
+    println('[Metabolic Acidosis] when pCO2 ('+ pCO2 +') < expected ('+ PCO2_NORMAL +')');
+    println('Expect respiratory compensation when pCO2 = HCO3 +'+EXPECTED_PCO2_HCO3_COMPENSATION_DIFF, 1);
+
+    var pCO2expected = hco3 + EXPECTED_PCO2_HCO3_COMPENSATION_DIFF;
+    println('Expected pCO2 ('+ pCO2expected +' +/- '+ PCO2_NORMAL_DELTA +'), actual pCO2 ('+ pCO2 +') =>');
+    if ( Math.abs(pCO2expected-pCO2) <= PCO2_NORMAL_DELTA )
+    {
+        summaryPoint('Appropriately Compensated by Respiratory Alkalosis');
+        println('Appropriately [compensated metabolic acidosis]', 1);
+    }
+    else if ( pCO2 < pCO2expected )
+    {
+        summaryPoint('Secondary Respiratory Alkalosis');
+        println('[Secondary respiratory alkalosis]', 1);
+    }
+    else // ( pCO2 > pCO2expected )
+    {
+        summaryPoint('Secondary Respiratory Acidosis');
+        println('[Secondary respiratory acidosis]', 1);
+    }
+
+    analyzeAnionGapAcidosis( theForm, pH, pCO2, na, cl, hco3, albumin );
+}
+
+function analyzeMetabolicAlkalosis( theForm, pH, pCO2, na, cl, hco3, albumin )
+{
+    summaryPoint('Metabolic Alkalosis');
+    println('[Metabolic Alkalosis] when pCO2 ('+ pCO2 +') > expected ('+ PCO2_NORMAL +')');
+    println('Expect respiratory compensation when pCO2 = HCO3 +'+EXPECTED_PCO2_HCO3_COMPENSATION_DIFF, 1);
+
+    var pCO2expected = hco3 + EXPECTED_PCO2_HCO3_COMPENSATION_DIFF;
+    println('Expected pCO2 ('+ pCO2expected +' +/- '+ PCO2_NORMAL_DELTA +'), actual pCO2 ('+ pCO2 +') =>');
+    if ( Math.abs(pCO2expected-pCO2) <= PCO2_NORMAL_DELTA )
+    {
+        summaryPoint('Appropriately Compensated by Respiratory Acidosis');
+        println('Appropriately [compensated metabolic alkalosis]', 1);
+    }
+    else if ( pCO2 < pCO2expected )
+    {
+        summaryPoint('Secondary Respiratory Alkalosis');
+        println('[Secondary respiratory alkalosis]', 1);
+    }
+    else // ( pCO2 > pCO2expected )
+    {
+        summaryPoint('Secondary Respiratory Acidosis');
+        println('[Secondary respiratory acidosis]', 1);
+    }
+}
+
+/**
+ * Further analysis for metabolic acidosis to assess anion gap or not
+ */
+function analyzeAnionGapAcidosis( theForm, pH, pCO2, na, cl, hco3, albumin )
+{
+    var anionGap = na-cl-hco3;
+    println('Anion Gap = Na - Cl - HCO3 = '+ na +' - '+ cl +' - '+ hco3 +' = '+ anionGap );
+
+    if ( albumin < ALBUMIN_NORMAL )
+    {
+        anionGap = anionGap + ANION_GAP_ALBUMIN_CORRECTION * (ALBUMIN_NORMAL - albumin);
+        println('Hypo-albuminemia (lack of natural serum anion): '+ albumin, 1 );
+        println('Corrected AG = AG + '+ANION_GAP_ALBUMIN_CORRECTION+'*('+ALBUMIN_NORMAL+' - albumin) = '+ anionGap, 1 );
+    }
+
+    println('Expected ('+ ANION_GAP_NORMAL +' +/- '+ ANION_GAP_NORMAL_DELTA +') vs. actual ('+ anionGap +')', 1 );
+
+    if ( Math.abs(anionGap-ANION_GAP_NORMAL) <= ANION_GAP_NORMAL_DELTA )
+    {
+        summaryPoint('Non-Gap Metabolic Acidosis');
+        println('[Non-gap metabolic acidosis]', 1 );
+    }
+    else if ( anionGap > ANION_GAP_NORMAL )
+    {
+        summaryPoint('Anion Gap Metabolic Acidosis');
+        println('[Anion gap metabolic acidosis]', 1 );
+
+        analyzeDeltaDeltaGap( theForm, pH, pCO2, na, cl, hco3, albumin, anionGap );
+    }
+    else // ( anionGap < ANION_GAP_NORMAL )
+    {
+        println('???Gap is too small.  Probably additional metabolic alkalosis???');
+    }
+}
+
+/**
+ * Check appropriate change in HCO3 per anion gap acidosis to assess whether
+ *  there is an additional non-gap acidosis
+ */
+function analyzeDeltaDeltaGap( theForm, pH, pCO2, na, cl, hco3, albumin, anionGap )
+{
+    println('Delta-delta gap check');
+    println('Expect delta HCO3 -1 for every +1 delta anion gap', 1);
+    var deltaAnionGap = anionGap - ANION_GAP_NORMAL;
+    var expectedHCO3 = HCO3_NORMAL - deltaAnionGap;
+    println('Delta Anion Gap ('+ anionGap +' - '+ ANION_GAP_NORMAL +') = '+ deltaAnionGap, 1);
+    println('Expected HCO3 ('+HCO3_NORMAL+' - '+deltaAnionGap+') = ('+ expectedHCO3 +' +/- '+DELTA_DELTA_GAP_NORMAL_DELTA+') vs. actual ('+ hco3 +')', 1);
+
+    if ( Math.abs(hco3-expectedHCO3) <= DELTA_DELTA_GAP_NORMAL_DELTA )
+    {
+        println('[Pure anion gap metabolic acidosis]', 1 );
+    }
+    else if ( hco3 < expectedHCO3 )
+    {
+        summaryPoint('Additional Non-Gap Metabolic Acidosis');
+        println('[Additional non-gap metabolic acidosis]', 1 );
+    }
+    else // ( hco3 > expectedHCO3 )
+    {
+        summaryPoint('Additional Metabolic Alkalosis');
+        println('[Additional metabolic alkalosis]', 1 );
+    }
+}
+
+/**
+ * Convenience function for printing out messages to the feedback element.
+ *  Include indentation depth option
+ */
+function print( message, depth )
+{
+    var theForm = document.forms[0];
+    var feedbackField = theForm.feedback;
+
+    depth = parseInt(depth);
+    if (depth)
+    {
+        for( var i=0; i < depth; i++ )
+        {
+            feedbackField.value += '   ';
+        }
+    }
+    feedbackField.value += message;
+}
+function println( message, depth )
+{
+    print( message +'\n', depth );
+}
+function summaryPoint( message )
+{
+    var theForm = document.forms[0];
+    theForm.summary.value += '= '+message+' ='+'\n';
+}
+
+function reset()
+{
+    var theForm = document.forms[0];
+    theForm.feedback.value = '';
+    theForm.summary.value = '';
+}
+
+/**
+ * Quickly setup example values to illustrate calculation
+ */
+function doExample(theForm)
+{
+    theForm.pH.value = '7.30';
+    theForm.pCO2.value = '30';
+
+    theForm.Na.value = '125';
+    theForm.Cl.value = '80';
+    theForm.HCO3.value = '15';
+    theForm.albumin.value = '2.0';
+
+	doAnalysis(theForm);
+}
+</script>
+
+
+<style>
+BODY, TD, P, TH
+{
+  font-family: Arial,Verdana,Helvetica,sans-serif;
+  font-size: 16pt;
+}
+
+.label
+{
+  font-size: 40pt;
+}
+
+
+PRE
+{
+   font-family: Lucida Console,monospace;
+   font-size: 40pt;
+}
+
+input
+{
+    /*border: solid black 1px;*/
+    font-family: Arial, Verdana, Helvetica, sans-serif;
+    font-size: 40pt;
+}
+
+textarea
+{
+    /*border: solid black 1px;*/
+    font-family: Arial, Verdana, Helvetica, sans-serif;
+    font-size: 24pt;
+}
+
+select
+{
+    /*border: solid black 1px;*/
+    font-family: Arial, Verdana, Helvetica, sans-serif;
+    font-size: 40pt;
+}
+
+</style>
+
+</head>
+<body>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<form name="analysisForm" onSubmit="return false;">
+    <input type=hidden name="summary" value="">
+
+    <div align=center>
+    <table>
+        <tr>
+            <td align=right class="label">Na+</td>
+            <td><input type=text name="Na" value="140" tabindex=100 size=3 style="text-align: right;"></td>
+            <td>mEq/L</td>
+
+            <td align=right class="label">pH</td>
+            <td><input type=text name="pH" value="7.40" tabindex=200 size=3 style="text-align: right;"></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td align=right class="label">Cl-</td>
+            <td><input type=text name="Cl" value="100" tabindex=100 size=3 style="text-align: right;"></td>
+            <td>mEq/L</td>
+
+            <td align=right class="label">pCO2</td>
+            <td><input type=text name="pCO2" value="40" tabindex=200 size=3 style="text-align: right;"></td>
+            <td>mmHg</td>
+        </tr>
+        <tr>
+            <td align=right class="label">HCO3-</td>
+            <td><input type=text name="HCO3" value="24" tabindex=100 size=3 style="text-align: right;"></td>
+            <td>mEq/L</td>
+
+            <td align=right class="label">Albumin</td>
+            <td><input type=text name="albumin" value="4.0" tabindex=200 size=3 style="text-align: right;"></td>
+            <td>g/dL</td>
+        </tr>
+        <tr>
+    </table>
+
+    <input type=submit value="Analyze" onClick="doAnalysis(this.form);" tabindex=500>
+    <input type=button value="Example" onClick="doExample(this.form);" tabindex=500>
+    <input type=button value="Reset" onClick="this.form.reset();" tabindex=500>
+
+    <textarea name="feedback" rows=15 style="width: 100%;"></textarea>
+
+
+    <table>
+        <tr>
+            <th>Metabolic Acidosis (Anion Gap)</th>
+            <th>Metabolic Acidosis (Non-Gap)</th>
+            <th>Metabolic Alkalosis</th>
+            <th>Respiratory Acidosis</th>
+            <th>Respiratory Alkalosis</th>
+        </tr>
+        <tr valign=top>
+            <td>
+                MUDPILES
+                <ul>
+                    <li>Methanol
+                    <li>Uremia
+                    <li>Diabetic Ketoacidosis (check serum ketones)
+                    <li>Propylene Glycol (in BZD drips) or Paraldehydes
+                    <li>Isoniazid
+                    <li>Lactic Acidosis (check serum lactate)
+                    <li>Ethylene Glycol (anti-freeze)
+                    <li>Salycylates
+                </ul>
+                GOLDMARK
+                <ul>
+                    <li>Glycols (ethylene or propylene)
+                    <li>Oxoporin (reflects fatty liver damage from glutathione consumption, e.g. acetaminophen toxicity)
+                    <li>L-Lactate
+                    <li>D-Lactate (bacterial form)
+                    <li>Methanol
+                    <li>Aspirin (salycylate)
+                    <li>Renal Failure (BUN uremia)
+                    <li>Ketoacidosis
+                </ul>
+            </td>
+            <td>
+                GI Loss
+                <ul>
+                    <li>Diarrhea / Laxatives
+                    <li>Fistula, (pancreatic, biliary)
+                    <li>Uretero-intestinal diversion (ileal conduit)
+                </ul>
+                Renal Loss
+                <ul>
+                    <li>Renal Tubular Acidosis (Type 1 Distal or Type 2 Proximal)
+                    <li>Renal Failure
+                    <li>Hyper-kalemia
+                </ul>
+                Exogenous Acid
+                <ul>
+                    <li>HCl
+                    <li>Amino Acids
+                </ul>
+                FUSED CARS
+                <ul>
+                    <li>Fistula (pancreatic, biliary)
+                    <li>Uretero-gastric conduit
+                    <li>Saline admin (dilutional acidosis)
+                    <li>Endocrine (hyper-PTH)
+                    <li>Diarrhea
+                    <li>Carbonic anhydrase inhibitor (acetazolamide)
+                    <li>Ammonium chloride
+                    <li>Renal tubular acidosis
+                    <li>Spironolactone
+                </ul>
+            </td>
+            <td>
+                Alkaline Input
+                <ul>
+                    <li>Bicarbonate Infusion
+                    <li>Hemodialysis
+                    <li>Calcium Carbonate
+                    <li>Parenteral Nutrition
+                </ul>
+                Proton Loss
+                <ul>
+                    <li>GI Loss (vomiting, NG suction)
+                    <li>Renal loss
+                    <li>Diuretics
+                    <li>Mineralocorticoids
+                </ul>
+            </td>
+            <td>
+                Airway Obstruction
+                <ul>
+                    <li>Foreign body, aspiration
+                    <li>OSA (obstructive sleep apnea)
+                    <li>Laryngo- or broncho-spasm
+                </ul>
+                Neuromuscular
+                <ul>
+                    <li>Myasthenia gravis
+                    <li>Hypokalemic periodic paralysis
+                    <li>Guillain-Barre
+                    <li>Botulism, Tetanus
+                    <li>Hypo-kalemia, hypo-phosphatemia
+                    <li>Cervical spine injury
+                    <li>Morbid obesity
+                    <li>Polio, MS, ALS
+                </ul>
+                Central
+                <ul>
+                    <li>Drugs (opiates, sedatives)
+                    <li>Oxygen treatment in acute hypercapnia
+                    <li>Brain trauma or stroke
+                </ul>
+                Pulmonary
+                <ul>
+                    <li>Pulmonary edema
+                    <li>Asthma
+                    <li>Pneumonia
+                    <li>ARDS
+                    <li>COPD
+                    <li>Pulmonary Fibrosis
+                </ul>
+                Mechanical Ventilation
+            </td>
+            <td>
+                Hypoxia
+                <ul>
+                    <li>High altitude
+                    <li>CHF
+                    <li>Pulmonary Embolism
+                </ul>
+                Lung Disease
+                <ul>
+                    <li>Pulmonary fibrosis
+                    <li>Pulmonary edema
+                    <li>Pneumonia
+                </ul>
+                Drugs
+                <ul>
+                    <li>Progesterone
+                    <li>Nicotine
+                </ul>
+                Stimulation of Respiratory Drive
+                <ul>
+                    <li>Psychogenic
+                    <li>Neurologic (pontine tumor)
+                    <li>Sepsis
+                    <li>Pregnancy
+                    <li>Mechanical ventilation
+                </ul>
+            </td>
+        </tr>
+    </table>
+
+    </div>
+</form>
+</body>
+</html>

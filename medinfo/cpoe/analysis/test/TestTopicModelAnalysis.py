@@ -6,6 +6,8 @@ from cStringIO import StringIO
 from datetime import datetime;
 import unittest
 
+import numpy as np;
+
 from Const import RUNNER_VERBOSITY;
 from Util import log;
 
@@ -116,10 +118,29 @@ class TestTopicModelAnalysis(BaseCPOETestAnalysis):
         DBUtil.insertFile( StringIO(dataTextStr), "item_collection_item", delim=";");
 
 
-        # Load model objects from persisted (test) files.  
+        # Input file contents in Bag-of-Words formats from which can build Topic Models while avoiding binary versions that become obsolete in later versions
+        self.inputBOWFileStr = \
+"""[[1,1],[2,2],[3,1],[4,4],[5,10],[8,5]]
+[[3,4],[4,4],[9,3],[10,2],[12,6],[13,3],[15,5],[16,8]]
+[[1,1],[2,2],[3,1],[4,4],[5,10],[8,5],[9,1],[10,2],[11,1],[12,4],[13,10],[14,1],[15,3],[16,5]]
+[[1,4],[2,9],[9,1],[10,2],[11,7],[12,4],[13,2],[16,6]]
+[[4,3],[5,31],[8,5],[12,6],[13,8],[16,5]]
+"""
         self.instance = TopicModel();  # Instance to test on
+        self.instance.randomState = np.random.RandomState(1);  # Start with a fixed random state so that topic model generating process will be consistent for regression testing
+
+        # Build typical LDA model and store in temp files
+        sys.stdin = StringIO(self.inputBOWFileStr);
+        subargv = ["TopicModel", "-n", "3", "-i", "5", "-", os.path.join(TEST_DIR,TEST_FILE_PREFIX)];
+        self.instance.main(subargv);
         self.ldaModel = self.instance.loadModel( os.path.join(TEST_DIR,TEST_FILE_PREFIX) );
+
+        # Build HDP model in separate temp files
+        sys.stdin = StringIO(self.inputBOWFileStr);
+        subargv = ["TopicModel", "-n", "0", "-i", "5", "-", os.path.join(TEST_DIR,"HDP"+TEST_FILE_PREFIX)];
+        self.instance.main(subargv);
         self.hdpModel = self.instance.loadModel( os.path.join(TEST_DIR,"HDP"+TEST_FILE_PREFIX) );
+
         self.docCountByWordId = self.instance.loadDocCountByWordId( os.path.join(TEST_DIR,self.instance.topTopicFilename(TEST_FILE_PREFIX)) );
         
         # Sample Prepared Validation File
@@ -135,6 +156,14 @@ class TestTopicModelAnalysis(BaseCPOETestAnalysis):
     def tearDown(self):
         """Restore state from any setUp or test steps"""
         self.purgeTestRecords();
+
+        # Remove Topic Model temp files
+        for filename in os.listdir(TEST_DIR):
+            if filename.startswith(TEST_FILE_PREFIX):
+                os.remove(os.path.join(TEST_DIR,filename));
+            elif filename.startswith("HDP"+TEST_FILE_PREFIX):
+                os.remove(os.path.join(TEST_DIR,filename));
+
         DBTestCase.tearDown(self);
 
     def purgeTestRecords(self):
@@ -152,9 +181,9 @@ class TestTopicModelAnalysis(BaseCPOETestAnalysis):
         colNames = ["patient_id", "TP", "FN", "FP",  "recall", "precision", "F1-score", "weightRecall","weightPrecision", "weightF1-score", "ROC-AUC"];
         
         expectedResults = \
-            [   RowItemModel([123,  3,1,0,  0.75,  1.0,  0.857, 0.875, 1.0,   0.933, None,], colNames ),    # ROC undefined when all recommended items are verify items (perfect precision)
-                RowItemModel([456,  1,2,3,  0.333, 0.25, 0.286, 0.167, 0.1875,0.176, 0.429,], colNames ),
-                RowItemModel([789,  1,1,3,  0.5,   0.25, 0.333, 0.333, 0.231, 0.273, 0.417,], colNames ),
+            [   RowItemModel([123, 3,1,0, 0.75,  1.0,  0.857, 0.875, 1.0,   0.933, None], colNames ),   # ROC undefined when all recommended items are verify items (perfect precision)
+                RowItemModel([456, 1,2,3, 0.333, 0.25, 0.286, 0.167, 0.1875,0.176, 0.357], colNames ),
+                RowItemModel([789, 1,1,3, 0.5,   0.25, 0.333, 0.333, 0.231, 0.273, 0.417], colNames ),
             ];
 
         # Analysis via prepared validation data file
@@ -169,8 +198,8 @@ class TestTopicModelAnalysis(BaseCPOETestAnalysis):
         # Redo with HdpModel
         expectedResults = \
             [   RowItemModel([123,  3,1,0,  0.75,  1.0,  0.857, 0.875, 1.0,   0.933, None,], colNames ),
-                RowItemModel([456,  0,3,4,  0.0,   0.0,  0.0,   0.0,   0.0,   0.0,   0.429,], colNames ),
-                RowItemModel([789,  2,0,2,  1.0,   0.5,  0.667, 1.0,   0.6,   0.75,  0.833,], colNames ),
+                RowItemModel([456,  1,2,3,  0.333, 0.25, 0.286, 0.167, 0.176, 0.171, 0.571,], colNames ),
+                RowItemModel([789,  1,1,3,  0.5,   0.25, 0.333, 0.667, 0.24,  0.353, 0.417,], colNames ),
             ];
 
         # Analysis via prepared validation data file
@@ -185,7 +214,7 @@ class TestTopicModelAnalysis(BaseCPOETestAnalysis):
         ##### Redo with TF*IDF score weighting
         expectedResults = \
             [   RowItemModel([123,  3,1,0,  0.75,  1.0,  0.857, 0.875, 1.0,   0.933, None,], colNames ),    # ROC undefined when all recommended items are verify items (perfect precision)
-                RowItemModel([456,  1,2,3,  0.333, 0.25, 0.286, 0.167, 0.1875,0.176, 0.5,], colNames ),
+                RowItemModel([456,  1,2,3,  0.333, 0.25, 0.286, 0.167, 0.1875,0.176, 0.357,], colNames ),
                 RowItemModel([789,  1,1,3,  0.5,   0.25, 0.333, 0.667, 0.375, 0.48,  0.5,], colNames ),
             ];
 
@@ -202,7 +231,7 @@ class TestTopicModelAnalysis(BaseCPOETestAnalysis):
         expectedResults = \
             [   RowItemModel([123,  3,1,0,  0.75,  1.0,  0.857, 0.875, 1.0,   0.933, None,], colNames ),
                 RowItemModel([456,  1,2,3,  0.333, 0.25, 0.286, 0.667, 0.462, 0.545, 0.571,], colNames ),
-                RowItemModel([789,  1,1,3,  0.5,   0.25, 0.333, 0.667, 0.25,  0.364, 0.75,], colNames ),
+                RowItemModel([789,  1,1,3,  0.5,   0.25, 0.333, 0.667, 0.24,  0.353, 0.333,], colNames ),
             ];
 
         # Analysis via prepared validation data file
@@ -221,7 +250,7 @@ class TestTopicModelAnalysis(BaseCPOETestAnalysis):
         
         expectedResults = \
             [   RowItemModel([123,  3,1,0,  0.75,  1.0,  0.857, 0.875, 1.0,   0.933, None,], colNames ),    # Order set with 3 recs
-                RowItemModel([456,  1,2,2,  0.333, 0.333, 0.333, 0.167, 0.3, 0.214, 0.429,], colNames ),   # Order set size 3 recs
+                RowItemModel([456,  1,2,2,  0.333, 0.333, 0.333, 0.167, 0.3, 0.214, 0.357,], colNames ),   # Order set size 3 recs
                 RowItemModel([789,  1,1,3,  0.5,   0.25, 0.333, 0.333, 0.231, 0.273, 0.417,], colNames ),   # Order set size 4 recs
             ];
 
@@ -232,6 +261,10 @@ class TestTopicModelAnalysis(BaseCPOETestAnalysis):
         self.analyzer.main(argv);
         textOutput = StringIO(sys.stdout.getvalue());
         #print >> sys.stderr, sys.stdout.getvalue()
+        #for row in TabDictReader(StringIO(sys.stdout.getvalue())):
+        #    for col in colNames:
+        #        print >> sys.stderr, row[col],
+        #    print >> sys.stderr
         self.assertEqualStatResultsTextOutput(expectedResults, textOutput, colNames);
 
 def suite():

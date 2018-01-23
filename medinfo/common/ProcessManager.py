@@ -82,7 +82,7 @@ class ProcessManager:
             while pidExists(pid):
                 time.sleep(interval);
                 prog.update();
-            prog.printStatus();
+            # prog.printStatus();
 
             print >> sys.stderr, "Executing: ", options.commandStr;
             process = subprocess.Popen(options.commandStr);
