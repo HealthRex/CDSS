@@ -452,11 +452,6 @@ class STRIDEDescription:
         #   population    male (#)    male (%)    female (#)  female(%)   total
         #   Stanford ('09-'14)
         #
-        # (
-            69664L,
-                53980L,
-                55680L,
-            68668L, 12844L, 14L, 5684L, 1605L, 20471L, 1185L, 1L, 344L, 5145L, 8943L, 29352L, 22649L, 29378L, 13851L)
         # How do Stanford patient demographics vary from Palo Alto?
         # From the US?
         #

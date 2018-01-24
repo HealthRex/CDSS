@@ -115,12 +115,14 @@ class FeatureMatrixFactory:
         tsvFile.write("%s\n" % columns[numColumns - 1][0])
 
         # By default, cursor iterates through both header and data rows.
+        self._numRows = 0
         row = dbCursor.fetchone()
         while row is not None:
             for i in range(numColumns - 1):
                 tsvFile.write("%s\t" % row[i])
             tsvFile.write("%s\n" % row[numColumns - 1])
             row = dbCursor.fetchone()
+            self._numRows += 1
 
     def _processPatientListTsvFile(self):
         """
@@ -430,6 +432,11 @@ class FeatureMatrixFactory:
                 itemTimes = itemTimesByPatientId[patientId]
                 if itemTimes is not None:
                     for itemTime in itemTimes:
+                        # Need this extra check because if a given event
+                        # has not occurred yet, but will occur, itemTime will
+                        # be none while itemTimes is not None.
+                        if itemTime is None:
+                            continue
                         timeDiffSeconds = (itemTime - episodeTime).total_seconds()
                         timeDiffDays = timeDiffSeconds / SECONDS_PER_DAY
                         # If event occurred before index time...
@@ -1029,7 +1036,24 @@ class FeatureMatrixFactory:
             self.addClinicalItemFeatures(teamNames, column="description", \
                 label="Team."+category, features=features)
 
-    def buildFeatureMatrix(self):
+    def addSexFeatures(self):
+        SEX_FEATURES = ["Male", "Female"]
+        for feature in SEX_FEATURES:
+            self.addClinicalItemFeatures([feature], dayBins=[], \
+                features="pre")
+
+    def addRaceFeatures(self):
+        RACE_FEATURES = [
+            "RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
+            "RaceHispanicLatino", "RaceBlack", "RaceAsian",
+            "RacePacificIslander", "RaceNativeAmerican",
+            "RaceOther", "RaceUnknown"
+        ]
+        for feature in RACE_FEATURES:
+            self.addClinicalItemFeatures([feature], dayBins=[], \
+                features="pre")
+
+    def buildFeatureMatrix(self, header=None, matrixFileName=None):
         """
         Given a set of factory inputs, build a feature matrix which
         can then be output.
@@ -1039,11 +1063,23 @@ class FeatureMatrixFactory:
             self._queryFooInput()
             self._parseFooInput()
         """
+        if header is None:
+            # file_name.tab
+            # Created: timestamp
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            header = [
+                '%s' % self._matrixFileName,
+                'Created: %s' % timestamp
+            ]
+
         # Initialize feature matrix file.
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
-        matrixFileName = "feature-matrix_%s.tab" % timestamp
-        matrixFile = open(matrixFileName, "w")
+        if matrixFileName is None:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+            matrixFileName = "feature-matrix_%s.tab" % timestamp
+            self._matrixFileName = matrixFileName
         self._matrixFileName = matrixFileName
+        matrixFile = open(self._matrixFileName, "w")
+
 
         # Read arbitrary number of input temp files.
         # Use csv tab reader so we can just read the lists while being agnostic
@@ -1058,6 +1094,10 @@ class FeatureMatrixFactory:
             tempFileReader = csv.reader(tempFile, delimiter="\t")
             tempFiles.append(tempFile)
             tempFileReaders.append(tempFileReader)
+
+        # Write header to matrix file.
+        for line in header:
+            matrixFile.write('# %s\n' % line)
 
         # Write data to matrix file.
         for patientEpisode in patientEpisodeReader:
@@ -1111,3 +1151,6 @@ class FeatureMatrixFactory:
 
     def getMatrixFileName(self):
         return self._matrixFileName
+
+    def getNumRows(self):
+        return self._numRows
