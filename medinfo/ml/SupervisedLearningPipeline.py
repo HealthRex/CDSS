@@ -16,11 +16,17 @@ SubClasses will be expected to override the following functions:
 * summarize()
 """
 
+import datetime
 import inspect
 import os
+import pandas as pd
 
 from sklearn.model_selection import train_test_split
 from sklearn.utils.validation import column_or_1d
+
+from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
+from medinfo.dataconversion.FeatureMatrixTransform import FeatureMatrixTransform
+from medinfo.ml.FeatureSelector import FeatureSelector
 
 class SupervisedLearningPipeline:
     def __init__(self, variable, num_data_points, use_cache=None):
@@ -73,12 +79,16 @@ class SupervisedLearningPipeline:
 
         return data_dir
 
-    def _build_raw_feature_matrix(self, matrix_class, raw_matrix_path):
+    def _build_raw_feature_matrix(self, matrix_class, raw_matrix_path, params=None):
         # If raw matrix exists, and client has not requested to flush the cache,
         # just use the matrix that already exists and return.
         if os.path.exists(raw_matrix_path) and not self._flush_cache:
             pass
         else:
+            # Each matrix class may have a custom set of parameters which should
+            # be passed on directly to matrix_class, but we expect them to have
+            # at least 1 primary variables and # of rows.
+            self._raw_matrix_params = params
             matrix = matrix_class(self._lab_panel, self._num_episodes)
             matrix.write_matrix(raw_matrix_path)
 
@@ -99,9 +109,11 @@ class SupervisedLearningPipeline:
         #   params['percent_features_to_select'] = percent_features_to_select
         #   params['matrix_class'] = matrix_class
         #   params['pipeline_file_path'] = pipeline_file_path
-        
+        #   TODO(sbala): Determine which fields should have defaults.
+
         # If processed matrix exists, and the client has not requested to flush
         # the cache, just use the matrix that already exists and return.
+        processed_matrix_path = params['processed_matrix_path']
         if os.path.exists(processed_matrix_path) and not self._flush_cache:
             pass
         else:
@@ -137,11 +149,9 @@ class SupervisedLearningPipeline:
             processed_matrix = train.append(test)
 
             # Write output to new matrix file.
-            # TODO(sbala): Pipe the necessary data into
-            # _build_processed_matrix_header, and modularize.
             header = self._build_processed_matrix_header(params)
             fm_io.write_data_frame_to_file(processed_matrix, \
-                params['processed_matrix_path'], header)
+                processed_matrix_path, header)
 
     def _add_features(self, fmt, features_to_add):
         # Expected format for features_to_add:
@@ -184,7 +194,7 @@ class SupervisedLearningPipeline:
             # Otherwise, imputation will fail (there's no mean value),
             # and sklearn will ragequit.
             if raw_matrix[feature].isnull().all():
-                fm.remove_feature(feature)
+                fmt.remove_feature(feature)
                 self._removed_features.append(feature)
             # Only try to impute if some of the values are null.
             elif raw_matrix[feature].isnull().any():
@@ -227,91 +237,21 @@ class SupervisedLearningPipeline:
         self._X_train = fs.transform_matrix(self._X_train)
         self._X_test = fs.transform_matrix(self._X_test)
 
-    def _build_processed_matrix_header(self, processed_matrix_path):
+    def _build_processed_matrix_header(self, params):
         # FeatureMatrixFactory and FeatureMatrixIO expect a list of strings.
         # Each comment below represents the line in the comment.
         header = list()
 
-        file_summary = self._build_file_summary()
-        #
+        processed_matrix_path = params['processed_matrix_path']
+        pipeline_file_path = params['pipeline_file_path']
+        file_summary = self._build_file_summary(processed_matrix_path, pipeline_file_path)
+        header.extend(file_summary)
         header.append('')
-        # Overview:
-        header.append('Overview:')
-        # This file is a processed version of ___.
-        line = 'This file is a post-processed version of %s.' % self._cmm_name_raw
-        header.append(line)
-        # The outcome label is ___, which is a boolean indicator
-        line = 'The outcome label is I(0<=Death.postTimeDays<=28), which is a boolean indicator'
-        header.append(line)
-        # for whether the patient given by pat_id passed away within 28 days
-        line = 'for whether the patient given by pat_id passed away within 28 days'
-        header.append(line)
-        # of the time index represented by a given row.
-        line = 'of the time index represented by a given row.'
-        header.append(line)
-
+        data_overview = params['data_overview']
+        header.extend(data_overview)
+        header.append('')
         processing_summary = self._build_processing_steps_summary()
-
-        #
-        line = ''
-        header.append(line)
-        # Each row represents a decision point (proxied by clinical order).
-        line = 'Each row represents a decision point (proxied by clinical order).'
-        header.append(line)
-        # Each row contains fields summarizing the patient's demographics,
-        line = "Each row contains fields summarizing the patient's demographics"
-        header.append(line)
-        # inpatient admit date, prior vitals, and prior lab results.
-        line = 'inpatient admit date, prior vitals, and prior lab results.'
-        header.append(line)
-        # Most cells in matrix represent a count statistic for an event's
-        line = "Most cells in matrix represent a count statistic for an event's"
-        header.append(line)
-        # occurrence or a difference between an event's time and index_time.
-        line = "occurrence or a difference between an event's time and index_time."
-        header.append(line)
-        #
-        header.append('')
-        # Fields:
-        header.append('Fields:')
-        #   pat_id - ID # for patient in the STRIDE data set.
-        header.append('  pat_id - ID # for patient in the STRIDE data set.')
-        #   index_time - time at which clinical decision was made.
-        header.append('  index_time - time at which clinical decision was made.')
-        #   death_date - if patient died, date on which they died.
-        header.append('  death_date - if patient died, date on which they died.')
-        #   AdmitDxDate.[clinical_item] - admit diagnosis, pegged to admit date.
-        header.append('  AdmitDxDate.[clinical_item] - admit diagnosis, pegged to admit date.')
-        #   Birth.preTimeDays - patient's age in days.
-        header.append("  Birth.preTimeDays - patient's age in days.")
-        #   [Male|Female].pre - is patient male/female (binary)?
-        header.append('  [Male|Female].pre - is patient male/female (binary)?')
-        #   [RaceX].pre - is patient race [X]?
-        header.append('  [RaceX].pre - is patient race [X]?')
-        #   Team.[specialty].[clinical_item] - specialist added to treatment team.
-        header.append('  Team.[specialty].[clinical_item] - specialist added to treatment team.')
-        #   Comorbidity.[disease].[clinical_item] - disease added to problem list.
-        header.append('  Comorbidity.[disease].[clinical_item] - disease added to problem list.')
-        #   ___.[flowsheet] - measurements for flowsheet biometrics.
-        header.append('  ___.[flowsheet] - measurements for flowsheet biometrics.')
-        #       Includes BP_High_Systolic, BP_Low_Diastolic, FiO2,
-        header.append('    Includes BP_High_Systolic, BP_Low_Diastolic, FiO2,')
-        #           Glasgow Coma Scale Score, Pulse, Resp, Temp, and Urine.
-        header.append('      Glasgow Coma Scale Score, Pulse, Resp, Temp, and Urine.')
-        #   ___.[lab_result] - lab component results.
-        header.append('  ___.[lab_result] - lab component results.')
-        #       Included standard components: WBC, HCT, PLT, NA, K, CO2, BUN,
-        header.append('    Included standard components: WBC, HCT, PLT, NA, K, CO2, BUN,')
-        #           CR, TBIL, ALB, CA, LAC, ESR, CRP, TNI, PHA, PO2A, PCO2A,
-        header.append('      CR, TBIL, ALB, CA, LAC, ESR, CRP, TNI, PHA, PO2A, PCO2A,')
-        #           PHV, PO2V, PCO2V
-        header.append('      PHV, PO2V, PCO2V')
-        #
-        header.append('')
-        #
-        header.append('')
-
-        lab_field_summary = self._build_flowsheet_and_lab_results_field_summary()
+        header.extend(processing_summary)
 
         return header
 
@@ -320,20 +260,28 @@ class SupervisedLearningPipeline:
 
         # <file_name.tab>
         matrix_file_name = processed_matrix_path.split('/')[-1]
-        header.append(matrix_file_name)
+        summary.append(matrix_file_name)
         # Created: <timestamp>
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        header.append('Created: %s' % timestamp)
+        summary.append('Created: %s' % timestamp)
         # Source: __name__
-        header.append('Source: %s' % pipeline_file_path.split('/')[-1])
+        class_name = pipeline_file_path.split('/')[-1]
+        summary.append('Source: %s' % class_name)
         # Command: Pipeline()
-        if self._icd_list:
-            command = 'ConditionMortalityPredictor(%s, %s, %s)' % \
-                (self._condition, self._num_patients, self._icd_list)
-        else:
-            command = 'ConditionMortalityPredictor(%s, %s)' % \
-                (self._condition, self._num_patients)
-        header.append('Command: %s' % command)
+        args = [self._var, self._num_rows]
+        for key, value in self._raw_matrix_params:
+            args.append('%s=%s' % (key, value))
+        command = '%s(%s)' % (class_name, ', '.join(args))
+        summary.append('Command: %s' % command)
+        #
+        summary.append('')
+        # Overview:
+        summary.append('Overview:')
+        # This file is a processed version of ___.
+        line = 'This file is a post-processed version of %s.' % raw_matrix_name
+        summary.append(line)
+
+        return summary
 
     def _build_processing_steps_summary(self):
         summary = []
@@ -368,55 +316,6 @@ class SupervisedLearningPipeline:
         summary.append(line)
 
         return summary
-
-    def _build_clinical_item_field_description(self):
-        description = list()
-        #   [clinical_item] fields may have the following suffixes:
-        description.append('  [clinical_item] fields may have the following suffixes:')
-        #       ___.pre - how many times has this occurred before order_time?
-        description.append('    ___.pre - how many times has this occurred before order_time?')
-        #       ___.pre.Xd - how many times has this occurred within X days before index_time?
-        description.append('    ___.pre.Xd - how many times has this occurred within X days before index_time?')
-        #       ___.preTimeDays - how many days before order_time was last occurrence?
-        description.append('    ___.preTimeDays - how many days before order_time was last occurrence?')
-
-        return description
-
-    def _build_flowsheet_and_lab_results_field_description(self):
-        description = list()
-        #   [flowsheet] and [lab_result] fields may have the following suffixes:
-        description.append('  [flowsheet] and [lab_result] fields may have the following suffixes:')
-        #       ___.X_Y.count - # of result values between X and Y days of index_time.
-        description.append('    ___.X_Y.count - # of result values between X and Y days of index_time.')
-        #       ___.X_Y.countInRange - # of result values in normal range.
-        description.append('    ___.X_Y.countInRange - # of result values in normal range.')
-        #       ___.X_Y.min - minimum result value.
-        description.append('    ___.X_Y.min - minimum result value.')
-        #       ___.X_Y.max - maximum result value.
-        description.append('    ___.X_Y.max - maximum result value.')
-        #       ___.X_Y.median - median result value.
-        description.append('    ___.X_Y.median - median result value.')
-        #       ___.X_Y.std - standard deviation of result values.
-        description.append('    ___.X_Y.std - standard deviation of result values.')
-        #       ___.X_Y.first - first result value.
-        description.append('    ___.X_Y.first - first result value.')
-        #       ___.X_Y.last - last result value.
-        description.append('    ___.X_Y.last - last result value.')
-        #       ___.X_Y.diff - difference between penultimate and proximate values.
-        description.append('    ___.X_Y.diff - difference between penultimate and proximate values.')
-        #       ___.X_Y.slope - slope between penultimate and proximate values.
-        description.append('    ___.X_Y.slope - slope between penultimate and proximate values.')
-        #       ___.X_Y.proximate - closest result value to order_time.
-        description.append('    ___.X_Y.proximate - closest result value to order_time.')
-        #       ___.X_Y.firstTimeDays - time between first and order_time.
-        description.append('    ___.X_Y.firstTimeDays - time between first and order_time.')
-        #       ___.X_Y.lastTimeDays - time between last and order_time.
-        description.append('    ___.X_Y.lastTimeDays - time between last and order_time.')
-        #       ___.X_Y.proximateTimeDays - time between proximate and order_time.
-        description.append('    ___.X_Y.proximateTimeDays - time between proximate and order_time.')
-
-        return description
-
 
     def summarize():
         pass
