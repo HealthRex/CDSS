@@ -9,6 +9,7 @@ import pandas as pd
 
 from scipy.stats import norm
 from sklearn.preprocessing import Imputer
+from Util import log
 
 class FeatureMatrixTransform:
     IMPUTE_STRATEGY_MEAN = 'mean'
@@ -72,7 +73,10 @@ class FeatureMatrixTransform:
             self._matrix[feature] = self._matrix[feature].apply(lambda x: distribution() if pd.isnull(x) else x)
 
     def remove_feature(self, feature):
-        del self._matrix[feature]
+        try:
+            del self._matrix[feature]
+        except KeyError:
+            log.info('Cannot remove non-existent feature "%s".' % feature)
 
     def add_logarithm_feature(self, base_feature, logarithm=None):
         if logarithm is None:
@@ -89,6 +93,8 @@ class FeatureMatrixTransform:
             new_col = self._matrix[base_feature].apply(np.log10)
             self._matrix.insert(col_index, log_feature, new_col)
 
+        return log_feature
+
     def add_indicator_feature(self, base_feature, boolean_indicator=None):
         # boolean: determines whether to add True/False labels or 1/0
         if boolean_indicator is None or boolean_indicator is False:
@@ -100,6 +106,8 @@ class FeatureMatrixTransform:
         indicator_feature = 'I(' + base_feature + ')'
         new_col = self._matrix[base_feature].apply(indicator)
         self._matrix.insert(col_index + 1, indicator_feature, new_col)
+
+        return indicator_feature
 
     def add_threshold_feature(self, base_feature, lower_bound=None, upper_bound=None):
         # Add feature which indicates whether base_feature is >= lower_bound
@@ -123,8 +131,32 @@ class FeatureMatrixTransform:
         new_col = self._matrix[base_feature].apply(indicator)
         self._matrix.insert(col_index + 1, threshold_feature, new_col)
 
+        return threshold_feature
+
     def drop_duplicate_rows(self):
         self._matrix.drop_duplicates(inplace=True)
+
+    def remove_low_signal_features(self):
+        # Prune obviously unhelpful fields.
+        # in theory, FeatureSelector should be able to prune these
+        # automatically, but no harm in helping out given it has to sift
+        # through ~3000 features.
+        LOW_SIGNAL_FEATURES = [
+            'index_time',
+            'Birth.pre', 'Death.post'
+            'Male.preTimeDays', 'Female.preTimeDays',
+            'RaceWhiteHispanicLatino.preTimeDays',
+            'RaceWhiteNonHispanicLatino.preTimeDays',
+            'RaceHispanicLatino.preTimeDays',
+            'RaceAsian.preTimeDays',
+            'RaceBlack.preTimeDays',
+            'RacePacificIslander.preTimeDays',
+            'RaceNativeAmerican.preTimeDays',
+            'RaceOther.preTimeDays',
+            'RaceUnknown.preTimeDays'
+            ]
+        for feature in LOW_SIGNAL_FEATURES:
+            self.remove_feature(feature)
 
     def _numeric_indicator(self, value):
         return 1 if pd.notnull(value) else 0
