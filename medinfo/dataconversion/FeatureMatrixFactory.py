@@ -1063,6 +1063,11 @@ class FeatureMatrixFactory:
             self._queryFooInput()
             self._parseFooInput()
         """
+        # Initialize feature matrix file.
+        if matrixFileName is None:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+            matrixFileName = "feature-matrix_%s.tab" % timestamp
+            self._matrixFileName = matrixFileName
         if header is None:
             # file_name.tab
             # Created: timestamp
@@ -1071,12 +1076,6 @@ class FeatureMatrixFactory:
                 '%s' % self._matrixFileName,
                 'Created: %s' % timestamp
             ]
-
-        # Initialize feature matrix file.
-        if matrixFileName is None:
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
-            matrixFileName = "feature-matrix_%s.tab" % timestamp
-            self._matrixFileName = matrixFileName
         self._matrixFileName = matrixFileName
         matrixFile = open(self._matrixFileName, "w")
 
