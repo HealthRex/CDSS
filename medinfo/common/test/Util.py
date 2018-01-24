@@ -266,3 +266,13 @@ class MockCGIFieldStorage(UserDict.UserDict):
         'MyValue'
         """
         self[key] = cgi.MiniFieldStorage(key,value)
+
+def make_test_suite(module_name):
+    """
+    Returns the suite of tests to run for this test class / module.
+    Use unittest.makeSuite methods which simply extracts all of the
+    methods for the given class whose name starts with "test".
+    """
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(module_name))
+    return suite
