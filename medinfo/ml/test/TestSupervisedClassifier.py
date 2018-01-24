@@ -13,16 +13,16 @@ from SupervisedClassifierTestData import RANDOM_CLASSIFICATION_TEST_CASE
 class TestSupervisedClassifier(MedInfoTestCase):
     def test_init(self):
         # Test unspecified algorithm.
-        classifier = SupervisedClassifier()
+        classifier = SupervisedClassifier([0, 1])
         self.assertEqual(classifier.algorithm(), \
             SupervisedClassifier.LOGISTIC_REGRESSION)
 
         # Test unsupported algorithm.
         with self.assertRaises(ValueError):
-            SupervisedClassifier(algorithm="foo")
+            SupervisedClassifier([0, 1], algorithm="foo")
 
         # Confirm specified algorithm selection.
-        classifier = SupervisedClassifier(algorithm=SupervisedClassifier.DECISION_TREE)
+        classifier = SupervisedClassifier([0, 1], algorithm=SupervisedClassifier.DECISION_TREE)
         self.assertEqual(classifier.algorithm(), SupervisedClassifier.DECISION_TREE)
 
     def test_predict(self):
@@ -34,7 +34,7 @@ class TestSupervisedClassifier(MedInfoTestCase):
         X_train, X_test, y_train, y_test = train_test_split(X, y)
 
         # Train logistic regression model.
-        classifier = SupervisedClassifier()
+        classifier = SupervisedClassifier([0, 1])
         classifier.train(X_train, y_train)
 
         # Test prediction values.
@@ -51,10 +51,10 @@ class TestSupervisedClassifier(MedInfoTestCase):
         X_train, X_test, y_train, y_test = train_test_split(X, y)
 
         # Train logistic regression model.
-        decimalCoeffs = SupervisedClassifier(algorithm=SupervisedClassifier.LOGISTIC_REGRESSION)
+        decimalCoeffs = SupervisedClassifier([0, 1], algorithm=SupervisedClassifier.LOGISTIC_REGRESSION)
         decimalCoeffs.train(X_train, y_train)
 
-        integerCoeffs = SupervisedClassifier(algorithm=SupervisedClassifier.REGRESS_AND_ROUND)
+        integerCoeffs = SupervisedClassifier([0, 1], algorithm=SupervisedClassifier.REGRESS_AND_ROUND)
         integerCoeffs.train(X_train, y_train)
 
         # Test coefficients.

@@ -19,16 +19,20 @@ class SupervisedClassifier:
     SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST, \
         REGRESS_AND_ROUND]
 
-    def __init__(self, algorithm=None):
+    def __init__(self, classes, algorithm=None):
         if algorithm is None:
             self._algorithm = SupervisedClassifier.LOGISTIC_REGRESSION
         elif algorithm not in SupervisedClassifier.SUPPORTED_ALGORITHMS:
             raise ValueError('Algorithm %s not supported.' % algorithm)
         else:
             self._algorithm = algorithm
+        self._classes = classes
 
     def algorithm(self):
         return self._algorithm
+
+    def classes(self):
+        return self._classes
 
     def coefs(self):
         return self._model.coef_[0]
