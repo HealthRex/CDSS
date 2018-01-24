@@ -1,17 +1,19 @@
 #!/usr/bin/python
 """
-Class for generating LabTestMatrix.
+Class for generating LabNormalityMatrix.
 """
 
 import datetime
 import os
 import time
 import numpy
+
+from scripts.Util import log
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 
-class LabTestMatrix:
+class LabNormalityMatrix:
     def __init__(self, labPanel, numPatientEpisodes):
         self.factory = FeatureMatrixFactory()
         self.labPanel = labPanel
@@ -246,7 +248,7 @@ class LabTestMatrix:
             print "\t\t%s" % preTimeDelta
             self.factory.addLabResultFeatures(self.labComponents, False, preTimeDelta, LAB_POST_TIME_DELTA)
 
-    def writeLabTestMatrix(self, destPath):
+    def write_matrix(self, destPath):
         print 'Writing final matrix file...'
         # Get old matrix file.
         sourcePath = self.factory.getMatrixFileName()
@@ -261,7 +263,7 @@ class LabTestMatrix:
     def _writeMatrixHeader(self, matrixFileName, matrixFile):
         created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         source = __name__
-        command = "LabTestMatrix('%s', %s).writeMatrixFile('%s')" % (self.labPanel, \
+        command = "LabNormalityMatrix('%s', %s).writeMatrixFile('%s')" % (self.labPanel, \
             self.numRequestedEpisodes, matrixFileName)
 
         header = """\
@@ -336,7 +338,7 @@ class LabTestMatrix:
 if __name__ == "__main__":
     start_time = time.time()
     # Initialize lab test matrix.
-    ltm = LabTestMatrix("LABABG", 10)
+    ltm = LabNormalityMatrix("LABABG", 10)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
-    ltm.writeLabTestMatrix("LABABG-panel-10-episodes-%s-sec.tab" % str(elapsed_time))
+    ltm.write_matrix("LABABG-panel-10-episodes-%s-sec.tab" % str(elapsed_time))
