@@ -5,6 +5,7 @@ Class for generating LabNormalityMatrix.
 
 import datetime
 import os
+import sys
 import time
 import numpy
 
@@ -86,6 +87,11 @@ class LabNormalityMatrix:
         cursor.execute(query)
         avgOrdersPerPatient = cursor.fetchone()[0]
 
+        if avgOrdersPerPatient is None:
+            error_msg = '0 orders for lab panel "%s."' % self.labPanel
+            log.critical(error_msg)
+            sys.exit('[ERROR] %s' % error_msg)
+
         return avgOrdersPerPatient
 
     def _getRandomPatientList(self, numPatientsToQuery):
@@ -125,14 +131,41 @@ class LabNormalityMatrix:
         patientListStr = ", ".join(randomPatientList)
 
         # Build SQL query for list of patient episodes.
-        query = "SELECT CAST(pat_id AS bigint), \
+        # Note that for 2008-2014 data, result_flag can take on any of the
+        # following values:  High, Low, High Panic, Low Panic,
+        # Low Off-Scale, Negative, Positive, Resistant, Susceptible, Abnormal, *
+        # (NONE): Only 27 lab components can have this flag. None has this
+        #           value for more than 5 results, so ignore it.
+        # *: Only 10 lab components can have this flag. Only 6 have it for
+        #           >10 tests, and each of them is a microbiology test for which
+        #           a flag is less meaningful, e.g. Gram Stain, AFB culture.
+        # Susceptible: Only 15 lab components can have this flag. All of those
+        #           only have this value for 2 results, so ignore it.
+        # Resistant: Only 1 lab component can have this flag. Only two results
+        #           have this value, so ignore it.
+        # Abnormal: 1462 lab components can have this flag. Many (e.g. UBLOOD)
+        #           have this value for thousands of results, so include it.
+        # Negative: Only 10 lab components can have this flag, and all for
+        #           less than 5 results, so ignore it.
+        # Positive: Only 3 lab components can have this flag, and all for
+        #           only 1 result, so ignore it.
+        # Low Off-Scale: Only 1 lab component can have this flag, and only for
+        #           3 results, so ignore it.
+        # Low Panic: 1401 lab components can have this flag, many core
+        #           metabolic components. Include it.
+        # High Panic: 8084 lab components can have this flag, many core
+        #           metabolic components. Include it.
+
+
+        query = "SELECT CAST(pat_id AS BIGINT), \
             sop.order_proc_id AS order_proc_id, proc_code, order_time, \
             CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel, \
-            COUNT(ord_num_value) AS num_components, \
-            COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS num_normal_components, \
-            CAST(COUNT(ord_num_value) = COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS INT) AS all_components_normal \
+            COUNT(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', NULL)) AS num_components, \
+            COUNT(CASE result_flag WHEN NULL THEN 1 ELSE NULL END) AS num_normal_components, \
+            CAST(COUNT(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic') THEN 1 ELSE NULL END) = 0 AS INT) AS all_components_normal \
             FROM stride_order_proc AS sop, stride_order_results AS sor \
             WHERE sop.order_proc_id = sor.order_proc_id \
+            AND result_flag in ('High', 'Low', 'High Panic', 'Low Panic', NULL)\
             AND proc_code IN ('%s') \
             AND CAST(pat_id AS BIGINT) IN (%s) \
             GROUP BY pat_id, sop.order_proc_id, proc_code, order_time, abnormal_yn \
