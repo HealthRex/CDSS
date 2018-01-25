@@ -3,7 +3,7 @@
 from medinfo.common.Util import log
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
-from LabTestMatrix import LabTestMatrix
+from LabNormalityMatrix import LabNormalityMatrix
 
 # Includes list of the top 25 most commonly ordered lab tests,
 # unioned with the top 25 most expensive by volume (count * price) lab tests.
@@ -29,8 +29,8 @@ MATRIX_NAME_FORMAT = "%s-panel-%s-pat-%s-epi.tab"
 # lab panel and (b) the entire panel.
 def generateLabPanelMatrices(labPanel):
     # Generate feature matrix for all components.
-    matrix = LabTestMatrix(labPanel, NUM_ROWS_PER_MATRIX)
-    matrix.writeLabTestMatrix(MATRIX_NAME_FORMAT % (labPanel, \
+    matrix = LabNormalityMatrix(labPanel, NUM_ROWS_PER_MATRIX)
+    matrix.write_matrix(MATRIX_NAME_FORMAT % (labPanel, \
         matrix.numPatients, matrix.numPatientEpisodes))
 
 # Generates LabTestMatrices for TOP_LAB_PANELS_BY_VOLUME.
