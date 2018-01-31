@@ -27,8 +27,14 @@ from sklearn.utils.validation import column_or_1d
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.dataconversion.FeatureMatrixTransform import FeatureMatrixTransform
 from medinfo.ml.FeatureSelector import FeatureSelector
+from medinfo.ml.Regressor import Regressor
+from medinfo.ml.SupervisedClassifier import SupervisedClassifier
+
 
 class SupervisedLearningPipeline:
+    CLASSIFICATION = 'classification'
+    REGRESSION = 'regression'
+
     def __init__(self, variable, num_data_points, use_cache=None):
         # Process arguments.
         self._var = variable
@@ -82,14 +88,17 @@ class SupervisedLearningPipeline:
     def _build_raw_feature_matrix(self, matrix_class, raw_matrix_path, params=None):
         # If raw matrix exists, and client has not requested to flush the cache,
         # just use the matrix that already exists and return.
+        if params is None:
+            self._raw_matrix_params = {}
+        else:
+            self._raw_matrix_params = params
         if os.path.exists(raw_matrix_path) and not self._flush_cache:
             pass
         else:
             # Each matrix class may have a custom set of parameters which should
             # be passed on directly to matrix_class, but we expect them to have
             # at least 1 primary variables and # of rows.
-            self._raw_matrix_params = params
-            matrix = matrix_class(self._lab_panel, self._num_episodes)
+            matrix = matrix_class(self._var, self._num_rows)
             matrix.write_matrix(raw_matrix_path)
 
     def _build_processed_feature_matrix(self, params):
@@ -110,15 +119,18 @@ class SupervisedLearningPipeline:
         #   params['matrix_class'] = matrix_class
         #   params['pipeline_file_path'] = pipeline_file_path
         #   TODO(sbala): Determine which fields should have defaults.
+        fm_io = FeatureMatrixIO()
 
         # If processed matrix exists, and the client has not requested to flush
         # the cache, just use the matrix that already exists and return.
         processed_matrix_path = params['processed_matrix_path']
         if os.path.exists(processed_matrix_path) and not self._flush_cache:
-            pass
+            # Assume feature selection already happened, but we still need
+            # to split the data into training and test data.
+            processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
+            self._train_test_split(processed_matrix, params['outcome_label'])
         else:
             # Read raw matrix.
-            fm_io = FeatureMatrixIO()
             raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
 
             # Initialize FMT.
@@ -217,6 +229,7 @@ class SupervisedLearningPipeline:
     def _train_test_split(self, processed_matrix, outcome_label):
         y = pd.DataFrame(processed_matrix.pop(outcome_label))
         X = processed_matrix
+        print X.columns
         self._X_train, self._X_test, self._y_train, self._y_test = train_test_split(X, y)
 
     def _select_features(self, problem, percent_features_to_select, algorithm):
@@ -244,7 +257,9 @@ class SupervisedLearningPipeline:
 
         processed_matrix_path = params['processed_matrix_path']
         pipeline_file_path = params['pipeline_file_path']
-        file_summary = self._build_file_summary(processed_matrix_path, pipeline_file_path)
+        raw_matrix_name = params['raw_matrix_path'].split('/')[-1]
+        file_summary = self._build_file_summary(processed_matrix_path, \
+            pipeline_file_path, raw_matrix_name)
         header.extend(file_summary)
         header.append('')
         data_overview = params['data_overview']
@@ -255,7 +270,7 @@ class SupervisedLearningPipeline:
 
         return header
 
-    def _build_file_summary(self, processed_matrix_path, pipeline_file_path):
+    def _build_file_summary(self, processed_matrix_path, pipeline_file_path, raw_matrix_name):
         summary = list()
 
         # <file_name.tab>
@@ -265,10 +280,11 @@ class SupervisedLearningPipeline:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
         summary.append('Created: %s' % timestamp)
         # Source: __name__
-        class_name = pipeline_file_path.split('/')[-1]
-        summary.append('Source: %s' % class_name)
+        module_name = pipeline_file_path.split('/')[-1]
+        summary.append('Source: %s' % module_name)
         # Command: Pipeline()
-        args = [self._var, self._num_rows]
+        class_name = module_name.split('.')[0]
+        args = [self._var, str(self._num_rows)]
         for key, value in self._raw_matrix_params:
             args.append('%s=%s' % (key, value))
         command = '%s(%s)' % (class_name, ', '.join(args))
@@ -316,6 +332,65 @@ class SupervisedLearningPipeline:
         summary.append(line)
 
         return summary
+
+    def _train_predictor(self, problem, algorithm=None, classes=None):
+        if problem == SupervisedLearningPipeline.CLASSIFICATION:
+            learning_class = SupervisedClassifier
+            self._predictor = learning_class(classes, algorithm=algorithm)
+        elif problem == SupervisedLearningPipeline.REGRESSION:
+            learning_class = Regressor
+            self._predictor = learning_class(algorithm=algorithm)
+        print self._X_train.shape
+        print self._y_train.shape
+        self._predictor.train(self._X_train, column_or_1d(self._y_train))
+
+    def _test_predictor(self):
+        # Accuracy
+        self._accuracy = self._predictor.compute_accuracy(self._X_test, self._y_test)
+        # ROC
+        # Precision at K
+
+    def _analyze_predictor(self):
+        summary_lines = list()
+
+        # Condition: condition
+        var = self._var
+        line = 'Variable: %s' % var
+        summary_lines.append(line)
+
+        # Algorithm: SupervisedClassifier(algorithm)
+        # algorithm = 'SupervisedClassifier(REGRESS_AND_ROUND)'
+        # line = 'Algorithm: %s' % algorithm
+        # summary_lines.append(line)
+
+        # Train/Test Size: training_size, test_size
+        training_size = self._X_train.shape[0]
+        test_size = self._X_test.shape[0]
+        line = 'Train/Test Size: %s/%s' % (training_size, test_size)
+        summary_lines.append(line)
+
+        # Model: sig_features
+        coefs = self._predictor.coefs()
+        cols = self._X_train.columns
+        sig_features = [(coefs[cols.get_loc(f)], f) for f in cols.values if coefs[cols.get_loc(f)] > 0]
+        linear_model = ' + '.join('%s*%s' % (weight, feature) for weight, feature in sig_features)
+        line = 'Model: logistic(%s)' % linear_model
+        summary_lines.append(line)
+
+        # Baseline Episode Mortality: episode_mortality
+        counts = self._y_test[self._y_test.columns[0]].value_counts()
+        line = 'Baseline Episode Mortality: %s/%s' % (counts[1], test_size)
+        summary_lines.append(line)
+
+        # AUC: auc
+        auc = self._predictor.compute_roc_auc(self._X_test, self._y_test)
+        line = 'AUC: %s' % auc
+        summary_lines.append(line)
+        # Accuracy: accuracy
+        line = 'Accuracy: %s' % self._predictor.compute_accuracy(self._X_test, self._y_test)
+        summary_lines.append(line)
+
+        print '\n'.join(summary_lines)
 
     def summarize():
         pass
