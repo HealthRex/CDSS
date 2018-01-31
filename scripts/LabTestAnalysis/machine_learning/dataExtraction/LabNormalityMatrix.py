@@ -14,49 +14,27 @@ from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 
-class LabNormalityMatrix:
-    def __init__(self, labPanel, numPatientEpisodes):
-        self.factory = FeatureMatrixFactory()
-        self.labPanel = labPanel
-        self.labComponents = self._getComponentsInLabPanel(labPanel)
-        self.numPatients = 1
-        self.numRequestedEpisodes = numPatientEpisodes
-        self.numPatientEpisodes = numPatientEpisodes
+class LabNormalityMatrix(FeatureMatrix):
+    def __init__(self, lab_panel, num_episodes):
+        FeatureMatrix.__init__(self, lab_panel, num_episodes)
 
-        # Initialize DB connection.
-        self.connection = DBUtil.connection()
-        print "Querying patient episodes..."
-        self._queryPatientEpisodes()
+        # Parse arguments.
+        self._lab_panel = lab_panel
+        self._num_requested_episodes = num_episodes
+        self._num_reported_episodes = None
 
-        # Add time features.
-        print 'Adding time features...'
-        self._addTimeFeatures()
-        # Add demographic features.
-        print 'Adding demographic features...'
-        self._addDemographicFeatures()
-        # Add treatment team features.
-        print 'Adding treatment team features...'
-        self.factory.addTreatmentTeamFeatures(features="pre")
-        # Add Charlson Comorbidity features.
-        print 'Adding comorbidity features...'
-        self.factory.addCharlsonComorbidityFeatures(features="pre")
-        # Add flowsheet vitals features.
-        print 'Adding flowsheet features...'
-        self._addFlowsheetFeatures()
-        # Add lab panel order and component result features.
-        print 'Adding lab test features...'
-        self._addLabTestFeatures()
+        # Query patient episodes.
+        self._query_patient_episodes()
+
+        # Add features.
+        self._add_features()
 
         # Build matrix.
-        print 'Building matrix...'
-        self.factory.buildFeatureMatrix()
+        FeatureMatrix._build_matrix(self)
 
-        return
-
-    def _getComponentsInLabPanel(self, labPanel):
+    def _get_components_in_lab_panel(self):
         # Initialize DB connection.
-        connection = DBUtil.connection()
-        cursor = connection.cursor()
+        cursor = self._connection.cursor()
 
         # Build query to get component names for panel.
         query = SQLQuery()
@@ -64,16 +42,16 @@ class LabNormalityMatrix:
         query.addFrom("stride_order_proc AS sop")
         query.addFrom("stride_order_results AS sor")
         query.addWhere("sop.order_proc_id = sor.order_proc_id")
-        query.addWhere("proc_code = '%s'" % labPanel)
+        query.addWhere("proc_code = '%s'" % self._lab_panel)
         query.addGroupBy("base_name")
 
         # Return component names in list.
         cursor.execute(str(query))
         return [ row[0] for row in cursor.fetchall() ]
 
-    def _getAverageOrdersPerPatient(self):
+    def _get_average_orders_per_patient(self):
         # Initialize DB cursor.
-        cursor = self.connection.cursor()
+        cursor = self._connection.cursor()
 
         # Get average number of results for this lab test per patient.
         query = "SELECT AVG(num_orders) \
@@ -82,21 +60,28 @@ class LabNormalityMatrix:
             FROM stride_order_proc AS sop, stride_order_results AS sor \
             WHERE sop.order_proc_id = sor.order_proc_id AND proc_code IN ('%s') \
             GROUP BY pat_id \
-        ) AS num_orders_per_patient" % (self.labPanel)
+        ) AS num_orders_per_patient" % (self._lab_panel)
 
         cursor.execute(query)
-        avgOrdersPerPatient = cursor.fetchone()[0]
+        avg_orders_per_patient = cursor.fetchone()[0]
 
-        if avgOrdersPerPatient is None:
-            error_msg = '0 orders for lab panel "%s."' % self.labPanel
+        if avg_orders_per_patient is None:
+            error_msg = '0 orders for lab panel "%s."' % self._lab_panel
             log.critical(error_msg)
             sys.exit('[ERROR] %s' % error_msg)
 
-        return avgOrdersPerPatient
+        return avg_orders_per_patient
 
-    def _getRandomPatientList(self, numPatientsToQuery):
+    def _get_random_patient_list(self):
         # Initialize DB cursor.
         cursor = self.connection.cursor()
+
+        # Get average number of results for this lab test per patient.
+        avg_orders_per_patient = self._get_average_orders_per_patient()
+        # Based on average # of results, figure out how many patients we'd
+        # need to get for a feature matrix of requested size.
+        self._num_patients = int(numpy.max([self._num_requested_episodes / \
+            avg_orders_per_patient, 1]))
 
         # Get numPatientsToQuery random patients who have gotten test.
         # TODO(sbala): Have option to feed in a seed for the randomness.
@@ -105,30 +90,26 @@ class LabNormalityMatrix:
         WHERE sop.order_proc_id = sor.order_proc_id AND \
         proc_code IN ('%s') \
         ORDER BY RANDOM() \
-        LIMIT %d;" % (self.labPanel, numPatientsToQuery)
+        LIMIT %d;" % (self._lab_panel, self._num_patients)
 
         cursor.execute(query)
 
         # Get patient list.
-        randomPatientList = list()
+        random_patient_list = list()
         for row in cursor.fetchall():
-            randomPatientList.append(row[0])
+            random_patient_list.append(row[0])
 
-        return randomPatientList
+        return random_patient_list
 
-    def _queryPatientEpisodes(self):
+    def _query_patient_episodes(self):
+        log.info('Querying patient episodes...')
         # Initialize DB cursor.
-        cursor = self.connection.cursor()
+        cursor = self._connection.cursor()
 
-        # Get average number of results for this lab test per patient.
-        avgOrdersPerPatient = self._getAverageOrdersPerPatient()
-
-        # Based on average # of results, figure out how many patients we'd
-        # need to get for a feature matrix of requested size.
-        numPatientsToQuery = int(numpy.max([self.numPatientEpisodes / avgOrdersPerPatient, 1]))
-        self.numPatients = numPatientsToQuery
-        randomPatientList = self._getRandomPatientList(numPatientsToQuery)
-        patientListStr = ", ".join(randomPatientList)
+        # Build parameters for query.
+        self._lab_components = self._get_components_in_lab_panel()
+        random_patient_list = self._get_random_patient_list()
+        patient_list_str = ", ".join(random_patient_list)
 
         # Build SQL query for list of patient episodes.
         # Note that for 2008-2014 data, result_flag can take on any of the
@@ -156,217 +137,167 @@ class LabNormalityMatrix:
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
 
-
         query = "SELECT CAST(pat_id AS BIGINT), \
             sop.order_proc_id AS order_proc_id, proc_code, order_time, \
             CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel, \
-            COUNT(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', NULL)) AS num_components, \
-            COUNT(CASE result_flag WHEN NULL THEN 1 ELSE NULL END) AS num_normal_components, \
-            CAST(COUNT(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic') THEN 1 ELSE NULL END) = 0 AS INT) AS all_components_normal \
+            SUM(CASE WHEN result_flag in ('High', 'Low', 'High Panic', 'Low Panic') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components, \
+            SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components, \
+            CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal \
             FROM stride_order_proc AS sop, stride_order_results AS sor \
             WHERE sop.order_proc_id = sor.order_proc_id \
-            AND result_flag in ('High', 'Low', 'High Panic', 'Low Panic', NULL)\
+            AND (result_flag in ('High', 'Low', 'High Panic', 'Low Panic') OR result_flag IS NULL)\
             AND proc_code IN ('%s') \
             AND CAST(pat_id AS BIGINT) IN (%s) \
             GROUP BY pat_id, sop.order_proc_id, proc_code, order_time, abnormal_yn \
-            ORDER BY pat_id, sop.order_proc_id, proc_code, order_time;" % (self.labPanel, patientListStr)
+            ORDER BY pat_id, sop.order_proc_id, proc_code, order_time;" % (self._lab_panel, patient_list_str)
 
-        cursor.execute(query)
+        self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, index_time_col='order_time')
 
-        # Set and process patientEpisodeInput.
-        self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
-        self.factory.processPatientEpisodeInput()
-
-        # Update numPatientEpisodes.
-        self.numPatientEpisodes = 0
-        episodes = self.factory.getPatientEpisodeIterator()
-        for episode in episodes:
-            self.numPatientEpisodes += 1
-
-    def _addTimeFeatures(self):
-        # Add admission date.
-        ADMIT_DX_CATEGORY_ID = 2
-        self.factory.addClinicalItemFeaturesByCategory([ADMIT_DX_CATEGORY_ID], \
-            dayBins=[], label="AdmitDxDate", features="pre")
-
-        # Add time cycle features.
-        self.factory.addTimeCycleFeatures("order_time", "month")
-        self.factory.addTimeCycleFeatures("order_time", "hour")
-
-    def _addDemographicFeatures(self):
-        BIRTH_FEATURE = "Birth"
-        self.factory.addClinicalItemFeatures([BIRTH_FEATURE], dayBins=[], features="pre")
-        self._addSexFeatures()
-        self._addRaceFeatures()
-
-    def _addSexFeatures(self):
-        SEX_FEATURES = ["Male", "Female"]
-        for feature in SEX_FEATURES:
-            self.factory.addClinicalItemFeatures([feature], dayBins=[], \
-                features="pre")
-
-    def _addRaceFeatures(self):
-        RACE_FEATURES = ["RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
-                    "RaceHispanicLatino", "RaceBlack", "RaceAsian",
-                    "RacePacificIslander", "RaceNativeAmerican",
-                    "RaceOther", "RaceUnknown"]
-        for feature in RACE_FEATURES:
-            self.factory.addClinicalItemFeatures([feature], dayBins=[], \
-                features="pre")
-
-    def _addFlowsheetFeatures(self):
-        # Look at flowsheet results from the previous days
-        FLOW_PRE_TIME_DELTAS = [ datetime.timedelta(-1), datetime.timedelta(-3),
-            datetime.timedelta(-7), datetime.timedelta(-30),
-            datetime.timedelta(-90) ]
-        # Don't look into the future, otherwise cheating the prediction
-        FLOW_POST_TIME_DELTA = datetime.timedelta(0)
-
-        # Add flowsheet features for a variety of generally useful vitals.
-        BASIC_FLOWSHEET_FEATURES = [
-            "BP_High_Systolic", "BP_Low_Diastolic", "FiO2",
-            "Glasgow Coma Scale Score", "Pulse", "Resp", "Temp", "Urine"
-        ]
-        print "\tBASIC_FLOWSHEET_FEATURES"
-        for preTimeDelta in FLOW_PRE_TIME_DELTAS:
-            print "\t\t%s" % preTimeDelta
-            self.factory.addFlowsheetFeatures(BASIC_FLOWSHEET_FEATURES, preTimeDelta, \
-                    FLOW_POST_TIME_DELTA)
-
-    def _addLabTestFeatures(self):
+    def _add_features(self):
         # Add lab panel order features.
-        self.factory.addClinicalItemFeatures([self.labPanel], features="pre")
+        self._factory.addClinicalItemFeatures([self._lab_panel], features="pre")
 
-        # Look for lab data 90 days before each episode, but never after self.
-        # Look at lab results from the previous days
+        # Add lab component result features, for a variety of time deltas.
         LAB_PRE_TIME_DELTAS = [ datetime.timedelta(-1), datetime.timedelta(-3),
             datetime.timedelta(-7), datetime.timedelta(-30),
             datetime.timedelta(-90) ]
-        # Don't look into the future, otherwise cheating the prediction
         LAB_POST_TIME_DELTA = datetime.timedelta(0)
+        log.info('Adding lab component features...')
+        for pre_time_delta in LAB_PRE_TIME_DELTAS:
+            log.info('\t%s' % pre_time_delta)
+            self._factory.addLabResultFeatures(self._lab_components, False, pre_time_delta, LAB_POST_TIME_DELTA)
 
-        # Add result features for a variety of generally useful components.
-        BASIC_LAB_COMPONENTS = [
-            'WBC',      # White Blood Cell
-            'HCT',      # Hematocrit
-            'PLT',      # Platelet Count
-            'NA',       # Sodium, Whole Blood
-            'K',        # Potassium, Whole Blood
-            'CO2',      # CO2, Serum/Plasma
-            'BUN',      # Blood Urea Nitrogen
-            'CR',       # Creatinine
-            'TBIL',     # Total Bilirubin
-            'ALB',      # Albumin
-            'CA',       # Calcium
-            'LAC',      # Lactic Acid
-            'ESR',      # Erythrocyte Sedimentation Rate
-            'CRP',      # C-Reactive Protein
-            'TNI',      # Troponin I
-            'PHA',      # Arterial pH
-            'PO2A',     # Arterial pO2
-            'PCO2A',    # Arterial pCO2
-            'PHV',      # Venous pH
-            'PO2V',     # Venous pO2
-            'PCO2V'     # Venous pCO2
-        ]
-        for component in BASIC_LAB_COMPONENTS:
-            print "\t%s" % component
-            for preTimeDelta in LAB_PRE_TIME_DELTAS:
-                print "\t\t%s" % preTimeDelta
-                self.factory.addLabResultFeatures([component], False, preTimeDelta, LAB_POST_TIME_DELTA)
+        FeatureMatrix._add_features(index_time_col='order_time')
 
-        # Add labPanel component result features, for a variety of time deltas.
-        print "\tlabComponents"
-        for preTimeDelta in LAB_PRE_TIME_DELTAS:
-            print "\t\t%s" % preTimeDelta
-            self.factory.addLabResultFeatures(self.labComponents, False, preTimeDelta, LAB_POST_TIME_DELTA)
+    def write_matrix(self, dest_path):
+        log.info('Writing %s...' % dest_path)
+        header = self._build_matrix_header(dest_path)
+        FeatureMatrix.write_matrix(dest_path, header)
 
-    def write_matrix(self, destPath):
-        print 'Writing final matrix file...'
-        # Get old matrix file.
-        sourcePath = self.factory.getMatrixFileName()
-        # Write to new matrix file.
-        labMatrixFile = open(destPath, "w")
-        self._writeMatrixHeader(destPath, labMatrixFile)
-        for line in open(sourcePath, "r"):
-            labMatrixFile.write(line)
-        # Delete old matrix file.
-        os.remove(sourcePath)
+    def _build_matrix_header(self, matrix_path):
+        params = {}
 
-    def _writeMatrixHeader(self, matrixFileName, matrixFile):
-        created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        source = __name__
-        command = "LabNormalityMatrix('%s', %s).writeMatrixFile('%s')" % (self.labPanel, \
-            self.numRequestedEpisodes, matrixFileName)
+        params['matrix_path'] = matrix_path
+        params['matrix_module'] = inspect.getfile(inspect.currentframe())
+        params['data_overview'] = self._build_data_overview()
+        params['field_summary'] = self._build_field_summary()
+        params['include_lab_suffix_summary'] = True
+        params['include_clinical_item_suffix_summary'] = True
 
-        header = """\
-# %s\n\
-# Created: %s\n\
-# Source: %s \n\
-# Command: %s\n\
-# \n\
-# Overview:\n\
-# This file contains %s data rows, representing %s unique orders of \n\
-# the %s lab panel across %s inpatients from the Stanford hospital.\n\
-# Each row contains columns summarizing the patient's demographics, \n\
-# inpatient admit date, prior vitals, prior lab panel orders, and \n\
-# prior lab component results. Note the distinction between a lab\n\
-# panel (e.g. LABMETB) and a lab component within a panel (e.g. Na, RBC). \n\
-# Most cells in matrix represent a count statistic for an event's \n\
-# occurrence or the difference between an event's time and order_time.\n\
-# \n\
-# Fields: \n\
-#   pat_id - ID # for patient in the STRIDE data set. \n\
-#   order_proc_id - ID # for clinical order. \n\
-#   proc_code - code representing ordered lab panel. \n\
-#   order_time - time at which lab panel was ordered. \n\
-#   abnormal_panel - were any components in panel abnormal (binary)? \n\
-#   num_components - # of unique components in lab panel. \n\
-#   num_normal_components - # of normal component results in panel. \n\
-#   all_components_normal - inverse of abnormal_panel (binary). \n\
-#   AdmitDxDate.[clinical_item] - admit diagnosis, pegged to admit date.\n\
-#   order_time.[month|hour] - when was the lab panel ordered? \n\
-#   Birth.preTimeDays - patient's age in days.\n\
-#   [Male|Female].pre - is patient male/female (binary)?\n\
-#   [RaceX].pre - is patient race [X]?\n\
-#   Team.[specialty].[clinical_item] - specialist added to treatment team.\n\
-#   Comorbidity.[disease].[clinical_item] - disease added to problem list.\n\
-#   ___.[flowsheet] - measurements for flowsheet biometrics.\n\
-#       Includes BP_High_Systolic, BP_Low_Diastolic, FiO2,\n\
-#           Glasgow Coma Scale Score, Pulse, Resp, Temp, and Urine.\n\
-#   %s.[clinical_item] - orders of the lab panel of interest.\n\
-#   ___.[lab_result] - lab component results.\n\
-#       Included standard components: WBC, HCT, PLT, NA, K, CO2, BUN,\n\
-#           CR, TBIL, ALB, CA, LAC, ESR, CRP, TNI, PHA, PO2A, PCO2A,\n\
-#           PHV, PO2V, PCO2V\n\
-#       Also included %s panel components: %s\n\
-#   \n\
-#   [clinical_item] fields may have the following suffixes:\n\
-#       ___.pre - how many times has this occurred before order_time?\n\
-#       ___.pre.Xd - how many times has this occurred within X days before order_time?\n\
-#       ___.preTimeDays - how many days before order_time was last occurrence?\n\
-#   \n\
-#   [flowsheet] and [lab_result] fields may have the following suffixes:\n\
-#       ___.X_Y.count - # of result values between X and Y days of order_time.\n\
-#       ___.X_Y.countInRange - # of result values in normal range.\n\
-#       ___.X_Y.min - minimum result value.\n\
-#       ___.X_Y.max - maximum result value.\n\
-#       ___.X_Y.median - median result value.\n\
-#       ___.X_Y.std - standard deviation of result values.\n\
-#       ___.X_Y.first - first result value.\n\
-#       ___.X_Y.last - last result value.\n\
-#       ___.X_Y.diff - difference between penultimate and proximate values.\n\
-#       ___.X_Y.slope - slope between penultimate and proximate values.\n\
-#       ___.X_Y.proximate - closest result value to order_time.\n\
-#       ___.X_Y.firstTimeDays - time between first and order_time.\n\
-#       ___.X_Y.lastTimeDays - time between last and order_time.\n\
-#       ___.X_Y.proximateTimeDays - time between proximate and order_time.\n\
-#\n""" % \
-            (matrixFileName, created, source, command, \
-            self.numPatientEpisodes, self.numPatientEpisodes, self.labPanel, \
-            self.numPatients, self.labPanel, self.labPanel, self.labComponents)
+        return FeatureMatrix._build_matrix_header(params)
 
-        matrixFile.write(header)
+    def _build_data_overview(self):
+        overview = list()
+        # Overview:\n\
+        line = 'Overview:'
+        overview.append(line)
+        # This file contains %s data rows, representing %s unique orders of
+        line = 'This file contains %s data rows, representing %s unique orders of' % (self._num_reported_episodes, self._num_reported_episodes)
+        overview.append(line)
+        # the %s lab panel across %s inpatients from Stanford hospital.
+        line = 'the %s lab panel across %s inpatients from Stanford hospital.' % (self._lab_panel, self._num_patients)
+        overview.append(line)
+        # Each row contains columns summarizing the patient's demographics,
+        line = "Each row contains columns summarizing the patient's demographics,"
+        overview.append(line)
+        # inpatient admit date, prior vitals, prior lab panel orders, and
+        line = 'inpatient admit date, prior vitals, prior lab panel orders, and'
+        overview.append(line)
+        # prior lab component results. Note the distinction between a lab
+        line = 'prior lab component results. NOte the distinction between a lab'
+        overview.append(line)
+        # panel (e.g. LABMETB) and a lab component within a panel (e.g. Na, RBC).
+        line = 'panel (e.g. LABMETB) and a lab component within a panel (e.g. Na).'
+        overview.append(line)
+        # Most cells in matrix represent a count statistic for an event's
+        line = "Most cells in matrix represent a count statistic for ran event's"
+        overview.append(line)
+        # occurrence or the difference between an event's time and order_time.
+        line = "occurrence or the difference between an event's time and order_time."
+        overview.append(line)
+
+        return overview
+
+    def _build_field_summary(self):
+        summary = list()
+
+        # Fields:
+        line = 'Fields:'
+        summary.append(line)
+        #   pat_id - ID # for patient in the STRIDE data set. \n\
+        line = 'pat_id - ID # for patient in the STRIDE data set.'
+        summary.append(line)
+        #   order_proc_id - ID # for clinical order. \n\
+        line = 'order_proc_id - ID # for clinical order.'
+        summary.append(line)
+        #   proc_code - code representing ordered lab panel. \n\
+        line = 'proc_code - code representing ordered lab panel.'
+        summary.append(line)
+        #   order_time - time at which lab panel was ordered. \n\
+        line = 'order_time - time at which lab panel was ordered.'
+        summary.append(line)
+        #   abnormal_panel - were any components in panel abnormal (binary)? \n\
+        line = 'abnormal_panel - were any components in panel abnoral (binary)?'
+        summary.append(line)
+        #   num_components - # of unique components in lab panel. \n\
+        line = 'num_components - # of unique components in lab panel.'
+        summary.append(line)
+        #   num_normal_components - # of normal component results in panel. \n\
+        line = 'num_normal_components - # of normal component results in panel.'
+        summary.append(line)
+        #   all_components_normal - inverse of abnormal_panel (binary). \n\
+        line = 'all_components_normal - inverse of abnormal_panel (binary).'
+        summary.append(line)
+        #   AdmitDxDate.[clinical_item] - admit diagnosis, pegged to admit date.\n\
+        line = 'AdmitDxDate.[clinical_item] - admit diagnosis, pegged to admit date.'
+        summary.append(line)
+        #   order_time.[month|hour] - when was the lab panel ordered? \n\
+        line = 'order_time.[month|hour] - when was the lab panel ordered?'
+        summary.append(line)
+        #   Birth.preTimeDays - patient's age in days.\n\
+        line = "Birth.preTimeDays - patient's age in days."
+        summary.append(line)
+        #   [Male|Female].pre - is patient male/female (binary)?\n\
+        line = '[Male|Female].pre - is patient male/female (binary)?'
+        summary.append(line)
+        #   [RaceX].pre - is patient race [X]?\n\
+        line = '[RaceX].pre - is patient race [X]?'
+        summary.append(line)
+        #   Team.[specialty].[clinical_item] - specialist added to treatment team.\n\
+        line = 'Team.[specialty].[clinical_item] - specialist added to treatment team.'
+        summary.append(line)
+        #   Comorbidity.[disease].[clinical_item] - disease added to problem list.\n\
+        line = 'Comorbidity.[disease].[clinical_item] - disease added to problem list.'
+        summary.append(line)
+        #   ___.[flowsheet] - measurements for flowsheet biometrics.\n\
+        line = '___.[flowsheet] - measurements for flowsheet biometrics.'
+        summary.append(line)
+        #       Includes BP_High_Systolic, BP_Low_Diastolic, FiO2,\n\
+        line = '    Includes BP_High_Systolic, BP_Low_Diastolic, FiO2,'
+        summary.append(line)
+        #           Glasgow Coma Scale Score, Pulse, Resp, Temp, and Urine.\n\
+        line = '        Glasgow Coma Scale Score, Pulse, Resp, Temp, and Urine.'
+        summary.append(line)
+        #   %s.[clinical_item] - orders of the lab panel of interest.\n\
+        line = '%s.[clinical_item] - orders of the lab panel of interest.' % self._lab_panel
+        summary.append(line)
+        #   ___.[lab_result] - lab component results.\n\
+        line = '__.[lab_result] - lab component results.'
+        summary.append(line)
+        #       Included standard components: WBC, HCT, PLT, NA, K, CO2, BUN,\n\
+        line = '    Included standard components: WBC, HCT, PLT, NA, K, CO2, BUN,'
+        summary.append(line)
+        #           CR, TBIL, ALB, CA, LAC, ESR, CRP, TNI, PHA, PO2A, PCO2A,\n\
+        line = '        CR, TBIL, ALB, CA, LAC, ESR, CRP, TNI, PHA, PO2A, PCO2A,'
+        summary.append(line)
+        #           PHV, PO2V, PCO2V\n\
+        line = '        PHV, PO2V, PCO2V'
+        summary.append(line)
+        #       Also included %s panel components: %s\n\
+        line = 'Also included %s panel components: %s' % (self._lab_panel, self._lab_components)
+        summary.append(line)
+
+        return summary
 
 if __name__ == "__main__":
     start_time = time.time()
