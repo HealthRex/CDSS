@@ -24,3 +24,5 @@ LOCAL_TEST_DB_PARAM["HOST"] = 'localhost'
 LOCAL_TEST_DB_PARAM["DSN"] = 'test'
 LOCAL_TEST_DB_PARAM["UID"] = 'testuid'
 LOCAL_TEST_DB_PARAM["PWD"] = 'testpwd'
+
+TEST_RUNNER_VERBOSITY = 2
