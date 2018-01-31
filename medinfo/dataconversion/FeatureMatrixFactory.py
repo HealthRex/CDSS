@@ -25,7 +25,8 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import columnFromModelList, SQLQuery, modelListFromTable
 from medinfo.db.ResultsFormatter import TabDictReader, TextResultsFormatter
 from psycopg2.extensions import cursor
-from Util import log
+# from Util import log
+from scripts.Util import log
 import Util
 
 class FeatureMatrixFactory:
@@ -184,6 +185,8 @@ class FeatureMatrixFactory:
         self._pipeDbCursorToTsvFile(self.patientEpisodeInput, patientEpisodeTempFile)
         patientEpisodeTempFile.close()
         self.patientsProcessed = True
+
+        return self.patientEpisodeInput.rowcount
 
     def _processPatientEpisodeTsvFile(self):
         pass
