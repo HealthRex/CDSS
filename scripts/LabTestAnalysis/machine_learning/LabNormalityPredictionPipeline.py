@@ -8,6 +8,7 @@ import inspect
 import os
 
 from medinfo.ml.FeatureSelector import FeatureSelector
+from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
 from scripts.LabTestAnalysis.machine_learning.dataExtraction.LabNormalityMatrix import LabNormalityMatrix
 
@@ -17,6 +18,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
         self._build_raw_feature_matrix()
         self._build_processed_feature_matrix()
+        self._train_predictor()
+        self._analyze_predictor()
 
     def _build_raw_matrix_path(self):
         template = '%s-normality-matrix-%d-episodes-raw.tab'
@@ -31,7 +34,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             raw_matrix_path)
 
     def _build_processed_matrix_path(self):
-        template = '%s-normality-matrix-%d-epi-processed.tab'
+        template = '%s-normality-matrix-%d-episodes-processed.tab'
         pipeline_file_path = inspect.getfile(inspect.currentframe())
         return SupervisedLearningPipeline._build_matrix_path(self, template, \
             pipeline_file_path)
@@ -43,9 +46,10 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         processed_matrix_path = self._build_processed_matrix_path()
         features_to_add = {}
         imputation_strategies = {}
-        # TODO(sbala): Swap 'index_time' for 'order_time'
+
         features_to_remove = [
-            'order_time', 'proc_code', 'Birth.pre',
+            'order_time', 'proc_code', 'abnormal_panel',
+            'num_normal_components', 'Birth.pre',
             'Male.preTimeDays', 'Female.preTimeDays',
             'RaceWhiteHispanicLatino.preTimeDays',
             'RaceWhiteNonHispanicLatino.preTimeDays',
@@ -72,8 +76,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             '%s is a boolean indicator which summarizes whether all components ',
             # in the lab panel order represented by a given row are normal.
             'in the lab panel order represented by a given row are normal.',
-            # Each row represents a decision point (proxied by clinical order).
-            'Each row represents a decision point (proxied by clinical order).',
+            # Each row represents a unique lab panel order.
+            'Each row represents a unique lab panel order.',
             # Each row contains fields summarizing the patient's demographics,
             "Each row contains fields summarizing the patient's demographics",
             # inpatient admit date, prior vitals, and prior lab results.
@@ -101,13 +105,15 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         # Defer processing logic to SupervisedLearningPipeline.
         SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
 
-    def _train_predictor():
-        pass
+    def _train_predictor(self):
+        problem = SupervisedLearningPipeline.CLASSIFICATION
+        algorithm = SupervisedClassifier.REGRESS_AND_ROUND
+        SupervisedLearningPipeline._train_predictor(self, problem, algorithm, [0, 1])
 
-    def _test_predictor():
-        pass
-
-    def _analyze_predictor():
+    def _analyze_predictor(self):
+        metrics_to_compute = []
+        plots_to_generate = []
+        SupervisedLearningPipeline._analyze_predictor(self)
         pass
 
     def _summarize_pipeline():
@@ -115,4 +121,4 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
 if __name__ == '__main__':
     # print inspect.getfile(inspe   ct.currentframe())
-    lnpp = LabNormalityPredictionPipeline('LABMETB', 10, use_cache=True)
+    lnpp = LabNormalityPredictionPipeline('LABA1C', 1000, use_cache=True)
