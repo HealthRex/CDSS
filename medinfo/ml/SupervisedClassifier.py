@@ -52,7 +52,8 @@ class SupervisedClassifier:
         self._model.fit(X, y)
 
     def _train_logistic_regression(self, X, y):
-        self._model = LogisticRegressionCV(penalty='l1', solver='saga')
+        self._model = LogisticRegressionCV(penalty='l1', solver='saga', \
+            max_iter=2500)
         self._model.fit(X, y)
 
     def _train_random_forest(self, X, y):
