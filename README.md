@@ -5,7 +5,7 @@ Review the Wiki (https://github.com/HealthRex/CDSS/wiki) for Starter Notes on us
 
 General Guidelines for Code Repo:
 * Avoid any large data files, so the repo stays lightweight for new devs to quickly download/clone.
-* For one-off or very project specific files and scripts, basically do whatever you want in the workspace areas under the /scripts directory (but again, avoid big data files).
+* For one-off or very project specific files and scripts, basically do whatever you want in the workspace areas under the /scripts directory (but again, avoid big data files and also avoid any private / patient information, including analysis results that include individual patient items, as this repo will publicly accessible).
 * Try to promote reusable components to the medinfo core application modules.
 
 Broad description of core application directories
