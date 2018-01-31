@@ -14,7 +14,7 @@ handler = logging.StreamHandler(sys.stderr)
 formatter = logging.Formatter(Const.LOGGER_FORMAT)
 
 handler.setFormatter(formatter)
-log.addHandler(handler)
+# log.addHandler(handler)
 
 # Global Support variable to monitor how may connections have been created
 numConnections = 0;
