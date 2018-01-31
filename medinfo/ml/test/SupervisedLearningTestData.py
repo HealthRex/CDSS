@@ -5,6 +5,7 @@ Test input and output for supervised learning.
 
 from numpy import array
 
+# x, y, coef = sklearn.datasets.make_regression(n_features=100, n_informative=3)
 # 100 samples with 1 target.
 RANDOM_CLASSIFICATION_TEST_CASE = {
     "X": array([[ -3.15536206e-01,   2.26608213e+00,   1.43724033e+00,
