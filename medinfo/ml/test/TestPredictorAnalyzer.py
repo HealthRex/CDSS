@@ -82,7 +82,8 @@ class TestPredictorAnalyzer(MedInfoTestCase):
         actual_report_path = '/'.join([test_dir, actual_report_name])
 
         # Write the report.
-        self._analyzer.write_report(actual_report_path)
+
+        self._analyzer.write_report(actual_report, actual_report_path)
 
         # Assert files equal.
         self.assertTrue(filecmp.cmp(expected_report_path, actual_report_path))

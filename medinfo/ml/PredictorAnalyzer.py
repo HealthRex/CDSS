@@ -24,10 +24,18 @@ class PredictorAnalyzer:
         # of re-implementing here, given the computation is fairly simple.
         true_vals = self._y_test.iloc[:,0]
         predicted_vals = self._y_predicted.iloc[:,0]
+
         # Create new series comparing first column of each DataFrame.
         accuracy = (true_vals == predicted_vals)
 
-        return accuracy.value_counts(normalize=True)[True]
+        # If there are 0 correct predictions, then value_counts will not have
+        # a [True] row. In that case, just return 0.
+        try:
+            score = accuracy.value_counts(normalize=True)[True]
+        except KeyError:
+            score = 0
+
+        return score
 
     def score(self, metric=None):
         if metric is None:
@@ -52,7 +60,8 @@ class PredictorAnalyzer:
 
         return report
 
-    def write_report(self, dest_path):
-        report = self.build_report()
-        report.to_csv(dest_path, sep='\t', index=False, \
-            columns=['model', 'test_size', 'accuracy'])
+    def write_report(self, report, dest_path, column_names=None):
+        if column_names is None:
+            column_names = ['model', 'test_size', 'accuracy']
+        report.to_csv(dest_path, sep='\t', index=False, columns=column_names,
+            float_format='%.5f')
