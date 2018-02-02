@@ -6,12 +6,13 @@ with FeatureMatrixFactory and FeatureMatrixIO, allowing subclasses
 to just worry about defining parameters for matrix construction.
 """
 
+import os
 import datetime
 
+from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.db import DBUtil
-# from Util import log
-from scripts.Util import log
+from Util import log
 
 class FeatureMatrix:
     def __init__(self, variable, num_data_points, params=None):
