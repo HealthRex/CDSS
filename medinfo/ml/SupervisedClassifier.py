@@ -28,6 +28,24 @@ class SupervisedClassifier:
             self._algorithm = algorithm
         self._classes = classes
 
+    def __repr__(self):
+        if self._algorithm == SupervisedClassifier.LOGISTIC_REGRESSION:
+            coefs = self.coefs()
+            cols = self._features
+            sig_features = [(coefs[cols.get_loc(f)], f) for f in cols.values if coefs[cols.get_loc(f)] > 0]
+            linear_model = ' + '.join('%s*%s' % (weight, feature) for weight, feature in sig_features)
+            return 'L1_REGRESSION(%s)' % linear_model
+        elif self._algorithm == SupervisedClassifier.REGRESS_AND_ROUND:
+            coefs = self.coefs()
+            cols = self._features
+            sig_features = [(coefs[cols.get_loc(f)], f) for f in cols.values if coefs[cols.get_loc(f)] > 0]
+            linear_model = ' + '.join('%s*%s' % (weight, feature) for weight, feature in sig_features)
+            return 'L1_REGRESS_AND_ROUND(%s)' % linear_model
+        else:
+            return 'SupervisedClassifier(%s, %s)' % (self._classes, self._algorithm)
+
+    __str__ = __repr__
+
     def algorithm(self):
         return self._algorithm
 
@@ -38,6 +56,7 @@ class SupervisedClassifier:
         return self._model.coef_[0]
 
     def train(self, X, y, coef_max=None):
+        self._features = X.columns
         if self._algorithm == SupervisedClassifier.DECISION_TREE:
             self._train_decision_tree(X, y)
         elif self._algorithm == SupervisedClassifier.LOGISTIC_REGRESSION:
