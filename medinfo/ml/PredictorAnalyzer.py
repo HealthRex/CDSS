@@ -15,7 +15,7 @@ class PredictorAnalyzer:
         # individual scoring function, but that might encourage them to keep
         # testing constantly, turning the test cases into training cases.
         self._X_test = X_test
-        self._y_test = y_test
+        self._y_test = y_test.reset_index(drop=True)
         # Cast to DataFrame to ease subsequent analysis, even though sklearn
         # by default just outputs an ndarray.
         self._y_predicted = pd.DataFrame(self._predictor.predict(self._X_test))
