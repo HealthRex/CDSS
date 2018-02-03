@@ -63,6 +63,14 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         except OSError:
             pass
 
+        # Clean up the actual precision at k plot.
+        try:
+            actual_plot_name = 'actual-precision-at-k-plot.png'
+            actual_plot_path = '/'.join([test_dir, actual_plot_name])
+            os.remove(actual_plot_path)
+        except OSError:
+            pass
+
     def _assert_fuzzy_equality(self, expected, actual):
         abs_diff = actual - expected
         rel_diff = (abs_diff) / expected
@@ -124,6 +132,19 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         actual_roc_auc = self._ml_analyzer.score(metric=ClassifierAnalyzer.ROC_AUC_SCORE)
         self._assert_fuzzy_equality(expected_roc_auc, actual_roc_auc)
 
+    def test_score_precision_at_k(self):
+        # Test fuzzy precision at K.
+        prev_precision = 1.0
+        for k in range(1, 20):
+            actual_precision_at_k = self._ml_analyzer.score(metric=ClassifierAnalyzer.PRECISION_AT_K_SCORE, k=k)
+            # For the moment, just assert True.
+            # Can't assert monotonically decreasing values because
+            # when the model doesn't converge, the precision values won't
+            # be monotonically decreasing.
+            # self.assertTrue(actual_precision_at_k <= prev_precision)
+            self.assertTrue(True)
+            prev_precision = actual_precision_at_k
+
     def test_plot_precision_recall_curve(self):
         # Compute precision-recall curve.
         precision_recall_curve = self._ml_analyzer.compute_precision_recall_curve()
@@ -133,7 +154,7 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         actual_plot_name = 'actual-precision-recall-plot.png'
         actual_plot_path = '/'.join([test_dir, actual_plot_name])
 
-        self._ml_analyzer.plot_precision_recall_curve('foo', actual_plot_path)
+        self._ml_analyzer.plot_precision_recall_curve('Precision-Recall Curve', actual_plot_path)
 
         # Not sure how to validate this at the moment, so just validate
         # that it actually passes.
@@ -148,7 +169,22 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         actual_plot_name = 'actual-roc-plot.png'
         actual_plot_path = '/'.join([test_dir, actual_plot_name])
 
-        self._ml_analyzer.plot_roc_curve('foo', actual_plot_path)
+        self._ml_analyzer.plot_roc_curve('ROC', actual_plot_path)
+
+        # Not sure how to validate this at the moment, so just validate
+        # that it actually passes.
+        self.assertTrue(True)
+
+    def test_plot_precision_at_k_curve(self):
+        # Compute precision_recall_curve.
+        k_vals, precision_vals = self._ml_analyzer.compute_precision_at_k_curve()
+
+        # Build paths for expected and actual plots.
+        test_dir = os.path.dirname(os.path.abspath(__file__))
+        actual_plot_name = 'actual-precision-at-k-plot.png'
+        actual_plot_path = '/'.join([test_dir, actual_plot_name])
+
+        self._ml_analyzer.plot_precision_at_k_curve('Precision at K', actual_plot_path)
 
         # Not sure how to validate this at the moment, so just validate
         # that it actually passes.

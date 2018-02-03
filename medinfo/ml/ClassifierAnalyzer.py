@@ -21,15 +21,17 @@ class ClassifierAnalyzer(PredictorAnalyzer):
     F1_SCORE = 'f1'
     AVERAGE_PRECISION_SCORE = 'average_precision'
     ROC_AUC_SCORE = 'roc_auc'
+    PRECISION_AT_K_SCORE = 'precision_at_k'
     SUPPORTED_SCORES = [ACCURACY_SCORE, RECALL_SCORE, PRECISION_SCORE,
-                        F1_SCORE, AVERAGE_PRECISION_SCORE, ROC_AUC_SCORE]
+                        F1_SCORE, AVERAGE_PRECISION_SCORE,
+                        PRECISION_AT_K_SCORE, ROC_AUC_SCORE]
 
     def __init__(self, classifier, X_test, y_test):
         # TODO(sbala): Make this API more flexible, so that it can work
         # with multi-label classifiers or binary classifiers whose
         # positive label != 1.
         PredictorAnalyzer.__init__(self, classifier, X_test, y_test)
-        self._y_pred_prob = classifier.predict_probability(X_test)[:,1]
+        self._y_pred_prob = DataFrame(classifier.predict_probability(X_test)[:,1])
 
     def _score_accuracy(self):
         return PredictorAnalyzer._score_accuracy(self)
@@ -49,7 +51,23 @@ class ClassifierAnalyzer(PredictorAnalyzer):
     def _score_roc_auc(self):
         return roc_auc_score(self._y_test, self._y_pred_prob)
 
-    def score(self, metric=None):
+    def _score_precision_at_k(self, k):
+        # Get the name of the column in y_pred_prob.
+        prob_col_name = self._y_pred_prob.columns.values[0]
+        # Sort y_pred_prob by the values in that column.
+        prob_sorted = self._y_pred_prob.sort_values(prob_col_name, ascending=False)
+        # Fetch the index for pred_sort.
+        prob_sorted_index = prob_sorted.index
+        # Sort y_test and y_pred by that index.
+        true_sorted = self._y_test.reindex(index=prob_sorted_index)
+        pred_sorted = self._y_predicted.reindex(index=prob_sorted_index)
+        # Fetch the top k predictions.
+        pred_sorted_at_k = pred_sorted[0:k]
+        true_sorted_at_k = true_sorted[0:k]
+        # Return precision at k.
+        return precision_score(true_sorted_at_k, pred_sorted_at_k)
+
+    def score(self, metric=None, k=None):
         if metric is None:
             metric = ClassifierAnalyzer.ACCURACY_SCORE
 
@@ -68,6 +86,11 @@ class ClassifierAnalyzer(PredictorAnalyzer):
             return self._score_average_precision()
         elif metric == ClassifierAnalyzer.ROC_AUC_SCORE:
             return self._score_roc_auc()
+        elif metric == ClassifierAnalyzer.PRECISION_AT_K_SCORE:
+            if k is None:
+                raise ValueError('Must specify k for PRECISION_AT_K_SCORE.')
+            else:
+                return self._score_precision_at_k(k)
 
     def compute_precision_recall_curve(self):
         return precision_recall_curve(self._y_test, self._y_pred_prob)
@@ -126,6 +149,40 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         # Save figure.
         plt.savefig(dest_path)
 
+    def compute_precision_at_k_curve(self):
+        num_samples = self._y_test.shape[0]
+        k_vals = range(1, num_samples + 1)
+        precision_vals = list()
+        for k in k_vals:
+            precision = self._score_precision_at_k(k)
+            precision_vals.append(precision)
+
+        return k_vals, precision_vals
+
+    def plot_precision_at_k_curve(self, title, dest_path):
+        # Compute inputs.
+        k_vals, precision_vals = self.compute_precision_at_k_curve()
+
+        # Set figure settings.
+        rcParams['font.family'] = 'sans-serif'
+        rcParams['font.sans-serif'] = ['Helvetica', 'Arial', 'Tahoma']
+
+        # Make plot.
+        plt.figure()
+        plt.plot(k_vals, precision_vals, color='darkorange', lw=2)
+
+        # Label axes.
+        plt.xlabel('k')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, k_vals[-1]])
+
+        # Set title.
+        plt.title('{0}'.format(title))
+
+        # Save figure.
+        plt.savefig(dest_path)
+
     def build_report(self):
         column_names = ['model', 'test_size']
         column_names.extend(ClassifierAnalyzer.SUPPORTED_SCORES)
@@ -135,14 +192,25 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         }
 
         for score_metric in ClassifierAnalyzer.SUPPORTED_SCORES:
-            score_value = self.score(metric=score_metric)
-            report_dict.update({score_metric: score_value})
+            if score_metric == ClassifierAnalyzer.PRECISION_AT_K_SCORE:
+                k_10_percent = int(0.1 * self._y_test.shape[0])
+                score_label = 'precision_at_10_percent'
+                score_value = self.score(score_metric, k_10_percent)
+            else:
+                score_label = score_metric
+                score_value = self.score(metric=score_metric)
+
+            report_dict.update({score_label: score_value})
 
         return DataFrame(report_dict, columns=column_names)
 
     def write_report(self, dest_path):
         column_names = ['model', 'test_size']
-        column_names.extend(ClassifierAnalyzer.SUPPORTED_SCORES)
+        for score in ClassifierAnalyzer.SUPPORTED_SCORES:
+            if score == ClassifierAnalyzer.PRECISION_AT_K_SCORE:
+                column_names.append('precision_at_10_percent')
+            else:
+                column_names.append(score)
         report = self.build_report()
 
         PredictorAnalyzer.write_report(self, report, dest_path, column_names)
