@@ -5,6 +5,7 @@ on a set of test data.
 """
 
 import pandas as pd
+from sklearn.utils.validation import column_or_1d
 
 class PredictorAnalyzer:
     ACCURACY_SCORE = 'accuracy'
@@ -15,7 +16,9 @@ class PredictorAnalyzer:
         # testing constantly, turning the test cases into training cases.
         self._X_test = X_test
         self._y_test = y_test
-        self._y_predicted = self._predictor.predict(self._X_test)
+        # Cast to DataFrame to ease subsequent analysis, even though sklearn
+        # by default just outputs an ndarray.
+        self._y_predicted = pd.DataFrame(self._predictor.predict(self._X_test))
 
     def _score_accuracy(self):
         # sklearn has a built-in function to compute this. However,
@@ -23,6 +26,9 @@ class PredictorAnalyzer:
         # all of their own scoring functions, we'll take the unusual step
         # of re-implementing here, given the computation is fairly simple.
         true_vals = self._y_test.iloc[:,0]
+        # true_vals will typically come from a train_test_split, so need to
+        # reset the indices to 1-N for proper comparison with predicted_vals.
+        true_vals = true_vals.reset_index(drop=True)
         predicted_vals = self._y_predicted.iloc[:,0]
 
         # Create new series comparing first column of each DataFrame.
