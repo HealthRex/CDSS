@@ -13,29 +13,8 @@ from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import make_test_suite, MedInfoTestCase
 from medinfo.ml.Predictor import Predictor
 from medinfo.ml.PredictorAnalyzer import PredictorAnalyzer
+from medinfo.ml.ListPredictor import ListPredictor
 from PredictorAnalyzerTestData import MANUAL_PREDICTION_TEST_CASE
-
-class ListPredictor(Predictor):
-    # Fake predictor meant purely for testing. It accepts a list of predictions
-    # and just cycles through those predictions.
-    def __init__(self, predictions):
-        self._index = 0
-        self._predictions = predictions
-        self._num_predictions = len(self._predictions)
-
-    def __repr__(self):
-        return 'ListPredictor(%s)' % self._predictions.values
-
-    __str__ = __repr__
-
-    def predict(self, X):
-        y_predicted = list()
-        for row in X.iterrows():
-            prediction = self._predictions[self._index]
-            y_predicted.append(prediction)
-            self._index = (self._index + 1) % self._num_predictions
-
-        return DataFrame({'y_predicted': y_predicted})
 
 class TestPredictorAnalyzer(MedInfoTestCase):
     def setUp(self):
@@ -62,7 +41,7 @@ class TestPredictorAnalyzer(MedInfoTestCase):
         # Compute accuracy.
         expected_accuracy = MANUAL_PREDICTION_TEST_CASE['accuracy']
         actual_accuracy = self._analyzer.score(metric=PredictorAnalyzer.ACCURACY_SCORE)
-
+        
         # Assert values are correct.
         self.assertEqual(expected_accuracy, actual_accuracy)
 
