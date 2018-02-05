@@ -13,6 +13,7 @@ from sklearn.metrics import average_precision_score, roc_auc_score
 from sklearn.metrics import precision_recall_curve, roc_curve
 
 from medinfo.ml.PredictorAnalyzer import PredictorAnalyzer
+from medinfo.common.Util import log
 
 class ClassifierAnalyzer(PredictorAnalyzer):
     ACCURACY_SCORE = 'accuracy'
@@ -32,6 +33,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         # positive label != 1.
         PredictorAnalyzer.__init__(self, classifier, X_test, y_test)
         self._y_pred_prob = DataFrame(classifier.predict_probability(X_test)[:,1])
+        log.info('y_pred_prob[0].value_counts(): %s' % self._y_pred_prob[0].value_counts())
 
     def _score_accuracy(self):
         return PredictorAnalyzer._score_accuracy(self)
@@ -105,6 +107,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         rcParams['font.sans-serif'] = ['Helvetica', 'Arial', 'Tahoma']
 
         # Make plot.
+        plt.figure()
         plt.step(recalls, precisions, color='b', alpha=0.2, where='post')
         plt.fill_between(recalls, precisions, step='post', alpha=0.2, color='b')
 
