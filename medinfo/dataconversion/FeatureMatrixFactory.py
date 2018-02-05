@@ -26,7 +26,7 @@ from medinfo.db.Model import columnFromModelList, SQLQuery, modelListFromTable
 from medinfo.db.ResultsFormatter import TabDictReader, TextResultsFormatter
 from psycopg2.extensions import cursor
 # from Util import log
-from scripts.Util import log
+from medinfo.common.Util import log
 import Util
 
 class FeatureMatrixFactory:
