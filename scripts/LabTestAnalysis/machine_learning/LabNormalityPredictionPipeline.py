@@ -18,8 +18,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
         self._build_raw_feature_matrix()
         self._build_processed_feature_matrix()
-        self._train_predictor()
-        self._analyze_predictor()
+        self._train_and_analyze_predictors()
 
     def _build_raw_matrix_path(self):
         template = '%s-normality-matrix-%d-episodes-raw.tab'
@@ -48,7 +47,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         imputation_strategies = {}
 
         features_to_remove = [
-            'order_time', 'proc_code', 'abnormal_panel',
+            'pat_id', 'order_time', 'order_proc_id',
+            'proc_code', 'abnormal_panel',
             'num_normal_components', 'Birth.pre',
             'Male.preTimeDays', 'Female.preTimeDays',
             'RaceWhiteHispanicLatino.preTimeDays',
@@ -73,7 +73,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             # The outcome label is ___.
             'The outcome label is %s.' % outcome_label,
             # %s is a boolean indicator which summarizes whether all components
-            '%s is a boolean indicator which summarizes whether all components ',
+            '%s is a boolean indicator which summarizes whether all components ' % outcome_label,
             # in the lab panel order represented by a given row are normal.
             'in the lab panel order represented by a given row are normal.',
             # Each row represents a unique lab panel order.
@@ -105,20 +105,28 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         # Defer processing logic to SupervisedLearningPipeline.
         SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
 
-    def _train_predictor(self):
+    def _train_and_analyze_predictors(self):
         problem = SupervisedLearningPipeline.CLASSIFICATION
-        algorithm = SupervisedClassifier.REGRESS_AND_ROUND
-        SupervisedLearningPipeline._train_predictor(self, problem, algorithm, [0, 1])
-
-    def _analyze_predictor(self):
-        metrics_to_compute = []
-        plots_to_generate = []
-        SupervisedLearningPipeline._analyze_predictor(self)
-        pass
-
-    def _summarize_pipeline():
-        pass
+        pipeline_file_name = inspect.getfile(inspect.currentframe())
+        data_dir = SupervisedLearningPipeline._fetch_data_dir_path(self, pipeline_file_name)
+        for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
+                SupervisedLearningPipeline._train_predictor(self, problem, algorithm, [0, 1])
+                pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
+                dest_dir = '/'.join([data_dir, algorithm])
+                # If dest_dir does not exist, make it.
+                if not os.path.exists(dest_dir):
+                    os.makedirs(dest_dir)
+                SupervisedLearningPipeline._analyze_predictor(self, dest_dir, pipeline_prefix)
 
 if __name__ == '__main__':
     # print inspect.getfile(inspe   ct.currentframe())
-    lnpp = LabNormalityPredictionPipeline('LABA1C', 1000, use_cache=True)
+    LAB_PANELS = [
+        "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
+        "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
+        "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
+        # "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
+        # "LABROMRS", "LABTNI", "LABTYPSNI", "LABUA", "LABUAPRN",
+        # "LABURNC", "LABVANPRL", "LABVBG"
+    ]
+    for panel in LAB_PANELS:
+        LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
