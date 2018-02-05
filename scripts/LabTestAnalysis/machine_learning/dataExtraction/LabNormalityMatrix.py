@@ -4,15 +4,17 @@ Class for generating LabNormalityMatrix.
 """
 
 import datetime
+import inspect
 import os
 import sys
 import time
 import numpy
 
-from scripts.Util import log
+from medinfo.common.Util import log
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
+from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 
 class LabNormalityMatrix(FeatureMatrix):
     def __init__(self, lab_panel, num_episodes):
@@ -74,10 +76,11 @@ class LabNormalityMatrix(FeatureMatrix):
 
     def _get_random_patient_list(self):
         # Initialize DB cursor.
-        cursor = self.connection.cursor()
+        cursor = self._connection.cursor()
 
         # Get average number of results for this lab test per patient.
         avg_orders_per_patient = self._get_average_orders_per_patient()
+        log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
         # Based on average # of results, figure out how many patients we'd
         # need to get for a feature matrix of requested size.
         self._num_patients = int(numpy.max([self._num_requested_episodes / \
@@ -136,20 +139,30 @@ class LabNormalityMatrix(FeatureMatrix):
         #           metabolic components. Include it.
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
-
-        query = "SELECT CAST(pat_id AS BIGINT), \
-            sop.order_proc_id AS order_proc_id, proc_code, order_time, \
-            CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel, \
-            SUM(CASE WHEN result_flag in ('High', 'Low', 'High Panic', 'Low Panic') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components, \
-            SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components, \
-            CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal \
-            FROM stride_order_proc AS sop, stride_order_results AS sor \
-            WHERE sop.order_proc_id = sor.order_proc_id \
-            AND (result_flag in ('High', 'Low', 'High Panic', 'Low Panic') OR result_flag IS NULL)\
-            AND proc_code IN ('%s') \
-            AND CAST(pat_id AS BIGINT) IN (%s) \
-            GROUP BY pat_id, sop.order_proc_id, proc_code, order_time, abnormal_yn \
-            ORDER BY pat_id, sop.order_proc_id, proc_code, order_time;" % (self._lab_panel, patient_list_str)
+        query = SQLQuery()
+        query.addSelect('CAST(pat_id AS BIGINT)')
+        query.addSelect('sop.order_proc_id AS order_proc_id')
+        query.addSelect('proc_code')
+        query.addSelect('order_time')
+        query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")
+        query.addSelect("SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components")
+        query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components")
+        query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal")
+        query.addFrom('stride_order_proc AS sop')
+        query.addFrom('stride_order_results AS sor')
+        query.addWhere('sop.order_proc_id = sor.order_proc_id')
+        query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic') OR result_flag IS NULL)")
+        query.addWhere("proc_code IN ('%s')" % self._lab_panel)
+        query.addWhere('CAST(pat_id AS BIGINT) IN (%s)' % patient_list_str)
+        query.addGroupBy('pat_id')
+        query.addGroupBy('sop.order_proc_id')
+        query.addGroupBy('proc_code')
+        query.addGroupBy('order_time')
+        query.addGroupBy('abnormal_yn')
+        query.addOrderBy('pat_id')
+        query.addOrderBy('sop.order_proc_id')
+        query.addOrderBy('proc_code')
+        query.addOrderBy('order_time')
 
         self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, index_time_col='order_time')
 
@@ -167,12 +180,12 @@ class LabNormalityMatrix(FeatureMatrix):
             log.info('\t%s' % pre_time_delta)
             self._factory.addLabResultFeatures(self._lab_components, False, pre_time_delta, LAB_POST_TIME_DELTA)
 
-        FeatureMatrix._add_features(index_time_col='order_time')
+        FeatureMatrix._add_features(self, index_time_col='order_time')
 
     def write_matrix(self, dest_path):
         log.info('Writing %s...' % dest_path)
         header = self._build_matrix_header(dest_path)
-        FeatureMatrix.write_matrix(dest_path, header)
+        FeatureMatrix.write_matrix(self, dest_path, header)
 
     def _build_matrix_header(self, matrix_path):
         params = {}
@@ -184,7 +197,7 @@ class LabNormalityMatrix(FeatureMatrix):
         params['include_lab_suffix_summary'] = True
         params['include_clinical_item_suffix_summary'] = True
 
-        return FeatureMatrix._build_matrix_header(params)
+        return FeatureMatrix._build_matrix_header(self, params)
 
     def _build_data_overview(self):
         overview = list()
