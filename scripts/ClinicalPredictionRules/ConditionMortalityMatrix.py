@@ -13,7 +13,7 @@ from medinfo.db.Model import SQLQuery
 from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
-from scripts.Util import log
+from medinfo.common.Util import log
 
 class ConditionMortalityMatrix(FeatureMatrix):
     def __init__(self, condition, num_patients, params=None):
