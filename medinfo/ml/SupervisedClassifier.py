@@ -6,7 +6,7 @@ Generic module for supervised machine learning classification.
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, make_scorer
 
 class SupervisedClassifier:
     # Define string constants for all supported ML algorithms so that
@@ -71,8 +71,15 @@ class SupervisedClassifier:
         self._model.fit(X, y)
 
     def _train_logistic_regression(self, X, y):
+        # Note: SAGA is only guaranteed to converge quickly if the various
+        # dimensions are normalized, which will generally not be the case.
+        # score -- by default, LogisticRegressionCV uses accuracy. However,
+        # many medinfo learning applications will be unbalanced classification
+        # problems, so use roc_auc_score instead.
+        # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
+        scorer = make_scorer(roc_auc_score, needs_threshold=True)
         self._model = LogisticRegressionCV(penalty='l1', solver='saga', \
-            max_iter=2500)
+            max_iter=10000, scoring=scorer)
         self._model.fit(X, y)
 
     def _train_random_forest(self, X, y):
