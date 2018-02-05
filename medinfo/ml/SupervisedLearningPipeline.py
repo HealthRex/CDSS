@@ -24,11 +24,13 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.utils.validation import column_or_1d
 
+from medinfo.common.Util import log
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.dataconversion.FeatureMatrixTransform import FeatureMatrixTransform
 from medinfo.ml.FeatureSelector import FeatureSelector
 from medinfo.ml.Regressor import Regressor
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
+from medinfo.ml.ClassifierAnalyzer import ClassifierAnalyzer
 
 
 class SupervisedLearningPipeline:
@@ -74,9 +76,10 @@ class SupervisedLearningPipeline:
         # e.g. app_dir = CDSS/scripts/LabTestAnalysis/machine_learning
         app_dir = os.path.dirname(os.path.abspath(pipeline_module_path))
 
-        # e.g. data_dir = CDSS/scripts/LabTestAnalysis/data
-        parent_dir_list = app_dir.split('/')[:-1]
+        # e.g. data_dir = CDSS/scripts/LabTestAnalysis/machine_learning/data
+        parent_dir_list = app_dir.split('/')
         parent_dir_list.append('data')
+        parent_dir_list.append(self._var)
         data_dir = '/'.join(parent_dir_list)
 
         # If data_dir does not exist, make it.
@@ -227,9 +230,10 @@ class SupervisedLearningPipeline:
             self._removed_features.append(feature)
 
     def _train_test_split(self, processed_matrix, outcome_label):
+        log.info('outcome_label: %s' % outcome_label)
         y = pd.DataFrame(processed_matrix.pop(outcome_label))
         X = processed_matrix
-        print X.columns
+        log.info('X.columns: %s' % X.columns)
         self._X_train, self._X_test, self._y_train, self._y_test = train_test_split(X, y)
 
     def _select_features(self, problem, percent_features_to_select, algorithm):
@@ -340,57 +344,34 @@ class SupervisedLearningPipeline:
         elif problem == SupervisedLearningPipeline.REGRESSION:
             learning_class = Regressor
             self._predictor = learning_class(algorithm=algorithm)
-        print self._X_train.shape
-        print self._y_train.shape
         self._predictor.train(self._X_train, column_or_1d(self._y_train))
 
-    def _test_predictor(self):
-        # Accuracy
-        self._accuracy = self._predictor.compute_accuracy(self._X_test, self._y_test)
-        # ROC
-        # Precision at K
+    def _analyze_predictor(self, dest_dir, pipeline_prefix):
+        analyzer = ClassifierAnalyzer(self._predictor, self._X_test, self._y_test)
 
-    def _analyze_predictor(self):
-        summary_lines = list()
+        # Build names for output plots and report.
+        precision_at_k_plot_name = '%s-precision-at-k-plot.png' % pipeline_prefix
+        precision_recall_plot_name = '%s-precision-recall-plot.png' % pipeline_prefix
+        roc_plot_name = '%s-roc-plot.png' % pipeline_prefix
+        report_name = '%s.report' % pipeline_prefix
 
-        # Condition: condition
-        var = self._var
-        line = 'Variable: %s' % var
-        summary_lines.append(line)
+        # Build paths.
+        precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
+        log.info('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
+        precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
+        log.info('precision_recall_plot_path: %s' % precision_recall_plot_path)
+        roc_plot_path = '/'.join([dest_dir, roc_plot_name])
+        log.info('roc_plot_path: %s' % roc_plot_path)
+        report_path = '/'.join([dest_dir, report_name])
+        log.info('report_path: %s' % report_path)
 
-        # Algorithm: SupervisedClassifier(algorithm)
-        # algorithm = 'SupervisedClassifier(REGRESS_AND_ROUND)'
-        # line = 'Algorithm: %s' % algorithm
-        # summary_lines.append(line)
+        # Build plot titles.
+        roc_plot_title = 'ROC (%s)' % pipeline_prefix
+        precision_recall_plot_title = 'Precision-Recall (%s)' % pipeline_prefix
+        precision_at_k_plot_title = 'Precision @K (%s)' % pipeline_prefix
 
-        # Train/Test Size: training_size, test_size
-        training_size = self._X_train.shape[0]
-        test_size = self._X_test.shape[0]
-        line = 'Train/Test Size: %s/%s' % (training_size, test_size)
-        summary_lines.append(line)
-
-        # Model: sig_features
-        coefs = self._predictor.coefs()
-        cols = self._X_train.columns
-        sig_features = [(coefs[cols.get_loc(f)], f) for f in cols.values if coefs[cols.get_loc(f)] > 0]
-        linear_model = ' + '.join('%s*%s' % (weight, feature) for weight, feature in sig_features)
-        line = 'Model: logistic(%s)' % linear_model
-        summary_lines.append(line)
-
-        # Baseline Episode Mortality: episode_mortality
-        counts = self._y_test[self._y_test.columns[0]].value_counts()
-        line = 'Baseline Episode Mortality: %s/%s' % (counts[1], test_size)
-        summary_lines.append(line)
-
-        # AUC: auc
-        auc = self._predictor.compute_roc_auc(self._X_test, self._y_test)
-        line = 'AUC: %s' % auc
-        summary_lines.append(line)
-        # Accuracy: accuracy
-        line = 'Accuracy: %s' % self._predictor.compute_accuracy(self._X_test, self._y_test)
-        summary_lines.append(line)
-
-        print '\n'.join(summary_lines)
-
-    def summarize():
-        pass
+        # Write output.
+        analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
+        analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
+        analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
+        analyzer.write_report(report_path)
