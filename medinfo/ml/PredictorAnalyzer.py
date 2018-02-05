@@ -7,6 +7,8 @@ on a set of test data.
 import pandas as pd
 from sklearn.utils.validation import column_or_1d
 
+from medinfo.common.Util import log
+
 class PredictorAnalyzer:
     ACCURACY_SCORE = 'accuracy'
     def __init__(self, predictor, X_test, y_test):
@@ -16,9 +18,11 @@ class PredictorAnalyzer:
         # testing constantly, turning the test cases into training cases.
         self._X_test = X_test
         self._y_test = y_test.reset_index(drop=True)
+        log.info('y_true[0].value_counts(): %s' % self._y_test[self._y_test.columns.values[0]].value_counts())
         # Cast to DataFrame to ease subsequent analysis, even though sklearn
         # by default just outputs an ndarray.
         self._y_predicted = pd.DataFrame(self._predictor.predict(self._X_test))
+        log.info('y_predicted[0].value_counts(): %s' % self._y_predicted[0].value_counts())
 
     def _score_accuracy(self):
         # sklearn has a built-in function to compute this. However,
