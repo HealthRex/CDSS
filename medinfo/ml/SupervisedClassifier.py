@@ -23,7 +23,7 @@ class SupervisedClassifier:
     SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST, \
         REGRESS_AND_ROUND]
 
-    def __init__(self, classes, algorithm=None, random_state=None, cv_group_col=None):
+    def __init__(self, classes, algorithm=None, random_state=None):
         self._classes = classes
         if algorithm is None:
             self._algorithm = SupervisedClassifier.LOGISTIC_REGRESSION
@@ -31,18 +31,25 @@ class SupervisedClassifier:
             raise ValueError('Algorithm %s not supported.' % algorithm)
         else:
             self._algorithm = algorithm
-        self._cv_group_col = cv_group_col
         self._params = {}
         self._hyperparams = {}
+        self._hyperparams['algorithm'] = algorithm
         self._hyperparams['random_state'] = random_state
 
     def __repr__(self):
+        s = 'SupervisedClassifier(%s, algorithm=%s, random_state=%s)' % \
+            (self._classes, self._algorithm, self._hyperparams['random_state'])
+        return s
+
+    __str__ = __repr__
+
+    def description(self):
         if self._algorithm == SupervisedClassifier.LOGISTIC_REGRESSION:
             coefs = self.coefs()
             cols = self._features
             sig_features = [(coefs[cols.get_loc(f)], f) for f in cols.values if coefs[cols.get_loc(f)] > 0]
             linear_model = ' + '.join('%s*%s' % (weight, feature) for weight, feature in sig_features)
-            return 'L1_REGRESSION(%s)' % linear_model
+            return 'L1_LOGISTIC_REGRESSION(%s)' % linear_model
         elif self._algorithm == SupervisedClassifier.REGRESS_AND_ROUND:
             coefs = self.coefs()
             cols = self._features
@@ -51,8 +58,6 @@ class SupervisedClassifier:
             return 'L1_REGRESS_AND_ROUND(%s)' % linear_model
         else:
             return 'SupervisedClassifier(%s, %s)' % (self._classes, self._algorithm)
-
-    __str__ = __repr__
 
     def algorithm(self):
         return self._algorithm
