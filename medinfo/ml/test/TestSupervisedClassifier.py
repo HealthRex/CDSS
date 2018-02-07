@@ -45,18 +45,23 @@ class TestSupervisedClassifier(MedInfoTestCase):
 
     def test_train_and_predict(self):
         # Load data set.
-        X = DataFrame(RANDOM_CLASSIFICATION_TEST_CASE['X'], columns = ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10'])
+        X = DataFrame(RANDOM_CLASSIFICATION_TEST_CASE['X'], \
+                        columns = ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', \
+                                    'x8', 'x9', 'x10'])
         y = DataFrame(RANDOM_CLASSIFICATION_TEST_CASE['y'])
         random_state = RANDOM_CLASSIFICATION_TEST_CASE['random_state']
         expected_y_pred_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['y_predicted']
         expected_hyperparams_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['hyperparams']
         expected_params_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['params']
+        expected_descriptions_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['description']
 
         # Generate train/test split.
         X_train, X_test, y_train, y_test = train_test_split(X, y, \
                                             random_state=random_state)
 
         # Iterate through SUPPORTED_ALGORITHMS.
+        # TODO(sbala): Expand to all SUPPORTED_ALGORITHMS.
+        # SupervisedClassifier.REGRESS_AND_ROUND]:
         for algorithm in [SupervisedClassifier.LOGISTIC_REGRESSION]:
             # Train model.
             classifier = SupervisedClassifier([0, 1], algorithm=algorithm, \
@@ -72,6 +77,11 @@ class TestSupervisedClassifier(MedInfoTestCase):
             expected_params = expected_params_by_algorithm[algorithm]
             actual_params = classifier.params()
             self.assertEqualDict(expected_params, actual_params)
+
+            # Test model description.
+            expected_description = expected_descriptions_by_algorithm[algorithm]
+            actual_description = classifier.description()
+            self.assertEqual(expected_description, actual_description)
 
             # Test prediction values.
             expected_y_pred = expected_y_pred_by_algorithm[algorithm]

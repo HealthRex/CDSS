@@ -423,9 +423,13 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         SupervisedClassifier.LOGISTIC_REGRESSION: [
             1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
         ],
+        SupervisedClassifier.REGRESS_AND_ROUND: [
+
+        ]
     },
     'hyperparams': {
         SupervisedClassifier.LOGISTIC_REGRESSION: {
+            'algorithm': SupervisedClassifier.LOGISTIC_REGRESSION,
             'scoring': make_scorer(roc_auc_score, needs_threshold=True),
             'max_iter': 1000,
             'n_jobs': -1,
@@ -440,6 +444,9 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'Cs': 10,
             'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
             'class_weight': 'balanced'
+        },
+        SupervisedClassifier.REGRESS_AND_ROUND: {
+
         }
     },
     'params': {
@@ -454,7 +461,13 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'x8': 2.1209741831488005,
             'x9': -0.5031207479588492,
             'x10': 0.0,
+        },
+        SupervisedClassifier.REGRESS_AND_ROUND: {
+
         }
+    },
+    'description': {
+        SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.12097418315*x8)'
     }
 }
 
