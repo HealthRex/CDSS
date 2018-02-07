@@ -7,6 +7,7 @@ on a set of test data.
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from pandas import DataFrame
+import sys
 
 from sklearn.metrics import recall_score, precision_score, f1_score
 from sklearn.metrics import average_precision_score, roc_auc_score
@@ -32,6 +33,13 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         # with multi-label classifiers or binary classifiers whose
         # positive label != 1.
         PredictorAnalyzer.__init__(self, classifier, X_test, y_test)
+        # If there is only one class in y_test, abort.
+        classes = y_test[y_test.columns.values[0]].value_counts().index.values
+        if len(classes) <= 1:
+            sole_class = classes[0]
+            log.info('y_test only has samples of 1 class: %s' % sole_class)
+            sys.exit('[ERROR] ClassifierAnalyzer: y_test only has samples of 1 class: %s' % sole_class)
+
         self._y_pred_prob = DataFrame(classifier.predict_probability(X_test)[:,1])
         log.info('y_pred_prob[0].value_counts(): %s' % self._y_pred_prob[0].value_counts())
 
