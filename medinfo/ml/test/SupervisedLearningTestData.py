@@ -468,6 +468,9 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
     },
     'description': {
         SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.12097418315*x8)'
+    },
+    'str': {
+        SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)"
     }
 }
 

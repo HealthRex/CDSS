@@ -51,6 +51,7 @@ class TestSupervisedClassifier(MedInfoTestCase):
         y = DataFrame(RANDOM_CLASSIFICATION_TEST_CASE['y'])
         random_state = RANDOM_CLASSIFICATION_TEST_CASE['random_state']
         expected_y_pred_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['y_predicted']
+        expected_str_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['str']
         expected_hyperparams_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['hyperparams']
         expected_params_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['params']
         expected_descriptions_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['description']
@@ -67,6 +68,11 @@ class TestSupervisedClassifier(MedInfoTestCase):
             classifier = SupervisedClassifier([0, 1], algorithm=algorithm, \
                                                 random_state=random_state)
             classifier.train(X_train, y_train)
+
+            # Test str().
+            expected_str = expected_str_by_algorithm[algorithm]
+            actual_str = str(classifier)
+            self.assertEqual(expected_str, actual_str)
 
             # Test hyperparameters.
             expected_hyperparams = expected_hyperparams_by_algorithm[algorithm]

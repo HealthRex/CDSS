@@ -37,7 +37,7 @@ class SupervisedClassifier:
         self._hyperparams['random_state'] = random_state
 
     def __repr__(self):
-        s = 'SupervisedClassifier(%s, algorithm=%s, random_state=%s)' % \
+        s = "SupervisedClassifier(%s, algorithm='%s', random_state=%s)" % \
             (self._classes, self._algorithm, self._hyperparams['random_state'])
         return s
 
