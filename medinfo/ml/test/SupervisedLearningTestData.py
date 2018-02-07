@@ -4,6 +4,10 @@ Test input and output for supervised learning.
 """
 
 from numpy import array
+from medinfo.ml.SupervisedClassifier import SupervisedClassifier
+from sklearn.metrics import roc_auc_score, make_scorer
+from sklearn.model_selection import StratifiedKFold
+
 
 # x, y, coef = sklearn.datasets.make_regression(n_features=100, n_informative=3)
 # 100 samples with 1 target.
@@ -413,7 +417,45 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0,
         0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1,
         1, 0, 0, 1, 0, 1, 0, 1]),
-    'rounded_coefs': array([ 0,  0,  0, -0,  0,  0,  0,  3, -1,  0])
+    'rounded_coefs': array([ 0,  0,  0, -0,  0,  0,  0,  3, -1,  0]),
+    'random_state': 123456789,
+    'y_predicted': {
+        SupervisedClassifier.LOGISTIC_REGRESSION: [
+            1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
+        ],
+    },
+    'hyperparams': {
+        SupervisedClassifier.LOGISTIC_REGRESSION: {
+            'scoring': make_scorer(roc_auc_score, needs_threshold=True),
+            'max_iter': 1000,
+            'n_jobs': -1,
+            'tol': 0.0001,
+            'fit_intercept': True,
+            'solver': 'saga',
+            'refit': True,
+            'penalty': 'l1',
+            'multi_class': 'ovr',
+            'random_state': 123456789,
+            'dual': False,
+            'Cs': 10,
+            'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
+            'class_weight': 'balanced'
+        }
+    },
+    'params': {
+        SupervisedClassifier.LOGISTIC_REGRESSION: {
+            'x1': 0.0,
+            'x2': 0.0,
+            'x3': 0.0,
+            'x4': -0.18661909404451804,
+            'x5': 0.0,
+            'x6': 0.0,
+            'x7': 0.0,
+            'x8': 2.1209741831488005,
+            'x9': -0.5031207479588492,
+            'x10': 0.0,
+        }
+    }
 }
 
 # x, y, coef = sklearn.datasets.make_regression(n_features=10, n_informative=3)
