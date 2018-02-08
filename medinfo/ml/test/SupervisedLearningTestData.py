@@ -5,7 +5,7 @@ Test input and output for supervised learning.
 
 from numpy import array
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
-from sklearn.metrics import roc_auc_score, make_scorer
+from sklearn.metrics import roc_auc_score, make_scorer, f1_score
 from sklearn.model_selection import StratifiedKFold
 
 # x, y, coef = sklearn.datasets.make_regression(n_features=100, n_informative=3)
@@ -424,6 +424,9 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         ],
         SupervisedClassifier.REGRESS_AND_ROUND: [
             0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
+        ],
+        SupervisedClassifier.DECISION_TREE: [
+            0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
         ]
     },
     'hyperparams': {
@@ -461,6 +464,25 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'Cs': 10,
             'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
             'class_weight': 'balanced'
+        },
+        SupervisedClassifier.DECISION_TREE: {
+            'presort': None,
+            'splitter': 'best',
+            'n_jobs': -1,
+            'min_impurity_decrease': 0.0,
+            'algorithm': 'decision-tree',
+            'max_leaf_nodes': None,
+            'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
+            'min_samples_leaf': 0.05,
+            'hyperparam_strategy': 'exhaustive-search',
+            'max_features': None,
+            'random_state': 123456789,
+            'criterion': 'gini',
+            'min_weight_fraction_leaf': 0.0,
+            'scoring': make_scorer(f1_score),
+            'min_samples_split': 2,
+            'max_depth': 2,
+            'class_weight': 'balanced'
         }
     },
     'params': {
@@ -487,11 +509,59 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'x8': 1.0,
             'x9': 0.0,
             'x10': 0.0,
+        },
+        SupervisedClassifier.DECISION_TREE: {
+            'depth': 2,
+            'tree': {
+                0: {
+                    'right_child': 4,
+                    'class_weights': [37.5, 37.499999999999964],
+                    'feature': 'x8',
+                    'prediction': 0,
+                    'threshold': 0.38960647583007812,
+                    'left_child': 1,
+                },
+                1: {
+                    'right_child': 3,
+                    'class_weights': [35.41666666666667, 4.8076923076923075],
+                    'feature': 'x9',
+                    'prediction': 0,
+                    'threshold': -1.940993070602417,
+                    'left_child': 2,
+                },
+                2: {
+                    'prediction': 1,
+                    'class_weights': [0.0, 3.8461538461538463]
+                },
+                3: {
+                    'prediction': 0,
+                    'class_weights': [35.41666666666667, 0.9615384615384616]
+                },
+                4: {
+                    'right_child': 6,
+                    'class_weights': [2.0833333333333335, 32.692307692307665],
+                    'feature': 'x3',
+                    'prediction': 1,
+                    'threshold': 1.0329883098602295,
+                    'left_child': 5,
+                },
+                5: {
+                    'prediction': 1,
+                    'class_weights': [0.0, 22.115384615384606]
+                },
+                6: {
+                    'prediction': 1,
+                    'class_weights': [2.0833333333333335, 10.576923076923077]
+                }
+            },
+            'decision_features': ['x8', 'x9', 'x3'],
+            'num_nodes': 7
         }
     },
     'description': {
         SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.12097418315*x8)',
-        SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)'
+        SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)',
+        SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x3<=1.03298830986))'
     },
     'str': {
         SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)",

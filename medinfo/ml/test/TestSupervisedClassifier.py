@@ -16,7 +16,7 @@ from medinfo.common.Util import log
 
 class TestSupervisedClassifier(MedInfoTestCase):
     def setUp(self):
-        log.level = logging.ERROR
+        log.level = logging.INFO
 
     def tearDown(self):
         pass
@@ -74,10 +74,11 @@ class TestSupervisedClassifier(MedInfoTestCase):
 
         # Iterate through SUPPORTED_ALGORITHMS.
         # TODO(sbala): Expand to all SUPPORTED_ALGORITHMS.
-        # SupervisedClassifier.REGRESS_AND_ROUND]:
-        for algorithm in [SupervisedClassifier.LOGISTIC_REGRESSION, SupervisedClassifier.REGRESS_AND_ROUND]:
+        #
+        for algorithm in [SupervisedClassifier.LOGISTIC_REGRESSION, SupervisedClassifier.REGRESS_AND_ROUND, SupervisedClassifier.DECISION_TREE]:
             # Train model.
-            hyperparams = {'algorithm': algorithm, 'random_state': random_state}
+            hyperparams = {'algorithm': algorithm, 'random_state': random_state,
+                            'hyperparam_strategy': SupervisedClassifier.EXHAUSTIVE_SEARCH}
             classifier = SupervisedClassifier([0, 1], hyperparams)
             classifier.train(X_train, y_train)
 
