@@ -3,12 +3,13 @@
 Generic module for supervised machine learning classification.
 """
 
+import numpy as np
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, make_scorer
 from sklearn.utils.validation import column_or_1d
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, cross_val_score
 
 from medinfo.common.Util import log
 
@@ -84,6 +85,8 @@ class SupervisedClassifier:
 
     def params(self):
         if self._algorithm == SupervisedClassifier.LOGISTIC_REGRESSION:
+            return self._regression_params()
+        elif self._algorithm == SupervisedClassifier.REGRESS_AND_ROUND:
             return self._regression_params()
 
     def _maybe_reshape_y(self, y):
@@ -196,7 +199,7 @@ class SupervisedClassifier:
         # tol: tolerance for stopping criteria. Default: 0.0001
         self._hyperparams['tol'] = 0.0001
         # max_iter: Maximum number of iterations for the optimization problem.
-        self._hyperparams['max_iter'] = 1000
+        self._hyperparams['max_iter'] = 10000
         # class_weight: {class_1: 0.3, class_2: 0.7} tells scorer how to weight
         # classes in calculating error. Assume unbalanced classification, so
         # use parameter which automatically reweights inversely proportional
@@ -236,30 +239,71 @@ class SupervisedClassifier:
         self._model.fit(X, y)
 
     def _train_regress_and_round(self, X, y, coef_max=None):
+        log.info('Rounding logistic regression coefficients...')
         self._train_logistic_regression(X, y)
 
+        # If not provided, search for best coef_max.
         if coef_max is None:
-            # This is the optimal M value from Jung et al.
-            # The choice here is completely arbitrary, but we need something.
-            # https://arxiv.org/abs/1702.04690
-            coef_max = 3
+            coef_max = self._tune_coef_max(X, y)
+        log.info('coef_max: %s' % coef_max)
+        self._hyperparams['coef_max'] = coef_max
 
+        # Round linear coefficients.
+        self._round_coefs(coef_max)
+
+    def _round_coefs(self, coef_max):
         # Based on Jung et al. https://arxiv.org/abs/1702.04690
         # w_j = round((M * beta_j) / (max_i|beta_i|))
         # coef_max = M = max rounded coefficient value
         # beta_max = max_i|beta_i| = largest unrounded regression coefficient
         beta_max = max([abs(c) for c in self._model.coef_[0]])
+        log.debug('unrounded_coefs: %s' % self.coefs())
         self._model.coef_[0] = [round((coef_max * c) / (beta_max)) for c in self._model.coef_[0]]
+        log.debug('rounded_coefs(M=%s): %s' % (coef_max, self.coefs()))
+
+    def _tune_coef_max(self, X, y):
+        # The only way to easily compute scores is to modify the model itself.
+        # Keep the unrounded coefs so it's always possible to go back.
+        unrounded_coefs = self.coefs().copy()
+
+        # The optimal M value from Jung et al. is 3.
+        # https://arxiv.org/abs/1702.04690
+        M_grid = [1, 2, 3, 4, 5]
+        M_grid_scores = []
+
+        # Compute roc_auc scores.
+        coef_max = 0
+        max_roc_auc = 0
+        min_roc_auc = 1.0
+        for i in range(len(M_grid)):
+            # Tweak the model.
+            self._round_coefs(M_grid[i])
+            # Compute ROC AUC.
+            scores = cross_val_score(self._model, X, y, \
+                cv=self._hyperparams['cv'], \
+                scoring=self._hyperparams['scoring'], \
+                n_jobs=self._hyperparams['n_jobs'])
+            # Compute mean across K folds.
+            mean_score = np.mean(scores)
+            M_grid_scores.append(mean_score)
+            log.debug('roc_auc(M=%s) = %s' % (M_grid[i], mean_score))
+
+            # Conditionally change coef_max and max_roc_auc.
+            if mean_score > max_roc_auc:
+                coef_max = M_grid[i]
+                max_roc_auc = mean_score
+            if mean_score < min_roc_auc:
+                min_roc_auc = mean_score
+
+            # Reset coefs and return.
+            self._model.coef_[0] = unrounded_coefs
+
+        log.info('RANGE(roc_auc | M) = [%s, %s]' % (min_roc_auc, max_roc_auc))
+
+        return coef_max
 
     def predict(self, X):
         return self._model.predict(X)
 
     def predict_probability(self, X):
         return self._model.predict_proba(X)
-
-    def compute_accuracy(self, X, y):
-        return self._model.score(X, y)
-
-    def compute_roc_auc(self, X, y):
-        y_predicted = self.predict_probability(X)
-        return roc_auc_score(y, y_predicted[:,1])
