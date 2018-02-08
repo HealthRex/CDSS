@@ -4,7 +4,7 @@ Generic module for supervised machine learning classification.
 """
 
 import numpy as np
-from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score, roc_auc_score, make_scorer
@@ -276,10 +276,9 @@ class SupervisedClassifier:
     def _train_logistic_regression(self, X, y):
         # Define hyperparameter space.
         # http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegressionCV.html
-        self._hyperparams['Cs'] = 10
+        self._hyperparams['C'] = 10.0
         self._hyperparams['hyperparam_strategy'] = SupervisedClassifier.EXHAUSTIVE_SEARCH
         self._hyperparams['fit_intercept'] = True
-        self._hyperparams['cv'] = self._build_cv_generator()
         self._hyperparams['dual'] = False
         self._hyperparams['penalty'] = 'l1'
         # Assume unbalanced classification problems, so use roc auc.
@@ -291,27 +290,32 @@ class SupervisedClassifier:
         self._hyperparams['max_iter'] = 10000
         self._hyperparams['class_weight'] = 'balanced'
         self._hyperparams['n_jobs'] = -1
-        self._hyperparams['refit'] = True
         self._hyperparams['multi_class'] = 'ovr'
 
-        # Build model.
-        self._model = LogisticRegressionCV(\
-            Cs=self._hyperparams['Cs'], \
-            fit_intercept=self._hyperparams['fit_intercept'], \
-            cv=self._hyperparams['cv'], \
-            dual=self._hyperparams['dual'], \
-            penalty=self._hyperparams['penalty'], \
-            scoring=self._hyperparams['scoring'], \
-            solver=self._hyperparams['solver'], \
-            tol=self._hyperparams['tol'], \
-            max_iter=self._hyperparams['max_iter'], \
-            class_weight=self._hyperparams['class_weight'], \
-            n_jobs=self._hyperparams['n_jobs'], \
-            refit=self._hyperparams['refit'], \
-            multi_class=self._hyperparams['multi_class'], \
-            random_state=self._hyperparams['random_state']
+        # Build initial model.
+        self._model = LogisticRegression(
+            penalty=self._hyperparams['penalty'],
+            fit_intercept=self._hyperparams['fit_intercept'],
+            dual=self._hyperparams['dual'],
+            tol=self._hyperparams['tol'],
+            C=self._hyperparams['C'],
+            class_weight=self._hyperparams['class_weight'],
+            random_state=self._hyperparams['random_state'],
+            solver=self._hyperparams['solver'],
+            max_iter=self._hyperparams['max_iter'],
+            multi_class=self._hyperparams['multi_class'],
+            n_jobs=self._hyperparams['n_jobs']
         )
-        self._model.fit(X, y)
+
+        # Tune hyperparams.
+        hyperparam_search_space = {
+            'C': [
+                10000.0, 1000.0, 100.0, 10.0, 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001
+            ]
+        }
+        log.info('Tuning hyperparameters...')
+        self._tune_hyperparams(hyperparam_search_space, X, y)
+        log.debug('params: %s' % self.params())
 
     def _train_random_forest(self, X, y):
         self._model = RandomForestClassifier()
