@@ -8,7 +8,6 @@ from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from sklearn.metrics import roc_auc_score, make_scorer
 from sklearn.model_selection import StratifiedKFold
 
-
 # x, y, coef = sklearn.datasets.make_regression(n_features=100, n_informative=3)
 # 100 samples with 1 target.
 RANDOM_CLASSIFICATION_TEST_CASE = {
@@ -424,14 +423,14 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
         ],
         SupervisedClassifier.REGRESS_AND_ROUND: [
-
+            0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
         ]
     },
     'hyperparams': {
         SupervisedClassifier.LOGISTIC_REGRESSION: {
             'algorithm': SupervisedClassifier.LOGISTIC_REGRESSION,
             'scoring': make_scorer(roc_auc_score, needs_threshold=True),
-            'max_iter': 1000,
+            'max_iter': 10000,
             'n_jobs': -1,
             'tol': 0.0001,
             'fit_intercept': True,
@@ -446,7 +445,22 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'class_weight': 'balanced'
         },
         SupervisedClassifier.REGRESS_AND_ROUND: {
-
+            'scoring': make_scorer(roc_auc_score, needs_threshold=True),
+            'max_iter': 10000,
+            'n_jobs': -1,
+            'tol': 0.0001,
+            'algorithm': SupervisedClassifier.REGRESS_AND_ROUND,
+            'fit_intercept': True,
+            'solver': 'saga',
+            'refit': True,
+            'penalty': 'l1',
+            'multi_class': 'ovr',
+            'random_state': 123456789,
+            'coef_max': 1,
+            'dual': False,
+            'Cs': 10,
+            'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
+            'class_weight': 'balanced'
         }
     },
     'params': {
@@ -463,14 +477,25 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'x10': 0.0,
         },
         SupervisedClassifier.REGRESS_AND_ROUND: {
-
+            'x1': 0.0,
+            'x2': 0.0,
+            'x3': 0.0,
+            'x4': 0.0,
+            'x5': 0.0,
+            'x6': 0.0,
+            'x7': 0.0,
+            'x8': 1.0,
+            'x9': 0.0,
+            'x10': 0.0,
         }
     },
     'description': {
-        SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.12097418315*x8)'
+        SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.12097418315*x8)',
+        SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)'
     },
     'str': {
-        SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)"
+        SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)",
+        SupervisedClassifier.REGRESS_AND_ROUND: "SupervisedClassifier([0, 1], algorithm='regress-and-round', random_state=123456789)"
     }
 }
 

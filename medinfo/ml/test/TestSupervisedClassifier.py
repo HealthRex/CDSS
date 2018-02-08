@@ -3,6 +3,8 @@
 import unittest
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
+import sys
+import logging
 
 from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import MedInfoTestCase
@@ -10,13 +12,21 @@ from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from numpy import array
 
 from SupervisedLearningTestData import RANDOM_CLASSIFICATION_TEST_CASE
+from medinfo.common.Util import log
 
 class TestSupervisedClassifier(MedInfoTestCase):
+    def setUp(self):
+        log.level = logging.ERROR
+
+    def tearDown(self):
+        pass
+
     def test_init(self):
         # Test unspecified algorithm.
         classifier = SupervisedClassifier([0, 1])
         self.assertEqual(classifier.algorithm(), \
             SupervisedClassifier.LOGISTIC_REGRESSION)
+
 
         # Test unsupported algorithm.
         with self.assertRaises(ValueError):
@@ -63,7 +73,7 @@ class TestSupervisedClassifier(MedInfoTestCase):
         # Iterate through SUPPORTED_ALGORITHMS.
         # TODO(sbala): Expand to all SUPPORTED_ALGORITHMS.
         # SupervisedClassifier.REGRESS_AND_ROUND]:
-        for algorithm in [SupervisedClassifier.LOGISTIC_REGRESSION]:
+        for algorithm in [SupervisedClassifier.LOGISTIC_REGRESSION, SupervisedClassifier.REGRESS_AND_ROUND]:
             # Train model.
             classifier = SupervisedClassifier([0, 1], algorithm=algorithm, \
                                                 random_state=random_state)
