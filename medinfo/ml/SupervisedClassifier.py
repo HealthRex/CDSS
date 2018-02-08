@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score, make_scorer
+from sklearn.metrics import f1_score, roc_auc_score, make_scorer
 from sklearn.utils.validation import column_or_1d
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
@@ -24,6 +24,10 @@ class SupervisedClassifier:
 
     SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST, \
         REGRESS_AND_ROUND]
+
+    EXHAUSTIVE_SEARCH = 'exhaustive-search'
+    STOCHASTIC_SEARCH = 'stochastic-search'
+    HYPEPARAM_STRATEGIES = [EXHAUSTIVE_SEARCH, STOCHASTIC_SEARCH]
 
     def __init__(self, classes, hyperparams=None):
         self._classes = classes
@@ -45,6 +49,11 @@ class SupervisedClassifier:
         # Set random state.
         if self._hyperparams.get('random_state') is None:
             self._hyperparams['random_state'] = None
+        # Set CV strategy.
+        if self._hyperparams.get('cv_strategy') is None:
+            self._hyperparams['cv_strategy'] = SupervisedClassifier.STOCHASTIC_SEARCH
+        elif self._hyperparams['cv_strategy'] not in SupervisedClassifier.HYPERPARAM_STRATEGIES:
+            raise ValueError('CV strategy %s not supported.' % self._hyperparams['hyperparam_strategy'])
 
     def __repr__(self):
         s = "SupervisedClassifier(%s, algorithm='%s', random_state=%s)" % \
@@ -158,7 +167,7 @@ class SupervisedClassifier:
         return StratifiedKFold(n_splits=10, shuffle=False, \
                                 random_state=self._hyperparams['random_state'])
 
-    def train(self, X, y, coef_max=None):
+    def train(self, X, y):
         self._features = X.columns
 
         y = self._maybe_reshape_y(y)
@@ -170,17 +179,9 @@ class SupervisedClassifier:
         elif self._algorithm == SupervisedClassifier.RANDOM_FOREST:
             self._train_random_forest(X, y)
         elif self._algorithm == SupervisedClassifier.REGRESS_AND_ROUND:
-            self._train_regress_and_round(X, y, coef_max=coef_max)
+            self._train_regress_and_round(X, y)
 
     def _train_decision_tree(self, X, y):
-        # Decision trees tend to overfit on data with a large number of features. Getting the right ratio of samples to number of features is important, since a tree with few samples in high dimensional space is very likely to overfit.
-        # Consider performing dimensionality reduction (PCA, ICA, or Feature selection) beforehand to give your tree a better chance of finding features that are discriminative.
-        # Remember that the number of samples required to populate the tree doubles for each additional level the tree grows to. Use max_depth to control the size of the tree to prevent overfitting.
-        # Use min_samples_split or min_samples_leaf to control the number of samples at a leaf node. A very small number will usually mean the tree will overfit, whereas a large number will prevent the tree from learning the data. Try min_samples_leaf=5 as an initial value. If the sample size varies greatly, a float number can be used as percentage in these two parameters. The main difference between the two is that min_samples_leaf guarantees a minimum number of samples in a leaf, while min_samples_split can create arbitrary small leaves, though min_samples_split is more common in the literature.
-        # Balance your dataset before training to prevent the tree from being biased toward the classes that are dominant. Class balancing can be done by sampling an equal number of samples from each class, or preferably by normalizing the sum of the sample weights (sample_weight) for each class to the same value. Also note that weight-based pre-pruning criteria, such as min_weight_fraction_leaf, will then be less biased toward dominant classes than criteria that are not aware of the sample weights, like min_samples_leaf.
-        # If the samples are weighted, it will be easier to optimize the tree structure using weight-based pre-pruning criterion such as min_weight_fraction_leaf, which ensure that leaf nodes contain at least a fraction of the overall sum of the sample weights.
-        # All decision trees use np.float32 arrays internally. If training data is not in this format, a copy of the dataset will be made.
-        # If the input matrix X is very sparse, it is recommended to convert to sparse csc_matrix before calling fit and sparse csr_matrix before calling predict. Training time can be orders of magnitude faster for a sparse matrix input compared to a dense matrix when features have zero values in most of the samples.
         # Define hyperparameter space.
         # http://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
         self._hyperparams['criterion'] = 'gini'
@@ -196,14 +197,43 @@ class SupervisedClassifier:
         self._hyperparams['min_impurity_decrease'] = None
         self._hyperparams['class_weight'] = 'balanced'
         self._hyperparams['presort'] = None
+        # Assume unbalanced classification problems, so use f1_score.
+        # Cannot compute an ROC curve because decision trees have no ROC.
+        # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
+        scorer = make_scorer(f1_score)
+        self._hyperparams['scoring'] = scorer
 
-        self._model = DecisionTreeClassifier()
+        # Initialize model with naive hyperparameter values.
+        self._model = DecisionTreeClassifier(\
+            criterion=self._hyperparams['criterion'], \
+            splitter=self._hyperparams['splitter'], \
+            max_depth=self._hyperparams['max_depth'][0], \
+            min_samples_split=self._hyperparams['min_samples_split'][0], \
+            min_samples_leaf=self._hyperparams['min_samples_leaf'][0], \
+            min_weight_fraction_leaf=self._hyperparams['min_weight_fraction_leaf'][0], \
+            max_features=self._hyperparams['max_features'], \
+            random_state=self._hyperparams['random_state'], \
+            max_leaf_nodes=self._hyperparams['max_leaf_nodes'], \
+            min_impurity_decrease=self._hyperparams['min_impurity_decrease'], \
+            class_weight=self._hyperparams['class_weight'], \
+            presort=self._hyperparams['presort']
+        )
+
+        # Search hyperparameter space for better values.
+        hyperparam_search_space = {
+            'max_depth': [1, 2, 3, None],
+            'min_samples_split': [2, 10, 0.01, 0.05],
+            'min_samples_leaf': [1, 10, 0.01, 0.05]
+        }
+        self._tune_hyperparams(hyperparam_search_space)
+
         self._model.fit(X, y)
 
     def _train_logistic_regression(self, X, y):
         # Define hyperparameter space.
         # http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegressionCV.html
         self._hyperparams['Cs'] = 10
+        self._hyperparams['hyperparam_strategy'] = SupervisedClassifier.EXHAUSTIVE_SEARCH
         self._hyperparams['fit_intercept'] = True
         self._hyperparams['cv'] = self._build_cv_generator()
         self._hyperparams['dual'] = False
@@ -243,18 +273,19 @@ class SupervisedClassifier:
         self._model = RandomForestClassifier()
         self._model.fit(X, y)
 
-    def _train_regress_and_round(self, X, y, coef_max=None):
+    def _train_regress_and_round(self, X, y):
         log.info('Rounding logistic regression coefficients...')
         self._train_logistic_regression(X, y)
+        self._tune_hyperparams_regress_and_round(X, y)
 
+    def _tune_hyperparams_regress_and_round(self, X, y):
+        self._hyperparams['hyperparam_strategy'] = SupervisedClassifier.EXHAUSTIVE_SEARCH
         # If not provided, search for best coef_max.
-        if coef_max is None:
-            coef_max = self._tune_coef_max(X, y)
-        log.info('coef_max: %s' % coef_max)
-        self._hyperparams['coef_max'] = coef_max
+        if self._hyperparams.get('coef_max') is None:
+            self._hyperparams['coef_max'] = self._tune_coef_max(X, y)
 
         # Round linear coefficients.
-        self._round_coefs(coef_max)
+        self._round_coefs(self._hyperparams['coef_max'])
 
     def _round_coefs(self, coef_max):
         # Based on Jung et al. https://arxiv.org/abs/1702.04690
@@ -307,11 +338,23 @@ class SupervisedClassifier:
 
         return coef_max
 
+    def _tune_hyperparams(self, hyperparam_space):
+        # Don't use sklearn utilities for REGRESS_AND_ROUND.
+        if self._hyperparams['algorithm'] == SupervisedClassifier.REGRESS_AND_ROUND:
+            self._tune_hyperparams_regress_and_round()
+        else:
+            if self._hyperparams['hyperparam_strategy'] == SupervisedClassifier.EXHAUSTIVE_SEARCH:
+                self._tune_hyperparams_exhaustively(hyperparam_space)
+            elif self._hyperparams['hyperparam_strategy'] == SupervisedClassifier.STOCHASTIC_SEARCH:
+                self._tune_hyperparams_stochastically(hyperparam_space)
+
     def _tune_hyperparams_exhaustively(self, hyperparam_space):
         # grid search
         pass
 
-    def _tune_hyperparams_stochastically(self, hyperparam_space):
+    def _tune_hyperparams_stochastically(self):
+        # random search
+
         pass
 
     def predict(self, X):
