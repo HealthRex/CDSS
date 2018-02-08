@@ -75,6 +75,7 @@ class TestSupervisedClassifier(MedInfoTestCase):
         # Iterate through SUPPORTED_ALGORITHMS.
         # TODO(sbala): Expand to all SUPPORTED_ALGORITHMS.
         #
+        #  :
         for algorithm in [SupervisedClassifier.LOGISTIC_REGRESSION, SupervisedClassifier.REGRESS_AND_ROUND, SupervisedClassifier.DECISION_TREE]:
             # Train model.
             hyperparams = {'algorithm': algorithm, 'random_state': random_state,

@@ -423,7 +423,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
         ],
         SupervisedClassifier.REGRESS_AND_ROUND: [
-            0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
+            0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         ],
         SupervisedClassifier.DECISION_TREE: [
             0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
@@ -438,12 +438,11 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'tol': 0.0001,
             'fit_intercept': True,
             'solver': 'saga',
-            'refit': True,
             'penalty': 'l1',
             'multi_class': 'ovr',
             'random_state': 123456789,
             'dual': False,
-            'Cs': 10,
+            'C': 1.0,
             'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
             'class_weight': 'balanced'
         },
@@ -455,13 +454,12 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'algorithm': SupervisedClassifier.REGRESS_AND_ROUND,
             'fit_intercept': True,
             'solver': 'saga',
-            'refit': True,
             'penalty': 'l1',
             'multi_class': 'ovr',
             'random_state': 123456789,
             'coef_max': 1,
             'dual': False,
-            'Cs': 10,
+            'C': 1.0,
             'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
             'class_weight': 'balanced'
         },
@@ -490,12 +488,12 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'x1': 0.0,
             'x2': 0.0,
             'x3': 0.0,
-            'x4': -0.18661909404451804,
-            'x5': 0.0,
+            'x4': -0.43850898591785864,
+            'x5': -0.083442903792298379,
             'x6': 0.0,
             'x7': 0.0,
-            'x8': 2.1209741831488005,
-            'x9': -0.5031207479588492,
+            'x8': 2.9577271876226208,
+            'x9': -0.62796649851723207,
             'x10': 0.0,
         },
         SupervisedClassifier.REGRESS_AND_ROUND: {
@@ -559,7 +557,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         }
     },
     'description': {
-        SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.12097418315*x8)',
+        SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.95772718762*x8)',
         SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)',
         SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x3<=1.03298830986))'
     },
