@@ -10,6 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, make_scorer
 from sklearn.utils.validation import column_or_1d
 from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
 from medinfo.common.Util import log
 
@@ -24,18 +25,26 @@ class SupervisedClassifier:
     SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST, \
         REGRESS_AND_ROUND]
 
-    def __init__(self, classes, algorithm=None, random_state=None):
+    def __init__(self, classes, hyperparams=None):
         self._classes = classes
-        if algorithm is None:
-            self._algorithm = SupervisedClassifier.LOGISTIC_REGRESSION
-        elif algorithm not in SupervisedClassifier.SUPPORTED_ALGORITHMS:
-            raise ValueError('Algorithm %s not supported.' % algorithm)
-        else:
-            self._algorithm = algorithm
+
+        # Initialize params.
         self._params = {}
-        self._hyperparams = {}
-        self._hyperparams['algorithm'] = algorithm
-        self._hyperparams['random_state'] = random_state
+
+        # Initialize hyperparams.
+        if hyperparams is None:
+            self._hyperparams = {}
+        else:
+            self._hyperparams = hyperparams
+        # Set algorithm.
+        if self._hyperparams.get('algorithm') is None:
+            self._hyperparams['algorithm'] = SupervisedClassifier.LOGISTIC_REGRESSION
+        elif self._hyperparams['algorithm'] not in SupervisedClassifier.SUPPORTED_ALGORITHMS:
+            raise ValueError('Algorithm %s not supported.' % self._hyperparams['algorithm'])
+        self._algorithm = self._hyperparams['algorithm']
+        # Set random state.
+        if self._hyperparams.get('random_state') is None:
+            self._hyperparams['random_state'] = None
 
     def __repr__(self):
         s = "SupervisedClassifier(%s, algorithm='%s', random_state=%s)" % \
@@ -164,55 +173,51 @@ class SupervisedClassifier:
             self._train_regress_and_round(X, y, coef_max=coef_max)
 
     def _train_decision_tree(self, X, y):
+        # Decision trees tend to overfit on data with a large number of features. Getting the right ratio of samples to number of features is important, since a tree with few samples in high dimensional space is very likely to overfit.
+        # Consider performing dimensionality reduction (PCA, ICA, or Feature selection) beforehand to give your tree a better chance of finding features that are discriminative.
+        # Remember that the number of samples required to populate the tree doubles for each additional level the tree grows to. Use max_depth to control the size of the tree to prevent overfitting.
+        # Use min_samples_split or min_samples_leaf to control the number of samples at a leaf node. A very small number will usually mean the tree will overfit, whereas a large number will prevent the tree from learning the data. Try min_samples_leaf=5 as an initial value. If the sample size varies greatly, a float number can be used as percentage in these two parameters. The main difference between the two is that min_samples_leaf guarantees a minimum number of samples in a leaf, while min_samples_split can create arbitrary small leaves, though min_samples_split is more common in the literature.
+        # Balance your dataset before training to prevent the tree from being biased toward the classes that are dominant. Class balancing can be done by sampling an equal number of samples from each class, or preferably by normalizing the sum of the sample weights (sample_weight) for each class to the same value. Also note that weight-based pre-pruning criteria, such as min_weight_fraction_leaf, will then be less biased toward dominant classes than criteria that are not aware of the sample weights, like min_samples_leaf.
+        # If the samples are weighted, it will be easier to optimize the tree structure using weight-based pre-pruning criterion such as min_weight_fraction_leaf, which ensure that leaf nodes contain at least a fraction of the overall sum of the sample weights.
+        # All decision trees use np.float32 arrays internally. If training data is not in this format, a copy of the dataset will be made.
+        # If the input matrix X is very sparse, it is recommended to convert to sparse csc_matrix before calling fit and sparse csr_matrix before calling predict. Training time can be orders of magnitude faster for a sparse matrix input compared to a dense matrix when features have zero values in most of the samples.
+        # Define hyperparameter space.
+        # http://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
+        self._hyperparams['criterion'] = 'gini'
+        self._hyperparams['splitter'] = 'best'
+        # Include 1, 2, 3 to bias towards simpler tree.
+        self._hyperparams['max_depth'] = [1, 2, 3, None]
+        # Include 10 and .01 to bias towards simpler trees.
+        self._hyperparams['min_samples_split'] = [2, 10, 0.01, 0.05]
+        self._hyperparams['min_samples_leaf'] = [1, 10, 0.01, 0.05]
+        self._hyperparams['min_weight_fraction_leaf'] = 0.0
+        self._hyperparams['max_features'] = None
+        self._hyperparams['max_leaf_nodes'] = None
+        self._hyperparams['min_impurity_decrease'] = None
+        self._hyperparams['class_weight'] = 'balanced'
+        self._hyperparams['presort'] = None
+
         self._model = DecisionTreeClassifier()
         self._model.fit(X, y)
 
     def _train_logistic_regression(self, X, y):
-        # Define hyperparameters.
-        # Cs: Each C describes the inverse of regularization strength.
-        # If Cs is as an int, then a grid of Cs values are chosen in a
-        # logarithmic scale between 1e-4 and 1e4.
-        # Smaller values = stronger regularization.
+        # Define hyperparameter space.
+        # http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegressionCV.html
         self._hyperparams['Cs'] = 10
-        # fit_intercept: Specifies if a constant (a.k.a. bias or intercept)
-        # should be added to the decision function.
         self._hyperparams['fit_intercept'] = True
-        # cv: generator for splitting training data into training and
-        # validation data sets for cross validation.
         self._hyperparams['cv'] = self._build_cv_generator()
-        # dual: Dual or primal formulation.
-        # Prefer dual=False when n_samples > n_features.
         self._hyperparams['dual'] = False
-        # penalty: norm used for penalization ('l1' or 'l2').
-        # 'l1' more aggressively prunes features.
         self._hyperparams['penalty'] = 'l1'
-        # scoring: scoring function used to evaluate hyperparameters during
-        # cross-validation. Assume unbalanced classification problems, so
-        # use roc auc.
+        # Assume unbalanced classification problems, so use roc auc.
         # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
         scorer = make_scorer(roc_auc_score, needs_threshold=True)
         self._hyperparams['scoring'] = scorer
-        # solver: algorithm used for the optimization problem.
-        # Only 'liblinear' and 'saga' handle L1 penalty.
-        # 'liblinear' good for small datasets, 'saga' faster for large ones.
         self._hyperparams['solver'] = 'saga'
-        # tol: tolerance for stopping criteria. Default: 0.0001
         self._hyperparams['tol'] = 0.0001
-        # max_iter: Maximum number of iterations for the optimization problem.
         self._hyperparams['max_iter'] = 10000
-        # class_weight: {class_1: 0.3, class_2: 0.7} tells scorer how to weight
-        # classes in calculating error. Assume unbalanced classification, so
-        # use parameter which automatically reweights inversely proportional
-        # to class frequencies in X.
         self._hyperparams['class_weight'] = 'balanced'
-        # n_jobs: num CPU cores used during CV (-1 = all cores)
         self._hyperparams['n_jobs'] = -1
-        # refit: Use hyperparameters from best fold. If False, average
-        # hyperparameters from all folds.
         self._hyperparams['refit'] = True
-        # multi_class: If 'ovr', a binary problem is fit for each label.
-        # Else minimizes is the multinomial loss fit across the entire
-        # probability distribution.
         self._hyperparams['multi_class'] = 'ovr'
 
         # Build model.
@@ -301,6 +306,13 @@ class SupervisedClassifier:
         log.info('RANGE(roc_auc | M) = [%s, %s]' % (min_roc_auc, max_roc_auc))
 
         return coef_max
+
+    def _tune_hyperparams_exhaustively(self, hyperparam_space):
+        # grid search
+        pass
+
+    def _tune_hyperparams_stochastically(self, hyperparam_space):
+        pass
 
     def predict(self, X):
         return self._model.predict(X)

@@ -30,10 +30,12 @@ class TestSupervisedClassifier(MedInfoTestCase):
 
         # Test unsupported algorithm.
         with self.assertRaises(ValueError):
-            SupervisedClassifier([0, 1], algorithm="foo")
+            hyperparams = {'algorithm': 'foo'}
+            SupervisedClassifier([0, 1], hyperparams)
 
         # Confirm specified algorithm selection.
-        classifier = SupervisedClassifier([0, 1], algorithm=SupervisedClassifier.DECISION_TREE)
+        hyperparams = {'algorithm': SupervisedClassifier.DECISION_TREE}
+        classifier = SupervisedClassifier([0, 1], hyperparams)
         self.assertEqual(classifier.algorithm(), SupervisedClassifier.DECISION_TREE)
 
     def _assert_equal_hyperparams(self, expected_hyperparams, actual_hyperparams):
@@ -75,8 +77,8 @@ class TestSupervisedClassifier(MedInfoTestCase):
         # SupervisedClassifier.REGRESS_AND_ROUND]:
         for algorithm in [SupervisedClassifier.LOGISTIC_REGRESSION, SupervisedClassifier.REGRESS_AND_ROUND]:
             # Train model.
-            classifier = SupervisedClassifier([0, 1], algorithm=algorithm, \
-                                                random_state=random_state)
+            hyperparams = {'algorithm': algorithm, 'random_state': random_state}
+            classifier = SupervisedClassifier([0, 1], hyperparams)
             classifier.train(X_train, y_train)
 
             # Test str().

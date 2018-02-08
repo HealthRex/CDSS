@@ -495,7 +495,8 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
     },
     'str': {
         SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)",
-        SupervisedClassifier.REGRESS_AND_ROUND: "SupervisedClassifier([0, 1], algorithm='regress-and-round', random_state=123456789)"
+        SupervisedClassifier.REGRESS_AND_ROUND: "SupervisedClassifier([0, 1], algorithm='regress-and-round', random_state=123456789)",
+        SupervisedClassifier.DECISION_TREE: "SupervisedClassifier([0, 1], algorithm='decision-tree', random_state=123456789)"
     }
 }
 
