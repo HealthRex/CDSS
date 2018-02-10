@@ -74,12 +74,15 @@ class TestSupervisedClassifier(MedInfoTestCase):
 
         # Iterate through SUPPORTED_ALGORITHMS.
         # TODO(sbala): Expand to all SUPPORTED_ALGORITHMS.
-        #
-        #  :
-        for algorithm in [SupervisedClassifier.LOGISTIC_REGRESSION, SupervisedClassifier.REGRESS_AND_ROUND, SupervisedClassifier.DECISION_TREE]:
+        for algorithm in [SupervisedClassifier.LOGISTIC_REGRESSION, SupervisedClassifier.REGRESS_AND_ROUND, SupervisedClassifier.DECISION_TREE, SupervisedClassifier.RANDOM_FOREST]:
+            log.info('Testing %s classifier...' % algorithm)
             # Train model.
-            hyperparams = {'algorithm': algorithm, 'random_state': random_state,
-                            'hyperparam_strategy': SupervisedClassifier.EXHAUSTIVE_SEARCH}
+            hyperparams = {'algorithm': algorithm, 'random_state': random_state}
+            # Default to stochastic search for expensive algorithms.
+            if algorithm in [SupervisedClassifier.RANDOM_FOREST]:
+                hyperparams['hyperparam_strategy'] = SupervisedClassifier.STOCHASTIC_SEARCH
+            else:
+                hyperparams['hyperparam_strategy'] = SupervisedClassifier.EXHAUSTIVE_SEARCH
             classifier = SupervisedClassifier([0, 1], hyperparams)
             classifier.train(X_train, y_train)
 
