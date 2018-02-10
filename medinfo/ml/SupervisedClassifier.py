@@ -22,6 +22,12 @@ class SupervisedClassifier:
     RANDOM_FOREST = 'random-forest'
     REGRESS_AND_ROUND = 'regress-and-round'
 
+    # TODO(sbala): Naive Bayes: http://scikit-learn.org/stable/modules/naive_bayes.html#naive-bayes
+    # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
+    # TODO(sbala): Neural Network: http://scikit-learn.org/stable/modules/neural_networks_supervised.html#neural-networks-supervised
+    # TODO(sbala): SVM: http://scikit-learn.org/stable/modules/svm.html#svm
+    # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
+    # TODO(sbala): Adaboost: http://scikit-learn.org/stable/modules/ensemble.html#adaboost
     SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST, \
         REGRESS_AND_ROUND]
 
