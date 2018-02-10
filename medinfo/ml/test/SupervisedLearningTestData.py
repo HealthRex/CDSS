@@ -427,6 +427,9 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         ],
         SupervisedClassifier.DECISION_TREE: [
             0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
+        ],
+        SupervisedClassifier.RANDOM_FOREST: [
+            0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
         ]
     },
     'hyperparams': {
@@ -481,6 +484,27 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'min_samples_split': 2,
             'max_depth': 2,
             'class_weight': 'balanced'
+        },
+        SupervisedClassifier.RANDOM_FOREST: {
+            'warm_start': False,
+            'n_estimators': 5,
+            'oob_score': False,
+            'n_jobs': -1,
+            'min_impurity_decrease': 0.0,
+            'algorithm': 'random-forest',
+            'max_leaf_nodes': None,
+            'bootstrap': True,
+            'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
+            'min_samples_leaf': 1,
+            'hyperparam_strategy': 'stochastic-search',
+            'max_features': None,
+            'random_state': 123456789,
+            'criterion': 'gini',
+            'min_weight_fraction_leaf': 0.0,
+            'scoring': make_scorer(f1_score),
+            'min_samples_split': 0.2,
+            'max_depth': 2,
+            'class_weight': 'balanced'
         }
     },
     'params': {
@@ -510,7 +534,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         },
         SupervisedClassifier.DECISION_TREE: {
             'depth': 2,
-            'tree': {
+            'nodes': {
                 0: {
                     'right_child': 4,
                     'class_weights': [37.5, 37.499999999999964],
@@ -552,19 +576,238 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
                     'class_weights': [2.0833333333333335, 10.576923076923077]
                 }
             },
-            'decision_features': ['x8', 'x9', 'x3'],
+            'decision_features': ['x3', 'x8', 'x9'],
             'num_nodes': 7
+        },
+        SupervisedClassifier.RANDOM_FOREST: {
+            'estimators': [
+                {
+                    'depth': 2,
+                    'nodes': {
+                        0: {
+                            'right_child': 4,
+                            'class_weights': [33.333333333333336, 41.346153846153825],
+                            'prediction': 1,
+                            'feature': 'x8',
+                            'threshold': 0.40125125646591187,
+                            'left_child': 1
+                        },
+                        1: {
+                            'right_child': 3,
+                            'class_weights': [32.291666666666664, 2.8846153846153846],
+                            'prediction': 0,
+                            'feature': 'x10',
+                            'threshold': 2.7094616889953613,
+                            'left_child': 2
+                        },
+                        2: {
+                            'prediction': 0,
+                            'class_weights': [32.291666666666664, 0.9615384615384616]
+                        },
+                        3: {
+                            'prediction': 1,
+                            'class_weights': [0.0, 1.9230769230769231]
+                        },
+                        4: {
+                            'right_child': 6,
+                            'class_weights': [1.0416666666666667, 38.461538461538446],
+                            'prediction': 1,
+                            'feature': 'x6',
+                            'threshold': 1.3371305465698242,
+                            'left_child': 5
+                        },
+                        5: {
+                            'prediction': 1,
+                            'class_weights': [0.0, 38.461538461538446]
+                        },
+                        6: {
+                            'prediction': 0,
+                            'class_weights': [1.0416666666666667, 0.0]
+                        }
+                    },
+                    'decision_features': ['x10', 'x6', 'x8'],
+                    'num_nodes': 7
+                },
+                {
+                    'depth': 2,
+                    'nodes': {
+                        0: {
+                            'right_child': 4,
+                            'class_weights': [39.583333333333336, 35.57692307692306],
+                            'prediction': 0,
+                            'feature': 'x8',
+                            'threshold': 0.38960647583007812,
+                            'left_child': 1
+                        },
+                        1: {
+                            'right_child': 3,
+                            'class_weights': [37.5, 3.8461538461538463],
+                            'prediction': 0,
+                            'feature': 'x9',
+                            'threshold': -1.9594122171401978,
+                            'left_child': 2
+                        },
+                        2: {
+                            'prediction': 1,
+                            'class_weights': [0.0, 2.8846153846153846]
+                        },
+                        3: {
+                            'prediction': 0,
+                            'class_weights': [37.49999999999999, 0.9615384615384616]
+                        },
+                        4: {
+                            'right_child': 6,
+                            'class_weights': [2.0833333333333335, 31.730769230769216],
+                            'prediction': 1,
+                            'feature': 'x6',
+                            'threshold': 1.3371305465698242,
+                            'left_child': 5
+                        },
+                        5: {
+                            'prediction': 1,
+                            'class_weights': [1.0416666666666667, 30.76923076923076]
+                        },
+                        6: {
+                            'prediction': 0,
+                            'class_weights': [1.0416666666666667, 0.9615384615384616]
+                        }
+                    },
+                    'decision_features': ['x6', 'x8', 'x9'],
+                    'num_nodes': 7
+                },
+                {
+                    'depth': 2,
+                    'nodes': {
+                        0: {
+                            'right_child': 4,
+                            'class_weights': [40.625, 34.6153846153846],
+                            'prediction': 0,
+                            'feature': 'x8',
+                            'threshold': 0.38760679960250854,
+                            'left_child': 1
+                        },
+                        1: {
+                            'right_child': 3,
+                            'class_weights': [39.58333333333333, 2.8846153846153846],
+                            'prediction': 0,
+                            'feature': 'x10',
+                            'threshold': 2.7094616889953613,
+                            'left_child': 2
+                        },
+                        2: {
+                            'prediction': 0,
+                            'class_weights': [39.58333333333333, 0.0]
+                        },
+                        3: {
+                            'prediction': 1,
+                            'class_weights': [0.0, 2.8846153846153846]
+                        },
+                        4: {
+                            'right_child': 6,
+                            'class_weights': [1.0416666666666667, 31.730769230769226],
+                            'prediction': 1,
+                            'feature': 'x8',
+                            'threshold': 1.4883334636688232,
+                            'left_child': 5
+                        },
+                        5: {
+                            'prediction': 1,
+                            'class_weights': [0.0, 27.88461538461538]
+                        },
+                        6: {
+                            'prediction': 1,
+                            'class_weights': [1.0416666666666667, 3.8461538461538463]
+                        }
+                    },
+                    'decision_features': ['x10', 'x8'],
+                    'num_nodes': 7
+                },
+                {
+                    'depth': 2,
+                    'nodes': {
+                        0: {
+                            'right_child': 4,
+                            'class_weights': [29.16666666666667, 45.19230769230767],
+                            'prediction': 1,
+                            'feature': 'x8',
+                            'threshold': 0.38960647583007812,
+                            'left_child': 1
+                        },
+                        1: {
+                            'right_child': 3,
+                            'class_weights': [29.16666666666667, 4.8076923076923075],
+                            'prediction': 0,
+                            'feature': 'x7',
+                            'threshold': -1.721463680267334,
+                            'left_child': 2
+                        },
+                        2: {
+                            'prediction': 1,
+                            'class_weights': [1.0416666666666667, 4.8076923076923075]
+                        },
+                        3: {
+                            'prediction': 0,
+                            'class_weights': [28.125, 0.0]
+                        },
+                        4: {
+                            'prediction': 1,
+                            'class_weights': [0.0, 40.38461538461538]
+                        }
+                    },
+                    'decision_features': ['x7', 'x8'],
+                    'num_nodes': 5
+                },
+                {
+                    'depth': 2,
+                    'nodes': {
+                        0: {
+                            'right_child': 4,
+                            'class_weights': [29.166666666666668, 45.19230769230767],
+                            'prediction': 1,
+                            'feature': 'x8',
+                            'threshold': 0.38960647583007812,
+                            'left_child': 1
+                        },
+                        1: {
+                            'right_child': 3,
+                            'class_weights': [29.166666666666675, 2.8846153846153846],
+                            'prediction': 0,
+                            'feature': 'x9',
+                            'threshold': -1.940993070602417,
+                            'left_child': 2
+                        },
+                        2: {
+                            'prediction': 1,
+                            'class_weights': [0.0, 2.8846153846153846]
+                        },
+                        3: {
+                            'prediction': 0,
+                            'class_weights': [29.166666666666668, 0.0]
+                        },
+                        4: {
+                            'prediction': 1,
+                            'class_weights': [0.0, 42.307692307692285]
+                        }
+                    },
+                    'decision_features': ['x8', 'x9'],
+                    'num_nodes': 5
+                }
+            ],
+            'n_estimators': 5,
+            'decision_features': ['x10', 'x6', 'x7', 'x8', 'x9']
         }
     },
     'description': {
         SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.95772718762*x8)',
         SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)',
-        SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x3<=1.03298830986))'
+        SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x3<=1.03298830986))',
+        SupervisedClassifier.RANDOM_FOREST: 'RANDOM_FOREST(n_estimators=5, features=[x10, x6, x7, x8, x9])'
     },
     'str': {
         SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)",
         SupervisedClassifier.REGRESS_AND_ROUND: "SupervisedClassifier([0, 1], algorithm='regress-and-round', random_state=123456789)",
-        SupervisedClassifier.DECISION_TREE: "SupervisedClassifier([0, 1], algorithm='decision-tree', random_state=123456789)"
+        SupervisedClassifier.DECISION_TREE: "SupervisedClassifier([0, 1], algorithm='decision-tree', random_state=123456789)",
+        SupervisedClassifier.RANDOM_FOREST: "SupervisedClassifier([0, 1], algorithm='random-forest', random_state=123456789)"
     }
 }
 

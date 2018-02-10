@@ -77,16 +77,20 @@ class SupervisedClassifier:
             return 'L1_REGRESS_AND_ROUND(%s)' % linear_model
         elif self._hyperparams['algorithm'] == SupervisedClassifier.DECISION_TREE:
             params = self._params_decision_tree()
-            tree = params['tree']
             node_list = list()
             for i in range(params['num_nodes']):
-                if params['tree'][i].get('feature') is None:
+                if params['nodes'][i].get('feature') is None:
                     continue
-                feature = params['tree'][i]['feature']
-                threshold = params['tree'][i]['threshold']
+                feature = params['nodes'][i]['feature']
+                threshold = params['nodes'][i]['threshold']
                 node_list.append('(%s<=%s)'% (feature, threshold))
             decision_path = ', '.join(node_list)
             return 'DECISION_TREE(%s)' % decision_path
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.RANDOM_FOREST:
+            params = self._params_random_forest()
+            n_estimators = params['n_estimators']
+            features = ', '.join(params['decision_features'])
+            return 'RANDOM_FOREST(n_estimators=%s, features=[%s])' % (n_estimators, features)
         else:
             return 'SupervisedClassifier(%s, %s)' % (self._classes, self._algorithm)
 
@@ -109,6 +113,8 @@ class SupervisedClassifier:
             return self._params_regression()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.DECISION_TREE:
             return self._params_decision_tree()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.RANDOM_FOREST:
+            return self._params_random_forest()
 
     def _params_regression(self):
         params = {}
@@ -121,33 +127,50 @@ class SupervisedClassifier:
 
         return params
 
-    def _params_decision_tree(self):
-        t = self._model.tree_
+    def _tree_to_dict(self, tree):
+        tree_dict = {'nodes': {}}
+        decision_features = set()
         feature_labels = self._features.values
-
         # Iterate through nodes in tree.
-        params = {'tree': {}}
-        decision_features = list()
-        for i in range(t.node_count):
+        for i in range(tree.node_count):
             # Build data about each node.
             node = {}
             # If not a leaf node, add decision information.
-            if t.children_left[i] != t.children_right[i]:
-                node['feature'] = feature_labels[t.feature[i]]
-                decision_features.append(node['feature'])
-                node['threshold'] = t.threshold[i]
-                node['left_child'] = t.children_left[i]
-                node['right_child'] = t.children_right[i]
-            class_weights = t.value[i].tolist()[0]
+            if tree.children_left[i] != tree.children_right[i]:
+                node['feature'] = feature_labels[tree.feature[i]]
+                decision_features.add(node['feature'])
+                node['threshold'] = tree.threshold[i]
+                node['left_child'] = tree.children_left[i]
+                node['right_child'] = tree.children_right[i]
+            class_weights = tree.value[i].tolist()[0]
             node['class_weights'] = class_weights
             node['prediction'] = self._classes[class_weights.index(np.max(class_weights))]
 
-            params['tree'].update({i: node})
+            tree_dict['nodes'].update({i: node})
 
         # Add tree-level information.
-        params['decision_features'] = decision_features
-        params['depth'] = t.max_depth
-        params['num_nodes'] = t.node_count
+        tree_dict['decision_features'] = sorted(list(decision_features))
+        tree_dict['depth'] = tree.max_depth
+        tree_dict['num_nodes'] = tree.node_count
+
+        return tree_dict
+
+    def _params_decision_tree(self):
+        t = self._model.tree_
+        return self._tree_to_dict(t)
+
+    def _params_random_forest(self):
+        params = {'estimators': []}
+        params['n_estimators'] = 0
+        decision_features = set()
+        for estimator in self._model.estimators_:
+            tree_dict = self._tree_to_dict(estimator.tree_)
+            params['estimators'].append(tree_dict)
+            params['n_estimators'] += 1
+            # Build list of forest-wide decision features.
+            for feature in tree_dict['decision_features']:
+                decision_features.add(feature)
+        params['decision_features'] = sorted(list(decision_features))
 
         return params
 
@@ -267,7 +290,12 @@ class SupervisedClassifier:
         hyperparam_search_space = {
             'max_depth': [1, 2, 3, 4, 5, None],
             'min_samples_split': [2, 20, 0.02, 0.1, 0.2],
-            'min_samples_leaf': [1, 10, 0.01, 0.05, 0.1]
+            'min_samples_leaf': [1, 10, 0.01, 0.05, 0.1],
+            # Empirical good default values are max_features=n_features for
+            # regression problems, and max_features=sqrt(n_features) for
+            # classification tasks.
+            # http://scikit-learn.org/stable/modules/ensemble.html#forest
+            'max_features': ['sqrt', 'log2', None]
         }
         log.info('Tuning hyperparameters...')
         self._tune_hyperparams(hyperparam_search_space, X, y)
@@ -318,8 +346,64 @@ class SupervisedClassifier:
         log.debug('params: %s' % self.params())
 
     def _train_random_forest(self, X, y):
-        self._model = RandomForestClassifier()
-        self._model.fit(X, y)
+        # Define hyperparams.
+        # http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
+        self._hyperparams['n_estimators'] = 10
+        self._hyperparams['criterion'] = 'gini'
+        self._hyperparams['max_depth'] = None
+        self._hyperparams['min_samples_split'] = 2
+        self._hyperparams['min_samples_leaf'] = 1
+        self._hyperparams['min_weight_fraction_leaf'] = 0.0
+        self._hyperparams['max_features'] = 'sqrt'
+        self._hyperparams['max_leaf_nodes'] = None
+        self._hyperparams['min_impurity_decrease'] = 0.0
+        self._hyperparams['bootstrap'] = True
+        self._hyperparams['oob_score'] = False
+        self._hyperparams['n_jobs'] = -1
+        self._hyperparams['warm_start'] = False
+        self._hyperparams['class_weight'] = 'balanced'
+        # Assume unbalanced classification problems, so use f1_score.
+        # Cannot compute an ROC curve because decision trees have no ROC.
+        # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
+        scorer = make_scorer(f1_score)
+        self._hyperparams['scoring'] = scorer
+
+        # Initialize model with naive hyperparameter values.
+        self._model = RandomForestClassifier( \
+            n_estimators=self._hyperparams['n_estimators'],
+            criterion=self._hyperparams['criterion'],
+            max_depth=self._hyperparams['max_depth'],
+            min_samples_split=self._hyperparams['min_samples_split'],
+            min_samples_leaf=self._hyperparams['min_samples_leaf'],
+            min_weight_fraction_leaf=self._hyperparams['min_weight_fraction_leaf'],
+            max_features=self._hyperparams['max_features'],
+            max_leaf_nodes=self._hyperparams['max_leaf_nodes'],
+            min_impurity_decrease=self._hyperparams['min_impurity_decrease'],
+            bootstrap=self._hyperparams['bootstrap'],
+            oob_score=self._hyperparams['oob_score'],
+            n_jobs=self._hyperparams['n_jobs'],
+            warm_start=self._hyperparams['warm_start'],
+            class_weight=self._hyperparams['class_weight'],
+            random_state=self._hyperparams['random_state']
+        )
+
+        # Search hyperparameter space for better values.
+        hyperparam_search_space = {
+            # The larger the better, but the longer it will take to compute.
+            'n_estimators': [2, 5, 10, 15, 20, 25],
+            'max_depth': [1, 2, 3, 4, 5, None],
+            'min_samples_split': [2, 20, 0.02, 0.1, 0.2],
+            'min_samples_leaf': [1, 10, 0.01, 0.05, 0.1],
+            # Empirical good default values are max_features=n_features for
+            # regression problems, and max_features=sqrt(n_features) for
+            # classification tasks.
+            # http://scikit-learn.org/stable/modules/ensemble.html#forest
+            'max_features': ['sqrt', 'log2', None]
+        }
+        log.info('Tuning hyperparameters...')
+        self._tune_hyperparams(hyperparam_search_space, X, y)
+        log.debug('hyperparams: %s' % self.hyperparams())
+        log.debug('params: %s' % self.params())
 
     def _train_regress_and_round(self, X, y):
         self._train_logistic_regression(X, y)
