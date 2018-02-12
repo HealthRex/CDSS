@@ -7,10 +7,12 @@ import filecmp
 import os
 from pandas.util.testing import assert_frame_equal
 from pandas import DataFrame
+import logging
 import unittest
 
 from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import make_test_suite, MedInfoTestCase
+from medinfo.common.Util import log
 from medinfo.ml.Predictor import Predictor
 from medinfo.ml.PredictorAnalyzer import PredictorAnalyzer
 from medinfo.ml.ListPredictor import ListPredictor
@@ -18,6 +20,7 @@ from PredictorAnalyzerTestData import MANUAL_PREDICTION_TEST_CASE
 
 class TestPredictorAnalyzer(MedInfoTestCase):
     def setUp(self):
+        log.level = logging.ERROR
         # Fetch data.
         X_test = MANUAL_PREDICTION_TEST_CASE['X']
         y_test = MANUAL_PREDICTION_TEST_CASE['y_true']
@@ -41,7 +44,7 @@ class TestPredictorAnalyzer(MedInfoTestCase):
         # Compute accuracy.
         expected_accuracy = MANUAL_PREDICTION_TEST_CASE['accuracy']
         actual_accuracy = self._analyzer.score(metric=PredictorAnalyzer.ACCURACY_SCORE)
-        
+
         # Assert values are correct.
         self.assertEqual(expected_accuracy, actual_accuracy)
 
