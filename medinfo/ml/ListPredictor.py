@@ -8,11 +8,13 @@ from pandas import DataFrame
 from numpy import array
 
 from medinfo.ml.Predictor import Predictor
+from medinfo.common.Util import log
 
 class ListPredictor(Predictor):
     def __init__(self, predictions):
         self._index = 0
         self._predictions = predictions
+        log.debug('predictions: %s' % predictions)
         self._num_predictions = len(self._predictions)
 
     def __repr__(self):
@@ -27,6 +29,7 @@ class ListPredictor(Predictor):
             y_predicted.append(prediction)
             self._index = (self._index + 1) % self._num_predictions
 
+        log.debug('y_predicted: %s' % y_predicted)
         return DataFrame({'y_predicted': y_predicted})
 
     def predict_probability(self, X):
