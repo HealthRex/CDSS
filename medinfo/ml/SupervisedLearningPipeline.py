@@ -230,10 +230,10 @@ class SupervisedLearningPipeline:
             self._removed_features.append(feature)
 
     def _train_test_split(self, processed_matrix, outcome_label):
-        log.info('outcome_label: %s' % outcome_label)
+        log.debug('outcome_label: %s' % outcome_label)
         y = pd.DataFrame(processed_matrix.pop(outcome_label))
         X = processed_matrix
-        log.info('X.columns: %s' % X.columns)
+        log.debug('X.columns: %s' % X.columns)
         self._X_train, self._X_test, self._y_train, self._y_test = train_test_split(X, y)
 
     def _select_features(self, problem, percent_features_to_select, algorithm):
@@ -340,7 +340,8 @@ class SupervisedLearningPipeline:
     def _train_predictor(self, problem, algorithm=None, classes=None):
         if problem == SupervisedLearningPipeline.CLASSIFICATION:
             learning_class = SupervisedClassifier
-            self._predictor = learning_class(classes, algorithm=algorithm)
+            hyperparams = {'algorithm': algorithm}
+            self._predictor = learning_class(classes, hyperparams)
         elif problem == SupervisedLearningPipeline.REGRESSION:
             learning_class = Regressor
             self._predictor = learning_class(algorithm=algorithm)
@@ -357,13 +358,13 @@ class SupervisedLearningPipeline:
 
         # Build paths.
         precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
-        log.info('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
+        log.debug('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
         precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
-        log.info('precision_recall_plot_path: %s' % precision_recall_plot_path)
+        log.debug('precision_recall_plot_path: %s' % precision_recall_plot_path)
         roc_plot_path = '/'.join([dest_dir, roc_plot_name])
-        log.info('roc_plot_path: %s' % roc_plot_path)
+        log.debug('roc_plot_path: %s' % roc_plot_path)
         report_path = '/'.join([dest_dir, report_name])
-        log.info('report_path: %s' % report_path)
+        log.debug('report_path: %s' % report_path)
 
         # Build plot titles.
         roc_plot_title = 'ROC (%s)' % pipeline_prefix
