@@ -432,7 +432,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
         ],
         SupervisedClassifier.ADABOOST: [
-            1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
+            0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0
         ]
     },
     'hyperparams': {
@@ -519,7 +519,8 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'learning_rate': 0.5,
             'hyperparam_strategy': 'exhaustive-search',
             'random_state': 123456789,
-            'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False)
+            'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
+            'class_weight': 'balanced'
         }
     },
     'params': {
@@ -814,7 +815,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         SupervisedClassifier.ADABOOST: {
             'n_estimators': 25,
             'base_estimator': 'DecisionTreeClassifier',
-            'decision_features': ['x1', 'x10', 'x2', 'x4', 'x5', 'x7', 'x8', 'x9']
+            'decision_features': ['x6', 'x7', 'x8', 'x9']
         }
     },
     'description': {
@@ -822,7 +823,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)',
         SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x3<=1.03298830986))',
         SupervisedClassifier.RANDOM_FOREST: 'RANDOM_FOREST(n_estimators=5, features=[x10, x6, x7, x8, x9])',
-        SupervisedClassifier.ADABOOST: 'ADABOOST(base_estimator=DecisionTreeClassifier, n_estimators=25, features=[x1, x10, x2, x4, x5, x7, x8, x9])'
+        SupervisedClassifier.ADABOOST: 'ADABOOST(base_estimator=DecisionTreeClassifier, n_estimators=25, features=[x6, x7, x8, x9])'
     },
     'str': {
         SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)",
