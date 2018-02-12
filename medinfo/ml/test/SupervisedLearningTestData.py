@@ -439,7 +439,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         SupervisedClassifier.LOGISTIC_REGRESSION: {
             'algorithm': SupervisedClassifier.LOGISTIC_REGRESSION,
             'scoring': make_scorer(roc_auc_score, needs_threshold=True),
-            'max_iter': 10000,
+            'max_iter': 100,
             'n_jobs': -1,
             'tol': 0.0001,
             'fit_intercept': True,
@@ -454,7 +454,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         },
         SupervisedClassifier.REGRESS_AND_ROUND: {
             'scoring': make_scorer(roc_auc_score, needs_threshold=True),
-            'max_iter': 10000,
+            'max_iter': 100,
             'n_jobs': -1,
             'tol': 0.0001,
             'algorithm': SupervisedClassifier.REGRESS_AND_ROUND,
@@ -528,12 +528,12 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'x1': 0.0,
             'x2': 0.0,
             'x3': 0.0,
-            'x4': -0.43850898591785864,
-            'x5': -0.083442903792298379,
+            'x4': -0.43847684241122953,
+            'x5': -0.083419715296253527,
             'x6': 0.0,
             'x7': 0.0,
-            'x8': 2.9577271876226208,
-            'x9': -0.62796649851723207,
+            'x8': 2.9574398490939546,
+            'x9': -0.62791012762756582,
             'x10': 0.0,
         },
         SupervisedClassifier.REGRESS_AND_ROUND: {
@@ -819,7 +819,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         }
     },
     'description': {
-        SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.95772718762*x8)',
+        SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.95743984909*x8)',
         SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)',
         SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x3<=1.03298830986))',
         SupervisedClassifier.RANDOM_FOREST: 'RANDOM_FOREST(n_estimators=5, features=[x10, x6, x7, x8, x9])',
