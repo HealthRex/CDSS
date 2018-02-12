@@ -388,7 +388,7 @@ class SupervisedClassifier:
         self._hyperparams['scoring'] = scorer
         self._hyperparams['solver'] = 'saga'
         self._hyperparams['tol'] = 0.0001
-        self._hyperparams['max_iter'] = 2500
+        self._hyperparams['max_iter'] = 100
         self._hyperparams['class_weight'] = 'balanced'
         self._hyperparams['n_jobs'] = -1
         self._hyperparams['multi_class'] = 'ovr'
@@ -560,8 +560,13 @@ class SupervisedClassifier:
                                     cv=self._hyperparams['cv'], \
                                     return_train_score=False)
         elif self._hyperparams['hyperparam_strategy'] == SupervisedClassifier.STOCHASTIC_SEARCH:
+            # RandomizedSearchCV throws ValueError if n_iter is less than the
+            # number of hyperparam options.
+            num_hyperparam_settings = np.prod([len(value) for key, value in hyperparam_search_space.iteritems()])
+            self._hyperparams['n_iter'] = n_iter = np.min([10, num_hyperparam_settings])
             tuner = RandomizedSearchCV(self._model, hyperparam_search_space, \
                                         scoring=self._hyperparams['scoring'], \
+                                        n_iter=self._hyperparams['n_iter'], \
                                         n_jobs=self._hyperparams['n_jobs'], \
                                         iid=False, \
                                         refit=True, \
