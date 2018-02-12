@@ -19,7 +19,6 @@ from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
 class TestClassifierAnalyzer(MedInfoTestCase):
     def setUp(self):
-
         # Use simple classifier and test case for testing non-ROC analyses.
         X = RANDOM_10_TEST_CASE['X']
         y = RANDOM_10_TEST_CASE['y']
@@ -32,7 +31,11 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         # Generate train/test split.
         X_train, X_test, y_train, y_test = train_test_split(X, y)
         # Train logistic regression model.
-        self._ml_classifier = SupervisedClassifier([0, 1], SupervisedClassifier.REGRESS_AND_ROUND)
+        hyperparams = {
+            'algorithm': SupervisedClassifier.REGRESS_AND_ROUND,
+            'random_state': 123456789
+        }
+        self._ml_classifier = SupervisedClassifier([0, 1])
         self._ml_classifier.train(X_train, column_or_1d(y_train))
         self._ml_analyzer = ClassifierAnalyzer(self._ml_classifier, X_test, y_test)
 
