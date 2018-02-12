@@ -299,6 +299,7 @@ class SupervisedClassifier:
         self._hyperparams['learning_rate'] = 1.0
         self._hyperparams['adaboost_algorithm'] = 'SAMME.R'
         self._hyperparams['n_jobs'] = -1
+        self._hyperparams['class_weight'] = 'balanced'
         # Assume unbalanced classification problems, so use roc auc.
         # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
         scorer = make_scorer(roc_auc_score, needs_threshold=True)
@@ -306,7 +307,7 @@ class SupervisedClassifier:
 
         # Build initial model.
         self._model = AdaBoostClassifier(\
-            base_estimator=None,
+            base_estimator=DecisionTreeClassifier(class_weight='balanced'),
             n_estimators=self._hyperparams['n_estimators'],
             learning_rate=self._hyperparams['learning_rate'],
             algorithm=self._hyperparams['adaboost_algorithm'],

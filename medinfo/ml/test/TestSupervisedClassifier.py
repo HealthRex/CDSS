@@ -16,7 +16,7 @@ from medinfo.common.Util import log
 
 class TestSupervisedClassifier(MedInfoTestCase):
     def setUp(self):
-        log.level = logging.INFO
+        log.level = logging.DEBUG
 
     def tearDown(self):
         pass
