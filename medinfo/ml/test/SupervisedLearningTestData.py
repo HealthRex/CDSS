@@ -430,6 +430,9 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         ],
         SupervisedClassifier.RANDOM_FOREST: [
             0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
+        ],
+        SupervisedClassifier.ADABOOST: [
+            1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
         ]
     },
     'hyperparams': {
@@ -505,6 +508,18 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'min_samples_split': 0.2,
             'max_depth': 2,
             'class_weight': 'balanced'
+        },
+        SupervisedClassifier.ADABOOST: {
+            'scoring': make_scorer(roc_auc_score, needs_threshold=True),
+            'n_estimators': 25,
+            'base_estimator': 'DecisionTreeClassifier',
+            'n_jobs': -1,
+            'adaboost_algorithm': 'SAMME.R',
+            'algorithm': 'adaboost',
+            'learning_rate': 0.5,
+            'hyperparam_strategy': 'exhaustive-search',
+            'random_state': 123456789,
+            'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False)
         }
     },
     'params': {
@@ -795,19 +810,26 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             ],
             'n_estimators': 5,
             'decision_features': ['x10', 'x6', 'x7', 'x8', 'x9']
+        },
+        SupervisedClassifier.ADABOOST: {
+            'n_estimators': 25,
+            'base_estimator': 'DecisionTreeClassifier',
+            'decision_features': ['x1', 'x10', 'x2', 'x4', 'x5', 'x7', 'x8', 'x9']
         }
     },
     'description': {
         SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.95772718762*x8)',
         SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)',
         SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x3<=1.03298830986))',
-        SupervisedClassifier.RANDOM_FOREST: 'RANDOM_FOREST(n_estimators=5, features=[x10, x6, x7, x8, x9])'
+        SupervisedClassifier.RANDOM_FOREST: 'RANDOM_FOREST(n_estimators=5, features=[x10, x6, x7, x8, x9])',
+        SupervisedClassifier.ADABOOST: 'ADABOOST(base_estimator=DecisionTreeClassifier, n_estimators=25, features=[x1, x10, x2, x4, x5, x7, x8, x9])'
     },
     'str': {
         SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)",
         SupervisedClassifier.REGRESS_AND_ROUND: "SupervisedClassifier([0, 1], algorithm='regress-and-round', random_state=123456789)",
         SupervisedClassifier.DECISION_TREE: "SupervisedClassifier([0, 1], algorithm='decision-tree', random_state=123456789)",
-        SupervisedClassifier.RANDOM_FOREST: "SupervisedClassifier([0, 1], algorithm='random-forest', random_state=123456789)"
+        SupervisedClassifier.RANDOM_FOREST: "SupervisedClassifier([0, 1], algorithm='random-forest', random_state=123456789)",
+        SupervisedClassifier.ADABOOST: "SupervisedClassifier([0, 1], algorithm='adaboost', random_state=123456789)"
     }
 }
 

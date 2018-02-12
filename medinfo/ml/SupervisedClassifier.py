@@ -6,7 +6,7 @@ Generic module for supervised machine learning classification.
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.metrics import f1_score, roc_auc_score, make_scorer
 from sklearn.utils.validation import column_or_1d
 from sklearn.model_selection import StratifiedKFold, cross_val_score
@@ -21,15 +21,15 @@ class SupervisedClassifier:
     LOGISTIC_REGRESSION = 'l1-logistic-regression-cross-validation'
     RANDOM_FOREST = 'random-forest'
     REGRESS_AND_ROUND = 'regress-and-round'
+    ADABOOST = 'adaboost'
 
     # TODO(sbala): Naive Bayes: http://scikit-learn.org/stable/modules/naive_bayes.html#naive-bayes
     # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
     # TODO(sbala): Neural Network: http://scikit-learn.org/stable/modules/neural_networks_supervised.html#neural-networks-supervised
     # TODO(sbala): SVM: http://scikit-learn.org/stable/modules/svm.html#svm
     # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
-    # TODO(sbala): Adaboost: http://scikit-learn.org/stable/modules/ensemble.html#adaboost
     SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST, \
-        REGRESS_AND_ROUND]
+        REGRESS_AND_ROUND, ADABOOST]
 
     EXHAUSTIVE_SEARCH = 'exhaustive-search'
     STOCHASTIC_SEARCH = 'stochastic-search'
@@ -70,35 +70,56 @@ class SupervisedClassifier:
 
     def description(self):
         if self._algorithm == SupervisedClassifier.LOGISTIC_REGRESSION:
-            coefs = self.coefs()
-            cols = self._features
-            sig_features = [(coefs[cols.get_loc(f)], f) for f in cols.values if coefs[cols.get_loc(f)] > 0]
-            linear_model = ' + '.join('%s*%s' % (weight, feature) for weight, feature in sig_features)
-            return 'L1_LOGISTIC_REGRESSION(%s)' % linear_model
+            return self._describe_logistic_regression()
         elif self._algorithm == SupervisedClassifier.REGRESS_AND_ROUND:
-            coefs = self.coefs()
-            cols = self._features
-            sig_features = [(coefs[cols.get_loc(f)], f) for f in cols.values if coefs[cols.get_loc(f)] > 0]
-            linear_model = ' + '.join('%s*%s' % (weight, feature) for weight, feature in sig_features)
-            return 'L1_REGRESS_AND_ROUND(%s)' % linear_model
+            return self._describe_regress_and_round()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.DECISION_TREE:
-            params = self._params_decision_tree()
-            node_list = list()
-            for i in range(params['num_nodes']):
-                if params['nodes'][i].get('feature') is None:
-                    continue
-                feature = params['nodes'][i]['feature']
-                threshold = params['nodes'][i]['threshold']
-                node_list.append('(%s<=%s)'% (feature, threshold))
-            decision_path = ', '.join(node_list)
-            return 'DECISION_TREE(%s)' % decision_path
+            return self._describe_decision_tree()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.RANDOM_FOREST:
-            params = self._params_random_forest()
-            n_estimators = params['n_estimators']
-            features = ', '.join(params['decision_features'])
-            return 'RANDOM_FOREST(n_estimators=%s, features=[%s])' % (n_estimators, features)
+            return self._describe_random_forest()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.ADABOOST:
+            return self._describe_adaboost()
         else:
             return 'SupervisedClassifier(%s, %s)' % (self._classes, self._algorithm)
+
+    def _describe_logistic_regression(self):
+        coefs = self.coefs()
+        cols = self._features
+        sig_features = [(coefs[cols.get_loc(f)], f) for f in cols.values if coefs[cols.get_loc(f)] > 0]
+        linear_model = ' + '.join('%s*%s' % (weight, feature) for weight, feature in sig_features)
+        return 'L1_LOGISTIC_REGRESSION(%s)' % linear_model
+
+    def _describe_regress_and_round(self):
+        coefs = self.coefs()
+        cols = self._features
+        sig_features = [(coefs[cols.get_loc(f)], f) for f in cols.values if coefs[cols.get_loc(f)] > 0]
+        linear_model = ' + '.join('%s*%s' % (weight, feature) for weight, feature in sig_features)
+        return 'L1_REGRESS_AND_ROUND(%s)' % linear_model
+
+    def _describe_decision_tree(self):
+        params = self._params_decision_tree()
+        node_list = list()
+        for i in range(params['num_nodes']):
+            if params['nodes'][i].get('feature') is None:
+                continue
+            feature = params['nodes'][i]['feature']
+            threshold = params['nodes'][i]['threshold']
+            node_list.append('(%s<=%s)'% (feature, threshold))
+        decision_path = ', '.join(node_list)
+        return 'DECISION_TREE(%s)' % decision_path
+
+    def _describe_random_forest(self):
+        params = self._params_random_forest()
+        n_estimators = params['n_estimators']
+        features = ', '.join(params['decision_features'])
+        return 'RANDOM_FOREST(n_estimators=%s, features=[%s])' % (n_estimators, features)
+
+    def _describe_adaboost(self):
+        params = self._params_adaboost()
+        n_estimators = params['n_estimators']
+        features = ', '.join(params['decision_features'])
+        base_estimator = params['base_estimator']
+        return 'ADABOOST(base_estimator=%s, n_estimators=%s, features=[%s])' % (base_estimator, n_estimators, features)
 
     def algorithm(self):
         return self._algorithm
@@ -121,6 +142,8 @@ class SupervisedClassifier:
             return self._params_decision_tree()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.RANDOM_FOREST:
             return self._params_random_forest()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.ADABOOST:
+            return self._params_adaboost()
 
     def _params_regression(self):
         params = {}
@@ -174,6 +197,19 @@ class SupervisedClassifier:
             params['estimators'].append(tree_dict)
             params['n_estimators'] += 1
             # Build list of forest-wide decision features.
+            for feature in tree_dict['decision_features']:
+                decision_features.add(feature)
+        params['decision_features'] = sorted(list(decision_features))
+
+        return params
+
+    def _params_adaboost(self):
+        params = {}
+        params['base_estimator'] = self._hyperparams['base_estimator']
+        params['n_estimators'] = self._hyperparams['n_estimators']
+        decision_features = set()
+        for estimator in self._model.estimators_:
+            tree_dict = self._tree_to_dict(estimator.tree_)
             for feature in tree_dict['decision_features']:
                 decision_features.add(feature)
         params['decision_features'] = sorted(list(decision_features))
@@ -252,6 +288,37 @@ class SupervisedClassifier:
             self._train_random_forest(X, y)
         elif self._algorithm == SupervisedClassifier.REGRESS_AND_ROUND:
             self._train_regress_and_round(X, y)
+        elif self._algorithm == SupervisedClassifier.ADABOOST:
+            self._train_adaboost(X, y)
+
+    def _train_adaboost(self, X, y):
+        # Define hyperparams.
+        # http://scikit-learn.org/stable/modules/ensemble.html#adaboost
+        self._hyperparams['base_estimator'] = 'DecisionTreeClassifier'
+        self._hyperparams['n_estimators'] = 50
+        self._hyperparams['learning_rate'] = 1.0
+        self._hyperparams['adaboost_algorithm'] = 'SAMME.R'
+        self._hyperparams['n_jobs'] = -1
+        # Assume unbalanced classification problems, so use roc auc.
+        # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
+        scorer = make_scorer(roc_auc_score, needs_threshold=True)
+        self._hyperparams['scoring'] = scorer
+
+        # Build initial model.
+        self._model = AdaBoostClassifier(\
+            base_estimator=None,
+            n_estimators=self._hyperparams['n_estimators'],
+            learning_rate=self._hyperparams['learning_rate'],
+            algorithm=self._hyperparams['adaboost_algorithm'],
+            random_state=self._hyperparams['random_state']
+        )
+
+        # Tune hyperparams.
+        hyperparam_search_space = {
+            'n_estimators': [25, 50, 75],
+            'learning_rate': [0.5, 1.0, 1.5]
+        }
+        self._tune_hyperparams(hyperparam_search_space, X, y)
 
     def _train_decision_tree(self, X, y):
         # Define hyperparameter space.
@@ -311,7 +378,6 @@ class SupervisedClassifier:
         # Define hyperparameter space.
         # http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegressionCV.html
         self._hyperparams['C'] = 10.0
-        self._hyperparams['hyperparam_strategy'] = SupervisedClassifier.EXHAUSTIVE_SEARCH
         self._hyperparams['fit_intercept'] = True
         self._hyperparams['dual'] = False
         self._hyperparams['penalty'] = 'l1'
@@ -321,7 +387,7 @@ class SupervisedClassifier:
         self._hyperparams['scoring'] = scorer
         self._hyperparams['solver'] = 'saga'
         self._hyperparams['tol'] = 0.0001
-        self._hyperparams['max_iter'] = 10000
+        self._hyperparams['max_iter'] = 2500
         self._hyperparams['class_weight'] = 'balanced'
         self._hyperparams['n_jobs'] = -1
         self._hyperparams['multi_class'] = 'ovr'
@@ -347,7 +413,6 @@ class SupervisedClassifier:
                 10000.0, 1000.0, 100.0, 10.0, 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001
             ]
         }
-        log.info('Tuning hyperparameters...')
         self._tune_hyperparams(hyperparam_search_space, X, y)
         log.debug('params: %s' % self.params())
 
@@ -406,7 +471,6 @@ class SupervisedClassifier:
             # http://scikit-learn.org/stable/modules/ensemble.html#forest
             'max_features': ['sqrt', 'log2', None]
         }
-        log.info('Tuning hyperparameters...')
         self._tune_hyperparams(hyperparam_search_space, X, y)
         log.debug('hyperparams: %s' % self.hyperparams())
         log.debug('params: %s' % self.params())
@@ -476,6 +540,7 @@ class SupervisedClassifier:
         return coef_max
 
     def _tune_hyperparams(self, hyperparam_search_space, X, y):
+        log.info('Tuning hyperparameters via %s...' % self._hyperparams['hyperparam_strategy'])
         # Log the pre-tuning score.
         self._hyperparams['cv'] = self._build_cv_generator()
         pre_tuning_score = np.mean(cross_val_score(self._model, X, y, \
@@ -512,6 +577,8 @@ class SupervisedClassifier:
             self._hyperparams[key] = tuner.best_params_[key]
         log.debug('tune(%s): %s --> %s' % (self._hyperparams['scoring'],\
                     pre_tuning_score, tuner.best_score_))
+        log.debug('hyperparams: %s' % self._hyperparams)
+        log.debug('params: %s' % self.params())
 
     def predict(self, X):
         return self._model.predict(X)

@@ -27,7 +27,6 @@ class TestSupervisedClassifier(MedInfoTestCase):
         self.assertEqual(classifier.algorithm(), \
             SupervisedClassifier.LOGISTIC_REGRESSION)
 
-
         # Test unsupported algorithm.
         with self.assertRaises(ValueError):
             hyperparams = {'algorithm': 'foo'}
@@ -74,7 +73,8 @@ class TestSupervisedClassifier(MedInfoTestCase):
 
         # Iterate through SUPPORTED_ALGORITHMS.
         # TODO(sbala): Expand to all SUPPORTED_ALGORITHMS.
-        for algorithm in [SupervisedClassifier.LOGISTIC_REGRESSION, SupervisedClassifier.REGRESS_AND_ROUND, SupervisedClassifier.DECISION_TREE, SupervisedClassifier.RANDOM_FOREST]:
+        # SUPPORTED_ALGORITHMS
+        for algorithm in [SupervisedClassifier.ADABOOST]:
             log.info('Testing %s classifier...' % algorithm)
             # Train model.
             hyperparams = {'algorithm': algorithm, 'random_state': random_state}
