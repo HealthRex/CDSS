@@ -24,9 +24,14 @@ class ClassifierAnalyzer(PredictorAnalyzer):
     AVERAGE_PRECISION_SCORE = 'average_precision'
     ROC_AUC_SCORE = 'roc_auc'
     PRECISION_AT_K_SCORE = 'precision_at_k'
+    K_99_PRECISION_SCORE = 'k(precision=0.99)'
+    K_95_PRECISION_SCORE = 'k(precision=0.95)'
+    K_90_PRECISION_SCORE = 'k(precision=0.90)'
     SUPPORTED_SCORES = [ACCURACY_SCORE, RECALL_SCORE, PRECISION_SCORE,
                         F1_SCORE, AVERAGE_PRECISION_SCORE,
-                        PRECISION_AT_K_SCORE, ROC_AUC_SCORE]
+                        PRECISION_AT_K_SCORE, K_99_PRECISION_SCORE,
+                        K_95_PRECISION_SCORE, K_90_PRECISION_SCORE,
+                        ROC_AUC_SCORE]
 
     def __init__(self, classifier, X_test, y_test):
         # TODO(sbala): Make this API more flexible, so that it can work
@@ -77,6 +82,17 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         # Return precision at k.
         return precision_score(true_sorted_at_k, pred_sorted_at_k)
 
+    def _score_k_percentile_precision(self, desired_precision):
+        k_vals, precision_vals = self.compute_precision_at_k_curve()
+
+        # Search for k_val for which precision == precision.
+        threshold_k = k_vals[0]
+        for precision, k in zip(precision_vals, k_vals):
+            if precision >= desired_precision:
+                threshold_k = k
+
+        return float(threshold_k) / float(len(k_vals))
+
     def score(self, metric=None, k=None):
         if metric is None:
             metric = ClassifierAnalyzer.ACCURACY_SCORE
@@ -96,6 +112,12 @@ class ClassifierAnalyzer(PredictorAnalyzer):
             return self._score_average_precision()
         elif metric == ClassifierAnalyzer.ROC_AUC_SCORE:
             return self._score_roc_auc()
+        elif metric == ClassifierAnalyzer.K_90_PRECISION_SCORE:
+            return self._score_k_percentile_precision(0.9)
+        elif metric == ClassifierAnalyzer.K_95_PRECISION_SCORE:
+            return self._score_k_percentile_precision(0.95)
+        elif metric == ClassifierAnalyzer.K_99_PRECISION_SCORE:
+            return self._score_k_percentile_precision(0.99)
         elif metric == ClassifierAnalyzer.PRECISION_AT_K_SCORE:
             if k is None:
                 raise ValueError('Must specify k for PRECISION_AT_K_SCORE.')
@@ -196,9 +218,8 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
     def build_report(self):
         column_names = ['model', 'test_size']
-        column_names.extend(ClassifierAnalyzer.SUPPORTED_SCORES)
         report_dict = {
-            'model': [repr(self._predictor)],
+            'model': [self._predictor.description()],
             'test_size': [self._y_test.shape[0]]
         }
 
@@ -210,7 +231,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
             else:
                 score_label = score_metric
                 score_value = self.score(metric=score_metric)
-
+            column_names.append(score_label)
             report_dict.update({score_label: score_value})
 
         return DataFrame(report_dict, columns=column_names)

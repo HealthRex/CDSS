@@ -134,20 +134,25 @@ RANDOM_100_TEST_CASE = {
                    1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0,
                    0, 0, 0, 0, 1, 0, 1, 1]
     }),
-    'accuracy': 0.97,
-    'recall': 0.96,
-    'precision': 0.95,
-    'f1': 0.95,
-    'average_precision': 0.96,
-    'roc_auc': 0.95,
+    'accuracy': 0.95999999999999996,
+    'recall': 1.0,
+    'precision': 0.94444444444444442,
+    'f1': 0.97142857142857142,
+    'average_precision': 0.92871913265511885,
+    'roc_auc': 0.90441176470588236,
     'report': DataFrame({
-        'model': ['Model'],
+        'model': ['L1_REGRESS_AND_ROUND(1.0*x3 + 1.0*x4)'],
         'test_size': [25],
-        'accuracy': [0.97],
-        'average_precision': [0.96],
-        'f1': [0.95],
-        'precision': [0.95],
-        'recall': [0.96],
-        'roc_auc': [0.9]
-    })
+        'accuracy': [0.95999999999999996],
+        'average_precision': [0.92871913265511885],
+        'f1': [0.97142857142857142],
+        'precision': [0.94444444444444442],
+        'recall': [1.0],
+        'roc_auc': [0.90441176470588236],
+        'k(precision=0.99)': [0.16],
+        'k(precision=0.95)': [0.16],
+        'k(precision=0.90)': [1.0],
+        'precision_at_10_percent': 1.0
+    }, columns=['model', 'test_size', 'accuracy', 'recall', 'precision', 'f1', 'average_precision', 'precision_at_10_percent',
+        'k(precision=0.99)', 'k(precision=0.95)', 'k(precision=0.90)', 'roc_auc'])
 }

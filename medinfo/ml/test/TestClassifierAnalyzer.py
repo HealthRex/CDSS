@@ -5,6 +5,7 @@ Test suite for ClassifierAnalyzer.
 
 import filecmp
 import os
+from pandas.util.testing import assert_frame_equal
 from sklearn.model_selection import train_test_split
 from sklearn.utils.validation import column_or_1d
 import unittest
@@ -29,13 +30,13 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         X = RANDOM_100_TEST_CASE['X']
         y = RANDOM_100_TEST_CASE['y']
         # Generate train/test split.
-        X_train, X_test, y_train, y_test = train_test_split(X, y)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=123456789)
         # Train logistic regression model.
         hyperparams = {
             'algorithm': SupervisedClassifier.REGRESS_AND_ROUND,
             'random_state': 123456789
         }
-        self._ml_classifier = SupervisedClassifier([0, 1])
+        self._ml_classifier = SupervisedClassifier([0, 1], hyperparams)
         self._ml_classifier.train(X_train, column_or_1d(y_train))
         self._ml_analyzer = ClassifierAnalyzer(self._ml_classifier, X_test, y_test)
 
@@ -88,7 +89,7 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         # Test fuzzy accuracy.
         expected_accuracy = RANDOM_100_TEST_CASE['accuracy']
         actual_accuracy = self._ml_analyzer.score()
-        self._assert_fuzzy_equality(expected_accuracy, actual_accuracy)
+        self.assertEqual(expected_accuracy, actual_accuracy)
 
     def test_score_recall(self):
         # Test exact recall.
@@ -98,8 +99,8 @@ class TestClassifierAnalyzer(MedInfoTestCase):
 
         # Test fuzzy recall.
         expected_recall = RANDOM_100_TEST_CASE['recall']
-        actual_recall = self._ml_analyzer.score()
-        self._assert_fuzzy_equality(expected_recall, actual_recall)
+        actual_recall = self._ml_analyzer.score(metric=ClassifierAnalyzer.RECALL_SCORE)
+        self.assertEqual(expected_recall, actual_recall)
 
     def test_score_precision(self):
         # Test precision.
@@ -109,8 +110,8 @@ class TestClassifierAnalyzer(MedInfoTestCase):
 
         # Test fuzzy precision.
         expected_precision = RANDOM_100_TEST_CASE['precision']
-        actual_precision = self._ml_analyzer.score()
-        self._assert_fuzzy_equality(expected_precision, actual_precision)
+        actual_precision = self._ml_analyzer.score(metric=ClassifierAnalyzer.PRECISION_SCORE)
+        self.assertEqual(expected_precision, actual_precision)
 
     def test_score_f1(self):
         # Test F1 score.
@@ -120,20 +121,20 @@ class TestClassifierAnalyzer(MedInfoTestCase):
 
         # Test fuzzy f1.
         expected_f1 = RANDOM_100_TEST_CASE['f1']
-        actual_f1 = self._ml_analyzer.score()
-        self._assert_fuzzy_equality(expected_f1, actual_f1)
+        actual_f1 = self._ml_analyzer.score(metric=ClassifierAnalyzer.F1_SCORE)
+        self.assertEqual(expected_f1, actual_f1)
 
     def test_score_average_precision(self):
         # Test fuzzy average precision.
         expected_average_precision = RANDOM_100_TEST_CASE['average_precision']
         actual_average_precision = self._ml_analyzer.score(metric=ClassifierAnalyzer.AVERAGE_PRECISION_SCORE)
-        self._assert_fuzzy_equality(expected_average_precision, actual_average_precision)
+        self.assertEqual(expected_average_precision, actual_average_precision)
 
     def test_score_roc_auc(self):
         # Test fuzzy roc_auc.
         expected_roc_auc = RANDOM_100_TEST_CASE['roc_auc']
         actual_roc_auc = self._ml_analyzer.score(metric=ClassifierAnalyzer.ROC_AUC_SCORE)
-        self._assert_fuzzy_equality(expected_roc_auc, actual_roc_auc)
+        self.assertEqual(expected_roc_auc, actual_roc_auc)
 
     def test_score_precision_at_k(self):
         # Test fuzzy precision at K.
@@ -197,6 +198,7 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         # Build report.
         expected_report = RANDOM_100_TEST_CASE['report']
         actual_report = self._ml_analyzer.build_report()
+        assert_frame_equal(expected_report, actual_report)
 
         # Build paths for expected and actual report.
         test_dir = os.path.dirname(os.path.abspath(__file__))
