@@ -6,8 +6,12 @@ and analysis of LabNormality prediction.
 
 import inspect
 import os
+from pandas import DataFrame
+import logging
 
+from medinfo.common.Util import log
 from medinfo.ml.FeatureSelector import FeatureSelector
+from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
 from scripts.LabTestAnalysis.machine_learning.dataExtraction.LabNormalityMatrix import LabNormalityMatrix
@@ -109,21 +113,35 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         problem = SupervisedLearningPipeline.CLASSIFICATION
         pipeline_file_name = inspect.getfile(inspect.currentframe())
         data_dir = SupervisedLearningPipeline._fetch_data_dir_path(self, pipeline_file_name)
+        meta_report = None
+        fm_io = FeatureMatrixIO()
         for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
-                SupervisedLearningPipeline._train_predictor(self, problem, algorithm, [0, 1])
-                pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
-                dest_dir = '/'.join([data_dir, algorithm])
-                # If dest_dir does not exist, make it.
-                if not os.path.exists(dest_dir):
-                    os.makedirs(dest_dir)
-                SupervisedLearningPipeline._analyze_predictor(self, dest_dir, pipeline_prefix)
+            SupervisedLearningPipeline._train_predictor(self, problem, algorithm, [0, 1])
+            pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
+            dest_dir = '/'.join([data_dir, algorithm])
+            # If dest_dir does not exist, make it.
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
+            SupervisedLearningPipeline._analyze_predictor(self, dest_dir, pipeline_prefix)
+            if meta_report is None:
+                meta_report = fm_io.read_file_to_data_frame('/'.join([dest_dir, '%s.report' % pipeline_prefix]))
+            else:
+                algorithm_report = fm_io.read_file_to_data_frame('/'.join([dest_dir, '%s.report' % pipeline_prefix]))
+                log.debug('algorithm_report: %s' % algorithm_report)
+                meta_report = meta_report.append(algorithm_report)
+
+        header = ['LabNormalityPredictionPipeline("%s", 10000)' % self._var]
+        fm_io.write_data_frame_to_file(meta_report, \
+            '/'.join([data_dir, '%s-normality-prediction-report.tab' % self._var]), \
+            header)
 
 if __name__ == '__main__':
-    # print inspect.getfile(inspe   ct.currentframe())
+    log.level = logging.DEBUG
     LAB_PANELS = [
-        "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
+        "LABA1C",
+         # "LABABG", "LABBLC", "LABBLC2", "LABCAI",
         "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
-        "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
+        # "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
         # "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
         # "LABROMRS", "LABTNI", "LABTYPSNI", "LABUA", "LABUAPRN",
         # "LABURNC", "LABVANPRL", "LABVBG"
