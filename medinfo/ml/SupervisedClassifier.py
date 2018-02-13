@@ -11,8 +11,12 @@ from sklearn.metrics import f1_score, roc_auc_score, make_scorer
 from sklearn.utils.validation import column_or_1d
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.exceptions import ConvergenceWarning
+import warnings
 
 from medinfo.common.Util import log
+
+warnings.filterwarnings('ignore', category=ConvergenceWarning)
 
 class SupervisedClassifier:
     # Define string constants for all supported ML algorithms so that
