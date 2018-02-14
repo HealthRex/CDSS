@@ -11,6 +11,7 @@ from sklearn.metrics import f1_score, roc_auc_score, make_scorer
 from sklearn.utils.validation import column_or_1d
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.naive_bayes import GaussianNB
 from sklearn.exceptions import ConvergenceWarning
 import warnings
 
@@ -26,14 +27,13 @@ class SupervisedClassifier:
     RANDOM_FOREST = 'random-forest'
     REGRESS_AND_ROUND = 'regress-and-round'
     ADABOOST = 'adaboost'
+    SVM = 'svm'
+    GAUSSIAN_NAIVE_BAYES = 'gaussian-naive-bayes'
 
-    # TODO(sbala): Naive Bayes: http://scikit-learn.org/stable/modules/naive_bayes.html#naive-bayes
     # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
     # TODO(sbala): Neural Network: http://scikit-learn.org/stable/modules/neural_networks_supervised.html#neural-networks-supervised
-    # TODO(sbala): SVM: http://scikit-learn.org/stable/modules/svm.html#svm
-    # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
     SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST, \
-        REGRESS_AND_ROUND, ADABOOST]
+        REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES]
 
     EXHAUSTIVE_SEARCH = 'exhaustive-search'
     STOCHASTIC_SEARCH = 'stochastic-search'
@@ -83,6 +83,8 @@ class SupervisedClassifier:
             return self._describe_random_forest()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.ADABOOST:
             return self._describe_adaboost()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
+            return self._describe_gaussian_naive_bayes()
         else:
             return 'SupervisedClassifier(%s, %s)' % (self._classes, self._algorithm)
 
@@ -125,6 +127,10 @@ class SupervisedClassifier:
         base_estimator = params['base_estimator']
         return 'ADABOOST(base_estimator=%s, n_estimators=%s, features=[%s])' % (base_estimator, n_estimators, features)
 
+    def _describe_gaussian_naive_bayes(self):
+        params = self._params_gaussian_naive_bayes()
+        return 'GAUSSIAN_NAIVE_BAYES(priors=%s)' % params['priors']
+
     def algorithm(self):
         return self._algorithm
 
@@ -148,6 +154,8 @@ class SupervisedClassifier:
             return self._params_random_forest()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.ADABOOST:
             return self._params_adaboost()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
+            return self._params_gaussian_naive_bayes()
 
     def _params_regression(self):
         params = {}
@@ -218,6 +226,13 @@ class SupervisedClassifier:
                 decision_features.add(feature)
         params['decision_features'] = sorted(list(decision_features))
 
+        return params
+
+    def _params_gaussian_naive_bayes(self):
+        params = {}
+        params['priors'] = list(self._model.class_prior_)
+        params['thetas'] = list(self._model.theta_[1,:])
+        params['sigmas'] = list(self._model.sigma_[1,:])
         return params
 
     def _maybe_reshape_y(self, y):
@@ -294,6 +309,38 @@ class SupervisedClassifier:
             self._train_regress_and_round(X, y)
         elif self._algorithm == SupervisedClassifier.ADABOOST:
             self._train_adaboost(X, y)
+        elif self._algorithm == SupervisedClassifier.SVM:
+            self._train_svm(X, y)
+        elif self._algorithm == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
+            self._train_gaussian_naive_bayes(X, y)
+
+    def _train_svm(self, X, y):
+        # Define hyperparams.
+        # http://scikit-learn.org/stable/modules/svm.html#svm
+        pass
+
+    def _train_gaussian_naive_bayes(self, X, y):
+        # Define hyperparams.
+        # http://scikit-learn.org/stable/modules/naive_bayes.html#naive-bayes
+        self._hyperparams['priors'] = None
+        self._hyperparams['n_jobs'] = -1
+        # Assume unbalanced classification problems, so use roc auc.
+        # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
+        scorer = make_scorer(roc_auc_score, needs_threshold=True)
+        self._hyperparams['scoring'] = scorer
+
+        # Build initial model.
+        self._model = GaussianNB(priors=self._hyperparams['priors'])
+
+        # Define hyperparameter space.
+        hyperparam_search_space = {
+            'priors': [
+                [0.001, 0.999], [0.01, 0.99], [0.05, 0.95], [0.1, 0.9], [0.25, 0.75],
+                [0.5, 0.5],
+                [0.75, 0.25], [0.9, 0.1], [0.95, 0.05], [0.99, 0.01], [.999, 0.001]
+            ]
+        }
+        self._tune_hyperparams(hyperparam_search_space, X, y)
 
     def _train_adaboost(self, X, y):
         # Define hyperparams.
