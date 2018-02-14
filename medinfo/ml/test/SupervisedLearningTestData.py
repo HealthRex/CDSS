@@ -433,6 +433,9 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         ],
         SupervisedClassifier.ADABOOST: [
             0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0
+        ],
+        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: [
+            1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0
         ]
     },
     'hyperparams': {
@@ -521,6 +524,15 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'random_state': 123456789,
             'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
             'class_weight': 'balanced'
+        },
+        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: {
+            'scoring': make_scorer(roc_auc_score, needs_threshold=True),
+            'n_jobs': -1,
+            'algorithm': 'gaussian-naive-bayes',
+            'priors': [0.001, 0.999],
+            'hyperparam_strategy': 'exhaustive-search',
+            'random_state': 123456789,
+            'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False)
         }
     },
     'params': {
@@ -816,6 +828,21 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'n_estimators': 25,
             'base_estimator': 'DecisionTreeClassifier',
             'decision_features': ['x6', 'x7', 'x8', 'x9']
+        },
+        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: {
+            'priors': [0.001,  0.999],
+            'sigmas': [
+                1.3508174731567251, 1.0180003112550733, 2.4010485831365402,
+                1.5179292168234768, 1.1050601041485268, 0.75011556097429244,
+                1.4078512321563499, 0.21006687352452788, 2.0469524944322841,
+                3.6105774746906185
+            ],
+            'thetas': [
+                -0.17244277961999996, 0.046463400566666667, 0.016341826402564087,
+                -0.4376480584923077, 0.027199674446153826, -0.037190332502564115,
+                -0.027825385889743561, 0.79848281141282063, -1.2753595800769231,
+                0.15922675605128209
+            ]
         }
     },
     'description': {
@@ -823,14 +850,16 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)',
         SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x3<=1.03298830986))',
         SupervisedClassifier.RANDOM_FOREST: 'RANDOM_FOREST(n_estimators=5, features=[x10, x6, x7, x8, x9])',
-        SupervisedClassifier.ADABOOST: 'ADABOOST(base_estimator=DecisionTreeClassifier, n_estimators=25, features=[x6, x7, x8, x9])'
+        SupervisedClassifier.ADABOOST: 'ADABOOST(base_estimator=DecisionTreeClassifier, n_estimators=25, features=[x6, x7, x8, x9])',
+        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: 'GAUSSIAN_NAIVE_BAYES(priors=[0.001, 0.999])'
     },
     'str': {
         SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)",
         SupervisedClassifier.REGRESS_AND_ROUND: "SupervisedClassifier([0, 1], algorithm='regress-and-round', random_state=123456789)",
         SupervisedClassifier.DECISION_TREE: "SupervisedClassifier([0, 1], algorithm='decision-tree', random_state=123456789)",
         SupervisedClassifier.RANDOM_FOREST: "SupervisedClassifier([0, 1], algorithm='random-forest', random_state=123456789)",
-        SupervisedClassifier.ADABOOST: "SupervisedClassifier([0, 1], algorithm='adaboost', random_state=123456789)"
+        SupervisedClassifier.ADABOOST: "SupervisedClassifier([0, 1], algorithm='adaboost', random_state=123456789)",
+        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: "SupervisedClassifier([0, 1], algorithm='gaussian-naive-bayes', random_state=123456789)"
     }
 }
 
