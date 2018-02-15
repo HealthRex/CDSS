@@ -171,9 +171,7 @@ class LabNormalityMatrix(FeatureMatrix):
         self._factory.addClinicalItemFeatures([self._lab_panel], features="pre")
 
         # Add lab component result features, for a variety of time deltas.
-        LAB_PRE_TIME_DELTAS = [ datetime.timedelta(-1), datetime.timedelta(-3),
-            datetime.timedelta(-7), datetime.timedelta(-30),
-            datetime.timedelta(-90) ]
+        LAB_PRE_TIME_DELTAS = [datetime.timedelta(-14)]
         LAB_POST_TIME_DELTA = datetime.timedelta(0)
         log.info('Adding lab component features...')
         for pre_time_delta in LAB_PRE_TIME_DELTAS:
