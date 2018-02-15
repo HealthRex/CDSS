@@ -3,6 +3,8 @@
 
 Review the Wiki (https://github.com/HealthRex/CDSS/wiki) for Starter Notes on using some of the common data sources and codebase as well as general lab/group infrastructure.
 
+Code is made freely available for academic use. For questions about usage, email stanford [dot] healthrex [at] gmail [dot] com.
+
 General Guidelines for Code Repo:
 * Avoid any large data files, so the repo stays lightweight for new devs to quickly download/clone.
 * For one-off or very project specific files and scripts, basically do whatever you want in the workspace areas under the /scripts directory (but again, avoid big data files and also avoid any private / patient information, including analysis results that include individual patient items, as this repo will publicly accessible).
