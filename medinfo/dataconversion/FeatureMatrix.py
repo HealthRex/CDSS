@@ -114,9 +114,7 @@ class FeatureMatrix:
     def _add_flowsheet_features(self):
         log.info('Adding flowsheet features...')
         # Look at flowsheet results from the previous days
-        FLOW_PRE_TIME_DELTAS = [ datetime.timedelta(-1), datetime.timedelta(-3),
-            datetime.timedelta(-7), datetime.timedelta(-30),
-            datetime.timedelta(-90) ]
+        FLOW_PRE_TIME_DELTAS = [ datetime.timedelta(-14) ]
         # Don't look into the future, otherwise cheating the prediction
         FLOW_POST_TIME_DELTA = datetime.timedelta(0)
         # Add flowsheet features for a variety of generally useful vitals.
@@ -132,9 +130,7 @@ class FeatureMatrix:
     def _add_lab_component_features(self):
         # Look for lab data 90 days before each episode, but never after self.
         # Look at lab results from the previous days
-        LAB_PRE_TIME_DELTAS = [ datetime.timedelta(-1), datetime.timedelta(-3),
-            datetime.timedelta(-7), datetime.timedelta(-30),
-            datetime.timedelta(-90) ]
+        LAB_PRE_TIME_DELTAS = [ datetime.timedelta(-14) ]
         # Don't look into the future, otherwise cheating the prediction
         LAB_POST_TIME_DELTA = datetime.timedelta(0)
 
