@@ -354,7 +354,7 @@ class SupervisedLearningPipeline:
         precision_at_k_plot_name = '%s-precision-at-k-plot.png' % pipeline_prefix
         precision_recall_plot_name = '%s-precision-recall-plot.png' % pipeline_prefix
         roc_plot_name = '%s-roc-plot.png' % pipeline_prefix
-        report_name = '%s.report' % pipeline_prefix
+        report_name = '%s-report.tab' % pipeline_prefix
 
         # Build paths.
         precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])

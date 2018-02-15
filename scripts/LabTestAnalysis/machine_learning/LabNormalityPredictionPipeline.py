@@ -68,7 +68,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         outcome_label = 'all_components_normal'
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
-        percent_features_to_select = 0.01
+        percent_features_to_select = 0.05
         matrix_class = LabNormalityMatrix
         pipeline_file_path = inspect.getfile(inspect.currentframe())
         data_overview = [
@@ -124,9 +124,9 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 os.makedirs(dest_dir)
             SupervisedLearningPipeline._analyze_predictor(self, dest_dir, pipeline_prefix)
             if meta_report is None:
-                meta_report = fm_io.read_file_to_data_frame('/'.join([dest_dir, '%s.report' % pipeline_prefix]))
+                meta_report = fm_io.read_file_to_data_frame('/'.join([dest_dir, '%s-report.tab' % pipeline_prefix]))
             else:
-                algorithm_report = fm_io.read_file_to_data_frame('/'.join([dest_dir, '%s.report' % pipeline_prefix]))
+                algorithm_report = fm_io.read_file_to_data_frame('/'.join([dest_dir, '%s-report.tab' % pipeline_prefix]))
                 log.debug('algorithm_report: %s' % algorithm_report)
                 meta_report = meta_report.append(algorithm_report)
 
@@ -138,9 +138,10 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 if __name__ == '__main__':
     log.level = logging.DEBUG
     LAB_PANELS = [
-        "LABA1C",
-         # "LABABG", "LABBLC", "LABBLC2", "LABCAI",
-        "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
+        # 'LABA1C', 
+        'LABLAC', 'LABMB', 'LABMETB', 'LABMETC'
+        # "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
+        # "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
         # "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
         # "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
         # "LABROMRS", "LABTNI", "LABTYPSNI", "LABUA", "LABUAPRN",
