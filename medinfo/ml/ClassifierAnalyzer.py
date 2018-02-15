@@ -152,6 +152,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
         # Save figure.
         plt.savefig(dest_path)
+        plt.close()
 
     def compute_roc_curve(self):
         return roc_curve(self._y_test, self._y_pred_prob)
@@ -181,6 +182,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
         # Save figure.
         plt.savefig(dest_path)
+        plt.close()
 
     def compute_precision_at_k_curve(self):
         num_samples = self._y_test.shape[0]
@@ -215,6 +217,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
         # Save figure.
         plt.savefig(dest_path)
+        plt.close()
 
     def build_report(self):
         column_names = ['model', 'test_size']
@@ -223,6 +226,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
             'test_size': [self._y_test.shape[0]]
         }
 
+        # Add scores.
         for score_metric in ClassifierAnalyzer.SUPPORTED_SCORES:
             if score_metric == ClassifierAnalyzer.PRECISION_AT_K_SCORE:
                 k_10_percent = int(0.1 * self._y_test.shape[0])
@@ -234,15 +238,13 @@ class ClassifierAnalyzer(PredictorAnalyzer):
             column_names.append(score_label)
             report_dict.update({score_label: score_value})
 
-        return DataFrame(report_dict, columns=column_names)
+        # Add hyperparams.
+        report_dict.update({'hyperparams': str(self._predictor.hyperparams())})
+        column_names.append('hyperparams')
+
+        return DataFrame(report_dict, columns=column_names), column_names
 
     def write_report(self, dest_path):
-        column_names = ['model', 'test_size']
-        for score in ClassifierAnalyzer.SUPPORTED_SCORES:
-            if score == ClassifierAnalyzer.PRECISION_AT_K_SCORE:
-                column_names.append('precision_at_10_percent')
-            else:
-                column_names.append(score)
-        report = self.build_report()
+        report, column_names = self.build_report()
 
         PredictorAnalyzer.write_report(self, report, dest_path, column_names)
