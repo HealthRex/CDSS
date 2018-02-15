@@ -309,8 +309,6 @@ class SupervisedClassifier:
             self._train_regress_and_round(X, y)
         elif self._algorithm == SupervisedClassifier.ADABOOST:
             self._train_adaboost(X, y)
-        elif self._algorithm == SupervisedClassifier.SVM:
-            self._train_svm(X, y)
         elif self._algorithm == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
             self._train_gaussian_naive_bayes(X, y)
 
@@ -441,7 +439,8 @@ class SupervisedClassifier:
         self._hyperparams['tol'] = 0.0001
         self._hyperparams['max_iter'] = 100
         self._hyperparams['class_weight'] = 'balanced'
-        self._hyperparams['n_jobs'] = -1
+        # When running with n_jobs=-1, multiarray.so sometimes crashes.
+        self._hyperparams['n_jobs'] = 1
         self._hyperparams['multi_class'] = 'ovr'
 
         # Build initial model.
