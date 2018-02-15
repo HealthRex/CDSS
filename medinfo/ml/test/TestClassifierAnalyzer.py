@@ -197,7 +197,7 @@ class TestClassifierAnalyzer(MedInfoTestCase):
     def test_build_report(self):
         # Build report.
         expected_report = RANDOM_100_TEST_CASE['report']
-        actual_report = self._ml_analyzer.build_report()
+        actual_report = self._ml_analyzer.build_report()[0]
         assert_frame_equal(expected_report, actual_report)
 
         # Build paths for expected and actual report.
