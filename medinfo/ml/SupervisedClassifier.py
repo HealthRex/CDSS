@@ -44,6 +44,7 @@ class SupervisedClassifier:
 
         # Initialize params.
         self._params = {}
+        self._model = None
 
         # Initialize hyperparams.
         if hyperparams is None:

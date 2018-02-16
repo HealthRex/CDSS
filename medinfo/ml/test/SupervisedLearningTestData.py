@@ -436,6 +436,9 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         ],
         SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: [
             1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0
+        ],
+        'bifurcated': [
+            0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         ]
     },
     'hyperparams': {
@@ -443,7 +446,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'algorithm': SupervisedClassifier.LOGISTIC_REGRESSION,
             'scoring': make_scorer(roc_auc_score, needs_threshold=True),
             'max_iter': 100,
-            'n_jobs': -1,
+            'n_jobs': 1,
             'tol': 0.0001,
             'fit_intercept': True,
             'solver': 'saga',
@@ -458,7 +461,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         SupervisedClassifier.REGRESS_AND_ROUND: {
             'scoring': make_scorer(roc_auc_score, needs_threshold=True),
             'max_iter': 100,
-            'n_jobs': -1,
+            'n_jobs': 1,
             'tol': 0.0001,
             'algorithm': SupervisedClassifier.REGRESS_AND_ROUND,
             'fit_intercept': True,
@@ -533,7 +536,10 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'hyperparam_strategy': 'exhaustive-search',
             'random_state': 123456789,
             'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False)
-        }
+        },
+        'bifurcated': {
+                        'model_false': {'bifurcation_strategy': '<=', 'penalty': 'l1', 'C': 1.0, 'max_iter': 100, 'n_jobs': 1, 'tol': 0.0001, 'algorithm': 'regress-and-round', 'bifurcation_value': 0.5, 'solver': 'saga', 'fit_intercept': True, 'hyperparam_strategy': 'exhaustive-search', 'multi_class': 'ovr', 'random_state': 123456789, 'coef_max': 1, 'dual': False, 'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'n_iter': 10, 'bifurcator': 'x3', 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'class_weight': 'balanced'},
+                        'model_true': {'bifurcation_strategy': '<=', 'penalty': 'l1', 'C': 1.0, 'max_iter': 100, 'n_jobs': 1, 'tol': 0.0001, 'algorithm': 'regress-and-round', 'bifurcation_value': 0.5, 'solver': 'saga', 'fit_intercept': True, 'hyperparam_strategy': 'exhaustive-search', 'multi_class': 'ovr', 'random_state': 123456789, 'coef_max': 1, 'dual': False, 'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'n_iter': 10, 'bifurcator': 'x3', 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'class_weight': 'balanced'}}
     },
     'params': {
         SupervisedClassifier.LOGISTIC_REGRESSION: {
@@ -843,6 +849,13 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
                 -0.027825385889743561, 0.79848281141282063, -1.2753595800769231,
                 0.15922675605128209
             ]
+        },
+        'bifurcated': {
+            'bifurcation_strategy': '<=',
+            'bifurcation_value': 0.5,
+            'bifurcator': 'x3',
+            'model_false': 'L1_REGRESS_AND_ROUND(1.0*x8)',
+            'model_true': 'L1_REGRESS_AND_ROUND(1.0*x8)'
         }
     },
     'description': {
@@ -851,7 +864,8 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x3<=1.03298830986))',
         SupervisedClassifier.RANDOM_FOREST: 'RANDOM_FOREST(n_estimators=5, features=[x10, x6, x7, x8, x9])',
         SupervisedClassifier.ADABOOST: 'ADABOOST(base_estimator=DecisionTreeClassifier, n_estimators=25, features=[x6, x7, x8, x9])',
-        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: 'GAUSSIAN_NAIVE_BAYES(priors=[0.001, 0.999])'
+        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: 'GAUSSIAN_NAIVE_BAYES(priors=[0.001, 0.999])',
+        'bifurcated': 'BifurcatedSupervisedClassifier(x3 <= 0.5, true=L1_REGRESS_AND_ROUND(1.0*x8), false=L1_REGRESS_AND_ROUND(1.0*x8))'
     },
     'str': {
         SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)",
@@ -859,7 +873,8 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         SupervisedClassifier.DECISION_TREE: "SupervisedClassifier([0, 1], algorithm='decision-tree', random_state=123456789)",
         SupervisedClassifier.RANDOM_FOREST: "SupervisedClassifier([0, 1], algorithm='random-forest', random_state=123456789)",
         SupervisedClassifier.ADABOOST: "SupervisedClassifier([0, 1], algorithm='adaboost', random_state=123456789)",
-        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: "SupervisedClassifier([0, 1], algorithm='gaussian-naive-bayes', random_state=123456789)"
+        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: "SupervisedClassifier([0, 1], algorithm='gaussian-naive-bayes', random_state=123456789)",
+        'bifurcated': "BifurcatedSupervisedClassifier([0, 1], hyperparams={'algorithm': regress-and-round, 'bifurcator': x3, 'bifurcation_strategy': <=, 'bifurcation_threshold': 0.5, 'random_state': 123456789})"
     }
 }
 
