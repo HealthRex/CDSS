@@ -41,6 +41,8 @@ class TestSupervisedClassifier(MedInfoTestCase):
         for key in expected_hyperparams.keys():
             expected = expected_hyperparams[key]
             actual = actual_hyperparams[key]
+            log.debug('expected %s: %s' % (key, expected))
+            log.debug('actual %s: %s' % (key, actual))
             if key == 'cv':
                 # StratifiedKFold objects with identical arguments do not
                 # compute as equal.
@@ -72,7 +74,6 @@ class TestSupervisedClassifier(MedInfoTestCase):
                                             random_state=random_state)
 
         # Iterate through SUPPORTED_ALGORITHMS.
-        # TODO(sbala): Expand to all SUPPORTED_ALGORITHMS.
         for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
             log.info('Testing %s classifier...' % algorithm)
             # Train model.
@@ -80,6 +81,11 @@ class TestSupervisedClassifier(MedInfoTestCase):
             # Default to stochastic search for expensive algorithms.
             if algorithm in [SupervisedClassifier.RANDOM_FOREST]:
                 hyperparams['hyperparam_strategy'] = SupervisedClassifier.STOCHASTIC_SEARCH
+                # Test ability to force hyperparam values.
+                hyperparams['max_depth'] = 2
+                hyperparams['n_estimators'] = 5
+                hyperparams['min_samples_leaf'] = 1
+                hyperparams['min_samples_split'] = 0.2
             else:
                 hyperparams['hyperparam_strategy'] = SupervisedClassifier.EXHAUSTIVE_SEARCH
             classifier = SupervisedClassifier([0, 1], hyperparams)
@@ -107,7 +113,9 @@ class TestSupervisedClassifier(MedInfoTestCase):
 
             # Test prediction values.
             expected_y_pred = expected_y_pred_by_algorithm[algorithm]
+            log.debug('expected_y_pred: %s' % expected_y_pred)
             actual_y_pred = classifier.predict(X_test)
+            log.debug('actual_y_pred: %s' % actual_y_pred)
             self.assertEqualList(expected_y_pred, actual_y_pred)
 
 def suite():
