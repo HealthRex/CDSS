@@ -73,8 +73,7 @@ class TestSupervisedClassifier(MedInfoTestCase):
 
         # Iterate through SUPPORTED_ALGORITHMS.
         # TODO(sbala): Expand to all SUPPORTED_ALGORITHMS.
-        # SupervisedClassifier.SUPPORTED_ALGORITHMS
-        for algorithm in [SupervisedClassifier.GAUSSIAN_NAIVE_BAYES]:
+        for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
             log.info('Testing %s classifier...' % algorithm)
             # Train model.
             hyperparams = {'algorithm': algorithm, 'random_state': random_state}
