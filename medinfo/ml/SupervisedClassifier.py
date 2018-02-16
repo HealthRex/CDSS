@@ -47,36 +47,26 @@ class SupervisedClassifier:
         self._model = None
 
         # Initialize hyperparams.
-        if hyperparams is None:
-            self._hyperparams = {}
-        else:
-            self._hyperparams = hyperparams
+        self._hyperparams = {} if hyperparams is None else hyperparams
+        self._hyperparam_search_space = {}
         # Set algorithm.
-        if self._hyperparams.get('algorithm') is None:
-            self._hyperparams['algorithm'] = SupervisedClassifier.LOGISTIC_REGRESSION
-        elif self._hyperparams['algorithm'] not in SupervisedClassifier.SUPPORTED_ALGORITHMS:
-            raise ValueError('Algorithm %s not supported.' % self._hyperparams['algorithm'])
-        self._algorithm = self._hyperparams['algorithm']
+        self._get_or_set_hyperparam('algorithm')
         # Set random state.
-        if self._hyperparams.get('random_state') is None:
-            self._hyperparams['random_state'] = None
+        self._get_or_set_hyperparam('random_state')
         # Set CV strategy.
-        if self._hyperparams.get('hyperparam_strategy') is None:
-            self._hyperparams['hyperparam_strategy'] = SupervisedClassifier.STOCHASTIC_SEARCH
-        elif self._hyperparams['hyperparam_strategy'] not in SupervisedClassifier.HYPERPARAM_STRATEGIES:
-            raise ValueError('Hyperparameter strategy %s not supported.' % self._hyperparams['hyperparam_strategy'])
+        self._get_or_set_hyperparam('hyperparam_strategy')
 
     def __repr__(self):
         s = "SupervisedClassifier(%s, algorithm='%s', random_state=%s)" % \
-            (self._classes, self._algorithm, self._hyperparams['random_state'])
+            (self._classes, self._hyperparams['algorithm'], self._hyperparams['random_state'])
         return s
 
     __str__ = __repr__
 
     def description(self):
-        if self._algorithm == SupervisedClassifier.LOGISTIC_REGRESSION:
+        if self._hyperparams['algorithm'] == SupervisedClassifier.LOGISTIC_REGRESSION:
             return self._describe_logistic_regression()
-        elif self._algorithm == SupervisedClassifier.REGRESS_AND_ROUND:
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.REGRESS_AND_ROUND:
             return self._describe_regress_and_round()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.DECISION_TREE:
             return self._describe_decision_tree()
@@ -87,7 +77,7 @@ class SupervisedClassifier:
         elif self._hyperparams['algorithm'] == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
             return self._describe_gaussian_naive_bayes()
         else:
-            return 'SupervisedClassifier(%s, %s)' % (self._classes, self._algorithm)
+            return 'SupervisedClassifier(%s, %s)' % (self._classes, self._hyperparams['algorithm'])
 
     def _describe_logistic_regression(self):
         coefs = self.coefs()
@@ -133,7 +123,7 @@ class SupervisedClassifier:
         return 'GAUSSIAN_NAIVE_BAYES(priors=%s)' % params['priors']
 
     def algorithm(self):
-        return self._algorithm
+        return self._hyperparams['algorithm']
 
     def classes(self):
         return self._classes
@@ -143,6 +133,171 @@ class SupervisedClassifier:
 
     def hyperparams(self):
         return self._hyperparams
+
+    def _get_or_set_hyperparam(self, hyperparam):
+        # If it's already set, move on.
+        TUNEABLE_HYPERPARAMS = [
+            'priors', 'n_estimators', 'learning_rate', 'max_depth',
+            'min_samples_split', 'min_samples_leaf', 'max_features', 'C'
+        ]
+        if self._hyperparams.get(hyperparam):
+            if hyperparam == 'algorithm':
+                if self._hyperparams[hyperparam] not in SupervisedClassifier.SUPPORTED_ALGORITHMS:
+                    raise ValueError('Algorithm %s not supported.' % self._hyperparams[hyperparam])
+            elif hyperparam == 'hyperparam_strategy':
+                if self._hyperparams[hyperparam] not in SupervisedClassifier.HYPERPARAM_STRATEGIES:
+                    raise ValueError('Hyperparameter strategy %s not supported.' % self._hyperparams[hyperparam])
+
+            # If the hyperparam has a relevant search space, set the search
+            # space to the user defined value.
+            if hyperparam in TUNEABLE_HYPERPARAMS:
+                self._hyperparam_search_space[hyperparam] = [self._hyperparams[hyperparam]]
+
+            return
+
+        # Otherwise, define a decent initial value, based on algorithm.
+        # If the hyperparam has a relevant search space, define it automatically.
+        # Code sanitation note: please keep these conditions alphabetized =)
+        if hyperparam == 'adaboost_algorithm':
+            # ADABOOST, DECISION_TREE
+            self._hyperparams[hyperparam] = 'SAMME.R'
+        elif hyperparam == 'algorithm':
+            # SUPPORTED_ALGORITHMS
+            self._hyperparams[hyperparam] = SupervisedClassifier.LOGISTIC_REGRESSION
+        elif hyperparam == 'base_estimator':
+            # ADABOOST
+            self._hyperparams[hyperparam] = 'DecisionTreeClassifier'
+        elif hyperparam == 'bootstrap':
+            # RANDOM_FOREST
+            self._hyperparams[hyperparam] = True
+        elif hyperparam == 'C':
+            # LOGISTIC_REGRESSION
+            self._hyperparams[hyperparam] = 10.0
+            self._hyperparam_search_space[hyperparam] = [
+                0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0
+            ]
+        elif hyperparam == 'class_weight':
+            # ADABOOST, DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST
+            self._hyperparams[hyperparam] = 'balanced'
+        elif hyperparam == 'criterion':
+            # DECISION_TREE, RANDOM_FOREST
+            self._hyperparams[hyperparam] = 'gini'
+        elif hyperparam == 'cv':
+            # SUPPORTED_ALGORITHMS
+            self._hyperparams['cv'] = self._build_cv_generator()
+        elif hyperparam == 'dual':
+            # LOGISTIC_REGRESSION
+            self._hyperparams[hyperparam] = False
+        elif hyperparam == 'fit_intercept':
+            # LOGISTIC_REGRESSION
+            self._hyperparams[hyperparam] = True
+        elif hyperparam == 'hyperparam_strategy':
+            # SUPPORTED_ALGORITHMS
+            self._hyperparams[hyperparam] = SupervisedClassifier.STOCHASTIC_SEARCH
+        elif hyperparam == 'learning_rate':
+            # ADABOOST
+            self._hyperparams[hyperparam] = 0.1
+            self._hyperparam_search_space[hyperparam] = [
+                0.001, 0.01, 0.1, 1.0, 10.0
+            ]
+        elif hyperparam == 'max_depth':
+            # DECISION_TREE, RANDOM_FOREST
+            self._hyperparams[hyperparam] = None
+            # Include 1, 2, 3 to bias towards simpler tree.
+            self._hyperparam_search_space[hyperparam] = [1, 2, 3, 4, 5, None]
+        elif hyperparam == 'max_features':
+            # DECISION_TREE, RANDOM_FOREST
+            self._hyperparams[hyperparam] = 'sqrt'
+            # Empirical good default values are max_features=n_features for
+            # regression problems, and max_features=sqrt(n_features) for
+            # classification tasks.
+            # http://scikit-learn.org/stable/modules/ensemble.html#forest
+            self._hyperparam_search_space[hyperparam] = ['sqrt', 'log2', None]
+        elif hyperparam == 'max_iter':
+            # LOGISTIC_REGRESSION
+            self._hyperparams[hyperparam] = 100
+        elif hyperparam == 'min_impurity_decrease':
+            # DECISION_TREE, RANDOM_FOREST
+            self._hyperparams[hyperparam] = 0.0
+        elif hyperparam == 'max_leaf_nodes':
+            # DECISION_TREE, RANDOM_FOREST
+            self._hyperparams[hyperparam] = None
+        elif hyperparam == 'min_samples_leaf':
+            # DECISION_TREE, RANDOM_FOREST
+            self._hyperparams[hyperparam] = 1
+            self._hyperparam_search_space[hyperparam] = [0.01, 0.1, 1, 10]
+        elif hyperparam == 'min_samples_split':
+            # DECISION_TREE, RANDOM_FOREST
+            self._hyperparams[hyperparam] = 2
+            # Include 20 and .02 to bias towards simpler trees.
+            self._hyperparam_search_space[hyperparam] = [0.02, 0.2, 2, 20]
+        elif hyperparam == 'min_weight_fraction_leaf':
+            # DECISION_TREE, RANDOM_FOREST
+            self._hyperparams[hyperparam] = 0.0
+        elif hyperparam == 'multi_class':
+            # LOGISTIC_REGRESSION
+            self._hyperparams[hyperparam] = 'ovr'
+        elif hyperparam == 'n_estimators':
+            # ADABOOST, RANDOM_FOREST
+            if self._hyperparams['algorithm'] == SupervisedClassifier.ADABOOST:
+                self._hyperparams[hyperparam] = 50
+                self._hyperparam_search_space[hyperparam] = [
+                    10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+                ]
+            elif self._hyperparams['algorithm'] == SupervisedClassifier.RANDOM_FOREST:
+                self._hyperparams[hyperparam] = 10
+                # The larger the better, but the longer it will take to compute.
+                self._hyperparam_search_space[hyperparam] = [
+                    2, 5, 10, 15, 20, 25
+                ]
+        elif hyperparam == 'n_iter':
+            # RandomizedSearchCV throws ValueError if n_iter is less than the
+            # number of hyperparam options.
+            num_hyperparam_settings = np.prod([len(value) for key, value in self._hyperparam_search_space.iteritems()])
+            self._hyperparams[hyperparam] = np.min([12, num_hyperparam_settings])
+        elif hyperparam == 'n_jobs':
+            # SUPPORTED_ALGORITHMS
+            self._hyperparams[hyperparam] = -1
+        elif hyperparam == 'oob_score':
+            # RANDOM_FOREST
+            self._hyperparams[hyperparam] = False
+        elif hyperparam == 'penalty':
+            # LOGISTIC_REGRESSION
+            self._hyperparams[hyperparam] = 'l1'
+        elif hyperparam == 'presort':
+            # DECISION_TREE
+            self._hyperparams[hyperparam] = None
+        elif hyperparam == 'priors':
+            # GAUSSIAN_NAIVE_BAYES
+            self._hyperparams[hyperparam] = None
+            self._hyperparam_search_space[hyperparam] = [
+                [0.0001, 0.9999], [0.001, 0.999], [0.01, 0.99], [0.05, 0.95],
+                [0.1, 0.9], [0.25, 0.75],
+                [0.5, 0.5],
+                [0.75, 0.25], [0.9, 0.1],
+                [0.95, 0.05], [0.99, 0.01], [0.999, 0.001], [0.9999, 0.0001]
+            ]
+        elif hyperparam == 'random_state':
+            # SUPPORTED_ALGORITHMS
+            self._hyperparams[hyperparam] = None
+        elif hyperparam == 'scoring':
+            # SUPPORTED_ALGORITHMS
+            # Assume unbalanced classification problems, so use roc auc.
+            # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
+            scorer = make_scorer(roc_auc_score, needs_threshold=True)
+            self._hyperparams['scoring'] = scorer
+        elif hyperparam == 'solver':
+            # LOGISTIC_REGRESSION
+            self._hyperparams[hyperparam] = 'saga'
+        elif hyperparam == 'splitter':
+            # DECISION_TREE
+            self._hyperparams[hyperparam] = 'best'
+        elif hyperparam == 'tol':
+            # LOGISTIC_REGRESSION
+            self._hyperparams[hyperparam] = 0.0001
+        elif hyperparam == 'warm_start':
+            # RANDOM_FOREST
+            self._hyperparams[hyperparam] = False
 
     def params(self):
         if self._hyperparams['algorithm'] == SupervisedClassifier.LOGISTIC_REGRESSION:
@@ -300,17 +455,17 @@ class SupervisedClassifier:
         self._features = X.columns
         y = self._maybe_reshape_y(y)
         log.info('Training %s classifier...' % self._hyperparams['algorithm'])
-        if self._algorithm == SupervisedClassifier.DECISION_TREE:
+        if self._hyperparams['algorithm'] == SupervisedClassifier.DECISION_TREE:
             self._train_decision_tree(X, y)
-        elif self._algorithm == SupervisedClassifier.LOGISTIC_REGRESSION:
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.LOGISTIC_REGRESSION:
             self._train_logistic_regression(X, y)
-        elif self._algorithm == SupervisedClassifier.RANDOM_FOREST:
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.RANDOM_FOREST:
             self._train_random_forest(X, y)
-        elif self._algorithm == SupervisedClassifier.REGRESS_AND_ROUND:
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.REGRESS_AND_ROUND:
             self._train_regress_and_round(X, y)
-        elif self._algorithm == SupervisedClassifier.ADABOOST:
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.ADABOOST:
             self._train_adaboost(X, y)
-        elif self._algorithm == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
             self._train_gaussian_naive_bayes(X, y)
 
     def _train_svm(self, X, y):
@@ -321,39 +476,26 @@ class SupervisedClassifier:
     def _train_gaussian_naive_bayes(self, X, y):
         # Define hyperparams.
         # http://scikit-learn.org/stable/modules/naive_bayes.html#naive-bayes
-        self._hyperparams['priors'] = None
-        self._hyperparams['n_jobs'] = -1
-        # Assume unbalanced classification problems, so use roc auc.
-        # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
-        scorer = make_scorer(roc_auc_score, needs_threshold=True)
-        self._hyperparams['scoring'] = scorer
+        self._get_or_set_hyperparam('priors')
+        self._get_or_set_hyperparam('n_jobs')
+        self._get_or_set_hyperparam('scoring')
 
         # Build initial model.
         self._model = GaussianNB(priors=self._hyperparams['priors'])
 
-        # Define hyperparameter space.
-        hyperparam_search_space = {
-            'priors': [
-                [0.001, 0.999], [0.01, 0.99], [0.05, 0.95], [0.1, 0.9], [0.25, 0.75],
-                [0.5, 0.5],
-                [0.75, 0.25], [0.9, 0.1], [0.95, 0.05], [0.99, 0.01], [.999, 0.001]
-            ]
-        }
-        self._tune_hyperparams(hyperparam_search_space, X, y)
+        # Tune hyperparams.
+        self._tune_hyperparams(self._hyperparam_search_space, X, y)
 
     def _train_adaboost(self, X, y):
         # Define hyperparams.
         # http://scikit-learn.org/stable/modules/ensemble.html#adaboost
-        self._hyperparams['base_estimator'] = 'DecisionTreeClassifier'
-        self._hyperparams['n_estimators'] = 50
-        self._hyperparams['learning_rate'] = 1.0
-        self._hyperparams['adaboost_algorithm'] = 'SAMME.R'
-        self._hyperparams['n_jobs'] = -1
-        self._hyperparams['class_weight'] = 'balanced'
-        # Assume unbalanced classification problems, so use roc auc.
-        # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
-        scorer = make_scorer(roc_auc_score, needs_threshold=True)
-        self._hyperparams['scoring'] = scorer
+        self._get_or_set_hyperparam('base_estimator')
+        self._get_or_set_hyperparam('n_estimators')
+        self._get_or_set_hyperparam('learning_rate')
+        self._get_or_set_hyperparam('adaboost_algorithm')
+        self._get_or_set_hyperparam('n_jobs')
+        self._get_or_set_hyperparam('class_weight')
+        self._get_or_set_hyperparam('scoring')
 
         # Build initial model.
         self._model = AdaBoostClassifier(\
@@ -365,34 +507,24 @@ class SupervisedClassifier:
         )
 
         # Tune hyperparams.
-        hyperparam_search_space = {
-            'n_estimators': [25, 50, 75],
-            'learning_rate': [0.5, 1.0, 1.5]
-        }
-        self._tune_hyperparams(hyperparam_search_space, X, y)
+        self._tune_hyperparams(self._hyperparam_search_space, X, y)
 
     def _train_decision_tree(self, X, y):
         # Define hyperparameter space.
         # http://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
-        self._hyperparams['criterion'] = 'gini'
-        self._hyperparams['splitter'] = 'best'
-        # Include 1, 2, 3 to bias towards simpler tree.
-        self._hyperparams['max_depth'] = None
-        # Include 10 and .01 to bias towards simpler trees.
-        self._hyperparams['min_samples_split'] = 2
-        self._hyperparams['min_samples_leaf'] = 1
-        self._hyperparams['min_weight_fraction_leaf'] = 0.0
-        self._hyperparams['max_features'] = None
-        self._hyperparams['max_leaf_nodes'] = None
-        self._hyperparams['min_impurity_decrease'] = 0.0
-        self._hyperparams['class_weight'] = 'balanced'
-        self._hyperparams['presort'] = None
-        # Assume unbalanced classification problems, so use f1_score.
-        # Cannot compute an ROC curve because decision trees have no ROC.
-        # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
-        scorer = make_scorer(f1_score)
-        self._hyperparams['scoring'] = scorer
-        self._hyperparams['n_jobs'] = -1
+        self._get_or_set_hyperparam('criterion')
+        self._get_or_set_hyperparam('splitter')
+        self._get_or_set_hyperparam('max_depth')
+        self._get_or_set_hyperparam('min_samples_split')
+        self._get_or_set_hyperparam('min_samples_leaf')
+        self._get_or_set_hyperparam('min_weight_fraction_leaf')
+        self._get_or_set_hyperparam('max_features')
+        self._get_or_set_hyperparam('max_leaf_nodes')
+        self._get_or_set_hyperparam('min_impurity_decrease')
+        self._get_or_set_hyperparam('class_weight')
+        self._get_or_set_hyperparam('presort')
+        self._get_or_set_hyperparam('scoring')
+        self._get_or_set_hyperparam('n_jobs')
 
         # Initialize model with naive hyperparameter values.
         self._model = DecisionTreeClassifier(\
@@ -410,39 +542,23 @@ class SupervisedClassifier:
             presort=self._hyperparams['presort']
         )
 
-        # Search hyperparameter space for better values.
-        hyperparam_search_space = {
-            'max_depth': [1, 2, 3, 4, 5, None],
-            'min_samples_split': [2, 20, 0.02, 0.1, 0.2],
-            'min_samples_leaf': [1, 10, 0.01, 0.05, 0.1],
-            # Empirical good default values are max_features=n_features for
-            # regression problems, and max_features=sqrt(n_features) for
-            # classification tasks.
-            # http://scikit-learn.org/stable/modules/ensemble.html#forest
-            'max_features': ['sqrt', 'log2', None]
-        }
-        log.info('Tuning hyperparameters...')
-        self._tune_hyperparams(hyperparam_search_space, X, y)
-        log.debug('params: %s' % self.params())
+        # Tune hyperparams.
+        self._tune_hyperparams(self._hyperparam_search_space, X, y)
 
     def _train_logistic_regression(self, X, y):
         # Define hyperparameter space.
         # http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegressionCV.html
-        self._hyperparams['C'] = 10.0
-        self._hyperparams['fit_intercept'] = True
-        self._hyperparams['dual'] = False
-        self._hyperparams['penalty'] = 'l1'
-        # Assume unbalanced classification problems, so use roc auc.
-        # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
-        scorer = make_scorer(roc_auc_score, needs_threshold=True)
-        self._hyperparams['scoring'] = scorer
-        self._hyperparams['solver'] = 'saga'
-        self._hyperparams['tol'] = 0.0001
-        self._hyperparams['max_iter'] = 100
-        self._hyperparams['class_weight'] = 'balanced'
-        # When running with n_jobs=-1, multiarray.so sometimes crashes.
-        self._hyperparams['n_jobs'] = 1
-        self._hyperparams['multi_class'] = 'ovr'
+        self._get_or_set_hyperparam('C')
+        self._get_or_set_hyperparam('fit_intercept')
+        self._get_or_set_hyperparam('dual')
+        self._get_or_set_hyperparam('penalty')
+        self._get_or_set_hyperparam('scoring')
+        self._get_or_set_hyperparam('solver')
+        self._get_or_set_hyperparam('tol')
+        self._get_or_set_hyperparam('max_iter')
+        self._get_or_set_hyperparam('n_jobs')
+        self._get_or_set_hyperparam('multi_class')
+        self._get_or_set_hyperparam('class_weight')
 
         # Build initial model.
         self._model = LogisticRegression(
@@ -460,36 +576,26 @@ class SupervisedClassifier:
         )
 
         # Tune hyperparams.
-        hyperparam_search_space = {
-            'C': [
-                10000.0, 1000.0, 100.0, 10.0, 1.0, 0.1, 0.01, 0.001, 0.0001, 0.00001
-            ]
-        }
-        self._tune_hyperparams(hyperparam_search_space, X, y)
-        log.debug('params: %s' % self.params())
+        self._tune_hyperparams(self._hyperparam_search_space, X, y)
 
     def _train_random_forest(self, X, y):
         # Define hyperparams.
         # http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
-        self._hyperparams['n_estimators'] = 10
-        self._hyperparams['criterion'] = 'gini'
-        self._hyperparams['max_depth'] = None
-        self._hyperparams['min_samples_split'] = 2
-        self._hyperparams['min_samples_leaf'] = 1
-        self._hyperparams['min_weight_fraction_leaf'] = 0.0
-        self._hyperparams['max_features'] = 'sqrt'
-        self._hyperparams['max_leaf_nodes'] = None
-        self._hyperparams['min_impurity_decrease'] = 0.0
-        self._hyperparams['bootstrap'] = True
-        self._hyperparams['oob_score'] = False
-        self._hyperparams['n_jobs'] = -1
-        self._hyperparams['warm_start'] = False
-        self._hyperparams['class_weight'] = 'balanced'
-        # Assume unbalanced classification problems, so use f1_score.
-        # Cannot compute an ROC curve because decision trees have no ROC.
-        # http://scikit-learn.org/stable/modules/grid_search.html#specifying-an-objective-metric
-        scorer = make_scorer(f1_score)
-        self._hyperparams['scoring'] = scorer
+        self._get_or_set_hyperparam('n_estimators')
+        self._get_or_set_hyperparam('criterion')
+        self._get_or_set_hyperparam('max_depth')
+        self._get_or_set_hyperparam('min_samples_split')
+        self._get_or_set_hyperparam('min_samples_leaf')
+        self._get_or_set_hyperparam('min_weight_fraction_leaf')
+        self._get_or_set_hyperparam('max_features')
+        self._get_or_set_hyperparam('max_leaf_nodes')
+        self._get_or_set_hyperparam('min_impurity_decrease')
+        self._get_or_set_hyperparam('bootstrap')
+        self._get_or_set_hyperparam('oob_score')
+        self._get_or_set_hyperparam('n_jobs')
+        self._get_or_set_hyperparam('warm_start')
+        self._get_or_set_hyperparam('class_weight')
+        self._get_or_set_hyperparam('scoring')
 
         # Initialize model with naive hyperparameter values.
         self._model = RandomForestClassifier( \
@@ -510,45 +616,24 @@ class SupervisedClassifier:
             random_state=self._hyperparams['random_state']
         )
 
-        # Search hyperparameter space for better values.
-        hyperparam_search_space = {
-            # The larger the better, but the longer it will take to compute.
-            'n_estimators': [2, 5, 10, 15, 20, 25],
-            'max_depth': [1, 2, 3, 4, 5, None],
-            'min_samples_split': [2, 20, 0.02, 0.1, 0.2],
-            'min_samples_leaf': [1, 10, 0.01, 0.05, 0.1],
-            # Empirical good default values are max_features=n_features for
-            # regression problems, and max_features=sqrt(n_features) for
-            # classification tasks.
-            # http://scikit-learn.org/stable/modules/ensemble.html#forest
-            'max_features': ['sqrt', 'log2', None]
-        }
-        self._tune_hyperparams(hyperparam_search_space, X, y)
-        log.debug('hyperparams: %s' % self.hyperparams())
-        log.debug('params: %s' % self.params())
+        # Tune hyperparams.
+        self._tune_hyperparams(self._hyperparam_search_space, X, y)
 
     def _train_regress_and_round(self, X, y):
         self._train_logistic_regression(X, y)
-        log.info('Tuning hyperparameters...')
         self._tune_hyperparams_regress_and_round(X, y)
-        log.debug('params: %s' % self.params())
 
     def _tune_hyperparams_regress_and_round(self, X, y):
         self._hyperparams['hyperparam_strategy'] = SupervisedClassifier.EXHAUSTIVE_SEARCH
+        log.info('Tuning hyperparams via %s...' % self._hyperparams['hyperparam_strategy'])
         # If not provided, search for best coef_max.
         if self._hyperparams.get('coef_max') is None:
             self._hyperparams['coef_max'] = self._tune_coef_max(X, y)
 
         # Round linear coefficients.
         self._round_coefs(self._hyperparams['coef_max'])
-
-    def _round_coefs(self, coef_max):
-        # Based on Jung et al. https://arxiv.org/abs/1702.04690
-        # w_j = round((M * beta_j) / (max_i|beta_i|))
-        # coef_max = M = max rounded coefficient value
-        # beta_max = max_i|beta_i| = largest unrounded regression coefficient
-        beta_max = max([abs(c) for c in self._model.coef_[0]])
-        self._model.coef_[0] = [round((coef_max * c) / (beta_max)) for c in self._model.coef_[0]]
+        log.debug('hyperparams: %s' % self.hyperparams())
+        log.debug('params: %s' % self.params())
 
     def _tune_coef_max(self, X, y):
         # The only way to easily compute scores is to modify the model itself.
@@ -591,10 +676,18 @@ class SupervisedClassifier:
 
         return coef_max
 
+    def _round_coefs(self, coef_max):
+        # Based on Jung et al. https://arxiv.org/abs/1702.04690
+        # w_j = round((M * beta_j) / (max_i|beta_i|))
+        # coef_max = M = max rounded coefficient value
+        # beta_max = max_i|beta_i| = largest unrounded regression coefficient
+        beta_max = max([abs(c) for c in self._model.coef_[0]])
+        self._model.coef_[0] = [round((coef_max * c) / (beta_max)) for c in self._model.coef_[0]]
+
     def _tune_hyperparams(self, hyperparam_search_space, X, y):
         log.info('Tuning hyperparameters via %s...' % self._hyperparams['hyperparam_strategy'])
         # Log the pre-tuning score.
-        self._hyperparams['cv'] = self._build_cv_generator()
+        self._get_or_set_hyperparam('cv')
         pre_tuning_score = np.mean(cross_val_score(self._model, X, y, \
                                     cv=self._hyperparams['cv'], \
                                     scoring=self._hyperparams['scoring'], \
@@ -611,10 +704,7 @@ class SupervisedClassifier:
                                     cv=self._hyperparams['cv'], \
                                     return_train_score=False)
         elif self._hyperparams['hyperparam_strategy'] == SupervisedClassifier.STOCHASTIC_SEARCH:
-            # RandomizedSearchCV throws ValueError if n_iter is less than the
-            # number of hyperparam options.
-            num_hyperparam_settings = np.prod([len(value) for key, value in hyperparam_search_space.iteritems()])
-            self._hyperparams['n_iter'] = n_iter = np.min([10, num_hyperparam_settings])
+            self._get_or_set_hyperparam('n_iter')
             tuner = RandomizedSearchCV(self._model, hyperparam_search_space, \
                                         scoring=self._hyperparams['scoring'], \
                                         n_iter=self._hyperparams['n_iter'], \
