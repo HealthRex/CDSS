@@ -538,8 +538,51 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False)
         },
         'bifurcated': {
-                        'model_false': {'bifurcation_strategy': '<=', 'penalty': 'l1', 'C': 1.0, 'max_iter': 100, 'n_jobs': 1, 'tol': 0.0001, 'algorithm': 'regress-and-round', 'bifurcation_value': 0.5, 'solver': 'saga', 'fit_intercept': True, 'hyperparam_strategy': 'exhaustive-search', 'multi_class': 'ovr', 'random_state': 123456789, 'coef_max': 1, 'dual': False, 'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'n_iter': 10, 'bifurcator': 'x3', 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'class_weight': 'balanced'},
-                        'model_true': {'bifurcation_strategy': '<=', 'penalty': 'l1', 'C': 1.0, 'max_iter': 100, 'n_jobs': 1, 'tol': 0.0001, 'algorithm': 'regress-and-round', 'bifurcation_value': 0.5, 'solver': 'saga', 'fit_intercept': True, 'hyperparam_strategy': 'exhaustive-search', 'multi_class': 'ovr', 'random_state': 123456789, 'coef_max': 1, 'dual': False, 'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'n_iter': 10, 'bifurcator': 'x3', 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'class_weight': 'balanced'}}
+            'model_false': {
+                'bifurcation_strategy': '<=',
+                'penalty': 'l1',
+                'C': 1.0,
+                'max_iter': 100,
+                'n_jobs': 1,
+                'tol': 0.0001,
+                'algorithm': 'regress-and-round',
+                'bifurcation_value': 0.5,
+                'solver': 'saga',
+                'fit_intercept': True,
+                'hyperparam_strategy': 'exhaustive-search',
+                'multi_class': 'ovr',
+                'random_state': 123456789,
+                'coef_max': 1,
+                'dual': False,
+                'scoring': make_scorer(roc_auc_score, needs_threshold=True),
+                'n_iter': 10,
+                'bifurcator': 'x3',
+                'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
+                'class_weight': 'balanced'
+            },
+            'model_true': {
+                'bifurcation_strategy': '<=',
+                'penalty': 'l1',
+                'C': 1.0,
+                'max_iter': 100,
+                'n_jobs': 1,
+                'tol': 0.0001,
+                'algorithm': 'regress-and-round',
+                'bifurcation_value': 0.5,
+                'solver': 'saga',
+                'fit_intercept': True,
+                'hyperparam_strategy': 'exhaustive-search',
+                'multi_class': 'ovr',
+                'random_state': 123456789,
+                'coef_max': 1,
+                'dual': False,
+                'scoring': make_scorer(roc_auc_score, needs_threshold=True),
+                'n_iter': 10,
+                'bifurcator': 'x3',
+                'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False),
+                'class_weight': 'balanced'
+            }
+        }
     },
     'params': {
         SupervisedClassifier.LOGISTIC_REGRESSION: {
