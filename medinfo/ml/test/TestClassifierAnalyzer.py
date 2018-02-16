@@ -4,22 +4,25 @@ Test suite for ClassifierAnalyzer.
 """
 
 import filecmp
+import logging
 import os
 from pandas.util.testing import assert_frame_equal
 from sklearn.model_selection import train_test_split
 from sklearn.utils.validation import column_or_1d
 import unittest
 
+
 from ClassifierAnalyzerTestData import RANDOM_10_TEST_CASE, RANDOM_100_TEST_CASE
 from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import make_test_suite, MedInfoTestCase
+from medinfo.common.Util import log
 from medinfo.ml.ListPredictor import ListPredictor
 from medinfo.ml.ClassifierAnalyzer import ClassifierAnalyzer
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
-
 class TestClassifierAnalyzer(MedInfoTestCase):
     def setUp(self):
+        log.level = logging.INFO
         # Use simple classifier and test case for testing non-ROC analyses.
         X = RANDOM_10_TEST_CASE['X']
         y = RANDOM_10_TEST_CASE['y']
@@ -198,6 +201,8 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         # Build report.
         expected_report = RANDOM_100_TEST_CASE['report']
         actual_report = self._ml_analyzer.build_report()[0]
+        log.debug('expected_report: %s' % expected_report)
+        log.debug('actual_report: %s' % actual_report)
         assert_frame_equal(expected_report, actual_report)
 
         # Build paths for expected and actual report.

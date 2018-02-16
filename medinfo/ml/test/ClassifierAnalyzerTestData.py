@@ -141,7 +141,7 @@ RANDOM_100_TEST_CASE = {
     'average_precision': 0.92871913265511885,
     'roc_auc': 0.90441176470588236,
     'report': DataFrame({
-        'model': ['L1_REGRESS_AND_ROUND(1.0*x3 + 1.0*x4)'],
+        'model': ['L1_REGRESS_AND_ROUND(1.0*x3)'],
         'test_size': [25],
         'accuracy': [0.95999999999999996],
         'average_precision': [0.92871913265511885],
@@ -153,7 +153,7 @@ RANDOM_100_TEST_CASE = {
         'k(precision=0.95)': [0.16],
         'k(precision=0.90)': [1.0],
         'precision_at_10_percent': 1.0,
-        'hyperparams': "{'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'penalty': 'l1', 'C': 10000.0, 'max_iter': 100, 'n_jobs': 1, 'tol': 0.0001, 'algorithm': 'regress-and-round', 'fit_intercept': True, 'solver': 'saga', 'hyperparam_strategy': 'exhaustive-search', 'multi_class': 'ovr', 'random_state': 123456789, 'coef_max': 1, 'dual': False, 'n_iter': 10, 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'class_weight': 'balanced'}"
+        'hyperparams': "{'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'penalty': 'l1', 'C': 0.1, 'max_iter': 100, 'n_jobs': -1, 'tol': 0.0001, 'algorithm': 'regress-and-round', 'fit_intercept': True, 'solver': 'saga', 'hyperparam_strategy': 'exhaustive-search', 'multi_class': 'ovr', 'random_state': 123456789, 'coef_max': 1, 'dual': False, 'n_iter': 9, 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'class_weight': 'balanced'}"
     }, columns=['model', 'test_size', 'accuracy', 'recall', 'precision', 'f1', 'average_precision', 'precision_at_10_percent',
         'k(precision=0.99)', 'k(precision=0.95)', 'k(precision=0.90)', 'roc_auc', 'hyperparams'])
 }
