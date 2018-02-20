@@ -450,13 +450,13 @@ class TestItemRecommender(DBTestCase):
         self.assertEqual( baselineQueryCount, newQueryCount );
 
         # Repeat multiple times, should still have no new query activity
-        prog = ProgressDots(10,1,"repeats");
+        # prog = ProgressDots(10,1,"repeats");
         for iRepeat in xrange(10):
             newData = self.recommender( query );
             newQueryCount = self.recommender.dataManager.queryCount;
             self.assertEqualRecommendedData( baselineData, newData, query );
             self.assertEqual( baselineQueryCount, newQueryCount );
-            prog.update();
+            # prog.update();
         # prog.printStatus();
 
         # Query for subset should still yield no new query

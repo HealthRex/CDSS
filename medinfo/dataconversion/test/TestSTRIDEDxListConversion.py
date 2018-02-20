@@ -140,7 +140,7 @@ class TestSTRIDEDxListConversion(DBTestCase):
                 ci.clinical_item_category_id = cic.clinical_item_category_id and
                 cic.source_table = '%s'
             order by
-                pi.patient_id desc, ci.name
+                pi.patient_id desc, ci.name, pi.item_date
             """ % TEST_SOURCE_TABLE;
         expectedData = \
             [   # Expected data should be updated once we have ICD9 - Name conversion tables
@@ -151,7 +151,6 @@ class TestSTRIDEDxListConversion(DBTestCase):
                 [None, -126500, -131017780655, "Diagnosis (PROBLEM_LIST)", None, "ICD9.-431.00", "Diagnosis 2", datetime(2111,10,14)],
                 
                 [None, -126798, -131014753610, "Diagnosis (ADMIT_DX)", None, "ICD9.-780", "Diagnosis 5", datetime(2111,3,8)],
-
                 [None, -126798, -131016557370, "Diagnosis (ADMIT_DX)", None, "ICD9.-780", "Diagnosis 5", datetime(2111,7,26)],
                 [None, -126798, -131016557370, "Diagnosis (ADMIT_DX)", None, "ICD9.-780.9", "Diagnosis 6a", datetime(2111,7,26)],
                 [None, -126798, -131016557370, "Diagnosis (ADMIT_DX)", None, "ICD9.-780.97", "Diagnosis 6", datetime(2111,7,26)],

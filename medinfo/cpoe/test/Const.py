@@ -5,10 +5,10 @@ import logging
 """Application name, for example to identify a common logger object"""
 APPLICATION_NAME = "medinfo.cpoe.test"
 
-"""Default level for application logging.  Modify these for different scenarios.  
+"""Default level for application logging.  Modify these for different scenarios.
 See Python logging package documentation for more information
 """
-LOGGER_LEVEL = logging.DEBUG
+LOGGER_LEVEL = logging.ERROR
 
 """Default format of logger output"""
 LOGGER_FORMAT = "[%(asctime)s %(levelname)s] %(message)s"

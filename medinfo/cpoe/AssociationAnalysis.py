@@ -271,7 +271,7 @@ class AssociationAnalysis:
             updateBuffer["analyzedPatientItemIds"] = set();
         updateBuffer["analyzedPatientItemIds"].update(newlyAnalyzedPatientItemIdSet);
 
-    def updateClinicalItemAssociationBuffer(self, patientItem1, patientItem2, isNewSubsequentItem, isNewPair, isNewPairWithinEncounter, updateBuffer, analysisOptions, itemIdPair=None):
+    def updateClinicalItemAssociationBuffer(self, patientItem1, patientItem2, isNewSubsequentItem, isNewPair, isNewPairWithinEncounter, updateBuffer, analysisOptions=None, itemIdPair=None):
         """Identify and record in the updateBuffer which statistics on associations
         between the two clinical items based on the new piece of observed item pair evidence given.
         Use isNew parameters to delineate uniqueness parameters to determine whether to count this pair for different metrics.
@@ -280,8 +280,10 @@ class AssociationAnalysis:
         If itemIdPair explicitly specified, then use that instead.
         """
         # Determine which time threshold count windows to update
-        deltaSecondsOptions = analysisOptions.deltaSecondsOptions;
-        if deltaSecondsOptions is None:
+        deltaSecondsOptions = None;
+        if analysisOptions is not None and analysisOptions.deltaSecondsOptions is not None:
+            deltaSecondsOptions = analysisOptions.deltaSecondsOptions;
+        else:
             deltaSecondsOptions = DELTA_NAME_BY_SECONDS.keys();
 
         # Convert timeDelta object into simple numerical representation (seconds as a real number) to facilitate some arithmetic
@@ -400,6 +402,7 @@ class AssociationAnalysis:
     def loadUpdateBufferFromFile(self, filename):
         updateBuffer = None;
         try:
+            #print >> sys.stderr, filename
             log.info("Loading: %s" % filename);
             ifs = stdOpen(filename, "r")
             updateBuffer = json.load(ifs)

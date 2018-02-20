@@ -22,12 +22,12 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
-        
+
         # Relabel any existing data to not interfere with the new test data that will be produced
         DBUtil.execute("update clinical_item_category set source_table = 'PreTest_order_med' where source_table = 'stride_order_med';");
-    
+
         log.info("Populate the database with test data")
-        
+
         self.orderMedIdStrList = list();
         headers = ["order_med_id", "pat_id", "pat_enc_csn_id", "ordering_date", "medication_id", "description","freq_name","med_route","number_of_doses"];
         dataModels = \
@@ -43,14 +43,14 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
                 RowItemModel( [ -414321352, "3036588", 777, datetime(2111,12,14, 8,30), -5007, "ZZZ IMS TEMPLATE","ONCE","IV", 1], headers ),
 
                 # Simple mixture in unimportant base
-                RowItemModel( [ -395900000, "1234567", 888, datetime(2111, 1, 2, 3, 0), -520102, "CEFEPIME 2 GM IVPB","ONCE","IV", 1], headers ),  
+                RowItemModel( [ -395900000, "1234567", 888, datetime(2111, 1, 2, 3, 0), -520102, "CEFEPIME 2 GM IVPB","ONCE","IV", 1], headers ),
                 RowItemModel( [ -395800000, "1234567", 888, datetime(2111, 1,10, 3, 0), -520102, "CEFEPIME 2 GM IVPB","q8h","IV", 6], headers ),  # Fixed number of doses
                 RowItemModel( [ -395700000, "1234567", 888, datetime(2111, 3,10, 3, 0), -520102, "CEFEPIME 2 GM IVPB","q8h","IV", None], headers ),  # No dose limit specified
 
                 # Complex mixtures
-                RowItemModel( [ -392000000, "1234567", 888, datetime(2111, 4, 1, 3, 0), -530000, "IVF Mix","ONCE","IV", 1], headers ),  
-                RowItemModel( [ -391000000, "1234567", 888, datetime(2111, 4, 2, 3, 0), -540000, "Mini TPN","ONCE","IV", 1], headers ),  
-                RowItemModel( [ -390000000, "1234567", 888, datetime(2111, 5, 2, 3, 0), -550000, "TPN Adult","Continuous","IV", None], headers ),  
+                RowItemModel( [ -392000000, "1234567", 888, datetime(2111, 4, 1, 3, 0), -530000, "IVF Mix","ONCE","IV", 1], headers ),
+                RowItemModel( [ -391000000, "1234567", 888, datetime(2111, 4, 2, 3, 0), -540000, "Mini TPN","ONCE","IV", 1], headers ),
+                RowItemModel( [ -390000000, "1234567", 888, datetime(2111, 5, 2, 3, 0), -550000, "TPN Adult","Continuous","IV", None], headers ),
             ];
         for dataModel in dataModels:
             (dataItemId, isNew) = DBUtil.findOrInsertItem("stride_order_med", dataModel, retrieveCol="order_med_id" );
@@ -70,7 +70,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
                 RowItemModel( [ -395800000, 2, -2364, "DEXTROSE 5 % IN WATER (D5W) IV SOLP", 1, "Base",], headers ),
                 RowItemModel( [ -395700000, 1, -87114, "CEFEPIME 2 GRAM IV SOLR", 3, "Medications",], headers ),
                 RowItemModel( [ -395700000, 2, -2364, "DEXTROSE 5 % IN WATER (D5W) IV SOLP", 1, "Base",], headers ),
-                
+
                 # IVF Mix
                 RowItemModel( [ -392000000, 2, -2367, "DEXTROSE 70 % IN WATER (D70W) IV SOLP", 1, "Base",], headers ),
                 RowItemModel( [ -392000000, 3, -7322, "SODIUM CHLORIDE 4 MEQ/ML IV SOLP", 2, "Additives",], headers ),
@@ -93,7 +93,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
                 RowItemModel( [ -390000000, 8, -8047, "TRACE ELEM ZN-CUPRIC CL-MN-CR 0.8-0.2-0.16 MG IV SOLN", 2, "Additives",], headers ),
                 RowItemModel( [ -390000000, 9, -124215, "MVI, ADULT NO.1 WITH VIT K 3,300 UNIT- 150 MCG/10 ML IV SOLN", 2, "Additives",], headers ),
                 RowItemModel( [ -390000000, 10,-540571, "INSULIN REG HUMAN 100 UNITS/ML INJ", 2, "Additives",], headers ),
-                
+
             ];
         for dataModel in dataModels:
             (dataItemId, isNew) = DBUtil.findOrInsertItem("stride_order_medmixinfo", dataModel, retrieveCol="order_med_id" );
@@ -115,7 +115,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
                 # Simple mixture
                 RowItemModel( [ -87114, "CEFEPIME 2 GRAM IV SOLR", -20481, "cefepime"], headers ),
                 RowItemModel( [ -2364, "DEXTROSE 5% IN WATER (D5W) IV SOLP", -4850, "Glucose"], headers ),
-                
+
                 # Additional medication level mapping should probably ignored if have mixture components
                 RowItemModel( [ -520102, "CEFEPIME 2 GM IVPB", -20481, "cefepime"], headers ),
 
@@ -156,14 +156,14 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
         # Certain items drawn from order sets
         headers = ["order_med_id", "protocol_id","protocol_name","section_name","smart_group"];
         dataModels = \
-            [   
+            [
                 RowItemModel( [ -418436145, -111, "General Admit", "Medications", "Stool Softeners",], headers ),
                 RowItemModel( [ -421032269, -111, "General Admit", "Medications", "Antibiotics",], headers ),
                 RowItemModel( [ -391000000, -222, "Nutrition", "Infusions", "TPN",], headers ),
             ];
         for dataModel in dataModels:
             (dataItemId, isNew) = DBUtil.findOrInsertItem("stride_orderset_order_med", dataModel, retrieveCol="order_med_id" );
-        
+
         self.converter = STRIDEOrderMedConversion();  # Instance to test on
 
     def tearDown(self):
@@ -172,7 +172,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
 
         DBUtil.execute \
         (   """delete from patient_item_collection_link
-            where item_collection_item_id in 
+            where item_collection_item_id in
             (   select item_collection_item_id
                 from item_collection_item as ici, item_collection as ic
                 where ici.item_collection_id = ic.item_collection_id
@@ -182,7 +182,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
         );
         DBUtil.execute \
         (   """delete from item_collection_item
-            where item_collection_id in 
+            where item_collection_id in
             (   select item_collection_id
                 from item_collection as ic
                 where ic.external_id < 0
@@ -192,8 +192,8 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
         DBUtil.execute("delete from item_collection where external_id < 0;");
 
         DBUtil.execute \
-        (   """delete from patient_item 
-            where clinical_item_id in 
+        (   """delete from patient_item
+            where clinical_item_id in
             (   select clinical_item_id
                 from clinical_item as ci, clinical_item_category as cic
                 where ci.clinical_item_category_id = cic.clinical_item_category_id
@@ -202,10 +202,10 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
             """
         );
         DBUtil.execute \
-        (   """delete from clinical_item 
-            where clinical_item_category_id in 
-            (   select clinical_item_category_id 
-                from clinical_item_category 
+        (   """delete from clinical_item
+            where clinical_item_category_id in
+            (   select clinical_item_category_id
+                from clinical_item_category
                 where source_table = 'stride_order_med'
             );
             """
@@ -232,7 +232,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
         # Just query back for the same data, de-normalizing the data back to a general table
         testQuery = \
             """
-            select 
+            select
                 pi.external_id,
                 pi.patient_id,
                 pi.encounter_id,
@@ -266,66 +266,66 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
                 [ -414321352, 3036588, 777, "Med (IV)", -5007, "MED-5007 (<5)", "METOPROLOL TARTRATE 5 MG/5 ML IV SOLN (<5 doses)", datetime(2111,12,14,8,30) ],
 
                 # Simple mixture with different dosing counts
-                [ -395900000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481 (<5)", "Cefepime (IV) (<5 doses)", datetime(2111, 1, 2, 3, 0)],   
-                [ -395800000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 1,10, 3, 0)],   
-                [ -395700000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 3,10, 3, 0)],   
+                [ -395900000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481 (<5)", "Cefepime (IV) (<5 doses)", datetime(2111, 1, 2, 3, 0)],
+                [ -395800000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 1,10, 3, 0)],
+                [ -395700000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 3,10, 3, 0)],
 
                 # IVF Mix
-                [ -392000000, 1234567, 888, "Med (IV)", -9863, 'RXCUI-9863 (<5)', 'Sodium Chloride (IV) (<5 doses)', datetime(2111, 4, 1, 3, 0)],   
-                [ -392000000, 1234567, 888, "Med (IV)", -8591, 'RXCUI-8591 (<5)', 'Potassium Chloride (IV) (<5 doses)', datetime(2111, 4, 1, 3, 0)],   
-                [ -392000000, 1234567, 888, "Med (IV)", -4850, 'RXCUI-4850 (<5)', 'Glucose (IV) (<5 doses)', datetime(2111, 4, 1, 3, 0)],   
+                [ -392000000, 1234567, 888, "Med (IV)", -9863, 'RXCUI-9863 (<5)', 'Sodium Chloride (IV) (<5 doses)', datetime(2111, 4, 1, 3, 0)],
+                [ -392000000, 1234567, 888, "Med (IV)", -8591, 'RXCUI-8591 (<5)', 'Potassium Chloride (IV) (<5 doses)', datetime(2111, 4, 1, 3, 0)],
+                [ -392000000, 1234567, 888, "Med (IV)", -4850, 'RXCUI-4850 (<5)', 'Glucose (IV) (<5 doses)', datetime(2111, 4, 1, 3, 0)],
 
                 # Mini-Mix
-                [ -391000000, 1234567, 888, "Med (IV)", -236719, 'RXCUI-236719 (<5)', 'Sodium Phosphate, Dibasic (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -235496, 'RXCUI-235496 (<5)', 'Sodium Phosphate, Monobasic (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -11115, 'RXCUI-11115 (<5)', 'Valine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -10962, 'RXCUI-10962 (<5)', 'Tyrosine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -10898, 'RXCUI-10898 (<5)', 'Tryptophan (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -10524, 'RXCUI-10524 (<5)', 'Threonine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -9863, 'RXCUI-9863 (<5)', 'Sodium Chloride (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -9671, 'RXCUI-9671 (<5)', 'Serine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -8737, 'RXCUI-8737 (<5)', 'Proline (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -8156, 'RXCUI-8156 (<5)', 'Phenylalanine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -6837, 'RXCUI-6837 (<5)', 'Methionine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -6536, 'RXCUI-6536 (<5)', 'Lysine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -6308, 'RXCUI-6308 (<5)', 'Leucine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -6033, 'RXCUI-6033 (<5)', 'Isoleucine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -5340, 'RXCUI-5340 (<5)', 'Histidine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -4919, 'RXCUI-4919 (<5)', 'Glycine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -4850, 'RXCUI-4850 (<5)', 'Glucose (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -1091, 'RXCUI-1091 (<5)', 'Arginine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
-                [ -391000000, 1234567, 888, "Med (IV)", -426, 'RXCUI-426 (<5)', 'Alanine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],   
+                [ -391000000, 1234567, 888, "Med (IV)", -236719, 'RXCUI-236719 (<5)', 'Sodium Phosphate, Dibasic (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -235496, 'RXCUI-235496 (<5)', 'Sodium Phosphate, Monobasic (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -11115, 'RXCUI-11115 (<5)', 'Valine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -10962, 'RXCUI-10962 (<5)', 'Tyrosine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -10898, 'RXCUI-10898 (<5)', 'Tryptophan (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -10524, 'RXCUI-10524 (<5)', 'Threonine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -9863, 'RXCUI-9863 (<5)', 'Sodium Chloride (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -9671, 'RXCUI-9671 (<5)', 'Serine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -8737, 'RXCUI-8737 (<5)', 'Proline (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -8156, 'RXCUI-8156 (<5)', 'Phenylalanine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -6837, 'RXCUI-6837 (<5)', 'Methionine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -6536, 'RXCUI-6536 (<5)', 'Lysine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -6308, 'RXCUI-6308 (<5)', 'Leucine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -6033, 'RXCUI-6033 (<5)', 'Isoleucine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -5340, 'RXCUI-5340 (<5)', 'Histidine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -4919, 'RXCUI-4919 (<5)', 'Glycine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -4850, 'RXCUI-4850 (<5)', 'Glucose (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -1091, 'RXCUI-1091 (<5)', 'Arginine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
+                [ -391000000, 1234567, 888, "Med (IV)", -426, 'RXCUI-426 (<5)', 'Alanine (IV) (<5 doses)', datetime(2111, 4, 2, 3, 0)],
 
                 # Complex mixture
-                [ -390000000, 1234567, 888, "Med (IV)", -253182, 'RXCUI-253182', 'Regular Insulin, Human (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -236719, 'RXCUI-236719', 'Sodium Phosphate, Dibasic (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -235496, 'RXCUI-235496', 'Sodium Phosphate, Monobasic (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -89905, 'RXCUI-89905', 'Multivitamin Preparation (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -39937, 'RXCUI-39937', 'Zinc Chloride (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -29261, 'RXCUI-29261', 'Manganese Chloride (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -21579, 'RXCUI-21579', 'Copper Sulfate (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -21032, 'RXCUI-21032', 'Chromous Chloride (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -11115, 'RXCUI-11115', 'Valine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -10962, 'RXCUI-10962', 'Tyrosine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -10898, 'RXCUI-10898', 'Tryptophan (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -10524, 'RXCUI-10524', 'Threonine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -9863, 'RXCUI-9863', 'Sodium Chloride (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -9671, 'RXCUI-9671', 'Serine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -8737, 'RXCUI-8737', 'Proline (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -8591, 'RXCUI-8591', 'Potassium Chloride (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -8308, 'RXCUI-8308', 'Vitamin K 1 (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -8156, 'RXCUI-8156', 'Phenylalanine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -6837, 'RXCUI-6837', 'Methionine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -6585, 'RXCUI-6585', 'Magnesium Sulfate (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -6536, 'RXCUI-6536', 'Lysine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -6308, 'RXCUI-6308', 'Leucine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -6033, 'RXCUI-6033', 'Isoleucine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -5340, 'RXCUI-5340', 'Histidine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -4919, 'RXCUI-4919', 'Glycine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -4850, 'RXCUI-4850', 'Glucose (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -1908, 'RXCUI-1908', 'Calcium Gluconate (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -1091, 'RXCUI-1091', 'Arginine (IV)', datetime(2111, 5, 2, 3, 0)],   
-                [ -390000000, 1234567, 888, "Med (IV)", -426, 'RXCUI-426', 'Alanine (IV)', datetime(2111, 5, 2, 3, 0)],   
+                [ -390000000, 1234567, 888, "Med (IV)", -253182, 'RXCUI-253182', 'Regular Insulin, Human (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -236719, 'RXCUI-236719', 'Sodium Phosphate, Dibasic (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -235496, 'RXCUI-235496', 'Sodium Phosphate, Monobasic (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -89905, 'RXCUI-89905', 'Multivitamin Preparation (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -39937, 'RXCUI-39937', 'Zinc Chloride (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -29261, 'RXCUI-29261', 'Manganese Chloride (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -21579, 'RXCUI-21579', 'Copper Sulfate (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -21032, 'RXCUI-21032', 'Chromous Chloride (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -11115, 'RXCUI-11115', 'Valine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -10962, 'RXCUI-10962', 'Tyrosine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -10898, 'RXCUI-10898', 'Tryptophan (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -10524, 'RXCUI-10524', 'Threonine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -9863, 'RXCUI-9863', 'Sodium Chloride (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -9671, 'RXCUI-9671', 'Serine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -8737, 'RXCUI-8737', 'Proline (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -8591, 'RXCUI-8591', 'Potassium Chloride (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -8308, 'RXCUI-8308', 'Vitamin K 1 (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -8156, 'RXCUI-8156', 'Phenylalanine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -6837, 'RXCUI-6837', 'Methionine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -6585, 'RXCUI-6585', 'Magnesium Sulfate (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -6536, 'RXCUI-6536', 'Lysine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -6308, 'RXCUI-6308', 'Leucine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -6033, 'RXCUI-6033', 'Isoleucine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -5340, 'RXCUI-5340', 'Histidine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -4919, 'RXCUI-4919', 'Glycine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -4850, 'RXCUI-4850', 'Glucose (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -1908, 'RXCUI-1908', 'Calcium Gluconate (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -1091, 'RXCUI-1091', 'Arginine (IV)', datetime(2111, 5, 2, 3, 0)],
+                [ -390000000, 1234567, 888, "Med (IV)", -426, 'RXCUI-426', 'Alanine (IV)', datetime(2111, 5, 2, 3, 0)],
             ];
         actualData = DBUtil.execute(testQuery);
         self.assertEqualTable( expectedData, actualData );
@@ -335,7 +335,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
         # Query for orderset links
         testQuery = \
             """
-            select 
+            select
                 pi.external_id,
                 ci.description,
                 ic.external_id,
@@ -366,25 +366,25 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
                 [ -418436145, "Bisacodyl (PR)", -111,"General Admit","Medications","Stool Softeners"],
 
                 # Mini-Mix
-                [ -391000000, 'Sodium Phosphate, Dibasic (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Sodium Phosphate, Monobasic (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Valine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Tyrosine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Tryptophan (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Threonine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Sodium Chloride (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Serine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Proline (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Phenylalanine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Methionine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Lysine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Leucine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Isoleucine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Histidine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Glycine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Glucose (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Arginine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
-                [ -391000000, 'Alanine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
+                [ -391000000, 'Sodium Phosphate, Dibasic (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Sodium Phosphate, Monobasic (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Valine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Tyrosine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Tryptophan (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Threonine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Sodium Chloride (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Serine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Proline (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Phenylalanine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Methionine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Lysine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Leucine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Isoleucine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Histidine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Glycine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Glucose (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Arginine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
+                [ -391000000, 'Alanine (IV) (<5 doses)', -222, "Nutrition","Infusions","TPN"],
             ];
         actualData = DBUtil.execute(testQuery);
         self.assertEqualTable( expectedData, actualData );
@@ -403,7 +403,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
         # Just query back for the same data, de-normalizing the data back to a general table
         testQuery = \
             """
-            select 
+            select
                 pi.external_id,
                 pi.patient_id,
                 pi.encounter_id,
@@ -437,18 +437,18 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
                 [ -414321352, 3036588, 777, "Med (IV)", -5007, "MED-5007 (<5)", "METOPROLOL TARTRATE 5 MG/5 ML IV SOLN (<5 doses)", datetime(2111,12,14,8,30) ],
 
                 # Simple mixture with different dosing counts
-                [ -395900000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481 (<5)", "Cefepime (IV) (<5 doses)", datetime(2111, 1, 2, 3, 0)], 
-                [ -395800000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 1,10, 3, 0)], 
-                [ -395700000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 3,10, 3, 0)], 
+                [ -395900000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481 (<5)", "Cefepime (IV) (<5 doses)", datetime(2111, 1, 2, 3, 0)],
+                [ -395800000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 1,10, 3, 0)],
+                [ -395700000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 3,10, 3, 0)],
 
                 # IVF Mixture, composite ingredient description
-                [ -392000000, 1234567, 888, "Med (IV)", -888699365, "RXCUI-4850,-8591,-9863 (<5)", "Glucose-Potassium Chloride-Sodium Chloride (IV) (<5 doses)", datetime(2111, 4, 1, 3, 0)], 
+                [ -392000000, 1234567, 888, "Med (IV)", 786930457607, "RXCUI-4850,-8591,-9863 (<5)", "Glucose-Potassium Chloride-Sodium Chloride (IV) (<5 doses)", datetime(2111, 4, 1, 3, 0)], 
 
                 # Mini mixture.  Too many components, just use summary description
                 [ -391000000, 1234567, 888, "Med (IV)", -540000, "MED-540000 (<5)", "Mini TPN (<5 doses)", datetime(2111, 4, 2, 3, 0)], # Still aggregated because breaking up into component amino acids results in too many
 
                 # Complex mixture
-                [ -390000000, 1234567, 888, "Med (IV)", -550000, "MED-550000", "TPN Adult", datetime(2111, 5, 2, 3, 0)], 
+                [ -390000000, 1234567, 888, "Med (IV)", -550000, "MED-550000", "TPN Adult", datetime(2111, 5, 2, 3, 0)],
 
             ];
         actualData = DBUtil.execute(testQuery);
@@ -458,7 +458,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
         # Query for orderset links
         testQuery = \
             """
-            select 
+            select
                 pi.external_id,
                 ci.description,
                 ic.external_id,
@@ -488,7 +488,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
                 [ -418436145, "Bisacodyl (PR)", -111,"General Admit","Medications","Stool Softeners"],
 
                 # Mini-Mix
-                [ -391000000, 'Mini TPN (<5 doses)', -222, "Nutrition","Infusions","TPN"],   
+                [ -391000000, 'Mini TPN (<5 doses)', -222, "Nutrition","Infusions","TPN"],
             ];
         actualData = DBUtil.execute(testQuery);
         self.assertEqualTable( expectedData, actualData );
@@ -506,7 +506,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
         # Just query back for the same data, de-normalizing the data back to a general table
         testQuery = \
             """
-            select 
+            select
                 pi.external_id,
                 pi.patient_id,
                 pi.encounter_id,
@@ -540,22 +540,22 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
                 [ -414321352, 3036588, 777, "Med (IV)", -5007, "MED-5007 (<5)", "METOPROLOL TARTRATE 5 MG/5 ML IV SOLN (<5 doses)", datetime(2111,12,14,8,30) ],
 
                 # Simple mixture with different dosing counts
-                [ -395900000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481 (<5)", "Cefepime (IV) (<5 doses)", datetime(2111, 1, 2, 3, 0)], 
-                [ -395800000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 1,10, 3, 0)], 
-                [ -395700000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 3,10, 3, 0)], 
+                [ -395900000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481 (<5)", "Cefepime (IV) (<5 doses)", datetime(2111, 1, 2, 3, 0)],
+                [ -395800000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 1,10, 3, 0)],
+                [ -395700000, 1234567, 888, "Med (IV)", -20481, "RXCUI-20481", "Cefepime (IV)", datetime(2111, 3,10, 3, 0)],
 
                 # IVF Mixture, composite ingredient description
-                [ -392000000, 1234567, 888, "Med (IV)", -530000, "MED-530000 (<5)", "IVF Mix (<5 doses)", datetime(2111, 4, 1, 3, 0)], 
+                [ -392000000, 1234567, 888, "Med (IV)", -530000, "MED-530000 (<5)", "IVF Mix (<5 doses)", datetime(2111, 4, 1, 3, 0)],
 
                 # Mini mixture.  Too many components, just use summary description
                 [ -391000000, 1234567, 888, "Med (IV)", -540000, "MED-540000 (<5)", "Mini TPN (<5 doses)", datetime(2111, 4, 2, 3, 0)], # Still aggregated because breaking up into component amino acids results in too many
 
                 # Complex mixture
-                [ -390000000, 1234567, 888, "Med (IV)", -550000, "MED-550000", "TPN Adult", datetime(2111, 5, 2, 3, 0)], 
+                [ -390000000, 1234567, 888, "Med (IV)", -550000, "MED-550000", "TPN Adult", datetime(2111, 5, 2, 3, 0)],
 
             ];
         actualData = DBUtil.execute(testQuery);
-   
+
         self.assertEqualTable( expectedData, actualData );
 
 def suite():
@@ -569,8 +569,8 @@ def suite():
     #suite.addTest(TestSTRIDEOrderMedConversion('test_executeIterator'));
     #suite.addTest(TestSTRIDEOrderMedConversion('test_dataConversion_maxMixtureCount'));
     suite.addTest(unittest.makeSuite(TestSTRIDEOrderMedConversion));
-    
+
     return suite;
-    
+
 if __name__=="__main__":
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

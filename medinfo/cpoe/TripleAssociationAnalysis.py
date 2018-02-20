@@ -35,12 +35,12 @@ class TripleAssociationAnalysis(AssociationAnalysis):
         self.dataManager = DataManager();
 
     def analyzePatientItems(self, patientIds, itemIdSequence, virtualItemId):
-        """Primary run function to analyze patient clinical item data and 
+        """Primary run function to analyze patient clinical item data and
         record updated stats to the respective database tables.
-        
+
         Does the analysis only for records pertaining to the given patient IDs
         (provides a way to limit the extent of analysis depending on params).
-        
+
         Note that this does NOT record analyze_date timestamp on any records analyzed,
         as would collide with AssociationAnalysis primary timestamping, thus it is the
         caller's responsibility to be careful not to repeat this analysis redundantly
@@ -52,7 +52,7 @@ class TripleAssociationAnalysis(AssociationAnalysis):
             # Preload lookup data to facilitate rapid checks and filters later
             linkedItemIdsByBaseId = self.dataManager.loadLinkedItemIdsByBaseId(conn=conn);
             self.verifyVirtualItemLinked(itemIdSequence, virtualItemId, linkedItemIdsByBaseId, conn=conn);
-        
+
             # Keep an in memory buffer of the updates to be done so can stall and submit them
             #   to the database in batch to minimize inefficient DB hits
             updateBuffer = dict();
@@ -68,14 +68,14 @@ class TripleAssociationAnalysis(AssociationAnalysis):
             self.commitUpdateBuffer(updateBuffer, linkedItemIdsByBaseId, conn=conn);  # Final update buffer commit
         finally:
             conn.close();
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
     def updateItemAssociationsBuffer(self, itemIdSequence, virtualItemId, patientItemList, updateBuffer, linkedItemIdsByBaseId=None, progress=None):
-        """Given a list of data on patient clinical items, 
-        ordered by item event date, increment information in the 
+        """Given a list of data on patient clinical items,
+        ordered by item event date, increment information in the
         updateBuffer to inform subsequent updates to the clinical_item_association
         stats based on all item pairs observed.
-        
+
         Looking for specific triple sequences only though with items followed by those specified
         in the itemIdSequence.  If a triple sequence is found, then mark the end point as
         a virtualItem instance for counting associations.
@@ -94,7 +94,7 @@ class TripleAssociationAnalysis(AssociationAnalysis):
             if patientItem["clinical_item_id"] == itemIdSequence[0]:
                 midSequenceItemDates.add(patientItem["item_date"]);
         endSequenceItemsByPatientItemId = dict();
-        
+
         # Main nested loop to look for associations
         for iItem1, patientItem1 in enumerate(patientItemList):
             subsequentItemIds.clear();
@@ -153,7 +153,7 @@ class TripleAssociationAnalysis(AssociationAnalysis):
         try:
             if virtualItemId not in linkedItemIdsByBaseId:
                 linkedItemIdsByBaseId[virtualItemId] = set();
-            
+
             for componentId in itemIdSequence:
                 if componentId not in linkedItemIdsByBaseId[virtualItemId]:
                     linkModel = RowItemModel();
@@ -163,7 +163,7 @@ class TripleAssociationAnalysis(AssociationAnalysis):
                     insertQuery = DBUtil.buildInsertQuery("clinical_item_link", linkModel.keys() );
                     insertParams= linkModel.values();
                     DBUtil.execute( insertQuery, insertParams, conn=conn);
-                    
+
                     linkedItemIdsByBaseId[virtualItemId].add(componentId);
         finally:
             if not extConn:
@@ -173,7 +173,7 @@ class TripleAssociationAnalysis(AssociationAnalysis):
         """Assess whether the pair of items represents an acceptable triple sequence.
         Is so if end point matches the end of the itemIdSequence, and there exists a mid-sequence
         item in the intervening time, as previously tracked by the midSequenceItemDates.
-        
+
         Assume previous check has already confirmed that the item pairs are not previously linked,
         and that there is a non-negative / forward direction in the relationship
         """
@@ -182,7 +182,7 @@ class TripleAssociationAnalysis(AssociationAnalysis):
 
         isAcceptable = True;
         isAcceptable = isAcceptable and itemId2 == itemIdSequence[-1];
-        
+
         foundMidSequenceDate = False;
         for midDate in midSequenceItemDates:
             if patientItem1["item_date"] <= midDate and midDate <= patientItem2["item_date"]:
@@ -190,7 +190,7 @@ class TripleAssociationAnalysis(AssociationAnalysis):
                 break;  # Don't need to keep looking
         isAcceptable = isAcceptable and foundMidSequenceDate;
         return isAcceptable;
-    
+
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog [options] <patientIds>\n"+\
@@ -215,7 +215,7 @@ class TripleAssociationAnalysis(AssociationAnalysis):
 
         itemIdSequence = [int(idStr) for idStr in options.itemIdSequence.split(",")];
         virtualItemId = int(options.virtualItemId);
-        
+
         self.analyzePatientItems(patientIds, itemIdSequence, virtualItemId);
 
         timer = time.time() - timer;

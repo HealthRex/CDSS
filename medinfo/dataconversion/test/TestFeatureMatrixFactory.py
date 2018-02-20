@@ -23,9 +23,11 @@ from Util import log
 class TestFeatureMatrixFactory(DBTestCase):
     def setUp(self):
         """Prepare state for test cases."""
-        DBTestCase.setUp(self);
+        DBTestCase.setUp(self)
         self._deleteTestRecords()
         self._insertTestRecords()
+
+        self.factory = FeatureMatrixFactory()
 
     def _insertTestRecords(self):
         """Populate database for with patient data."""
@@ -82,8 +84,26 @@ class TestFeatureMatrixFactory(DBTestCase):
 
     def tearDown(self):
         """Restore state from any setUp or test steps."""
-        self._deleteTestRecords();
-        DBTestCase.tearDown(self);
+        self._deleteTestRecords()
+        DBTestCase.tearDown(self)
+
+        # Clean up files that might have lingered from failed tests.
+        try:
+            os.remove("patient_list.tsv")
+        except:
+            pass
+        try:
+            self.factory.cleanTempFiles()
+        except:
+            pass
+        try:
+            os.remove(self.factory.getMatrixFileName())
+        except:
+            pass
+        try:
+            os.remove("extractor.feature_matrix.tab.gz")
+        except:
+            pass
 
     def test_dbCache(self):
         """Test database result caching."""
@@ -95,13 +115,10 @@ class TestFeatureMatrixFactory(DBTestCase):
 
     def test_processPatientListInput(self):
         """Test processPatientListInput()."""
-        # Initialize FeatureMatrixFactory.
-        factory = FeatureMatrixFactory()
-
         # Verify FeatureMatrixFactory throws Error if patientListInput
         # has not been set.
         with self.assertRaises(ValueError):
-            factory.processPatientListInput()
+            self.factory.processPatientListInput()
 
         # Initialize DB cursor.
         connection = DBUtil.connection()
@@ -117,9 +134,9 @@ class TestFeatureMatrixFactory(DBTestCase):
         cursor.execute(str(patientListQuery), patientListQuery.params)
 
         # Set and process patientListInput.
-        factory.setPatientListInput(cursor, "pat_id")
-        factory.processPatientListInput()
-        resultPatientIterator = factory.getPatientListIterator()
+        self.factory.setPatientListInput(cursor, "pat_id")
+        self.factory.processPatientListInput()
+        resultPatientIterator = self.factory.getPatientListIterator()
 
         # Verify results.
         expectedPatientList = ["-789", "-456", "-123"]
@@ -140,13 +157,13 @@ class TestFeatureMatrixFactory(DBTestCase):
         patientListTsv.close()
 
         # Initialize new FeatureMatrixFactory.
-        factory = FeatureMatrixFactory()
+        self.factory = FeatureMatrixFactory()
 
         # Set and process patientListInput.
         patientListTsv = open("patient_list.tsv", "r")
-        factory.setPatientListInput(patientListTsv, "patient_id")
-        factory.processPatientListInput()
-        resultPatientIterator = factory.getPatientListIterator()
+        self.factory.setPatientListInput(patientListTsv, "patient_id")
+        self.factory.processPatientListInput()
+        resultPatientIterator = self.factory.getPatientListIterator()
 
         # Verify results.
         expectedPatientList = ["-123", "-123", "-123", "-456", "-789"]
@@ -162,14 +179,10 @@ class TestFeatureMatrixFactory(DBTestCase):
             pass
 
     def test_buildFeatureMatrix_multiClinicalItem(self):
-        """Test _buildFeatureMatrix()."""
-        # Initialize FeatureMatrixFactory.
-        factory = FeatureMatrixFactory()
-
         # Verify FeatureMatrixFactory throws Error if patientEpisodeInput
         # has not been set.
         with self.assertRaises(ValueError):
-            factory.processPatientEpisodeInput()
+            self.factory.processPatientEpisodeInput()
 
         # Initialize DB cursor.
         connection = DBUtil.connection()
@@ -191,9 +204,9 @@ class TestFeatureMatrixFactory(DBTestCase):
         cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
 
         # Set and process patientEpisodeInput.
-        factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
-        factory.processPatientEpisodeInput()
-        resultEpisodeIterator = factory.getPatientEpisodeIterator()
+        self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
+        self.factory.processPatientEpisodeInput()
+        resultEpisodeIterator = self.factory.getPatientEpisodeIterator()
         resultPatientEpisodes = list()
         for episode in resultEpisodeIterator:
             episode["pat_id"] = int(episode["pat_id"])
@@ -205,25 +218,29 @@ class TestFeatureMatrixFactory(DBTestCase):
         self.assertEqualList(resultPatientEpisodes, expectedPatientEpisodes)
 
         # Add TestItem100 and TestItem200 clinical item data.
-        factory.addClinicalItemFeatures(["TestItem100"])
-        factory.addClinicalItemFeatures(["TestItem200"])
-        factory.buildFeatureMatrix()
-        resultMatrix = factory.readFeatureMatrixFile()
+        self.factory.addClinicalItemFeatures(["TestItem100"])
+        self.factory.addClinicalItemFeatures(["TestItem200"])
+        self.factory.buildFeatureMatrix()
+        resultMatrix = self.factory.readFeatureMatrixFile()
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiClinicalItem"]
 
         self.assertEqualList(resultMatrix, expectedMatrix)
 
-    def test_build_FeatureMatrix_multiLabTest(self):
-        """
-        Test buildFeatureMatrix() and addLabFeatures().
-        """
-        # Initialize FeatureMatrixFactory.
-        factory = FeatureMatrixFactory()
+        try:
+            os.remove(self.factory.getMatrixFileName())
+        except OSError:
+            pass
 
+    def test_buildFeatureMatrix_prePostFeatures(self):
+        """
+        Test features parameter in addClinicalItemFeatures which allows
+        client to specify they only want .pre* or .post* columns in feature
+        matrix.
+        """
         # Verify FeatureMatrixFactory throws Error if patientEpisodeInput
         # has not been set.
         with self.assertRaises(ValueError):
-            factory.processPatientEpisodeInput()
+            self.factory.processPatientEpisodeInput()
 
         # Initialize DB cursor.
         connection = DBUtil.connection()
@@ -245,9 +262,65 @@ class TestFeatureMatrixFactory(DBTestCase):
         cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
 
         # Set and process patientEpisodeInput.
-        factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
-        factory.processPatientEpisodeInput()
-        resultEpisodeIterator = factory.getPatientEpisodeIterator()
+        self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
+        self.factory.processPatientEpisodeInput()
+        resultEpisodeIterator = self.factory.getPatientEpisodeIterator()
+        resultPatientEpisodes = list()
+        for episode in resultEpisodeIterator:
+            episode["pat_id"] = int(episode["pat_id"])
+            episode["order_time"] = DBUtil.parseDateValue(episode["order_time"])
+            resultPatientEpisodes.append(episode)
+
+        # Add TestItem100 and TestItem200 clinical item data.
+        self.factory.addClinicalItemFeatures(["TestItem100"], features="pre")
+        self.factory.addClinicalItemFeatures(["TestItem200"], features="post")
+        self.factory.buildFeatureMatrix()
+        resultMatrix = self.factory.readFeatureMatrixFile()
+        expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_prePostFeatures"]
+
+        self.assertEqualList(resultMatrix, expectedMatrix)
+
+        try:
+            os.remove(self.factory.getMatrixFileName())
+        except OSError:
+            pass
+
+
+    def test_build_FeatureMatrix_multiLabTest(self):
+        """
+        Test buildFeatureMatrix() and addLabFeatures().
+        """
+        # Initialize FeatureMatrixFactory.
+        self.factory = FeatureMatrixFactory()
+
+        # Verify FeatureMatrixFactory throws Error if patientEpisodeInput
+        # has not been set.
+        with self.assertRaises(ValueError):
+            self.factory.processPatientEpisodeInput()
+
+        # Initialize DB cursor.
+        connection = DBUtil.connection()
+        cursor = connection.cursor()
+
+        # Build SQL query for list of patient episodes.
+        patientEpisodeQuery = SQLQuery()
+        patientEpisodeQuery.addSelect("CAST(pat_id AS bigint)")
+        patientEpisodeQuery.addSelect("sop.order_proc_id AS order_proc_id")
+        patientEpisodeQuery.addSelect("proc_code")
+        patientEpisodeQuery.addSelect("order_time")
+        patientEpisodeQuery.addSelect("COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS normal_results")
+        patientEpisodeQuery.addFrom("stride_order_proc AS sop")
+        patientEpisodeQuery.addFrom("stride_order_results AS sor")
+        patientEpisodeQuery.addWhere("sop.order_proc_id = sor.order_proc_id")
+        patientEpisodeQuery.addWhereEqual("proc_code", "LABMETB")
+        patientEpisodeQuery.addGroupBy("pat_id, sop.order_proc_id, proc_code, order_time")
+        patientEpisodeQuery.addOrderBy("pat_id, sop.order_proc_id, proc_code, order_time")
+        cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
+
+        # Set and process patientEpisodeInput.
+        self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
+        self.factory.processPatientEpisodeInput()
+        resultEpisodeIterator = self.factory.getPatientEpisodeIterator()
         resultPatientEpisodes = list()
         for episode in resultEpisodeIterator:
             episode["pat_id"] = int(episode["pat_id"])
@@ -263,26 +336,27 @@ class TestFeatureMatrixFactory(DBTestCase):
         # Look for lab data 90 days before each episode, but never afterself.
         preTimeDelta = datetime.timedelta(-90)
         postTimeDelta = datetime.timedelta(0)
-        factory.addLabResultFeatures(labBaseNames, preTimeDelta, postTimeDelta)
-        factory.buildFeatureMatrix()
-        resultMatrix = factory.readFeatureMatrixFile()
+        self.factory.addLabResultFeatures(labBaseNames, False, preTimeDelta, postTimeDelta)
+        self.factory.buildFeatureMatrix()
+        resultMatrix = self.factory.readFeatureMatrixFile()
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiLabTest"]["expectedMatrix"]
         self.assertEqualList(resultMatrix, expectedMatrix)
 
+        try:
+            os.remove(self.factory.getMatrixFileName())
+        except OSError:
+            pass
+
     def test_buildFeatureMatrix_multiFlowsheet(self):
         """
         Test buildFeatureMatrix and addFlowsheet.
         """
-
-        # Initialize FeatureMatrixFactory.
-        factory = FeatureMatrixFactory()
-
         # Verify FeatureMatrixFactory throws Error if patientEpisodeInput
         # has not been set.
         with self.assertRaises(ValueError):
-            factory.processPatientEpisodeInput()
+            self.factory.processPatientEpisodeInput()
 
         # Initialize DB cursor.
         connection = DBUtil.connection()
@@ -304,9 +378,9 @@ class TestFeatureMatrixFactory(DBTestCase):
         cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
 
         # Set and process patientEpisodeInput.
-        factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
-        factory.processPatientEpisodeInput()
-        resultEpisodeIterator = factory.getPatientEpisodeIterator()
+        self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
+        self.factory.processPatientEpisodeInput()
+        resultEpisodeIterator = self.factory.getPatientEpisodeIterator()
         resultPatientEpisodes = list()
         for episode in resultEpisodeIterator:
             episode["pat_id"] = int(episode["pat_id"])
@@ -322,13 +396,78 @@ class TestFeatureMatrixFactory(DBTestCase):
         # Look for lab data 90 days before each episode, but never afterself.
         preTimeDelta = datetime.timedelta(-90)
         postTimeDelta = datetime.timedelta(0)
-        factory.addFlowsheetFeatures(flowsheetNames, preTimeDelta, postTimeDelta)
-        factory.buildFeatureMatrix()
-        resultMatrix = factory.readFeatureMatrixFile()
+        self.factory.addFlowsheetFeatures(flowsheetNames, preTimeDelta, postTimeDelta)
+        self.factory.buildFeatureMatrix()
+        resultMatrix = self.factory.readFeatureMatrixFile()
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiFlowsheet"]["expectedMatrix"]
         self.assertEqualList(resultMatrix, expectedMatrix)
+
+        try:
+            os.remove(self.factory.getMatrixFileName())
+        except OSError:
+            pass
+
+    def test_addTimeCycleFeatures(self):
+        """
+        Test .addTimeCycleFeatures()
+        """
+        # Initialize DB cursor.
+        connection = DBUtil.connection()
+        cursor = connection.cursor()
+
+        # Build SQL query for list of patient episodes.
+        patientEpisodeQuery = SQLQuery()
+        patientEpisodeQuery.addSelect("CAST(pat_id AS bigint)")
+        patientEpisodeQuery.addSelect("sop.order_proc_id AS order_proc_id")
+        patientEpisodeQuery.addSelect("proc_code")
+        patientEpisodeQuery.addSelect("order_time")
+        patientEpisodeQuery.addSelect("COUNT(CASE result_in_range_yn WHEN 'Y' THEN 1 ELSE null END) AS normal_results")
+        patientEpisodeQuery.addFrom("stride_order_proc AS sop")
+        patientEpisodeQuery.addFrom("stride_order_results AS sor")
+        patientEpisodeQuery.addWhere("sop.order_proc_id = sor.order_proc_id")
+        patientEpisodeQuery.addWhereEqual("proc_code", "LABMETB")
+        patientEpisodeQuery.addGroupBy("pat_id, sop.order_proc_id, proc_code, order_time")
+        patientEpisodeQuery.addOrderBy("pat_id, sop.order_proc_id, proc_code, order_time")
+        cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
+
+        # Set and process patientEpisodeInput.
+        self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
+        self.factory.processPatientEpisodeInput()
+
+        # Add time cycle features.
+        self.factory.addTimeCycleFeatures("order_time", "month")
+        self.factory.addTimeCycleFeatures("order_time", "hour")
+
+        # Verify output.
+        self.factory.buildFeatureMatrix()
+        resultMatrix = self.factory.readFeatureMatrixFile()
+        expectedMatrix = FM_TEST_OUTPUT["test_addTimeCycleFeatures"]["expectedMatrix"]
+        self.assertEqualList(resultMatrix, expectedMatrix)
+
+        # Clean up feature matrix.
+        try:
+            os.remove(self.factory.getMatrixFileName())
+        except OSError:
+            pass
+
+    def test_loadMapData(self):
+        self.factory = FeatureMatrixFactory()
+
+        # Depends on external data file
+        reader = self.factory.loadMapData("CharlsonComorbidity-ICD9CM")
+        charlsonByICD9 = dict()
+
+        for row in reader:
+            charlsonByICD9[row["icd9cm"]] = row["charlson"]
+
+        self.assertEqual("Dementia", charlsonByICD9["294.1"])
+        self.assertEqual("Dementia", charlsonByICD9["331.2"])
+        self.assertEqual("COPD", charlsonByICD9["490"])
+        self.assertEqual("COPD", charlsonByICD9["416.8"])
+        self.assertEqual("Malignancy Metastatic", charlsonByICD9["199"])
+        self.assertEqual("AIDS/HIV", charlsonByICD9["042"])
 
     def test_performance(self):
         """
@@ -340,7 +479,7 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         # Initialize FeatureMatrixFactory.
         factoryStart = time.time()
-        factory = FeatureMatrixFactory()
+        self.factory = FeatureMatrixFactory()
 
         # Build SQL query for list of patient episodes.
         patientEpisodeQuery = SQLQuery()
@@ -358,29 +497,29 @@ class TestFeatureMatrixFactory(DBTestCase):
         cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
 
         # Set and process patientEpisodeInput.
-        factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
-        factory.processPatientEpisodeInput()
+        self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
+        self.factory.processPatientEpisodeInput()
 
         # Look for lab data 90 days before each episode, but never afterself.
         preTimeDelta = datetime.timedelta(-90)
         postTimeDelta = datetime.timedelta(0)
 
         # Add clinical item features.
-        factory.addClinicalItemFeatures(["PerfItem300"])
-        factory.addClinicalItemFeatures(["PerfItem400"])
-        factory.addClinicalItemFeatures(["PerfItem500"])
+        self.factory.addClinicalItemFeatures(["PerfItem300"])
+        self.factory.addClinicalItemFeatures(["PerfItem400"])
+        self.factory.addClinicalItemFeatures(["PerfItem500"])
 
         # Add lab result features.
-        factory.addLabResultFeatures(["Foo"], preTimeDelta, postTimeDelta)
-        factory.addLabResultFeatures(["Bar"], preTimeDelta, postTimeDelta)
-        factory.addLabResultFeatures(["Baz"], preTimeDelta, postTimeDelta)
-        factory.addLabResultFeatures(["Qux"], preTimeDelta, postTimeDelta)
+        self.factory.addLabResultFeatures(["Foo"], False, preTimeDelta, postTimeDelta)
+        self.factory.addLabResultFeatures(["Bar"], False, preTimeDelta, postTimeDelta)
+        self.factory.addLabResultFeatures(["Baz"], False, preTimeDelta, postTimeDelta)
+        self.factory.addLabResultFeatures(["Qux"], False, preTimeDelta, postTimeDelta)
 
         # Add flowsheet features.
-        factory.addFlowsheetFeatures(["Perflow"], preTimeDelta, postTimeDelta)
+        self.factory.addFlowsheetFeatures(["Perflow"], preTimeDelta, postTimeDelta)
 
         # Build matrix.
-        factory.buildFeatureMatrix()
+        self.factory.buildFeatureMatrix()
 
         # Stop timer.
         factoryStop = time.time()
@@ -613,7 +752,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         except OSError:
             pass
         try:
-            os.remove(factory.getMatrixFileName())
+            os.remove(self.factory.getMatrixFileName())
         except OSError:
             pass
 

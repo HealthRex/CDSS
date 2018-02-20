@@ -1,0 +1,19 @@
+###### CDSS requirements.txt ######
+
+# gensim (https://radimrehurek.com/gensim/)
+gensim
+
+# ipython (https://ipython.org/index.html)
+ipython
+
+# networkx (https://networkx.github.io/)
+networkx
+
+# pandas (http://pandas.pydata.org/)
+pandas
+
+# psycopg2 (http://initd.org/psycopg/)
+psycopg2
+
+# scikit-learn (http://scikit-learn.org/stable/)
+scikit-learn

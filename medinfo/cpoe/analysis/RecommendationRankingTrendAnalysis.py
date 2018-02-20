@@ -5,7 +5,7 @@ Rough approach
 - Input patient IDs to test against
 - Query recommender for recommended item list given the first unique X orders / items
   for each patient, for X in [0,N-1] (N = number unique orders / items for the patient)
-- For each query above, record the positition of the next actual order / item in that 
+- For each query above, record the positition of the next actual order / item in that
     recommended item rank list.
 
 Simulates a cumulative recommendation based on more and more orders.
@@ -37,12 +37,12 @@ from BaseCPOEAnalysis import AGGREGATOR_OPTIONS;
 class AnalysisQuery:
     """Simple struct to pass query parameters
     """
-    patientIds = None;  # IDs of the patients to test / analyze against 
+    patientIds = None;  # IDs of the patients to test / analyze against
     recommender = None; # Instance of the recommender to test against
-    baseRecQuery = None;    # Base Recommender Query to test recommender with.  
-                            # Query items and return counts will be customized by analyzer dynamically, 
+    baseRecQuery = None;    # Base Recommender Query to test recommender with.
+                            # Query items and return counts will be customized by analyzer dynamically,
                             #   but allows specification of static query modifiers (e.g., excluded categories, items, timeDeltaMax)
-    queryItemMax = None;    # If set, specifies a maximum number of query items to use when analyzing 
+    queryItemMax = None;    # If set, specifies a maximum number of query items to use when analyzing
                             #   serial recommendations.  Will stop analyzing further for a patient once reach this limit
     def __init__(self):
         self.patientIds = set();
@@ -54,11 +54,11 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
     """Driver class to review given patient data and run sample recommendation queries against
     them serially based on accumulating initial orders / items and record recommendation
     ranks of each next order / item as they occur.
-    
+
     Report as a relational table with columns
     - patientId:    ID of the patient to which the analysis data applies
     - iItem:    Index of the next order / item for the patient in chronological order
-    - iRecItem: Index of the next order / item, which should be the same as iItem, 
+    - iRecItem: Index of the next order / item, which should be the same as iItem,
                 except this only counts items / orders for which recommendations can / will be made.
                 For example, recommendations will not be offerred for repeat orders.
                 Recommendations will often only be offerred for orders and not other informational
@@ -77,7 +77,7 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
         if conn is None:
             conn = self.connFactory.connection();
             extConn = False;
-        
+
         try:
             # Preload some lookup data to facilitate subsequent checks
             categoryIdByItemId = dict();
@@ -94,18 +94,18 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
             # Start building results data
             resultsTable = list();
             progress = ProgressDots(50,1,"Item Recommendations");
-            
+
             # Query for all of the order / item data for the test patients.  Load one patient's data at a time
             for (patientId, clinicalItemIdList) in self.queryPatientClinicalItemData(analysisQuery, conn=conn):
-                # Parse through the patient's item list and run serial recommendation queries 
+                # Parse through the patient's item list and run serial recommendation queries
                 #   to find each item's accumulated recommendation rank
                 serialRecDataGen = \
                     self.reviewSerialRecommendations \
-                    (   patientId, 
+                    (   patientId,
                         clinicalItemIdList,
-                        analysisQuery, 
-                        recQuery, 
-                        recommender, 
+                        analysisQuery,
+                        recQuery,
+                        recommender,
                         categoryIdByItemId,
                         progress=progress,
                         conn=conn
@@ -115,7 +115,7 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
                     resultsRow = (patientId, clinicalItemId, iItem, iRecItem, recRank, recScore);
                     resultsTable.append(resultsRow);
 
-            progress.PrintStatus();
+            # progress.PrintStatus();
 
             #print resultsTable
             return resultsTable;
@@ -131,7 +131,7 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
         at a time.
         Generated iterator over 2-ples (patientId, clinicalItemIdList)
             - Patient ID: ID of the patient for which the currently yielded item intended for
-            - Clinical Item ID List: 
+            - Clinical Item ID List:
                 List of all of the clinical items / orders for this patient
                 ordered by item date (currently excluding those that are off the "default_recommend" / on the "default exclusion" list).
         """
@@ -173,10 +173,10 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
             clinicalItemIdList.append(clinicalItemId);
 
             row = cursor.fetchone();
-        
+
         # Yield / return the last patient data
         yield (currentPatientId, clinicalItemIdList);
-        
+
         cursor.close();
 
 
@@ -195,11 +195,11 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
         iRecItem = 0;   # Separately track number of items that can actually be recommended (skip repeats and other exclusions)
         for (iItem, clinicalItemId) in enumerate(clinicalItemIdList):
             if self.isItemRecommendable(clinicalItemId, queryItemIds, recQuery, categoryIdByItemId):
-                # Query based on accumulated key data thus far, 
+                # Query based on accumulated key data thus far,
                 #   to see how well able to predict / rank / score this next clinical item
                 recQuery.queryItemIds = queryItemIds;
                 recQuery.limit = None;  # No limitation because trying to find the next item whereever it may be in the list
-                
+
                 recommendedData = recommender( recQuery, conn=conn );
 
                 # Find the next clinical item in the recommended list
@@ -216,11 +216,11 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
 
                 iRecItem += 1;  # Track that we recorded information on one more recommended item
                 progress.Update();
-            
+
             queryItemIds.add(clinicalItemId);   # Accumulate initial query set as progress
-            
+
             if analysisQuery.queryItemMax is not None and iRecItem >= analysisQuery.queryItemMax:
-                # Option to break early if wish to avoid excessive analysis that is unnecessary 
+                # Option to break early if wish to avoid excessive analysis that is unnecessary
                 #   or even potentially damaging to execution memory
                 break;
 
@@ -255,7 +255,7 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
         parser.add_option("-p", "--countPrefix",  dest="countPrefix",  help="Prefix for how to do counts.  Blank for default item counting allowing repeats, otherwise ignore repeats for patient_ or encounter_");
         parser.add_option("-q", "--queryItemMax",  dest="queryItemMax",  help="If set, specifies a maximum number of query items to use when analyzing serial recommendations.  Will stop analyzing further for a patient once reach this limit.");
         (options, args) = parser.parse_args(argv[1:])
-    
+
         log.info("Starting: "+str.join(" ", argv))
         timer = time.time();
         if len(args) > 1:
@@ -273,7 +273,7 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
                 # Unable to open as a filename, then interpret as simple comma-separated list
                 query.patientIds = set(patientIdsParam.split(","));
 
-        
+
             query.baseRecQuery = RecommenderQuery();
             query.baseRecQuery.excludeCategoryIds = query.recommender.defaultExcludedClinicalItemCategoryIds();
             query.baseRecQuery.excludeItemIds = query.recommender.defaultExcludedClinicalItemIds();
@@ -292,7 +292,7 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
 
             if options.queryItemMax is not None:
                 query.queryItemMax = int(options.queryItemMax);
-            
+
             # Run the actual analysis
             analysisResults = self(query);
 
@@ -301,12 +301,12 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
             if len(args) > 1:
                 outputFilename = args[1];
             outputFile = stdOpen(outputFilename,"w");
-            
+
             print >> outputFile, "#", argv;  # Print comment line with analysis arguments to allow for deconstruction later
 
             colNames = ["patientId", "clinicalItemId", "iItem", "iRecItem", "recRank", "recScore"];
             analysisResults.insert(0, colNames);    # Insert a mock record to get a header / label row
-            
+
             formatter = TextResultsFormatter( outputFile );
             formatter.formatResultSet( analysisResults );
 

@@ -20,17 +20,17 @@ class TestSimManager(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
-        
+
         self.testPatientId = None;
-        
+
         self.purgeTestRecords();
-        
+
         log.info("Populate the database with test data")
 
         self.clinicalItemCategoryIdStrList = list();
         headers = ["clinical_item_category_id","source_table"];
         dataModels = \
-            [   
+            [
                 RowItemModel( [-1, "Labs"], headers ),
                 RowItemModel( [-2, "Imaging"], headers ),
                 RowItemModel( [-3, "Meds"], headers ),
@@ -44,9 +44,9 @@ class TestSimManager(DBTestCase):
 
         headers = ["clinical_item_id","clinical_item_category_id","name","analysis_status"];
         dataModels = \
-            [   
+            [
                 RowItemModel( [-1, -1, "CBC",1], headers ),
-                RowItemModel( [-2, -1, "BMP",1], headers ), 
+                RowItemModel( [-2, -1, "BMP",1], headers ),
                 RowItemModel( [-3, -1, "Hepatic Panel",1], headers ),
                 RowItemModel( [-4, -1, "Cardiac Enzymes",1], headers ),
                 RowItemModel( [-5, -2, "CXR",1], headers ),
@@ -113,7 +113,7 @@ class TestSimManager(DBTestCase):
 """     # Parse into DB insertion object
         DBUtil.insertFile( StringIO(dataTextStr), "sim_result", delim=";");
 
-        # Map orders to expected results. 
+        # Map orders to expected results.
         # Simplify expect vital signs to result in 5 minutes. Basic chemistry labs in 10 minutes, CBC in 15 minutes
         dataTextStr = \
 """sim_order_result_map_id;clinical_item_id;sim_result_id;turnaround_time
@@ -146,6 +146,7 @@ class TestSimManager(DBTestCase):
 
         dataTextStr = \
 """sim_state_id;name;description
+0;Test 0; Test State 0
 -1;Test 1;Test State 1
 -2;Test 2;Test State 2
 -3;Test 3;Test State 3
@@ -251,11 +252,11 @@ class TestSimManager(DBTestCase):
         DBUtil.execute("delete from sim_result where sim_result_id < 0");
         DBUtil.execute("delete from sim_patient_state where sim_state_id < 0 or sim_patient_state_id < 0");
         DBUtil.execute("delete from sim_state_transition where pre_state_id < 0");
-        DBUtil.execute("delete from sim_state where sim_state_id < 0");
+        DBUtil.execute("delete from sim_state where sim_state_id <= 0");
         DBUtil.execute("delete from sim_user where sim_user_id < 0");
         DBUtil.execute("delete from sim_patient where sim_patient_id < 0");
         DBUtil.execute("delete from clinical_item where clinical_item_id < 0");
-        
+
     def tearDown(self):
         """Restore state from any setUp or test steps"""
         self.purgeTestRecords();
@@ -267,13 +268,13 @@ class TestSimManager(DBTestCase):
         templatePatientId = -1;
         self.testPatientId = self.manager.copyPatientTemplate( newPatientData, templatePatientId );
         futureTime = 1000000;   # Far future time to test that we still only copied the results up to time zero
-        
+
         # Verify basic patient information
         patientCols = ["name","age_years","gender","sim_state_id"];
         patientModel = self.manager.loadPatientInfo([self.testPatientId])[0];
         expectedPatientModel = RowItemModel(["Template Copy",60,"Female",-1], patientCols);
         self.assertEqualDict(expectedPatientModel, patientModel, patientCols);
-        
+
         # Verify notes
         dataCols = ["sim_patient_id","content"];
         sampleData = self.manager.loadNotes(self.testPatientId, futureTime);
@@ -282,7 +283,7 @@ class TestSimManager(DBTestCase):
                 RowItemModel([self.testPatientId,"Initial Note"], dataCols),    # Second copy because another state initiation at time zero and negative onset time
             ];
         self.assertEqualDictList(verifyData, sampleData, dataCols);
-    
+
         # Verify orders
         dataCols = ["sim_user_id","sim_patient_id","sim_state_id","clinical_item_id","relative_time_start","relative_time_end"];
         sampleData = self.manager.loadPatientOrders(self.testPatientId, futureTime, loadActive=None);
@@ -290,7 +291,7 @@ class TestSimManager(DBTestCase):
             [   RowItemModel([-1,self.testPatientId,-1,-15,0,0], dataCols),
             ];
         self.assertEqualDictList(verifyData, sampleData, dataCols);
-        
+
         # Verify states
         dataCols = ["sim_patient_id","sim_state_id","relative_time_start","relative_time_end"];
         query = SQLQuery();
@@ -310,15 +311,15 @@ class TestSimManager(DBTestCase):
     def test_loadResults(self):
         # Query for results based on simulated turnaround times, including fallback to default normal values
         #   if no explicit (abnormal) values specified for simulated state
-        
+
         colNames = ["name", "num_value", "result_relative_time"];
-        
+
         # Time zero, no orders for diagnostics, so no results should exist
         patientId = -1;
         relativeTime = 0;
         sampleResults = self.manager.loadResults(patientId, relativeTime);
         verifyResults = \
-            [   
+            [
             ];
         self.assertEqualDictList(verifyResults, sampleResults, colNames);
 
@@ -326,7 +327,7 @@ class TestSimManager(DBTestCase):
         relativeTime = 120;
         sampleResults = self.manager.loadResults(patientId, relativeTime);
         verifyResults = \
-            [   
+            [
             ];
         self.assertEqualDictList(verifyResults, sampleResults, colNames);
 
@@ -334,7 +335,7 @@ class TestSimManager(DBTestCase):
         relativeTime = 300;
         sampleResults = self.manager.loadResults(patientId, relativeTime);
         verifyResults = \
-            [   
+            [
                 RowItemModel(["Temp", 101.4, 300], colNames),
                 RowItemModel(["Pulse", 115, 300], colNames),
                 RowItemModel(["SBP", 92, 300], colNames),
@@ -347,7 +348,7 @@ class TestSimManager(DBTestCase):
         relativeTime = 600;
         sampleResults = self.manager.loadResults(patientId, relativeTime);
         verifyResults = \
-            [   
+            [
                 RowItemModel(["Temp", 101.4, 300], colNames),
                 RowItemModel(["Pulse", 115, 300], colNames),
                 RowItemModel(["SBP", 92, 300], colNames),
@@ -360,7 +361,7 @@ class TestSimManager(DBTestCase):
         relativeTime = 1200;
         sampleResults = self.manager.loadResults(patientId, relativeTime);
         verifyResults = \
-            [   
+            [
                 RowItemModel(["Temp", 101.4, 300], colNames),
                 RowItemModel(["Pulse", 115, 300], colNames),
                 RowItemModel(["SBP", 92, 300], colNames),
@@ -388,13 +389,13 @@ class TestSimManager(DBTestCase):
         relativeTime = 1500;
         sampleResults = self.manager.loadResults(patientId, relativeTime);
         verifyResults = \
-            [   
+            [
                 RowItemModel(["Temp", 101.4, 300], colNames),
                 RowItemModel(["Pulse", 115, 300], colNames),
                 RowItemModel(["SBP", 92, 300], colNames),
                 RowItemModel(["DBP", 55, 300], colNames),
                 RowItemModel(["Resp", 12, 300], colNames),  # Normal result retrieve from default state 0
-                
+
                 RowItemModel(["NA", 140, 1200], colNames),
                 RowItemModel(["K", 4.5, 1200], colNames),
                 RowItemModel(["CL", 95, 1200], colNames),
@@ -422,13 +423,13 @@ class TestSimManager(DBTestCase):
         relativeTime = 1800;
         sampleResults = self.manager.loadResults(patientId, relativeTime);
         verifyResults = \
-            [   
+            [
                 RowItemModel(["Temp", 101.4, 300], colNames),
                 RowItemModel(["Pulse", 115, 300], colNames),
                 RowItemModel(["SBP", 92, 300], colNames),
                 RowItemModel(["DBP", 55, 300], colNames),
                 RowItemModel(["Resp", 12, 300], colNames),  # Normal result retrieve from default state 0
-                
+
                 RowItemModel(["NA", 140, 1200], colNames),
                 RowItemModel(["K", 4.5, 1200], colNames),
                 RowItemModel(["CL", 95, 1200], colNames),
@@ -456,13 +457,13 @@ class TestSimManager(DBTestCase):
         relativeTime = 2700;
         sampleResults = self.manager.loadResults(patientId, relativeTime);
         verifyResults = \
-            [   
+            [
                 RowItemModel(["Temp", 101.4, 300], colNames),
                 RowItemModel(["Pulse", 115, 300], colNames),
                 RowItemModel(["SBP", 92, 300], colNames),
                 RowItemModel(["DBP", 55, 300], colNames),
                 RowItemModel(["Resp", 12, 300], colNames),  # Normal result retrieve from default state 0
-                
+
                 RowItemModel(["NA", 140, 1200], colNames),
                 RowItemModel(["K", 4.5, 1200], colNames),
                 RowItemModel(["CL", 95, 1200], colNames),
@@ -489,7 +490,7 @@ class TestSimManager(DBTestCase):
                 RowItemModel(["SBP", 130, 2100], colNames),
                 RowItemModel(["DBP", 85, 2100], colNames),
                 RowItemModel(["Resp", 12, 2100], colNames),
-                
+
                 RowItemModel(["NA", 140, 2400], colNames),
                 RowItemModel(["K", 4.5, 2400], colNames),
                 RowItemModel(["CL", 95, 2400], colNames),
@@ -509,24 +510,24 @@ class TestSimManager(DBTestCase):
     def test_stateTransition(self):
         # Query for results based on simulated turnaround times, including fallback to default normal values
         #   if no explicit (abnormal) values specified for simulated state
-        
+
         colNames = ["sim_state_id"];
 
         userId = -1;
         patientId = -1;
-        
+
         # Time zero, initial state expected
         relativeTime = 0;
         samplePatient = self.manager.loadPatientInfo([patientId], relativeTime)[0];
         verifyPatient = RowItemModel([-1], colNames);
         self.assertEqualDict(samplePatient, verifyPatient, colNames);
 
-        # After previously recorded second state 
+        # After previously recorded second state
         relativeTime = 2000;
         samplePatient = self.manager.loadPatientInfo([patientId], relativeTime)[0];
         verifyPatient = RowItemModel([-2], colNames);
         self.assertEqualDict(samplePatient, verifyPatient, colNames);
-        
+
         # Sign orders that do not affect this state
         orderItemIds = [-4,-5];
         self.manager.signOrders(userId, patientId, relativeTime, orderItemIds);
@@ -553,7 +554,7 @@ class TestSimManager(DBTestCase):
         samplePatient = self.manager.loadPatientInfo([patientId], relativeTime)[0];
         verifyPatient = RowItemModel([-2], colNames);
         self.assertEqualDict(samplePatient, verifyPatient, colNames);
-        
+
         # Retroactive query to verify state 1 intermediate transition state
         relativeTime = 12000;
         samplePatient = self.manager.loadPatientInfo([patientId], relativeTime)[0];
@@ -601,8 +602,8 @@ def suite():
     #suite.addTest(TestSimManager('test_executeIterator'));
     #suite.addTest(TestSimManager('test_deactivateAnalysis'));
     suite.addTest(unittest.makeSuite(TestSimManager));
-    
+
     return suite;
-    
+
 if __name__=="__main__":
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

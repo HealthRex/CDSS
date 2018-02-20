@@ -61,7 +61,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
 
             # Start building results data
             resultsStatDataList = list();
-            progress = ProgressDots(50,1,"Patients");
+            # progress = ProgressDots(50,1,"Patients");
 
             # Query for all of the order / item data for the test patients.  Load one patient's data at a time
             preparer = PreparePatientItems();
@@ -88,7 +88,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
                         resultsStatData = self.prepareResultStats( patientId, queryItemCountById, scoreByOutcomeId, existsByOutcomeId);
                         resultsStatDataList.append(resultsStatData);
 
-                progress.Update();
+                # progress.Update();
 
             # progress.PrintStatus();
 
