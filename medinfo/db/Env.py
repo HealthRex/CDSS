@@ -5,6 +5,7 @@ platform / environment where they are installed.
 
 import sys, os;
 import logging
+from LocalEnv import *
 
 """Default level for application logging.  Modify these for different scenarios.
 See Python logging package documentation for more information"""
@@ -51,9 +52,9 @@ DB_PARAM["DSN"]  = "stride"
 #DB_PARAM["DSN"]  = "resident-access-log-2017"
 #DB_PARAM["DSN"] = "/Users/angelicaperez/Documents/JonChen/sqlite_db/dave_chan2.sqlite"
 #DB_PARAM["DSN"]  = "medinfo5yr"
-DB_PARAM["UID"]  = "jwang198"
-DB_PARAM["PWD"]  = ""
-
+DB_PARAM["UID"]  = "sbala"
+DB_PARAM["PWD"]  = "1234"
+DB_PARAM = LOCAL_PROD_DB_PARAM
 
 # Opioid Notes DB
 #DB_PARAM["HOST"] = "cci-db-p03";
@@ -71,6 +72,7 @@ TEST_DB_PARAM["HOST"] = "localhost"
 TEST_DB_PARAM["DSN"]  = "testdb"
 TEST_DB_PARAM["UID"]  = "sbala"
 TEST_DB_PARAM["PWD"]  = "1234"
+TEST_DB_PARAM = LOCAL_TEST_DB_PARAM
 
 #TEST_DB_PARAM["DSN"] = "c:\Box Sync\NoSync\VAAlerts\dave_chan2.sqlite";
 #TEST_DB_PARAM["DSN"] = "/Users/angelicaperez/Documents/JonChen/sqlite_db/dave_chan2.sqlite"

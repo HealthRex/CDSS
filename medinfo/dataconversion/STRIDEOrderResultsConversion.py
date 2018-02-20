@@ -22,7 +22,7 @@ SOURCE_TABLE = "stride_order_results";
 class STRIDEOrderResultsConversion:
     """Data conversion module to take STRIDE provided (lab) results data
     into the structured data tables to facilitate subsequent analysis.
-    
+
     Renormalizes denormalized data back out to order types (clinical_item_category),
     orders (clinical_item), and actual individual (lab) results (patient_item).
 
@@ -30,10 +30,10 @@ class STRIDEOrderResultsConversion:
     for this result, then just record as a generic "Result" event.
     """
     connFactory = None; # Allow specification of alternative DB connection source
-    
+
     categoryBySourceDescr = None;   # Local cache to track the clinical item category table contents
     clinicalItemByCategoryIdExtId = None;   # Local cache to track clinical item table contents
-    
+
     def __init__(self):
         """Default constructor"""
         self.connFactory = DBUtil.ConnectionFactory();  # Default connection source
@@ -46,7 +46,7 @@ class STRIDEOrderResultsConversion:
         """Primary run function to process the contents of the stride_order_proc
         table and convert them into equivalent patient_item, clinical_item, and clinical_item_category entries.
         Should look for redundancies to avoid repeating conversion.
-        
+
         startDate - If provided, only return items whose ordering_date is on or after that date.
         endDate - If provided, only return items whose ordering_date is before that date.
         """
@@ -59,12 +59,12 @@ class STRIDEOrderResultsConversion:
                 progress.Update();
         finally:
             conn.close();
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
 
     def querySourceItems(self, startDate=None, endDate=None, progress=None, conn=None):
-        """Query the database for list of all source clinical items (lab results in this case) 
-        and yield the results one at a time.  If startDate provided, only return items 
+        """Query the database for list of all source clinical items (lab results in this case)
+        and yield the results one at a time.  If startDate provided, only return items
         whose result_time is on or after that date.
         Only include results records where the result_flag is set to an informative value,
         to focus only on abnormal lab results (including would be a ton more relatively uninformative
@@ -76,7 +76,7 @@ class STRIDEOrderResultsConversion:
 
         # Column headers to query for that map to respective fields in analysis table
         headers = ["sor.order_proc_id", "pat_id", "pat_enc_csn_id", "order_type", "proc_id", "proc_code", "base_name", "component_name", "common_name", "ord_num_value", "result_flag", "result_in_range_yn", "sor.result_time"];
-        
+
         query = SQLQuery();
         for header in headers:
             query.addSelect( header );
@@ -88,7 +88,7 @@ class STRIDEOrderResultsConversion:
             query.addWhereOp("sor.result_time",">=", startDate);
         if endDate is not None:
             query.addWhereOp("sor.result_time","<", endDate);
- 
+
         # Query to get an estimate of how long the process will be
         if progress is not None:
             progress.total = DBUtil.execute(query.totalQuery(), conn=conn)[0][0];
@@ -101,11 +101,11 @@ class STRIDEOrderResultsConversion:
         while row is not None:
             rowModel = RowItemModel( row, headers );
             # Normalize qualified labels
-            rowModel["order_proc_id"] = rowModel["sor.order_proc_id"];  
-            rowModel["result_time"] = rowModel["sor.result_time"];  
-            
+            rowModel["order_proc_id"] = rowModel["sor.order_proc_id"];
+            rowModel["result_time"] = rowModel["sor.result_time"];
+
             self.populateResultFlag(rowModel,conn=conn);
-            
+
             yield rowModel; # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
             row = cursor.fetchone();
 
@@ -144,11 +144,11 @@ class STRIDEOrderResultsConversion:
             dataTable = DBUtil.execute("select * from order_result_stat", includeColumnNames=True, conn=conn);
             dataModels = modelListFromTable(dataTable);
             self.resultStatsByBaseName = modelDictFromList(dataModels, "base_name");
-        
+
         if resultModel["base_name"] not in self.resultStatsByBaseName:
             # Result stats not already in cache.  Query from DB and store in cache for future use.
             statModel = self.calculateResultStats( resultModel["base_name"], conn=conn );
-            
+
             # Store results back in cache to facilitate future lookups
             self.resultStatsByBaseName[resultModel["base_name"]] = statModel;
             DBUtil.insertRow("order_result_stat", statModel, conn=conn );
@@ -180,7 +180,7 @@ class STRIDEOrderResultsConversion:
                     resultModel["result_flag"] = FLAG_RESULT;
             else:   # No value distribution, just record as a non-specific result
                 resultModel["result_flag"] = FLAG_RESULT;
-        
+
         if not extConn:
             conn.close();
 
@@ -202,7 +202,7 @@ class STRIDEOrderResultsConversion:
         dataModels = modelListFromTable(dataTable);
         statModel = dataModels[0];   # Assume that exactly 1 row item will exist
         statModel["base_name"] = baseName;
-        
+
         return statModel;
 
     def convertSourceItem(self, sourceItem, conn=None):
@@ -219,7 +219,7 @@ class STRIDEOrderResultsConversion:
             categoryModel = self.categoryFromSourceItem(sourceItem, conn=conn);
             clinicalItemModel = self.clinicalItemFromSourceItem(sourceItem, categoryModel, conn=conn);
             patientItemModel = self.patientItemModelFromSourceItem(sourceItem, clinicalItemModel, conn=conn);
-            
+
         finally:
             if not extConn:
                 conn.close();
@@ -240,7 +240,7 @@ class STRIDEOrderResultsConversion:
             category["clinical_item_category_id"] = categoryId;
             self.categoryBySourceDescr[categoryKey] = category;
         return self.categoryBySourceDescr[categoryKey];
-    
+
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
         # Make unique by lab component name, not by proc_id / panel, since interested in result, not which panel it came from
@@ -260,7 +260,7 @@ class STRIDEOrderResultsConversion:
             clinicalItem["clinical_item_id"] = clinicalItemId;
             self.clinicalItemByCategoryIdExtId[clinicalItemKey] = clinicalItem;
         return self.clinicalItemByCategoryIdExtId[clinicalItemKey];
-    
+
     def patientItemModelFromSourceItem(self, sourceItem, clinicalItem, conn):
         # Produce a patient_item record model for the given sourceItem
         patientItem = \

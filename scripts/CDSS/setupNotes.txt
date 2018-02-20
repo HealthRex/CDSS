@@ -19,7 +19,6 @@ sudo service sshd restart
 Should now be able to SSH to instance using the created username and password
 
 - Install Amazon packages
-sudo yum install svn
 sudo yum install postgresql93
 sudo yum install python27-psycopg2
 sudo yum install httpd
@@ -28,19 +27,12 @@ sudo yum install python27-scipy
 
 sudo easy_install gensim
 
-sudo yum install mysql
-sudo yum install MySQL-python
-
 (Consider general SciPy dev environment setup)
 (http://blog.yhathq.com/posts/setting-up-scientific-python.html)
   Avoid mixing installation modalities (PIP, downloadable executables, Enthought Canopy distribution) as tend to be incompatible
 
-- Use AWS Console interface (RDService) to create a PostgreSQL or MySQL relational database if want separate DB server (vs. installed on local EC2 instance)
+- Use AWS Console interface (RDService) to create a PostgreSQL relational database if want separate DB server (vs. installed on local EC2 instance)
   Consider Provisioned IOPS on a "large' instance for computation periods to better handle high I/O cost
-  Additional MySQL configurations that helped with local installation to move more processing to memory than disk:
-	query_cache_size=128M
-	innodb_buffer_pool_size=6000M
-	innodb_log_file_size=2000M
 
 
 ==============================================
@@ -56,8 +48,7 @@ Local Installation Dependencies
 
 ==============================================
 Download code from source control
-
-svn checkout https://xp-dev.com/svn/jonc101-Projects/CDSS
+    git clone https://github.com/HealthRex/CDSS.git
 
 =============================================
 Update ~/.bash_profile with paths and references
@@ -122,7 +113,7 @@ rsync --partial --progress order_results.txt jonc101@corn.stanford.edu:private/d
 
 ===================================================================
 
-#  Setup Web Server (Apache HTTP, mod_wsgi, psycopg2 or MySQL DB access).  
+#  Setup Web Server (Apache HTTP, mod_wsgi, psycopg2 DB access).  
 # Install mod_wsgi using an install or Copy the version appropriate mod_wsgi.so file to the 
 #	apache modules directory and rename to simply mod_wsgi.so
 # Sample Apache Config:

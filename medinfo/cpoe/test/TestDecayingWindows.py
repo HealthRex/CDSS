@@ -21,6 +21,8 @@ from medinfo.cpoe.DataManager import DataManager;
 
 from medinfo.cpoe.AssociationAnalysis import AssociationAnalysis, AnalysisOptions;
 
+TEMP_FILENAME = "DWTemp.txt";
+
 class TestDecayingWindows(DBTestCase):
 	def setUp(self):
 		"""Prepare state for test cases"""
@@ -109,8 +111,10 @@ class TestDecayingWindows(DBTestCase):
 		DBUtil.execute("delete from clinical_item where clinical_item_id < 0");
 		DBUtil.execute("delete from clinical_item_category where clinical_item_category_id in (%s)" % str.join(",", self.clinicalItemCategoryIdStrList) );
 
-		if os.path.exists("DWTemp.txt"):
-			os.remove("DWTemp.txt")
+		# Purge temporary buffer files. May not match exact name if modified for other purpose
+		for filename in os.listdir("."):
+			if filename.startswith(TEMP_FILENAME):
+				os.remove(filename);
 
 		DBTestCase.tearDown(self);
 
@@ -138,7 +142,7 @@ class TestDecayingWindows(DBTestCase):
 		decayAnalysisOptions.decay = 0.9
 		decayAnalysisOptions.delta = timedelta(weeks=4)
 		decayAnalysisOptions.patientIds = [-22222, -33333]
-		decayAnalysisOptions.outputFile = "DWTemp.txt"
+		decayAnalysisOptions.outputFile = TEMP_FILENAME;
 
 		self.decayAnalyzer.decayAnalyzePatientItems(decayAnalysisOptions)
 
@@ -205,7 +209,7 @@ class TestDecayingWindows(DBTestCase):
 		#decayAnalysisOptions.decay = 0.9
 		decayAnalysisOptions.delta = timedelta(weeks=4)
 		decayAnalysisOptions.patientIds = [-22222, -33333]
-		decayAnalysisOptions.outputFile = "DWTemp.txt"
+		decayAnalysisOptions.outputFile = TEMP_FILENAME;
 
 		self.decayAnalyzer.decayAnalyzePatientItems(decayAnalysisOptions)
 
@@ -258,7 +262,7 @@ class TestDecayingWindows(DBTestCase):
 				-16: 0,
 			}
 		itemBaseCountById = self.dataManager.loadClinicalItemBaseCountByItemId(acceptCache=False);	# Don't use cache, otherwise will get prior results
-		print >> sys.stderr, itemBaseCountById;
+		#print >> sys.stderr, itemBaseCountById;
 		self.assertEqualDict(expectedItemBaseCountById, itemBaseCountById);
 
 

@@ -93,6 +93,10 @@ class TextResultsFormatter(ResultsFormatter):
     Defaults to tab-delimited, but can customize.
     Option to escape / URL quote content text to avoid
     special characters (tabs, new lines, etc.) compromising formatting.
+
+    This is mostly redundant with built-in package:
+        csv.DictWriter( dialect=csv.excel_tab )
+
     """
     mDelim = None;
     quoteContents = None;
@@ -243,6 +247,9 @@ class TabDictReader(csv.DictReader):
 def pandas_read_table(infile, *args, **kwds):
     """Simple wrapper function for default arguments to read a pandas dataframe 
     from a tab-delimited file and ignoring comment lines.
+
+    Beware that using something like a '#' comment tag means that data elements that include '#' in the string 
+        will result in the remainder of the row's contents being ignored as a comment
     """
     import pandas as pd;    # Only import as needed
     return pd.read_table(infile, comment=COMMENT_TAG, na_values=[NULL_STRING], *args, **kwds);
@@ -290,7 +297,7 @@ def sanitizeNames(names):
         newNameSet.add(newName);
     return newNames;
 
-def pandas_to_sqlconn(df, tableName="data", conn=None):
+def pandas_to_sqlconn(df, tableName="data", conn=None, *args, **kwds):
     """Turning pandas dataframe into SQL queryable in memory object
     Column names will be cleaned up as per sanitizeNames.
     https://plot.ly/python/big-data-analytics-with-pandas-and-sqlite/
@@ -307,12 +314,12 @@ def pandas_to_sqlconn(df, tableName="data", conn=None):
     df.to_sql(tableName, conn, if_exists='replace');
     return conn;
 
-def df2sql(df, tableName="data", conn=None):
+def df2sql(df, tableName="data", conn=None, *args, **kwds):
     """Synonym function that may be more intuitive"""
-    return pandas_to_sqlconn(df, tableName, conn);
+    return pandas_to_sqlconn(df, tableName, conn, *args, **kwds);
 
 
-def pandas_read_sql_query(query, conn):
+def pandas_read_sql_query(query, conn, *args, **kwds):
     """To query dataframes back out,
     just enter a SQL query, using "data" as the source table name
     (unless a different one was specified in the dataframe_to_sqlconn) process.
@@ -323,9 +330,9 @@ def pandas_read_sql_query(query, conn):
         limit 10
     """
     import pandas as pd; # Only Import as needed
-    return pd.read_sql_query(query, conn);
+    return pd.read_sql_query(query, conn, *args, **kwds);
     
-def sql2df(query, conn):
+def sql2df(query, conn, *args, **kwds):
     """Synonym function that may be more intuitive"""
-    return pandas_read_sql_query(query, conn);
+    return pandas_read_sql_query(query, conn, *args, **kwds);
 

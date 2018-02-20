@@ -42,7 +42,7 @@ class TopicModelAnalysis(RecommendationClassificationAnalysis):
         """Go through the validation file to test use of the model towards predicting verify items.
         """
         preparer = PreparePatientItems();
-        
+
         # Keep ID indexes for simplicity for now
         id2word = analysisQuery.recommender.model.id2word;
         id2id = dict();
@@ -50,15 +50,15 @@ class TopicModelAnalysis(RecommendationClassificationAnalysis):
             id2id[id] = id;
         analysisQuery.recommender.model.id2word = id2id;
 
-        progress = ProgressDots(50,1,"Patients");
+        # progress = ProgressDots(50,1,"Patients");
         for patientItemData in preparer.loadPatientItemData(analysisQuery):
             patientId = patientItemData["patient_id"];
             analysisResults = \
                 self.analyzePatientItems \
                 (   patientItemData,
-                    analysisQuery, 
-                    analysisQuery.baseRecQuery, 
-                    patientId, 
+                    analysisQuery,
+                    analysisQuery.baseRecQuery,
+                    patientId,
                     analysisQuery.recommender,
                     preparer
                 );
@@ -71,13 +71,13 @@ class TopicModelAnalysis(RecommendationClassificationAnalysis):
                     analysisQuery.baseItemId = patientItemData["baseItemId"]; # Record something here, so know to report back in result headers
                 yield resultsStatData;
 
-            progress.Update();
+            # progress.Update();
 
-        progress.PrintStatus();
+        # progress.PrintStatus();
 
     def analyzePatientItems(self, patientItemData, analysisQuery, recQuery, patientId, recommender, preparer):
         """Given the primary query data and clinical item list for a given test patient,
-        Parse through the item list and run a query to get the top recommended IDs 
+        Parse through the item list and run a query to get the top recommended IDs
         to produce the relevant verify and recommendation item ID sets for comparison
         """
         if "queryItemCountById" not in patientItemData:
@@ -85,16 +85,16 @@ class TopicModelAnalysis(RecommendationClassificationAnalysis):
             return None;
         queryItemCountById = patientItemData["queryItemCountById"];
         verifyItemCountById = patientItemData["verifyItemCountById"];
-        
+
         recQuery.queryItemIds = queryItemCountById; # Have option to use as dictionary, but will also function as key set
-        # recQuery.limit = analysisQuery.numRecommendations; 
-        
+        # recQuery.limit = analysisQuery.numRecommendations;
+
         # Query for recommended orders / items
         recommendedData = recommender( recQuery );
 
         # Customize number of recommendations if comparing against specific order set usage
         self.customizeNumRecommendations(patientItemData, analysisQuery, recQuery, preparer);
-        
+
         # Distill down to just the set of recommended item IDs
         recommendedItemIds = set();
         for i, recommendationModel in enumerate(recommendedData):
@@ -102,7 +102,7 @@ class TopicModelAnalysis(RecommendationClassificationAnalysis):
                 break;
             recommendedItemIds.add(recommendationModel["clinical_item_id"]);
         return (queryItemCountById, verifyItemCountById, recommendedItemIds, recommendedData);
- 
+
     def calculateResultStats( self, patientItemData, queryItemCountById, verifyItemCountById, recommendedItemIds, baseCountByItemId, recQuery, recommendedData ):
         resultsStatData = RecommendationClassificationAnalysis.calculateResultStats( self, patientItemData, queryItemCountById, verifyItemCountById, recommendedItemIds, baseCountByItemId, recQuery, recommendedData );
         # Copy elements from any item in recommended list
@@ -115,7 +115,7 @@ class TopicModelAnalysis(RecommendationClassificationAnalysis):
         headers.append("weightByTopicId");
         headers.append("numSelectedTopics");
         return headers;
-   
+
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog [options] <inputFile> [<outputFile>]\n"+\
@@ -147,7 +147,7 @@ class TopicModelAnalysis(RecommendationClassificationAnalysis):
                 query.baseRecQuery.excludeItemIds = query.recommender.defaultExcludedClinicalItemIds();
             query.baseRecQuery.itemsPerCluster = int(options.itemsPerCluster);
             query.baseRecQuery.minClusterWeight = float(options.minClusterWeight);
-            
+
             query.baseRecQuery.sortField = options.sortField;
             query.numRecommendations = int(options.numRecs);
             query.numRecsByOrderSet = options.numRecsByOrderSet;
@@ -160,13 +160,13 @@ class TopicModelAnalysis(RecommendationClassificationAnalysis):
             if len(args) > 1:
                 outputFilename = args[1];
             outputFile = stdOpen(outputFilename,"w");
-            
+
             # Print comment line with analysis arguments to allow for deconstruction later
             summaryData = {"argv": argv};
             print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
 
             formatter = TextResultsFormatter( outputFile );
-            colNames = self.resultHeaders(query); 
+            colNames = self.resultHeaders(query);
             formatter.formatTuple( colNames );  # Insert a mock record to get a header / label row
             formatter.formatResultDicts( analysisResults, colNames );
         else:

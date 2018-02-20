@@ -1,24 +1,25 @@
+"""
+Look through directory tree for unit test cases to run.
+Comparable to command-line functionality:
+
+python -m unittest discover -v -s <directoryName> -p "Test*.py"
+"""
+
 import unittest
 import logging
 
 # Set logging level.
 log = logging.getLogger("CDSS")
-
-# TODO(sbala): Complete implementation by enabling differential logging levels.
-# Move logging level settings to the application logic, away from the TestCases.
-# To do this, call the application name from each of the end test cases as the
-# logger name. Then set the logging level in the actual __main__ function for
-# the relevant test suite.
-#
-# Check on each individual test module...
-# medinfo.cpoe
-# medinfo.dataconversion
+log.setLevel(logging.CRITICAL)
 
 # Load test suite.
+# TODO(sbala): Prevent test suite from running twice.
+# For some reason, the entire test suite runs on loader.discover().
+# Already ruled out hypotheses that this is due to invoking python interpreter
+# in individual test files or calling test suite in main() functions.
 loader = unittest.TestLoader()
-suite = loader.discover('./medinfo/dataconversion', pattern="Test*.py")
-log.setLevel(logging.ERROR)
+suite = loader.discover('.', pattern="Test*.py")
 
 # Run test suite.
-testRunner = unittest.runner.TextTestRunner(verbosity=2)
+testRunner = unittest.runner.TextTestRunner(verbosity=1)
 testRunner.run(suite)

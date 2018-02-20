@@ -154,7 +154,7 @@ class DecayingWindows:
 			analysisOptions = AssociationAnalysis.AnalysisOptions()
 
 			if decayAnalysisOptions.outputFile is not None:
-				analysisOptions.outputFile = decayAnalysisOptions.outputFile
+				analysisOptions.bufferFile = decayAnalysisOptions.outputFile
 
 			# Decay any existing stats before learn new ones to increment
 			if currentBuffer is None:

@@ -1,0 +1,3 @@
+Defining a new SQL table schema? Follow these steps!
+1. Create a standalone file for the table schema definition.
+2. Call the schema definition from medinfo/db/definition/define_db_schemata.sql
