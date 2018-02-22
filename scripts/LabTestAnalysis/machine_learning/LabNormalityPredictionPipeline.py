@@ -6,12 +6,14 @@ and analysis of LabNormality prediction.
 
 import inspect
 import os
-from pandas import DataFrame
+from pandas import DataFrame, Series
 import logging
 
 from medinfo.common.Util import log
 from medinfo.ml.FeatureSelector import FeatureSelector
+from medinfo.dataconversion.FeatureMatrixTransform import FeatureMatrixTransform
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
+from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
 from scripts.LabTestAnalysis.machine_learning.dataExtraction.LabNormalityMatrix import LabNormalityMatrix
@@ -48,7 +50,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         raw_matrix_path = self._build_raw_matrix_path()
         processed_matrix_path = self._build_processed_matrix_path()
         features_to_add = {}
-        imputation_strategies = {}
+        imputation_strategies = {
+        }
 
         features_to_remove = [
             'pat_id', 'order_time', 'order_proc_id',
@@ -64,6 +67,10 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             'RaceNativeAmerican.preTimeDays',
             'RaceOther.preTimeDays',
             'RaceUnknown.preTimeDays'
+        ]
+        features_to_keep = [
+            # Keep the # of times it's been ordered in past, even if low info.
+            '%s.pre' % self._var
         ]
         outcome_label = 'all_components_normal'
         selection_problem = FeatureSelector.CLASSIFICATION
@@ -96,6 +103,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         params['raw_matrix_path'] = raw_matrix_path
         params['processed_matrix_path'] = processed_matrix_path
         params['features_to_add'] = features_to_add
+        params['features_to_keep'] = features_to_keep
         params['imputation_strategies'] = imputation_strategies
         params['features_to_remove'] = features_to_remove
         params['outcome_label'] = outcome_label
@@ -110,42 +118,101 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
 
     def _train_and_analyze_predictors(self):
+        log.info('Training and analyzing predictors...')
         problem = SupervisedLearningPipeline.CLASSIFICATION
-        pipeline_file_name = inspect.getfile(inspect.currentframe())
-        data_dir = SupervisedLearningPipeline._fetch_data_dir_path(self, pipeline_file_name)
         meta_report = None
         fm_io = FeatureMatrixIO()
-        for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
-            SupervisedLearningPipeline._train_predictor(self, problem, algorithm, [0, 1])
-            pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
-            dest_dir = '/'.join([data_dir, algorithm])
-            # If dest_dir does not exist, make it.
-            if not os.path.exists(dest_dir):
-                os.makedirs(dest_dir)
-            SupervisedLearningPipeline._analyze_predictor(self, dest_dir, pipeline_prefix)
-            if meta_report is None:
-                meta_report = fm_io.read_file_to_data_frame('/'.join([dest_dir, '%s-report.tab' % pipeline_prefix]))
-            else:
-                algorithm_report = fm_io.read_file_to_data_frame('/'.join([dest_dir, '%s-report.tab' % pipeline_prefix]))
-                log.debug('algorithm_report: %s' % algorithm_report)
-                meta_report = meta_report.append(algorithm_report)
 
-        header = ['LabNormalityPredictionPipeline("%s", 10000)' % self._var]
-        fm_io.write_data_frame_to_file(meta_report, \
-            '/'.join([data_dir, '%s-normality-prediction-report.tab' % self._var]), \
-            header)
+        # Build paths for output.
+        pipeline_file_name = inspect.getfile(inspect.currentframe())
+        data_dir = SupervisedLearningPipeline._fetch_data_dir_path(self, pipeline_file_name)
+
+        # Test BifurcatedSupervisedClassifier and SupervisedClassifier.
+        algorithms_to_test = list()
+        algorithms_to_test.extend(SupervisedClassifier.SUPPORTED_ALGORITHMS)
+        for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
+            algorithms_to_test.append('bifurcated-%s' % algorithm)
+        log.debug('algorithms_to_test: %s' % algorithms_to_test)
+
+        # Train and analyse algorithms.
+        for algorithm in algorithms_to_test:
+            log.info('Training and analyzing %s...' % algorithm)
+            # If report_dir does not exist, make it.
+            report_dir = '/'.join([data_dir, algorithm])
+            if not os.path.exists(report_dir):
+                os.makedirs(report_dir)
+
+            # Define hyperparams.
+            hyperparams = {}
+            hyperparams['algorithm'] = algorithm
+            hyperparams['hyperparam_strategy'] = SupervisedClassifier.STOCHASTIC_SEARCH
+            hyperparams['max_iter'] = 1000
+
+            # If bifurcated algorithm, define bifurcator.
+            if 'bifurcated' in algorithm:
+                # bifrucator = LAB.pre == 0
+                hyperparams['bifurcator'] = '%s.pre' % self._var
+                hyperparams['bifurcation_strategy'] = BifurcatedSupervisedClassifier.EQUAL
+                hyperparams['bifurcation_value'] = 0
+                hyperparams['bifurcated'] = True
+
+            # Train classifier.
+            status = SupervisedLearningPipeline._train_predictor(self, problem, [0, 1], hyperparams)
+
+            # If failed to train, write an error report.
+            if status == SupervisedClassifier.INSUFFICIENT_SAMPLES:
+                # Skip all analysis and reporting.
+                # This will be true for all algorithms, so just return.
+                y_train_counts = self._y_train[self._y_train.columns[0]].value_counts()
+                y_test_counts = self._y_test[self._y_train.columns[0]].value_counts()
+                # Build error report.
+                algorithm_report = DataFrame(
+                    {
+                    'lab_panel': [self._var],
+                    'algorithm': [algorithm],
+                    'error': [status],
+                    'y_train.value_counts()': [y_train_counts.to_dict()],
+                    'y_test.value_counts()': [y_test_counts.to_dict()]
+                    },
+                    columns=[
+                        'lab_panel', 'algorithm', 'error',
+                        'y_train.value_counts()', 'y_test.value_counts()'
+                    ]
+                )
+                header = ['LabNormalityPredictionPipeline("%s", 10000)' % self._var]
+                # Write error report.
+                fm_io.write_data_frame_to_file(algorithm_report, \
+                    '/'.join([report_dir, '%s-normality-prediction-report.tab' % (self._var)]), \
+                    header)
+            # If successfully trained, append to a meta report.
+            elif status == SupervisedClassifier.TRAINED:
+                pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
+                SupervisedLearningPipeline._analyze_predictor(self, report_dir, pipeline_prefix)
+                if meta_report is None:
+                    meta_report = fm_io.read_file_to_data_frame('/'.join([report_dir, '%s-report.tab' % pipeline_prefix]))
+                else:
+                    algorithm_report = fm_io.read_file_to_data_frame('/'.join([report_dir, '%s-report.tab' % pipeline_prefix]))
+                    log.debug('algorithm_report: %s' % algorithm_report)
+                    meta_report = meta_report.append(algorithm_report)
+
+
+        # After building per-algorithm reports, write to meta report.
+        # Note that if there were insufficient samples to build any of the
+        # algorithms, then meta_report will still be None.
+        if meta_report is not None:
+            header = ['LabNormalityPredictionPipeline("%s", 10000)' % self._var]
+            fm_io.write_data_frame_to_file(meta_report, \
+                '/'.join([data_dir, '%s-normality-prediction-report.tab' % self._var]), header)
 
 if __name__ == '__main__':
     log.level = logging.DEBUG
     LAB_PANELS = [
-        # 'LABA1C', 
-        'LABLAC', 'LABMB', 'LABMETB', 'LABMETC'
         # "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
-        # "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
-        # "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
-        # "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
-        # "LABROMRS", "LABTNI", "LABTYPSNI", "LABUA", "LABUAPRN",
-        # "LABURNC", "LABVANPRL", "LABVBG"
+        "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
+        "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
+        "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
+        "LABROMRS", "LABTNI", "LABTYPSNI", "LABUA", "LABUAPRN",
+        "LABURNC", "LABVANPRL", "LABVBG"
     ]
     for panel in LAB_PANELS:
         LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
