@@ -28,6 +28,7 @@ from medinfo.common.Util import log
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.dataconversion.FeatureMatrixTransform import FeatureMatrixTransform
 from medinfo.ml.FeatureSelector import FeatureSelector
+from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.Regressor import Regressor
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.ClassifierAnalyzer import ClassifierAnalyzer
@@ -123,7 +124,7 @@ class SupervisedLearningPipeline:
         #   params['pipeline_file_path'] = pipeline_file_path
         #   TODO(sbala): Determine which fields should have defaults.
         fm_io = FeatureMatrixIO()
-
+        log.debug('params: %s' % params)
         # If processed matrix exists, and the client has not requested to flush
         # the cache, just use the matrix that already exists and return.
         processed_matrix_path = params['processed_matrix_path']
@@ -158,7 +159,8 @@ class SupervisedLearningPipeline:
             self._train_test_split(processed_matrix, params['outcome_label'])
             self._select_features(params['selection_problem'],
                 params['percent_features_to_select'],
-                params['selection_algorithm'])
+                params['selection_algorithm'],
+                params['features_to_keep'])
             train = self._y_train.join(self._X_train)
             test = self._y_test.join(self._X_test)
             processed_matrix = train.append(test)
@@ -236,11 +238,15 @@ class SupervisedLearningPipeline:
         log.debug('X.columns: %s' % X.columns)
         self._X_train, self._X_test, self._y_train, self._y_test = train_test_split(X, y)
 
-    def _select_features(self, problem, percent_features_to_select, algorithm):
+    def _select_features(self, problem, percent_features_to_select, algorithm, features_to_keep=None):
         # Initialize FeatureSelector.
         fs = FeatureSelector(problem=problem, algorithm=algorithm)
         fs.set_input_matrix(self._X_train, column_or_1d(self._y_train))
         num_features_to_select = int(percent_features_to_select*len(self._X_train.columns.values))
+
+        # Parse features_to_keep.
+        if features_to_keep is None:
+            features_to_keep = []
 
         # Select features.
         fs.select(k=num_features_to_select)
@@ -249,10 +255,22 @@ class SupervisedLearningPipeline:
         feature_ranks = fs.compute_ranks()
         for i in range(len(feature_ranks)):
             if feature_ranks[i] > num_features_to_select:
-                self._eliminated_features.append(self._X_train.columns[i])
+                # If in features_to_keep, pretend it wasn't eliminated.
+                if self._X_train.columns[i] not in features_to_keep:
+                    self._eliminated_features.append(self._X_train.columns[i])
 
+        # Hack: rather than making FeatureSelector handle the concept of
+        # kept features, just copy the data here and add it back to the
+        # transformed matrices.
+        kept_X_train_features = self._X_train[features_to_keep].copy()
+        log.debug('kept_X_train_features.shape: %s' % str(kept_X_train_features.shape))
         self._X_train = fs.transform_matrix(self._X_train)
+        self._X_train = self._X_train.merge(kept_X_train_features, left_index=True, right_index=True)
+
+        kept_X_test_features = self._X_test[features_to_keep].copy()
+        log.debug('kept_X_test_features.shape: %s' % str(kept_X_test_features.shape))
         self._X_test = fs.transform_matrix(self._X_test)
+        self._X_test = self._X_test.merge(kept_X_test_features, left_index=True, right_index=True)
 
     def _build_processed_matrix_header(self, params):
         # FeatureMatrixFactory and FeatureMatrixIO expect a list of strings.
@@ -337,15 +355,21 @@ class SupervisedLearningPipeline:
 
         return summary
 
-    def _train_predictor(self, problem, algorithm=None, classes=None):
+    def _train_predictor(self, problem, classes=None, hyperparams=None):
         if problem == SupervisedLearningPipeline.CLASSIFICATION:
-            learning_class = SupervisedClassifier
-            hyperparams = {'algorithm': algorithm}
+            if 'bifurcated' in hyperparams['algorithm']:
+                learning_class = BifurcatedSupervisedClassifier
+                # Strip 'bifurcated-' from algorithm for SupervisedClassifier.
+                hyperparams['algorithm'] = '-'.join(hyperparams['algorithm'].split('-')[1:])
+            else:
+                learning_class = SupervisedClassifier
+
             self._predictor = learning_class(classes, hyperparams)
         elif problem == SupervisedLearningPipeline.REGRESSION:
             learning_class = Regressor
             self._predictor = learning_class(algorithm=algorithm)
-        self._predictor.train(self._X_train, column_or_1d(self._y_train))
+        status = self._predictor.train(self._X_train, column_or_1d(self._y_train))
+        return status
 
     def _analyze_predictor(self, dest_dir, pipeline_prefix):
         analyzer = ClassifierAnalyzer(self._predictor, self._X_test, self._y_test)
