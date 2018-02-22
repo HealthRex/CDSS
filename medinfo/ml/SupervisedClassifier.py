@@ -4,6 +4,7 @@ Generic module for supervised machine learning classification.
 """
 
 import numpy as np
+from pandas import DataFrame, Series
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
@@ -35,9 +36,14 @@ class SupervisedClassifier:
     SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST, \
         REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES]
 
+    # Hyperparam search strategies.
     EXHAUSTIVE_SEARCH = 'exhaustive-search'
     STOCHASTIC_SEARCH = 'stochastic-search'
     HYPERPARAM_STRATEGIES = [EXHAUSTIVE_SEARCH, STOCHASTIC_SEARCH]
+
+    # Status codes.
+    TRAINED = 'model-trained'
+    INSUFFICIENT_SAMPLES = 'insufficient-samples-per-class'
 
     def __init__(self, classes, hyperparams=None):
         self._classes = classes
@@ -134,7 +140,7 @@ class SupervisedClassifier:
     def hyperparams(self):
         return self._hyperparams
 
-    def _get_or_set_hyperparam(self, hyperparam):
+    def _get_or_set_hyperparam(self, hyperparam, y=None):
         # If it's already set, move on.
         TUNEABLE_HYPERPARAMS = [
             'priors', 'n_estimators', 'learning_rate', 'max_depth',
@@ -184,7 +190,7 @@ class SupervisedClassifier:
             self._hyperparams[hyperparam] = 'gini'
         elif hyperparam == 'cv':
             # SUPPORTED_ALGORITHMS
-            self._hyperparams['cv'] = self._build_cv_generator()
+            self._hyperparams['cv'] = self._build_cv_generator(y)
         elif hyperparam == 'dual':
             # LOGISTIC_REGRESSION
             self._hyperparams[hyperparam] = False
@@ -254,10 +260,18 @@ class SupervisedClassifier:
             # RandomizedSearchCV throws ValueError if n_iter is less than the
             # number of hyperparam options.
             num_hyperparam_settings = np.prod([len(value) for key, value in self._hyperparam_search_space.iteritems()])
-            self._hyperparams[hyperparam] = np.min([12, num_hyperparam_settings])
+            log.debug('num_hyperparam_settings: %s' % num_hyperparam_settings)
+            self._hyperparams[hyperparam] = np.min([24, num_hyperparam_settings])
         elif hyperparam == 'n_jobs':
             # SUPPORTED_ALGORITHMS
-            self._hyperparams[hyperparam] = -1
+            # LOGISTIC_REGRESSION parallelization causes multiarray.so to crash.
+            # Automatically switch to 1 core so others can ignore this =/
+            if self._hyperparams['algorithm'] == SupervisedClassifier.LOGISTIC_REGRESSION:
+                self._hyperparams[hyperparam] = 1
+            elif self._hyperparams['algorithm'] == SupervisedClassifier.REGRESS_AND_ROUND:
+                self._hyperparams[hyperparam] = 1
+            else:
+                self._hyperparams[hyperparam] = -1
         elif hyperparam == 'oob_score':
             # RANDOM_FOREST
             self._hyperparams[hyperparam] = False
@@ -402,7 +416,7 @@ class SupervisedClassifier:
 
         return y
 
-    def _build_cv_generator(self):
+    def _build_cv_generator(self, y=None):
         # Use information about X to build a cross-validation split generator.
         # http://scikit-learn.org/stable/modules/cross_validation.html#cross-validation
         # There are a few general strategies for cross-validation:
@@ -448,12 +462,40 @@ class SupervisedClassifier:
         # sklearn only provides StratifiedKFold and GroupKFold out of the box.
         # Given how unbalanced many of our classification problems are, use
         # StratifiedKFold for now, but we need something better.
-        return StratifiedKFold(n_splits=10, shuffle=False, \
+
+        # Use information about y to determine n_splits.
+        # In certain pathological cases (esp. with bifurcated classifiers)
+        # there might be fewer than n examples of a given class in y.
+        # If that's the case, n_splits can't be greater than n_samples.
+        if y is not None:
+            log.debug('y.value_counts(): %s' % Series(y).value_counts())
+            max_possible_splits = np.min(Series(y).value_counts())
+            log.debug('max_possible_splits: %s' % max_possible_splits)
+            n_splits = np.min([10, max_possible_splits])
+        else:
+            n_splits = 10
+        log.debug('n_splits: %s' % n_splits)
+        return StratifiedKFold(n_splits=n_splits, shuffle=False, \
                                 random_state=self._hyperparams['random_state'])
 
     def train(self, X, y):
         self._features = X.columns
         y = self._maybe_reshape_y(y)
+
+        # Verify that there are at least 2 samples of each class.
+        value_counts = Series(y).value_counts()
+        log.debug('y.value_counts(): %s' % value_counts)
+        for class_label in self._classes:
+            # If there aren't 2+ samples of each class, exit gracefully.
+            try:
+                num_samples = value_counts[class_label]
+                if num_samples < 10:
+                    log.error('Insufficient samples (%s) of label %s.' % (num_samples, class_label))
+                    return SupervisedClassifier.INSUFFICIENT_SAMPLES
+            except KeyError:
+                log.error('Insufficient samples (0) of label %s.' % class_label)
+                return SupervisedClassifier.INSUFFICIENT_SAMPLES
+
         log.info('Training %s classifier...' % self._hyperparams['algorithm'])
         if self._hyperparams['algorithm'] == SupervisedClassifier.DECISION_TREE:
             self._train_decision_tree(X, y)
@@ -467,6 +509,8 @@ class SupervisedClassifier:
             self._train_adaboost(X, y)
         elif self._hyperparams['algorithm'] == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
             self._train_gaussian_naive_bayes(X, y)
+
+        return SupervisedClassifier.TRAINED
 
     def _train_svm(self, X, y):
         # Define hyperparams.
@@ -686,8 +730,10 @@ class SupervisedClassifier:
 
     def _tune_hyperparams(self, hyperparam_search_space, X, y):
         log.info('Tuning hyperparameters via %s...' % self._hyperparams['hyperparam_strategy'])
+        log.debug('hyperparam_search_space: %s' % str(hyperparam_search_space))
         # Log the pre-tuning score.
-        self._get_or_set_hyperparam('cv')
+        self._get_or_set_hyperparam('cv', y)
+        log.debug('initial hyperparams: %s' % self._hyperparams)
         pre_tuning_score = np.mean(cross_val_score(self._model, X, y, \
                                     cv=self._hyperparams['cv'], \
                                     scoring=self._hyperparams['scoring'], \
