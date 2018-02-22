@@ -4,6 +4,8 @@ Utility class for analyzing the performance of a pre-trained classifier
 on a set of test data.
 """
 
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from pandas import DataFrame
