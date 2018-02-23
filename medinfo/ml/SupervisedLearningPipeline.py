@@ -275,7 +275,7 @@ class SupervisedLearningPipeline:
             log.debug('kept_X_test_feature.shape: %s' % str(kept_X_test_feature.shape))
             self._X_test = fs.transform_matrix(self._X_test)
             if feature not in self._X_test:
-                self._X_test = self._X_test.merge(kept_X_test_features, left_index=True, right_index=True)
+                self._X_test = self._X_test.merge(kept_X_test_feature, left_index=True, right_index=True)
 
     def _build_processed_matrix_header(self, params):
         # FeatureMatrixFactory and FeatureMatrixIO expect a list of strings.
