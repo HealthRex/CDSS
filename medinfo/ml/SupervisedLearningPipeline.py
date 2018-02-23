@@ -265,13 +265,13 @@ class SupervisedLearningPipeline:
         # Rather than looping, do this individually so that we can skip if
         # transformed X already has the feature.
         for feature in features_to_keep:
-            kept_X_train_feature = self._X_train[feature].copy()
+            kept_X_train_feature = self._X_train[[feature]].copy()
             log.debug('kept_X_train_feature.shape: %s' % str(kept_X_train_feature.shape))
             self._X_train = fs.transform_matrix(self._X_train)
             if feature not in self._X_train:
                 self._X_train = self._X_train.merge(kept_X_train_feature, left_index=True, right_index=True)
 
-            kept_X_test_feature = self._X_test[feature].copy()
+            kept_X_test_feature = self._X_test[[feature]].copy()
             log.debug('kept_X_test_feature.shape: %s' % str(kept_X_test_feature.shape))
             self._X_test = fs.transform_matrix(self._X_test)
             if feature not in self._X_test:
