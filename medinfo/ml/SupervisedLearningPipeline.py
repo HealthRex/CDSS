@@ -262,15 +262,20 @@ class SupervisedLearningPipeline:
         # Hack: rather than making FeatureSelector handle the concept of
         # kept features, just copy the data here and add it back to the
         # transformed matrices.
-        kept_X_train_features = self._X_train[features_to_keep].copy()
-        log.debug('kept_X_train_features.shape: %s' % str(kept_X_train_features.shape))
-        self._X_train = fs.transform_matrix(self._X_train)
-        self._X_train = self._X_train.merge(kept_X_train_features, left_index=True, right_index=True)
+        # Rather than looping, do this individually so that we can skip if
+        # transformed X already has the feature.
+        for feature in features_to_keep:
+            kept_X_train_feature = self._X_train[feature].copy()
+            log.debug('kept_X_train_feature.shape: %s' % str(kept_X_train_feature.shape))
+            self._X_train = fs.transform_matrix(self._X_train)
+            if feature not in self._X_train:
+                self._X_train = self._X_train.merge(kept_X_train_feature, left_index=True, right_index=True)
 
-        kept_X_test_features = self._X_test[features_to_keep].copy()
-        log.debug('kept_X_test_features.shape: %s' % str(kept_X_test_features.shape))
-        self._X_test = fs.transform_matrix(self._X_test)
-        self._X_test = self._X_test.merge(kept_X_test_features, left_index=True, right_index=True)
+            kept_X_test_feature = self._X_test[feature].copy()
+            log.debug('kept_X_test_feature.shape: %s' % str(kept_X_test_feature.shape))
+            self._X_test = fs.transform_matrix(self._X_test)
+            if feature not in self._X_test:
+                self._X_test = self._X_test.merge(kept_X_test_features, left_index=True, right_index=True)
 
     def _build_processed_matrix_header(self, params):
         # FeatureMatrixFactory and FeatureMatrixIO expect a list of strings.
