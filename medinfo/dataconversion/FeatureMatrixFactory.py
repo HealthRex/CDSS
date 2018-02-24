@@ -647,6 +647,7 @@ class FeatureMatrixFactory:
         query.addWhereIn("pat_anon_id", patientIds)
         query.addOrderBy("pat_anon_id")
         query.addOrderBy("shifted_record_dt_tm")
+        log.debug(query)
 
         # Execute query.
         return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
@@ -796,6 +797,7 @@ class FeatureMatrixFactory:
 
         return
 
+    # TODO(sbala): Fix isLabPanel arg declaration to be None by default.
     def _queryLabResultsByName(self, labNames, isLabPanel = True):
         """
         Query for all lab results that match with the given result base names.
@@ -833,7 +835,7 @@ class FeatureMatrixFactory:
         query.addWhereIn("pat_id", patientIds)
         query.addOrderBy("pat_id")
         query.addOrderBy("sor.result_time")
-
+        log.debug(query)
         return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
 
     def _parseResultsData(self, resultRowIter, patientIdCol, nameCol, valueCol, datetimeCol):
@@ -1019,6 +1021,7 @@ class FeatureMatrixFactory:
 
         for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
             disease = disease.translate(None," ()-/") # Strip off punctuation
+            log.debug('Adding %s comorbidity features...' % disease)
             self.addClinicalItemFeatures(icd9prefixes, operator="~*", \
                 label="Comorbidity."+disease, features=features)
 
@@ -1036,6 +1039,7 @@ class FeatureMatrixFactory:
             teamNameByCategory[category].append(teamName)
 
         for category, teamNames in teamNameByCategory.iteritems():
+            log.debug('Adding %s treatment team features...' % category)
             self.addClinicalItemFeatures(teamNames, column="description", \
                 label="Team."+category, features=features)
 
