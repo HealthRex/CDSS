@@ -5,6 +5,7 @@ Class for generating LabNormalityMatrix.
 
 import datetime
 import inspect
+import logging
 import os
 import sys
 import time
@@ -38,41 +39,69 @@ class LabNormalityMatrix(FeatureMatrix):
         # Initialize DB connection.
         cursor = self._connection.cursor()
 
-        # Build query to get component names for panel.
+        # Doing a single query results in a sequential scan through
+        # stride_order_results. To avoid this, break up the query in two.
+
+        # First, get all the order_proc_ids for proc_code.
+
         query = SQLQuery()
-        query.addSelect("base_name")
-        query.addFrom("stride_order_proc AS sop")
-        query.addFrom("stride_order_results AS sor")
-        query.addWhere("sop.order_proc_id = sor.order_proc_id")
-        query.addWhere("proc_code = '%s'" % self._lab_panel)
-        query.addGroupBy("base_name")
+        query.addSelect('order_proc_id')
+        query.addFrom('stride_order_proc')
+        query.addWhereIn('proc_code', [self._lab_panel])
+        log.debug('Querying order_proc_ids for %s...' % self._lab_panel)
+        results = DBUtil.execute(query)
+        lab_order_ids = [row[0] for row in results]
+
+        # Second, get all base_names from those orders.
+        query = SQLQuery()
+        query.addSelect('base_name')
+        query.addFrom('stride_order_results')
+        query.addWhereIn('order_proc_id', lab_order_ids)
+        query.addGroupBy('base_name')
+        log.debug('Querying base_names for order_proc_ids...')
+        results = DBUtil.execute(query)
+        components = [row[0] for row in results]
+
+        # Build query to get component names for panel.
+        # query = SQLQuery()
+        # query.addSelect("base_name")
+        # query.addFrom("stride_order_proc AS sop")
+        # query.addFrom("stride_order_results AS sor")
+        # query.addWhere("sop.order_proc_id = sor.order_proc_id")
+        # query.addWhereIn("proc_code", [self._lab_panel])
+        # query.addGroupBy("base_name")
 
         # Return component names in list.
-        cursor.execute(str(query))
-        return [ row[0] for row in cursor.fetchall() ]
+        # log.info('query: %s' % str(query))
+        # log.info('query.params: %s' % str(query.params))
+        # results = DBUtil.execute(query)
+
+        return components
 
     def _get_average_orders_per_patient(self):
         # Initialize DB cursor.
         cursor = self._connection.cursor()
 
         # Get average number of results for this lab test per patient.
-        query = "SELECT AVG(num_orders) \
-        FROM ( \
-            SELECT pat_id, COUNT(sop.order_proc_id) AS num_orders \
-            FROM stride_order_proc AS sop, stride_order_results AS sor \
-            WHERE sop.order_proc_id = sor.order_proc_id AND proc_code IN ('%s') \
-            GROUP BY pat_id \
-        ) AS num_orders_per_patient" % (self._lab_panel)
-
-        cursor.execute(query)
-        avg_orders_per_patient = cursor.fetchone()[0]
-
-        if avg_orders_per_patient is None:
+        query = SQLQuery()
+        query.addSelect('pat_id')
+        query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
+        query.addFrom('stride_order_proc AS sop')
+        query.addFrom('stride_order_results AS sor')
+        query.addWhere('sop.order_proc_id = sor.order_proc_id')
+        query.addWhereIn("proc_code", [self._lab_panel])
+        components = self._get_components_in_lab_panel()
+        query.addWhereIn("base_name", components)
+        query.addGroupBy('pat_id')
+        log.debug('Querying median orders per patient...')
+        results = DBUtil.execute(query)
+        order_counts = [ row[1] for row in results ]
+        if len(order_counts) == 0:
             error_msg = '0 orders for lab panel "%s."' % self._lab_panel
             log.critical(error_msg)
             sys.exit('[ERROR] %s' % error_msg)
-
-        return avg_orders_per_patient
+        else:
+            return numpy.median(order_counts)
 
     def _get_random_patient_list(self):
         # Initialize DB cursor.
@@ -88,19 +117,28 @@ class LabNormalityMatrix(FeatureMatrix):
 
         # Get numPatientsToQuery random patients who have gotten test.
         # TODO(sbala): Have option to feed in a seed for the randomness.
-        query = "SELECT pat_id \
-        FROM stride_order_proc AS sop, stride_order_results AS sor \
-        WHERE sop.order_proc_id = sor.order_proc_id AND \
-        proc_code IN ('%s') \
-        ORDER BY RANDOM() \
-        LIMIT %d;" % (self._lab_panel, self._num_patients)
-
-        cursor.execute(query)
+        query = SQLQuery()
+        query.addSelect('pat_id')
+        query.addFrom('stride_order_proc AS sop')
+        query.addFrom('stride_order_results AS sor')
+        query.addWhereIn('proc_code', [self._lab_panel])
+        query.addOrderBy('RANDOM()')
+        query.setLimit(self._num_patients)
+        log.debug('Querying random patient list...')
+        results = DBUtil.execute(query)
+        # query = "SELECT pat_id \
+        # FROM stride_order_proc AS sop, stride_order_results AS sor \
+        # WHERE sop.order_proc_id = sor.order_proc_id AND \
+        # proc_code IN ('%s') \
+        # ORDER BY RANDOM() \
+        # LIMIT %d;" % (self._lab_panel, self._num_patients)
+        # cursor.execute(query)
 
         # Get patient list.
-        random_patient_list = list()
-        for row in cursor.fetchall():
-            random_patient_list.append(row[0])
+        # random_patient_list = list()
+        random_patient_list = [ row[0] for row in results ]
+        # for row in cursor.fetchall():
+        #     random_patient_list.append(row[0])
 
         return random_patient_list
 
@@ -112,7 +150,6 @@ class LabNormalityMatrix(FeatureMatrix):
         # Build parameters for query.
         self._lab_components = self._get_components_in_lab_panel()
         random_patient_list = self._get_random_patient_list()
-        patient_list_str = ", ".join(random_patient_list)
 
         # Build SQL query for list of patient episodes.
         # Note that for 2008-2014 data, result_flag can take on any of the
@@ -152,8 +189,8 @@ class LabNormalityMatrix(FeatureMatrix):
         query.addFrom('stride_order_results AS sor')
         query.addWhere('sop.order_proc_id = sor.order_proc_id')
         query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*') OR result_flag IS NULL)")
-        query.addWhere("proc_code IN ('%s')" % self._lab_panel)
-        query.addWhere('CAST(pat_id AS BIGINT) IN (%s)' % patient_list_str)
+        query.addWhereIn("proc_code", [self._lab_panel])
+        query.addWhereIn('CAST(pat_id AS BIGINT)', random_patient_list)
         query.addGroupBy('pat_id')
         query.addGroupBy('sop.order_proc_id')
         query.addGroupBy('proc_code')
@@ -311,6 +348,7 @@ class LabNormalityMatrix(FeatureMatrix):
         return summary
 
 if __name__ == "__main__":
+    log.level = logging.DEBUG
     start_time = time.time()
     # Initialize lab test matrix.
     ltm = LabNormalityMatrix("LABABG", 10)
