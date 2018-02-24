@@ -48,6 +48,7 @@ class LabNormalityMatrix(FeatureMatrix):
         query.addSelect('order_proc_id')
         query.addFrom('stride_order_proc')
         query.addWhereIn('proc_code', [self._lab_panel])
+        query.addGroupBy('order_proc_id')
         log.debug('Querying order_proc_ids for %s...' % self._lab_panel)
         results = DBUtil.execute(query)
         lab_order_ids = [row[0] for row in results]
@@ -120,7 +121,6 @@ class LabNormalityMatrix(FeatureMatrix):
         query = SQLQuery()
         query.addSelect('pat_id')
         query.addFrom('stride_order_proc AS sop')
-        query.addFrom('stride_order_results AS sor')
         query.addWhereIn('proc_code', [self._lab_panel])
         query.addOrderBy('RANDOM()')
         query.setLimit(self._num_patients)
