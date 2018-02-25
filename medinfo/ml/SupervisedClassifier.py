@@ -246,9 +246,9 @@ class SupervisedClassifier:
         elif hyperparam == 'n_estimators':
             # ADABOOST, RANDOM_FOREST
             if self._hyperparams['algorithm'] == SupervisedClassifier.ADABOOST:
-                self._hyperparams[hyperparam] = 50
+                self._hyperparams[hyperparam] = 30
                 self._hyperparam_search_space[hyperparam] = [
-                    10, 20, 30, 40, 50, 60, 70, 80, 90, 100
+                    10, 20, 30, 40, 50
                 ]
             elif self._hyperparams['algorithm'] == SupervisedClassifier.RANDOM_FOREST:
                 self._hyperparams[hyperparam] = 10
