@@ -1,0 +1,2 @@
+model	test_size	accuracy	explained_variance	mean_absolute_error	median_absolute_error	r2
+LinearPredictor([86, 19])	10	0	0.99992	0.84441	0.74944	0.99991

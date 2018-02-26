@@ -25,7 +25,8 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import columnFromModelList, SQLQuery, modelListFromTable
 from medinfo.db.ResultsFormatter import TabDictReader, TextResultsFormatter
 from psycopg2.extensions import cursor
-from Util import log
+# from Util import log
+from medinfo.common.Util import log
 import Util
 
 class FeatureMatrixFactory:
@@ -184,6 +185,8 @@ class FeatureMatrixFactory:
         self._pipeDbCursorToTsvFile(self.patientEpisodeInput, patientEpisodeTempFile)
         patientEpisodeTempFile.close()
         self.patientsProcessed = True
+
+        return self.patientEpisodeInput.rowcount
 
     def _processPatientEpisodeTsvFile(self):
         pass
@@ -644,6 +647,7 @@ class FeatureMatrixFactory:
         query.addWhereIn("pat_anon_id", patientIds)
         query.addOrderBy("pat_anon_id")
         query.addOrderBy("shifted_record_dt_tm")
+        log.debug(query)
 
         # Execute query.
         return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
@@ -793,6 +797,7 @@ class FeatureMatrixFactory:
 
         return
 
+    # TODO(sbala): Fix isLabPanel arg declaration to be None by default.
     def _queryLabResultsByName(self, labNames, isLabPanel = True):
         """
         Query for all lab results that match with the given result base names.
@@ -830,7 +835,7 @@ class FeatureMatrixFactory:
         query.addWhereIn("pat_id", patientIds)
         query.addOrderBy("pat_id")
         query.addOrderBy("sor.result_time")
-
+        log.debug(query)
         return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
 
     def _parseResultsData(self, resultRowIter, patientIdCol, nameCol, valueCol, datetimeCol):
@@ -1016,6 +1021,7 @@ class FeatureMatrixFactory:
 
         for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
             disease = disease.translate(None," ()-/") # Strip off punctuation
+            log.debug('Adding %s comorbidity features...' % disease)
             self.addClinicalItemFeatures(icd9prefixes, operator="~*", \
                 label="Comorbidity."+disease, features=features)
 
@@ -1033,6 +1039,7 @@ class FeatureMatrixFactory:
             teamNameByCategory[category].append(teamName)
 
         for category, teamNames in teamNameByCategory.iteritems():
+            log.debug('Adding %s treatment team features...' % category)
             self.addClinicalItemFeatures(teamNames, column="description", \
                 label="Team."+category, features=features)
 
@@ -1063,6 +1070,11 @@ class FeatureMatrixFactory:
             self._queryFooInput()
             self._parseFooInput()
         """
+        # Initialize feature matrix file.
+        if matrixFileName is None:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
+            matrixFileName = "feature-matrix_%s.tab" % timestamp
+            self._matrixFileName = matrixFileName
         if header is None:
             # file_name.tab
             # Created: timestamp
@@ -1071,12 +1083,6 @@ class FeatureMatrixFactory:
                 '%s' % self._matrixFileName,
                 'Created: %s' % timestamp
             ]
-
-        # Initialize feature matrix file.
-        if matrixFileName is None:
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H.%M.%S")
-            matrixFileName = "feature-matrix_%s.tab" % timestamp
-            self._matrixFileName = matrixFileName
         self._matrixFileName = matrixFileName
         matrixFile = open(self._matrixFileName, "w")
 

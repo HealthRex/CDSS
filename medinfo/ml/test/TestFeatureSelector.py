@@ -10,12 +10,8 @@ from FeatureSelectorTestData import RANDOM_REGRESSION_TEST_CASE
 class TestFeatureSelector(MedInfoTestCase):
     def setUp(self):
         fs = FeatureSelector()
-        pass
 
     def tearDown(self):
-        pass
-
-    def test_init(self):
         pass
 
     def test_generate_univariate_test_case(self):

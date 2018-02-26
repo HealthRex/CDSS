@@ -13,7 +13,7 @@ handler = logging.StreamHandler(sys.stderr)
 formatter = logging.Formatter(Const.LOGGER_FORMAT)
 
 handler.setFormatter(formatter)
-log.addHandler(handler)
+# log.addHandler(handler)
 
 # Suppress uninteresting application output
 medinfo.common.Util.log.setLevel(Const.APP_LOGGER_LEVEL)
