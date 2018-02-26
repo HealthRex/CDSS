@@ -146,7 +146,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             hyperparams = {}
             hyperparams['algorithm'] = algorithm
             hyperparams['hyperparam_strategy'] = SupervisedClassifier.STOCHASTIC_SEARCH
-            hyperparams['max_iter'] = 1000
+            hyperparams['max_iter'] = 256
 
             # If bifurcated algorithm, define bifurcator.
             if 'bifurcated' in algorithm:
