@@ -28,6 +28,12 @@ class LabNormalityMatrix(FeatureMatrix):
 
         # Query patient episodes.
         self._query_patient_episodes()
+        episodes = self._factory.getPatientEpisodeIterator()
+        patients = set()
+        for episode in episodes:
+            patient_id = int(episode[self._factory.patientEpisodeIdColumn])
+            patients.add(patient_id)
+        self._num_patients = len(patients)
 
         # Add features.
         self._add_features()
@@ -62,20 +68,6 @@ class LabNormalityMatrix(FeatureMatrix):
         log.debug('Querying base_names for order_proc_ids...')
         results = DBUtil.execute(query)
         components = [row[0] for row in results]
-
-        # Build query to get component names for panel.
-        # query = SQLQuery()
-        # query.addSelect("base_name")
-        # query.addFrom("stride_order_proc AS sop")
-        # query.addFrom("stride_order_results AS sor")
-        # query.addWhere("sop.order_proc_id = sor.order_proc_id")
-        # query.addWhereIn("proc_code", [self._lab_panel])
-        # query.addGroupBy("base_name")
-
-        # Return component names in list.
-        # log.info('query: %s' % str(query))
-        # log.info('query.params: %s' % str(query.params))
-        # results = DBUtil.execute(query)
 
         return components
 
@@ -126,19 +118,9 @@ class LabNormalityMatrix(FeatureMatrix):
         query.setLimit(self._num_patients)
         log.debug('Querying random patient list...')
         results = DBUtil.execute(query)
-        # query = "SELECT pat_id \
-        # FROM stride_order_proc AS sop, stride_order_results AS sor \
-        # WHERE sop.order_proc_id = sor.order_proc_id AND \
-        # proc_code IN ('%s') \
-        # ORDER BY RANDOM() \
-        # LIMIT %d;" % (self._lab_panel, self._num_patients)
-        # cursor.execute(query)
 
         # Get patient list.
-        # random_patient_list = list()
         random_patient_list = [ row[0] for row in results ]
-        # for row in cursor.fetchall():
-        #     random_patient_list.append(row[0])
 
         return random_patient_list
 
@@ -149,7 +131,6 @@ class LabNormalityMatrix(FeatureMatrix):
 
         # Build parameters for query.
         self._lab_components = self._get_components_in_lab_panel()
-        random_patient_list = self._get_random_patient_list()
 
         # Build SQL query for list of patient episodes.
         # Note that for 2008-2014 data, result_flag can take on any of the
@@ -190,7 +171,6 @@ class LabNormalityMatrix(FeatureMatrix):
         query.addWhere('sop.order_proc_id = sor.order_proc_id')
         query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*') OR result_flag IS NULL)")
         query.addWhereIn("proc_code", [self._lab_panel])
-        query.addWhereIn('CAST(pat_id AS BIGINT)', random_patient_list)
         query.addGroupBy('pat_id')
         query.addGroupBy('sop.order_proc_id')
         query.addGroupBy('proc_code')
@@ -200,6 +180,8 @@ class LabNormalityMatrix(FeatureMatrix):
         query.addOrderBy('sop.order_proc_id')
         query.addOrderBy('proc_code')
         query.addOrderBy('order_time')
+        query.setLimit(self._num_requested_episodes)
+        self._num_reported_episodes = self._num_requested_episodes
 
         self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, index_time_col='order_time')
 
