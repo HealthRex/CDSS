@@ -340,30 +340,28 @@ python scripts\CDSS\populateOrderResultStats.py
 ===================================================================
 Data Cleanup Options
 
-# Check for duplicate patient items (possibly from repeated data conversion runs)
-# (May have to patch conversion scripts to check for and ignore duplicate errors)
-ALTER TABLE stride_order_proc ENGINE MyISAM;
-ALTER IGNORE TABLE stride_order_proc ADD UNIQUE INDEX stride_order_proc_id (order_proc_id);
-ALTER TABLE stride_order_proc ENGINE InnoDB;
+# PostgreSQL duplicate removal (Trick is ctid system column that tracks unique physical location for every entry)
+delete from stride_order_results A using 
+(   select min(ctid) as ctid, order_proc_id, line
+   from stride_order_results
+   group by order_proc_id, line having count(*) > 1
+) B
+where A.order_proc_id = B.order_proc_id and A.line = B.line
+and A.ctid <> B.ctid
 
-	# Need temporary table option if foreign key references need to remain intact
-   CREATE TABLE tmp_patient_item LIKE patient_item;
-   ALTER IGNORE TABLE tmp_patient_item ADD UNIQUE INDEX patient_item_composite (patient_id, clinical_item_id, item_date);
-   INSERT IGNORE INTO tmp_patient_item SELECT * FROM patient_item;
-   DROP TABLE patient_item;
-   RENAME TABLE tmp_patient_item TO patient_item;
+https://stackoverflow.com/questions/6583916/delete-duplicate-records-in-postgresql
 
-	# Another in place option, but requires a unique ID column to exist
-	delete
-	from patient_item as test
-	 where exists ( select 'x' 
-					  from patient_item as i
-					 where i.patient_id = test.patient_id
-					   and i.clinical_item_id = test.clinical_item_id
-					   and i.item_date = test.item_date
-					   and i.patient_item_id < test.patient_item_id
-				 )
-	limit 10;
+# Another in place option, but requires a unique ID column to exist
+delete
+from patient_item as test
+ where exists ( select 'x' 
+				  from patient_item as i
+				 where i.patient_id = test.patient_id
+				   and i.clinical_item_id = test.clinical_item_id
+				   and i.item_date = test.item_date
+				   and i.patient_item_id < test.patient_item_id
+			 )
+limit 10;
 
 
 
