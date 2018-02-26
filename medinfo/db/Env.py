@@ -48,7 +48,7 @@ DB_PARAM = {}
 #DB_PARAM["HOST"] = "inpatient5year.cxkturzva06i.us-east-1.rds.amazonaws.com"
 DB_PARAM["HOST"] = "localhost"
 #DB_PARAM["DSN"]  = "medicare"
-DB_PARAM["DSN"]  = "medinfo-5year-time"
+DB_PARAM["DSN"]  = "stride"
 #DB_PARAM["DSN"]  = "resident-access-log-2017"
 #DB_PARAM["DSN"] = "/Users/angelicaperez/Documents/JonChen/sqlite_db/dave_chan2.sqlite"
 #DB_PARAM["DSN"]  = "medinfo5yr"
@@ -79,7 +79,7 @@ TEST_DB_PARAM = LOCAL_TEST_DB_PARAM
 
 
 """Parameters on whether to do additional pre-processing when parsing text / CSV files"""
-CSV_EXPAND_QUOTES = True;
+CSV_EXPAND_QUOTES = False;
 
 def formatDBConnectString( dbParamDict ):
     connStr = ""
