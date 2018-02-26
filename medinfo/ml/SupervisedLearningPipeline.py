@@ -147,8 +147,6 @@ class SupervisedLearningPipeline:
             self._remove_features(fmt, params['features_to_remove'])
             # Impute data.
             self._impute_data(fmt, raw_matrix, params['imputation_strategies'])
-            # Remove duplicate data.
-            fmt.drop_duplicate_rows()
 
             # Build interim matrix.
             processed_matrix = fmt.fetch_matrix()
