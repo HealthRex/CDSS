@@ -24,7 +24,7 @@ class LabNormalityMatrix(FeatureMatrix):
         # Parse arguments.
         self._lab_panel = lab_panel
         self._num_requested_episodes = num_episodes
-        self._num_reported_episodes = None
+        self._num_reported_episodes = 0
 
         # Query patient episodes.
         self._query_patient_episodes()
@@ -131,6 +131,7 @@ class LabNormalityMatrix(FeatureMatrix):
 
         # Build parameters for query.
         self._lab_components = self._get_components_in_lab_panel()
+        random_patient_list = self._get_random_patient_list()
 
         # Build SQL query for list of patient episodes.
         # Note that for 2008-2014 data, result_flag can take on any of the
@@ -171,6 +172,7 @@ class LabNormalityMatrix(FeatureMatrix):
         query.addWhere('sop.order_proc_id = sor.order_proc_id')
         query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*') OR result_flag IS NULL)")
         query.addWhereIn("proc_code", [self._lab_panel])
+        query.addWhereIn("pat_id", random_patient_list)
         query.addGroupBy('pat_id')
         query.addGroupBy('sop.order_proc_id')
         query.addGroupBy('proc_code')
@@ -181,7 +183,6 @@ class LabNormalityMatrix(FeatureMatrix):
         query.addOrderBy('proc_code')
         query.addOrderBy('order_time')
         query.setLimit(self._num_requested_episodes)
-        self._num_reported_episodes = self._num_requested_episodes
 
         self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, index_time_col='order_time')
 
