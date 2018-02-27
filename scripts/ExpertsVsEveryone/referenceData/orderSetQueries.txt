@@ -24,6 +24,7 @@ from
 		picl.patient_item_id = pi.patient_item_id and  
 		pi.clinical_item_id = ci.clinical_item_id and
 		ci.clinical_item_category_id = cic.clinical_item_category_id and
+		ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent and
 		ci.default_recommend = 1 and
 		cic.default_recommend = 1
 	group by 
@@ -60,7 +61,8 @@ from
 	where 
 		ic.item_collection_id = ici.item_collection_id and
 		ici.item_collection_item_id = picl.item_collection_item_id and 
-		picl.patient_item_id = pi.patient_item_id 
+		picl.patient_item_id = pi.patient_item_id and
+		ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent 
 	group by 
 		ic.external_id,
 		ic.name,
@@ -85,7 +87,8 @@ from
 	item_collection as ic,
 	item_collection_item as ici
 where 
-	ic.item_collection_id = ici.item_collection_id 
+	ic.item_collection_id = ici.item_collection_id and
+	ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent 
 group by 
 	ic.external_id,
 	ic.name
@@ -108,6 +111,7 @@ where
 	ic.item_collection_id = ici.item_collection_id and
 	ici.clinical_item_id = ci.clinical_item_id and
 	ci.clinical_item_category_id = cic.clinical_item_category_id and
+	ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent and
 	ci.default_recommend = 1 and
 	cic.default_recommend = 1
 group by 
@@ -142,7 +146,8 @@ explain
 		ici.item_collection_item_id = picl.item_collection_item_id and 
 		picl.patient_item_id = pi.patient_item_id and  
 		pi.clinical_item_id = ci.clinical_item_id and
-		ci.clinical_item_category_id = cic.clinical_item_category_id
+		ci.clinical_item_category_id = cic.clinical_item_category_id and
+		ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent
 		-- ic.external_id = 692 -- Example for Med Sepsis
 	group by 
 		ic.external_id,
@@ -175,6 +180,7 @@ explain
 		ci.clinical_item_category_id = cic.clinical_item_category_id and
 		ci.default_recommend = 1 and
 		cic.default_recommend = 1 and
+		ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent
 		-- ic.external_id = 692 -- Example for Med Sepsis
 	group by 
 		ic.external_id,
