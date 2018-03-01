@@ -359,8 +359,19 @@ class SupervisedClassifier:
 
             tree_dict['nodes'].update({i: node})
 
+        # Add feature important information
+        num_features = len(self._features)
+        importances = {}
+        for i in range(num_features):
+            feature = self._features[i]
+            if feature in decision_features:
+                importance = self._model.feature_importances_[i]
+                importances.update({feature: importance})
+
+        decision_features = sorted(list(decision_features), key=lambda x:importances[x], reverse=True)
+        tree_dict['decision_features'] = ['%s (%.3f)' % (f, importances[f]) for f in decision_features]
+
         # Add tree-level information.
-        tree_dict['decision_features'] = sorted(list(decision_features))
         tree_dict['depth'] = tree.max_depth
         tree_dict['num_nodes'] = tree.node_count
 
@@ -380,8 +391,18 @@ class SupervisedClassifier:
             params['n_estimators'] += 1
             # Build list of forest-wide decision features.
             for feature in tree_dict['decision_features']:
-                decision_features.add(feature)
-        params['decision_features'] = sorted(list(decision_features))
+                decision_features.add(feature.split()[0])
+
+        num_features = self._model.n_features_
+        importances = {}
+        for i in range(num_features):
+            feature = self._features[i]
+            if feature in decision_features:
+                importance = self._model.feature_importances_[i]
+                importances.update({feature: importance})
+
+        decision_features = sorted(list(decision_features), key=lambda x:importances[x], reverse=True)
+        params['decision_features'] = ['%s (%.3f)' % (f, importances[f]) for f in decision_features]
 
         return params
 
@@ -393,8 +414,18 @@ class SupervisedClassifier:
         for estimator in self._model.estimators_:
             tree_dict = self._tree_to_dict(estimator.tree_)
             for feature in tree_dict['decision_features']:
-                decision_features.add(feature)
-        params['decision_features'] = sorted(list(decision_features))
+                decision_features.add(feature.split()[0])
+
+        num_features = len(self._features)
+        importances = {}
+        for i in range(num_features):
+            feature = self._features[i]
+            if feature in decision_features:
+                importance = self._model.feature_importances_[i]
+                importances.update({feature: importance})
+
+        decision_features = sorted(list(decision_features), key=lambda x:importances[x], reverse=True)
+        params['decision_features'] = ['%s (%.3f)' % (f, importances[f]) for f in decision_features]
 
         return params
 
