@@ -66,7 +66,9 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             'RacePacificIslander.preTimeDays',
             'RaceNativeAmerican.preTimeDays',
             'RaceOther.preTimeDays',
-            'RaceUnknown.preTimeDays'
+            'RaceUnknown.preTimeDays',
+            'Death.post',
+            'Death.postTimeDays'
         ]
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
@@ -208,11 +210,13 @@ if __name__ == '__main__':
     log.level = logging.DEBUG
     LAB_PANELS = [
         # "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
-        "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
-        "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
-        "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
-        "LABROMRS", "LABTNI", "LABTYPSNI", "LABUA", "LABUAPRN",
-        "LABURNC", "LABVANPRL", "LABVBG"
+        # "LABCBCD", "LABCBCO", "LABHFP",
+        "LABLAC",
+        # "LABMB",
+        # "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
+        # "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
+        # "LABROMRS", "LABTNI","LABTYPSNI", "LABUA", "LABUAPRN",
+        # "LABURNC", "LABVANPRL", "LABVBG"
     ]
     for panel in LAB_PANELS:
         LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
