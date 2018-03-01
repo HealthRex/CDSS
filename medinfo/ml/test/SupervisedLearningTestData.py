@@ -446,7 +446,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'algorithm': SupervisedClassifier.LOGISTIC_REGRESSION,
             'scoring': make_scorer(roc_auc_score, needs_threshold=True),
             'max_iter': 100,
-            'n_jobs': -1,
+            'n_jobs': 1,
             'tol': 0.0001,
             'fit_intercept': True,
             'solver': 'saga',
@@ -461,7 +461,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         SupervisedClassifier.REGRESS_AND_ROUND: {
             'scoring': make_scorer(roc_auc_score, needs_threshold=True),
             'max_iter': 100,
-            'n_jobs': -1,
+            'n_jobs': 1,
             'tol': 0.0001,
             'algorithm': SupervisedClassifier.REGRESS_AND_ROUND,
             'fit_intercept': True,
@@ -543,7 +543,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
                 'penalty': 'l1',
                 'C': 0.1,
                 'max_iter': 100,
-                'n_jobs': -1,
+                'n_jobs': 1,
                 'tol': 0.0001,
                 'algorithm': 'regress-and-round',
                 'bifurcation_value': 0.5,
@@ -565,7 +565,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
                 'penalty': 'l1',
                 'C': 1.0,
                 'max_iter': 100,
-                'n_jobs': -1,
+                'n_jobs': 1,
                 'tol': 0.0001,
                 'algorithm': 'regress-and-round',
                 'bifurcation_value': 0.5,
@@ -689,230 +689,230 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
                     'class_weights': [1.0416666666666667, 0.0]
                 }
             },
-            'decision_features': ['x6', 'x7', 'x8', 'x9'],
+            'decision_features': ['x8 (0.732)', 'x9 (0.217)', 'x6 (0.026)', 'x7 (0.025)'],
             'num_nodes': 13
         },
         SupervisedClassifier.RANDOM_FOREST: {
             'estimators': [
                 {
                     'depth': 2,
-                    'nodes': {
-                        0: {
-                            'right_child': 4,
-                            'class_weights': [33.333333333333336, 41.346153846153825],
-                            'prediction': 1,
-                            'feature': 'x8',
-                            'threshold': 0.40125125646591187,
-                            'left_child': 1
+                        'nodes': {
+                            0: {
+                                'right_child': 4,
+                                'class_weights': [33.333333333333336, 41.346153846153825],
+                                'prediction': 1,
+                                'feature': 'x8',
+                                'threshold': 0.40125125646591187,
+                                'left_child': 1
+                            },
+                            1: {
+                                'right_child': 3,
+                                'class_weights': [32.291666666666664, 2.8846153846153846],
+                                'prediction': 0,
+                                'feature': 'x10',
+                                'threshold': 2.7094616889953613,
+                                'left_child': 2
+                            },
+                            2: {
+                                'prediction': 0,
+                                'class_weights': [32.291666666666664, 0.9615384615384616]
+                            },
+                            3: {
+                                'prediction': 1,
+                                'class_weights': [0.0, 1.9230769230769231]
+                            },
+                            4: {
+                                'right_child': 6,
+                                'class_weights': [1.0416666666666667, 38.461538461538446],
+                                'prediction': 1,
+                                'feature': 'x6',
+                                'threshold': 1.3371305465698242,
+                                'left_child': 5
+                            },
+                            5: {
+                                'prediction': 1,
+                                'class_weights': [0.0, 38.461538461538446]
+                            },
+                            6: {
+                                'prediction': 0,
+                                'class_weights': [1.0416666666666667, 0.0]
+                            }
                         },
-                        1: {
-                            'right_child': 3,
-                            'class_weights': [32.291666666666664, 2.8846153846153846],
-                            'prediction': 0,
-                            'feature': 'x10',
-                            'threshold': 2.7094616889953613,
-                            'left_child': 2
-                        },
-                        2: {
-                            'prediction': 0,
-                            'class_weights': [32.291666666666664, 0.9615384615384616]
-                        },
-                        3: {
-                            'prediction': 1,
-                            'class_weights': [0.0, 1.9230769230769231]
-                        },
-                        4: {
-                            'right_child': 6,
-                            'class_weights': [1.0416666666666667, 38.461538461538446],
-                            'prediction': 1,
-                            'feature': 'x6',
-                            'threshold': 1.3371305465698242,
-                            'left_child': 5
-                        },
-                        5: {
-                            'prediction': 1,
-                            'class_weights': [0.0, 38.461538461538446]
-                        },
-                        6: {
-                            'prediction': 0,
-                            'class_weights': [1.0416666666666667, 0.0]
-                        }
+                        'decision_features': ['x8 (0.834)', 'x10 (0.050)', 'x6 (0.017)'],
+                        'num_nodes': 7
                     },
-                    'decision_features': ['x10', 'x6', 'x8'],
-                    'num_nodes': 7
-                },
-                {
-                    'depth': 2,
-                    'nodes': {
-                        0: {
-                            'right_child': 4,
-                            'class_weights': [39.583333333333336, 35.57692307692306],
-                            'prediction': 0,
-                            'feature': 'x8',
-                            'threshold': 0.38960647583007812,
-                            'left_child': 1
+                    {
+                        'depth': 2,
+                        'nodes': {
+                            0: {
+                                'right_child': 4,
+                                'class_weights': [39.583333333333336, 35.57692307692306],
+                                'prediction': 0,
+                                'feature': 'x8',
+                                'threshold': 0.3896064758300781,
+                                'left_child': 1
+                            },
+                            1: {
+                                'right_child': 3,
+                                'class_weights': [37.5, 3.8461538461538463],
+                                'prediction': 0,
+                                'feature': 'x9',
+                                'threshold': -1.9594122171401978,
+                                'left_child': 2
+                            },
+                            2: {
+                                'prediction': 1,
+                                'class_weights': [0.0, 2.8846153846153846]
+                            },
+                            3: {
+                                'prediction': 0,
+                                'class_weights': [37.49999999999999, 0.9615384615384616]
+                            },
+                            4: {
+                                'right_child': 6,
+                                'class_weights': [2.0833333333333335, 31.730769230769216],
+                                'prediction': 1,
+                                'feature': 'x6',
+                                'threshold': 1.3371305465698242,
+                                'left_child': 5
+                            },
+                            5: {
+                                'prediction': 1,
+                                'class_weights': [1.0416666666666667, 30.76923076923076]
+                            },
+                            6: {
+                                'prediction': 0,
+                                'class_weights': [1.0416666666666667, 0.9615384615384616]
+                            }
                         },
-                        1: {
-                            'right_child': 3,
-                            'class_weights': [37.5, 3.8461538461538463],
-                            'prediction': 0,
-                            'feature': 'x9',
-                            'threshold': -1.9594122171401978,
-                            'left_child': 2
-                        },
-                        2: {
-                            'prediction': 1,
-                            'class_weights': [0.0, 2.8846153846153846]
-                        },
-                        3: {
-                            'prediction': 0,
-                            'class_weights': [37.49999999999999, 0.9615384615384616]
-                        },
-                        4: {
-                            'right_child': 6,
-                            'class_weights': [2.0833333333333335, 31.730769230769216],
-                            'prediction': 1,
-                            'feature': 'x6',
-                            'threshold': 1.3371305465698242,
-                            'left_child': 5
-                        },
-                        5: {
-                            'prediction': 1,
-                            'class_weights': [1.0416666666666667, 30.76923076923076]
-                        },
-                        6: {
-                            'prediction': 0,
-                            'class_weights': [1.0416666666666667, 0.9615384615384616]
-                        }
+                        'decision_features': ['x8 (0.834)', 'x9 (0.061)', 'x6 (0.017)'],
+                        'num_nodes': 7
                     },
-                    'decision_features': ['x6', 'x8', 'x9'],
-                    'num_nodes': 7
-                },
-                {
-                    'depth': 2,
-                    'nodes': {
-                        0: {
-                            'right_child': 4,
-                            'class_weights': [40.625, 34.6153846153846],
-                            'prediction': 0,
-                            'feature': 'x8',
-                            'threshold': 0.38760679960250854,
-                            'left_child': 1
+                    {
+                        'depth': 2,
+                        'nodes': {
+                            0: {
+                                'right_child': 4,
+                                'class_weights': [40.625, 34.6153846153846],
+                                'prediction': 0,
+                                'feature': 'x8',
+                                'threshold': 0.38760679960250854,
+                                'left_child': 1
+                            },
+                            1: {
+                                'right_child': 3,
+                                'class_weights': [39.58333333333333, 2.8846153846153846],
+                                'prediction': 0,
+                                'feature': 'x10',
+                                'threshold': 2.7094616889953613,
+                                'left_child': 2
+                            },
+                            2: {
+                                'prediction': 0,
+                                'class_weights': [39.58333333333333, 0.0]
+                            },
+                            3: {
+                                'prediction': 1,
+                                'class_weights': [0.0, 2.8846153846153846]
+                            },
+                            4: {
+                                'right_child': 6,
+                                'class_weights': [1.0416666666666667, 31.730769230769226],
+                                'prediction': 1,
+                                'feature': 'x8',
+                                'threshold': 1.4883334636688232,
+                                'left_child': 5
+                            },
+                            5: {
+                                'prediction': 1,
+                                'class_weights': [0.0, 27.88461538461538]
+                            },
+                            6: {
+                                'prediction': 1,
+                                'class_weights': [1.0416666666666667, 3.8461538461538463]
+                            }
                         },
-                        1: {
-                            'right_child': 3,
-                            'class_weights': [39.58333333333333, 2.8846153846153846],
-                            'prediction': 0,
-                            'feature': 'x10',
-                            'threshold': 2.7094616889953613,
-                            'left_child': 2
-                        },
-                        2: {
-                            'prediction': 0,
-                            'class_weights': [39.58333333333333, 0.0]
-                        },
-                        3: {
-                            'prediction': 1,
-                            'class_weights': [0.0, 2.8846153846153846]
-                        },
-                        4: {
-                            'right_child': 6,
-                            'class_weights': [1.0416666666666667, 31.730769230769226],
-                            'prediction': 1,
-                            'feature': 'x8',
-                            'threshold': 1.4883334636688232,
-                            'left_child': 5
-                        },
-                        5: {
-                            'prediction': 1,
-                            'class_weights': [0.0, 27.88461538461538]
-                        },
-                        6: {
-                            'prediction': 1,
-                            'class_weights': [1.0416666666666667, 3.8461538461538463]
-                        }
+                        'decision_features': ['x8 (0.834)', 'x10 (0.050)'],
+                        'num_nodes': 7
                     },
-                    'decision_features': ['x10', 'x8'],
-                    'num_nodes': 7
-                },
-                {
-                    'depth': 2,
-                    'nodes': {
-                        0: {
-                            'right_child': 4,
-                            'class_weights': [29.16666666666667, 45.19230769230767],
-                            'prediction': 1,
-                            'feature': 'x8',
-                            'threshold': 0.38960647583007812,
-                            'left_child': 1
+                    {
+                        'depth': 2,
+                        'nodes': {
+                            0: {
+                                'right_child': 4,
+                                'class_weights': [29.16666666666667, 45.19230769230767],
+                                'prediction': 1,
+                                'feature': 'x8',
+                                'threshold': 0.3896064758300781,
+                                'left_child': 1
+                            },
+                            1: {
+                                'right_child': 3,
+                                'class_weights': [29.16666666666667, 4.8076923076923075],
+                                'prediction': 0,
+                                'feature': 'x7',
+                                'threshold': -1.721463680267334,
+                                'left_child': 2
+                            },
+                            2: {
+                                'prediction': 1,
+                                'class_weights': [1.0416666666666667, 4.8076923076923075]
+                            },
+                            3: {
+                                'prediction': 0,
+                                'class_weights': [28.125, 0.0]
+                            },
+                            4: {
+                                'prediction': 1,
+                                'class_weights': [0.0, 40.38461538461538]
+                            }
                         },
-                        1: {
-                            'right_child': 3,
-                            'class_weights': [29.16666666666667, 4.8076923076923075],
-                            'prediction': 0,
-                            'feature': 'x7',
-                            'threshold': -1.721463680267334,
-                            'left_child': 2
-                        },
-                        2: {
-                            'prediction': 1,
-                            'class_weights': [1.0416666666666667, 4.8076923076923075]
-                        },
-                        3: {
-                            'prediction': 0,
-                            'class_weights': [28.125, 0.0]
-                        },
-                        4: {
-                            'prediction': 1,
-                            'class_weights': [0.0, 40.38461538461538]
-                        }
+                        'decision_features': ['x8 (0.834)', 'x7 (0.039)'],
+                        'num_nodes': 5
                     },
-                    'decision_features': ['x7', 'x8'],
-                    'num_nodes': 5
-                },
-                {
-                    'depth': 2,
-                    'nodes': {
-                        0: {
-                            'right_child': 4,
-                            'class_weights': [29.166666666666668, 45.19230769230767],
-                            'prediction': 1,
-                            'feature': 'x8',
-                            'threshold': 0.38960647583007812,
-                            'left_child': 1
+                    {
+                        'depth': 2,
+                        'nodes': {
+                            0: {
+                                'right_child': 4,
+                                'class_weights': [29.166666666666668, 45.19230769230767],
+                                'prediction': 1,
+                                'feature': 'x8',
+                                'threshold': 0.3896064758300781,
+                                'left_child': 1
+                            },
+                            1: {
+                                'right_child': 3,
+                                'class_weights': [29.166666666666675, 2.8846153846153846],
+                                'prediction': 0,
+                                'feature': 'x9',
+                                'threshold': -1.940993070602417,
+                                'left_child': 2
+                            },
+                            2: {
+                                'prediction': 1,
+                                'class_weights': [0.0, 2.8846153846153846]
+                            },
+                            3: {
+                                'prediction': 0,
+                                'class_weights': [29.166666666666668, 0.0]
+                            },
+                            4: {
+                                'prediction': 1,
+                                'class_weights': [0.0, 42.307692307692285]
+                            }
                         },
-                        1: {
-                            'right_child': 3,
-                            'class_weights': [29.166666666666675, 2.8846153846153846],
-                            'prediction': 0,
-                            'feature': 'x9',
-                            'threshold': -1.940993070602417,
-                            'left_child': 2
-                        },
-                        2: {
-                            'prediction': 1,
-                            'class_weights': [0.0, 2.8846153846153846]
-                        },
-                        3: {
-                            'prediction': 0,
-                            'class_weights': [29.166666666666668, 0.0]
-                        },
-                        4: {
-                            'prediction': 1,
-                            'class_weights': [0.0, 42.307692307692285]
-                        }
-                    },
-                    'decision_features': ['x8', 'x9'],
-                    'num_nodes': 5
+                        'decision_features': ['x8 (0.834)', 'x9 (0.061)'],
+                        'num_nodes': 5
                 }
             ],
             'n_estimators': 5,
-            'decision_features': ['x10', 'x6', 'x7', 'x8', 'x9']
+            'decision_features': ['x8 (0.834)', 'x9 (0.061)', 'x10 (0.050)', 'x7 (0.039)', 'x6 (0.017)']
         },
         SupervisedClassifier.ADABOOST: {
             'n_estimators': 10,
             'base_estimator': 'DecisionTreeClassifier',
-            'decision_features': ['x6', 'x7', 'x8', 'x9']
+            'decision_features': ['x8 (0.736)', 'x9 (0.217)', 'x6 (0.024)', 'x7 (0.023)']
         },
         SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: {
             'priors': [0.0001, 0.99990000000000001],
@@ -938,13 +938,13 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         }
     },
     'description': {
-        SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.95743984909*x8)',
+        SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.9574398490939546*x8)',
         SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)',
-        SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x7<=-1.72146368027), (x6<=1.4701499939), (x8<=1.52100133896), (x9<=-2.18017435074))',
-        SupervisedClassifier.RANDOM_FOREST: 'RANDOM_FOREST(n_estimators=5, features=[x10, x6, x7, x8, x9])',
-        SupervisedClassifier.ADABOOST: 'ADABOOST(base_estimator=DecisionTreeClassifier, n_estimators=10, features=[x6, x7, x8, x9])',
-        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: 'GAUSSIAN_NAIVE_BAYES(priors=[0.0001, 0.99990000000000001])',
-        'bifurcated': 'BifurcatedSupervisedClassifier(x3 <= 0.5, true=L1_REGRESS_AND_ROUND(1.0*x8), false=L1_REGRESS_AND_ROUND())'
+        SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.3896064758300781), (x9<=-1.940993070602417), (x7<=-1.721463680267334), (x6<=1.4701499938964844), (x8<=1.5210013389587402), (x9<=-2.1801743507385254))',
+        SupervisedClassifier.RANDOM_FOREST: 'RANDOM_FOREST(n_estimators=5, features=[x8 (0.834), x9 (0.061), x10 (0.050), x7 (0.039), x6 (0.017)])',
+        SupervisedClassifier.ADABOOST: 'ADABOOST(base_estimator=DecisionTreeClassifier, n_estimators=10, features=[x8 (0.736), x9 (0.217), x6 (0.024), x7 (0.023)])',
+        SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: 'GAUSSIAN_NAIVE_BAYES(priors=[0.0001, 0.9999])',
+        'bifurcated': 'BIFURCATED_REGRESS_AND_ROUND(x3 <= 0.5, true=L1_REGRESS_AND_ROUND(1.0*x8), false=L1_REGRESS_AND_ROUND())'
     },
     'str': {
         SupervisedClassifier.LOGISTIC_REGRESSION: "SupervisedClassifier([0, 1], algorithm='l1-logistic-regression-cross-validation', random_state=123456789)",
