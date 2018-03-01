@@ -136,7 +136,6 @@ class SupervisedLearningPipeline:
         else:
             # Read raw matrix.
             raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
-
             # Initialize FMT.
             fmt = FeatureMatrixTransform()
             fmt.set_input_matrix(raw_matrix)
@@ -145,6 +144,14 @@ class SupervisedLearningPipeline:
             self._add_features(fmt, params['features_to_add'])
             # Remove features.
             self._remove_features(fmt, params['features_to_remove'])
+            # HACK: When read_csv encounters duplicate columns, it deduplicates
+            # them by appending '.1, ..., .N' to the column names.
+            # In future versions of pandas, simply pass mangle_dupe_cols=True
+            # to read_csv, but not ready as of pandas 0.22.0.
+            for feature in raw_matrix.columns.values:
+                if feature[-2:] == ".1":
+                    fmt.remove_feature(feature)
+                    self._removed_features.append(feature)
             # Impute data.
             self._impute_data(fmt, raw_matrix, params['imputation_strategies'])
 
@@ -201,6 +208,8 @@ class SupervisedLearningPipeline:
                 added_feature = fmt.add_threshold_feature(base_feature, logarithm)
                 self._added_features.append(added_feature)
 
+        log.debug('self._added_features: %s' % self._added_features)
+
     def _impute_data(self, fmt, raw_matrix, imputation_strategies):
         for feature in raw_matrix.columns.values:
             if feature in self._removed_features:
@@ -228,6 +237,8 @@ class SupervisedLearningPipeline:
         for feature in features_to_remove:
             fmt.remove_feature(feature)
             self._removed_features.append(feature)
+
+        log.debug('self._removed_features: %s' % self._removed_features)
 
     def _train_test_split(self, processed_matrix, outcome_label):
         log.debug('outcome_label: %s' % outcome_label)
