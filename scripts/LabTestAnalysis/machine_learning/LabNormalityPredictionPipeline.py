@@ -208,15 +208,30 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
 if __name__ == '__main__':
     log.level = logging.DEBUG
-    LAB_PANELS = [
-        # "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
-        # "LABCBCD", "LABCBCO", "LABHFP",
-        "LABLAC",
-        # "LABMB",
-        # "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
-        # "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
-        # "LABROMRS", "LABTNI","LABTYPSNI", "LABUA", "LABUAPRN",
-        # "LABURNC", "LABVANPRL", "LABVBG"
+    TOP_LAB_PANELS_BY_CHARGE_VOLUME = [
+        "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
+        "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
+        "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
+        "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
+        "LABROMRS", "LABTNI","LABTYPSNI", "LABUA", "LABUAPRN",
+        "LABURNC", "LABVANPRL", "LABVBG"
     ]
-    for panel in LAB_PANELS:
+    TOP_NON_PANEL_TESTS_BY_VOLUME = [
+        "LABPT", "LABMGN", "LABPTT", "LABPHOS", "LABTNI",
+        "LABBLC", "LABBLC2", "LABCAI", "LABURNC", "LABLACWB",
+        "LABA1C", "LABHEPAR", "LABCDTPCR", "LABPCTNI", "LABPLTS",
+        "LABLAC", "LABLIPS", "LABRESP", "LABTSH", "LABHCTX",
+        "LABLDH", "LABMB", "LABK", "LABGRAM", "LABFCUL",
+        "LABNTBNP", "LABCRP", "LABFLDC", "LABSPLAC", "LABANER",
+        "LABCK", "LABESRP", "LABBLCTIP", "LABBLCSTK", "LABNA",
+        "LABFER", "LABUSPG", "LABB12", "LABURNA", "LABFT4",
+        "LABFIB", "LABURIC", "LABPALB", "LABPCCR", "LABTRFS",
+        "LABUOSM", "LABAFBD", "LABSTOBGD", "LABCSFGL", "LABCSFTP",
+        "LABNH3", "LABAFBC", "LABCMVQT", "LABCSFC", "LABUCR",
+        "LABTRIG", "LABFE", "LABNONGYN", "LABALB", "LABLIDOL",
+        "LABUPREG", "LABRETIC", "LABHAP", "LABBXTG", "LABHIVWBL"
+    ]
+
+
+    for panel in TOP_NON_PANEL_TESTS_BY_VOLUME:
         LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
