@@ -162,11 +162,11 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             status = SupervisedLearningPipeline._train_predictor(self, problem, [0, 1], hyperparams)
 
             # If failed to train, write an error report.
+            y_train_counts = self._y_train[self._y_train.columns[0]].value_counts()
+            y_test_counts = self._y_test[self._y_test.columns[0]].value_counts()
             if status == SupervisedClassifier.INSUFFICIENT_SAMPLES:
                 # Skip all analysis and reporting.
                 # This will be true for all algorithms, so just return.
-                y_train_counts = self._y_train[self._y_train.columns[0]].value_counts()
-                y_test_counts = self._y_test[self._y_train.columns[0]].value_counts()
                 # Build error report.
                 algorithm_report = DataFrame(
                     {
@@ -208,15 +208,15 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
 if __name__ == '__main__':
     log.level = logging.DEBUG
-    TOP_LAB_PANELS_BY_CHARGE_VOLUME = [
+    TOP_LAB_PANELS_BY_CHARGE_VOLUME = set([
         "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
         "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
         "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
         "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
         "LABROMRS", "LABTNI","LABTYPSNI", "LABUA", "LABUAPRN",
         "LABURNC", "LABVANPRL", "LABVBG"
-    ]
-    TOP_NON_PANEL_TESTS_BY_VOLUME = [
+    ])
+    TOP_NON_PANEL_TESTS_BY_VOLUME = set([
         "LABPT", "LABMGN", "LABPTT", "LABPHOS", "LABTNI",
         "LABBLC", "LABBLC2", "LABCAI", "LABURNC", "LABLACWB",
         "LABA1C", "LABHEPAR", "LABCDTPCR", "LABPCTNI", "LABPLTS",
@@ -226,12 +226,35 @@ if __name__ == '__main__':
         "LABCK", "LABESRP", "LABBLCTIP", "LABBLCSTK", "LABNA",
         "LABFER", "LABUSPG", "LABB12", "LABURNA", "LABFT4",
         "LABFIB", "LABURIC", "LABPALB", "LABPCCR", "LABTRFS",
-        "LABUOSM", "LABAFBD", "LABSTOBGD", "LABCSFGL", "LABCSFTP",
-        "LABNH3", "LABAFBC", "LABCMVQT", "LABCSFC", "LABUCR",
-        "LABTRIG", "LABFE", "LABNONGYN", "LABALB", "LABLIDOL",
+        "LABUOSM",
+        # "LABAFBD", # ValueError: Input contains NaN, infinity or a value too large for dtype('float64').
+        "LABSTOBGD", "LABCSFGL", "LABCSFTP",
+        "LABNH3", "LABAFBC", "LABCMVQT",
+        # "LABCSFC", # ValueError: Input contains NaN, infinity or a value too large for dtype('float64').
+        "LABUCR",
+        "LABTRIG", "LABFE",
+        # "LABNONGYN", # No base names.
+        "LABALB", "LABLIDOL",
         "LABUPREG", "LABRETIC", "LABHAP", "LABBXTG", "LABHIVWBL"
+    ])
+
+    labs_to_test = list(TOP_LAB_PANELS_BY_CHARGE_VOLUME.union(TOP_NON_PANEL_TESTS_BY_VOLUME))
+    labs_to_test = [
+        'LABUSPG', 'LABCK', 'LABHCTX', 'LABCSFGL', 'LABA1C', 'LABUCR', 'LABNH3', 'LABESRP',
+        'LABHAP', 'LABPT', 'LABTYPSNI', 'LABBLCSTK', 'LABBLCTIP', 'LABALB', 'LABURNA', 'LABUAPRN',
+        'LABURNC', 'LABFER', 'LABCAI', 'LABPHOS', 'LABBXTG', 'LABFCUL', 'LABLIDOL', 'LABAFBC',
+        'LABFLDC', 'LABMGN', 'LABBLC', 'LABVBG', 'LABROMRS', 'LABCMVQT', 'LABHFP', 'LABLAC',
+        'LABTNI', 'LABBLC2', 'LABLIPS', 'LABFT4', 'LABVANPRL', 'LABLDH', 'LABURIC', 'LABPALB',
+        'LABCDTPCR', 'LABPCG3', 'LABCRP', 'LABB12', 'LABPCTNI', 'LABCSFTP', 'LABTRIG', 'LABMB',
+        'LABFIB', 'LABSTOBGD', 'LABRESP', 'LABTSH', 'LABANER', 'LABHEPAR', 'LABPOCGLU', 'LABUA',
+        'LABCBCO', 'LABCBCD', 'LABPLTS', 'LABRETIC', 'LABSPLAC', 'LABTRFS', 'LABFE', 'LABPTT',
+        'LABK', 'LABMETB', 'LABMETC', 'LABNTBNP', 'LABNA', 'LABUPREG', 'LABUOSM', 'LABPCCR',
+        'LABGRAM', 'LABLACWB', 'LABABG', 'LABHIVWBL'
     ]
 
-
-    for panel in TOP_NON_PANEL_TESTS_BY_VOLUME:
+    labs_to_test = ['LABAFBD', 'LABCSFC']
+    for panel in labs_to_test:
         LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
+
+    # for panel in TOP_NON_PANEL_TESTS_BY_VOLUME:
+    #     LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
