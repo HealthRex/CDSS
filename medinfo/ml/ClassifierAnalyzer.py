@@ -29,8 +29,10 @@ class ClassifierAnalyzer(PredictorAnalyzer):
     K_99_PRECISION_SCORE = 'k(precision=0.99)'
     K_95_PRECISION_SCORE = 'k(precision=0.95)'
     K_90_PRECISION_SCORE = 'k(precision=0.90)'
+    PERCENT_PREDICTABLY_POSITIVE = 'percent_predictably_positive'
     SUPPORTED_SCORES = [ACCURACY_SCORE, RECALL_SCORE, PRECISION_SCORE,
                         F1_SCORE, AVERAGE_PRECISION_SCORE,
+                        PERCENT_PREDICTABLY_POSITIVE,
                         PRECISION_AT_K_SCORE, K_99_PRECISION_SCORE,
                         K_95_PRECISION_SCORE, K_90_PRECISION_SCORE,
                         ROC_AUC_SCORE]
@@ -95,6 +97,31 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
         return float(threshold_k) / float(len(k_vals))
 
+    def _score_percent_predictably_positive(self, desired_precision):
+        # Get the name of the column in y_pred_prob.
+        prob_col_name = self._y_pred_prob.columns.values[0]
+        # Sort y_pred_prob by the values in that column.
+        prob_sorted = self._y_pred_prob.sort_values(prob_col_name, ascending=False)
+        # Fetch the index for pred_sort.
+        prob_sorted_index = prob_sorted.index
+        # Sort y_test and y_pred by that index.
+        true_sorted = self._y_test.reindex(index=prob_sorted_index)
+        pred_sorted = self._y_predicted.reindex(index=prob_sorted_index)
+
+        num_true_positive = 0
+        num_samples = len(true_sorted.index)
+        for k in range(1, num_samples):
+            # Fetch the top k predictions.
+            pred_sorted_at_k = pred_sorted[0:k]
+            true_sorted_at_k = true_sorted[0:k]
+            # Get precision at k.x
+            precision_at_k = precision_score(true_sorted_at_k, pred_sorted_at_k)
+            log.debug('precision_at_k: %s' % precision_at_k)
+            if precision_at_k >= desired_precision:
+                num_true_positive = true_sorted_at_k[true_sorted_at_k.columns.values[0]].value_counts()[1]
+
+        return float(num_true_positive) / float(num_samples)
+
     def score(self, metric=None, k=None):
         if metric is None:
             metric = ClassifierAnalyzer.ACCURACY_SCORE
@@ -120,6 +147,8 @@ class ClassifierAnalyzer(PredictorAnalyzer):
             return self._score_k_percentile_precision(0.95)
         elif metric == ClassifierAnalyzer.K_99_PRECISION_SCORE:
             return self._score_k_percentile_precision(0.99)
+        elif metric == ClassifierAnalyzer.PERCENT_PREDICTABLY_POSITIVE:
+            return self._score_percent_predictably_positive(0.99)
         elif metric == ClassifierAnalyzer.PRECISION_AT_K_SCORE:
             if k is None:
                 raise ValueError('Must specify k for PRECISION_AT_K_SCORE.')
@@ -227,6 +256,11 @@ class ClassifierAnalyzer(PredictorAnalyzer):
             'model': [self._predictor.description()],
             'test_size': [self._y_test.shape[0]]
         }
+
+        # Add train and test counts.
+        y_test_counts = self._y_test[self._y_test.columns[0]].value_counts()
+        report_dict.update({'y_test.value_counts()': [str(y_test_counts.to_dict())]})
+        column_names.append('y_test.value_counts()')
 
         # Add scores.
         for score_metric in ClassifierAnalyzer.SUPPORTED_SCORES:
