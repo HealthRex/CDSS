@@ -12,6 +12,4 @@ Here you can find the files we use for automated patient progression prediction 
 * makeMatrix is the code used for data preprocessing (which relies on FeatureMatrix.py and FeatureMatrixFactory.py, which was code originally writte by Santosh but further modified by us for our needs. Our modifications are located in this folder.)
 ---
 
-The remainder of the code used to extract our data is located in the analysis folder.
-
-Published Work and Suggested Reference: 
+The remainder of the code used to extract our data is located in the dataconversion folder.
