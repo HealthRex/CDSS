@@ -1,4 +1,4 @@
-##ClinicNet and ClinicLSTM Deep Learning Recommender Engine
+## ClinicNet and ClinicLSTM Deep Learning Recommender Engine
 Hello, welcome to the HealthRex DeepLearning Recommender Github Folder!
 Authors: Delaney Sullivan, Jonathan Wang, Alex Wells, Adam Wells
 
