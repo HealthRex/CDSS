@@ -530,7 +530,7 @@ for( var i=0; i < BUG_LIST.length; i++ )
 }
 */
 
-SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (Spinal Cord Injury Unit)"] = 
+SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (Spinal Cord Injury Unit)"] =
 [
     '32\tEnterococcus faecalis\tNumber Tested',
     '100\tEnterococcus faecalis\tAmpicillin/Amoxicillin',
@@ -742,7 +742,7 @@ SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (Long Term Care)"] =
     '65\tPseudomonas aeruginosa\tLevofloxacin',
 ].join('\n');
 
-SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (ICU/IICU)"] = 
+SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (ICU/IICU)"] =
 [
     '21\tEnterococcus faecalis\tNumber Tested',
     '100\tEnterococcus faecalis\tAmpicillin/Amoxicillin',
@@ -889,7 +889,7 @@ SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (ICU/IICU)"] =
     '80\tStenotrophomonas maltophilia\tTrimethoprim',
 ].join('\n');
 
-SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (ER)"] = 
+SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (ER)"] =
 [
     '116\tEnterococcus faecalis\tNumber Tested',
     '99\tEnterococcus faecalis\tAmpicillin/Amoxicillin',
@@ -1182,7 +1182,7 @@ SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (ER)"] =
     '100\tStenotrophomonas maltophilia\tTrimethoprim',
 ].join('\n');
 
-SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (Acute Med/Surg)"] = 
+SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (Acute Med/Surg)"] =
 [
     '32\tEnterococcus faecalis\tNumber Tested',
     '100\tEnterococcus faecalis\tAmpicillin/Amoxicillin',
@@ -1295,7 +1295,7 @@ SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (Acute Med/Surg)"] =
     '84\tPseudomonas aeruginosa\tLevofloxacin',
 ].join('\n');
 
-SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (All Units)"] = 
+SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (All Units)"] =
 [
     '489\tEnterococcus faecalis\tNumber Tested',
     '99\tEnterococcus faecalis\tAmpicillin/Amoxicillin',
@@ -1592,7 +1592,7 @@ SENSITIVITY_DATA_PER_SOURCE["2016 Palo Alto VA (All Units)"] =
 ].join('\n');
 
 
-SENSITIVITY_DATA_PER_SOURCE["2010 Sanford Guide"] = 
+SENSITIVITY_DATA_PER_SOURCE["2010 Sanford Guide"] =
 [
     '90\tAcinetobacter\tAmikacin',
     '0\tAcinetobacter\tAmoxicillin-Clavulanate',
@@ -4877,7 +4877,7 @@ SENSITIVITY_DATA_PER_SOURCE["2011 Palo Alto VA (ED)"] =
     '90\tStenotrophomonas maltophilia\tTMP-SMX',
 ].join('\n');
 
-SENSITIVITY_DATA_PER_SOURCE["2012 Stanford (SUH)"] = 
+SENSITIVITY_DATA_PER_SOURCE["2012 Stanford (SUH)"] =
 [
     '210\tStreptococcus Group B (agalactiae)\tNumber Tested',
     '100\tStreptococcus Group B (agalactiae)\tPenicillin G',
@@ -7515,22 +7515,22 @@ SENSITIVITY_DATA_PER_SOURCE["2017 Wilkes-Barre VA Medical Center - All Organisms
     '100\tEnterococcus faecalis\tPenicillin G',
     '24\tEnterococcus faecalis\tDoxycycline',
     '99\tEnterococcus faecalis\tVancomycin',
-    '72\tStaphylococcus aureus (all)\tNumber Tested',
-    '96\tStaphylococcus aureus (all)\tAmpicillin-Sulbactam',
-    '0\tStaphylococcus aureus (all)\tAmpicillin/Amoxicillin',
-    '79\tStaphylococcus aureus (all)\tClindamycin',
-    '100\tStaphylococcus aureus (all)\tCefazolin',
-    '100\tStaphylococcus aureus (all)\tDaptomycin (non-pneumonia)',
-    '73\tStaphylococcus aureus (all)\tErythromycin',
-    '99\tStaphylococcus aureus (all)\tGentamicin',
-    '83\tStaphylococcus aureus (all)\tLevofloxacin',
-    '100\tStaphylococcus aureus (all)\tLinezolid',
-    '90\tStaphylococcus aureus (all)\tMoxifloxacin',
-    '100\tStaphylococcus aureus (all)\tNafcillin/Oxacillin',
-    '17\tStaphylococcus aureus (all)\tPenicillin G',
-    '97\tStaphylococcus aureus (all)\tTMP-SMX',
-    '96\tStaphylococcus aureus (all)\tDoxycycline',
-    '100\tStaphylococcus aureus (all)\tVancomycin',
+    '72\tStaphylococcus aureus (MSSA)\tNumber Tested',
+    '96\tStaphylococcus aureus (MSSA)\tAmpicillin-Sulbactam',
+    '0\tStaphylococcus aureus (MSSA)\tAmpicillin/Amoxicillin',
+    '79\tStaphylococcus aureus (MSSA)\tClindamycin',
+    '100\tStaphylococcus aureus (MSSA)\tCefazolin',
+    '100\tStaphylococcus aureus (MSSA)\tDaptomycin (non-pneumonia)',
+    '73\tStaphylococcus aureus (MSSA)\tErythromycin',
+    '99\tStaphylococcus aureus (MSSA)\tGentamicin',
+    '83\tStaphylococcus aureus (MSSA)\tLevofloxacin',
+    '100\tStaphylococcus aureus (MSSA)\tLinezolid',
+    '90\tStaphylococcus aureus (MSSA)\tMoxifloxacin',
+    '100\tStaphylococcus aureus (MSSA)\tNafcillin/Oxacillin',
+    '17\tStaphylococcus aureus (MSSA)\tPenicillin G',
+    '97\tStaphylococcus aureus (MSSA)\tTMP-SMX',
+    '96\tStaphylococcus aureus (MSSA)\tDoxycycline',
+    '100\tStaphylococcus aureus (MSSA)\tVancomycin',
     '90\tStaphylococcus aureus (MRSA)\tNumber Tested',
     '0\tStaphylococcus aureus (MRSA)\tAmpicillin-Sulbactam',
     '0\tStaphylococcus aureus (MRSA)\tAmpicillin/Amoxicillin',
