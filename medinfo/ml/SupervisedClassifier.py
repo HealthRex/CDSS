@@ -391,7 +391,7 @@ class SupervisedClassifier:
             params['n_estimators'] += 1
             # Build list of forest-wide decision features.
             for feature in tree_dict['decision_features']:
-                decision_features.add(feature.split()[0])
+                decision_features.add(' '.join(feature.split()[:-1]))
 
         num_features = self._model.n_features_
         importances = {}
@@ -414,7 +414,7 @@ class SupervisedClassifier:
         for estimator in self._model.estimators_:
             tree_dict = self._tree_to_dict(estimator.tree_)
             for feature in tree_dict['decision_features']:
-                decision_features.add(feature.split()[0])
+                decision_features.add(' '.join(feature.split()[:-1]))
 
         num_features = len(self._features)
         importances = {}

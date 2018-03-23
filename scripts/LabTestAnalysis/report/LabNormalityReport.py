@@ -134,9 +134,17 @@ class LabNormalityReport:
         # Note that there might be multiple values with the same max value.
         best_predictor = meta_report.loc[meta_report['roc_auc'] == meta_report['roc_auc'].max()]
         num_predictors = len(best_predictor.index)
-        # Break ties based on roc_auc.
+        # Break ties based on k(0.99).
         if num_predictors != 1:
             best_predictor = meta_report.loc[meta_report['k(precision=0.99)'] == meta_report['k(precision=0.99)'].max()]
+
+        # Break ties on accuracy.
+        num_predictors = len(best_predictor.index)
+        if num_predictors != 1:
+            best_predictor = meta_report.loc[meta_report['accuracy'] == meta_report['accuracy'].max()]
+
+        # If still tied, return first.
+        best_predictor = best_predictor.iloc[0]
 
         return best_predictor
 
@@ -201,8 +209,9 @@ class LabNormalityReport:
             median_charge = LabNormalityReport.fetch_median_charge(lab_panel)
             volume = LabNormalityReport.fetch_volume(lab_panel)
             median_charge_volume = float(median_charge) * float(volume)
-            roc_auc = best_predictor['roc_auc'].iloc[0]
-            best_model = best_predictor['model'].iloc[0]
+            roc_auc = best_predictor['roc_auc']
+            best_model = best_predictor['model']
+
             k_99 = float(best_predictor['k(precision=0.99)'])
             k_95 = float(best_predictor['k(precision=0.95)'])
             k_90 = float(best_predictor['k(precision=0.90)'])
@@ -302,6 +311,6 @@ class LabNormalityReport:
 if __name__ == '__main__':
     fm_io = FeatureMatrixIO()
     summary_table = LabNormalityReport.build_lab_performance_summary_table()
-    fm_io.write_data_frame_to_file(summary_table, 'test.tab')
-    # summary = LabNormalityReport.build_algorithm_performance_summary_table()
-    # fm_io.write_data_frame_to_file(summary, 'algorithm-performance-summary.tab')
+    fm_io.write_data_frame_to_file(summary_table, 'lab-performance-summary.tab')
+    summary = LabNormalityReport.build_algorithm_performance_summary_table()
+    fm_io.write_data_frame_to_file(summary, 'algorithm-performance-summary.tab')
