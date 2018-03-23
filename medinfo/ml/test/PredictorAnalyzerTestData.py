@@ -14,6 +14,8 @@ MANUAL_PREDICTION_TEST_CASE = {
     'y_true': pd.DataFrame({'true':[1, 2, 3, 5, 8, 13, 21, 34, 55, 89]}),
     'y_predicted': pd.DataFrame({'predictions':[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}),
     'accuracy': 0.3,
+    'ci_lower_bound': 0.1,
+    'ci_upper_bound': 0.6,
     'report' : pd.DataFrame({
         'model': ['ListPredictor([ 1  2  3  4  5  6  7  8  9 10])'],
         'test_size': [10],

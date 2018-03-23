@@ -48,6 +48,18 @@ class TestPredictorAnalyzer(MedInfoTestCase):
         # Assert values are correct.
         self.assertEqual(expected_accuracy, actual_accuracy)
 
+    def test_score_accuracy_ci(self):
+        # Compute accuracy.
+        expected_accuracy = MANUAL_PREDICTION_TEST_CASE['accuracy']
+        expected_lower_ci = MANUAL_PREDICTION_TEST_CASE['ci_lower_bound']
+        expected_upper_ci = MANUAL_PREDICTION_TEST_CASE['ci_upper_bound']
+        actual_accuracy, lower_ci, upper_ci = self._analyzer.score(metric=PredictorAnalyzer.ACCURACY_SCORE, ci=0.9, num_samples=100)
+
+        # Assert values are correct.
+        self.assertEqual(expected_accuracy, actual_accuracy)
+        self.assertEqual(expected_lower_ci, lower_ci)
+        self.assertEqual(expected_upper_ci, upper_ci)
+
     def test_build_report(self):
         # Build report.
         expected_report = MANUAL_PREDICTION_TEST_CASE['report']
