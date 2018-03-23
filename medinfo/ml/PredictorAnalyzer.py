@@ -6,6 +6,7 @@ on a set of test data.
 
 import pandas as pd
 from sklearn.utils.validation import column_or_1d
+from sklearn.metrics import accuracy_score
 
 from medinfo.common.Util import log
 
@@ -24,30 +25,12 @@ class PredictorAnalyzer:
         self._y_predicted = pd.DataFrame(self._predictor.predict(self._X_test))
         log.debug('y_predicted[0].value_counts(): %s' % self._y_predicted[self._y_predicted.columns.values[0]].value_counts())
 
-    def _score_accuracy(self):
-        # sklearn has a built-in function to compute this. However,
-        # to avoid requiring all non-sklearn-based predictors to implement
-        # all of their own scoring functions, we'll take the unusual step
-        # of re-implementing here, given the computation is fairly simple.
-        true_vals = self._y_test.iloc[:,0]
-        # true_vals will typically come from a train_test_split, so need to
-        # reset the indices to 1-N for proper comparison with predicted_vals.
-        true_vals = true_vals.reset_index(drop=True)
-        predicted_vals = self._y_predicted.iloc[:,0]
+    def _score_accuracy(self, ci=None):
+        return accuracy_score(self._y_test, self._y_predicted)
 
-        # Create new series comparing first column of each DataFrame.
-        accuracy = (true_vals == predicted_vals)
-
-        # If there are 0 correct predictions, then value_counts will not have
-        # a [True] row. In that case, just return 0.
-        try:
-            score = accuracy.value_counts(normalize=True)[True]
-        except KeyError:
-            score = 0
-
-        return score
-
-    def score(self, metric=None):
+    def score(self, metric=None, ci=None):
+        # ci defines confidence interval as float.
+        # Also defines whether score returns score or (-ci, score, +ci)
         if metric is None:
             metric = PredictorAnalyzer.ACCURACY_SCORE
 
