@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from pandas import DataFrame
 import sys
+import numpy as np
 
 from sklearn.metrics import recall_score, precision_score, f1_score
 from sklearn.metrics import average_precision_score, roc_auc_score
@@ -57,31 +58,31 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
     def _score_recall(self, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(recall_score, ci, n_bootstrap_iter)
+            return self._bootstrap_score_ci(recall_score, self._y_test, self._y_predicted, ci, n_bootstrap_iter)
         else:
             return recall_score(self._y_test, self._y_predicted)
 
     def _score_precision(self, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(precision_score, ci, n_bootstrap_iter)
+            return self._bootstrap_score_ci(precision_score, self._y_test, self._y_predicted, ci, n_bootstrap_iter)
         else:
             return precision_score(self._y_test, self._y_predicted)
 
     def _score_f1(self, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(f1_score, ci, n_bootstrap_iter)
+            return self._bootstrap_score_ci(f1_score, self._y_test, self._y_predicted, ci, n_bootstrap_iter)
         else:
             return f1_score(self._y_test, self._y_predicted)
 
     def _score_average_precision(self, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(average_precision_score, ci, n_bootstrap_iter)
+            return self._bootstrap_score_ci(average_precision_score, self._y_test, self._y_pred_prob, ci, n_bootstrap_iter)
         else:
             return average_precision_score(self._y_test, self._y_pred_prob)
 
     def _score_roc_auc(self, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(average_precision_score, ci, n_bootstrap_iter)
+            return self._bootstrap_score_ci(roc_auc_score, self._y_test, self._y_pred_prob, ci, n_bootstrap_iter)
         else:
             return roc_auc_score(self._y_test, self._y_pred_prob)
 
@@ -112,13 +113,14 @@ class ClassifierAnalyzer(PredictorAnalyzer):
                 # to be defined: reject the sample
                 continue
             if score_fn == self._score_precision_at_k:
-                sample_score = score_fn(y_test, y_pred, k)
+                score = score_fn(sample_y_test, sample_y_pred, k)
             else:
-                sample_score = score_fn(y_test, y_pred)
+                score = score_fn(sample_y_test, sample_y_pred)
             bootstrap_scores.append(score)
 
         # Sort bootstrap scores to get CIs.
         bootstrap_scores.sort()
+        log.debug('bootstrap_scores: %s' % bootstrap_scores)
         sorted_scores = np.array(bootstrap_scores)
         # May not be equal to n_bootstrap_iter if some samples were rejected
         num_bootstraps = len(sorted_scores)
