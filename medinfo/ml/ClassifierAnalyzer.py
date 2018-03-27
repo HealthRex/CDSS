@@ -52,41 +52,106 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         self._y_pred_prob = DataFrame(classifier.predict_probability(X_test)[:,1])
         log.debug('y_pred_prob[0].value_counts(): %s' % self._y_pred_prob[0].value_counts())
 
-    def _score_accuracy(self):
-        return PredictorAnalyzer._score_accuracy(self)
+    def _score_accuracy(self, ci=None, n_bootstrap_iter=None):
+        return PredictorAnalyzer._score_accuracy(self, ci, n_bootstrap_iter)
 
-    def _score_recall(self):
-        return recall_score(self._y_test, self._y_predicted)
+    def _score_recall(self, ci=None, n_bootstrap_iter=None):
+        if ci:
+            return self._bootstrap_score_ci(recall_score, ci, n_bootstrap_iter)
+        else:
+            return recall_score(self._y_test, self._y_predicted)
 
-    def _score_precision(self):
-        return precision_score(self._y_test, self._y_predicted)
+    def _score_precision(self, ci=None, n_bootstrap_iter=None):
+        if ci:
+            return self._bootstrap_score_ci(precision_score, ci, n_bootstrap_iter)
+        else:
+            return precision_score(self._y_test, self._y_predicted)
 
-    def _score_f1(self):
-        return f1_score(self._y_test, self._y_predicted)
+    def _score_f1(self, ci=None, n_bootstrap_iter=None):
+        if ci:
+            return self._bootstrap_score_ci(f1_score, ci, n_bootstrap_iter)
+        else:
+            return f1_score(self._y_test, self._y_predicted)
 
-    def _score_average_precision(self):
-        return average_precision_score(self._y_test, self._y_pred_prob)
+    def _score_average_precision(self, ci=None, n_bootstrap_iter=None):
+        if ci:
+            return self._bootstrap_score_ci(average_precision_score, ci, n_bootstrap_iter)
+        else:
+            return average_precision_score(self._y_test, self._y_pred_prob)
 
-    def _score_roc_auc(self):
-        return roc_auc_score(self._y_test, self._y_pred_prob)
+    def _score_roc_auc(self, ci=None, n_bootstrap_iter=None):
+        if ci:
+            return self._bootstrap_score_ci(average_precision_score, ci, n_bootstrap_iter)
+        else:
+            return roc_auc_score(self._y_test, self._y_pred_prob)
 
-    def _score_precision_at_k(self, k):
-        # Get the name of the column in y_pred_prob.
-        prob_col_name = self._y_pred_prob.columns.values[0]
-        # Sort y_pred_prob by the values in that column.
-        prob_sorted = self._y_pred_prob.sort_values(prob_col_name, ascending=False)
-        # Fetch the index for pred_sort.
-        prob_sorted_index = prob_sorted.index
-        # Sort y_test and y_pred by that index.
-        true_sorted = self._y_test.reindex(index=prob_sorted_index)
-        pred_sorted = self._y_predicted.reindex(index=prob_sorted_index)
-        # Fetch the top k predictions.
-        pred_sorted_at_k = pred_sorted[0:k]
-        true_sorted_at_k = true_sorted[0:k]
-        # Return precision at k.
-        return precision_score(true_sorted_at_k, pred_sorted_at_k)
+    def _bootstrap_score_ci(self, score_fn, y_test, y_pred, ci, n_bootstrap_iter=None, k=None):
+        # Note that y_pred may either represent the predicted labels or the
+        # predicted label probabilities. It's up to the caller to make the
+        # right choice based on score_fn's expected input.
+        if score_fn == self._score_precision_at_k:
+            sample_score = score_fn(y_test, y_pred, k)
+        else:
+            sample_score = score_fn(y_test, y_pred)
 
-    def _score_k_percentile_precision(self, desired_precision):
+        if n_bootstrap_iter is None:
+            n_bootstrap_iter = 100
+        # For consistency of results, seed random number generator with
+        # fixed number.
+        rng = np.random.RandomState(n_bootstrap_iter)
+        # Use bootstrap to compute CIs.
+        bootstrap_scores = list()
+        for i in range(0, n_bootstrap_iter):
+            # Sample y_test and y_pred with replacement.
+            indices = rng.randint(0, len(y_pred) - 1, len(y_pred))
+            sample_y_test = np.array(y_test)[indices]
+            sample_y_pred = np.array(y_pred)[indices]
+            log.debug('sample_y_pred: %s' % sample_y_pred)
+            if len(np.unique(sample_y_test)) < 2:
+                # We need at least one positive and one negative sample for ROC AUC
+                # to be defined: reject the sample
+                continue
+            if score_fn == self._score_precision_at_k:
+                sample_score = score_fn(y_test, y_pred, k)
+            else:
+                sample_score = score_fn(y_test, y_pred)
+            bootstrap_scores.append(score)
+
+        # Sort bootstrap scores to get CIs.
+        bootstrap_scores.sort()
+        sorted_scores = np.array(bootstrap_scores)
+        # May not be equal to n_bootstrap_iter if some samples were rejected
+        num_bootstraps = len(sorted_scores)
+        log.debug('sorted_scores: %s' % sorted_scores)
+
+        ci_lower_bound_float = (1.0 - ci) / 2
+        ci_lower_bound = sorted_scores[int(ci_lower_bound_float * num_bootstraps)]
+        ci_upper_bound_float = ci + ci_lower_bound_float
+        ci_upper_bound = sorted_scores[int(ci_upper_bound_float * num_bootstraps)]
+
+        return sample_score, ci_lower_bound, ci_upper_bound
+
+    def _score_precision_at_k(self, y_true, y_pred, y_pred_prob, k, ci=None, n_bootstrap_iter=None, desired_precision=None):
+        if ci:
+            return self._bootstrap_score_ci(_score_precision_at_k, y_test, y_pred_prob, ci, n_bootstrap_iter, k=k)
+        else:
+            # Get the name of the column in y_pred_prob.
+            prob_col_name = y_pred_prob.columns.values[0]
+            # Sort y_pred_prob by the values in that column.
+            prob_sorted = y_pred_prob.sort_values(prob_col_name, ascending=False)
+            # Fetch the index for pred_sort.
+            prob_sorted_index = prob_sorted.index
+            # Sort y_test and y_pred by that index.
+            true_sorted = y_true.reindex(index=prob_sorted_index)
+            pred_sorted = y_pred.reindex(index=prob_sorted_index)
+            # Fetch the top k predictions.
+            pred_sorted_at_k = pred_sorted[0:k]
+            true_sorted_at_k = true_sorted[0:k]
+            # Return precision at k.
+            return precision_score(true_sorted_at_k, pred_sorted_at_k)
+
+    def _score_k_percentile_precision(self, desired_precision, ci=None, n_bootstrap_iter=None):
+        # TODO(sbala): Clean up this function so it can use _bootstrap_score_ci.
         k_vals, precision_vals = self.compute_precision_at_k_curve()
 
         # Search for k_val for which precision == precision.
@@ -97,32 +162,37 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
         return float(threshold_k) / float(len(k_vals))
 
-    def _score_percent_predictably_positive(self, desired_precision):
-        # Get the name of the column in y_pred_prob.
-        prob_col_name = self._y_pred_prob.columns.values[0]
-        # Sort y_pred_prob by the values in that column.
-        prob_sorted = self._y_pred_prob.sort_values(prob_col_name, ascending=False)
-        # Fetch the index for pred_sort.
-        prob_sorted_index = prob_sorted.index
-        # Sort y_test and y_pred by that index.
-        true_sorted = self._y_test.reindex(index=prob_sorted_index)
-        pred_sorted = self._y_predicted.reindex(index=prob_sorted_index)
+    def _score_percent_predictably_positive(self, y_test, y_pred, y_pred_prob, desired_precision, ci=None, n_bootstrap_iter=None):
+        if ci:
+            return self._bootstrap_score_ci(_score_percent_predictably_positive, y_test, y_pred, y_pred_prob, ci, desired_precision=desired_precision)
+        else:
+            # Get the name of the column in y_pred_prob.
+            prob_col_name = y_pred_prob.columns.values[0]
+            # Sort y_pred_prob by the values in that column.
+            prob_sorted = y_pred_prob.sort_values(prob_col_name, ascending=False)
+            # Fetch the index for pred_sort.
+            prob_sorted_index = prob_sorted.index
+            # Sort y_test and y_pred by that index.
+            true_sorted = y_test.reindex(index=prob_sorted_index)
+            pred_sorted = y_pred.reindex(index=prob_sorted_index)
 
-        num_true_positive = 0
-        num_samples = len(true_sorted.index)
-        for k in range(1, num_samples):
-            # Fetch the top k predictions.
-            pred_sorted_at_k = pred_sorted[0:k]
-            true_sorted_at_k = true_sorted[0:k]
-            # Get precision at k.x
-            precision_at_k = precision_score(true_sorted_at_k, pred_sorted_at_k)
-            log.debug('precision_at_k: %s' % precision_at_k)
-            if precision_at_k >= desired_precision:
-                num_true_positive = true_sorted_at_k[true_sorted_at_k.columns.values[0]].value_counts()[1]
+            num_true_positive = 0
+            n_bootstrap_iter = len(true_sorted.index)
+            for k in range(1, n_bootstrap_iter):
+                # Fetch the top k predictions.
+                pred_sorted_at_k = pred_sorted[0:k]
+                true_sorted_at_k = true_sorted[0:k]
+                # Get precision at k.x
+                precision_at_k = precision_score(true_sorted_at_k, pred_sorted_at_k)
+                log.debug('precision_at_k: %s' % precision_at_k)
+                if precision_at_k >= desired_precision:
+                    num_true_positive = true_sorted_at_k[true_sorted_at_k.columns.values[0]].value_counts()[1]
 
-        return float(num_true_positive) / float(num_samples)
+            return float(num_true_positive) / float(n_bootstrap_iter)
 
-    def score(self, metric=None, k=None):
+    def score(self, metric=None, k=None, ci=None, n_bootstrap_iter=None):
+        # ci defines confidence interval as float.
+        # Also defines whether score returns score or (-ci, score, +ci)
         if metric is None:
             metric = ClassifierAnalyzer.ACCURACY_SCORE
 
@@ -130,32 +200,33 @@ class ClassifierAnalyzer(PredictorAnalyzer):
             raise ValueError('Score metric %s not supported.' % metric)
 
         if metric == ClassifierAnalyzer.ACCURACY_SCORE:
-            return self._score_accuracy()
+            return self._score_accuracy(ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.RECALL_SCORE:
-            return self._score_recall()
+            return self._score_recall(ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.PRECISION_SCORE:
-            return self._score_precision()
+            return self._score_precision(ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.F1_SCORE:
-            return self._score_f1()
+            return self._score_f1(ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.AVERAGE_PRECISION_SCORE:
-            return self._score_average_precision()
+            return self._score_average_precision(ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.ROC_AUC_SCORE:
-            return self._score_roc_auc()
+            return self._score_roc_auc(ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.K_90_PRECISION_SCORE:
-            return self._score_k_percentile_precision(0.9)
+            return self._score_k_percentile_precision(0.9, ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.K_95_PRECISION_SCORE:
-            return self._score_k_percentile_precision(0.95)
+            return self._score_k_percentile_precision(0.95, ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.K_99_PRECISION_SCORE:
-            return self._score_k_percentile_precision(0.99)
+            return self._score_k_percentile_precision(0.99, ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.PERCENT_PREDICTABLY_POSITIVE:
-            return self._score_percent_predictably_positive(0.99)
+            return self._score_percent_predictably_positive(self._y_test, self._y_predicted, self._y_pred_prob, 0.99, ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.PRECISION_AT_K_SCORE:
             if k is None:
                 raise ValueError('Must specify k for PRECISION_AT_K_SCORE.')
             else:
-                return self._score_precision_at_k(k)
+                return self._score_precision_at_k(self._y_test, self._y_predicted, self._y_pred_prob, k=k, ci=ci, n_bootstrap_iter=n_bootstrap_iter)
 
     def compute_precision_recall_curve(self):
+        # TODO(sbala): Allow computation of confidence intervals via bootstrap.
         return precision_recall_curve(self._y_test, self._y_pred_prob)
 
     def plot_precision_recall_curve(self, title, dest_path):
@@ -215,15 +286,26 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         plt.savefig(dest_path)
         plt.close()
 
-    def compute_precision_at_k_curve(self):
+    def compute_precision_at_k_curve(self, ci=None, n_bootstrap_iter=None):
         num_samples = self._y_test.shape[0]
         k_vals = range(1, num_samples + 1)
         precision_vals = list()
+        lower_ci_vals = list()
+        upper_ci_vals = list()
         for k in k_vals:
-            precision = self._score_precision_at_k(k)
-            precision_vals.append(precision)
+            if ci:
+                precision, lower_ci, upper_ci = self._score_precision_at_k(self._y_test, self._y_predicted, self._y_pred_prob, k, ci)
+                precision_vals.append(precision)
+                lower_ci_vals.append(lower_ci)
+                upper_ci_vals.append(upper_ci)
+            else:
+                precision = self._score_precision_at_k(self._y_test, self._y_predicted, self._y_pred_prob, k)
+                precision_vals.append(precision)
 
-        return k_vals, precision_vals
+        if ci:
+            return k_vals, precision_vals, lower_ci_vals, upper_ci_vals
+        else:
+            return k_vals, precision_vals
 
     def plot_precision_at_k_curve(self, title, dest_path):
         # Compute inputs.
