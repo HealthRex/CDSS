@@ -84,26 +84,42 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         self.assertTrue(rel_diff < 0.1)
 
     def test_score_accuracy(self):
-        # Test exact accuracy.
+        # Test accuracy.
         expected_accuracy = RANDOM_10_TEST_CASE['accuracy']
         actual_accuracy = self._lc_analyzer.score()
         self.assertEqual(expected_accuracy, actual_accuracy)
 
-        # Test fuzzy accuracy.
+        # Test accuracy.
         expected_accuracy = RANDOM_100_TEST_CASE['accuracy']
         actual_accuracy = self._ml_analyzer.score()
         self.assertEqual(expected_accuracy, actual_accuracy)
 
+        # Test bootstrapped CIs.
+        actual_accuracy, actual_lower_ci, actual_upper_ci = self._ml_analyzer.score(ci=0.95, n_bootstrap_iter=1000)
+        self.assertEqual(expected_accuracy, actual_accuracy)
+        expected_lower_ci = RANDOM_100_TEST_CASE['ci']['accuracy']['lower']
+        self.assertEqual(expected_lower_ci, actual_lower_ci)
+        expected_upper_ci = RANDOM_100_TEST_CASE['ci']['accuracy']['upper']
+        self.assertEqual(expected_upper_ci, actual_upper_ci)
+
     def test_score_recall(self):
-        # Test exact recall.
+        # Test recall.
         expected_recall = RANDOM_10_TEST_CASE['recall']
         actual_recall = self._lc_analyzer.score(metric=ClassifierAnalyzer.RECALL_SCORE)
         self.assertEqual(expected_recall, actual_recall)
 
-        # Test fuzzy recall.
+        # Test recall.
         expected_recall = RANDOM_100_TEST_CASE['recall']
         actual_recall = self._ml_analyzer.score(metric=ClassifierAnalyzer.RECALL_SCORE)
         self.assertEqual(expected_recall, actual_recall)
+
+        # Test bootstrapped CIs.
+        actual_recall, actual_lower_ci, actual_upper_ci = self._ml_analyzer.score(metric=ClassifierAnalyzer.RECALL_SCORE, ci=0.95, n_bootstrap_iter=1000)
+        self.assertEqual(expected_recall, actual_recall)
+        expected_lower_ci = RANDOM_100_TEST_CASE['ci']['recall']['lower']
+        self.assertEqual(expected_lower_ci, actual_lower_ci)
+        expected_upper_ci = RANDOM_100_TEST_CASE['ci']['recall']['upper']
+        self.assertEqual(expected_upper_ci, actual_upper_ci)
 
     def test_score_precision(self):
         # Test precision.
@@ -111,10 +127,18 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         actual_precision = self._lc_analyzer.score(metric=ClassifierAnalyzer.PRECISION_SCORE)
         self.assertEqual(expected_precision, actual_precision)
 
-        # Test fuzzy precision.
+        # Test precision.
         expected_precision = RANDOM_100_TEST_CASE['precision']
         actual_precision = self._ml_analyzer.score(metric=ClassifierAnalyzer.PRECISION_SCORE)
         self.assertEqual(expected_precision, actual_precision)
+
+        # Test bootstrapped CIs.
+        actual_precision, actual_lower_ci, actual_upper_ci = self._ml_analyzer.score(metric=ClassifierAnalyzer.PRECISION_SCORE, ci=0.95, n_bootstrap_iter=1000)
+        self.assertEqual(expected_precision, actual_precision)
+        expected_lower_ci = RANDOM_100_TEST_CASE['ci']['precision']['lower']
+        self.assertEqual(expected_lower_ci, actual_lower_ci)
+        expected_upper_ci = RANDOM_100_TEST_CASE['ci']['precision']['upper']
+        self.assertEqual(expected_upper_ci, actual_upper_ci)
 
     def test_score_f1(self):
         # Test F1 score.
@@ -122,30 +146,62 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         actual_f1 = self._lc_analyzer.score(metric=ClassifierAnalyzer.F1_SCORE)
         self.assertEqual(expected_f1, actual_f1)
 
-        # Test fuzzy f1.
+        # Test f1.
         expected_f1 = RANDOM_100_TEST_CASE['f1']
         actual_f1 = self._ml_analyzer.score(metric=ClassifierAnalyzer.F1_SCORE)
         self.assertEqual(expected_f1, actual_f1)
 
+        # Test bootstrapped CIs.
+        actual_f1, actual_lower_ci, actual_upper_ci = self._ml_analyzer.score(metric=ClassifierAnalyzer.F1_SCORE, ci=0.95, n_bootstrap_iter=1000)
+        self.assertEqual(expected_f1, actual_f1)
+        expected_lower_ci = RANDOM_100_TEST_CASE['ci']['f1']['lower']
+        self.assertEqual(expected_lower_ci, actual_lower_ci)
+        expected_upper_ci = RANDOM_100_TEST_CASE['ci']['f1']['upper']
+        self.assertEqual(expected_upper_ci, actual_upper_ci)
+
     def test_score_average_precision(self):
-        # Test fuzzy average precision.
+        # Test average precision.
         expected_average_precision = RANDOM_100_TEST_CASE['average_precision']
         actual_average_precision = self._ml_analyzer.score(metric=ClassifierAnalyzer.AVERAGE_PRECISION_SCORE)
         self.assertEqual(expected_average_precision, actual_average_precision)
 
+        # Test bootstrapped CIs.
+        actual_average_precision, actual_lower_ci, actual_upper_ci = self._ml_analyzer.score(metric=ClassifierAnalyzer.AVERAGE_PRECISION_SCORE, ci=0.95, n_bootstrap_iter=1000)
+        self.assertEqual(expected_average_precision, actual_average_precision)
+        expected_lower_ci = RANDOM_100_TEST_CASE['ci']['average_precision']['lower']
+        self.assertEqual(expected_lower_ci, actual_lower_ci)
+        expected_upper_ci = RANDOM_100_TEST_CASE['ci']['average_precision']['upper']
+        self.assertEqual(expected_upper_ci, actual_upper_ci)
+
     def test_score_roc_auc(self):
-        # Test fuzzy roc_auc.
+        # Test roc_auc.
         expected_roc_auc = RANDOM_100_TEST_CASE['roc_auc']
         actual_roc_auc = self._ml_analyzer.score(metric=ClassifierAnalyzer.ROC_AUC_SCORE)
         self.assertEqual(expected_roc_auc, actual_roc_auc)
 
+        # Test bootstrapped CIs.
+        actual_roc_auc, actual_lower_ci, actual_upper_ci = self._ml_analyzer.score(metric=ClassifierAnalyzer.ROC_AUC_SCORE, ci=0.95, n_bootstrap_iter=1000)
+        self.assertEqual(expected_roc_auc, actual_roc_auc)
+        expected_lower_ci = RANDOM_100_TEST_CASE['ci']['roc_auc']['lower']
+        self.assertEqual(expected_lower_ci, actual_lower_ci)
+        expected_upper_ci = RANDOM_100_TEST_CASE['ci']['roc_auc']['upper']
+        self.assertEqual(expected_upper_ci, actual_upper_ci)
+
     def test_score_precision_at_k(self):
-        # Test fuzzy precision at K.
+        # Test precision at K.
         prev_precision = 1.0
         for k in range(1, 20):
             actual_precision_at_k = self._ml_analyzer.score(metric=ClassifierAnalyzer.PRECISION_AT_K_SCORE, k=k)
             expected_precision_at_k = RANDOM_100_TEST_CASE['precision_at_k'][k]
             self.assertEqual(expected_precision_at_k, actual_precision_at_k)
+
+            # Test bootstrapped CIs.
+            actual_precision_at_k, actual_lower_ci, actual_upper_ci = self._ml_analyzer(metric=ClassifierAnalyzer.PRECISION_AT_K_SCORE, k=k, ci=0.95, n_bootstrap_iter=1000)
+            self.assertEqual(expected_precision_at_k, actual_precision_at_k)
+            expected_lower_ci = RANDOM_100_TEST_CASE['ci']['precision_at_k']['lower']
+            self.assertEqual(expected_lower_ci, actual_lower_ci)
+            actual_upper_ci = RANDOM_100_TEST_CASE['ci']['precision_at_k']['upper']
+            self.assertEqual(expected_upper_ci, actual_upper_ci)
 
     def test_plot_precision_recall_curve(self):
         # Compute precision-recall curve.
