@@ -22,7 +22,7 @@ from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
 class TestClassifierAnalyzer(MedInfoTestCase):
     def setUp(self):
-        log.level = logging.INFO
+        log.level = logging.ERROR
         # Use simple classifier and test case for testing non-ROC analyses.
         X = RANDOM_10_TEST_CASE['X']
         y = RANDOM_10_TEST_CASE['y']
@@ -144,13 +144,8 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         prev_precision = 1.0
         for k in range(1, 20):
             actual_precision_at_k = self._ml_analyzer.score(metric=ClassifierAnalyzer.PRECISION_AT_K_SCORE, k=k)
-            # For the moment, just assert True.
-            # Can't assert monotonically decreasing values because
-            # when the model doesn't converge, the precision values won't
-            # be monotonically decreasing.
-            # self.assertTrue(actual_precision_at_k <= prev_precision)
-            self.assertTrue(True)
-            prev_precision = actual_precision_at_k
+            expected_precision_at_k = RANDOM_100_TEST_CASE['precision_at_k'][k]
+            self.assertEqual(expected_precision_at_k, actual_precision_at_k)
 
     def test_plot_precision_recall_curve(self):
         # Compute precision-recall curve.
