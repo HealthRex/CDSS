@@ -26,18 +26,18 @@ class PredictorAnalyzer:
         self._y_predicted = pd.DataFrame(self._predictor.predict(self._X_test))
         log.debug('y_predicted[0].value_counts(): %s' % self._y_predicted[self._y_predicted.columns.values[0]].value_counts())
 
-    def _score_accuracy(self, ci=None, num_samples=None):
+    def _score_accuracy(self, ci=None, n_bootstrap_iter=None):
         sample_accuracy = accuracy_score(self._y_test, self._y_predicted)
         log.debug('y_test: %s' % self._y_test)
         if ci:
-            if num_samples is None:
-                num_samples = 100
+            if n_bootstrap_iter is None:
+                n_bootstrap_iter = 100
             # For consistency of results, seed random number generator with
             # fixed number.
-            rng = np.random.RandomState(num_samples)
+            rng = np.random.RandomState(n_bootstrap_iter)
             # Use bootstrap to compute cis.
             bootstrap_scores = list()
-            for i in range(0, num_samples):
+            for i in range(0, n_bootstrap_iter):
                 # Sample y_test and y_pred with replacement.
                 indices = rng.randint(0, len(self._y_predicted) - 1, len(self._y_predicted))
                 sample_y_test = np.array(self._y_test)[indices]
@@ -53,7 +53,7 @@ class PredictorAnalyzer:
             # Sort bootstrap scores to get CIs.
             bootstrap_scores.sort()
             sorted_scores = np.array(bootstrap_scores)
-            # May not be equal to num_samples if some samples were rejected
+            # May not be equal to n_bootstrap_iter if some samples were rejected
             num_bootstraps = len(sorted_scores)
             log.debug('sorted_scores: %s' % sorted_scores)
 
@@ -66,14 +66,14 @@ class PredictorAnalyzer:
         else:
             return sample_accuracy
 
-    def score(self, metric=None, ci=None, num_samples=None):
+    def score(self, metric=None, ci=None, n_bootstrap_iter=None):
         # ci defines confidence interval as float.
         # Also defines whether score returns score or (-ci, score, +ci)
         if metric is None:
             metric = PredictorAnalyzer.ACCURACY_SCORE
 
         if metric == PredictorAnalyzer.ACCURACY_SCORE:
-            return self._score_accuracy(ci, num_samples)
+            return self._score_accuracy(ci, n_bootstrap_iter)
         else:
             raise ValueError('Score metric %s not supported.' % metric)
 
