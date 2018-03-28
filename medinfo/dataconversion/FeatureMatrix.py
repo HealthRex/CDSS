@@ -105,7 +105,7 @@ class FeatureMatrix:
 
     def _add_treatment_team_features(self):
         log.info('Adding treatment team features...')
-        self._factory.addTreatmentTeamFeatures()
+        self._factory.addTreatmentTeamFeatures(features="pre")
 
     def _add_comorbidity_features(self):
         log.info('Adding comorbidity features...')
