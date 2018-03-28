@@ -9,6 +9,7 @@ import os
 import numpy as np
 import pandas
 from pandas import DataFrame, read_csv, Series
+import sys
 
 from medinfo.common.Util import log
 from medinfo.db import DBUtil
@@ -67,11 +68,12 @@ class LabNormalityReport:
         # Treat LabNormalityPredictionPipeline as the source of truth for
         # defining which algorithms to analyze. Infer list from data dir.
         data_dir = LabNormalityReport.fetch_data_dir_path()
-        algorithms = os.listdir(data_dir)
+        labs = os.listdir(data_dir)
         # OSX automatically creates .DS_Store files.
-        if '.DS_Store' in algorithms:
-            algorithms.remove('.DS_Store')
-        return sorted(algorithms)
+        if '.DS_Store' in labs:
+            labs.remove('.DS_Store')
+        labs.remove('LABNONGYN')
+        return sorted(labs)
 
     @staticmethod
     def read_lab_meta_report(lab_panel):
@@ -101,8 +103,10 @@ class LabNormalityReport:
             max_value = np.max(train_value_counts.values())
             common_label = [k for k, v in train_value_counts.iteritems() if v == max_value][0]
             test_size = np.sum(test_value_counts.values())
+            counts = meta_report['y_test.value_counts()']
             accuracy = test_value_counts[common_label] / test_size
             recall = 1.0 if common_label == 1 else 0.0
+            percent_predictably_positive = 0.0
             precision = (test_value_counts[1] / test_size) if common_label == 1 else 0.0
             f1 = 2 * (precision * recall) / (precision + recall)
             average_precision = precision
@@ -116,11 +120,13 @@ class LabNormalityReport:
             best_predictor = DataFrame({
                 'model': ['CONSTANT(label=%s)' % common_label],
                 'test_size': [test_size],
+                'y_test.value_counts()': [counts],
                 'accuracy': [accuracy],
                 'recall': [recall],
                 'precision': [precision],
                 'f1': [f1],
                 'average_precision': [average_precision],
+                'percent_predictably_positive': [percent_predictably_positive],
                 'precision_at_10_percent': [precision_at_10_percent],
                 'k(precision=0.99)': [k_99],
                 'k(precision=0.95)': [k_95],
@@ -132,16 +138,23 @@ class LabNormalityReport:
             return best_predictor
 
         # Note that there might be multiple values with the same max value.
-        best_predictor = meta_report.loc[meta_report['roc_auc'] == meta_report['roc_auc'].max()]
+        best_predictor = meta_report.loc[meta_report['percent_predictably_positive'] == meta_report['percent_predictably_positive'].max()]
         num_predictors = len(best_predictor.index)
+
+        # Break ties based on roc_auc.
+        if num_predictors != 1:
+            best_predictor = meta_report.loc[meta_report['roc_auc'] == meta_report['roc_auc'].max()]
+            num_predictors = len(best_predictor.index)
+
         # Break ties based on k(0.99).
         if num_predictors != 1:
             best_predictor = meta_report.loc[meta_report['k(precision=0.99)'] == meta_report['k(precision=0.99)'].max()]
+            num_predictors = len(best_predictor.index)
 
         # Break ties on accuracy.
-        num_predictors = len(best_predictor.index)
         if num_predictors != 1:
             best_predictor = meta_report.loc[meta_report['accuracy'] == meta_report['accuracy'].max()]
+            num_predictors = len(best_predictor.index)
 
         # If still tied, return first.
         best_predictor = best_predictor.iloc[0]
@@ -169,18 +182,26 @@ class LabNormalityReport:
 
     @staticmethod
     def fetch_median_charge(lab_panel):
+        if lab_panel == 'LABNA':
+            return '0.50'
         panel_row = LabNormalityReport.fetch_lab_panel_summary_stats(lab_panel)
 
         return '{:.2f}'.format(panel_row['median_price'])
 
     @staticmethod
     def fetch_description(lab_panel):
+        if lab_panel == 'LABNA':
+            return 'NA'
+
         panel_row = LabNormalityReport.fetch_lab_panel_summary_stats(lab_panel)
 
         return panel_row['description']
 
     @staticmethod
     def fetch_volume(lab_panel):
+        if lab_panel == 'LABNA':
+            return 10
+
         panel_row = LabNormalityReport.fetch_lab_panel_summary_stats(lab_panel)
 
         return panel_row['count']
@@ -207,24 +228,27 @@ class LabNormalityReport:
             best_predictor = LabNormalityReport.fetch_best_predictor(lab_panel)
             description = LabNormalityReport.fetch_description(lab_panel)
             median_charge = LabNormalityReport.fetch_median_charge(lab_panel)
+            counts = best_predictor['y_test.value_counts()']
             volume = LabNormalityReport.fetch_volume(lab_panel)
             median_charge_volume = float(median_charge) * float(volume)
             roc_auc = best_predictor['roc_auc']
             best_model = best_predictor['model']
-
+            percent_predictably_positive = float(best_predictor['percent_predictably_positive'])
             k_99 = float(best_predictor['k(precision=0.99)'])
             k_95 = float(best_predictor['k(precision=0.95)'])
             k_90 = float(best_predictor['k(precision=0.90)'])
-            components = LabNormalityReport.fetch_components_in_panel(lab_panel)
+            # components = LabNormalityReport.fetch_components_in_panel(lab_panel)
             row = DataFrame({
                 'lab_panel': [lab_panel],
                 'description': [description],
-                'num_components': [len(components)],
+                # 'num_components': [len(components)],
+                'counts': [counts],
                 'median_charge': [median_charge],
                 'volume': [volume],
                 'median_charge_volume ($)': ['{:.2f}'.format(median_charge_volume)],
                 'best_model': [best_model],
                 'roc_auc': [roc_auc],
+                'percent_predictably_positive': [percent_predictably_positive],
                 'k(precision=0.99)': [k_99],
                 'k(precision=0.95)': [k_95],
                 'k(precision=0.90)': [k_90],
@@ -234,8 +258,8 @@ class LabNormalityReport:
             })
             lab_summary = lab_summary.append(row.loc[0], ignore_index=True)
 
-        return DataFrame(lab_summary, columns=['lab_panel', 'description', 'num_components', 'median_charge', 'volume', 'median_charge_volume ($)',
-                    'best_model', 'roc_auc', 'k(precision=0.99)', 'k(precision=0.95)', 'k(precision=0.90)',
+        return DataFrame(lab_summary, columns=['lab_panel', 'description', 'counts', 'num_components', 'median_charge', 'volume', 'median_charge_volume ($)',
+                    'best_model', 'roc_auc', 'percent_predictably_positive', 'k(precision=0.99)', 'k(precision=0.95)', 'k(precision=0.90)',
                     'median_savings(precision=0.99) ($)', 'median_savings(precision=0.95) ($)', 'median_savings(precision=0.90) ($)'])
 
     @staticmethod
@@ -247,6 +271,8 @@ class LabNormalityReport:
         # the right mask.
         if 'cross-validation' in algorithm:
             algorithm = algorithm.strip('-cross-validation')
+        if 'model' not in meta_report.columns.values:
+            return meta_report
         non_bifurcated_mask = meta_report['model'].str.contains(algorithm.upper().replace('-','_'))
         bifurcated_mask = meta_report['model'].str.contains(('bifurcated-' + algorithm).upper().replace('-','_'))
         if 'bifurcated' in algorithm:
@@ -265,17 +291,19 @@ class LabNormalityReport:
         best_count = 0
         for lab_panel in lab_panels:
             algorithm_report = LabNormalityReport.fetch_algorithm_performance(lab_panel, algorithm)
+            if 'model' not in algorithm_report.columns.values or algorithm_report.empty:
+                continue
             models = models.append(algorithm_report, ignore_index=True)
             best_algorithm = LabNormalityReport.fetch_best_predictor(lab_panel)
-            best_algorithm.reset_index(inplace=True)
-            algorithm_report.reset_index(inplace=True)
-            if algorithm_report.equals(best_algorithm):
+            # best_algorithm.reset_index(inplace=True)
+            algorithm_report.reset_index()
+            if algorithm_report.iloc[0].equals(best_algorithm):
                 best_count += 1
             algorithm_report['lab_panel'] = lab_panel
 
-        min_k_99 = models['k(precision=0.99)'].min()
-        median_k_99 = models['k(precision=0.99)'].median()
-        max_k_99 = models['k(precision=0.99)'].max()
+        min_k_99 = models['percent_predictably_positive'].min()
+        median_k_99 = models['percent_predictably_positive'].median()
+        max_k_99 = models['percent_predictably_positive'].max()
         min_roc_auc = models['roc_auc'].min()
         median_roc_auc = models['roc_auc'].median()
         max_roc_auc = models['roc_auc'].max()
@@ -310,7 +338,7 @@ class LabNormalityReport:
 
 if __name__ == '__main__':
     fm_io = FeatureMatrixIO()
-    summary_table = LabNormalityReport.build_lab_performance_summary_table()
-    fm_io.write_data_frame_to_file(summary_table, 'lab-performance-summary.tab')
+    # summary_table = LabNormalityReport.build_lab_performance_summary_table()
+    # fm_io.write_data_frame_to_file(summary_table, 'lab-performance-summary.tab')
     summary = LabNormalityReport.build_algorithm_performance_summary_table()
     fm_io.write_data_frame_to_file(summary, 'algorithm-performance-summary.tab')
