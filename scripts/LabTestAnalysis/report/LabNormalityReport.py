@@ -6,6 +6,7 @@ Given data in /LabTestAnalysis/machine_learning/data/, build report tables.
 import ast
 import inspect
 import os
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas
 from pandas import DataFrame, read_csv, Series
@@ -20,7 +21,6 @@ from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 class LabNormalityReport:
     def __init__(self):
         self._fm_io = FeatureMatrixIO()
-        pass
 
     @staticmethod
     def fetch_components_in_panel(lab_panel):
@@ -93,6 +93,7 @@ class LabNormalityReport:
     @staticmethod
     def fetch_best_predictor(lab_panel):
         meta_report = LabNormalityReport.read_lab_meta_report(lab_panel)
+
         # Check for whether 0 classifiers were able to successfully train.
         if 'error' in meta_report.columns.values:
             # On the fly, interpret failure as a new "classifier".
@@ -104,6 +105,11 @@ class LabNormalityReport:
             common_label = [k for k, v in train_value_counts.iteritems() if v == max_value][0]
             test_size = np.sum(test_value_counts.values())
             counts = meta_report['y_test.value_counts()']
+            test_normal_count = ast.literal_eval(counts)[1.0]
+            try:
+                test_abnormal_count = ast.literal_eval(counts)[0.0]
+            except:
+                test_abnormal_count = 0
             accuracy = test_value_counts[common_label] / test_size
             recall = 1.0 if common_label == 1 else 0.0
             percent_predictably_positive = 0.0
@@ -111,16 +117,15 @@ class LabNormalityReport:
             f1 = 2 * (precision * recall) / (precision + recall)
             average_precision = precision
             precision_at_10_percent = precision
-            k_99 = 1.0 if precision >= 0.99 else 0.0
-            k_95 = 1.0 if precision >= 0.95 else 0.0
-            k_90 =1.0 if precision >= 0.90 else 0.0
             roc_auc = None
             hyperparams = None
 
             best_predictor = DataFrame({
                 'model': ['CONSTANT(label=%s)' % common_label],
                 'test_size': [test_size],
-                'y_test.value_counts()': [counts],
+                'counts': counts,
+                'test_normal_count': [test_normal_count],
+                'test_abnormal_count': [test_abnormal_count],
                 'accuracy': [accuracy],
                 'recall': [recall],
                 'precision': [precision],
@@ -128,14 +133,11 @@ class LabNormalityReport:
                 'average_precision': [average_precision],
                 'percent_predictably_positive': [percent_predictably_positive],
                 'precision_at_10_percent': [precision_at_10_percent],
-                'k(precision=0.99)': [k_99],
-                'k(precision=0.95)': [k_95],
-                'k(precision=0.90)': [k_90],
                 'roc_auc': [roc_auc],
                 'hyperparams': [hyperparams]
             })
 
-            return best_predictor
+            return best_predictor.iloc[0]
 
         # Note that there might be multiple values with the same max value.
         best_predictor = meta_report.loc[meta_report['percent_predictably_positive'] == meta_report['percent_predictably_positive'].max()]
@@ -146,11 +148,6 @@ class LabNormalityReport:
             best_predictor = meta_report.loc[meta_report['roc_auc'] == meta_report['roc_auc'].max()]
             num_predictors = len(best_predictor.index)
 
-        # Break ties based on k(0.99).
-        if num_predictors != 1:
-            best_predictor = meta_report.loc[meta_report['k(precision=0.99)'] == meta_report['k(precision=0.99)'].max()]
-            num_predictors = len(best_predictor.index)
-
         # Break ties on accuracy.
         if num_predictors != 1:
             best_predictor = meta_report.loc[meta_report['accuracy'] == meta_report['accuracy'].max()]
@@ -158,6 +155,11 @@ class LabNormalityReport:
 
         # If still tied, return first.
         best_predictor = best_predictor.iloc[0]
+        counts = best_predictor['y_test.value_counts()']
+        test_normal_count = ast.literal_eval(counts)[1.0]
+        test_abnormal_count = ast.literal_eval(counts)[0.0]
+        best_predictor['test_normal_count'] = test_normal_count
+        best_predictor['test_abnormal_count'] = test_abnormal_count
 
         return best_predictor
 
@@ -215,12 +217,8 @@ class LabNormalityReport:
         # * volume
         # * median_charge_volume ($)
         # * best_algorithm
-        # * k(precision=0.99) (%)
-        # * k(precision=0.95) (%)
-        # * k(precision=0.90) (%)
-        # * median_savings(precision=0.99) ($)
-        # * median_savings(precision=0.95) ($)
-        # * median_savings(precision=0.90) ($)
+        # * percent_predictably_positive
+        # * predicatble_charge_volume ($)
         lab_summary = DataFrame()
         lab_panels = LabNormalityReport.fetch_lab_panels()
         for lab_panel in lab_panels:
@@ -228,39 +226,34 @@ class LabNormalityReport:
             best_predictor = LabNormalityReport.fetch_best_predictor(lab_panel)
             description = LabNormalityReport.fetch_description(lab_panel)
             median_charge = LabNormalityReport.fetch_median_charge(lab_panel)
-            counts = best_predictor['y_test.value_counts()']
+            # counts = best_predictor['y_test.value_counts()']
+            test_normal_count = best_predictor['test_normal_count']
+            test_abnormal_count = best_predictor['test_abnormal_count']
             volume = LabNormalityReport.fetch_volume(lab_panel)
             median_charge_volume = float(median_charge) * float(volume)
             roc_auc = best_predictor['roc_auc']
             best_model = best_predictor['model']
             percent_predictably_positive = float(best_predictor['percent_predictably_positive'])
-            k_99 = float(best_predictor['k(precision=0.99)'])
-            k_95 = float(best_predictor['k(precision=0.95)'])
-            k_90 = float(best_predictor['k(precision=0.90)'])
             # components = LabNormalityReport.fetch_components_in_panel(lab_panel)
             row = DataFrame({
                 'lab_panel': [lab_panel],
                 'description': [description],
                 # 'num_components': [len(components)],
-                'counts': [counts],
+                # 'counts': [counts],
+                'test_normal_count': test_normal_count,
+                'test_abnormal_count': test_abnormal_count,
                 'median_charge': [median_charge],
                 'volume': [volume],
                 'median_charge_volume ($)': ['{:.2f}'.format(median_charge_volume)],
                 'best_model': [best_model],
                 'roc_auc': [roc_auc],
                 'percent_predictably_positive': [percent_predictably_positive],
-                'k(precision=0.99)': [k_99],
-                'k(precision=0.95)': [k_95],
-                'k(precision=0.90)': [k_90],
-                'median_savings(precision=0.99) ($)': ['{:.2f}'.format(k_99 * median_charge_volume)],
-                'median_savings(precision=0.95) ($)': ['{:.2f}'.format(k_95 * median_charge_volume)],
-                'median_savings(precision=0.90) ($)': ['{:.2f}'.format(k_90 * median_charge_volume)]
+                'predictable_charge_volume ($)': ['{:.2f}'.format(percent_predictably_positive * median_charge_volume)],
             })
             lab_summary = lab_summary.append(row.loc[0], ignore_index=True)
 
-        return DataFrame(lab_summary, columns=['lab_panel', 'description', 'counts', 'num_components', 'median_charge', 'volume', 'median_charge_volume ($)',
-                    'best_model', 'roc_auc', 'percent_predictably_positive', 'k(precision=0.99)', 'k(precision=0.95)', 'k(precision=0.90)',
-                    'median_savings(precision=0.99) ($)', 'median_savings(precision=0.95) ($)', 'median_savings(precision=0.90) ($)'])
+        return DataFrame(lab_summary, columns=['lab_panel', 'description', 'test_normal_count', 'test_abnormal_count', 'median_charge', 'volume', 'median_charge_volume ($)',
+                    'best_model', 'roc_auc', 'percent_predictably_positive', 'predictable_charge_volume ($)'])
 
     @staticmethod
     def fetch_algorithm_performance(lab_panel, algorithm):
@@ -335,6 +328,41 @@ class LabNormalityReport:
             summary = summary.append(algorithm_summary, ignore_index=True)
 
         return summary
+
+    @staticmethod
+    def fetch_predictable_and_expensive_labs():
+        labs = LabNormalityReport.build_lab_performance_summary_table()
+        predictable_labs = labs.loc[labs['percent_predictably_positive'] >= 0.1]
+        expensive_labs = labs.loc[labs['predictable_charge_volume ($)'].astype('float') >= 1000000]
+        return pandas.concat([predictable_labs,expensive_labs]).drop_duplicates().reset_index(drop=True)
+
+    @staticmethod
+    def plot_predictable_and_expensive_charges():
+        labs = LabNormalityReport.fetch_predictable_and_expensive_labs()
+        labs['normal_rate'] = labs['test_normal_count'] / (labs['test_normal_count'] + labs['test_abnormal_count'])
+        labs['abnormal_rate'] = labs['test_abnormal_count'] / (labs['test_normal_count'] + labs['test_abnormal_count'])
+        charges = DataFrame()
+        charges['lab_panel'] = labs['lab_panel']
+        charges['normal, predictable'] = labs['percent_predictably_positive'] * labs['median_charge_volume ($)'].astype('float')
+        charges['normal, unpredictable'] = labs['normal_rate'] * labs['median_charge_volume ($)'].astype('float') - charges['normal, predictable']
+        charges['abnormal'] = labs['abnormal_rate'] * labs['median_charge_volume ($)'].astype('float')
+        charges['total'] = labs['median_charge_volume ($)'].astype('float')
+        charges.sort_values('total', inplace=True)
+        figure = plt.figure()
+        # axes = plt.barh(\
+        #             charges[['lab_panel', 'normal, predictable', 'normal, unpredictable', 'abnormal']], \
+        #             color=['#4caf50', '#448aff', '#f44336'], \
+        #             stacked=True, \
+        #             width=1, \
+        #             height=1, \
+        #             linewidth=0.1)
+        title = "Lab test annual predictable charge volume"
+        axes = charges[['lab_panel', 'normal, predictable', 'normal, unpredictable', 'abnormal']].plot(kind='barh', \
+                    stacked=True, color=['#4caf50', '#448aff', '#f44336'], \
+                    width=0.85, title="")
+        axes.set_yticklabels(charges['lab_panel'])
+        plt.tight_layout()
+        plt.savefig('test.png')
 
 if __name__ == '__main__':
     fm_io = FeatureMatrixIO()
