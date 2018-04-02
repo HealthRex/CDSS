@@ -7,6 +7,7 @@ and analysis of LabNormality prediction.
 import inspect
 import os
 from pandas import DataFrame, Series
+from sklearn.externals import joblib
 import logging
 
 from medinfo.common.Util import log
@@ -25,6 +26,12 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         self._build_raw_feature_matrix()
         self._build_processed_feature_matrix()
         self._train_and_analyze_predictors()
+
+    def _build_model_dump_path(self, algorithm):
+        template = '%s' + '-normality-%s-model.pkl' % algorithm
+        pipeline_file_name = inspect.getfile(inspect.currentframe())
+        return SupervisedLearningPipeline._build_model_dump_path(self, template, \
+            pipeline_file_name)
 
     def _build_raw_matrix_path(self):
         template = '%s-normality-matrix-%d-episodes-raw.tab'
@@ -77,7 +84,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         outcome_label = 'all_components_normal'
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
-        percent_features_to_select = 0.05
+        percent_features_to_select = 0.10
         matrix_class = LabNormalityMatrix
         pipeline_file_path = inspect.getfile(inspect.currentframe())
         data_overview = [
@@ -196,7 +203,10 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                     algorithm_report = fm_io.read_file_to_data_frame('/'.join([report_dir, '%s-report.tab' % pipeline_prefix]))
                     log.debug('algorithm_report: %s' % algorithm_report)
                     meta_report = meta_report.append(algorithm_report)
-
+                # Write predictor to disk.
+                predictor = SupervisedLearningPipeline.predictor(self)
+                predictor_path = self._build_model_dump_path(algorithm)
+                joblib.dump(predictor, predictor_path)
 
         # After building per-algorithm reports, write to meta report.
         # Note that if there were insufficient samples to build any of the
@@ -240,19 +250,24 @@ if __name__ == '__main__':
 
     labs_to_test = list(TOP_LAB_PANELS_BY_CHARGE_VOLUME.union(TOP_NON_PANEL_TESTS_BY_VOLUME))
     labs_to_test = [
-        'LABUSPG', 'LABCK', 'LABHCTX', 'LABCSFGL', 'LABA1C', 'LABUCR', 'LABNH3', 'LABESRP',
-        'LABHAP', 'LABPT', 'LABTYPSNI', 'LABBLCSTK', 'LABBLCTIP', 'LABALB', 'LABURNA', 'LABUAPRN',
-        'LABURNC', 'LABFER', 'LABCAI', 'LABPHOS', 'LABBXTG', 'LABFCUL', 'LABLIDOL', 'LABAFBC',
-        'LABFLDC', 'LABMGN', 'LABBLC', 'LABVBG', 'LABROMRS', 'LABCMVQT', 'LABHFP', 'LABLAC',
-        'LABTNI', 'LABBLC2', 'LABLIPS', 'LABFT4', 'LABVANPRL', 'LABLDH', 'LABURIC', 'LABPALB',
-        'LABCDTPCR', 'LABPCG3', 'LABCRP', 'LABB12', 'LABPCTNI', 'LABCSFTP', 'LABTRIG', 'LABMB',
-        'LABFIB', 'LABSTOBGD', 'LABRESP', 'LABTSH', 'LABANER', 'LABHEPAR', 'LABPOCGLU', 'LABUA',
-        'LABCBCO', 'LABCBCD', 'LABPLTS', 'LABRETIC', 'LABSPLAC', 'LABTRFS', 'LABFE', 'LABPTT',
-        'LABK', 'LABMETB', 'LABMETC', 'LABNTBNP', 'LABNA', 'LABUPREG', 'LABUOSM', 'LABPCCR',
-        'LABGRAM', 'LABLACWB', 'LABABG', 'LABHIVWBL'
+        # LABMGN, LABNH3, LABPHOS, LABPT, LABPTT, LABTNI, LABROMRS,
+        # LABAFBC, LABBLC, LABBLC2, LABCAI, LABLACWB, LABURNC, LABHFP,
+        # LABA1C, LABCDTPCR, LABCMVQT, LABHEPAR, LABPCTNI, LABPLTS, LABVANPRL,
+        # LABPCG3, LABHCTX, LABLAC, LABLIPS, LABRESP, LABTSH, LABPOCGLU,
+        # LABFCUL, LABGRAM, LABK, LABLDH, LABMB, LABUCR, LABUA,
+        # LABANER, LABCRP, LABFE, LABFLDC, LABNTBNP, LABTRIG, LABSPLAC,
+        # LABALB, LABBLCSTK, LABBLCTIP, LABCK, LABESRP, LABNA,
+        # LABB12, LABFER, LABFT4, LABLIDOL, LABUPREG, LABURNA, LABUSPG,
+        # LABFIB, LABHAP, LABPALB, LABPCCR, LABRETIC, LABTRFS, LABURIC,
+        # LABCBCO, LABBXTG, LABCSFGL, LABCSFTP, LABHIVWBL, LABSTOBGD, LABUOSM,
+        # LABTYPSNI, LABUAPRN, LABVBG, LABMETC, LABMETB, LABABG, LABCBCD
     ]
 
-    labs_to_test = ['LABAFBD', 'LABCSFC']
+    labs_to_test = [#'LABAFBD',
+        'LABCSFC'
+        ]
+    # labs_to_test = ['LABROMRS']
+    # labs_to_test = ['LABTYPSNI', 'LABUAPRN', 'LABVBG', 'LABMETC', 'LABMETB', 'LABABG', 'LABCBCD']
     for panel in labs_to_test:
         LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
 

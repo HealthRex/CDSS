@@ -51,6 +51,20 @@ class SupervisedLearningPipeline:
         self._removed_features = list()
         self._added_features = list()
 
+    def predictor(self):
+        return self._predictor
+
+    def _build_model_dump_path(self, file_name_template, pipeline_module_path):
+        # Build model file name.
+        slugified_var = '-'.join(self._var.split())
+        model_dump_name = file_name_template % (slugified_var)
+
+        # Build path.
+        data_dir = self._fetch_data_dir_path(pipeline_module_file)
+        model_dump_path = '/'.join([data_dir, model_dump_name])
+
+        return model_dump_path
+
     def _build_raw_matrix_path(self, file_name_template, pipeline_module_file):
         # Build raw matrix file name.
         slugified_var = '-'.join(self._var.split())
@@ -383,6 +397,7 @@ class SupervisedLearningPipeline:
             learning_class = Regressor
             self._predictor = learning_class(algorithm=algorithm)
         status = self._predictor.train(self._X_train, column_or_1d(self._y_train))
+
         return status
 
     def _analyze_predictor(self, dest_dir, pipeline_prefix):
