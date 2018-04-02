@@ -60,7 +60,7 @@ class SupervisedLearningPipeline:
         model_dump_name = file_name_template % (slugified_var)
 
         # Build path.
-        data_dir = self._fetch_data_dir_path(pipeline_module_file)
+        data_dir = self._fetch_data_dir_path(pipeline_module_path)
         model_dump_path = '/'.join([data_dir, model_dump_name])
 
         return model_dump_path
