@@ -236,12 +236,8 @@ if __name__ == '__main__':
         "LABCK", "LABESRP", "LABBLCTIP", "LABBLCSTK", "LABNA",
         "LABFER", "LABUSPG", "LABB12", "LABURNA", "LABFT4",
         "LABFIB", "LABURIC", "LABPALB", "LABPCCR", "LABTRFS",
-        "LABUOSM",
-        # "LABAFBD", # ValueError: Input contains NaN, infinity or a value too large for dtype('float64').
-        "LABSTOBGD", "LABCSFGL", "LABCSFTP",
-        "LABNH3", "LABAFBC", "LABCMVQT",
-        # "LABCSFC", # ValueError: Input contains NaN, infinity or a value too large for dtype('float64').
-        "LABUCR",
+        "LABUOSM", "LABAFBD", "LABSTOBGD", "LABCSFGL", "LABCSFTP",
+        "LABNH3", "LABAFBC", "LABCMVQT", "LABCSFC", "LABUCR",
         "LABTRIG", "LABFE",
         # "LABNONGYN", # No base names.
         "LABALB", "LABLIDOL",
@@ -263,13 +259,8 @@ if __name__ == '__main__':
         # LABTYPSNI, LABUAPRN, LABVBG, LABMETC, LABMETB, LABABG, LABCBCD
     ]
 
-    labs_to_test = [#'LABAFBD',
-        'LABCSFC'
+    labs_to_test = [
+        'LABPT'
         ]
-    # labs_to_test = ['LABROMRS']
-    # labs_to_test = ['LABTYPSNI', 'LABUAPRN', 'LABVBG', 'LABMETC', 'LABMETB', 'LABABG', 'LABCBCD']
     for panel in labs_to_test:
         LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
-
-    # for panel in TOP_NON_PANEL_TESTS_BY_VOLUME:
-    #     LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
