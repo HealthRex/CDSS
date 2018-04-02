@@ -6,6 +6,7 @@ Given data in /LabTestAnalysis/machine_learning/data/, build report tables.
 import ast
 import inspect
 import os
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas
@@ -334,33 +335,65 @@ class LabNormalityReport:
         labs = LabNormalityReport.build_lab_performance_summary_table()
         predictable_labs = labs.loc[labs['percent_predictably_positive'] >= 0.1]
         expensive_labs = labs.loc[labs['predictable_charge_volume ($)'].astype('float') >= 1000000]
-        return pandas.concat([predictable_labs,expensive_labs]).drop_duplicates().reset_index(drop=True)
+        labs = pandas.concat([predictable_labs,expensive_labs]).drop_duplicates().reset_index(drop=True)
+        labs['normal_rate'] = labs['test_normal_count'] / (labs['test_normal_count'] + labs['test_abnormal_count'])
+        labs['abnormal_rate'] = labs['test_abnormal_count'] / (labs['test_normal_count'] + labs['test_abnormal_count'])
+        labs['annual_median_charge_volume ($)'] = labs['median_charge_volume ($)'].astype('float') / 6.0
+        labs.set_index('lab_panel', drop=False, inplace=True)
+
+        # Add labels.
+        labs.at['LABUSPG', 'label'] = 'Urine Specific Gravity'
+        labs.at['LABLIDOL', 'label'] = 'Lidocaine'
+        labs.at['LABURIC', 'label'] = 'Uric Acid'
+        labs.at['LABSPLAC', 'label'] = 'Lactate (Sepsis Protocol)'
+        labs.at['LABCMVQT', 'label'] = 'Cytomegalovirus DNA'
+        labs.at['LABAFBC', 'label'] = 'AFB Culture, Respiratory'
+        labs.at['LABCSFC', 'label'] = 'CSF Culture'
+        labs.at['LABHIVWBL', 'label'] = 'HIV Antibody'
+        labs.at['LABCSFGL', 'label'] = 'CSF Glucose'
+        labs.at['LABAFBD', 'label'] = 'AFB Culture, Non-Respiratory'
+        labs.at['LABPLTS', 'label'] = 'Platelet Count'
+        labs.at['LABLACWB', 'label'] = 'Lactate (Whole Blood)'
+        labs.at['LABUAPRN', 'label'] = 'Urinalysis, Culture Screen'
+        labs.at['LABROMRS', 'label'] = 'MRSA Screen'
+        labs.at['LABMB', 'label'] = 'Creatine Kinase-Muscle/Brain'
+        labs.at['LABLAC', 'label'] = 'Lactate'
+        labs.at['LABTYPSNI', 'label'] = 'Type and Screen'
+        labs.at['LABBLC2', 'label'] = 'Blood Culture (2 Bottles)'
+        labs.at['LABTNI', 'label'] = 'Troponin I'
+        labs.at['LABMGN', 'label'] = 'Magnesium'
+
+        return labs
 
     @staticmethod
     def plot_predictable_and_expensive_charges():
         labs = LabNormalityReport.fetch_predictable_and_expensive_labs()
-        labs['normal_rate'] = labs['test_normal_count'] / (labs['test_normal_count'] + labs['test_abnormal_count'])
-        labs['abnormal_rate'] = labs['test_abnormal_count'] / (labs['test_normal_count'] + labs['test_abnormal_count'])
+        # Build dataframe.
         charges = DataFrame()
-        charges['lab_panel'] = labs['lab_panel']
-        charges['normal, predictable'] = labs['percent_predictably_positive'] * labs['median_charge_volume ($)'].astype('float')
-        charges['normal, unpredictable'] = labs['normal_rate'] * labs['median_charge_volume ($)'].astype('float') - charges['normal, predictable']
-        charges['abnormal'] = labs['abnormal_rate'] * labs['median_charge_volume ($)'].astype('float')
-        charges['total'] = labs['median_charge_volume ($)'].astype('float')
+        charges['label'] = labs['label']
+        charges['normal, predictable'] = labs['percent_predictably_positive'] * labs['annual_median_charge_volume ($)'].astype('float')
+        charges['normal, unpredictable'] = labs['normal_rate'] * labs['annual_median_charge_volume ($)'].astype('float') - charges['normal, predictable']
+        charges['abnormal'] = labs['abnormal_rate'] * labs['annual_median_charge_volume ($)'].astype('float')
+        charges['total'] = labs['annual_median_charge_volume ($)'].astype('float')
         charges.sort_values('total', inplace=True)
+
+        matplotlib.rcParams.update({'font.family': 'serif'})
+        matplotlib.rcParams.update({'font.sans-serif': ['Helvetica', 'Arial', 'Tahoma']})
+        matplotlib.rcParams.update({'font.serif': ['Times New Roman', 'Times', 'Palatino']})
         figure = plt.figure()
-        # axes = plt.barh(\
-        #             charges[['lab_panel', 'normal, predictable', 'normal, unpredictable', 'abnormal']], \
-        #             color=['#4caf50', '#448aff', '#f44336'], \
-        #             stacked=True, \
-        #             width=1, \
-        #             height=1, \
-        #             linewidth=0.1)
         title = "Lab test annual predictable charge volume"
-        axes = charges[['lab_panel', 'normal, predictable', 'normal, unpredictable', 'abnormal']].plot(kind='barh', \
+        axes = charges[['label', 'normal, predictable', 'normal, unpredictable', 'abnormal']].plot(kind='barh', \
                     stacked=True, color=['#4caf50', '#448aff', '#f44336'], \
-                    width=0.85, title="")
-        axes.set_yticklabels(charges['lab_panel'])
+                    width=0.85, title=title)
+
+        axes.set_ylabel("")
+        axes.set_yticklabels(charges['label'])
+        print charges
+        axes.set_xlabel("Annual Charge Volume ($, millions)")
+        axes.set_xticklabels(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
+        # for p in axes.patches:
+        #     axes.annotate(str(p.get_width()), (p.get_width() * 1.005, p.get_y() * 1.005))
+
         plt.tight_layout()
         plt.savefig('test.png')
 
