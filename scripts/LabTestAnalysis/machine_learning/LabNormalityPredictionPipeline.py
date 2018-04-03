@@ -263,7 +263,15 @@ if __name__ == '__main__':
         # "LABB12", "LABFER", "LABFT4", "LABLIDOL", "LABUPREG", "LABURNA", "LABUSPG",
         # "LABFIB", "LABHAP", "LABPALB", "LABPCCR", "LABRETIC", "LABTRFS", "LABURIC",
         # "LABCBCO", "LABBXTG", "LABCSFGL", "LABCSFTP", "LABHIVWBL", "LABSTOBGD", "LABUOSM",
-        # "LABTYPSNI", "LABUAPRN", "LABVBG", "LABMETC", "LABMETB", "LABABG", "LABCBCD"
+        # "LABTYPSNI",
+        # "LABUAPRN",
+        # "LABVBG",
+        # "LABMETC",
+        # "LABMETB",
+        # "LABABG",
+        # "LABCBCD",
+        # "LABCSFC",
+        # 'LABAFBD'
     ]
     labs_to_test = ['LABABG']
     for panel in labs_to_test:
