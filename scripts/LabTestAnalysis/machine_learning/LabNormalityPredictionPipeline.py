@@ -84,7 +84,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         outcome_label = 'all_components_normal'
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
-        percent_features_to_select = 0.10
+        percent_features_to_select = 0.05
         matrix_class = LabNormalityMatrix
         pipeline_file_path = inspect.getfile(inspect.currentframe())
         data_overview = [
