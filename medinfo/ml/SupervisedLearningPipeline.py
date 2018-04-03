@@ -428,4 +428,4 @@ class SupervisedLearningPipeline:
         analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
         analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
         analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
-        analyzer.write_report(report_path)
+        analyzer.write_report(report_path, ci=0.95)

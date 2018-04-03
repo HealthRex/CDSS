@@ -58,40 +58,44 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
     def _score_recall(self, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(recall_score, self._y_test, self._y_predicted, ci, n_bootstrap_iter)
+            return self._bootstrap_score_ci(recall_score, ci, self._y_test, y_pred=self._y_predicted, n_bootstrap_iter=n_bootstrap_iter)
         else:
             return recall_score(self._y_test, self._y_predicted)
 
     def _score_precision(self, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(precision_score, self._y_test, self._y_predicted, ci, n_bootstrap_iter)
+            return self._bootstrap_score_ci(precision_score, ci, self._y_test, y_pred=self._y_predicted, n_bootstrap_iter=n_bootstrap_iter)
         else:
             return precision_score(self._y_test, self._y_predicted)
 
     def _score_f1(self, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(f1_score, self._y_test, self._y_predicted, ci, n_bootstrap_iter)
+            return self._bootstrap_score_ci(f1_score, ci, self._y_test, y_pred=self._y_predicted, n_bootstrap_iter=n_bootstrap_iter)
         else:
             return f1_score(self._y_test, self._y_predicted)
 
     def _score_average_precision(self, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(average_precision_score, self._y_test, self._y_pred_prob, ci, n_bootstrap_iter)
+            return self._bootstrap_score_ci(average_precision_score, ci, self._y_test, y_pred_prob=self._y_pred_prob, n_bootstrap_iter=n_bootstrap_iter)
         else:
             return average_precision_score(self._y_test, self._y_pred_prob)
 
     def _score_roc_auc(self, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(roc_auc_score, self._y_test, self._y_pred_prob, ci, n_bootstrap_iter)
+            return self._bootstrap_score_ci(roc_auc_score, ci, self._y_test, y_pred_prob=self._y_pred_prob, n_bootstrap_iter=n_bootstrap_iter)
         else:
             return roc_auc_score(self._y_test, self._y_pred_prob)
 
-    def _bootstrap_score_ci(self, score_fn, y_test, y_pred, ci, n_bootstrap_iter=None, k=None):
+    def _bootstrap_score_ci(self, score_fn, ci, y_test, y_pred=None, y_pred_prob=None, n_bootstrap_iter=None, k=None, desired_precision=None):
         # Note that y_pred may either represent the predicted labels or the
         # predicted label probabilities. It's up to the caller to make the
         # right choice based on score_fn's expected input.
         if score_fn == self._score_precision_at_k:
-            sample_score = score_fn(y_test, y_pred, k)
+            sample_score = score_fn(y_test, y_pred, y_pred_prob, k)
+        elif score_fn == self._score_percent_predictably_positive:
+            sample_score = score_fn(y_test, y_pred, y_pred_prob, desired_precision)
+        elif score_fn in [average_precision_score, roc_auc_score]:
+            sample_score = score_fn(y_test, y_pred_prob)
         else:
             sample_score = score_fn(y_test, y_pred)
 
@@ -104,16 +108,20 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         bootstrap_scores = list()
         for i in range(0, n_bootstrap_iter):
             # Sample y_test and y_pred with replacement.
-            indices = rng.randint(0, len(y_pred) - 1, len(y_pred))
+            indices = rng.randint(0, len(y_test) - 1, len(y_test))
             sample_y_test = np.array(y_test)[indices]
-            sample_y_pred = np.array(y_pred)[indices]
-            log.debug('sample_y_pred: %s' % sample_y_pred)
+            if y_pred is not None: sample_y_pred = np.array(y_pred)[indices]
+            if y_pred_prob is not None: sample_y_pred_prob = np.array(y_pred_prob)[indices]
             if len(np.unique(sample_y_test)) < 2:
                 # We need at least one positive and one negative sample for ROC AUC
                 # to be defined: reject the sample
                 continue
             if score_fn == self._score_precision_at_k:
-                score = score_fn(sample_y_test, sample_y_pred, k)
+                score = score_fn(DataFrame(sample_y_test), DataFrame(sample_y_pred), DataFrame(sample_y_pred_prob), k)
+            elif score_fn == self._score_percent_predictably_positive:
+                score = score_fn(DataFrame(sample_y_test), DataFrame(sample_y_pred), DataFrame(sample_y_pred_prob), desired_precision)
+            elif score_fn in [average_precision_score, roc_auc_score]:
+                score = score_fn(sample_y_test, sample_y_pred_prob)
             else:
                 score = score_fn(sample_y_test, sample_y_pred)
             bootstrap_scores.append(score)
@@ -135,7 +143,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
     def _score_precision_at_k(self, y_true, y_pred, y_pred_prob, k, ci=None, n_bootstrap_iter=None, desired_precision=None):
         if ci:
-            return self._bootstrap_score_ci(_score_precision_at_k, y_test, y_pred_prob, ci, n_bootstrap_iter, k=k)
+            return self._bootstrap_score_ci(self._score_precision_at_k, ci, y_true, y_pred=y_pred, y_pred_prob=y_pred_prob, n_bootstrap_iter=n_bootstrap_iter, k=k)
         else:
             # Get the name of the column in y_pred_prob.
             prob_col_name = y_pred_prob.columns.values[0]
@@ -152,7 +160,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
             # Return precision at k.
             return precision_score(true_sorted_at_k, pred_sorted_at_k)
 
-    def _score_k_percentile_precision(self, desired_precision, ci=None, n_bootstrap_iter=None):
+    def _score_k_percentile_precision(self, desired_precision, n_bootstrap_iter=None):
         # TODO(sbala): Clean up this function so it can use _bootstrap_score_ci.
         k_vals, precision_vals = self.compute_precision_at_k_curve()
 
@@ -166,7 +174,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
     def _score_percent_predictably_positive(self, y_test, y_pred, y_pred_prob, desired_precision, ci=None, n_bootstrap_iter=None):
         if ci:
-            return self._bootstrap_score_ci(_score_percent_predictably_positive, y_test, y_pred, y_pred_prob, ci, desired_precision=desired_precision)
+            return self._bootstrap_score_ci(self._score_percent_predictably_positive, ci, y_test, y_pred=y_pred, y_pred_prob=y_pred_prob, desired_precision=desired_precision)
         else:
             # Get the name of the column in y_pred_prob.
             prob_col_name = y_pred_prob.columns.values[0]
@@ -214,11 +222,11 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         elif metric == ClassifierAnalyzer.ROC_AUC_SCORE:
             return self._score_roc_auc(ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.K_90_PRECISION_SCORE:
-            return self._score_k_percentile_precision(0.9, ci, n_bootstrap_iter)
+            return self._score_k_percentile_precision(0.9, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.K_95_PRECISION_SCORE:
-            return self._score_k_percentile_precision(0.95, ci, n_bootstrap_iter)
+            return self._score_k_percentile_precision(0.95,  n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.K_99_PRECISION_SCORE:
-            return self._score_k_percentile_precision(0.99, ci, n_bootstrap_iter)
+            return self._score_k_percentile_precision(0.99, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.PERCENT_PREDICTABLY_POSITIVE:
             return self._score_percent_predictably_positive(self._y_test, self._y_predicted, self._y_pred_prob, 0.99, ci, n_bootstrap_iter)
         elif metric == ClassifierAnalyzer.PRECISION_AT_K_SCORE:
@@ -334,7 +342,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         plt.savefig(dest_path)
         plt.close()
 
-    def build_report(self):
+    def build_report(self, ci=None):
         column_names = ['model', 'test_size']
         report_dict = {
             'model': [self._predictor.description()],
@@ -348,15 +356,37 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
         # Add scores.
         for score_metric in ClassifierAnalyzer.SUPPORTED_SCORES:
+            # Hack to avoid breaking tests.
+            if ci:
+                if score_metric == ClassifierAnalyzer.K_99_PRECISION_SCORE:
+                    continue
+                if score_metric == ClassifierAnalyzer.K_95_PRECISION_SCORE:
+                    continue
+                if score_metric == ClassifierAnalyzer.K_90_PRECISION_SCORE:
+                    continue
+
             if score_metric == ClassifierAnalyzer.PRECISION_AT_K_SCORE:
-                k_10_percent = int(0.1 * self._y_test.shape[0])
-                score_label = 'precision_at_10_percent'
-                score_value = self.score(score_metric, k_10_percent)
+                if ci:
+                    continue
+                else:
+                    k_10_percent = int(0.1 * self._y_test.shape[0])
+                    score_label = 'precision_at_10_percent'
+                    score_value = self.score(score_metric, k=k_10_percent)
             else:
                 score_label = score_metric
-                score_value = self.score(metric=score_metric)
+                if ci:
+                    score_value, lower_ci, upper_ci = self.score(metric=score_metric, ci=ci)
+                else:
+                    score_value = self.score(metric=score_metric)
             column_names.append(score_label)
             report_dict.update({score_label: score_value})
+            if ci:
+                lower_ci_label = '%s_%s_lower_ci' % (score_label, ci)
+                upper_ci_label = '%s_%s_upper_ci' % (score_label, ci)
+                column_names.append(lower_ci_label)
+                column_names.append(upper_ci_label)
+                report_dict.update({lower_ci_label:lower_ci})
+                report_dict.update({upper_ci_label:upper_ci})
 
         # Add hyperparams.
         report_dict.update({'hyperparams': str(self._predictor.hyperparams())})
@@ -364,7 +394,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
         return DataFrame(report_dict, columns=column_names), column_names
 
-    def write_report(self, dest_path):
+    def write_report(self, dest_path, ci=None):
         report, column_names = self.build_report()
 
         PredictorAnalyzer.write_report(self, report, dest_path, column_names)

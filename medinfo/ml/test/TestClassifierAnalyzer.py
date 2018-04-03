@@ -6,6 +6,7 @@ Test suite for ClassifierAnalyzer.
 import filecmp
 import logging
 import os
+import pandas
 from pandas.util.testing import assert_frame_equal
 from sklearn.model_selection import train_test_split
 from sklearn.utils.validation import column_or_1d
@@ -195,13 +196,28 @@ class TestClassifierAnalyzer(MedInfoTestCase):
             expected_precision_at_k = RANDOM_100_TEST_CASE['precision_at_k'][k]
             self.assertEqual(expected_precision_at_k, actual_precision_at_k)
 
-            # Test bootstrapped CIs.
-            actual_precision_at_k, actual_lower_ci, actual_upper_ci = self._ml_analyzer(metric=ClassifierAnalyzer.PRECISION_AT_K_SCORE, k=k, ci=0.95, n_bootstrap_iter=1000)
-            self.assertEqual(expected_precision_at_k, actual_precision_at_k)
-            expected_lower_ci = RANDOM_100_TEST_CASE['ci']['precision_at_k']['lower']
-            self.assertEqual(expected_lower_ci, actual_lower_ci)
-            actual_upper_ci = RANDOM_100_TEST_CASE['ci']['precision_at_k']['upper']
-            self.assertEqual(expected_upper_ci, actual_upper_ci)
+        # Test bootstrapped CIs.
+        actual_precision_at_k, actual_lower_ci, actual_upper_ci = self._ml_analyzer.score(metric=ClassifierAnalyzer.PRECISION_AT_K_SCORE, k=10, ci=0.95, n_bootstrap_iter=1000)
+        expected_precision_at_k = RANDOM_100_TEST_CASE['precision_at_k'][10]
+        self.assertEqual(expected_precision_at_k, actual_precision_at_k)
+        expected_lower_ci = RANDOM_100_TEST_CASE['ci']['precision_at_k']['lower'][10]
+        self.assertEqual(expected_lower_ci, actual_lower_ci)
+        expected_upper_ci = RANDOM_100_TEST_CASE['ci']['precision_at_k']['upper'][10]
+        self.assertEqual(expected_upper_ci, actual_upper_ci)
+
+    def test_score_percent_predictably_positive(self):
+        # Test roc_auc.
+        expected_ppp = RANDOM_100_TEST_CASE['percent_predictably_positive']
+        actual_ppp = self._ml_analyzer.score(metric=ClassifierAnalyzer.PERCENT_PREDICTABLY_POSITIVE)
+        self.assertEqual(expected_ppp, actual_ppp)
+
+        # Test bootstrapped CIs.
+        actual_ppp, actual_lower_ci, actual_upper_ci = self._ml_analyzer.score(metric=ClassifierAnalyzer.PERCENT_PREDICTABLY_POSITIVE, ci=0.95, n_bootstrap_iter=1000)
+        self.assertEqual(expected_ppp, actual_ppp)
+        expected_lower_ci = RANDOM_100_TEST_CASE['ci']['percent_predictably_positive']['lower']
+        self.assertEqual(expected_lower_ci, actual_lower_ci)
+        expected_upper_ci = RANDOM_100_TEST_CASE['ci']['percent_predictably_positive']['upper']
+        self.assertEqual(expected_upper_ci, actual_upper_ci)
 
     def test_plot_precision_recall_curve(self):
         # Compute precision-recall curve.
@@ -254,6 +270,11 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         actual_report = self._ml_analyzer.build_report()[0]
         log.debug('expected_report: %s' % expected_report)
         log.debug('actual_report: %s' % actual_report)
+        assert_frame_equal(expected_report, actual_report)
+
+        # Build bootstrapped report.
+        expected_report = RANDOM_100_TEST_CASE['ci']['report']
+        actual_report = self._ml_analyzer.build_report(ci=0.95)[0]
         assert_frame_equal(expected_report, actual_report)
 
         # Build paths for expected and actual report.
