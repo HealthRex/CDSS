@@ -159,7 +159,54 @@ RANDOM_100_TEST_CASE = {
             'lower': 0.6428571428571428,
             'upper': 1.0
         },
-        
+        'precision_at_k': {
+            'lower': {
+                10: 0.7,
+            },
+            'upper': {
+                10: 1.0,
+            }
+        },
+        'percent_predictably_positive': {
+            'lower': 0.04,
+            'upper': 0.84
+        },
+        'report': DataFrame({
+            'f1': 0.9714285714285714,
+            'recall_0.95_upper_ci': 1.0,
+            'roc_auc_0.95_upper_ci': 1.0,
+            'accuracy_0.95_upper_ci': 1.0,
+            'percent_predictably_positive': 0.16,
+            'hyperparams': "{'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'penalty': 'l1', 'C': 0.1, 'max_iter': 100, 'n_jobs': 1, 'tol': 0.0001, 'algorithm': 'regress-and-round', 'fit_intercept': True, 'solver': 'saga', 'hyperparam_strategy': 'exhaustive-search', 'multi_class': 'ovr', 'random_state': 123456789, 'coef_max': 1, 'dual': False, 'n_iter': 9, 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'class_weight': 'balanced'}",
+            'f1_0.95_upper_ci': 1.0,
+            'precision': 0.9444444444444444,
+            'y_test.value_counts()': ['{0: 8, 1: 17}'],
+            'f1_0.95_lower_ci': 0.9142857142857143,
+            'average_precision': 0.9287191326551189,
+            'recall_0.95_lower_ci': 1.0,
+            'precision_0.95_upper_ci': 1.0,
+            'percent_predictably_positive_0.95_lower_ci': 0.04,
+            'accuracy_0.95_lower_ci': 0.88,
+            'recall': 1.0,
+            'average_precision_0.95_lower_ci': 0.7608991323802247,
+            'roc_auc': 0.9044117647058824,
+            'average_precision_0.95_upper_ci': 1.0000000000000002,
+            'test_size': [25],
+            'model': ['L1_REGRESS_AND_ROUND(1.0*x3)'],
+            'precision_0.95_lower_ci': 0.8421052631578947,
+            'roc_auc_0.95_lower_ci': 0.7083333333333334,
+            'percent_predictably_positive_0.95_upper_ci': 0.84,
+            'accuracy': 0.96},
+            columns=[u'model', u'test_size', u'y_test.value_counts()', u'accuracy',
+                   u'accuracy_0.95_lower_ci', u'accuracy_0.95_upper_ci', u'recall',
+                   u'recall_0.95_lower_ci', u'recall_0.95_upper_ci', u'precision',
+                   u'precision_0.95_lower_ci', u'precision_0.95_upper_ci', u'f1',
+                   u'f1_0.95_lower_ci', u'f1_0.95_upper_ci', u'average_precision',
+                   u'average_precision_0.95_lower_ci', u'average_precision_0.95_upper_ci',
+                   u'percent_predictably_positive',
+                   u'percent_predictably_positive_0.95_lower_ci',
+                   u'percent_predictably_positive_0.95_upper_ci', u'roc_auc',
+                   u'roc_auc_0.95_lower_ci', u'roc_auc_0.95_upper_ci', u'hyperparams'])
     },
     'accuracy': 0.95999999999999996,
     'recall': 1.0,
@@ -189,6 +236,7 @@ RANDOM_100_TEST_CASE = {
         18: 0.9444444444444444,
         19: 0.9444444444444444
     },
+    'percent_predictably_positive': 0.16,
     'report': DataFrame({
         'model': ['L1_REGRESS_AND_ROUND(1.0*x3)'],
         'test_size': [25],
