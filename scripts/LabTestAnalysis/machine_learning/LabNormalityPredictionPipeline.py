@@ -166,7 +166,14 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 hyperparams['bifurcated'] = True
 
             # Train classifier.
-            status = SupervisedLearningPipeline._train_predictor(self, problem, [0, 1], hyperparams)
+            predictor_path = self._build_model_dump_path(algorithm)
+            if os.path.exists(predictor_path):
+                log.debug('Loading model from disk...')
+                self._predictor = joblib.load(predictor_path)
+                self._features = self._X_train.columns
+                status = SupervisedClassifier.TRAINED
+            else:
+                status = SupervisedLearningPipeline._train_predictor(self, problem, [0, 1], hyperparams)
 
             # If failed to train, write an error report.
             y_train_counts = self._y_train[self._y_train.columns[0]].value_counts()
@@ -246,21 +253,18 @@ if __name__ == '__main__':
 
     labs_to_test = list(TOP_LAB_PANELS_BY_CHARGE_VOLUME.union(TOP_NON_PANEL_TESTS_BY_VOLUME))
     labs_to_test = [
-        # LABMGN, LABNH3, LABPHOS, LABPT, LABPTT, LABTNI, LABROMRS,
-        # LABAFBC, LABBLC, LABBLC2, LABCAI, LABLACWB, LABURNC, LABHFP,
-        # LABA1C, LABCDTPCR, LABCMVQT, LABHEPAR, LABPCTNI, LABPLTS, LABVANPRL,
-        # LABPCG3, LABHCTX, LABLAC, LABLIPS, LABRESP, LABTSH, LABPOCGLU,
-        # LABFCUL, LABGRAM, LABK, LABLDH, LABMB, LABUCR, LABUA,
-        # LABANER, LABCRP, LABFE, LABFLDC, LABNTBNP, LABTRIG, LABSPLAC,
-        # LABALB, LABBLCSTK, LABBLCTIP, LABCK, LABESRP, LABNA,
-        # LABB12, LABFER, LABFT4, LABLIDOL, LABUPREG, LABURNA, LABUSPG,
-        # LABFIB, LABHAP, LABPALB, LABPCCR, LABRETIC, LABTRFS, LABURIC,
-        # LABCBCO, LABBXTG, LABCSFGL, LABCSFTP, LABHIVWBL, LABSTOBGD, LABUOSM,
-        # LABTYPSNI, LABUAPRN, LABVBG, LABMETC, LABMETB, LABABG, LABCBCD
+        # "LABMGN", "LABNH3", "LABPHOS", "LABPT", "LABPTT", "LABTNI", "LABROMRS",
+        # "LABAFBC", "LABBLC", "LABBLC2", "LABCAI", "LABLACWB", "LABURNC", "LABHFP",
+        # "LABA1C", "LABCDTPCR", "LABCMVQT", "LABHEPAR", "LABPCTNI", "LABPLTS", "LABVANPRL",
+        # "LABPCG3", "LABHCTX", "LABLAC", "LABLIPS", "LABRESP", "LABTSH", "LABPOCGLU",
+        # "LABFCUL", "LABGRAM", "LABK", "LABLDH", "LABMB", "LABUCR", "LABUA",
+        # "LABANER", "LABCRP", "LABFE", "LABFLDC", "LABNTBNP", "LABTRIG", "LABSPLAC",
+        # "LABALB", "LABBLCSTK", "LABBLCTIP", "LABCK", "LABESRP", "LABNA",
+        # "LABB12", "LABFER", "LABFT4", "LABLIDOL", "LABUPREG", "LABURNA", "LABUSPG",
+        # "LABFIB", "LABHAP", "LABPALB", "LABPCCR", "LABRETIC", "LABTRFS", "LABURIC",
+        # "LABCBCO", "LABBXTG", "LABCSFGL", "LABCSFTP", "LABHIVWBL", "LABSTOBGD", "LABUOSM",
+        # "LABTYPSNI", "LABUAPRN", "LABVBG", "LABMETC", "LABMETB", "LABABG", "LABCBCD"
     ]
-
-    labs_to_test = [
-        'LABPT'
-        ]
+    labs_to_test = ['LABABG']
     for panel in labs_to_test:
         LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
