@@ -167,8 +167,10 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
             # Train classifier.
             predictor_path = self._build_model_dump_path(algorithm)
-            if os.path.exists(predictor_path):
+            if os.path.exists(predictor_path) and 'bifurcated' not in algorithm:
                 log.debug('Loading model from disk...')
+                # TODO(sbala): Fix loblib.load so that it works for bifurcated
+                # supervised classifiers.
                 self._predictor = joblib.load(predictor_path)
                 self._features = self._X_train.columns
                 status = SupervisedClassifier.TRAINED
