@@ -395,6 +395,6 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         return DataFrame(report_dict, columns=column_names), column_names
 
     def write_report(self, dest_path, ci=None):
-        report, column_names = self.build_report()
+        report, column_names = self.build_report(ci)
 
         PredictorAnalyzer.write_report(self, report, dest_path, column_names)
