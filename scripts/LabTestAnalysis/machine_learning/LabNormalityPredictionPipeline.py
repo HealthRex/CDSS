@@ -275,6 +275,5 @@ if __name__ == '__main__':
         # "LABCSFC",
         # 'LABAFBD'
     ]
-    labs_to_test = ['LABABG']
     for panel in labs_to_test:
         LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
