@@ -194,7 +194,6 @@ class ClassifierAnalyzer(PredictorAnalyzer):
                 true_sorted_at_k = true_sorted[0:k]
                 # Get precision at k.x
                 precision_at_k = precision_score(true_sorted_at_k, pred_sorted_at_k)
-                log.debug('precision_at_k: %s' % precision_at_k)
                 if precision_at_k >= desired_precision:
                     num_true_positive = true_sorted_at_k[true_sorted_at_k.columns.values[0]].value_counts()[1]
 
