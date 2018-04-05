@@ -20,6 +20,41 @@ from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
 class LabNormalityReport:
+    PROC_CODE_TO_LABEL = {
+        'LABUSPG': 'Urine Specific Gravity',
+        'LABLIDOL': 'Lidocaine',
+        'LABURIC': 'Uric Acid',
+        'LABSPLAC': 'Lactate (Sepsis Protocol)',
+        'LABCMVQT': 'Cytomegalovirus DNA',
+        'LABAFBC': 'AFB Culture, Respiratory',
+        'LABCSFC': 'CSF Culture',
+        'LABHIVWBL': 'HIV Antibody',
+        'LABCSFGL': 'CSF Glucose',
+        'LABAFBD': 'AFB Culture, Non-Respiratory',
+        'LABPLTS': 'Platelet Count',
+        'LABLACWB': 'Lactate (Whole Blood)',
+        'LABUAPRN': 'Urinalysis, Culture Screen',
+        'LABROMRS': 'MRSA Screen',
+        'LABMB': 'Creatine Kinase-Muscle/Brain',
+        'LABLAC': 'Lactate',
+        'LABTYPSNI': 'Type and Screen',
+        'LABBLC2': 'Blood Culture (2 Bottles)',
+        'LABTNI': 'Troponin I',
+        'LABMGN': 'Magnesium',
+        'LABUPREG': 'Pregnancy',
+        'LABBLCSTK': 'Blood Culture (1st, Phlebotomy)',
+        'LABBLCTIP': 'Blood Culture (2nd, Catheter)',
+        'LABCK': 'Creatine Kinase',
+        'LABHEPAR': 'Heparin Activity Level',
+        'LABGRAM': 'Gram Stain',
+        'LABK': 'Potassium',
+        'LABFCUL': 'Fungal Culture',
+        'LABFIB': 'Fibrinogen',
+        'LABTRIG': 'Triclycerides',
+        'LABFLDC': 'Fluid Culture and Gram Stain',
+        'LABANER': 'Anaerobic Culture'
+    }
+
     def __init__(self):
         self._fm_io = FeatureMatrixIO()
 
@@ -73,7 +108,8 @@ class LabNormalityReport:
         # OSX automatically creates .DS_Store files.
         if '.DS_Store' in labs:
             labs.remove('.DS_Store')
-        labs.remove('LABNONGYN')
+        if 'LABNONGYN' in labs:
+            labs.remove('LABNONGYN')
         return sorted(labs)
 
     @staticmethod
@@ -114,11 +150,15 @@ class LabNormalityReport:
             accuracy = test_value_counts[common_label] / test_size
             recall = 1.0 if common_label == 1 else 0.0
             percent_predictably_positive = 0.0
+            ppp_lower_ci = 0.0
+            ppp_upper_ci = 1.0
             precision = (test_value_counts[1] / test_size) if common_label == 1 else 0.0
             f1 = 2 * (precision * recall) / (precision + recall)
             average_precision = precision
             precision_at_10_percent = precision
             roc_auc = None
+            roc_auc_lower_ci = None
+            roc_auc_upper_ci = None
             hyperparams = None
 
             best_predictor = DataFrame({
@@ -133,8 +173,12 @@ class LabNormalityReport:
                 'f1': [f1],
                 'average_precision': [average_precision],
                 'percent_predictably_positive': [percent_predictably_positive],
+                'percent_predictably_positive_0.95_lower_ci': [ppp_lower_ci],
+                'percent_predictably_positive_0.95_upper_ci': [ppp_upper_ci],
                 'precision_at_10_percent': [precision_at_10_percent],
                 'roc_auc': [roc_auc],
+                'roc_auc_0.95_lower_ci': [roc_auc_lower_ci],
+                'roc_auc_0.95_upper_ci': [roc_auc_upper_ci],
                 'hyperparams': [hyperparams]
             })
 
@@ -232,15 +276,18 @@ class LabNormalityReport:
             test_abnormal_count = best_predictor['test_abnormal_count']
             volume = LabNormalityReport.fetch_volume(lab_panel)
             median_charge_volume = float(median_charge) * float(volume)
+            print best_predictor
             roc_auc = best_predictor['roc_auc']
+            roc_auc_lower_ci = best_predictor['roc_auc_0.95_lower_ci']
+            roc_auc_upper_ci = best_predictor['roc_auc_0.95_upper_ci']
             best_model = best_predictor['model']
-            percent_predictably_positive = float(best_predictor['percent_predictably_positive'])
+            ppp = float(best_predictor['percent_predictably_positive'])
+            ppp_lower_ci = best_predictor['percent_predictably_positive_0.95_lower_ci']
+            ppp_upper_ci = best_predictor['percent_predictably_positive_0.95_upper_ci']
             # components = LabNormalityReport.fetch_components_in_panel(lab_panel)
             row = DataFrame({
                 'lab_panel': [lab_panel],
                 'description': [description],
-                # 'num_components': [len(components)],
-                # 'counts': [counts],
                 'test_normal_count': test_normal_count,
                 'test_abnormal_count': test_abnormal_count,
                 'median_charge': [median_charge],
@@ -248,13 +295,24 @@ class LabNormalityReport:
                 'median_charge_volume ($)': ['{:.2f}'.format(median_charge_volume)],
                 'best_model': [best_model],
                 'roc_auc': [roc_auc],
-                'percent_predictably_positive': [percent_predictably_positive],
-                'predictable_charge_volume ($)': ['{:.2f}'.format(percent_predictably_positive * median_charge_volume)],
+                'roc_auc_0.95_lower_ci': [roc_auc_lower_ci],
+                'roc_auc_0.95_upper_ci': [roc_auc_upper_ci],
+                'percent_predictably_positive': [ppp],
+                'percent_predictably_positive_0.95_lower_ci': [ppp_lower_ci],
+                'percent_predictably_positive_0.95_upper_ci': [ppp_upper_ci],
+                'predictable_charge_volume ($)': ['{:.2f}'.format(ppp * median_charge_volume)],
             })
             lab_summary = lab_summary.append(row.loc[0], ignore_index=True)
 
         return DataFrame(lab_summary, columns=['lab_panel', 'description', 'test_normal_count', 'test_abnormal_count', 'median_charge', 'volume', 'median_charge_volume ($)',
-                    'best_model', 'roc_auc', 'percent_predictably_positive', 'predictable_charge_volume ($)'])
+                    'best_model', 'roc_auc', 'roc_auc_0.95_lower_ci', 'roc_auc_0.95_upper_ci',
+                    'percent_predictably_positive', 'percent_predictably_positive_0.95_lower_ci',
+                    'percent_predictably_positive_0.95_upper_ci', 'predictable_charge_volume ($)'])
+
+    @staticmethod
+    def build_lab_performance_report():
+        lab_summary = LabNormalityReport.build_lab_performance_summary_table()
+
 
     @staticmethod
     def fetch_algorithm_performance(lab_panel, algorithm):
@@ -291,7 +349,7 @@ class LabNormalityReport:
             best_algorithm = LabNormalityReport.fetch_best_predictor(lab_panel)
             # best_algorithm.reset_index(inplace=True)
             algorithm_report.reset_index()
-            if algorithm_report.iloc[0].equals(best_algorithm):
+            if algorithm_report.iloc[0]['model'] == best_algorithm['model']:
                 best_count += 1
             algorithm_report['lab_panel'] = lab_panel
 
@@ -304,14 +362,14 @@ class LabNormalityReport:
         algorithm_summary = DataFrame({
             'algorithm': [algorithm],
             'best_predictor_count': [best_count],
-            'min(k(0.99))': [min_k_99],
-            'median(k(0.99))': [median_k_99],
-            'max(k(0.99))': [max_k_99],
+            'min(predictability@0.99)': [min_k_99],
+            'median(predictability@0.99)': [median_k_99],
+            'max(predictability@0.99)': [max_k_99],
             'min(roc_auc)': [min_roc_auc],
             'median(roc_auc)': [median_roc_auc],
             'max(roc_auc)': [max_roc_auc]
-        }, columns=['algorithm', 'best_predictor_count', 'min(k(0.99))',
-                    'median(k(0.99))', 'max(k(0.99))', 'min(roc_auc)',
+        }, columns=['algorithm', 'best_predictor_count', 'min(predictability@0.99)',
+                    'median(predictability@0.99)', 'max(predictability@0.99)', 'min(roc_auc)',
                     'median(roc_auc)','max(roc_auc)'])
 
         return algorithm_summary
@@ -342,26 +400,9 @@ class LabNormalityReport:
         labs.set_index('lab_panel', drop=False, inplace=True)
 
         # Add labels.
-        labs.at['LABUSPG', 'label'] = 'Urine Specific Gravity'
-        labs.at['LABLIDOL', 'label'] = 'Lidocaine'
-        labs.at['LABURIC', 'label'] = 'Uric Acid'
-        labs.at['LABSPLAC', 'label'] = 'Lactate (Sepsis Protocol)'
-        labs.at['LABCMVQT', 'label'] = 'Cytomegalovirus DNA'
-        labs.at['LABAFBC', 'label'] = 'AFB Culture, Respiratory'
-        labs.at['LABCSFC', 'label'] = 'CSF Culture'
-        labs.at['LABHIVWBL', 'label'] = 'HIV Antibody'
-        labs.at['LABCSFGL', 'label'] = 'CSF Glucose'
-        labs.at['LABAFBD', 'label'] = 'AFB Culture, Non-Respiratory'
-        labs.at['LABPLTS', 'label'] = 'Platelet Count'
-        labs.at['LABLACWB', 'label'] = 'Lactate (Whole Blood)'
-        labs.at['LABUAPRN', 'label'] = 'Urinalysis, Culture Screen'
-        labs.at['LABROMRS', 'label'] = 'MRSA Screen'
-        labs.at['LABMB', 'label'] = 'Creatine Kinase-Muscle/Brain'
-        labs.at['LABLAC', 'label'] = 'Lactate'
-        labs.at['LABTYPSNI', 'label'] = 'Type and Screen'
-        labs.at['LABBLC2', 'label'] = 'Blood Culture (2 Bottles)'
-        labs.at['LABTNI', 'label'] = 'Troponin I'
-        labs.at['LABMGN', 'label'] = 'Magnesium'
+        for proc_code, label in LabNormalityReport.PROC_CODE_TO_LABEL.iteritems():
+            if proc_code in labs['lab_panel'].values:
+                labs.at[proc_code, 'label'] = label
 
         return labs
 
@@ -375,7 +416,7 @@ class LabNormalityReport:
         charges['normal, unpredictable'] = labs['normal_rate'] * labs['annual_median_charge_volume ($)'].astype('float') - charges['normal, predictable']
         charges['abnormal'] = labs['abnormal_rate'] * labs['annual_median_charge_volume ($)'].astype('float')
         charges['total'] = labs['annual_median_charge_volume ($)'].astype('float')
-        charges.sort_values('total', inplace=True)
+        charges.sort_values('normal, predictable', inplace=True)
 
         matplotlib.rcParams.update({'font.family': 'serif'})
         matplotlib.rcParams.update({'font.sans-serif': ['Helvetica', 'Arial', 'Tahoma']})
@@ -395,11 +436,12 @@ class LabNormalityReport:
         #     axes.annotate(str(p.get_width()), (p.get_width() * 1.005, p.get_y() * 1.005))
 
         plt.tight_layout()
-        plt.savefig('test.png')
+        plt.savefig('predictable-and-expensive-charges.png')
 
 if __name__ == '__main__':
     fm_io = FeatureMatrixIO()
-    # summary_table = LabNormalityReport.build_lab_performance_summary_table()
-    # fm_io.write_data_frame_to_file(summary_table, 'lab-performance-summary.tab')
+    summary_table = LabNormalityReport.build_lab_performance_summary_table()
+    fm_io.write_data_frame_to_file(summary_table, 'lab-performance-summary.tab')
     summary = LabNormalityReport.build_algorithm_performance_summary_table()
     fm_io.write_data_frame_to_file(summary, 'algorithm-performance-summary.tab')
+    LabNormalityReport.plot_predictable_and_expensive_charges()
