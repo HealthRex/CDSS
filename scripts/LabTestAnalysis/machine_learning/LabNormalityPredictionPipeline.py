@@ -75,7 +75,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             'RaceOther.preTimeDays',
             'RaceUnknown.preTimeDays',
             'Death.post',
-            'Death.postTimeDays'
+            'Death.postTimeDays',
+            'num_components'
         ]
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
