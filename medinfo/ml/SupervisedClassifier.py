@@ -261,7 +261,7 @@ class SupervisedClassifier:
             # number of hyperparam options.
             num_hyperparam_settings = np.prod([len(value) for key, value in self._hyperparam_search_space.iteritems()])
             log.debug('num_hyperparam_settings: %s' % num_hyperparam_settings)
-            self._hyperparams[hyperparam] = np.min([48, num_hyperparam_settings])
+            self._hyperparams[hyperparam] = np.min([96, num_hyperparam_settings])
         elif hyperparam == 'n_jobs':
             # SUPPORTED_ALGORITHMS
             # LOGISTIC_REGRESSION parallelization causes multiarray.so to crash.
