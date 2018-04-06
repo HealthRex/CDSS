@@ -155,8 +155,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             # Define hyperparams.
             hyperparams = {}
             hyperparams['algorithm'] = algorithm
-            hyperparams['hyperparam_strategy'] = SupervisedClassifier.STOCHASTIC_SEARCH
-            hyperparams['max_iter'] = 256
+            hyperparams['hyperparam_strategy'] = SupervisedClassifier.EXHAUSTIVE_SEARCH
+            hyperparams['max_iter'] = 512
 
             # If bifurcated algorithm, define bifurcator.
             if 'bifurcated' in algorithm:
@@ -253,28 +253,19 @@ if __name__ == '__main__':
         "LABALB", "LABLIDOL",
         "LABUPREG", "LABRETIC", "LABHAP", "LABBXTG", "LABHIVWBL"
     ])
-
-    labs_to_test = list(TOP_LAB_PANELS_BY_CHARGE_VOLUME.union(TOP_NON_PANEL_TESTS_BY_VOLUME))
-    labs_to_test = [
-        # "LABMGN", "LABNH3", "LABPHOS", "LABPT", "LABPTT", "LABTNI", "LABROMRS",
-        # "LABAFBC", "LABBLC", "LABBLC2", "LABCAI", "LABLACWB", "LABURNC", "LABHFP",
-        # "LABA1C", "LABCDTPCR", "LABCMVQT", "LABHEPAR", "LABPCTNI", "LABPLTS", "LABVANPRL",
-        # "LABPCG3", "LABHCTX", "LABLAC", "LABLIPS", "LABRESP", "LABTSH", "LABPOCGLU",
-        # "LABFCUL", "LABGRAM", "LABK", "LABLDH", "LABMB", "LABUCR", "LABUA",
-        # "LABANER", "LABCRP", "LABFE", "LABFLDC", "LABNTBNP", "LABTRIG", "LABSPLAC",
-        # "LABALB", "LABBLCSTK", "LABBLCTIP", "LABCK", "LABESRP", "LABNA",
-        # "LABB12", "LABFER", "LABFT4", "LABLIDOL", "LABUPREG", "LABURNA", "LABUSPG",
-        # "LABFIB", "LABHAP", "LABPALB", "LABPCCR", "LABRETIC", "LABTRFS", "LABURIC",
-        # "LABCBCO", "LABBXTG", "LABCSFGL", "LABCSFTP", "LABHIVWBL", "LABSTOBGD", "LABUOSM",
-        # "LABTYPSNI",
-        # "LABUAPRN",
-        # "LABVBG",
-        # "LABMETC",
-        # "LABMETB",
-        # "LABABG",
-        # "LABCBCD",
-        # "LABCSFC",
-        # 'LABAFBD'
+    NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
+        'LABA1C', 'LABAFBC', 'LABAFBD', 'LABALB', 'LABANER', 'LABB12', 'LABBLC', 'LABBLC2',
+        'LABBLCSTK', 'LABBLCTIP', 'LABBUN', 'LABBXTG', 'LABCA', 'LABCAI', 'LABCDTPCR', 'LABCK',
+        'LABCMVQT', 'LABCORT', 'LABCRP', 'LABCSFC', 'LABCSFGL', 'LABCSFTP', 'LABDIGL', 'LABESRP',
+        'LABFCUL', 'LABFE', 'LABFER', 'LABFIB', 'LABFLDC', 'LABFOL', 'LABFT4', 'LABGRAM',
+        'LABHAP', 'LABHBSAG', 'LABHCTX', 'LABHEPAR', 'LABHIVWBL', 'LABK', 'LABLAC', 'LABLACWB',
+        'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN', 'LABNA', 'LABNH3', 'LABNONGYN',
+        'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI', 'LABPHOS', 'LABPLTS',
+        'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP', 'LABRESPG', 'LABRETIC', 'LABSPLAC',
+        'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH', 'LABUCR', 'LABUOSM',
+        'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
     ]
+    labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+
     for panel in labs_to_test:
         LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
