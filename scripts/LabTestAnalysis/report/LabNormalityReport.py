@@ -38,7 +38,7 @@ class LabNormalityReport:
         'LABMB': 'Creatine Kinase-Muscle/Brain',
         'LABLAC': 'Lactate',
         'LABTYPSNI': 'Type and Screen',
-        'LABBLC2': 'Blood Culture (2 Bottles)',
+        'LABBLC2': 'Blood Culture (2 Aerobic)',
         'LABTNI': 'Troponin I',
         'LABMGN': 'Magnesium',
         'LABUPREG': 'Pregnancy',
@@ -50,9 +50,53 @@ class LabNormalityReport:
         'LABK': 'Potassium',
         'LABFCUL': 'Fungal Culture',
         'LABFIB': 'Fibrinogen',
-        'LABTRIG': 'Triclycerides',
+        'LABTRIG': 'Triglycerides',
         'LABFLDC': 'Fluid Culture and Gram Stain',
-        'LABANER': 'Anaerobic Culture'
+        'LABANER': 'Anaerobic Culture',
+        'LABCAI': 'Ionized Calcium',
+        'LABBLC': 'Blood Culture (Aerobic & Anaerobic)',
+        'LABPCG3': 'i-STAT G3+',
+        'LABA1C': 'Hemoglobin A1c',
+        'LABABG': 'Arterial Blood Gases',
+        'LABALB': 'Albumin',
+        'LABB12': 'Vitamin B12',
+        'LABBXTG': 'Biopsy / Tissue Culture & Gram Stain',
+        'LABCBCO': 'CBC',
+        'LABCBCD': 'CBC with Differential',
+        'LABCDTPCR': 'C. Diff. Toxin B Gene PCR',
+        'LABCRP': 'C-Reactive Protein',
+        'LABCSFTP': 'Cerebrospinal Fluid Total Protein',
+        'LABESRP': 'Erythrocyte Sedimentation Rate',
+        'LABFE': 'Iron',
+        'LABFER': 'Ferritin',
+        'LABFT4': 'Free T4',
+        'LABNH3': 'Ammonia',
+        'LABNTBNP': 'NT-proBNP',
+        'LABPALB': 'Prealbumin',
+        'LABPCCR': 'i-STAT Creatinine',
+        'LABPCTNI': 'i-STAT Troponin I',
+        'LABPHOS': 'Phosphorous',
+        'LABPOCGLU': 'Glucose by Meter',
+        'LABRESP': 'Respiratory Culture',
+        'LABRETIC': 'Reticulocyte Count',
+        'LABSTOBGD': 'Stool Guaiac',
+        'LABTRFS': 'Transferrin Saturation',
+        'LABTSH': 'Thyroid-Stimulating Hormone',
+        'LABUA': 'Microscopic Urinalysis',
+        'LABUOSM': 'Urine Osmolality',
+        'LABUCR': 'Urine Creatinine',
+        'LABURNA': 'Urine Sodium',
+        'LABURNC': 'Urine Culture',
+        'LABVANPRL': 'Vancomycin Trough Level',
+        'LABVBG': 'Venous Blood Gases',
+        'LABHAP': 'Haptoglobin',
+        'LABHCTX': 'Hematocrit',
+        'LABHFP': 'Hepatic Function Panel A',
+        'LABLDH': 'Total LDH',
+        'LABLIPS': 'Lipase',
+        'LABMETB': 'Basic Metabolic Panel',
+        'LABMETC': 'Comprehensive Metabolic Panel',
+        'LABNA': 'Sodium',
     }
 
     def __init__(self):
@@ -267,7 +311,6 @@ class LabNormalityReport:
         lab_summary = DataFrame()
         lab_panels = LabNormalityReport.fetch_lab_panels()
         for lab_panel in lab_panels:
-            print lab_panel
             best_predictor = LabNormalityReport.fetch_best_predictor(lab_panel)
             description = LabNormalityReport.fetch_description(lab_panel)
             median_charge = LabNormalityReport.fetch_median_charge(lab_panel)
@@ -276,7 +319,6 @@ class LabNormalityReport:
             test_abnormal_count = best_predictor['test_abnormal_count']
             volume = LabNormalityReport.fetch_volume(lab_panel)
             median_charge_volume = float(median_charge) * float(volume)
-            print best_predictor
             roc_auc = best_predictor['roc_auc']
             roc_auc_lower_ci = best_predictor['roc_auc_0.95_lower_ci']
             roc_auc_upper_ci = best_predictor['roc_auc_0.95_upper_ci']
@@ -389,20 +431,26 @@ class LabNormalityReport:
         return summary
 
     @staticmethod
-    def fetch_predictable_and_expensive_labs():
+    def fetch_predictable_and_expensive_labs(all=None):
         labs = LabNormalityReport.build_lab_performance_summary_table()
-        predictable_labs = labs.loc[labs['percent_predictably_positive'] >= 0.1]
-        expensive_labs = labs.loc[labs['predictable_charge_volume ($)'].astype('float') >= 1000000]
-        labs = pandas.concat([predictable_labs,expensive_labs]).drop_duplicates().reset_index(drop=True)
+        if all:
+            predictable_labs = labs
+        else:
+            predictable_labs = labs.loc[labs['percent_predictably_positive'] >= 0.1]
+        # labs = pandas.concat([predictable_labs,expensive_labs]).drop_duplicates().reset_index(drop=True)
+        labs = predictable_labs
         labs['normal_rate'] = labs['test_normal_count'] / (labs['test_normal_count'] + labs['test_abnormal_count'])
         labs['abnormal_rate'] = labs['test_abnormal_count'] / (labs['test_normal_count'] + labs['test_abnormal_count'])
         labs['annual_median_charge_volume ($)'] = labs['median_charge_volume ($)'].astype('float') / 6.0
+        labs['label'] = None
         labs.set_index('lab_panel', drop=False, inplace=True)
 
         # Add labels.
         for proc_code, label in LabNormalityReport.PROC_CODE_TO_LABEL.iteritems():
             if proc_code in labs['lab_panel'].values:
                 labs.at[proc_code, 'label'] = label
+
+        print labs['label']
 
         return labs
 
@@ -425,18 +473,47 @@ class LabNormalityReport:
         title = "Lab test annual predictable charge volume"
         axes = charges[['label', 'normal, predictable', 'normal, unpredictable', 'abnormal']].plot(kind='barh', \
                     stacked=True, color=['#4caf50', '#448aff', '#f44336'], \
-                    width=0.85, title=title)
+                    width=0.85, title=title, linewidth=0.5, edgecolor='#ffffff', \
+                    logx=False)
 
         axes.set_ylabel("")
         axes.set_yticklabels(charges['label'])
         print charges
         axes.set_xlabel("Annual Charge Volume ($, millions)")
-        axes.set_xticklabels(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
+        # axes.set_xticklabels(['0', '0', '5', '10', '15', '20', '25'])
+        axes.set_xticklabels(['0', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
         # for p in axes.patches:
         #     axes.annotate(str(p.get_width()), (p.get_width() * 1.005, p.get_y() * 1.005))
 
         plt.tight_layout()
-        plt.savefig('predictable-and-expensive-charges.png')
+        plt.savefig('predictable-and-expensive-charges.png', dpi=144)
+
+    @staticmethod
+    def build_lab_predictability_summary_report(all=None):
+        labs = LabNormalityReport.fetch_predictable_and_expensive_labs(all)
+
+        labs['normality'] = labs['normal_rate'].astype('float').map('{:.1%}'.format)
+        labs['predictability@0.99'] = labs['percent_predictably_positive'].astype('float').map('{:.1%}'.format)
+        labs['predictability@0.99[-0.95]'] = labs['percent_predictably_positive_0.95_lower_ci'].astype('float').map('{:.1%}'.format)
+        labs['predictability@0.99[+0.95]'] = labs['percent_predictably_positive_0.95_upper_ci'].astype('float').map('{:.1%}'.format)
+        labs['predictable_CV'] = (labs['percent_predictably_positive'].astype('float') * labs['annual_median_charge_volume ($)'].astype('float') / 1000).map('${:,.0f}'.format)
+        labs['predictable_CV[-0.95]'] = (labs['percent_predictably_positive_0.95_lower_ci'].astype('float') * labs['annual_median_charge_volume ($)'].astype('float') / 1000).map('${:,.0f}'.format)
+        labs['predictable_CV[+0.95]'] = (labs['percent_predictably_positive_0.95_upper_ci'].astype('float') * labs['annual_median_charge_volume ($)'].astype('float') / 1000).map('${:,.0f}'.format)
+
+        summary = DataFrame()
+        summary['lab'] = labs['label']
+        summary['charge'] = labs['median_charge'].astype('float').map('${:,.0f}'.format)
+        summary['volume'] = labs['volume'].floordiv(6).astype('float').map('{:,.0f}'.format)
+        summary['normal rate'] = labs['normality']
+        summary['predictability@0.99'] = labs['predictability@0.99'] + ' [' + \
+            labs['predictability@0.99[-0.95]'] + ', ' + \
+            labs['predictability@0.99[+0.95]'] + ']'
+        summary['predictable CV ($1,000s)'] = labs['predictable_CV'] + ' [' + \
+            labs['predictable_CV[-0.95]'] + ', ' + \
+            labs['predictable_CV[+0.95]'] + ']'
+
+        return summary
+
 
 if __name__ == '__main__':
     fm_io = FeatureMatrixIO()
@@ -445,3 +522,7 @@ if __name__ == '__main__':
     summary = LabNormalityReport.build_algorithm_performance_summary_table()
     fm_io.write_data_frame_to_file(summary, 'algorithm-performance-summary.tab')
     LabNormalityReport.plot_predictable_and_expensive_charges()
+    summary = LabNormalityReport.build_lab_predictability_summary_report()
+    fm_io.write_data_frame_to_file(summary, 'predictable-labs.tab')
+    summary = LabNormalityReport.build_lab_predictability_summary_report(all=True)
+    fm_io.write_data_frame_to_file(summary, 'all-labs.tab')
