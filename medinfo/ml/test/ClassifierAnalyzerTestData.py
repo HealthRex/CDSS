@@ -152,11 +152,11 @@ RANDOM_100_TEST_CASE = {
             'upper': 1.0
         },
         'average_precision': {
-            'lower': 0.7559807256235828,
+            'lower': 0.7397254260890624,
             'upper': 1.0
         },
         'roc_auc': {
-            'lower': 0.6428571428571428,
+            'lower': 0.6799999999999999,
             'upper': 1.0
         },
         'precision_at_k': {
@@ -169,7 +169,7 @@ RANDOM_100_TEST_CASE = {
         },
         'percent_predictably_positive': {
             'lower': 0.04,
-            'upper': 0.84
+            'upper': 0.8
         },
         'report': DataFrame({
             'f1': 0.9714285714285714,
@@ -181,20 +181,20 @@ RANDOM_100_TEST_CASE = {
             'f1_0.95_upper_ci': 1.0,
             'precision': 0.9444444444444444,
             'y_test.value_counts()': ['{0: 8, 1: 17}'],
-            'f1_0.95_lower_ci': 0.9142857142857143,
+            'f1_0.95_lower_ci': 0.8750000000000001,
             'average_precision': 0.9287191326551189,
             'recall_0.95_lower_ci': 1.0,
             'precision_0.95_upper_ci': 1.0,
-            'percent_predictably_positive_0.95_lower_ci': 0.04,
+            'percent_predictably_positive_0.95_lower_ci': 0.0,
             'accuracy_0.95_lower_ci': 0.88,
             'recall': 1.0,
-            'average_precision_0.95_lower_ci': 0.7608991323802247,
+            'average_precision_0.95_lower_ci': 0.7548275442506212,
             'roc_auc': 0.9044117647058824,
             'average_precision_0.95_upper_ci': 1.0000000000000002,
             'test_size': [25],
             'model': ['L1_REGRESS_AND_ROUND(1.0*x3)'],
-            'precision_0.95_lower_ci': 0.8421052631578947,
-            'roc_auc_0.95_lower_ci': 0.7083333333333334,
+            'precision_0.95_lower_ci': 0.8333333333333334,
+            'roc_auc_0.95_lower_ci': 0.5952380952380952,
             'percent_predictably_positive_0.95_upper_ci': 0.84,
             'accuracy': 0.96},
             columns=[u'model', u'test_size', u'y_test.value_counts()', u'accuracy',
