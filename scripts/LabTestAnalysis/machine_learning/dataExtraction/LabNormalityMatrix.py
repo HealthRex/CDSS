@@ -18,18 +18,18 @@ from medinfo.db.Model import SQLQuery
 from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 
 class LabNormalityMatrix(FeatureMatrix):
-    def __init__(self, lab_panel, num_episodes, random_seed=None):
+    def __init__(self, lab_panel, num_episodes, random_state=None):
         FeatureMatrix.__init__(self, lab_panel, num_episodes)
 
         # Parse arguments.
         self._lab_panel = lab_panel
         self._num_requested_episodes = num_episodes
         self._num_reported_episodes = 0
-        if random_seed:
+        if random_state:
             query = SQLQuery()
-            query.addSelect('setseed(%d);' % random_seed)
+            query.addSelect('setseed(%d);' % random_state)
             DBUtil.execute(query)
-            self._random_seed = random_seed
+            self._random_state = random_state
 
         # Query patient episodes.
         self._query_patient_episodes()
@@ -339,7 +339,8 @@ if __name__ == "__main__":
     log.level = logging.DEBUG
     start_time = time.time()
     # Initialize lab test matrix.
-    ltm = LabNormalityMatrix("LABABG", 10)
+    random_state = float(123456789)/float(sys.maxint)
+    ltm = LabNormalityMatrix("LABABG", 10, random_state=random_state)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
     ltm.write_matrix("LABABG-panel-10-episodes-%s-sec.tab" % str(elapsed_time))
