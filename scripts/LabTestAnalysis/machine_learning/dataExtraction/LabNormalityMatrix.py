@@ -18,13 +18,18 @@ from medinfo.db.Model import SQLQuery
 from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 
 class LabNormalityMatrix(FeatureMatrix):
-    def __init__(self, lab_panel, num_episodes):
+    def __init__(self, lab_panel, num_episodes, random_seed=None):
         FeatureMatrix.__init__(self, lab_panel, num_episodes)
 
         # Parse arguments.
         self._lab_panel = lab_panel
         self._num_requested_episodes = num_episodes
         self._num_reported_episodes = 0
+        if random_seed:
+            query = SQLQuery()
+            query.addSelect('setseed(%d);' % random_seed)
+            DBUtil.execute(query)
+            self._random_seed = random_seed
 
         # Query patient episodes.
         self._query_patient_episodes()
