@@ -38,11 +38,11 @@ class ClassifierAnalyzer(PredictorAnalyzer):
                         K_95_PRECISION_SCORE, K_90_PRECISION_SCORE,
                         ROC_AUC_SCORE]
 
-    def __init__(self, classifier, X_test, y_test):
+    def __init__(self, classifier, X_test, y_test, random_state=None):
         # TODO(sbala): Make this API more flexible, so that it can work
         # with multi-label classifiers or binary classifiers whose
         # positive label != 1.
-        PredictorAnalyzer.__init__(self, classifier, X_test, y_test)
+        PredictorAnalyzer.__init__(self, classifier, X_test, y_test, random_state)
         # If there is only one class in y_test, abort.
         classes = y_test[y_test.columns.values[0]].value_counts().index.values
         if len(classes) <= 1:
@@ -52,6 +52,14 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
         self._y_pred_prob = DataFrame(classifier.predict_probability(X_test)[:,1])
         log.debug('y_pred_prob[0].value_counts(): %s' % self._y_pred_prob[0].value_counts())
+
+        if random_state is None:
+            self._random_state = np.random.RandomState(123456789)
+        elif isinstance(random_state, int):
+            self._random_state = np.random.RandomState(random_state)
+        elif isinstance(random_state, np.random.RandomState):
+            self._random_state = random_state
+
 
     def _score_accuracy(self, ci=None, n_bootstrap_iter=None):
         return PredictorAnalyzer._score_accuracy(self, ci, n_bootstrap_iter)
@@ -103,7 +111,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
             n_bootstrap_iter = 100
         # For consistency of results, seed random number generator with
         # fixed number.
-        rng = np.random.RandomState(n_bootstrap_iter)
+        rng = self._random_state
         # Use bootstrap to compute CIs.
         bootstrap_scores = list()
         for i in range(0, n_bootstrap_iter):
