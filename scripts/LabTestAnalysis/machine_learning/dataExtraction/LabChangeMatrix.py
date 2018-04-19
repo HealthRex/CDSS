@@ -158,6 +158,10 @@ class LabChangeMatrix(FeatureMatrix):
         #           metabolic components. Include it.
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
+
+        # Note that some episodes have ord_num_value = 9999999
+        # These episodes are removed
+
         query = SQLQuery()
         query.addSelect('CAST(pat_id AS BIGINT)')
         query.addSelect('sop.order_proc_id AS order_proc_id')
@@ -172,6 +176,7 @@ class LabChangeMatrix(FeatureMatrix):
         query.addFrom('stride_order_results AS sor')
         query.addWhere('sop.order_proc_id = sor.order_proc_id')
         query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
+        query.addWhere("ord_num_value != 9999999")
         query.addWhereIn("proc_code", [self._lab_panel])
         query.addWhereIn("pat_id", random_patient_list)
         query.addGroupBy('pat_id')
@@ -270,6 +275,9 @@ class LabChangeMatrix(FeatureMatrix):
         #   order_time - time at which lab panel was ordered. \n\
         line = 'order_time - time at which lab panel was ordered.'
         summary.append(line)
+        #   ord_num_value - numeric value of result. \n\
+        line = 'ord_num_value - numeric value of result.'
+        summary.append(line)
         #   abnormal_panel - were any components in panel abnormal (binary)? \n\
         line = 'abnormal_panel - were any components in panel abnoral (binary)?'
         summary.append(line)
@@ -337,7 +345,7 @@ if __name__ == "__main__":
     log.level = logging.DEBUG
     start_time = time.time()
     # Initialize lab test matrix.
-    ltm = LabChangeMatrix("LABCK", 10000)
+    ltm = LabChangeMatrix("LABCK", 10)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
     ltm.write_matrix("LABCK-panel-10000-episodes-values-%s-sec.tab" % str(elapsed_time))
