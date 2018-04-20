@@ -8,6 +8,7 @@ import inspect
 import os
 from pandas import DataFrame, Series
 from sklearn.externals import joblib
+from sklearn.metrics import make_scorer, average_precision_score
 import logging
 
 from medinfo.common.Util import log
@@ -20,8 +21,8 @@ from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
 from scripts.LabTestAnalysis.machine_learning.dataExtraction.LabNormalityMatrix import LabNormalityMatrix
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
-    def __init__(self, lab_panel, num_episodes, use_cache=None):
-        SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache)
+    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None):
+        SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state)
 
         self._build_raw_feature_matrix()
         self._build_processed_feature_matrix()
@@ -88,6 +89,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         percent_features_to_select = 0.05
         matrix_class = LabNormalityMatrix
         pipeline_file_path = inspect.getfile(inspect.currentframe())
+        random_state = self._random_state
         data_overview = [
             # Overview:
             'Overview',
@@ -123,6 +125,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         params['matrix_class'] = matrix_class
         params['pipeline_file_path'] = pipeline_file_path
         params['data_overview'] = data_overview
+        params['random_state'] = random_state
 
         # Defer processing logic to SupervisedLearningPipeline.
         SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
@@ -140,8 +143,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         # Test BifurcatedSupervisedClassifier and SupervisedClassifier.
         algorithms_to_test = list()
         algorithms_to_test.extend(SupervisedClassifier.SUPPORTED_ALGORITHMS)
-        for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
-            algorithms_to_test.append('bifurcated-%s' % algorithm)
+        # for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
+        #     algorithms_to_test.append('bifurcated-%s' % algorithm)
         log.debug('algorithms_to_test: %s' % algorithms_to_test)
 
         # Train and analyse algorithms.
@@ -157,6 +160,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             hyperparams['algorithm'] = algorithm
             hyperparams['hyperparam_strategy'] = SupervisedClassifier.EXHAUSTIVE_SEARCH
             hyperparams['max_iter'] = 1024
+            hyperparams['random_state'] = self._random_state
 
             # If bifurcated algorithm, define bifurcator.
             if 'bifurcated' in algorithm:
@@ -263,9 +267,9 @@ if __name__ == '__main__':
         'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI', 'LABPHOS', 'LABPLTS',
         'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP', 'LABRESPG', 'LABRETIC', 'LABSPLAC',
         'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH', 'LABUCR', 'LABUOSM',
-        'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
+        'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
     ]
     labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 
     for panel in labs_to_test:
-        LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
+        LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789)

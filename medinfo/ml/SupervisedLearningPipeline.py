@@ -20,6 +20,7 @@ import datetime
 import inspect
 import os
 import pandas as pd
+import sys
 
 from sklearn.model_selection import train_test_split
 from sklearn.utils.validation import column_or_1d
@@ -38,7 +39,7 @@ class SupervisedLearningPipeline:
     CLASSIFICATION = 'classification'
     REGRESSION = 'regression'
 
-    def __init__(self, variable, num_data_points, use_cache=None):
+    def __init__(self, variable, num_data_points, use_cache=None, random_state=None):
         # Process arguments.
         self._var = variable
         self._num_rows = num_data_points
@@ -50,6 +51,7 @@ class SupervisedLearningPipeline:
         self._eliminated_features = list()
         self._removed_features = list()
         self._added_features = list()
+        self._random_state = random_state
 
     def predictor(self):
         return self._predictor
@@ -116,7 +118,9 @@ class SupervisedLearningPipeline:
             # Each matrix class may have a custom set of parameters which should
             # be passed on directly to matrix_class, but we expect them to have
             # at least 1 primary variables and # of rows.
-            matrix = matrix_class(self._var, self._num_rows)
+            # Ensure that random_state is [-1, 1]
+            random_state = float(self._random_state)/float(sys.maxint)
+            matrix = matrix_class(self._var, self._num_rows, random_state=random_state)
             matrix.write_matrix(raw_matrix_path)
 
     def _build_processed_feature_matrix(self, params):
@@ -259,11 +263,11 @@ class SupervisedLearningPipeline:
         y = pd.DataFrame(processed_matrix.pop(outcome_label))
         X = processed_matrix
         log.debug('X.columns: %s' % X.columns)
-        self._X_train, self._X_test, self._y_train, self._y_test = train_test_split(X, y)
+        self._X_train, self._X_test, self._y_train, self._y_test = train_test_split(X, y, random_state=self._random_state)
 
     def _select_features(self, problem, percent_features_to_select, algorithm, features_to_keep=None):
         # Initialize FeatureSelector.
-        fs = FeatureSelector(problem=problem, algorithm=algorithm)
+        fs = FeatureSelector(problem=problem, algorithm=algorithm, random_state=self._random_state)
         fs.set_input_matrix(self._X_train, column_or_1d(self._y_train))
         num_features_to_select = int(percent_features_to_select*len(self._X_train.columns.values))
 
