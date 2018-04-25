@@ -3,8 +3,10 @@
 Test suite for BoxClient.py.
 """
 
+import filecmp
 import inspect
 import os
+import shutil
 import unittest
 
 from LocalEnv import TEST_RUNNER_VERBOSITY
@@ -24,10 +26,16 @@ class TestBoxClient(MedInfoTestCase):
         uf = self.client.get_file(self.remote_folder_id, self.upload_file_name)
         ## uf will be None after test_download_file
         if uf: uf.delete()
-        
+
         df = '/'.join([self.package, 'test-' + self.download_file_name])
         try:
             os.remove(df)
+        except OSError:
+            pass
+
+        test_local_dir_path = '/'.join([self.package, 'box-test'])
+        try:
+            shutil.rmtree(test_local_dir_path)
         except OSError:
             pass
 
@@ -51,6 +59,16 @@ class TestBoxClient(MedInfoTestCase):
         local_content = open('/'.join([self.package, self.upload_file_name])).read()
 
         self.assertEqual(remote_content, local_content)
+
+    def test_download_folder(self):
+        # Define file to be downloaded.
+        verify_local_dir_path = '/'.join([self.package, 'box-test-verify'])
+        test_local_dir_path = '/'.join([self.package, 'box-test'])
+        self.client.download_folder(self.remote_folder_id, test_local_dir_path)
+        # Check folder content.
+        # TODO(sbala): Write a proper validation of this check, which was only
+        # checked ad-hoc on the test case.
+        # filecmp.dircmp(test_local_dir_path, verify_local_dir_path).report_full_closure()
 
 if __name__=="__main__":
     suite = make_test_suite(TestBoxClient)
