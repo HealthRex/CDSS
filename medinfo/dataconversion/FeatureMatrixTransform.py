@@ -3,7 +3,6 @@
 Module for transforming the values within an existing feature matrix.
 """
 
-
 import numpy as np
 import pandas as pd
 
@@ -163,3 +162,27 @@ class FeatureMatrixTransform:
 
     def _boolean_indicator(self, value):
         return pd.notnull(value)
+
+    def add_change_feature(self, method, param, feature_old, feature_new):
+        # add column change_yn describing whether feature_new has changed
+        # relative to feature_old
+        # TODO: (raikens) add handling for NaN.  Right now returns 0.
+
+        if method == "percent":
+            change_col = self._percent_change(param, feature_old, feature_new)
+        elif method == "interval":
+            change_col = self._interval_change(param, feature_old, feature_new)
+        else:
+            raise ValueError("Must specify a supported method for change calculation")
+
+        # add new column to matrix
+        col_index = self._matrix.columns.get_loc(feature_new)
+        self._matrix.insert(col_index + 1, "change_yn", change_col)
+
+    def _percent_change(self, param, feature_old, feature_new):
+        f = lambda old, new: int(abs(1.0-float(new)/float(old)) >= param)
+        return self._matrix[[feature_old, feature_new]].apply(lambda x: f(*x), axis = 1)
+
+    def _interval_change(self, param, feature_old, feature_new):
+        f = lambda old, new: int(abs(float(old)-float(new)) >= param)
+        return self._matrix[[feature_old, feature_new]].apply(lambda x: f(*x), axis = 1)
