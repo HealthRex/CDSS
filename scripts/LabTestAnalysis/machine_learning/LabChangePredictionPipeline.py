@@ -12,18 +12,18 @@ import logging
 
 from medinfo.common.Util import log
 from medinfo.ml.FeatureSelector import FeatureSelector
-from medinfo.dataconversion.FeatureMatrixTransform import FeatureMatrixTransform
+from scripts.LabTestAnalysis.machine_learning.dataExtraction.FeatureMatrixChangeLabels import FeatureMatrixChangeLabels
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
 from scripts.LabTestAnalysis.machine_learning.dataExtraction.LabChangeMatrix import LabChangeMatrix
 
-class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
+class LabChangePredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, lab_panel, num_episodes, use_cache=None):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache)
 
-        # self._build_raw_feature_matrix()
+        self._build_raw_feature_matrix()
         self._build_processed_feature_matrix()
         self._train_and_analyze_predictors()
 
@@ -36,8 +36,9 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
     def _build_raw_matrix_path(self):
         template = '%s-change-matrix-%d-episodes-raw.tab'
         pipeline_file_name = inspect.getfile(inspect.currentframe())
-        return SupervisedLearningPipeline._build_matrix_path(self, template, \
-            pipeline_file_name)
+
+        return '/Users/raikens/Documents/research/HealthRex/Data/LabChangeMatrices/LABCK-panel-10000-episodes-values-18234.0-sec_prev_measurement.tab'
+        #return '/Users/raikens/Documents/research/HealthRex/Data/TestData/LABCK-panel-10-episodes-values-208.0-sec_prev_measured.tab'
 
     def _build_raw_feature_matrix(self):
         raw_matrix_path = self._build_raw_matrix_path()
@@ -54,8 +55,12 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
     def _build_processed_feature_matrix(self):
         # Define parameters for processing steps.
         params = {}
-        raw_matrix_path = #self._build_raw_matrix_path() #TODO (raikens): add real path
-        processed_matrix_path = self._build_processed_matrix_path()
+        #TODO (raikens): set to use cache??
+        raw_matrix_path = self._build_raw_matrix_path()
+        processed_matrix_path = self._build_processed_matrix_path(raw_matrix_path)
+
+        log.debug('params: %s' % params)
+
         features_to_add = {}
         imputation_strategies = {
         }
@@ -82,7 +87,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             # Keep the # of times it's been ordered in past, even if low info.
             '%s.pre' % self._var
         ]
-        outcome_label = 'ord_num_value' # TODO: fix this.  Should be a tranform of this
+        outcome_label = 'change_yn'
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
         percent_features_to_select = 0.05
@@ -109,7 +114,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             "occurrence or a difference between an event's time and index_time.",
         ]
 
-        # Bundle parameters into single object to be unpacked in SLP.
+        # Bundle parameters into single object
         params['raw_matrix_path'] = raw_matrix_path
         params['processed_matrix_path'] = processed_matrix_path
         params['features_to_add'] = features_to_add
@@ -124,8 +129,61 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         params['pipeline_file_path'] = pipeline_file_path
         params['data_overview'] = data_overview
 
-        # Defer processing logic to SupervisedLearningPipeline.
-        SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
+        fmc_params = {}
+        fmc_params["method"] = "percent"
+        fmc_params["param"] = 0.5
+        fmc_params["old_feature"] = "CK.-14_0.last" # TODO: make this generalizable
+        fmc_params["new_feature"] = "ord_num_value"
+
+        fm_io = FeatureMatrixIO()
+
+        log.debug('params: %s' % params)
+        # If processed matrix exists, and the client has not requested to flush
+        # the cache, just use the matrix that already exists and return.
+        processed_matrix_path = params['processed_matrix_path']
+        if os.path.exists(processed_matrix_path) and not self._flush_cache:
+            # Assume feature selection already happened, but we still need
+            # to split the data into training and test data.
+            processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
+            self._train_test_split(processed_matrix, params['outcome_label'])
+        else:
+            # Read raw matrix.
+            raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
+            # Initialize FMC.
+            fmc = FeatureMatrixChangeLabels()
+            fmc.set_input_matrix(raw_matrix)
+
+            # Add features.
+            self._add_features(fmc, params['features_to_add'])
+            # Remove features.
+            self._remove_features(fmc, params['features_to_remove'])
+            for feature in raw_matrix.columns.values:
+                if feature[-2:] == ".1":
+                    fmc.remove_feature(feature)
+                    self._removed_features.append(feature)
+            # Impute data.
+            self._impute_data(fmc, raw_matrix, params['imputation_strategies'])
+
+            # add change labels  #TODO: feed in a dict of params to fmc.add_change_labels?
+            fmc.add_change_labels(fmc_params["method"], fmc_params["param"], fmc_params["old_feature"], fmc_params["new_feature"])
+            processed_matrix = fmc.fetch_matrix()
+
+            # Divide processed_matrix into training and test data.
+            # This must happen before feature selection so that we don't
+            # accidentally learn information from the test data.
+            self._train_test_split(processed_matrix, params['outcome_label'])
+            self._select_features(params['selection_problem'],
+                params['percent_features_to_select'],
+                params['selection_algorithm'],
+                params['features_to_keep'])
+            train = self._y_train.join(self._X_train)
+            test = self._y_test.join(self._X_test)
+            processed_matrix = train.append(test)
+
+            # Write output to new matrix file.
+            header = self._build_processed_matrix_header(params)
+            fm_io.write_data_frame_to_file(processed_matrix, \
+                processed_matrix_path, header)
 
     def _train_and_analyze_predictors(self):
         log.info('Training and analyzing predictors...')
@@ -141,7 +199,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         algorithms_to_test = list()
         algorithms_to_test.extend(SupervisedClassifier.SUPPORTED_ALGORITHMS)
         for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
-            algorithms_to_test.append('bifurcated-%s' % algorithm)
+            pass # TODO: something in the BifurcatedSupervisedClassifier pipeline is crashing
+            #algorithms_to_test.append('bifurcated-%s' % algorithm)
         log.debug('algorithms_to_test: %s' % algorithms_to_test)
 
         # Train and analyse algorithms.
@@ -198,14 +257,14 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                         'y_train.value_counts()', 'y_test.value_counts()'
                     ]
                 )
-                header = ['LabNormalityPredictionPipeline("%s", 10000)' % self._var]
+                header = ['LabChangePredictionPipeline("%s", 10000)' % self._var]
                 # Write error report.
                 fm_io.write_data_frame_to_file(algorithm_report, \
-                    '/'.join([report_dir, '%s-normality-prediction-report.tab' % (self._var)]), \
+                    '/'.join([report_dir, '%s-change-prediction-report.tab' % (self._var)]), \
                     header)
             # If successfully trained, append to a meta report.
             elif status == SupervisedClassifier.TRAINED:
-                pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
+                pipeline_prefix = '%s-change-prediction-%s' % (self._var, algorithm)
                 SupervisedLearningPipeline._analyze_predictor(self, report_dir, pipeline_prefix)
                 if meta_report is None:
                     meta_report = fm_io.read_file_to_data_frame('/'.join([report_dir, '%s-report.tab' % pipeline_prefix]))
@@ -222,50 +281,13 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         # Note that if there were insufficient samples to build any of the
         # algorithms, then meta_report will still be None.
         if meta_report is not None:
-            header = ['LabNormalityPredictionPipeline("%s", 10000)' % self._var]
+            header = ['LabChangePredictionPipeline("%s", 7183)' % self._var]
             fm_io.write_data_frame_to_file(meta_report, \
-                '/'.join([data_dir, '%s-normality-prediction-report.tab' % self._var]), header)
+                '/'.join([data_dir, '%s-change-prediction-report.tab' % self._var]), header)
 
 if __name__ == '__main__':
     log.level = logging.DEBUG
-    TOP_LAB_PANELS_BY_CHARGE_VOLUME = set([
-        "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
-        "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
-        "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
-        "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
-        "LABROMRS", "LABTNI","LABTYPSNI", "LABUA", "LABUAPRN",
-        "LABURNC", "LABVANPRL", "LABVBG"
-    ])
-    TOP_NON_PANEL_TESTS_BY_VOLUME = set([
-        "LABPT", "LABMGN", "LABPTT", "LABPHOS", "LABTNI",
-        "LABBLC", "LABBLC2", "LABCAI", "LABURNC", "LABLACWB",
-        "LABA1C", "LABHEPAR", "LABCDTPCR", "LABPCTNI", "LABPLTS",
-        "LABLAC", "LABLIPS", "LABRESP", "LABTSH", "LABHCTX",
-        "LABLDH", "LABMB", "LABK", "LABGRAM", "LABFCUL",
-        "LABNTBNP", "LABCRP", "LABFLDC", "LABSPLAC", "LABANER",
-        "LABCK", "LABESRP", "LABBLCTIP", "LABBLCSTK", "LABNA",
-        "LABFER", "LABUSPG", "LABB12", "LABURNA", "LABFT4",
-        "LABFIB", "LABURIC", "LABPALB", "LABPCCR", "LABTRFS",
-        "LABUOSM", "LABAFBD", "LABSTOBGD", "LABCSFGL", "LABCSFTP",
-        "LABNH3", "LABAFBC", "LABCMVQT", "LABCSFC", "LABUCR",
-        "LABTRIG", "LABFE",
-        # "LABNONGYN", # No base names.
-        "LABALB", "LABLIDOL",
-        "LABUPREG", "LABRETIC", "LABHAP", "LABBXTG", "LABHIVWBL"
-    ])
-    NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
-        'LABA1C', 'LABAFBC', 'LABAFBD', 'LABALB', 'LABANER', 'LABB12', 'LABBLC', 'LABBLC2',
-        'LABBLCSTK', 'LABBLCTIP', 'LABBUN', 'LABBXTG', 'LABCA', 'LABCAI', 'LABCDTPCR', 'LABCK',
-        'LABCMVQT', 'LABCORT', 'LABCRP', 'LABCSFC', 'LABCSFGL', 'LABCSFTP', 'LABDIGL', 'LABESRP',
-        'LABFCUL', 'LABFE', 'LABFER', 'LABFIB', 'LABFLDC', 'LABFOL', 'LABFT4', 'LABGRAM',
-        'LABHAP', 'LABHBSAG', 'LABHCTX', 'LABHEPAR', 'LABHIVWBL', 'LABK', 'LABLAC', 'LABLACWB',
-        'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN', 'LABNA', 'LABNH3', 'LABNONGYN',
-        'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI', 'LABPHOS', 'LABPLTS',
-        'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP', 'LABRESPG', 'LABRETIC', 'LABSPLAC',
-        'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH', 'LABUCR', 'LABUOSM',
-        'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
-    ]
-    labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+    labs_to_test = ['LABCK']
 
     for panel in labs_to_test:
-        LabNormalityPredictionPipeline(panel, 10000, use_cache=True)
+        LabChangePredictionPipeline(panel, 7183, use_cache=True)

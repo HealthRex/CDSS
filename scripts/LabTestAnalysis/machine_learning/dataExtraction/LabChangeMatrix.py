@@ -17,6 +17,10 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 
+# TODO:(raikens)
+# - [ ] get this to run faster!
+# - [ ] filter in only patients with previous lab measurement
+
 class LabChangeMatrix(FeatureMatrix):
     def __init__(self, lab_panel, num_episodes):
         FeatureMatrix.__init__(self, lab_panel, num_episodes)
@@ -348,4 +352,4 @@ if __name__ == "__main__":
     ltm = LabChangeMatrix("LABCK", 10)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
-    ltm.write_matrix("LABCK-panel-10000-episodes-values-%s-sec.tab" % str(elapsed_time))
+    ltm.write_matrix("LABCK-panel-10-episodes-values-%s-sec.tab" % str(elapsed_time))
