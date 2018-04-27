@@ -116,7 +116,7 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
         actual_matrix = self.fmt.fetch_matrix()
         assert_frame_equal(expected_matrix, actual_matrix)
 
-    def test_add_percent_interval_feature(self):
+    def test_add_change_percent_feature(self):
         # Add change feature.
         self.fmt.add_change_feature('percent', 0.35, 'patient_id', 'f2')
 
