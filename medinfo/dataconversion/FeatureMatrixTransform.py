@@ -169,9 +169,11 @@ class FeatureMatrixTransform:
         # TODO: (raikens) add handling for NaN.  Right now returns 0.
 
         if method == "percent":
-            change_col = self._percent_change(param, feature_old, feature_new)
+            change_col = self._matrix.apply(self._percent_change, \
+            args=(feature_old, feature_new, param), axis = 1)
         elif method == "interval":
-            change_col = self._interval_change(param, feature_old, feature_new)
+            change_col = self._matrix.apply(self._interval_change, \
+            args=(feature_old, feature_new, param), axis = 1)
         else:
             raise ValueError("Must specify a supported method for change calculation")
 
@@ -179,10 +181,23 @@ class FeatureMatrixTransform:
         col_index = self._matrix.columns.get_loc(feature_new)
         self._matrix.insert(col_index + 1, "change_yn", change_col)
 
-    def _percent_change(self, param, feature_old, feature_new):
-        f = lambda old, new: int(abs(1.0-float(new)/float(old)) >= param)
-        return self._matrix[[feature_old, feature_new]].apply(lambda x: f(*x), axis = 1)
+    def _is_numeric(self, x):
+        try:
+            float(x)
+            return True
+        except ValueError:
+            return False
 
-    def _interval_change(self, param, feature_old, feature_new):
-        f = lambda old, new: int(abs(float(old)-float(new)) >= param)
-        return self._matrix[[feature_old, feature_new]].apply(lambda x: f(*x), axis = 1)
+    def _percent_change(self, row, feature_old, feature_new, param):
+        if not (self._is_numeric(row[feature_old]) and self._is_numeric(row[feature_new])):
+            return 9999999
+        elif row[feature_old] == 0.0:
+            return 1
+        else:
+            return int(abs(1.0-float(row[feature_new])/float(row[feature_old])) >= param)
+
+    def _interval_change(self, row, feature_old, feature_new, param):
+        if not (self._is_numeric(row[feature_old]) and self._is_numeric(row[feature_new])):
+            return 9999999
+        else:
+            return int(abs(float(row[feature_new])-float(row[feature_old])) >= param)
