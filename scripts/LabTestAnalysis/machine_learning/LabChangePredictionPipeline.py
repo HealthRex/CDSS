@@ -12,7 +12,7 @@ import logging
 
 from medinfo.common.Util import log
 from medinfo.ml.FeatureSelector import FeatureSelector
-from scripts.LabTestAnalysis.machine_learning.dataExtraction.FeatureMatrixChangeLabels import FeatureMatrixChangeLabels
+from medinfo.dataconversion.FeatureMatrixTransform import FeatureMatrixTransform
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
@@ -38,7 +38,6 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         pipeline_file_name = inspect.getfile(inspect.currentframe())
 
         return '/Users/raikens/Documents/research/HealthRex/Data/LabChangeMatrices/LABCK-panel-10000-episodes-values-18234.0-sec_prev_measurement.tab'
-        #return '/Users/raikens/Documents/research/HealthRex/Data/TestData/LABCK-panel-10-episodes-values-208.0-sec_prev_measured.tab'
 
     def _build_raw_feature_matrix(self):
         raw_matrix_path = self._build_raw_matrix_path()
@@ -66,7 +65,7 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         }
 
         features_to_remove = [
-            'pat_id', 'order_time', 'order_proc_id',
+            'pat_id', 'order_time', 'order_proc_id', 'ord_num_value',
             'proc_code', 'abnormal_panel', 'all_components_normal',
             'num_normal_components', 'Birth.pre',
             'Male.preTimeDays', 'Female.preTimeDays',
@@ -129,11 +128,11 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         params['pipeline_file_path'] = pipeline_file_path
         params['data_overview'] = data_overview
 
-        fmc_params = {}
-        fmc_params["method"] = "percent"
-        fmc_params["param"] = 0.5
-        fmc_params["old_feature"] = "CK.-14_0.last" # TODO: make this generalizable
-        fmc_params["new_feature"] = "ord_num_value"
+        fmt_params = {}
+        fmt_params["method"] = "percent"
+        fmt_params["param"] = 0.5
+        fmt_params["old_feature"] = "CK.-14_0.last" # TODO: make this generalizable
+        fmt_params["new_feature"] = "ord_num_value"
 
         fm_io = FeatureMatrixIO()
 
@@ -149,24 +148,25 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         else:
             # Read raw matrix.
             raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
-            # Initialize FMC.
-            fmc = FeatureMatrixChangeLabels()
-            fmc.set_input_matrix(raw_matrix)
+            # Initialize fmt.
+            fmt = FeatureMatrixTransform()
+            fmt.set_input_matrix(raw_matrix)
 
             # Add features.
-            self._add_features(fmc, params['features_to_add'])
+            self._add_features(fmt, params['features_to_add'])
+
+            # add change labels  #TODO: feed in a dict of params to fmt.add_change_labels?
+            fmt.add_change_feature(fmt_params["method"], fmt_params["param"], fmt_params["old_feature"], fmt_params["new_feature"])
+            processed_matrix = fmt.fetch_matrix()
+
             # Remove features.
-            self._remove_features(fmc, params['features_to_remove'])
+            self._remove_features(fmt, params['features_to_remove'])
             for feature in raw_matrix.columns.values:
                 if feature[-2:] == ".1":
-                    fmc.remove_feature(feature)
+                    fmt.remove_feature(feature)
                     self._removed_features.append(feature)
             # Impute data.
-            self._impute_data(fmc, raw_matrix, params['imputation_strategies'])
-
-            # add change labels  #TODO: feed in a dict of params to fmc.add_change_labels?
-            fmc.add_change_labels(fmc_params["method"], fmc_params["param"], fmc_params["old_feature"], fmc_params["new_feature"])
-            processed_matrix = fmc.fetch_matrix()
+            self._impute_data(fmt, raw_matrix, params['imputation_strategies'])
 
             # Divide processed_matrix into training and test data.
             # This must happen before feature selection so that we don't
@@ -199,7 +199,7 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         algorithms_to_test = list()
         algorithms_to_test.extend(SupervisedClassifier.SUPPORTED_ALGORITHMS)
         for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
-            pass # TODO: something in the BifurcatedSupervisedClassifier pipeline is crashing
+            pass # TODO:(raikens) something in the BifurcatedSupervisedClassifier pipeline is crashing
             #algorithms_to_test.append('bifurcated-%s' % algorithm)
         log.debug('algorithms_to_test: %s' % algorithms_to_test)
 
