@@ -13,7 +13,7 @@
 --  * "PHARM_CLASS" (e.g. "PROTON-PUMP INHIBITORS")
 --  * "PHARM_SUBCLASS" (e.g. "Anticoagulants - Coumarin")
 
-CREATE TABLE IF NOT EXISTS starr_admit_meds
+CREATE TABLE IF NOT EXISTS starr_admit_med
 (
   pat_anon_id BIGINT,
   contact_date TIMESTAMP,

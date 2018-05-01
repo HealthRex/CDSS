@@ -13,7 +13,7 @@
 --  * "PULSE" (e.g. 100)
 --  * "RESPIRATIONS" (e.g. 15)
 
-CREATE TABLE IF NOT EXISTS starr_admit_vitals
+CREATE TABLE IF NOT EXISTS starr_admit_vital
 (
   pat_id BIGINT,
   pat_enc_csn_id BIGINT,
