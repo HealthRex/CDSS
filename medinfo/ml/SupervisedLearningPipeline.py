@@ -203,6 +203,7 @@ class SupervisedLearningPipeline:
         indicator_features = features_to_add.get('indicator')
         threshold_features = features_to_add.get('threshold')
         logarithm_features = features_to_add.get('logarithm')
+        change_features = features_to_add.get('change')
 
         if indicator_features:
             for feature in indicator_features:
@@ -224,6 +225,20 @@ class SupervisedLearningPipeline:
                 base_feature = feature.get('base_feature')
                 logarithm = feature.get('logarithm')
                 added_feature = fmt.add_threshold_feature(base_feature, logarithm)
+                self._added_features.append(added_feature)
+
+        # right now, change_yn is the only allowable name for a
+        # change feature, which means at most one change_feature can be added
+        if change_features:
+            if len(change_features) > 1:
+                 raise ValueError("Adding multiple \'change\' type features is not yet supported")
+                 
+            for feature in change_features:
+                feature_old = feature.get('feature_old')
+                feature_new = feature.get('feature_new')
+                method = feature.get('method')
+                param = feature.get('param')
+                added_feature = fmt.add_change_feature(method, param, feature_old, feature_new)
                 self._added_features.append(added_feature)
 
         log.debug('self._added_features: %s' % self._added_features)
