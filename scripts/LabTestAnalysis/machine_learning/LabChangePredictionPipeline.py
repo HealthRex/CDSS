@@ -23,6 +23,7 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, change_params, lab_panel, num_episodes, use_cache=None):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache)
         self._change_params = (change_params)
+        log.debug('change_params: %s' % self._change_params)
 
         self._build_raw_feature_matrix()
         self._build_processed_feature_matrix()
@@ -61,7 +62,7 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
 
         log.debug('params: %s' % params)
 
-        features_to_add = {}
+        features_to_add = {'change': [self._change_params]}
         imputation_strategies = {
         }
 
@@ -129,59 +130,8 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         params['pipeline_file_path'] = pipeline_file_path
         params['data_overview'] = data_overview
 
-        fmt_params = self._change_params
-
-        fm_io = FeatureMatrixIO()
-
-        log.debug('params: %s' % params)
-        # If processed matrix exists, and the client has not requested to flush
-        # the cache, just use the matrix that already exists and return.
-        processed_matrix_path = params['processed_matrix_path']
-        if os.path.exists(processed_matrix_path) and not self._flush_cache:
-            # Assume feature selection already happened, but we still need
-            # to split the data into training and test data.
-            processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
-            self._train_test_split(processed_matrix, params['outcome_label'])
-        else:
-            # Read raw matrix.
-            raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
-            # Initialize fmt.
-            fmt = FeatureMatrixTransform()
-            fmt.set_input_matrix(raw_matrix)
-
-            # Add features.
-            self._add_features(fmt, params['features_to_add'])
-
-            # add change labels
-            fmt.add_change_feature(fmt_params['method'], fmt_params['param'], fmt_params['feature_old'], fmt_params['feature_new'])
-            processed_matrix = fmt.fetch_matrix()
-
-            # Remove features.
-            self._remove_features(fmt, params['features_to_remove'])
-            for feature in raw_matrix.columns.values:
-                if feature[-2:] == ".1":
-                    fmt.remove_feature(feature)
-                    self._removed_features.append(feature)
-
-            # Impute data.
-            self._impute_data(fmt, raw_matrix, params['imputation_strategies'])
-
-            # Divide processed_matrix into training and test data.
-            # This must happen before feature selection so that we don't
-            # accidentally learn information from the test data.
-            self._train_test_split(processed_matrix, params['outcome_label'])
-            self._select_features(params['selection_problem'],
-                params['percent_features_to_select'],
-                params['selection_algorithm'],
-                params['features_to_keep'])
-            train = self._y_train.join(self._X_train)
-            test = self._y_test.join(self._X_test)
-            processed_matrix = train.append(test)
-
-            # Write output to new matrix file.
-            header = self._build_processed_matrix_header(params)
-            fm_io.write_data_frame_to_file(processed_matrix, \
-                processed_matrix_path, header)
+        # Defer processing logic to SupervisedLearningPipeline.
+        SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
 
     def _fetch_data_dir_path(self, pipeline_module_path):
         # e.g. app_dir = CDSS/scripts/LabTestAnalysis/machine_learning
@@ -213,7 +163,7 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
 
         # Build paths for output.
         pipeline_file_name = inspect.getfile(inspect.currentframe())
-        data_dir = SupervisedLearningPipeline._fetch_data_dir_path(self, pipeline_file_name)
+        data_dir = self._fetch_data_dir_path(pipeline_file_name)
 
         # Test BifurcatedSupervisedClassifier and SupervisedClassifier.
         algorithms_to_test = list()
@@ -230,6 +180,8 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
             report_dir = '/'.join([data_dir, algorithm])
             if not os.path.exists(report_dir):
                 os.makedirs(report_dir)
+
+            log.debug('report_dir: %s' % report_dir)
 
             # Define hyperparams.
             hyperparams = {}
@@ -310,9 +262,13 @@ if __name__ == '__main__':
     labs_to_test = ['LABCK']
     change_params = {}
     change_params['method'] = 'percent'
-    change_params['param'] = 0.25
+    change_params['param'] = 0.15
     change_params['feature_old'] = 'CK.-14_0.last'
     change_params['feature_new'] = 'ord_num_value'
 
+    #params_to_test = [0.5, 0.25, 0.15, 0.10, 0.05]
+    params_to_test = [0.10, 0.05]
+
     for panel in labs_to_test:
-        LabChangePredictionPipeline(change_params, panel, 7183, use_cache=True)
+        for param in params_to_test:
+            LabChangePredictionPipeline(change_params, panel, 7183, use_cache=True)

@@ -180,6 +180,7 @@ class FeatureMatrixTransform:
         # add new column to matrix
         col_index = self._matrix.columns.get_loc(feature_new)
         self._matrix.insert(col_index + 1, "change_yn", change_col)
+        return "change_yn"
 
     def _is_numeric(self, x):
         try:
