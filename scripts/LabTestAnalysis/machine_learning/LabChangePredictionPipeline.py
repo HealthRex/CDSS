@@ -20,8 +20,9 @@ from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
 from scripts.LabTestAnalysis.machine_learning.dataExtraction.LabChangeMatrix import LabChangeMatrix
 
 class LabChangePredictionPipeline(SupervisedLearningPipeline):
-    def __init__(self, lab_panel, num_episodes, use_cache=None):
+    def __init__(self, change_params, lab_panel, num_episodes, use_cache=None):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache)
+        self._change_params = (change_params)
 
         self._build_raw_feature_matrix()
         self._build_processed_feature_matrix()
@@ -128,11 +129,7 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         params['pipeline_file_path'] = pipeline_file_path
         params['data_overview'] = data_overview
 
-        fmt_params = {}
-        fmt_params["method"] = "percent"
-        fmt_params["param"] = 0.5
-        fmt_params["old_feature"] = "CK.-14_0.last" # TODO: make this generalizable
-        fmt_params["new_feature"] = "ord_num_value"
+        fmt_params = self._change_params
 
         fm_io = FeatureMatrixIO()
 
@@ -155,8 +152,8 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
             # Add features.
             self._add_features(fmt, params['features_to_add'])
 
-            # add change labels  #TODO: feed in a dict of params to fmt.add_change_labels?
-            fmt.add_change_feature(fmt_params["method"], fmt_params["param"], fmt_params["old_feature"], fmt_params["new_feature"])
+            # add change labels
+            fmt.add_change_feature(fmt_params['method'], fmt_params['param'], fmt_params['feature_old'], fmt_params['feature_new'])
             processed_matrix = fmt.fetch_matrix()
 
             # Remove features.
@@ -165,6 +162,7 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
                 if feature[-2:] == ".1":
                     fmt.remove_feature(feature)
                     self._removed_features.append(feature)
+
             # Impute data.
             self._impute_data(fmt, raw_matrix, params['imputation_strategies'])
 
@@ -184,6 +182,28 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
             header = self._build_processed_matrix_header(params)
             fm_io.write_data_frame_to_file(processed_matrix, \
                 processed_matrix_path, header)
+
+    def _fetch_data_dir_path(self, pipeline_module_path):
+        # e.g. app_dir = CDSS/scripts/LabTestAnalysis/machine_learning
+        app_dir = os.path.dirname(os.path.abspath(pipeline_module_path))
+
+        # e.g. data_dir = CDSS/scripts/LabTestAnalysis/machine_learning/data
+        parent_dir_list = app_dir.split('/')
+        parent_dir_list.append('data')
+
+        # make subdirectory based on lab test name and change defs
+        # e.g. data_dir =  CDSS/scripts/LabTestAnalysis/machine_learning/data/LABCK/change_interval_05
+        parent_dir_list.append(self._var)
+        paramstr = str(self._change_params['param']).replace('.','')
+        change_def = 'change_%s_%s' % (self._change_params['method'], paramstr)
+        parent_dir_list.append(change_def)
+        data_dir = '/'.join(parent_dir_list)
+
+        # If data_dir does not exist, make it.
+        if not os.path.exists(data_dir):
+            os.makedirs(data_dir)
+
+        return data_dir
 
     def _train_and_analyze_predictors(self):
         log.info('Training and analyzing predictors...')
@@ -288,6 +308,11 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
 if __name__ == '__main__':
     log.level = logging.DEBUG
     labs_to_test = ['LABCK']
+    change_params = {}
+    change_params['method'] = 'percent'
+    change_params['param'] = 0.25
+    change_params['feature_old'] = 'CK.-14_0.last'
+    change_params['feature_new'] = 'ord_num_value'
 
     for panel in labs_to_test:
-        LabChangePredictionPipeline(panel, 7183, use_cache=True)
+        LabChangePredictionPipeline(change_params, panel, 7183, use_cache=True)
