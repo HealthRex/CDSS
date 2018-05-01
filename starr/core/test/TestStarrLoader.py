@@ -11,9 +11,9 @@ import gzip
 from medinfo.common.test.Util import make_test_suite, MedInfoTestCase
 from LocalEnv import PATH_TO_CDSS, TEST_RUNNER_VERBOSITY
 
-from starr.core.StarrCleaner import StarrCleaner
+from starr.core.StarrLoader import StarrLoader
 
-class TestStarrCleaner(MedInfoTestCase):
+class TestStarrLoader(MedInfoTestCase):
     def setUp(self):
         test_dir = '/'.join([PATH_TO_CDSS, 'starr', 'core', 'test'])
 
@@ -37,12 +37,12 @@ class TestStarrCleaner(MedInfoTestCase):
                 pass
 
     def test_build_clean_data_file(self):
-        StarrCleaner.build_clean_data_file(self.gz_raw_file_path, self.gz_clean_file_path)
+        StarrLoader.build_clean_data_file(self.gz_raw_file_path, self.gz_clean_file_path)
         with open(self.clean_file_path, 'rb') as f_expected, gzip.open(self.gz_clean_file_path, 'rb') as f_actual:
             content_expected = f_expected.read()
             content_actual = f_actual.read()
             self.assertEqual(content_expected, content_actual)
 
 if __name__=='__main__':
-    suite = make_test_suite(TestStarrCleaner)
+    suite = make_test_suite(TestStarrLoader)
     unittest.TextTestRunner(verbosity=TEST_RUNNER_VERBOSITY).run(suite)
