@@ -13,7 +13,7 @@ from medinfo.common.Util import log
 
 class PredictorAnalyzer:
     ACCURACY_SCORE = 'accuracy'
-    def __init__(self, predictor, X_test, y_test):
+    def __init__(self, predictor, X_test, y_test, random_state=None):
         self._predictor = predictor
         # In theory we could let the client pass X_test and y_test into each
         # individual scoring function, but that might encourage them to keep
@@ -26,6 +26,13 @@ class PredictorAnalyzer:
         self._y_predicted = pd.DataFrame(self._predictor.predict(self._X_test))
         log.debug('y_predicted[0].value_counts(): %s' % self._y_predicted[self._y_predicted.columns.values[0]].value_counts())
 
+        if random_state is None:
+            self._random_state = np.random.RandomState(123456789)
+        elif isinstance(random_state, int):
+            self._random_state = np.random.RandomState(random_state)
+        elif isinstance(random_state, np.random.RandomState):
+            self._random_state = random_state
+
     def _score_accuracy(self, ci=None, n_bootstrap_iter=None):
         sample_accuracy = accuracy_score(self._y_test, self._y_predicted)
         log.debug('y_test: %s' % self._y_test)
@@ -34,7 +41,7 @@ class PredictorAnalyzer:
                 n_bootstrap_iter = 100
             # For consistency of results, seed random number generator with
             # fixed number.
-            rng = np.random.RandomState(n_bootstrap_iter)
+            rng = self._random_state
             # Use bootstrap to compute cis.
             bootstrap_scores = list()
             for i in range(0, n_bootstrap_iter):

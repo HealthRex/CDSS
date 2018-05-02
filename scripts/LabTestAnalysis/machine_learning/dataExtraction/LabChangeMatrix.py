@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Class for generating LabNormalityMatrix.
+Class for generating LabChangeMatrix.
 """
 
 import datetime
@@ -17,19 +17,18 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 
-class LabNormalityMatrix(FeatureMatrix):
-    def __init__(self, lab_panel, num_episodes, random_state=None):
+# TODO:(raikens)
+# - [ ] get this to run faster!
+# - [ ] filter in only patients with previous lab measurement
+
+class LabChangeMatrix(FeatureMatrix):
+    def __init__(self, lab_panel, num_episodes):
         FeatureMatrix.__init__(self, lab_panel, num_episodes)
 
         # Parse arguments.
         self._lab_panel = lab_panel
         self._num_requested_episodes = num_episodes
         self._num_reported_episodes = 0
-        if random_state:
-            query = SQLQuery()
-            query.addSelect('setseed(%d);' % random_state)
-            DBUtil.execute(query)
-            self._random_state = random_state
 
         # Query patient episodes.
         self._query_patient_episodes()
@@ -163,11 +162,16 @@ class LabNormalityMatrix(FeatureMatrix):
         #           metabolic components. Include it.
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
+
+        # Note that some episodes have ord_num_value = 9999999
+        # These episodes are removed
+
         query = SQLQuery()
         query.addSelect('CAST(pat_id AS BIGINT)')
         query.addSelect('sop.order_proc_id AS order_proc_id')
         query.addSelect('proc_code')
         query.addSelect('order_time')
+        query.addSelect('ord_num_value')
         query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")
         query.addSelect("SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components")
         query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components")
@@ -176,6 +180,7 @@ class LabNormalityMatrix(FeatureMatrix):
         query.addFrom('stride_order_results AS sor')
         query.addWhere('sop.order_proc_id = sor.order_proc_id')
         query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
+        query.addWhere("ord_num_value != 9999999")
         query.addWhereIn("proc_code", [self._lab_panel])
         query.addWhereIn("pat_id", random_patient_list)
         query.addGroupBy('pat_id')
@@ -183,10 +188,12 @@ class LabNormalityMatrix(FeatureMatrix):
         query.addGroupBy('proc_code')
         query.addGroupBy('order_time')
         query.addGroupBy('abnormal_yn')
+        query.addGroupBy('ord_num_value')
         query.addOrderBy('pat_id')
         query.addOrderBy('sop.order_proc_id')
         query.addOrderBy('proc_code')
         query.addOrderBy('order_time')
+        query.addOrderBy('ord_num_value')
         query.setLimit(self._num_requested_episodes)
 
         self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, index_time_col='order_time')
@@ -272,6 +279,9 @@ class LabNormalityMatrix(FeatureMatrix):
         #   order_time - time at which lab panel was ordered. \n\
         line = 'order_time - time at which lab panel was ordered.'
         summary.append(line)
+        #   ord_num_value - numeric value of result. \n\
+        line = 'ord_num_value - numeric value of result.'
+        summary.append(line)
         #   abnormal_panel - were any components in panel abnormal (binary)? \n\
         line = 'abnormal_panel - were any components in panel abnoral (binary)?'
         summary.append(line)
@@ -339,8 +349,7 @@ if __name__ == "__main__":
     log.level = logging.DEBUG
     start_time = time.time()
     # Initialize lab test matrix.
-    random_state = float(123456789)/float(sys.maxint)
-    ltm = LabNormalityMatrix("LABABG", 10, random_state=random_state)
+    ltm = LabChangeMatrix("LABCK", 10)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
-    ltm.write_matrix("LABABG-panel-10-episodes-%s-sec.tab" % str(elapsed_time))
+    ltm.write_matrix("LABCK-panel-10-episodes-values-%s-sec.tab" % str(elapsed_time))
