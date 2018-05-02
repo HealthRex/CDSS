@@ -41,7 +41,7 @@ class LabNormalityReport:
         'LABBLC2': 'Blood Culture (2 Aerobic)',
         'LABTNI': 'Troponin I',
         'LABMGN': 'Magnesium',
-        'LABUPREG': 'Pregnancy',
+        'LABUPREG': 'Pregnancy (Urine)',
         'LABBLCSTK': 'Blood Culture (1st, Phlebotomy)',
         'LABBLCTIP': 'Blood Culture (2nd, Catheter)',
         'LABCK': 'Creatine Kinase',
@@ -97,6 +97,20 @@ class LabNormalityReport:
         'LABMETB': 'Basic Metabolic Panel',
         'LABMETC': 'Comprehensive Metabolic Panel',
         'LABNA': 'Sodium',
+        'LABDIGL': 'Digoxin',
+        'LABCA': 'Calcium',
+        'LABBUN': 'Blood Urea Nitrogen',
+        'LABFOL': 'Folic Acid',
+        'LABPT': 'Prothrombin Time',
+        'LABPTT': 'Partial Thromboplastin Time',
+        'LABHBSAG': 'Hepatitis B Surface Antigen',
+        'LABOSM': 'Osmolality',
+        'LABPCCG4O': 'i-STAT CG4 (Other)',
+        'LABPROCT': 'Procalcitonin',
+        'LABPTEG': 'Perioperative Thromboelastography',
+        'LABRESPG': 'Respiratory Culture and Gram Stain',
+        'LABSTLCX': 'Stool Culture',
+        'LABCORT': 'Cortisol'
     }
 
     def __init__(self):
@@ -229,17 +243,22 @@ class LabNormalityReport:
             return best_predictor.iloc[0]
 
         # Note that there might be multiple values with the same max value.
-        best_predictor = meta_report.loc[meta_report['percent_predictably_positive'] == meta_report['percent_predictably_positive'].max()]
+        best_predictor = meta_report.loc[meta_report['percent_predictably_positive_0.95_lower_ci'].astype('float') == meta_report['percent_predictably_positive_0.95_lower_ci'].astype('float').max()]
         num_predictors = len(best_predictor.index)
 
         # Break ties based on roc_auc.
         if num_predictors != 1:
-            best_predictor = meta_report.loc[meta_report['roc_auc'] == meta_report['roc_auc'].max()]
+            best_predictor = best_predictor.loc[best_predictor['percent_predictably_positive'].astype('float') == best_predictor['percent_predictably_positive'].astype('float').max()]
+            num_predictors = len(best_predictor.index)
+
+        # Break ties based on roc_auc.
+        if num_predictors != 1:
+            best_predictor = best_predictor.loc[best_predictor['roc_auc'].astype('float') == best_predictor['roc_auc'].astype('float').max()]
             num_predictors = len(best_predictor.index)
 
         # Break ties on accuracy.
         if num_predictors != 1:
-            best_predictor = meta_report.loc[meta_report['accuracy'] == meta_report['accuracy'].max()]
+            best_predictor = best_predictor.loc[best_predictor['accuracy'].astype('float') == best_predictor['accuracy'].astype('float').max()]
             num_predictors = len(best_predictor.index)
 
         # If still tied, return first.
