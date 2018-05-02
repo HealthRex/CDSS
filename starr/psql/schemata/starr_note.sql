@@ -31,7 +31,7 @@
 --  * "COSIGNER_NAME" (e.g. "DOE, JOHN")
 --  * "STATUS" (e.g. "Signed")
 
-CREATE TABLE IF NOT EXISTS STRIDE_NOTE
+CREATE TABLE IF NOT EXISTS starr_note
 (
 	pat_id BIGINT,
 	pat_enc_csn_id BIGINT,

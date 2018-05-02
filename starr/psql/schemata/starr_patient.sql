@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS starr_patient
 (
 	pat_id TEXT,
 	birth_year INTEGER,
-	sex TEXT,
+	gender TEXT,
 	death_date TIMESTAMP,
 	race TEXT,
 	ethnicity TEXT
