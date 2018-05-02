@@ -74,6 +74,34 @@ class StarrLoader:
         'Chen_Clinical_Notes_Yr8.csv.gz': {
             'clean_file': 'starr_clinical_notes_year_8.csv.gz',
             'psql_table': 'starr_note'
+        },
+        'Chen_DX_List_5Yr.csv.gz': {
+            'clean_file': 'starr_dx_2008_2014.csv.gz',
+            'psql_table': 'starr_dx'
+        },
+        'Chen_Dx_List_Yrs6_8.csv.gz': {
+            'clean_file': 'starr_dx_2014_2017.csv.gz',
+            'psql_table': 'starr_dx'
+        },
+        'Chen_Insurance_Info_5Yr.csv.gz': {
+            'clean_file': 'starr_insurance_2008_2014.csv.gz',
+            'psql_table': 'starr_insurance'
+        },
+        'Chen_Insurance_Info_Yrs6_8.csv.gz': {
+            'clean_file': 'starr_insurance_2014_2017.csv.gz',
+            'psql_table': 'starr_insurance'
+        },
+        'Chen_Mapped_Meds_5Yr.csv.gz': {
+            'clean_file': 'starr_medication_2008_2014.csv.gz',
+            'psql_table': 'starr_medication'
+        },
+        'Chen_Mapped_Meds_Yrs6_8.patchHeader.csv.gz': {
+            'clean_file': 'starr_medication_2014_2017.csv.gz',
+            'psql_table': 'starr_medication'
+        },
+        'Chen_MedicationID_to_MPI.csv.gz': {
+            'clean_file': 'starr_medication_mpi.csv.gz',
+            'psql_table': 'starr_medication_mpi'
         }
     }
 
@@ -140,28 +168,42 @@ class StarrLoader:
             'BP_SYSTOLIC': object,
             'CONTACT_DATE': object,
             'COSIGNER_NAME': object,
+            'data_source': object,
             'DEATH_DATE': object,
             'DEPARTMENT': object,
             'DESCRIPTION': object,
+            'dx_icd9_code': object,
+            'dx_icd9_code_list': object,
             'ETHNICITY': object,
             'GENDER': object,
+            'GENERIC_NAME': object,
             'HOSPITAL_SERVICE': object,
             'MEDICATION_ID': object,
+            'MED_NAME': object,
+            'MPI_ID_VAL': object,
+            'NAME': object,
             'NOTE_DATE': object,
+            'noted_date': object,
             'NOTE_TYPE': object,
             'PAT_ANON_ID': object,
+            'pat_id': object,
             'PAT_ID': object,
+            'pat_enc_csn_id': object,
             'PAT_ENC_CSN_ID': object,
+            'PAYOR_NAME': object,
             'PHARM_CLASS': object,
             'PHARM_SUBCLASS': object,
             'PROVIDER_TYPE': object,
             'PULSE': object,
             'RACE': object,
+            'resolved_date': object,
             'RESPIRATIONS': object,
+            'RXCUI': object,
             'SPECIALTY': object,
             'STATUS': object,
             'TEMPERATURE': float,
             'THERA_CLASS': object,
+            'TITLE': object
         }
 
         raw_data = pd.read_csv(source_path, compression='gzip', \
@@ -204,7 +246,9 @@ class StarrLoader:
         # Build paths to clean data files.
         raw_data_dir = StarrLoader.fetch_raw_data_dir()
         clean_data_dir = StarrLoader.fetch_clean_data_dir()
-        for raw_file, params in StarrLoader.STARR_FILE_PARAMS.iteritems():
+        for raw_file in sorted(StarrLoader.STARR_FILE_PARAMS.keys()):
+            params = StarrLoader.STARR_FILE_PARAMS[raw_file]
+
             # Build clean data file.
             clean_file = params['clean_file']
             log.info('loading %s...' % clean_file)
@@ -221,7 +265,13 @@ class StarrLoader:
             # psql COPY data from clean files into DB.
             psql_table = params['psql_table']
             log.debug('starr/data/clean/%s ==> %s' % (clean_file, psql_table))
-            command = "COPY %s FROM '%s' WITH (FORMAT csv, HEADER);" % (psql_table, unzipped_clean_path)
+            # In some cases, two files going to the same table will have
+            # non-identical column names. Pass these explicitly so that
+            # psql knows which columns to try to fill from file.
+            # Strip the newline character.
+            with open(unzipped_clean_path, 'r') as f_in:
+                columns = f_in.readline()[:-1]
+            command = "COPY %s (%s) FROM '%s' WITH (FORMAT csv, HEADER);" % (psql_table, columns, unzipped_clean_path)
             DBUtil.execute(command)
 
             # Delete unzipped_clean_path.
