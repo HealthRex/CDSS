@@ -45,11 +45,13 @@ class FeatureMatrixFactory:
 
         self.patientsProcessed = None
 
-        self._patientListTempFileName = "fmf.patient_list.tsv"
-        self._patientEpisodeTempFileName = "fmf.patient_episodes.tsv"
-        self._patientItemTempFileNameFormat = "fmf.patient_%s.tsv"
-        self._patientTimeCycleTempFileNameFormat = "fmf.patient_%s_%s.tsv"
-        self._patientResultTempFileNameFormat = "fmf.patient_%s_%s_%s.tsv"
+        PID = str(os.getpid())
+
+        self._patientListTempFileName = "fmf.patient_list_" + PID + ".tsv"
+        self._patientEpisodeTempFileName = "fmf.patient_episodes_" + PID + ".tsv"
+        self._patientItemTempFileNameFormat = "fmf.patient_%s_" + PID + ".tsv"
+        self._patientTimeCycleTempFileNameFormat = "fmf.patient_%s_%s_" + PID + ".tsv"
+        self._patientResultTempFileNameFormat = "fmf.patient_%s_%s_%s_" + PID + ".tsv"
         self._matrixFileName = None
 
         # Look at lab results from the previous days
