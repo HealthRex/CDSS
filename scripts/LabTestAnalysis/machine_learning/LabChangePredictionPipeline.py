@@ -262,13 +262,12 @@ if __name__ == '__main__':
     labs_to_test = ['LABCK']
     change_params = {}
     change_params['method'] = 'percent'
-    change_params['param'] = 0.15
     change_params['feature_old'] = 'CK.-14_0.last'
     change_params['feature_new'] = 'ord_num_value'
 
-    #params_to_test = [0.5, 0.25, 0.15, 0.10, 0.05]
-    params_to_test = [0.10, 0.05]
+    params_to_test = [0.20]
 
     for panel in labs_to_test:
         for param in params_to_test:
+            change_params['param'] = param
             LabChangePredictionPipeline(change_params, panel, 7183, use_cache=True)
