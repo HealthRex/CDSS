@@ -180,6 +180,13 @@ http://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-apache-startstop.htm
 # Need read/execute permission on directory tree up to web files, so may need to
 chmod 755 /home/jonc101
 
+# Linux server may also need to change SELinux enforcement if running into "AH00132: file permissions deny server access"
+sudo setenforce 0
+https://wiki.apache.org/httpd/13PermissionDenied
+
+# General Tips
+- Review Apache error logs if running into server side issues: sudo tail /etc/httpd/logs/error_log
+
 # Web server start / control
 sudo service httpd restart
 
