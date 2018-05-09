@@ -224,7 +224,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         resultMatrix = self.factory.readFeatureMatrixFile()
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiClinicalItem"]
 
-        self.assertEqualList(resultMatrix, expectedMatrix)
+        self.assertEqualList(resultMatrix[2:], expectedMatrix)
 
         try:
             os.remove(self.factory.getMatrixFileName())
@@ -278,7 +278,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         resultMatrix = self.factory.readFeatureMatrixFile()
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_prePostFeatures"]
 
-        self.assertEqualList(resultMatrix, expectedMatrix)
+        self.assertEqualList(resultMatrix[2:], expectedMatrix)
 
         try:
             os.remove(self.factory.getMatrixFileName())
@@ -342,7 +342,7 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiLabTest"]["expectedMatrix"]
-        self.assertEqualList(resultMatrix, expectedMatrix)
+        self.assertEqualTable(resultMatrix[2:], expectedMatrix)
 
         try:
             os.remove(self.factory.getMatrixFileName())
@@ -402,7 +402,7 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiFlowsheet"]["expectedMatrix"]
-        self.assertEqualList(resultMatrix, expectedMatrix)
+        self.assertEqualList(resultMatrix[2:], expectedMatrix)
 
         try:
             os.remove(self.factory.getMatrixFileName())
@@ -444,7 +444,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         self.factory.buildFeatureMatrix()
         resultMatrix = self.factory.readFeatureMatrixFile()
         expectedMatrix = FM_TEST_OUTPUT["test_addTimeCycleFeatures"]["expectedMatrix"]
-        self.assertEqualList(resultMatrix, expectedMatrix)
+        self.assertEqualList(resultMatrix[2:], expectedMatrix)
 
         # Clean up feature matrix.
         try:
