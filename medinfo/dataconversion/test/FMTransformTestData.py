@@ -48,6 +48,23 @@ MANUAL_FM_TEST_CASE = {
         'f3': [True, None, True, False, True, False, True, False, True],
         'f4': ['Foo', 'Bar', 'Baz', 'Foo', None, 'Baz', 'Foo', 'Bar', None]
     }),
+    # test_filter_on_feature: Filter out 'None' from f2
+    'test_filter_on_feature': pd.DataFrame({
+        'patient_id': [1, 2, 3, 2, 3, 2, 3],
+        'index_time': [
+            pd.Timestamp('2018-01-01 01:00:00'),
+            pd.Timestamp('2018-01-02 02:00:00'),
+            pd.Timestamp('2018-01-03 03:00:00'),
+            pd.Timestamp('2018-01-05 05:00:00'),
+            pd.Timestamp('2018-01-06 06:00:00'),
+            pd.Timestamp('2018-01-08 08:00:00'),
+            pd.Timestamp('2018-01-09 09:00:00')],
+        'output': ['Y', 'Y', 'N', 'N', 'Y', 'Y', 'Y'],
+        'f1': [100, 200, 300, 500, 600, 800, 900],
+        'f2': [1.0, 1.5, 2.0, 3.0, 3.5, 4.5, 5.0],
+        'f3': [True, None, True, True, False, False, True],
+        'f4': ['Foo', 'Bar', 'Baz', None, 'Baz', 'Bar', None]
+    }),
     # test_mean_data_imputation: Impute mean of f2.
     "test_mean_data_imputation": pd.DataFrame({
         'patient_id': [1, 2, 3, 1, 2, 3, 1, 2, 3],
