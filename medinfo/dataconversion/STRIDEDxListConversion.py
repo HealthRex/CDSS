@@ -76,7 +76,7 @@ class STRIDEDxListConversion:
             self.prepareICD9Lookup(conn=conn);
 
         # Column headers to query for that map to respective fields in analysis table
-        headers = ["pat_id","pat_enc_csn_id","noted_date","resolved_date","dx_icd9_code","data_source"];
+        headers = ["pat_id","pat_enc_csn_id","noted_date","resolved_date","dx_icd9_code","dx_icd9_code_list","dx_icd10_code_list","data_source"];
 
         query = SQLQuery();
         for header in headers:
@@ -101,26 +101,47 @@ class STRIDEDxListConversion:
         while row is not None:
             rowModel = RowItemModel( row, headers );
 
-            # Lookup ICD9 string, otherwise default to ICD9 code
-            rowModel["icd9_str"] = rowModel["dx_icd9_code"];
-            if rowModel["dx_icd9_code"] in self.icd9StrByCode:
-                rowModel["icd9_str"] = self.icd9StrByCode[rowModel["dx_icd9_code"]];
+            # 2014-2017 data does not have dx_icd9_code. Instead, has
+            # both dx_icd9_code_list and dx_icd10_code_list. For these items,
+            # there is a one:many mapping of source item to converted item.
+            if rowModel['dx_icd9_code'] == '':
+                # Fall back to 'dx_icd9_code_list'
+                if rowModel['dx_icd9_code_list'] == '':
+                    CODE_TYPE = 'ICD10'
+                    # Fall back to 'dx_icd10_code_list'
+                    icd_codes = rowModel['dx_icd10_code_list'].split(',')
+                else:
+                    CODE_TYPE = 'ICD9'
+                    icd_codes = rowModel['dx_icd9_code_list'].split(',')
+            else:
+                # Use dx_icd9_code.
+                CODE_TYPE = 'ICD9'
+                icd_codes = [rowModel['dx_icd9_code']]
 
-            yield rowModel; # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
+            for icd_code in icd_codes:
+                # Lookup ICD9 string, otherwise default to ICD9 code
+                rowModel["icd9_str"] = icd_code
+                rowModel["dx_icd9_code"] = icd_code
+                if icd_code in self.icd9StrByCode:
+                    rowModel["icd9_str"] = self.icd9StrByCode[icd_code];
 
-            origCode = rowModel["dx_icd9_code"];
-            if SUBCODE_DELIM in origCode:
-                # Insert copies of item for parent node codes to aggregate component diagnoses into general categories
-                while rowModel["dx_icd9_code"][-1] != SUBCODE_DELIM:
-                    rowModel["dx_icd9_code"] = rowModel["dx_icd9_code"][:-1];   # Truncate off one trailing digit
-                    if rowModel["dx_icd9_code"] in self.icd9StrByCode:
-                        rowModel["icd9_str"] = self.icd9StrByCode[rowModel["dx_icd9_code"]];
+                yield rowModel; # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
+
+                origCode = icd_code
+                if SUBCODE_DELIM in origCode:
+                    # Insert copies of item for parent node codes to aggregate component diagnoses into general categories
+                    while icd_code[-1] != SUBCODE_DELIM:
+                        icd_code = icd_code[:-1];   # Truncate off one trailing digit
+                        if icd_code in self.icd9StrByCode:
+                            rowModel["dx_icd9_code"] = icd_code
+                            rowModel["icd9_str"] = self.icd9StrByCode[icd_code];
+                            yield rowModel; # Found a matching parent code, so yield this version
+                    # One more cycle to get parent node with no subcode delimiter at all
+                    icd_code = icd_code[:-1];   # Truncate off SUBCODE_DELIM
+                    if icd_code in self.icd9StrByCode:
+                        rowModel["dx_icd9_code"] = icd_code
+                        rowModel["icd9_str"] = self.icd9StrByCode[icd_code];
                         yield rowModel; # Found a matching parent code, so yield this version
-                # One more cycle to get parent node with no subcode delimiter at all
-                rowModel["dx_icd9_code"] = rowModel["dx_icd9_code"][:-1];   # Truncate off SUBCODE_DELIM
-                if rowModel["dx_icd9_code"] in self.icd9StrByCode:
-                    rowModel["icd9_str"] = self.icd9StrByCode[rowModel["dx_icd9_code"]];
-                    yield rowModel; # Found a matching parent code, so yield this version
 
             row = cursor.fetchone();
             progress.Update();
@@ -145,8 +166,8 @@ class STRIDEDxListConversion:
             #   Relatively small / finite number of categories and clinical_items, so these should only have to be instantiated
             #   in a first past, with subsequent calls just yielding back in memory cached copies
             categoryModel = self.categoryFromSourceItem(sourceItem, conn=conn);
-            clinicalItemModel = self.clinicalItemFromSourceItem(sourceItem, categoryModel, conn=conn);
-            patientItemModel = self.patientItemModelFromSourceItem(sourceItem, clinicalItemModel, conn=conn);
+            clinicalItem = self.clinicalItemFromSourceItem(sourceItem, categoryModel, conn=conn);
+            patientItem = self.patientItemModelFromSourceItem(sourceItem, clinicalItem, conn=conn);
 
         finally:
             if not extConn:
@@ -171,21 +192,31 @@ class STRIDEDxListConversion:
 
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
-        clinicalItemKey = (category["clinical_item_category_id"], sourceItem["dx_icd9_code"]);
+        clinicalItemKey = (category["clinical_item_category_id"], sourceItem['dx_icd9_code']);
+
+        # 2014-2017 data does not have dx_icd9_code. Instead, has
+        # both dx_icd9_code_list and dx_icd10_code_list. For these items,
+        # there is a one:many mapping of source item to converted item.
+        if sourceItem['dx_icd9_code'] == '' and sourceItem['dx_icd9_code_list'] == '':
+            # Fall back to 'dx_icd10_code_list'
+            CODE_TYPE = 'ICD10'
+        else:
+            CODE_TYPE = 'ICD9'
+
         if clinicalItemKey not in self.clinicalItemByCategoryIdExtId:
             # Clinical Item does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             clinicalItem = \
                 RowItemModel \
                 (   {   "clinical_item_category_id": category["clinical_item_category_id"],
                         "external_id": None,
-                        "name": "ICD9.%(dx_icd9_code)s" % sourceItem,
+                        "name": "%s.%s" % (CODE_TYPE, sourceItem['dx_icd9_code']),
                         "description": "%(icd9_str)s" % sourceItem,
                     }
                 );
             (clinicalItemId, isNew) = DBUtil.findOrInsertItem("clinical_item", clinicalItem, conn=conn);
             clinicalItem["clinical_item_id"] = clinicalItemId;
             self.clinicalItemByCategoryIdExtId[clinicalItemKey] = clinicalItem;
-        return self.clinicalItemByCategoryIdExtId[clinicalItemKey];
+        return self.clinicalItemByCategoryIdExtId[clinicalItemKey]
 
     def patientItemModelFromSourceItem(self, sourceItem, clinicalItem, conn):
         # Produce a patient_item record model for the given sourceItem
