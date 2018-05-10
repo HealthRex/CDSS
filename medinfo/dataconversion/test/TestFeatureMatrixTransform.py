@@ -3,6 +3,7 @@
 from pandas.util.testing import assert_frame_equal
 from scipy.stats import powerlaw
 import unittest
+import numpy as np
 
 from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import MedInfoTestCase, make_test_suite
@@ -70,6 +71,16 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
         expected_matrix = MANUAL_FM_TEST_CASE['test_remove_feature']
         actual_matrix = self.fmt.fetch_matrix()
         assert_frame_equal(expected_matrix, actual_matrix)
+
+    def test_filter_on_feature(self):
+        # Exclude all rows where f2 == None
+        nrows = self.fmt.filter_on_feature('f2', np.nan)
+
+        # Verify correct rows removed
+        expected_matrix = MANUAL_FM_TEST_CASE['test_filter_on_feature']
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
+        self.assertEqual(expected_matrix.shape[0], nrows)
 
     def test_add_indicator_feature(self):
         # Add indicator feature.

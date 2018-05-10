@@ -78,6 +78,22 @@ class FeatureMatrixTransform:
         except KeyError:
             log.info('Cannot remove non-existent feature "%s".' % feature)
 
+    def filter_on_feature(self, feature, value):
+        # remove rows where feature == value
+        if pd.isnull(value): # nan is not comparable, so need different syntax
+            rows_to_remove = self._matrix[pd.isnull(self._matrix[feature])].index
+        else:
+            try:
+                rows_to_remove = self._matrix[self._matrix[feature] == value].index
+            except TypeError:
+                log.info('Cannot filter %s on %s; types are not comparable.' % (featue, str(value)))
+
+        self._matrix.drop(rows_to_remove, inplace = True)
+        self._matrix.reset_index(drop=True, inplace = True)
+
+        # return number of rows remaining
+        return self._matrix.shape[0]
+
     def add_logarithm_feature(self, base_feature, logarithm=None):
         if logarithm is None:
             logarithm = FeatureMatrixTransform.LOG_BASE_E
