@@ -19,24 +19,25 @@ class ApplicationClass:
     def extractWordsByIndex(self, wordIndex, inputFile, outputFile):
         """Look through each line of the input file
         and output a respective line in the output file containing the k-th word of each input line (k=wordIndex).
-        (0-based indexing)
         If there is no k-th word, then output an empty string.
         """
+        k = wordIndex;
         for line in inputFile:
             words = line.split();
             selectedWord = "";  # Default to empty string if cannot find a word
-            if wordIndex < len(words):
-                selectedWord = words[wordIndex];
+            if k < len(words):
+                selectedWord = words[k];
             print >> outputFile, selectedWord;
-    
+
     def main(self, argv):
         """Main method, callable from command line"""
         usageStr =  "usage: %prog [options] <inputFile> <outputFile>\n"+\
                     "   <inputFile>    Input file to process. Specify \"-\" to read from stdin.\n"+\
                     "   <ouputFile>    Result file to generate.  Specify \"-\" to send to stdout.\n"
         parser = OptionParser(usage=usageStr)
-        parser.add_option("-w", "--wordIndex",  dest="wordIndex", help="If set wordIndex=k, then look for and output the k-th word of each input line. If there is no k-th word, then output an empty string. (0-based indexing)");
+        parser.add_option("-w", "--wordIndex",  dest="wordIndex", help="If set wordIndex=k, then look for and output the k-th word of each input line. If there is no k-th word, then output an empty string.");
         parser.add_option("-f", "--fibonacci",  dest="fibonacci", action="store_true", help="If set, count up the number of words in each line of the input file and output it back, along with the Fibonacci number for that number. (e.g., Fib(n) = Fib(n-1) + Fib(n-2) and Fib(1) = 1.");
+        parser.add_option("-c", "--cooccurrence",  dest="cooccurrence", action="store_true", help="If set, count up the number of lines in the input file that each word and each co-occuring word pair occurs.");
         (options, args) = parser.parse_args(argv[1:])
 
         log.info("Starting: "+str.join(" ", argv))
@@ -53,6 +54,9 @@ class ApplicationClass:
                 wordIndex = int(options.wordIndex);
                 self.extractWordsByIndex(wordIndex, inputFile, outputFile);
             if options.fibonacci:
+                # Do something...???
+                pass;
+            if options.cooccurrence:
                 # Do something...???
                 pass;
 
