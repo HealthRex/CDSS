@@ -23,7 +23,7 @@ class TestApplicationModule(unittest.TestCase):
         self.SAMPLE_INPUT_FILE_STR = \
         """To be, or not to be, Ay there's the point,
 To Die, to sleep, is that all? Aye all:
-No, to sleep, to dream, aye marry there it goes,
+No to sleep, to dream, aye marry there it goes,
 For in that dream of death, when we awake,
 """
     def tearDown(self):
@@ -34,7 +34,7 @@ For in that dream of death, when we awake,
 
     def test_extractWordsByIndex(self):
         # Prepare sample input into application code
-        wordIndex = 2;
+        wordIndex = 1;
         inputFile = StringIO(self.SAMPLE_INPUT_FILE_STR);
         outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
         
@@ -44,13 +44,14 @@ For in that dream of death, when we awake,
         actualOutputList = actualOutputFileStr.split("\n"); # Get one value per line
         
         # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["or","to","sleep,","that",""];    # One extra blank accounts for splitting on the newline that ends the file
+        expectedOutputList = ["To","To","No","For",""];    # One extra blank accounts for splitting on the newline that ends the file
         self.assertEquals(expectedOutputList, actualOutputList);
+
 
 
         ######## More test iterations ########
         # Prepare sample input into application code
-        wordIndex = 9;
+        wordIndex = 3;
         inputFile = StringIO(self.SAMPLE_INPUT_FILE_STR);
         outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
         
@@ -60,8 +61,27 @@ For in that dream of death, when we awake,
         actualOutputList = actualOutputFileStr.split("\n"); # Get one value per line
         
         # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["point,","","goes,","",""];    # One extra blank accounts for splitting on the newline that ends the file
+        expectedOutputList = ["or","to","sleep","that",""];    # One extra blank accounts for splitting on the newline that ends the file
         self.assertEquals(expectedOutputList, actualOutputList);
+
+
+
+        ######## More test iterations ########
+        # Prepare sample input into application code
+        wordIndex = 10;
+        inputFile = StringIO(self.SAMPLE_INPUT_FILE_STR);
+        outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
+        
+        # Run application code against sample input, and collect output
+        self.app.extractWordsByIndex(wordIndex, inputFile, outputFile);
+        actualOutputFileStr = outputFile.getvalue();
+        actualOutputList = actualOutputFileStr.split("\n"); # Get one value per line
+        
+        # Define expected output of a successful application run, and verify the actual results match
+        expectedOutputList = ["point","","goes","",""];    # One extra blank accounts for splitting on the newline that ends the file
+        self.assertEquals(expectedOutputList, actualOutputList);
+
+
 
         ######## More test iterations ########
         # Prepare sample input into application code
@@ -81,14 +101,18 @@ For in that dream of death, when we awake,
         # In this case, expect an error to have occurred (invalid wordIndex)
         self.assertEquals(expectError, actualError);
 
-    def test_fibonacci(self):
-        # Do something here???
-        raise NotImplementedError("Needs to be added");
+    #def test_fibonacci(self):
+    #    # Do something here???
+    #    raise NotImplementedError("Needs to be added");
 
 def suite():
     suite = unittest.TestSuite();
-    #suite.addTest(TestItemRecommender('test_findOrInsertItem'));
-    suite.addTest(unittest.makeSuite(TestApplicationModule));
+    # Automatically looks for any method whose name starts with "test" and assumes it is a test case
+    suite.addTest(unittest.makeSuite(TestApplicationModule));   
+
+    # Alternatively, you can itemize individual functions to test
+    #suite.addTest(TestApplicationModule('test_extractWordsByIndex'));
+    #suite.addTest(TestApplicationModule('test_fibonacci'));
     
     return suite;
     
