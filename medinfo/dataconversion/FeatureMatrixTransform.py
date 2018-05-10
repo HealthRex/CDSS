@@ -86,7 +86,8 @@ class FeatureMatrixTransform:
             try:
                 rows_to_remove = self._matrix[self._matrix[feature] == value].index
             except TypeError:
-                log.info('Cannot filter %s on %s; types are not comparable.' % (featue, str(value)))
+                log.info('Cannot filter %s on %s; types are not comparable.' % (feature, str(value)))
+                return
 
         self._matrix.drop(rows_to_remove, inplace = True)
         self._matrix.reset_index(drop=True, inplace = True)
