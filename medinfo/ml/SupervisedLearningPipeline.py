@@ -227,7 +227,7 @@ class SupervisedLearningPipeline:
                 added_feature = fmt.add_threshold_feature(base_feature, logarithm)
                 self._added_features.append(added_feature)
 
-        # TODO (raikens): right now, change_yn is the only allowable name for a
+        # TODO (raikens): right now, unchanged_yn is the only allowable name for a
         # change feature, which means at most one change_feature can be added
         if change_features:
             if len(change_features) > 1:

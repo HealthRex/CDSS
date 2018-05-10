@@ -182,7 +182,7 @@ MANUAL_FM_TEST_CASE = {
         'output': ['Y', 'Y', 'N', 'Y', 'N', 'Y', 'N', 'Y', 'Y'],
         'f1': [100, 200, 300, 400, 500, 600, 700, 800, 900],
         'f2': [1.0, 1.5, 2.0, None, 3.0, 3.5, None, 4.5, 5.0],
-        'change_yn': [0, 1, 1, 0, 1, 1, 0, 1, 1],
+        'unchanged_yn': [1, 0, 0, 9999999, 0, 0, 9999999, 0, 0],
         'f3': [True, None, True, False, True, False, True, False, True],
         'f4': ['Foo', 'Bar', 'Baz', 'Foo', None, 'Baz', 'Foo', 'Bar', None]
     }),
@@ -202,7 +202,7 @@ MANUAL_FM_TEST_CASE = {
         'output': ['Y', 'Y', 'N', 'Y', 'N', 'Y', 'N', 'Y', 'Y'],
         'f1': [100, 200, 300, 400, 500, 600, 700, 800, 900],
         'f2': [1.0, 1.5, 2.0, None, 3.0, 3.5, None, 4.5, 5.0],
-        'change_yn': [0, 0, 0, 0, 1, 0, 0, 1, 1],
+        'unchanged_yn': [1, 1, 1, 9999999, 0, 1, 9999999, 0, 0],
         'f3': [True, None, True, False, True, False, True, False, True],
         'f4': ['Foo', 'Bar', 'Baz', 'Foo', None, 'Baz', 'Foo', 'Bar', None]
     }),
