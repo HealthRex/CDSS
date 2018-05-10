@@ -185,10 +185,12 @@ class SupervisedLearningPipeline:
             # This must happen before feature selection so that we don't
             # accidentally learn information from the test data.
             self._train_test_split(processed_matrix, params['outcome_label'])
+
             self._select_features(params['selection_problem'],
                 params['percent_features_to_select'],
                 params['selection_algorithm'],
                 params['features_to_keep'])
+
             train = self._y_train.join(self._X_train)
             test = self._y_test.join(self._X_test)
             processed_matrix = train.append(test)
