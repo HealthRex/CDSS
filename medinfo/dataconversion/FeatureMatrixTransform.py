@@ -9,6 +9,7 @@ import pandas as pd
 from scipy.stats import norm
 from sklearn.preprocessing import Imputer
 from Util import log
+from math import isnan
 
 class FeatureMatrixTransform:
     IMPUTE_STRATEGY_MEAN = 'mean'
@@ -164,7 +165,7 @@ class FeatureMatrixTransform:
         return pd.notnull(value)
 
     def add_change_feature(self, method, param, feature_old, feature_new):
-        # Add column change_yn describing whether feature_new has 'changed'
+        # Add column unchanged_yn describing whether feature_new is 'unchanged'
         # relative to feature_old
 
         if method == "percent":
@@ -177,16 +178,16 @@ class FeatureMatrixTransform:
             raise ValueError("Must specify a supported method for change calculation")
 
         # add new column to matrix
-        # TODO (raikens): since new column is always "change_yn," only one
+        # TODO (raikens): since new column is always "unchange_yn," only one
         # change feature can be added.
         col_index = self._matrix.columns.get_loc(feature_new)
-        self._matrix.insert(col_index + 1, "change_yn", change_col)
-        return "change_yn"
+        self._matrix.insert(col_index + 1, "unchanged_yn", change_col)
+        return "unchange_yn"
 
     def _is_numeric(self, x):
         try:
             float(x)
-            return True
+            return (not isnan(x))
         except ValueError:
             return False
 
@@ -199,7 +200,7 @@ class FeatureMatrixTransform:
         elif row[feature_old] == 0.0:
             return 1
         else:
-            return int(abs(1.0-float(row[feature_new])/float(row[feature_old])) >= param)
+            return int(abs(1.0-float(row[feature_new])/float(row[feature_old])) < param)
 
     def _interval_change(self, row, feature_old, feature_new, param):
         # Return 1 if new value has changed by more than <param> from old value,
@@ -208,4 +209,4 @@ class FeatureMatrixTransform:
         if not (self._is_numeric(row[feature_old]) and self._is_numeric(row[feature_new])):
             return 9999999
         else:
-            return int(abs(float(row[feature_new])-float(row[feature_old])) >= param)
+            return int(abs(float(row[feature_new])-float(row[feature_old])) < param)

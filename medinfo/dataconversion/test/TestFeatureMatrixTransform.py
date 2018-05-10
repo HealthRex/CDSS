@@ -109,7 +109,7 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
 
         expected_matrix = MANUAL_FM_TEST_CASE['test_add_change_interval_feature']
         cols = list(expected_matrix.columns)
-        cols.insert(2, cols.pop(0))
+        cols.insert(2, cols.pop())
         expected_matrix = expected_matrix[cols]
 
         # Verify feature addition.
@@ -122,7 +122,7 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
 
         expected_matrix = MANUAL_FM_TEST_CASE['test_add_change_percent_feature']
         cols = list(expected_matrix.columns)
-        cols.insert(2, cols.pop(0))
+        cols.insert(2, cols.pop())
         expected_matrix = expected_matrix[cols]
 
         # Verify feature addition.
