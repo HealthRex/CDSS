@@ -53,7 +53,7 @@ class LabCultureMatrix(FeatureMatrix):
         query = SQLQuery()
         query.addSelect('order_proc_id')
         query.addFrom('stride_order_proc')
-        query.addWhereIn('micro.proc_code', [self._lab_panel])
+        query.addWhereIn('proc_code', [self._lab_panel])
         query.addGroupBy('order_proc_id')
         log.debug('Querying order_proc_ids for %s...' % self._lab_panel)
         results = DBUtil.execute(query)
@@ -124,7 +124,7 @@ class LabCultureMatrix(FeatureMatrix):
 
         return random_patient_list
 
-    def _query_patient_episodes(self):
+    def _query_patient_episodes(self, pat_id_col="pat_deid"):
         log.info('Querying patient episodes...')
         # Initialize DB cursor.
         cursor = self._connection.cursor()
@@ -132,6 +132,8 @@ class LabCultureMatrix(FeatureMatrix):
         # Build parameters for query.
         self._lab_components = self._get_components_in_lab_panel()
         random_patient_list = self._get_random_patient_list()
+
+        print("RANDOM PATIENT LIST", random_patient_list)
 
         # Build SQL query for list of patient episodes.
         # Note that for 2008-2014 data, result_flag can take on any of the
@@ -159,29 +161,33 @@ class LabCultureMatrix(FeatureMatrix):
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
         query = SQLQuery()
-        query.addSelect('CAST(pat_id AS BIGINT)')
-        query.addSelect('sop.order_proc_id AS order_proc_id')
+        #query.addSelect('CAST(micro.pat_deid AS BIGINT)')
+        query.addSelect('CAST(micro.order_time AS TIMESTAMP)')
+        #query.addSelect('sop.order_proc_id AS order_proc_id')
         query.addSelect('proc_code')
         query.addSelect('order_time')
-        query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")
-        query.addSelect("SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components")
-        query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components")
-        query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal")
-        query.addFrom('stride_order_proc AS sop')
-        query.addFrom('stride_order_results AS sor')
-        query.addWhere('sop.order_proc_id = sor.order_proc_id')
-        query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
-        query.addWhereIn("proc_code", [self._lab_panel])
-        query.addWhereIn("pat_id", random_patient_list)
-        query.addGroupBy('pat_id')
-        query.addGroupBy('sop.order_proc_id')
+        query.addSelect('organism_name') #one for the result
+        # query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")
+        # query.addSelect("SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components")
+        # query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components")
+        # query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal")
+        # query.addFrom('stride_order_proc AS sop')
+        # query.addFrom('stride_order_results AS sor')
+        query.addFrom('micro')
+        #query.addWhere('sop.order_proc_id = sor.order_proc_id')
+        #query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
+        #query.addWhereIn("micro.proc_code", [self._lab_panel])
+        query.addWhereIn("micro.pat_deid", random_patient_list)
+        query.addGroupBy('micro.pat_deid')
+        #query.addGroupBy('sop.order_proc_id')
         query.addGroupBy('proc_code')
         query.addGroupBy('order_time')
-        query.addGroupBy('abnormal_yn')
-        query.addOrderBy('pat_id')
-        query.addOrderBy('sop.order_proc_id')
+        query.addGroupBy('organism_name')
+        #query.addGroupBy('abnormal_yn')
+        query.addOrderBy('micro.pat_deid')
+        #query.addOrderBy('sop.order_proc_id')
         query.addOrderBy('proc_code')
-        query.addOrderBy('order_time')
+        query.addOrderBy('micro.order_time')
         query.setLimit(self._num_requested_episodes)
 
         self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, index_time_col='order_time')
@@ -334,7 +340,7 @@ if __name__ == "__main__":
     log.level = logging.DEBUG
     start_time = time.time()
     # Initialize lab test matrix.
-    ltm = LabCultureMatrix("LABBLC", 5)
+    ltm = LabCultureMatrix("LABBLC", 2)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
     ltm.write_matrix("LABBLC-panel-5-episodes-%s-sec.tab" % str(elapsed_time))
