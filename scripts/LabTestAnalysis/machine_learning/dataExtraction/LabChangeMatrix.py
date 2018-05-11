@@ -22,13 +22,18 @@ from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 # - [ ] filter in only patients with previous lab measurement
 
 class LabChangeMatrix(FeatureMatrix):
-    def __init__(self, lab_panel, num_episodes):
+    def __init__(self, lab_panel, num_episodes, random_state=None):
         FeatureMatrix.__init__(self, lab_panel, num_episodes)
 
         # Parse arguments.
         self._lab_panel = lab_panel
         self._num_requested_episodes = num_episodes
         self._num_reported_episodes = 0
+        if random_state:
+            query = SQLQuery()
+            query.addSelect('setseed(%d);' % random_state)
+            DBUtil.execute(query)
+            self._random_state = random_state
 
         # Query patient episodes.
         self._query_patient_episodes()
@@ -345,11 +350,12 @@ class LabChangeMatrix(FeatureMatrix):
 
         return summary
 
+
 if __name__ == "__main__":
     log.level = logging.DEBUG
     start_time = time.time()
     # Initialize lab test matrix.
-    ltm = LabChangeMatrix("LABMGN", 11900) #11900
+    ltm = LabChangeMatrix("LABPTT", 12000) #11900
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
-    ltm.write_matrix("LABMGN-panel-11900-episodes-values-%s-sec.tab" % str(elapsed_time))
+    ltm.write_matrix("LABPTT-panel-12000-episodes-values-%s-sec.tab" % str(elapsed_time))
