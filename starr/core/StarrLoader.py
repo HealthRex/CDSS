@@ -95,13 +95,125 @@ class StarrLoader:
             'clean_file': 'starr_medication_2008_2014.csv.gz',
             'psql_table': 'starr_medication'
         },
-        'Chen_Mapped_Meds_Yrs6_8.patchHeader.csv.gz': {
+        'Chen_Mapped_Meds_Yrs6_8.csv.gz': {
             'clean_file': 'starr_medication_2014_2017.csv.gz',
             'psql_table': 'starr_medication'
         },
         'Chen_MedicationID_to_MPI.csv.gz': {
             'clean_file': 'starr_medication_mpi.csv.gz',
             'psql_table': 'starr_medication_mpi'
+        },
+        'Chen_Order_MedMixInfo_5Yr.csv.gz': {
+            'clean_file': 'starr_medication_mix_2008_2014.csv.gz',
+            'psql_table': 'starr_medication_mix'
+        },
+        'Chen_MedMixInfo_Yrs6_8.patchHeader.csv.gz': {
+            'clean_file': 'starr_medication_mix_2014_2017.csv.gz',
+            'psql_table': 'starr_medication_mix'
+        },
+        'Chen_Order_Proc_Yr1.patchcommas.csv.gz': {
+            'clean_file': 'starr_order_proc_year_1.csv.gz',
+            'psql_table': 'starr_order_proc'
+        },
+        'Chen_Order_Proc_Yr2.patchcommas.csv.gz': {
+            'clean_file': 'starr_order_proc_year_2.csv.gz',
+            'psql_table': 'starr_order_proc'
+        },
+        'Chen_Order_Proc_Yr3.patchcommas.csv.gz': {
+            'clean_file': 'starr_order_proc_year_3.csv.gz',
+            'psql_table': 'starr_order_proc'
+        },
+        'Chen_Order_Proc_Yr4.patchcommas.csv.gz': {
+            'clean_file': 'starr_order_proc_year_4.csv.gz',
+            'psql_table': 'starr_order_proc'
+        },
+        'Chen_Order_Proc_Yr5.patchcommas.csv.gz': {
+            'clean_file': 'starr_order_proc_year_5.csv.gz',
+            'psql_table': 'starr_order_proc'
+        },
+        'Chen_Order_Proc_Yr6.patchcommas.csv.gz': {
+            'clean_file': 'starr_order_proc_year_6.csv.gz',
+            'psql_table': 'starr_order_proc'
+        },
+        'Chen_Order_Proc_Yr7.patchcommas.csv.gz': {
+            'clean_file': 'starr_order_proc_year_7.csv.gz',
+            'psql_table': 'starr_order_proc'
+        },
+        'Chen_Order_Proc_Yr8.patchcommas.csv.gz': {
+            'clean_file': 'starr_order_proc_year_8.csv.gz',
+            'psql_table': 'starr_order_proc'
+        },
+        'Chen_Order_Result_Yr1.csv.gz': {
+            'clean_file': 'starr_order_result_year_1.csv.gz',
+            'psql_table': 'starr_order_result'
+        },
+        'Chen_Order_Result_Yr2.csv.gz': {
+            'clean_file': 'starr_order_result_year_2.csv.gz',
+            'psql_table': 'starr_order_result'
+        },
+        'Chen_Order_Result_Yr3.csv.gz': {
+            'clean_file': 'starr_order_result_year_3.csv.gz',
+            'psql_table': 'starr_order_result'
+        },
+        'Chen_Order_Result_Yr4.csv.gz': {
+            'clean_file': 'starr_order_result_year_4.csv.gz',
+            'psql_table': 'starr_order_result'
+        },
+        'Chen_Order_Result_Yr5.csv.gz': {
+            'clean_file': 'starr_order_result_year_5.csv.gz',
+            'psql_table': 'starr_order_result'
+        },
+        'Chen_Order_Res_Yr6.csv.gz': {
+            'clean_file': 'starr_order_result_year_6.csv.gz',
+            'psql_table': 'starr_order_result'
+        },
+        'Chen_Order_Res_Yr7.csv.gz': {
+            'clean_file': 'starr_order_result_year_7.csv.gz',
+            'psql_table': 'starr_order_result'
+        },
+        'Chen_Order_Res_Yr8.csv.gz': {
+            'clean_file': 'starr_order_result_year_8.csv.gz',
+            'psql_table': 'starr_order_result'
+        },
+        'Chen_TreatmentTeam_Yr1.csv.gz': {
+            'clean_file': 'starr_treatment_team_year_1.csv.gz',
+            'psql_table': 'starr_treatment_team'
+        },
+        'Chen_TreatmentTeam_Yr2.csv.gz': {
+            'clean_file': 'starr_treatment_team_year_2.csv.gz',
+            'psql_table': 'starr_treatment_team'
+        },
+        'Chen_TreatmentTeam_Yr3.csv.gz': {
+            'clean_file': 'starr_treatment_team_year_3.csv.gz',
+            'psql_table': 'starr_treatment_team'
+        },
+        'Chen_TreatmentTeam_Yr4.csv.gz': {
+            'clean_file': 'starr_treatment_team_year_4.csv.gz',
+            'psql_table': 'starr_treatment_team'
+        },
+        'Chen_TreatmentTeam_Yr5.csv.gz': {
+            'clean_file': 'starr_treatment_team_year_5.csv.gz',
+            'psql_table': 'starr_treatment_team'
+        },
+        'Chen_TreatmentTeam_Yr6.patchHeader.csv.gz': {
+            'clean_file': 'starr_treatment_team_year_6.csv.gz',
+            'psql_table': 'starr_treatment_team'
+        },
+        'Chen_TreatmentTeam_Yr7.patchHeader.csv.gz': {
+            'clean_file': 'starr_treatment_team_year_7.csv.gz',
+            'psql_table': 'starr_treatment_team'
+        },
+        'Chen_TreatmentTeam_Yr8.patchHeader.csv.gz': {
+            'clean_file': 'starr_treatment_team_year_8.csv.gz',
+            'psql_table': 'starr_treatment_team'
+        },
+        'Chen_income_vs_zip.csv.gz': {
+            'clean_file': 'starr_income_2008_2014.csv.gz',
+            'psql_table': 'starr_income'
+        },
+        'Chen_income_vs_zip_Yrs6_8.csv.gz': {
+            'clean_file': 'starr_income_2014_2017.csv.gz',
+            'psql_table': 'starr_income'
         }
     }
 
@@ -162,52 +274,203 @@ class StarrLoader:
             # 0_integer and 1_integer only encountered in test cases.
             '0_integer': object,
             '1_INTEGER': object,
+            'abnormal_yn': object,
+            'act_order_c': object,
+            'active_order': object,
+            'admin_dose_unit': object,
+            'admin_dose_unit_c': object,
+            'admin_min_dose': object,
+            'admin_max_dose': object,
+            'amb_med_disp_name': object,
             'AUTHOR_NAME': object,
+            'authrzing_prov_id': object,
+            'base_name': object,
+            'BED': object,
+            'BED_STATUS': object,
             'BIRTH_YEAR': object,
             'BP_DIASTOLIC': object,
             'BP_SYSTOLIC': object,
+            'calc_dose_unit': object,
+            'calc_dose_unit_c': object,
+            'CALC_DOSE_UNIT_C': object,
+            'calc_min_dose': object,
+            'calc_max_dose': object,
+            'calc_volume_yn': object,
+            'chng_order_med_id': object,
+            'chng_order_proc_id': object,
+            'common_name': object,
+            'component_name': object,
             'CONTACT_DATE': object,
             'COSIGNER_NAME': object,
+            'cpt_code': object,
             'data_source': object,
             'DEATH_DATE': object,
             'DEPARTMENT': object,
+            'DEPARTMENT_IN': object,
+            'department_name': object,
+            'description': object,
             'DESCRIPTION': object,
+            'discon_time': object,
+            'discrete_frequency': object,
+            'discrete_interval': object,
+            'dispense_unit': object,
+            'display_name': object,
+            'dose_calc_info': object,
+            'DOSE_CALC_INFO': object,
+            'dose_unit': object,
+            'dose_unit_c': object,
+            'DOSE_UNIT_C': object,
+            'doses_remaining': object,
+            'duration_unit_name': object,
             'dx_icd9_code': object,
             'dx_icd9_code_list': object,
+            'end_taking_time': object,
             'ETHNICITY': object,
+            'EVENT_IN': object,
+            'EVENT_OUT': object,
+            'freq_name': object,
+            'future_or_stand': object,
             'GENDER': object,
             'GENERIC_NAME': object,
             'HOSPITAL_SERVICE': object,
+            'hv_discr_freq_id': object,
+            'hv_discrete_dose': object,
+            'hv_dose_unit': object,
+            'hv_dose_unit_c': object,
+            'INCOME_RANGE': object,
+            'ingredient_type': object,
+            'ingredient_type_c': object,
+            'instantiated_time': object,
+            'lab_status': object,
+            'lastdose': object,
+            'last_stand_perf_dt': object,
+            'last_stand_perf_tm': object,
+            'line': object,
+            'LINE': object,
+            'medication_id': object,
             'MEDICATION_ID': object,
+            'medication_name': object,
             'MED_NAME': object,
+            'MAX_CALC_DOSE_AMT': object,
+            'max_calc_dose_amt': object,
+            'max_discrete_dose': object,
+            'max_dose_amount': object,
+            'max_duration': object,
+            'max_rate': object,
+            'max_volume': object,
+            'med_dis_disp_qty': object,
+            'med_dis_disp_unit_c': object,
+            'med_duration_unit_c': object,
+            'med_presc_prov_id': object,
+            'med_route': object,
+            'med_route_c': object,
+            'medication_id': object,
+            'MIN_CALC_DOSE_AMT': object,
+            'min_calc_dose_amt': object,
+            'min_discrete_dose': object,
+            'min_dose_amount': object,
+            'min_duration': object,
+            'min_rate': object,
+            'min_volume': object,
+            'modify_track': object,
+            'modify_track_c': object,
             'MPI_ID_VAL': object,
             'NAME': object,
+            'nonformulary_yn': object,
             'NOTE_DATE': object,
             'noted_date': object,
             'NOTE_TYPE': object,
+            'number_of_doses': object,
+            'ord_date_real': object,
+            'ord_num_value': object,
+            'ord_prov_id': object,
+            'order_class': object,
+            'order_class_c': object,
+            'order_class_name': object,
+            'order_end_time': object,
+            'order_inst': object,
+            'order_med_id': object,
+            'order_priority': object,
+            'order_priority_c': object,
+            'order_proc_id': object,
+            'order_status': object,
+            'order_status_c': object,
+            'order_time': object,
+            'order_type': object,
+            'ordering_date': object,
+            'ordering_id': object,
+            'ordering_mode': object,
+            'ordering_mode_c': object,
+            'parent_ce_order_id': object,
             'PAT_ANON_ID': object,
             'pat_id': object,
             'PAT_ID': object,
             'pat_enc_csn_id': object,
+            'PAT_ENC_CSN_ANON_ID': object,
             'PAT_ENC_CSN_ID': object,
+            'pat_loc_id': object,
+            'PATIENT_CLASS': object,
             'PAYOR_NAME': object,
             'PHARM_CLASS': object,
             'PHARM_SUBCLASS': object,
+            'problem_list_id': object,
+            'proc_bgn_time': object,
+            'proc_cat_name': object,
+            'proc_code': object,
+            'proc_end_time': object,
+            'proc_ending_time': object,
+            'proc_id': object,
+            'proc_start_time': object,
+            'PROV_NAME': object,
             'PROVIDER_TYPE': object,
             'PULSE': object,
+            'quantity': object,
             'RACE': object,
+            'radiology_status': object,
+            'rate_unit': object,
+            'rate_unit_c': object,
+            'reference_unit': object,
+            'refills': object,
+            'refills_remaining': object,
             'resolved_date': object,
             'RESPIRATIONS': object,
+            'result_date': object,
+            'result_in_range_yn': object,
+            'result_status': object,
+            'result_time': object,
+            'resume_status': object,
+            'resume_status_c': object,
+            'rsn_for_discon': object,
+            'rsn_for_discon_c': object,
             'RXCUI': object,
+            'selection': object,
+            'SELECTION': object,
+            'SEQ_NUM_IN_BED_MIN': object,
+            'SEQ_NUM_IN_ENC': object,
+            'SHIFTED_TRANSF_IN_DT_TM': object,
+            'SHIFTED_TRANSF_OUT_DT_TM': object,
             'SPECIALTY': object,
+            'standing_exp_date': object,
+            'standing_occurs': object,
+            'stand_interval': object,
+            'stand_orig_occur': object,
+            'start_taking_time': object,
             'STATUS': object,
             'TEMPERATURE': float,
             'THERA_CLASS': object,
-            'TITLE': object
+            'TITLE': object,
+            'TREATMENT_TEAM': object,
+            'TRTMNT_TM_BEGIN_DATE': object,
+            'TRTMNT_TM_END_DATE': object,
+            'value_normalized': object,
+            'volume_unit': object,
+            'volume_unit_c': object
         }
 
         raw_data = pd.read_csv(source_path, compression='gzip', \
-                                dtype=data_types, skipinitialspace=True)
+                                dtype=data_types, skipinitialspace=True,
+                                error_bad_lines=False, warn_bad_lines=True)
+
         # Make header column all lowercase.
         raw_data.columns = [column.lower() for column in raw_data.columns]
 
@@ -255,7 +518,11 @@ class StarrLoader:
             raw_path = '/'.join([raw_data_dir, raw_file])
             clean_path = '/'.join([clean_data_dir, clean_file])
             log.debug('starr/data/[raw/%s] ==> [clean/%s]' % (raw_file, clean_file))
-            StarrLoader.build_clean_data_file(raw_path, clean_path)
+            # Building the clean file is the slowest part of setup, so only
+            # do it if absolutely necessary. This means that users must be
+            # aware of issues like a stale cache.
+            if not os.path.exists(clean_path):
+                StarrLoader.build_clean_data_file(raw_path, clean_path)
 
             # Uncompress data file.
             unzipped_clean_path = clean_path[:-3]

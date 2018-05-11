@@ -4,8 +4,8 @@
 --	* Chen_Mapped_Meds_5Yr.csv.gz
 --  * Chen_Mapped_Meds_Yrs6_8.patchHeader.csv.gz
 -- Clean Files:
---	* Chen_Mapped_Meds_5Yr.csv.gz
---  * Chen_Mapped_Meds_Yrs6_8.patchHeader.csv.gz
+--	* starr_medication_2008_2014.csv.gz
+--  * starr_medication_2014_2017.patchHeader.csv.gz
 -- CSV Fields:
 --  * "MEDICATION_ID" (e.g. 127722)
 --  * "NAME" (e.g. "MAGNESIUM OXIDE 400 MG PO CAPS")
