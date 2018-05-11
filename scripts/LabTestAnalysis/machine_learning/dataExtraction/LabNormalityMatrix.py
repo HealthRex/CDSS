@@ -340,7 +340,7 @@ if __name__ == "__main__":
     start_time = time.time()
     # Initialize lab test matrix.
     random_state = float(123456789)/float(sys.maxint)
-    ltm = LabNormalityMatrix("LABABG", 10, random_state=random_state)
+    ltm = LabNormalityMatrix("LABCK", 1000, random_state=random_state)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
-    ltm.write_matrix("LABABG-panel-10-episodes-%s-sec.tab" % str(elapsed_time))
+    ltm.write_matrix("LABCK-panel-1000-episodes-%s-sec.tab" % str(elapsed_time))
