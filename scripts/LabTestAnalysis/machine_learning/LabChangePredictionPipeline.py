@@ -7,6 +7,7 @@ and analysis of LabChange prediction.
 import inspect
 import os
 from pandas import DataFrame, Series
+import numpy as np
 from sklearn.externals import joblib
 import logging
 
@@ -20,8 +21,8 @@ from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
 from scripts.LabTestAnalysis.machine_learning.dataExtraction.LabChangeMatrix import LabChangeMatrix
 
 class LabChangePredictionPipeline(SupervisedLearningPipeline):
-    def __init__(self, change_params, lab_panel, num_episodes, use_cache=None):
-        SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache)
+    def __init__(self, change_params, lab_panel, num_episodes, use_cache=None, random_state=None):
+        SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state)
         self._change_params = (change_params)
         log.debug('change_params: %s' % self._change_params)
 
@@ -39,7 +40,18 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         template = '%s-change-matrix-%d-episodes-raw.tab'
         pipeline_file_name = inspect.getfile(inspect.currentframe())
 
-        return '/Users/raikens/Documents/research/HealthRex/Data/LabChangeMatrices/LABCK-panel-10000-episodes-values-18234.0-sec_prev_measurement.tab'
+        # Build matrix file name.
+        slugified_var = '-'.join(self._var.split())
+        matrix_name = template % (slugified_var, self._num_rows)
+
+        # Build path using parent class logic for _fetch_data_dir_path.
+        # This puts raw matrix in the directory for lab test rather than the
+        # subdirectory for the specific change definition.  That way it can be
+        # reused in pipelines for multiple different change defs.
+        data_dir = SupervisedLearningPipeline._fetch_data_dir_path(self, pipeline_file_name)
+        matrix_path = '/'.join([data_dir, matrix_name])
+
+        return matrix_path
 
     def _build_raw_feature_matrix(self):
         raw_matrix_path = self._build_raw_matrix_path()
@@ -56,13 +68,15 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
     def _build_processed_feature_matrix(self):
         # Define parameters for processing steps.
         params = {}
-        #TODO (raikens): set to use cache??
         raw_matrix_path = self._build_raw_matrix_path()
         processed_matrix_path = self._build_processed_matrix_path(raw_matrix_path)
 
         log.debug('params: %s' % params)
 
         features_to_add = {'change': [self._change_params]}
+        prev_measurement_feature = '%s.-14_0.last' % self._var[3:5]
+        features_to_filter_on = [{'feature': prev_measurement_feature,
+                                  'value':np.nan}]
         imputation_strategies = {
         }
 
@@ -88,7 +102,7 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
             # Keep the # of times it's been ordered in past, even if low info.
             '%s.pre' % self._var
         ]
-        outcome_label = 'change_yn'
+        outcome_label = 'unchanged_yn'
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
         percent_features_to_select = 0.05
@@ -99,10 +113,10 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
             'Overview',
             # The outcome label is ___.
             'The outcome label is %s.' % outcome_label,
-            # %s is a boolean indicator which summarizes whether all components
+            # %s is a boolean indicator which summarizes whether the lab test
             '%s is a boolean indicator which summarizes whether the lab test ' % outcome_label,
-            # in the lab panel order represented by a given row are normal.
-            'result has changed compared to the previous measurement.',
+            # result is unchanged compared to the previous measurement.
+            'result is unchanged compared to the previous measurement.',
             # Each row represents a unique lab panel order.
             'Each row represents a unique lab panel order.',
             # Each row contains fields summarizing the patient's demographics,
@@ -113,6 +127,10 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
             "Most cells in matrix represent a count statistic for an event's",
             # occurrence or a difference between an event's time and index_time.
             "occurrence or a difference between an event's time and index_time.",
+            # Lab panel orders were only included if a previous measurement of
+            "Lab panel orders were only included if a previous measurement of",
+            # the same lab panel has been recorded
+            "the same lab panel has been recorded."
         ]
 
         # Bundle parameters into single object
@@ -120,6 +138,7 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         params['processed_matrix_path'] = processed_matrix_path
         params['features_to_add'] = features_to_add
         params['features_to_keep'] = features_to_keep
+        params['features_to_filter_on'] = features_to_filter_on
         params['imputation_strategies'] = imputation_strategies
         params['features_to_remove'] = features_to_remove
         params['outcome_label'] = outcome_label
@@ -229,7 +248,7 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
                         'y_train.value_counts()', 'y_test.value_counts()'
                     ]
                 )
-                header = ['LabChangePredictionPipeline("%s", 10000)' % self._var]
+                header = ['LabChangePredictionPipeline("%s", %d)' % (self._var, self._num_rows)]
                 # Write error report.
                 fm_io.write_data_frame_to_file(algorithm_report, \
                     '/'.join([report_dir, '%s-change-prediction-report.tab' % (self._var)]), \
@@ -253,22 +272,22 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         # Note that if there were insufficient samples to build any of the
         # algorithms, then meta_report will still be None.
         if meta_report is not None:
-            header = ['LabChangePredictionPipeline("%s", 7183)' % self._var]
+            header = ['LabChangePredictionPipeline("%s", %d)' % (self._var, self._num_rows)]
             fm_io.write_data_frame_to_file(meta_report, \
                 '/'.join([data_dir, '%s-change-prediction-report.tab' % self._var]), header)
 
 if __name__ == '__main__':
     log.level = logging.DEBUG
-    labs_to_test = ['LABCK']
+    labs_to_test = ['LABPT']
     change_params = {}
     change_params['method'] = 'percent'
-    change_params['param'] = 0.15
-    change_params['feature_old'] = 'CK.-14_0.last'
     change_params['feature_new'] = 'ord_num_value'
 
-    #params_to_test = [0.5, 0.25, 0.15, 0.10, 0.05]
-    params_to_test = [0.10, 0.05]
+    params_to_test = [0.5, 0.4, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05]
+    #params_to_test = [0.5]
 
     for panel in labs_to_test:
+        change_params['feature_old'] = '%s.-14_0.last' % panel[3:5]
         for param in params_to_test:
-            LabChangePredictionPipeline(change_params, panel, 7183, use_cache=True)
+            change_params['param'] = param
+            LabChangePredictionPipeline(change_params, panel, 10000, use_cache=True, random_state=123456789)
