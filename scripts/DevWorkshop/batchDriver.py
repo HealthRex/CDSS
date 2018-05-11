@@ -12,7 +12,7 @@ LOG_FILE_TEMPLATE = "log/exampleQuery.%s.log";
 
 baseArgv = \
     [   "python","ExampleQueryApp.py",
-        "-p","0.1",
+        "-p","0.001",
     ];
 
 DATE_LIMITS = \
