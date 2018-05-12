@@ -44,7 +44,7 @@ For in that dream of death, when we awake,
         actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
         
         # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["To","To","No","For"];    # One extra blank accounts for splitting on the newline that ends the file
+        expectedOutputList = ["To","To","No","For"];
         self.assertEquals(expectedOutputList, actualOutputList);
 
 
@@ -61,7 +61,7 @@ For in that dream of death, when we awake,
         actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
         
         # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["or","to","sleep","that"];    # One extra blank accounts for splitting on the newline that ends the file
+        expectedOutputList = ["or","to","sleep","that"];
         self.assertEquals(expectedOutputList, actualOutputList);
 
 
@@ -78,7 +78,7 @@ For in that dream of death, when we awake,
         actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
         
         # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["point","","goes",""];    # One extra blank accounts for splitting on the newline that ends the file
+        expectedOutputList = ["point","","goes",""];
         self.assertEquals(expectedOutputList, actualOutputList);
 
 
