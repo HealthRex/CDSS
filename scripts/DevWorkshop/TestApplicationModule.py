@@ -41,10 +41,10 @@ For in that dream of death, when we awake,
         # Run application code against sample input, and collect output
         self.app.extractWordsByIndex(wordIndex, inputFile, outputFile);
         actualOutputFileStr = outputFile.getvalue();
-        actualOutputList = actualOutputFileStr.split("\n"); # Get one value per line
+        actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
         
         # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["To","To","No","For",""];    # One extra blank accounts for splitting on the newline that ends the file
+        expectedOutputList = ["To","To","No","For"];    # One extra blank accounts for splitting on the newline that ends the file
         self.assertEquals(expectedOutputList, actualOutputList);
 
 
@@ -58,10 +58,10 @@ For in that dream of death, when we awake,
         # Run application code against sample input, and collect output
         self.app.extractWordsByIndex(wordIndex, inputFile, outputFile);
         actualOutputFileStr = outputFile.getvalue();
-        actualOutputList = actualOutputFileStr.split("\n"); # Get one value per line
+        actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
         
         # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["or","to","sleep","that",""];    # One extra blank accounts for splitting on the newline that ends the file
+        expectedOutputList = ["or","to","sleep","that"];    # One extra blank accounts for splitting on the newline that ends the file
         self.assertEquals(expectedOutputList, actualOutputList);
 
 
@@ -75,10 +75,10 @@ For in that dream of death, when we awake,
         # Run application code against sample input, and collect output
         self.app.extractWordsByIndex(wordIndex, inputFile, outputFile);
         actualOutputFileStr = outputFile.getvalue();
-        actualOutputList = actualOutputFileStr.split("\n"); # Get one value per line
+        actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
         
         # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["point","","goes","",""];    # One extra blank accounts for splitting on the newline that ends the file
+        expectedOutputList = ["point","","goes",""];    # One extra blank accounts for splitting on the newline that ends the file
         self.assertEquals(expectedOutputList, actualOutputList);
 
 
@@ -95,7 +95,7 @@ For in that dream of death, when we awake,
         try:
             self.app.extractWordsByIndex(wordIndex, inputFile, outputFile);
             actualOutputFileStr = outputFile.getvalue();
-            actualOutputList = actualOutputFileStr.split("\n"); # Get one value per line
+            actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
         except TypeError:
             actualError = True;
         # In this case, expect an error to have occurred (invalid wordIndex)

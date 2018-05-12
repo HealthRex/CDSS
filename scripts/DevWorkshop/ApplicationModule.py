@@ -37,7 +37,7 @@ class ApplicationClass:
         parser = OptionParser(usage=usageStr)
         parser.add_option("-w", "--wordIndex",  dest="wordIndex", help="If set wordIndex=k, then look for and output the k-th word of each input line. If there is no k-th word, then output an empty string.");
         parser.add_option("-f", "--fibonacci",  dest="fibonacci", action="store_true", help="If set, count up the number of words in each line of the input file and output it back, along with the Fibonacci number for that number. (e.g., Fib(n) = Fib(n-1) + Fib(n-2) and Fib(1) = 1.");
-        parser.add_option("-c", "--cooccurrence",  dest="cooccurrence", action="store_true", help="If set, count up the number of lines in the input file that each word and each co-occuring word pair occurs.");
+        parser.add_option("-c", "--cooccurrence",  dest="cooccurrence", action="store_true", help="If set, count up the number of lines in the input file that each word and each co-occuring word pair occurs in.");
         (options, args) = parser.parse_args(argv[1:])
 
         log.info("Starting: "+str.join(" ", argv))
