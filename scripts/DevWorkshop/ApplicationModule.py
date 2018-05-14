@@ -9,8 +9,7 @@ import json;
 from optparse import OptionParser
 from cStringIO import StringIO;
 
-from medinfo.common.Util import stdOpen, log;
-from medinfo.common.Const import COMMENT_TAG;
+COMMENT_TAG = "#";
 
 class ApplicationClass:
     def extractWordsByIndex(self, wordIndex, inputFile, outputFile):
@@ -47,11 +46,11 @@ class ApplicationClass:
         parser.add_option("-c", "--cooccurrence",  dest="cooccurrence", action="store_true", help="If set, count up the number of lines in the input file that each word and each co-occuring word pair occurs in.");
         (options, args) = parser.parse_args(argv[1:])
 
-        log.info("Starting: "+str.join(" ", argv))
+        print >> sys.stderr, "Starting: "+str.join(" ", argv);
         timer = time.time();
         if len(args) > 1:
-            inputFile = stdOpen(args[0]);
-            outputFile = stdOpen(args[1],"w");
+            inputFile = open(args[0]);
+            outputFile = open(args[1],"w");
             
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
@@ -72,7 +71,7 @@ class ApplicationClass:
             sys.exit(-1)
 
         timer = time.time() - timer;
-        log.info("%.3f seconds to complete",timer);
+        print >> sys.stderr, "%.3f seconds to complete" % timer;
 
 if __name__ == "__main__":
     instance = ApplicationClass();
