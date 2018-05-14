@@ -15,14 +15,14 @@ Test First Development
 == Workshop Steps ==
 - Download copy of the code repository
     git clone https://github.com/HealthRex/CDSS.git
-       or if you just need to update existing copy
+       or if you just need to update existing copy...
     git pull
 
 - Go to the CDSS/scripts/DevWorkshop/ directory
 
 - Verify you can run the example ApplicationModule and respective test
-    python ApplicationModule.py -w 3 sampleData/abstractLines.txt.gz -
-		The above should print out a bunch of words to your console, extracted from a file with a bunch of example text.
+    python ApplicationModule.py -w 3 sampleData/abstractLines.txt results/abstractWords.txt
+		The above should create a results.txt file with a sample of words extracted from the abstractLines.txt file.
     
     python TestApplicationModule.py
 		The above is expected to yield a "failed" test, but just make sure it doesn't yield a compiler error, or python dependency issue, etc.
@@ -37,19 +37,19 @@ Test First Development
 	- Example test_extractWordsByIndex test, following basic repeated structure: Setup test input, run application code on input, verify (assert) output matches expected results.
 
 - Test and Debug
-	- Figure out why the test_extractWordsByIndex fails and modify the code until it passes
-		- When there is an error/failure, distinguish whether it is an error in the test's expectations, or if it a logic error in the application. (Beware the urge to change the test to match the application's behavior, unless you're sure the application is the one that is correct... which you can't be unless you've run some tests one it.)
+	- Figure out why the test_extractWordsByIndex fails and modify the code until it passes.
+	- When there is an error/failure, beware the urge to change the test to match the application's behavior. Unless you're sure the application is the one that is correct... which you can't be sure of unless you've run some tests on it.
 
 - Test First Development Example
 	- Try adding another application function and test case to these files, such as the Fibonacci or cooccurrence counting ideas.
 	- Test First Dev: 
 		(1) Write the application function stub + documentation of what you want it to do, but NOT the actual implementation. 
-		(2) Write the unit test function which asserts expected output if your application function does what you want it to (again, BEFORE you've implemented the actual application code).
-		(3) Run the unit test above, expecting it to fail (since application code not written), but verifies you stitched the API (application programming interface) together correctly. Mimics how easy/hard it will be for a user of your code to follow.
+		(2) Write the unit test function which asserts expected output if your application function does what you want it to (again, BEFORE you've implemented the actual application code). Forces you to effectively design your code API (application programming interface, i.e., function names, parameters, return values).
+		(3) Run the unit test above, expecting it to fail (since application code not written), but verifies you stitched the API calls together correctly. Mimics how easy/hard it will be for a user of your code to follow.
 		(4) Implement the application code, and run the unit test, and continue iterating until your unit tests pass.
 
 - Automated Regression Testing Empowers Bold Changes in Implementation
 	- If you got the Fibonacci example working, including a unit test to verify, try running it against an example input value of 50 or more (i.e., you'll be calculating the 50th Fibonacci value, or higher).
 		For example, copy and paste one of the sample input text lines multiple times over until it is at least 50 words long.
-	- Depending on how you implemented the Fibonacci application code, it highly likely that the above will never finish (you'll have to Ctrl-C to cancel the process).
-	- Try implementing the application code a different way, while confidently being able to run your existing unit test to verify that whatever changes you make will still produce valid results (but hopefully much faster).
+	- Depending on how you implemented the Fibonacci application code, it is highly likely that the above will never finish (you'll have to Ctrl-C to cancel the process).
+	- Try implementing the application code a different way, while confidently being able to re-run your existing unit test to verify that whatever changes you make will still produce valid results (but hopefully much faster).
