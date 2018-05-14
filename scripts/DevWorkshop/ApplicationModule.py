@@ -13,9 +13,6 @@ from medinfo.common.Util import stdOpen, log;
 from medinfo.common.Const import COMMENT_TAG;
 
 class ApplicationClass:
-    def __init__(self):
-        pass;
-
     def extractWordsByIndex(self, wordIndex, inputFile, outputFile):
         """Look through each line of the input file
         and output a respective line in the output file containing the k-th word of each input line (k=wordIndex).
@@ -28,6 +25,16 @@ class ApplicationClass:
             if k < len(words):
                 selectedWord = words[k];
             print >> outputFile, selectedWord;
+
+    #def fibonacciExample(???):
+        """
+        # Fibonacci example
+        # Fib(n) = Fib(n-1) + Fib(n-2)
+        # Fib(1) = Fib(2) = 1
+        #
+        #   n       1   2   3   4   5   6   7   8   9   10
+        #   Fib(n)  1   1   2   3   5   8   13  21  34  55
+        """
 
     def main(self, argv):
         """Main method, callable from command line"""
