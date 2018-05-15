@@ -278,16 +278,15 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
 
 if __name__ == '__main__':
     log.level = logging.DEBUG
-    labs_to_test = ['LABPT']
+    labs_to_test = ['LABMGN']
     change_params = {}
     change_params['method'] = 'percent'
     change_params['feature_new'] = 'ord_num_value'
 
-    params_to_test = [0.5, 0.4, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05]
-    #params_to_test = [0.5]
+    params_to_test = [0.5, 0.4, 0.3, 0.2, 0.1]
 
     for panel in labs_to_test:
         change_params['feature_old'] = '%s.-14_0.last' % panel[3:5]
         for param in params_to_test:
             change_params['param'] = param
-            LabChangePredictionPipeline(change_params, panel, 10000, use_cache=True, random_state=123456789)
+            LabChangePredictionPipeline(change_params, panel, 100, use_cache=True, random_state=123456789)

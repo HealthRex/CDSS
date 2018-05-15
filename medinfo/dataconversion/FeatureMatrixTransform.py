@@ -72,6 +72,11 @@ class FeatureMatrixTransform:
         elif strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_DISTRIBUTION:
             self._matrix[feature] = self._matrix[feature].apply(lambda x: distribution() if pd.isnull(x) else x)
 
+    def drop_null_features(self):
+        for feature in self._matrix.columns.values:
+            if self._matrix[feature].isnull().all():
+                self.remove_feature(feature)
+
     def remove_feature(self, feature):
         try:
             del self._matrix[feature]
