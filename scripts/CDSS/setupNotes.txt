@@ -185,7 +185,7 @@ sudo setenforce 0
 https://wiki.apache.org/httpd/13PermissionDenied
 
 # General Tips
-- Review Apache error logs if running into server side issues: sudo tail /etc/httpd/logs/error_log
+- Review Apache error logs if running into server side issues: sudo tail /etc/httpd/logs/error_
 
 # Web server start / control
 sudo service httpd restart
