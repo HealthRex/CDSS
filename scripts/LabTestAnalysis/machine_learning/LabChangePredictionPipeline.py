@@ -6,10 +6,12 @@ and analysis of LabChange prediction.
 
 import inspect
 import os
+import logging
+
+from sys import argv
 from pandas import DataFrame, Series
 import numpy as np
 from sklearn.externals import joblib
-import logging
 
 from medinfo.common.Util import log
 from medinfo.ml.FeatureSelector import FeatureSelector
@@ -23,7 +25,8 @@ from scripts.LabTestAnalysis.machine_learning.dataExtraction.LabChangeMatrix imp
 class LabChangePredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, change_params, lab_panel, num_episodes, use_cache=None, random_state=None):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state)
-        self._change_params = (change_params)
+        self._change_params = change_params
+        self._change_params['feature_old'] = self._lookup_previous_measurement_feature(self._var)
         log.debug('change_params: %s' % self._change_params)
 
         self._build_raw_feature_matrix()
@@ -73,8 +76,8 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
 
         log.debug('params: %s' % params)
 
+        prev_measurement_feature = self._change_params['feature_old']
         features_to_add = {'change': [self._change_params]}
-        prev_measurement_feature = '%s.-14_0.last' % self._var[3:5]
         features_to_filter_on = [{'feature': prev_measurement_feature,
                                   'value':np.nan}]
         imputation_strategies = {
@@ -276,9 +279,19 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
             fm_io.write_data_frame_to_file(meta_report, \
                 '/'.join([data_dir, '%s-change-prediction-report.tab' % self._var]), header)
 
+    def _lookup_previous_measurement_feature(self, proc_code):
+        # e.g. app_dir = CDSS/scripts/LabTestAnalysis/machine_learning
+        pipeline_module_path = inspect.getfile(inspect.currentframe())
+        app_dir = os.path.dirname(os.path.abspath(pipeline_module_path))
+        with open("%s/LabComponentMap.tab" % app_dir) as map:
+            for line in map:
+                row = line.split()
+                if row[0] == proc_code:
+                    return '%s.-14_0.last' % row[1].rstrip()
+
 if __name__ == '__main__':
     log.level = logging.DEBUG
-    labs_to_test = ['LABMGN']
+    labs_to_test = [argv[1]]
     change_params = {}
     change_params['method'] = 'percent'
     change_params['feature_new'] = 'ord_num_value'
@@ -286,7 +299,6 @@ if __name__ == '__main__':
     params_to_test = [0.5, 0.4, 0.3, 0.2, 0.1]
 
     for panel in labs_to_test:
-        change_params['feature_old'] = '%s.-14_0.last' % panel[3:5]
         for param in params_to_test:
             change_params['param'] = param
             LabChangePredictionPipeline(change_params, panel, 100, use_cache=True, random_state=123456789)
