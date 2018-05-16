@@ -128,8 +128,12 @@ Amazon Web Services and Development Environment Setup
 		- Use a batch driver script to run multiple processes
 			python batchDriver.py
 
-			Probably more common to run a shell script (e.g., bash) to chain together multiple commands, though I find Python can do all of the above, is more flexible, platform independent, and unifies the programming/scripting language used. If you prefer, can use instead run batchDriver.sh as an alternative (basic result will be the same).
+			Probably more common to run a shell script (e.g., bash) to chain together multiple commands, e.g. batchDriver.sh will yield same basic result, but does  parallelization via nohup &. 
+			I decided I prefer Python when it can do all of the above, is more flexible, platform independent, and unifies the programming/scripting language used. For example, rather than copy-pasting a dozen similar but different command line calls in the batchDriver.sh script, I use a Python loop to effectively generate those commands (and thus easier to tweak later).
 			Example script shows using a for loop to generate a series of command line parameter variants to keep running different versions of a script and spawn them in series (subprocess.call).
+
+			Alternative to directly spawn multiple (parallel background) processes through a shell script:
+				bash batchDriver.sh
 
 			Simple sequential batch process setup:
 				nohup python batchDriver.py &> log/batchDriver.log &
