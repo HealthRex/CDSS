@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Feed Frame</title>
+	<script>
+	// https://stackoverflow.com/questions/9837676/smooth-auto-scroll-by-using-javascript
+	function pageScroll()
+	{
+		var pixels = 1;		// Pixels to scroll down by for each interval
+		var interval = 200;	// Milliseconds
+	    setInterval(function(){ window.scrollBy(0,pixels) }, interval);
+	}
+	</script>
+	<!-- Refresh content periodically 
+	(after ~1 scroll through = data height * interval/pixel * 1 second / 1000 ms)
+	per day to capture any changes -->
+	<meta http-equiv="refresh" content="600">
+</head>
+<body onLoad="pageScroll();">
+	<a class="twitter-timeline" data-height="3000" data-dnt="true" data-chrome="noheader nofooter noborder noscrollbar transparent" href="https://twitter.com/jonc101x?ref_src=twsrc%5Etfw">Tweets by jonc101x</a>
+	<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</body>
+</html>
+
