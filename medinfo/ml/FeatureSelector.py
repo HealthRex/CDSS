@@ -18,7 +18,7 @@ class FeatureSelector:
     CLASSIFICATION = 'classification'
     SUPPORTED_PROBLEMS = [REGRESSION, CLASSIFICATION]
 
-    def __init__(self, algorithm=None, problem=None):
+    def __init__(self, algorithm=None, problem=None, random_state=None):
         # Specify feature selection algorithm.
         if algorithm is None:
             algorithm = FeatureSelector.REMOVE_HIGH_VARIANCE
@@ -36,6 +36,8 @@ class FeatureSelector:
         # Use a FeatureMatrixTransform for actually generating output matrix.
         self._fmt = FeatureMatrixTransform()
         self._selector = None
+
+        self._random_state = random_state
 
         pass
 
@@ -128,9 +130,9 @@ class FeatureSelector:
 
     def _eliminate_recursively(self, k=None):
         if self._problem == FeatureSelector.CLASSIFICATION:
-            estimator = RandomForestClassifier()
+            estimator = RandomForestClassifier(random_state=self._random_state)
         else:
-            estimator = LassoCV()
+            estimator = LassoCV(random_state=self._random_state)
         # If k is not specified, then use RFECV to automatically decide on
         # optimal number of features. If specified, then use RFE.
         if k is None:

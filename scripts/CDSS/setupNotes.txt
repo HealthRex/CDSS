@@ -1,4 +1,6 @@
 ======== AWS Server Setup Notes ==============
+If you're just installing on your local laptop/computer, then skip to the next section, but some tips here may still be helpful.
+
 - Sign-up for AWS account
 - Free Tier eligible EC2 Micro Instance create
 - Change Security Group for instance to allow TCP ports 22 for SSH connection any others
@@ -10,7 +12,7 @@ sudo adduser jonc101
 sudo passwd jonc101
 - Grant user sudo privileges
 sudo visudo
-	jonc101 ALL=(ALL) ALL
+    jonc101 ALL=(ALL) ALL
 - Change setting to allow SSH password login. Beware that this is less secure!
 sudo vi /etc/ssh/sshd_config
 PasswordAuthentication yes
@@ -34,88 +36,98 @@ sudo easy_install gensim
 - Use AWS Console interface (RDService) to create a PostgreSQL relational database if want separate DB server (vs. installed on local EC2 instance)
   Consider Provisioned IOPS on a "large' instance for computation periods to better handle high I/O cost
 
-
 ==============================================
 Local Installation Dependencies
-- Python 2.7
-- PostgreSQL
-- Apache 2.2
-- Scipy
-- Numpy
-- Psycopg2
-- Mod_WSGI
 
+Highly recommended that you use some standard package installers to minimize the pain of getting all of the dependencies setup right.
+(E.g., yum or apt-get for top level packages. Use pip for python packages where possible. Windows binary installers may be necessary for others. Many unofficial Windows binaries are available from https://www.lfd.uci.edu/~gohlke/pythonlibs/)
+
+- PostgreSQL
+- Python 2.7
+  - Scipy
+  - Numpy
+  - Psycopg2
+
+Only necessary if you want to develop interactive web interfaces:
+- Apache 2.2
+- Mod_WSGI
 
 ==============================================
 Download code from source control
-    git clone https://github.com/HealthRex/CDSS.git
-
-=============================================
-Update ~/.bash_profile with paths and references
-
-vi ~/.bash_profile
-
-	BASE_DIR=$HOME/CDSS
-	export BASE_DIR
-
-	PYTHONPATH=$PYTHONPATH:$BASE_DIR
-	export PYTHONPATH
-
-then
-
-source ~/.bash_profile
+> git clone https://github.com/HealthRex/CDSS.git
 
 ==============================================
+Download data folders
+- STRIDE-Inpatient-2008-2014
+  - dump2009-2014-5year-time
+- STRIDE-Inpatient-2004-2017
 
-
-#   Create blank database to work with
-PostgreSQL: 
-	createdb -U postgres -O jonc101 medinfo
-
-# Create DB users and access privileges from remote connections
-PostgreSQL:
-    CREATE USER jonc101 PASSWORD '<yourPassword>';
-
-
-# If restoring from a previously pre-processed database, than just restore each data table's contents in turn
-restoreCPOETables.sh (should be stored with data dump source)
-# See setupDataPreprocessingNotes.txt for details on reconstructing the pre-processing steps from scratch
-
-#   Create data definitions (If did direct restore from previous data dump, OK to expect many errors regarding "Relation already exists")
-PostgreSQL: # Use timestamp data type
-	psql -f medinfo/db/definition/strideData.sql -U jonc101 medinfo		# This may be in the source data directory as schema.strideData.sql
-	psql -f medinfo/db/definition/cpoeStats.sql -U jonc101 medinfo
-	psql -f medinfo/db/definition/cpoeSimulation.sql -U jonc101 medinfo
-
-# Point Python scripts to database
-vi medinfo/db/Env.py
-
-#	Database connection test
-python medinfo/db/test/TestDBUtil.py
-
-#   Basic stat table unit tests
-python medinfo/cpoe/test/TestAssociationAnalysis.py
-python medinfo/cpoe/test/TestItemRecommender.py
-
-#   Data Conversion unit test
-python medinfo/dataconversion/test/TestSTRIDEOrderProcConversion.py
-python medinfo/dataconversion/test/TestSTRIDEOrderMedConversion.py
-python medinfo/dataconversion/test/TestSTRIDEOrderResultsConversion.py
-
-# Multiple Unit tests, auto discover
-python -m unittest discover -v -p "Test*.py" -s medinfo/analysis
-
-# Remote copying / synchronizing data files
+# Tips for remote copying / synchronizing data files to Linux servers
 pscp * jonc101@corn.stanford.edu:private/data
 # Patching / resuming incompletely transmitted files.  Do for one file at a time to allow for proper interrupt / resume function?
 rsync --partial --progress order_results.txt jonc101@corn.stanford.edu:private/data/order_results.txt
 
+=============================================
+Update ~/.bash_profile with paths and references to make subsequent steps more convenient
+
+> vi ~/.bash_profile
+    BASE_DIR=$HOME/CDSS
+    export BASE_DIR
+
+    PYTHONPATH=$PYTHONPATH:$BASE_DIR
+    export PYTHONPATH
+
+> source ~/.bash_profile
+
+==============================================
+#   Create blank database to work with
+> createdb -U postgres -O jonc101 medinfo
+(Note that this is a command-line program. If you're already connected via psql, you can enter the CREATE DATABASE SQL command query.)
+
+# Create DB users and access privileges from remote connections
+PostgreSQL SQL Command:
+    CREATE USER jonc101 PASSWORD '<yourPassword>';
+
+# If restoring from a previously pre-processed database, than just restore each data table's contents in turn
+> restoreCPOETables.sh (should be stored with data dump source)
+
+# See setupDataPreprocessingNotes.txt for details on reconstructing the pre-processing steps from scratch
+
+#   Create data definitions (If did direct restore from previous data dump, OK to expect many errors regarding "Relation already exists")
+PostgreSQL: # Use timestamp data type
+> psql -f medinfo/db/definition/strideData.sql -U jonc101 medinfo		# This may be in the source data directory as schema.strideData.sql
+> psql -f medinfo/db/definition/cpoeStats.sql -U jonc101 medinfo
+> psql -f medinfo/db/definition/cpoeSimulation.sql -U jonc101 medinfo
+
+# Point Python scripts to database (may want to separate your primary database from a "test" database that unit tests run against, so that the unit tests don't accidentally clobber your primary data source).
+> vi medinfo/db/Env.py
+
+# Python unit tests to verify things are functional
+# Database connection test
+> python medinfo/db/test/TestDBUtil.py
+
+# Basic stat table unit tests
+> python medinfo/cpoe/test/TestAssociationAnalysis.py
+> python medinfo/cpoe/test/TestItemRecommender.py
+
+#   Data Conversion unit test
+> python medinfo/dataconversion/test/TestSTRIDEOrderProcConversion.py
+> python medinfo/dataconversion/test/TestSTRIDEOrderMedConversion.py
+> python medinfo/dataconversion/test/TestSTRIDEOrderResultsConversion.py
+
+# Multiple Unit tests, auto discover
+> python -m unittest discover -v -p "Test*.py" -s medinfo/analysis
 
 ===================================================================
 
 #  Setup Web Server (Apache HTTP, mod_wsgi, psycopg2 DB access).  
 # Install mod_wsgi using an install or Copy the version appropriate mod_wsgi.so file to the 
 #	apache modules directory and rename to simply mod_wsgi.so
+# 	This has a high probability of being very painful, because it requires 
+#	perfectly synced binaries / compiler versions for each component.
+#	Best if you have a package installer (e.g., yum) that does it automatically, otherwise
+#	you'll have to hunt down the right combination of pre-compiled components that are compatible.
+# Setup the Apache webserver as per standard instructions, then add the extra configuration below to add the custom Python app
 # Sample Apache Config:
 sudo vi /etc/httpd/conf/httpd.conf
 
@@ -168,11 +180,19 @@ http://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-apache-startstop.htm
 # Need read/execute permission on directory tree up to web files, so may need to
 chmod 755 /home/jonc101
 
+# Linux server may also need to change SELinux enforcement if running into "AH00132: file permissions deny server access"
+sudo setenforce 0
+https://wiki.apache.org/httpd/13PermissionDenied
+
+# General Tips
+- Review Apache error logs if running into server side issues: sudo tail /etc/httpd/logs/error_
+
 # Web server start / control
 sudo service httpd restart
 
 
-#  Test Pages:
+#  Test Pages. If these load properly, then your web setup should be in good shape
+#  	If failing with Internal Server Errors, then check the Apache /etc/httpd/logs/error.log for stderr messages
 http://localhost/medinfo/web/cgibin/admin/DebugWeb.py
 http://localhost/medinfo/web/cgibin/admin/DBUtilWeb.py
 http://localhost/medinfo/web/cgibin/cpoe/ItemRecommenderWeb.py
