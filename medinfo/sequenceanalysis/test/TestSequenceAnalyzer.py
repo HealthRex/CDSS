@@ -152,30 +152,30 @@ class TestSequenceAnalyzer(unittest.TestCase):
       [11286739503688L, '11213R(InRange)', datetime.datetime(2011, 11, 19, 12, 23)]]
 
     def handle_sentinel_queue_fn(window_size, queue, vars_dict, row):
-      vars_dict['prior_history'] = bool(RepeatComponents.getDayDifference(row, queue[0]) <= window_size)
+      vars_dict['prior_history'] = bool(RepeatComponents.getDayDifference(row, queue[0]) <= window_size)  # If queue is just a sentinel, this will evaluate. Example sentinel value: Cleared queue after every abnormal test, but still need to keep track of date of abnormal value
 
     def filter_queue_fn(window_size, queue, vars_dict, row):
-      return RepeatComponents.getDayDifference(row, queue[0]) > window_size
+      return RepeatComponents.getDayDifference(row, queue[0]) > window_size # Removing items that are no longer in the window
 
-    def emptied_queue_handler_fn(window_size, vars_dict, row):
-      vars_dict['prior_history'] = False
+    def emptied_queue_handler_fn(window_size, vars_dict, row):  
+      vars_dict['prior_history'] = False  # After running filter/pop queue, if results in empty queue, then do stuff here (reset prior_history record having no prior records within window / as opposed to an abnormal value being present before)
 
     def set_number_consecutive_normals_fn(window_size, queue, vars_dict, row):
       return len(queue) if vars_dict['prior_history'] else None
 
     sequence_analyzer = SequenceAnalyzer()
 
-    sequence_analyzer.split_data(lambda current_split, row: row[0] != current_split[-1][0])
-    sequence_analyzer.initialize_vars({'prior_history': False})
+    sequence_analyzer.split_data(lambda current_split, row: row[0] != current_split[-1][0]) # Basically doing split by patientId, assuming that patientId is the first column
+    sequence_analyzer.initialize_vars({'prior_history': False}) # Prior_history reflects whether something was previously in queue. Init vars allows pass in parameter dictionary
     # sequence_analyzer.filter_row(filter_row_fn, use_vars)
-    sequence_analyzer.handle_sentinel_queue(handle_sentinel_queue_fn)
-    sequence_analyzer.filter_queue(filter_queue_fn, emptied_queue_handler_fn)
+    sequence_analyzer.handle_sentinel_queue(handle_sentinel_queue_fn) # Check whether queue has a single sentinel value, but need some residual value (e.g., last date to allow maintenance of prior_history)
+    sequence_analyzer.filter_queue(filter_queue_fn, emptied_queue_handler_fn) # Pop queue criteria, for example to remove items from head of queue as progress
 
     #     filter_if_fn=filter_if_fn,
     #     filter_else_handler_fn=filter_else_handler_fn,
     #     filter_sentinel_fn=filter_sentinel_fn)
 
-    sequence_analyzer.set_var('number_consecutive_normals', set_number_consecutive_normals_fn)
+    sequence_analyzer.set_var('number_consecutive_normals', set_number_consecutive_normals_fn)  # To change, spawn key-value pairs like a mapper? So user can then "reduce" by aggregating those items
 
     # sequence_analyzer.filter_sentinel(filter_sentinel_fn, use_vars)
     # sequence_analyzer.add_row()
@@ -183,9 +183,10 @@ class TestSequenceAnalyzer(unittest.TestCase):
     # sequence_analyzer.compute_stats(compute_stats_fn, use_vars)
     # sequence_analyzer.clear_queue(clear_window_fn, use_vars)
 
-    sequence_analyzer.build()
+    sequence_analyzer.build() # Just a signal that user is done, so Run function can check
 
-    sequence_analyzer.run(data, [1])
+    windowSizes = [1, 2, 4, 7, 30, 90];  # list of window sizes to evaluate
+    sequence_analyzer.run(data, windowSizes);
     # for window in sequence_analyzer.run(labTests):
     #     pass
 
