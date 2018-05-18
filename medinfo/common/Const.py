@@ -4,7 +4,7 @@ import sys;
 import logging
 import Env
 
-"""See oemolistream documentation for more info on this pattern"""
+"""If specify this as the name of an input/output file, interpret as user wants to use stdin or stdout"""
 STD_FILE = "-"
 
 """File extension to identify GZipped files"""
@@ -47,7 +47,7 @@ PROG_SMALL_TIME = 1; # 1 second per small update
 LOGGER_LEVEL = Env.LOGGER_LEVEL
 
 """Default format of logger output"""
-LOGGER_FORMAT = "[%(asctime)s %(levelname)s] %(message)s"
+LOGGER_FORMAT = "[%(asctime)s %(levelname)s] %(module)s.%(funcName)s.%(lineno)d: %(message)s"
 
 """Default datetime format parsers.  Will be attempted in sequential order.
 See Python documentation for formatting codes.
@@ -66,4 +66,3 @@ DEFAULT_DATE_FORMATS = \
         "%d-%b-%y",
         "%b %d, %Y %I:%M %p",
     ];
-

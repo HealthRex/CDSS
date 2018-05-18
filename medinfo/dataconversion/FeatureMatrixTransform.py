@@ -3,12 +3,13 @@
 Module for transforming the values within an existing feature matrix.
 """
 
-
 import numpy as np
 import pandas as pd
 
 from scipy.stats import norm
 from sklearn.preprocessing import Imputer
+from Util import log
+from math import isnan
 
 class FeatureMatrixTransform:
     IMPUTE_STRATEGY_MEAN = 'mean'
@@ -71,8 +72,33 @@ class FeatureMatrixTransform:
         elif strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_DISTRIBUTION:
             self._matrix[feature] = self._matrix[feature].apply(lambda x: distribution() if pd.isnull(x) else x)
 
+    def drop_null_features(self):
+        for feature in self._matrix.columns.values:
+            if self._matrix[feature].isnull().all():
+                self.remove_feature(feature)
+
     def remove_feature(self, feature):
-        del self._matrix[feature]
+        try:
+            del self._matrix[feature]
+        except KeyError:
+            log.info('Cannot remove non-existent feature "%s".' % feature)
+
+    def filter_on_feature(self, feature, value):
+        # remove rows where feature == value
+        if pd.isnull(value): # nan is not comparable, so need different syntax
+            rows_to_remove = self._matrix[pd.isnull(self._matrix[feature])].index
+        else:
+            try:
+                rows_to_remove = self._matrix[self._matrix[feature] == value].index
+            except TypeError:
+                log.info('Cannot filter %s on %s; types are not comparable.' % (feature, str(value)))
+                return
+
+        self._matrix.drop(rows_to_remove, inplace = True)
+        self._matrix.reset_index(drop=True, inplace = True)
+
+        # return number of rows remaining
+        return self._matrix.shape[0]
 
     def add_logarithm_feature(self, base_feature, logarithm=None):
         if logarithm is None:
@@ -89,6 +115,8 @@ class FeatureMatrixTransform:
             new_col = self._matrix[base_feature].apply(np.log10)
             self._matrix.insert(col_index, log_feature, new_col)
 
+        return log_feature
+
     def add_indicator_feature(self, base_feature, boolean_indicator=None):
         # boolean: determines whether to add True/False labels or 1/0
         if boolean_indicator is None or boolean_indicator is False:
@@ -100,6 +128,8 @@ class FeatureMatrixTransform:
         indicator_feature = 'I(' + base_feature + ')'
         new_col = self._matrix[base_feature].apply(indicator)
         self._matrix.insert(col_index + 1, indicator_feature, new_col)
+
+        return indicator_feature
 
     def add_threshold_feature(self, base_feature, lower_bound=None, upper_bound=None):
         # Add feature which indicates whether base_feature is >= lower_bound
@@ -123,11 +153,82 @@ class FeatureMatrixTransform:
         new_col = self._matrix[base_feature].apply(indicator)
         self._matrix.insert(col_index + 1, threshold_feature, new_col)
 
+        return threshold_feature
+
     def drop_duplicate_rows(self):
         self._matrix.drop_duplicates(inplace=True)
+
+    def remove_low_signal_features(self):
+        # Prune obviously unhelpful fields.
+        # in theory, FeatureSelector should be able to prune these
+        # automatically, but no harm in helping out given it has to sift
+        # through ~3000 features.
+        LOW_SIGNAL_FEATURES = [
+            'index_time',
+            'Birth.pre', 'Death.post'
+            'Male.preTimeDays', 'Female.preTimeDays',
+            'RaceWhiteHispanicLatino.preTimeDays',
+            'RaceWhiteNonHispanicLatino.preTimeDays',
+            'RaceHispanicLatino.preTimeDays',
+            'RaceAsian.preTimeDays',
+            'RaceBlack.preTimeDays',
+            'RacePacificIslander.preTimeDays',
+            'RaceNativeAmerican.preTimeDays',
+            'RaceOther.preTimeDays',
+            'RaceUnknown.preTimeDays'
+            ]
+        for feature in LOW_SIGNAL_FEATURES:
+            self.remove_feature(feature)
 
     def _numeric_indicator(self, value):
         return 1 if pd.notnull(value) else 0
 
     def _boolean_indicator(self, value):
         return pd.notnull(value)
+
+    def add_change_feature(self, method, param, feature_old, feature_new):
+        # Add column unchanged_yn describing whether feature_new is 'unchanged'
+        # relative to feature_old
+
+        if method == "percent":
+            change_col = self._matrix.apply(self._percent_change, \
+            args=(feature_old, feature_new, param), axis = 1)
+        elif method == "interval":
+            change_col = self._matrix.apply(self._interval_change, \
+            args=(feature_old, feature_new, param), axis = 1)
+        else:
+            raise ValueError("Must specify a supported method for change calculation")
+
+        # add new column to matrix
+        # TODO (raikens): since new column is always "unchange_yn," only one
+        # change feature can be added.
+        col_index = self._matrix.columns.get_loc(feature_new)
+        self._matrix.insert(col_index + 1, "unchanged_yn", change_col)
+        return "unchange_yn"
+
+    def _is_numeric(self, x):
+        try:
+            float(x)
+            return (not isnan(x))
+        except ValueError:
+            return False
+
+    def _percent_change(self, row, feature_old, feature_new, param):
+        # Return 1 if new value has changed by more than <param> percent
+        # of old value, else return 0.
+        # If either old or new value is missing, returns 9999999.
+        if not (self._is_numeric(row[feature_old]) and self._is_numeric(row[feature_new])):
+            return 9999999
+        elif row[feature_old] == 0.0:
+            return 1
+        else:
+            return int(abs(1.0-float(row[feature_new])/float(row[feature_old])) < param)
+
+    def _interval_change(self, row, feature_old, feature_new, param):
+        # Return 1 if new value has changed by more than <param> from old value,
+        # else return 0.
+        # If either old or new value is missing, returns 9999999.
+        if not (self._is_numeric(row[feature_old]) and self._is_numeric(row[feature_new])):
+            return 9999999
+        else:
+            return int(abs(float(row[feature_new])-float(row[feature_old])) < param)

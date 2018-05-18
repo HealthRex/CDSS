@@ -10,12 +10,8 @@ from FeatureSelectorTestData import RANDOM_REGRESSION_TEST_CASE
 class TestFeatureSelector(MedInfoTestCase):
     def setUp(self):
         fs = FeatureSelector()
-        pass
 
     def tearDown(self):
-        pass
-
-    def test_init(self):
         pass
 
     def test_generate_univariate_test_case(self):
@@ -124,7 +120,7 @@ class TestFeatureSelector(MedInfoTestCase):
 
     def _get_test_feature_ranks(self, algorithm, problem, X, y, k=None, percentile=None):
         # Set input features and values.
-        fs = FeatureSelector(algorithm=algorithm, problem=problem)
+        fs = FeatureSelector(algorithm=algorithm, problem=problem, random_state=12345)
         fs.set_input_matrix(X, y)
 
         # Select k best features.

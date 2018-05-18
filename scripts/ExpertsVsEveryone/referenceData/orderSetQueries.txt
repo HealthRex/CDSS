@@ -1,0 +1,190 @@
+
+-- Order Set Usage, only counting Default Recommend
+explain
+select external_id, name, count(patient_id) as patientCount, 
+   avg(itemCount) as avgItemCount, min(itemCount) as minItemCount, max(itemCount) as maxItemCount,
+   sum(itemCount) as sumItemCount, sum(itemCount*itemCount) as sumSquaresItemCount
+from
+(
+	select 
+		ic.external_id,
+		ic.name,
+		pi.patient_id,
+		count(distinct pi.clinical_item_id) as itemCount
+	from 
+		item_collection as ic,
+		item_collection_item as ici, 
+		patient_item_collection_link as picl, 
+		patient_item as pi,
+		clinical_item as ci,
+		clinical_item_category as cic
+	where 
+		ic.item_collection_id = ici.item_collection_id and
+		ici.item_collection_item_id = picl.item_collection_item_id and 
+		picl.patient_item_id = pi.patient_item_id and  
+		pi.clinical_item_id = ci.clinical_item_id and
+		ci.clinical_item_category_id = cic.clinical_item_category_id and
+		ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent and
+		ci.default_recommend = 1 and
+		cic.default_recommend = 1
+	group by 
+		ic.external_id,
+		ic.name,
+		pi.patient_id
+) as orderSetPatient
+group by 
+	external_id,
+	name
+
+
+
+nohup python medinfo/db/DBUtil.py -c "select external_id, name, count(patient_id) as patientCount,     avg(itemCount) as avgItemCount, min(itemCount) as minItemCount, max(itemCount) as maxItemCount,    sum(itemCount) as sumItemCount, sum(itemCount*itemCount) as sumSquaresItemCount from (  select    ic.external_id,   ic.name,   pi.patient_id,   count(distinct pi.clinical_item_id) as itemCount  from    item_collection as ic,   item_collection_item as ici,    patient_item_collection_link as picl,    patient_item as pi,   clinical_item as ci,   clinical_item_category as cic  where    ic.item_collection_id = ici.item_collection_id and   ici.item_collection_item_id = picl.item_collection_item_id and    picl.patient_item_id = pi.patient_item_id and     pi.clinical_item_id = ci.clinical_item_id and   ci.clinical_item_category_id = cic.clinical_item_category_id and   ci.default_recommend = 1 and   cic.default_recommend = 1  group by    ic.external_id,   ic.name,   pi.patient_id ) as orderSetPatient group by   external_id,  name" orderSetUsage.defaultRecommend.tab &> log/orderSetUsage.defaultRecommend &
+
+
+-- Order Set Usage
+explain
+select external_id, name, count(patient_id) as patientCount, 
+   avg(itemCount) as avgItemCount, min(itemCount) as minItemCount, max(itemCount) as maxItemCount,
+   sum(itemCount) as sumItemCount, sum(itemCount*itemCount) as sumSquaresItemCount
+from
+(
+	select 
+		ic.external_id,
+		ic.name,
+		pi.patient_id,
+		count(distinct pi.clinical_item_id) as itemCount
+	from 
+		item_collection as ic,
+		item_collection_item as ici, 
+		patient_item_collection_link as picl, 
+		patient_item as pi
+	where 
+		ic.item_collection_id = ici.item_collection_id and
+		ici.item_collection_item_id = picl.item_collection_item_id and 
+		picl.patient_item_id = pi.patient_item_id and
+		ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent 
+	group by 
+		ic.external_id,
+		ic.name,
+		pi.patient_id
+) as orderSetPatient
+group by 
+	external_id,
+	name
+
+
+nohup python medinfo/db/DBUtil.py -c "select external_id, name, count(patient_id) as patientCount,     avg(itemCount) as avgItemCount, min(itemCount) as minItemCount, max(itemCount) as maxItemCount,    sum(itemCount) as sumItemCount, sum(itemCount*itemCount) as sumSquaresItemCount from (  select    ic.external_id,   ic.name,   pi.patient_id,   count(distinct pi.clinical_item_id) as itemCount  from    item_collection as ic,   item_collection_item as ici,    patient_item_collection_link as picl,    patient_item as pi  where    ic.item_collection_id = ici.item_collection_id and   ici.item_collection_item_id = picl.item_collection_item_id and    picl.patient_item_id = pi.patient_item_id   group by    ic.external_id,   ic.name,   pi.patient_id ) as orderSetPatient group by   external_id,  name " orderSetUsage &> log/orderSetUsage &
+
+
+
+
+-- Order Set Sizes
+select 
+	ic.external_id,
+	ic.name,
+	count(distinct ici.clinical_item_id) as itemCount
+from 
+	item_collection as ic,
+	item_collection_item as ici
+where 
+	ic.item_collection_id = ici.item_collection_id and
+	ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent 
+group by 
+	ic.external_id,
+	ic.name
+
+nohup python medinfo/db/DBUtil.py -c " select   ic.external_id,  ic.name,  count(distinct ici.clinical_item_id) as itemCount from   item_collection as ic,  item_collection_item as ici where   ic.item_collection_id = ici.item_collection_id  group by   ic.external_id,  ic.name " orderSetSizes.tab &> log/orderSetSizes &
+
+
+
+-- Order Set Sizes, Default Recommend Only
+select 
+	ic.external_id,
+	ic.name,
+	count(distinct ici.clinical_item_id) as itemCount
+from 
+	item_collection as ic,
+	item_collection_item as ici, 
+	clinical_item as ci,
+	clinical_item_category as cic
+where 
+	ic.item_collection_id = ici.item_collection_id and
+	ici.clinical_item_id = ci.clinical_item_id and
+	ci.clinical_item_category_id = cic.clinical_item_category_id and
+	ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent and
+	ci.default_recommend = 1 and
+	cic.default_recommend = 1
+group by 
+	ic.external_id,
+	ic.name
+	
+nohup python medinfo/db/DBUtil.py -c "select  	ic.external_id, 	ic.name, 	count(distinct ici.clinical_item_id) as itemCount from  	item_collection as ic, 	item_collection_item as ici,  	clinical_item as ci, 	clinical_item_category as cic where  	ic.item_collection_id = ici.item_collection_id and 	ici.clinical_item_id = ci.clinical_item_id and 	ci.clinical_item_category_id = cic.clinical_item_category_id and 	ci.default_recommend = 1 and 	cic.default_recommend = 1 group by  	ic.external_id, 	ic.name 	 " orderSetSizes.defaultRecommend.tab &> log/orderSetSizes.defaultRecommend & 	
+
+
+
+
+
+
+-- Order Set Component Usage
+explain
+	select 
+		ic.external_id,
+		ic.name,
+		ci.clinical_item_id,
+		ci.name,
+		ci.description,
+		count(distinct pi.patient_item_id) as itemCount
+	from 
+		item_collection as ic,
+		item_collection_item as ici, 
+		patient_item_collection_link as picl, 
+		patient_item as pi,
+		clinical_item as ci,
+		clinical_item_category as cic
+	where 
+		ic.item_collection_id = ici.item_collection_id and
+		ici.item_collection_item_id = picl.item_collection_item_id and 
+		picl.patient_item_id = pi.patient_item_id and  
+		pi.clinical_item_id = ci.clinical_item_id and
+		ci.clinical_item_category_id = cic.clinical_item_category_id and
+		ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent
+		-- ic.external_id = 692 -- Example for Med Sepsis
+	group by 
+		ic.external_id,
+		ic.name,
+		ci.clinical_item_id,
+		ci.name,
+		ci.description
+
+
+-- Order Set Component Usage, Default Recommend Only
+	select 
+		ic.external_id,
+		ic.name,
+		ci.clinical_item_id,
+		ci.name,
+		ci.description,
+		count(distinct pi.patient_item_id) as itemCount
+	from 
+		item_collection as ic,
+		item_collection_item as ici, 
+		patient_item_collection_link as picl, 
+		patient_item as pi,
+		clinical_item as ci,
+		clinical_item_category as cic
+	where 
+		ic.item_collection_id = ici.item_collection_id and
+		ici.item_collection_item_id = picl.item_collection_item_id and 
+		picl.patient_item_id = pi.patient_item_id and  
+		pi.clinical_item_id = ci.clinical_item_id and
+		ci.clinical_item_category_id = cic.clinical_item_category_id and
+		ci.default_recommend = 1 and
+		cic.default_recommend = 1 and
+		ic.section <> 'Ad-hoc Orders' -- Existing option to include orders on the fly, even though they weren't really part of the original order set design / intent
+		-- ic.external_id = 692 -- Example for Med Sepsis
+	group by 
+		ic.external_id,
+		ic.name,
+		ci.clinical_item_id,
+		ci.name,
+		ci.description

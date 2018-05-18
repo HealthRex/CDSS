@@ -110,6 +110,7 @@ class ContingencyStats:
         #   but may sometimes yield negative of >1 values that don't make sense if limited data.
         #   If you want a more robust estimate, it would likely require bootstrapping 
         #   to empirically estimate confidence intervals by simulating random resampling.
+        # https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
         elif statId in ("prevalence95CILow"):
             return self["prevalence"] - 1.96*self["SE(prevalence)"]
 

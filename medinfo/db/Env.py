@@ -42,18 +42,10 @@ DATABASE_CONNECTOR_NAME = "psycopg2";
 
 """Parameters needed to open a connection to the database.
 Dependent upon particular connection interface and database implementation
+
+Note that Env.py reads database, user, and password specifications from LocalEnv.py
 """
 DB_PARAM = {}
-#DB_PARAM["HOST"] = "medinfo-5year-time-assoc2010-2013.cxkturzva06i.us-east-1.rds.amazonaws.com"
-#DB_PARAM["HOST"] = "inpatient5year.cxkturzva06i.us-east-1.rds.amazonaws.com"
-DB_PARAM["HOST"] = "localhost"
-#DB_PARAM["DSN"]  = "medicare"
-DB_PARAM["DSN"]  = "medinfo-5year-time"
-#DB_PARAM["DSN"]  = "resident-access-log-2017"
-#DB_PARAM["DSN"] = "/Users/angelicaperez/Documents/JonChen/sqlite_db/dave_chan2.sqlite"
-#DB_PARAM["DSN"]  = "medinfo5yr"
-DB_PARAM["UID"]  = "sbala"
-DB_PARAM["PWD"]  = "1234"
 DB_PARAM = LOCAL_PROD_DB_PARAM
 
 # Opioid Notes DB
@@ -67,18 +59,15 @@ DB_PARAM = LOCAL_PROD_DB_PARAM
 Dependent upon particular connection interface and database implementation
 """
 TEST_DB_PARAM = {}
-#TEST_DB_PARAM["HOST"] = "inpatient5year.cxkturzva06i.us-east-1.rds.amazonaws.com"
-TEST_DB_PARAM["HOST"] = "localhost"
-TEST_DB_PARAM["DSN"]  = "testdb"
-TEST_DB_PARAM["UID"]  = "sbala"
-TEST_DB_PARAM["PWD"]  = "1234"
 TEST_DB_PARAM = LOCAL_TEST_DB_PARAM
 
 #TEST_DB_PARAM["DSN"] = "c:\Box Sync\NoSync\VAAlerts\dave_chan2.sqlite";
 #TEST_DB_PARAM["DSN"] = "/Users/angelicaperez/Documents/JonChen/sqlite_db/dave_chan2.sqlite"
 
 
-"""Parameters on whether to do additional pre-processing when parsing text / CSV files"""
+"""Parameters on whether to do additional pre-processing when parsing text / CSV files.
+Seems necessary for STRIDE 2008-2014-2017 Order Proc dumps?
+"""
 CSV_EXPAND_QUOTES = True;
 
 def formatDBConnectString( dbParamDict ):
