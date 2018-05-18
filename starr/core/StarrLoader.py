@@ -19,11 +19,13 @@ import os
 import gzip
 import shutil
 import pandas as pd
+import numpy as np
 
 from LocalEnv import BOX_STARR_FOLDER_ID, PATH_TO_CDSS, LOCAL_PROD_DB_PARAM
 from starr.box.BoxClient import BoxClient
 from medinfo.db import DBUtil
 from medinfo.common.Util import log
+from starr.rxnorm.RxNormClient import RxNormClient
 
 class StarrLoader:
     STARR_FILE_PARAMS = {
@@ -36,8 +38,8 @@ class StarrLoader:
             'psql_table': 'starr_patient'
         },
         'Chen_Active_Meds_At_Admit.csv.gz': {
-            'clean_file': 'starr_admit_meds_2008_2014.csv.gz',
-            'psql_table': 'starr_admit_med'
+            'clean_file': 'starr_preadmit_meds_2008_2014.csv.gz',
+            'psql_table': 'starr_preadmit_med'
         },
         'Chen_Admit_Vitals.csv.gz': {
             'clean_file': 'starr_admit_vitals_2008_2014.csv.gz',
@@ -214,6 +216,290 @@ class StarrLoader:
         'Chen_income_vs_zip_Yrs6_8.csv.gz': {
             'clean_file': 'starr_income_2014_2017.csv.gz',
             'psql_table': 'starr_income'
+        },
+        'JChenv3_BP_Table1.namepatch.csv.gz': {
+            'clean_file': 'starr_flow_bp_2008_2014.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_HRate_Table2.csv.gz': {
+            'clean_file': 'starr_flow_hr_2008_2014.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Resp_Table3.csv.gz': {
+            'clean_file': 'starr_flow_resp_2008_2014.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_fio2_Table4.csv.gz': {
+            'clean_file': 'starr_flow_fio2_2008_2014.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_pulse_Table5.csv.gz': {
+            'clean_file': 'starr_flow_pulse_2008_2014.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_temp_Table6.csv.gz': {
+            'clean_file': 'starr_flow_temp_2008_2014.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_urine_Table7.csv.gz': {
+            'clean_file': 'starr_flow_urine_2008_2014.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_GCS_Table8.csv.gz': {
+            'clean_file': 'starr_flow_gcs_2008_2014.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_BP_Table11.csv.gz': {
+            'clean_file': 'starr_flow_bp_2014_2017_11.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_BP_Table12.csv.gz': {
+            'clean_file': 'starr_flow_bp_2014_2017_12.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_BP_Table13.csv.gz': {
+            'clean_file': 'starr_flow_bp_2014_2017_13.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_BP_Table14.csv.gz': {
+            'clean_file': 'starr_flow_bp_2014_2017_14.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_BP_Table15.csv.gz': {
+            'clean_file': 'starr_flow_bp_2014_2017_15.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Heartrate_Table16.csv.gz': {
+            'clean_file': 'starr_flow_hr_2014_2017_16.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Heartrate_Table17.csv.gz': {
+            'clean_file': 'starr_flow_hr_2014_2017_17.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Heartrate_Table18.csv.gz': {
+            'clean_file': 'starr_flow_hr_2014_2017_18.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Heartrate_Table19.csv.gz': {
+            'clean_file': 'starr_flow_hr_2014_2017_19.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Heartrate_Table20.csv.gz': {
+            'clean_file': 'starr_flow_hr_2014_2017_20.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Heartrate_Table20.csv.gz': {
+            'clean_file': 'starr_flow_hr_2014_2017_20.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Resp_Table21.csv.gz': {
+            'clean_file': 'starr_flow_resp_2014_2017_21.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Resp_Table22.csv.gz': {
+            'clean_file': 'starr_flow_resp_2014_2017_22.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Resp_Table23.csv.gz': {
+            'clean_file': 'starr_flow_resp_2014_2017_23.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Resp_Table24.csv.gz': {
+            'clean_file': 'starr_flow_resp_2014_2017_24.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_Resp_Table25.csv.gz': {
+            'clean_file': 'starr_flow_resp_2014_2017_25.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_temp_Table26.csv.gz': {
+            'clean_file': 'starr_flow_temp_2014_2017_26.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_temp_Table27.csv.gz': {
+            'clean_file': 'starr_flow_temp_2014_2017_27.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_temp_Table28.csv.gz': {
+            'clean_file': 'starr_flow_temp_2014_2017_28.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_temp_Table29.csv.gz': {
+            'clean_file': 'starr_flow_temp_2014_2017_29.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_temp_Table30.csv.gz': {
+            'clean_file': 'starr_flow_temp_2014_2017_30.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_fio2_Table31.csv.gz': {
+            'clean_file': 'starr_flow_fio2_2014_2017_31.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_fio2_Table32.csv.gz': {
+            'clean_file': 'starr_flow_fio2_2014_2017_32.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_fio2_Table33.csv.gz': {
+            'clean_file': 'starr_flow_fio2_2014_2017_33.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_fio2_Table34.csv.gz': {
+            'clean_file': 'starr_flow_fio2_2014_2017_34.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_fio2_Table35.csv.gz': {
+            'clean_file': 'starr_flow_fio2_2014_2017_35.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_pulse_Table36.csv.gz': {
+            'clean_file': 'starr_flow_pulse_2014_2017_36.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_pulse_Table37.csv.gz': {
+            'clean_file': 'starr_flow_pulse_2014_2017_37.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_pulse_Table38.csv.gz': {
+            'clean_file': 'starr_flow_pulse_2014_2017_38.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_pulse_Table39.csv.gz': {
+            'clean_file': 'starr_flow_pulse_2014_2017_39.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_pulse_Table40.csv.gz': {
+            'clean_file': 'starr_flow_pulse_2014_2017_40.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_urine_Table41.csv.gz': {
+            'clean_file': 'starr_flow_urine_2014_2017_41.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_urine_Table42.csv.gz': {
+            'clean_file': 'starr_flow_urine_2014_2017_42.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_urine_Table43.csv.gz': {
+            'clean_file': 'starr_flow_urine_2014_2017_43.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_urine_Table44.csv.gz': {
+            'clean_file': 'starr_flow_urine_2014_2017_44.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_urine_Table45.csv.gz': {
+            'clean_file': 'starr_flow_urine_2014_2017_45.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_GCS_Table46.csv.gz': {
+            'clean_file': 'starr_flow_gcs_2014_2017_46.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_GCS_Table47.csv.gz': {
+            'clean_file': 'starr_flow_gcs_2014_2017_47.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_GCS_Table48.csv.gz': {
+            'clean_file': 'starr_flow_gcs_2014_2017_48.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_GCS_Table49.csv.gz': {
+            'clean_file': 'starr_flow_gcs_2014_2017_49.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_GCS_Table50.csv.gz': {
+            'clean_file': 'starr_flow_gcs_2014_2017_50.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_sp02_Table51.csv.gz': {
+            'clean_file': 'starr_flow_spo2_2014_2017_51.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_sp02_Table52.csv.gz': {
+            'clean_file': 'starr_flow_spo2_2014_2017_52.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_sp02_Table53.csv.gz': {
+            'clean_file': 'starr_flow_spo2_2014_2017_53.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_sp02_Table54.csv.gz': {
+            'clean_file': 'starr_flow_spo2_2014_2017_54.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChenv3_sp02_Table55.csv.gz': {
+            'clean_file': 'starr_flow_spo2_2014_2017_55.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChen_Flwst_Height_Yr8.csv.gz': {
+            'clean_file': 'starr_flow_height_2008_2017.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'JChen_Flwst_Weight_Yr8.csv.gz': {
+            'clean_file': 'starr_flow_weight_2008_2017.csv.gz',
+            'psql_table': 'starr_flowsheet'
+        },
+        'Jchen_Inpu_output_data1.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_1.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_data2.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_2.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_data3.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_3.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_data4.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_4.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_data5.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_5.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_update_11.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_11.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_update_12.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_12.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_update_13.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_13.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_update_14.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_14.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_update_15.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_15.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_update_16.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_16.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_update_17.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_17.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_update_18.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_18.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_update_19.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_19.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
+        },
+        'Jchen_Inpu_output_update_20.csv.gz': {
+            'clean_file': 'starr_io_flowsheet_20.csv.gz',
+            'psql_table': 'starr_io_flowsheet'
         }
     }
 
@@ -328,8 +614,11 @@ class StarrLoader:
             'ETHNICITY': object,
             'EVENT_IN': object,
             'EVENT_OUT': object,
+            'FLO_MEAS_ID': object,
             'freq_name': object,
             'future_or_stand': object,
+            'G1_DISP_NAME': object,
+            'G2_DISP_NAME': object,
             'GENDER': object,
             'GENERIC_NAME': object,
             'HOSPITAL_SERVICE': object,
@@ -358,6 +647,7 @@ class StarrLoader:
             'max_duration': object,
             'max_rate': object,
             'max_volume': object,
+            'MEAS_VALUE': object,
             'med_dis_disp_qty': object,
             'med_dis_disp_unit_c': object,
             'med_duration_unit_c': object,
@@ -440,6 +730,7 @@ class StarrLoader:
             'result_time': object,
             'resume_status': object,
             'resume_status_c': object,
+            'RN': object,
             'rsn_for_discon': object,
             'rsn_for_discon_c': object,
             'RXCUI': object,
@@ -468,15 +759,52 @@ class StarrLoader:
         }
 
         raw_data = pd.read_csv(source_path, compression='gzip', \
-                                dtype=data_types, skipinitialspace=True,
+                                dtype=object, skipinitialspace=True,
                                 error_bad_lines=False, warn_bad_lines=True)
 
         # Make header column all lowercase.
         raw_data.columns = [column.lower() for column in raw_data.columns]
 
+        # Make custom patches to the data values. Any parsing errors should
+        # be fixed offline, but any data oddities should be fixed here.
+        raw_file_name = os.path.split(source_path)[-1]
+        # If generating a starr_mapped_meds file, append active_ingredient.
+        if 'Chen_Mapped_Meds' in raw_file_name:
+            rxnorm = RxNormClient()
+            name_function = rxnorm.fetch_name_by_rxcui
+            raw_data['active_ingredient'] = raw_data['rxcui'].map(name_function)
+        # elif 'Chen_Order_Proc_Yr7' in raw_file_name:
+        #     # Chen_Order_Proc_Yr7['quantity'] has >3500 rows with the value 'S'
+        #     # for quantity. These are standing orders, for which 'quantity'
+        #     # does not make clinical sense. Because 'quantity' must be an
+        #     # integer, however, force this value to None.
+        #     raw_data['quantity'].replace(to_replace='S', value=np.nan, \
+        #                                     inplace=True)
+        #     # Chen_Order_Proc_Yr7['standing_exp_date'] has a number of token
+        #     # values which seem to represent a non-existent expiration date.
+        #     # Includes: 99999, 99993, and 1
+        #     raw_data['standing_exp_date'].replace(to_replace='99999', \
+        #                                             value=np.nan, inplace=True)
+        #     raw_data['standing_exp_date'].replace(to_replace='99993', \
+        #                                             value=np.nan, inplace=True)
+        #     raw_data['standing_exp_date'].replace(to_replace='1', \
+        #                                             value=np.nan, inplace=True)
+        #     raw_data['standing_exp_date'].replace(to_replace='0', \
+        #                                             value=np.nan, inplace=True)
+        #     raw_data['standing_exp_date'].replace(to_replace=99999.0, \
+        #                                             value=np.nan, inplace=True)
+        #     # Chen_Order_Proc_Yr7['order_inst'] is 'PRN' (meaning the order
+        #     # is on a "pro re nata" or "as needed" basis). This field is
+        #     # a datetime, so represent as nan.
+        #     raw_data['order_inst'].replace(to_replace='PRN', value=np.nan, \
+        #                                     inplace=True)
+        #     # Chen_Order_Proc_Yr7['parent_ce_order_id'] is 'Inpatient' for
+        #     # >3500 rows, so replace with NaN.
+        #     raw_data['parent_ce_order_id'].replace(to_replace='Inpatient', \
+        #                                             value=np.nan, inplace=True)
+
         # Write to csv.
-        raw_data.to_csv(path_or_buf=dest_path, compression='gzip', \
-                            index=False)
+        raw_data.to_csv(path_or_buf=dest_path, compression='gzip', index=False)
 
     @staticmethod
     def build_starr_psql_schemata():
@@ -493,18 +821,24 @@ class StarrLoader:
 
     @staticmethod
     def clear_starr_psql_tables():
+        log.info('Clearing starr psql tables...')
         for params in StarrLoader.STARR_FILE_PARAMS.values():
             psql_table = params['psql_table']
+            log.debug('dropping table %s...' % psql_table)
             # load_starr_to_psql is not itempotent, so in case schema already
             # existed, clear table (avoid duplicate data).
-            DBUtil.execute("DELETE FROM %s;" % psql_table)
+            # existence_query = "SELECT EXISTS(SELECT 1 FROM pg_tables WHERE tablename = '%s')"
+            # table_exists = DBUtil.execute(existence_query % psql_table)[0][0]
+            # if table_exists:
+            #     DBUtil.execute("DELETE FROM %s;" % psql_table)
+            DBUtil.execute("DROP TABLE IF EXISTS %s CASCADE;" % psql_table)
 
     @staticmethod
     def load_starr_to_psql():
-        # Build schemata.
-        StarrLoader.build_starr_psql_schemata()
         # Clear any old data.
         StarrLoader.clear_starr_psql_tables()
+        # Build schemata.
+        StarrLoader.build_starr_psql_schemata()
 
         # Build paths to clean data files.
         raw_data_dir = StarrLoader.fetch_raw_data_dir()
