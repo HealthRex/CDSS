@@ -115,7 +115,7 @@ function selectItem(checkbox)
 				break;	// Don't need to keep looking
 			}
 		}
-        
+
         if ( !newItemExists )
         {
 			// http://stackoverflow.com/questions/494143/creating-a-new-dom-element-from-an-html-string-using-built-in-dom-methods-or-pro
@@ -141,7 +141,7 @@ function clickItemById( itemId )
 	{
 		//console.log(checkboxes[i].value);
 		if ( checkboxes[i].value.substring(0,idPrefix.length) == idPrefix )
-		{	
+		{
 			if ( !firstCheckbox )
 			{	// Simulate user clicking on checkbox to capture onClick event
 				checkboxes[i].click();
@@ -197,6 +197,14 @@ function ignoreItem(clinicalItemId)
 }
 
 /**
+ * Order selected to be discontinued
+ */
+ function cancelDiscontinueOrder(itemId)
+ {
+   // Do nothing currently
+ }
+
+/**
  * Select a currently active patient order for discontinuation
  */
 function discontinueOrder( itemInfoStr )
@@ -231,7 +239,11 @@ function searchOrders(searchField)
     	}
         var resultSpace = document.getElementById('searchResultsTableSpace');
         resultSpace.innerHTML = AJAX_LOADER_HTML;
-        ajaxRequest('dynamicdata/RelatedOrders.py?resultCount='+maxResults+'&searchStr='+searchStr+sortParam, function(data){ resultSpace.innerHTML = data; } );
+        ajaxRequest('dynamicdata/RelatedOrders.py?resultCount='+maxResults+'&searchStr='+searchStr+sortParam, function(data){
+          resultSpace.innerHTML = data;
+          // Defined in Track.js
+          recordNewResults('data')
+        });
     }
 }
 
@@ -251,19 +263,22 @@ function loadRelatedOrders()
     resultSpace1.innerHTML = AJAX_LOADER_HTML;
     resultSpace2.innerHTML = AJAX_LOADER_HTML;
 
-    // Two queries for different sort options. Nest calls for sequential asynchronous call. 
+    // Two queries for different sort options. Nest calls for sequential asynchronous call.
     // Total time takes longer to fill simultaneous queries
     var queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=PPV&displayFields=PPV&title=Common Orders';
     //console.log( queryURL );
-    ajaxRequest( queryURL, 
-    	function(data)
-    	{ 	resultSpace1.innerHTML = data;
-
-			queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=P-YatesChi2-NegLog&displayFields=RR&title=Specific Orders'
-			console.log( queryURL );
-			ajaxRequest( queryURL, function(data){ resultSpace2.innerHTML = data; } );
-    	}
-    );
+    ajaxRequest(queryURL, function(data) {
+        resultSpace1.innerHTML = data;
+        // Defined in Track.js
+        recordNewResults('resultSpace1') // Record any new items in resultSpace1
+        queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=P-YatesChi2-NegLog&displayFields=RR&title=Specific Orders'
+        console.log( queryURL );
+        ajaxRequest( queryURL, function(data){
+          resultSpace2.innerHTML = data;
+          // Defined in Track.js
+          recordNewResults('resultSpace2') // Record any new items in resultSpace2
+        });
+    	});
 
 }
 
@@ -275,7 +290,11 @@ function searchOrderSets(searchField)
     var searchStr = searchField.value;
     var resultSpace = document.getElementById('searchResultsTableSpace');
     resultSpace.innerHTML = AJAX_LOADER_HTML;
-    ajaxRequest('dynamicdata/OrderSetSearch.py?searchStr='+searchStr, function(data){ resultSpace.innerHTML = data; } );
+    ajaxRequest('dynamicdata/OrderSetSearch.py?searchStr='+searchStr, function(data){
+      resultSpace.innerHTML = data;
+      // Defined in Track.js
+      recordNewResults('data') // Record general data list
+    });
 }
 
 /**
@@ -286,7 +305,11 @@ function searchDiagnoses(searchField)
     var searchStr = searchField.value;
     var resultSpace = document.getElementById('searchResultsTableSpace');
     resultSpace.innerHTML = AJAX_LOADER_HTML;
-    ajaxRequest('dynamicdata/RelatedOrders.py?sourceTables=stride_dx_list&searchStr='+searchStr, function(data){ resultSpace.innerHTML = data; } );
+    ajaxRequest('dynamicdata/RelatedOrders.py?sourceTables=stride_dx_list&searchStr='+searchStr, function(data){
+      resultSpace.innerHTML = data;
+      // Defined in Track.js
+      recordNewResults('data')
+    });
 }
 
 /**
@@ -323,5 +346,3 @@ function selectOrderSet(checkbox, itemLists)
         }
     }
 }
-
-
