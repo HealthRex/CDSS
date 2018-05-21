@@ -1,11 +1,11 @@
--- Table: starr_order_med
+-- Table: stride_order_med
 -- Description: Medication orders for medication_id.
 -- Original Files:
 --	* Chen_Order_Med_5Yr.csv.gz
 --  * Chen_Order_Med_Yrs6_8.patchHeader.csv.gz
 -- Clean Files:
---	* starr_order_med_2008_2014.csv.gz
---  * starr_order_med_2014_2017.patchHeader.csv.gz
+--	* stride_order_med_2008_2014.csv.gz
+--  * stride_order_med_2014_2017.patchHeader.csv.gz
 -- CSV Fields:
 --  * order_med_id (e.g. 6757747)
 --  * pat_id (e.g. 10000892290139)
@@ -84,7 +84,7 @@
 --  * admin_dose_unit_c (e.g. 5025)
 --  * admin_dose_unit (e.g. "Units")
 
-CREATE TABLE IF NOT EXISTS starr_order_med
+CREATE TABLE IF NOT EXISTS stride_order_med
 (
 	order_med_id BIGINT NOT NULL,
 	pat_id TEXT,

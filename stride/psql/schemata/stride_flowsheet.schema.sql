@@ -1,4 +1,4 @@
--- Table: starr_flowsheet
+-- Table: stride_flowsheet
 -- Description: Flow sheet of vitals measurements and readings. Includes
 --  blood pressure, pulse, respiration rate, weight, height, temperature,
 --  fraction of inspired oxygen (fiO2), Glasgow coma scale score, urine flow,
@@ -63,62 +63,62 @@
 --  * JChen_Flwst_Weight_Yr8.csv.gz
 -- Clean Files:
 --          (2008 – 2014)
---  * starr_flow_bp_2008_2014.csv.gz
---  * starr_flow_hr_2008_2014.csv.gz
---  * starr_flow_resp_2008_2014.csv.gz
---  * starr_flow_fio2_2008_2014.csv.gz
---  * starr_flow_pulse_2008_2014.csv.gz
---  * starr_flow_temp_2008_2014.csv.gz
---  * starr_flow_urine_2008_2014.csv.gz
---  * starr_flow_gcs_2008_2014.csv.gz
+--  * stride_flow_bp_2008_2014.csv.gz
+--  * stride_flow_hr_2008_2014.csv.gz
+--  * stride_flow_resp_2008_2014.csv.gz
+--  * stride_flow_fio2_2008_2014.csv.gz
+--  * stride_flow_pulse_2008_2014.csv.gz
+--  * stride_flow_temp_2008_2014.csv.gz
+--  * stride_flow_urine_2008_2014.csv.gz
+--  * stride_flow_gcs_2008_2014.csv.gz
 --          (2014 – 2017)
---  * starr_flow_bp_2014_2017_11.csv.gz
---  * starr_flow_bp_2014_2017_12.csv.gz
---  * starr_flow_bp_2014_2017_13.csv.gz
---  * starr_flow_bp_2014_2017_14.csv.gz
---  * starr_flow_bp_2014_2017_15.csv.gz
---  * starr_flow_hr_2014_2017_16.csv.gz
---  * starr_flow_hr_2014_2017_17.csv.gz
---  * starr_flow_hr_2014_2017_18.csv.gz
---  * starr_flow_hr_2014_2017_19.csv.gz
---  * starr_flow_hr_2014_2017_20.csv.gz
---  * starr_flow_resp_2014_2017_21.csv.gz
---  * starr_flow_resp_2014_2017_22.csv.gz
---  * starr_flow_resp_2014_2017_23.csv.gz
---  * starr_flow_resp_2014_2017_24.csv.gz
---  * starr_flow_resp_2014_2017_25.csv.gz
---  * starr_flow_temp_2014_2017_26.csv.gz
---  * starr_flow_temp_2014_2017_27.csv.gz
---  * starr_flow_temp_2014_2017_28.csv.gz
---  * starr_flow_temp_2014_2017_29.csv.gz
---  * starr_flow_temp_2014_2017_30.csv.gz
---  * starr_flow_fio2_2014_2017_31.csv.gz
---  * starr_flow_fio2_2014_2017_32.csv.gz
---  * starr_flow_fio2_2014_2017_33.csv.gz
---  * starr_flow_fio2_2014_2017_34.csv.gz
---  * starr_flow_fio2_2014_2017_35.csv.gz
---  * starr_flow_pulse_2014_2017_36.csv.gz
---  * starr_flow_pulse_2014_2017_37.csv.gz
---  * starr_flow_pulse_2014_2017_38.csv.gz
---  * starr_flow_pulse_2014_2017_39.csv.gz
---  * starr_flow_pulse_2014_2017_40.csv.gz
---  * starr_flow_urine_2014_2017_41.csv.gz
---  * starr_flow_urine_2014_2017_42.csv.gz
---  * starr_flow_urine_2014_2017_43.csv.gz
---  * starr_flow_urine_2014_2017_44.csv.gz
---  * starr_flow_urine_2014_2017_45.csv.gz
---  * starr_flow_gcs_2014_2017_46.csv.gz
---  * starr_flow_gcs_2014_2017_47.csv.gz
---  * starr_flow_gcs_2014_2017_48.csv.gz
---  * starr_flow_gcs_2014_2017_49.csv.gz
---  * starr_flow_gcs_2014_2017_50.csv.gz
---  * starr_flow_spo2_2014_2017_51.csv.gz
---  * starr_flow_spo2_2014_2017_52.csv.gz
---  * starr_flow_spo2_2014_2017_53.csv.gz
---  * starr_flow_spo2_2014_2017_54.csv.gz
---  * starr_flow_spo2_2014_2017_55.csv.gz
---  * starr_flow_height_2008_2017.csv.gz
---  * starr_flow_weight_2008_2017.csv.gz
+--  * stride_flow_bp_2014_2017_11.csv.gz
+--  * stride_flow_bp_2014_2017_12.csv.gz
+--  * stride_flow_bp_2014_2017_13.csv.gz
+--  * stride_flow_bp_2014_2017_14.csv.gz
+--  * stride_flow_bp_2014_2017_15.csv.gz
+--  * stride_flow_hr_2014_2017_16.csv.gz
+--  * stride_flow_hr_2014_2017_17.csv.gz
+--  * stride_flow_hr_2014_2017_18.csv.gz
+--  * stride_flow_hr_2014_2017_19.csv.gz
+--  * stride_flow_hr_2014_2017_20.csv.gz
+--  * stride_flow_resp_2014_2017_21.csv.gz
+--  * stride_flow_resp_2014_2017_22.csv.gz
+--  * stride_flow_resp_2014_2017_23.csv.gz
+--  * stride_flow_resp_2014_2017_24.csv.gz
+--  * stride_flow_resp_2014_2017_25.csv.gz
+--  * stride_flow_temp_2014_2017_26.csv.gz
+--  * stride_flow_temp_2014_2017_27.csv.gz
+--  * stride_flow_temp_2014_2017_28.csv.gz
+--  * stride_flow_temp_2014_2017_29.csv.gz
+--  * stride_flow_temp_2014_2017_30.csv.gz
+--  * stride_flow_fio2_2014_2017_31.csv.gz
+--  * stride_flow_fio2_2014_2017_32.csv.gz
+--  * stride_flow_fio2_2014_2017_33.csv.gz
+--  * stride_flow_fio2_2014_2017_34.csv.gz
+--  * stride_flow_fio2_2014_2017_35.csv.gz
+--  * stride_flow_pulse_2014_2017_36.csv.gz
+--  * stride_flow_pulse_2014_2017_37.csv.gz
+--  * stride_flow_pulse_2014_2017_38.csv.gz
+--  * stride_flow_pulse_2014_2017_39.csv.gz
+--  * stride_flow_pulse_2014_2017_40.csv.gz
+--  * stride_flow_urine_2014_2017_41.csv.gz
+--  * stride_flow_urine_2014_2017_42.csv.gz
+--  * stride_flow_urine_2014_2017_43.csv.gz
+--  * stride_flow_urine_2014_2017_44.csv.gz
+--  * stride_flow_urine_2014_2017_45.csv.gz
+--  * stride_flow_gcs_2014_2017_46.csv.gz
+--  * stride_flow_gcs_2014_2017_47.csv.gz
+--  * stride_flow_gcs_2014_2017_48.csv.gz
+--  * stride_flow_gcs_2014_2017_49.csv.gz
+--  * stride_flow_gcs_2014_2017_50.csv.gz
+--  * stride_flow_spo2_2014_2017_51.csv.gz
+--  * stride_flow_spo2_2014_2017_52.csv.gz
+--  * stride_flow_spo2_2014_2017_53.csv.gz
+--  * stride_flow_spo2_2014_2017_54.csv.gz
+--  * stride_flow_spo2_2014_2017_55.csv.gz
+--  * stride_flow_height_2008_2017.csv.gz
+--  * stride_flow_weight_2008_2017.csv.gz
 -- CSV Fields:
 --  * PAT_ENC_CSN_ANON_ID (e.g. 880475)
 --  * PAT_ANON_ID (e.g. -12381504547935)
@@ -127,7 +127,7 @@
 --  * FLOWSHEET_VALUE (e.g. 162.56)
 --  * SHIFTED_DT_TM (e.g. "10/30/2013 11:00")
 
-CREATE TABLE IF NOT EXISTS starr_flowsheet
+CREATE TABLE IF NOT EXISTS stride_flowsheet
 (
   pat_enc_csn_anon_id BIGINT,
   pat_anon_id BIGINT,

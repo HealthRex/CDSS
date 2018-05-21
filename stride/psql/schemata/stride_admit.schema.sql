@@ -1,9 +1,9 @@
--- Table: starr_admit
+-- Table: stride_admit
 -- Description: Admission summary data.
 -- Raw Files:
 --  * JChenv3_Admits_Table58.csv.gz
 -- Clean Files:
---  * starr_admit_2014_2017.csv.gz
+--  * stride_admit_2014_2017.csv.gz
 -- CSV Fields:
 --  * PAT_ENC_CSN_ANON_ID (e.g. 885413)
 --  * PAT_ANON_ID (e.g. 7046823672303)
@@ -15,7 +15,7 @@
 --  * LOS_DAYS (length of stay in days e.g. 2.08)
 --  * DISCH_DEST (discharge destination e.g. "Home")
 
-CREATE TABLE IF NOT EXISTS starr_admit
+CREATE TABLE IF NOT EXISTS stride_admit
 (
   pat_enc_csn_anon_id BIGINT,
   pat_anon_id BIGINT,

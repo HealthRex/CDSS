@@ -1,9 +1,9 @@
--- Table: starr_drg
+-- Table: stride_drg
 -- Description: Discharge Diagnosis Related Group (DRG) summary data.
 -- Raw Files:
 --  * JChenv3_DRG_Table57.csv.gz
 -- Clean Files:
---  * starr_drg.csv.gz
+--  * stride_drg.csv.gz
 -- CSV Fields:
 --  * HSP_ACC_DEID (e.g. 57779988)
 --  * HSP_ACCOUNT_ID (e.g. 57730295)
@@ -19,7 +19,7 @@
 --  * ENC_BILL_CODE_PRIM_SURG (e.g. 8E09XBH)
 --  * ENC_DESC_PRIM_SURG (e.g. CORONAR ARTERIOGR-2 CATH)
 
-CREATE TABLE IF NOT EXISTS starr_drg
+CREATE TABLE IF NOT EXISTS stride_drg
 (
   hsp_acc_deid BIGINT,
 	hsp_account_id BIGINT,

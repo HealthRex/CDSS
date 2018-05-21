@@ -1,4 +1,4 @@
--- Table: starr_io_flowsheet
+-- Table: stride_io_flowsheet
 -- Description: Flow sheet of intake (feeding) and output (urine/bowel mvmt).
 -- Original Files:
 --            2008 – 2014
@@ -20,22 +20,22 @@
 --  * Jchen_Inpu_output_update_20.csv.gz
 -- Clean Files:
 --          2008 – 2014
---  * starr_io_flowsheet_1.csv.gz
---  * starr_io_flowsheet_2.csv.gz
---  * starr_io_flowsheet_3.csv.gz
---  * starr_io_flowsheet_4.csv.gz
---  * starr_io_flowsheet_5.csv.gz
+--  * stride_io_flowsheet_1.csv.gz
+--  * stride_io_flowsheet_2.csv.gz
+--  * stride_io_flowsheet_3.csv.gz
+--  * stride_io_flowsheet_4.csv.gz
+--  * stride_io_flowsheet_5.csv.gz
 --          2014 – 2017
---  * starr_io_flowsheet_11.csv.gz
---  * starr_io_flowsheet_12.csv.gz
---  * starr_io_flowsheet_13.csv.gz
---  * starr_io_flowsheet_14.csv.gz
---  * starr_io_flowsheet_15.csv.gz
---  * starr_io_flowsheet_16.csv.gz
---  * starr_io_flowsheet_17.csv.gz
---  * starr_io_flowsheet_18.csv.gz
---  * starr_io_flowsheet_19.csv.gz
---  * starr_io_flowsheet_20.csv.gz
+--  * stride_io_flowsheet_11.csv.gz
+--  * stride_io_flowsheet_12.csv.gz
+--  * stride_io_flowsheet_13.csv.gz
+--  * stride_io_flowsheet_14.csv.gz
+--  * stride_io_flowsheet_15.csv.gz
+--  * stride_io_flowsheet_16.csv.gz
+--  * stride_io_flowsheet_17.csv.gz
+--  * stride_io_flowsheet_18.csv.gz
+--  * stride_io_flowsheet_19.csv.gz
+--  * stride_io_flowsheet_20.csv.gz
 -- CSV Fields:
 --  * PAT_ANON_ID (e.g. 8788729772386)
 --  * PAT_ENC_CSN_ANON_ID (e.g. 377427)
@@ -46,7 +46,7 @@
 --  * MEAS_VALUE (e.g. "Reg")
 --  * RN (e.g. 10205663)
 
-CREATE TABLE IF NOT EXISTS starr_io_flowsheet
+CREATE TABLE IF NOT EXISTS stride_io_flowsheet
 (
   pat_anon_id BIGINT,
 	pat_enc_csn_anon_id BIGINT,

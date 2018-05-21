@@ -1,4 +1,4 @@
--- Table: starr_treatment_team
+-- Table: stride_treatment_team
 -- Description: Treatment team for patient PAT_ID in encounter PAT_ENC_CSN_ID.
 -- Original Files:
 --	* Chen_TreatmentTeam_Yr1.csv.gz
@@ -10,14 +10,14 @@
 --  * Chen_Treatment_Team_Yrs7.patchHeader.csv.gz
 --  * Chen_Treatment_Team_Yrs8.patchHeader.csv.gz
 -- Clean Files:
---  * starr_treatment_team_year_1.csv.gz
---  * starr_treatment_team_year_2.csv.gz
---  * starr_treatment_team_year_3.csv.gz
---  * starr_treatment_team_year_4.csv.gz
---  * starr_treatment_team_year_5.csv.gz
---  * starr_treatment_team_year_6.csv.gz
---  * starr_treatment_team_year_7.csv.gz
---  * starr_treatment_team_year_8.csv.gz
+--  * stride_treatment_team_year_1.csv.gz
+--  * stride_treatment_team_year_2.csv.gz
+--  * stride_treatment_team_year_3.csv.gz
+--  * stride_treatment_team_year_4.csv.gz
+--  * stride_treatment_team_year_5.csv.gz
+--  * stride_treatment_team_year_6.csv.gz
+--  * stride_treatment_team_year_7.csv.gz
+--  * stride_treatment_team_year_8.csv.gz
 -- CSV Fields:
 --  * PAT_ID (e.g. 4505642352918)
 --  * PAT_ENC_CSN_ID (e.g. 409048)
@@ -27,9 +27,9 @@
 --  * TREATMENT_TEAM (e.g. "Occupational Therapist")
 --  * PROV_NAME (e.g. "DOE, JANE")
 
-CREATE TABLE IF NOT EXISTS starr_treatment_team
+CREATE TABLE IF NOT EXISTS stride_treatment_team
 (
-  starr_treatment_team_id SERIAL, -- automatically create unique identifier
+  stride_treatment_team_id SERIAL, -- automatically create unique identifier
 	pat_id TEXT,
 	pat_enc_csn_id BIGINT,
 	line INTEGER,

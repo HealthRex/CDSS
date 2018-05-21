@@ -1,9 +1,9 @@
--- Table: starr_admit_vitals
+-- Table: stride_admit_vitals
 -- Description: Vitals measured for pat_anon_id at time of admission.
 -- Raw Files:
 --  * Chen_Active_Vitals.csv.gz
 -- Clean Files:
---  * starr_admit_vitals.csv.gz
+--  * stride_admit_vitals.csv.gz
 -- CSV Fields:
 --  * "PAT_ID" (e.g. 11577528280870)
 --  * "PAT_ENC_CSN_ID" (e.g. 431388)
@@ -13,7 +13,7 @@
 --  * "PULSE" (e.g. 100)
 --  * "RESPIRATIONS" (e.g. 15)
 
-CREATE TABLE IF NOT EXISTS starr_admit_vital
+CREATE TABLE IF NOT EXISTS stride_admit_vital
 (
   pat_id BIGINT,
   pat_enc_csn_id BIGINT,

@@ -1,4 +1,4 @@
--- Table: starr_order_result
+-- Table: stride_order_result
 -- Description: Order results for procedure proc_code.
 -- Original Files:
 --	* Chen_Order_Result_Yr1.csv.gz
@@ -10,14 +10,14 @@
 --  * Chen_Order_Res_Yr7.csv.gz
 --  * Chen_Order_Res_Yr8.csv.gz
 -- Clean Files:
---	* starr_order_result_year_1.csv.gz
---	* starr_order_result_year_2.csv.gz
---	* starr_order_result_year_3.csv.gz
---	* starr_order_result_year_4.csv.gz
---	* starr_order_result_year_5.csv.gz
---	* starr_order_result_year_6.csv.gz
---	* starr_order_result_year_7.csv.gz
---	* starr_order_result_year_8.csv.gz
+--	* stride_order_result_year_1.csv.gz
+--	* stride_order_result_year_2.csv.gz
+--	* stride_order_result_year_3.csv.gz
+--	* stride_order_result_year_4.csv.gz
+--	* stride_order_result_year_5.csv.gz
+--	* stride_order_result_year_6.csv.gz
+--	* stride_order_result_year_7.csv.gz
+--	* stride_order_result_year_8.csv.gz
 -- CSV Fields:
 --  * order_proc_id (e.g. 41330963)
 --  * line (e.g. 1)
@@ -34,7 +34,7 @@
 --  * lab_status (e.g. "Final result")
 --  * value_normalized (e.g. "")
 
-CREATE TABLE IF NOT EXISTS starr_order_result
+CREATE TABLE IF NOT EXISTS stride_order_results
 (
   order_proc_id BIGINT NOT NULL,
   line INTEGER NOT NULL,

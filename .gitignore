@@ -3,3 +3,4 @@ LocalEnv.py
 .DS_Store
 scripts/LabTestAnalysis/output*
 starr/data*
+stride/data*
