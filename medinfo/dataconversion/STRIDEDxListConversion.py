@@ -52,11 +52,14 @@ class STRIDEDxListConversion:
         endDate - If provided, only return items whose noted_date is before that date.
         """
         log.info("Conversion for items dated %s to %s" % (startDate, endDate));
-        progress = ProgressDots();
+        # progress = ProgressDots();
         conn = self.connFactory.connection();
         try:
-            for sourceItem in self.querySourceItems(startDate, endDate, progress=progress, conn=conn):
+            i = 1
+            for sourceItem in self.querySourceItems(startDate, endDate, progress=None, conn=conn):
                 self.convertSourceItem(sourceItem, conn=conn);
+                print i
+                i = i + 1
         finally:
             conn.close();
         # progress.PrintStatus();
@@ -83,7 +86,7 @@ class STRIDEDxListConversion:
             query.addSelect( header );
         query.addFrom("stride_dx_list as dx");
         query.addWhere("noted_date is not null");   # Only work with elements that have dates assigned for now
-        query.addWhere("dx_icd9_code is not null");   # Can't process nullcodes
+        # query.addWhere("dx_icd9_code is not null");   # Can't process nullcodes
         if startDate is not None:
             query.addWhereOp("noted_date",">=", startDate);
         if endDate is not None:
@@ -104,10 +107,15 @@ class STRIDEDxListConversion:
             # 2014-2017 data does not have dx_icd9_code. Instead, has
             # both dx_icd9_code_list and dx_icd10_code_list. For these items,
             # there is a one:many mapping of source item to converted item.
-            if rowModel['dx_icd9_code'] == '':
+            if rowModel['dx_icd9_code'] in ['', None]:
                 # Fall back to 'dx_icd9_code_list'
-                if rowModel['dx_icd9_code_list'] == '':
+                if rowModel['dx_icd9_code_list'] in ['', None]:
                     CODE_TYPE = 'ICD10'
+                    # Some rows have no ICD codes.
+                    if rowModel['dx_icd10_code_list'] in ['', None]:
+                        # progress.Update()
+                        row = cursor.fetchone()
+                        continue
                     # Fall back to 'dx_icd10_code_list'
                     icd_codes = rowModel['dx_icd10_code_list'].split(',')
                 else:
@@ -144,7 +152,7 @@ class STRIDEDxListConversion:
                         yield rowModel; # Found a matching parent code, so yield this version
 
             row = cursor.fetchone();
-            progress.Update();
+            # progress.Update();
 
         # Slight risk here.  Normally DB connection closing should be in finally of a try block,
         #   but using the "yield" generator construct forbids us from using a try, finally construct.
@@ -197,7 +205,7 @@ class STRIDEDxListConversion:
         # 2014-2017 data does not have dx_icd9_code. Instead, has
         # both dx_icd9_code_list and dx_icd10_code_list. For these items,
         # there is a one:many mapping of source item to converted item.
-        if sourceItem['dx_icd9_code'] == '' and sourceItem['dx_icd9_code_list'] == '':
+        if sourceItem['dx_icd9_code'] in ['', None] and sourceItem['dx_icd9_code_list'] in ['', None]:
             # Fall back to 'dx_icd10_code_list'
             CODE_TYPE = 'ICD10'
         else:
