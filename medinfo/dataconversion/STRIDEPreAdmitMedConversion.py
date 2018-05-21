@@ -48,8 +48,11 @@ class STRIDEPreAdmitMedConversion:
             rxcuiDataByMedId = self.loadRXCUIData(conn=conn);
 
             # Next round for medications directly from order_med table not addressed in medmix
+            i = 1
             for sourceItem in self.querySourceItems(rxcuiDataByMedId, convOptions, progress=progress, conn=conn):
                 self.convertSourceItem(sourceItem, conn=conn);
+                print i
+                i = i + 1
                 progress.Update();
 
         finally:
@@ -67,6 +70,34 @@ class STRIDEPreAdmitMedConversion:
             conn = self.connFactory.connection();
         try:
             rxcuiDataByMedId = dict();
+
+            # thera_class, pharm_class, and pharm_subclass are not originally
+            # provided by STARR data set. Given it is only imputed to
+            # starr_mapped_meds here, add the column if it does not exist.
+            query = \
+                """
+                ALTER TABLE
+                    stride_mapped_meds
+                ADD COLUMN IF NOT EXISTS
+                    thera_class TEXT;
+                """
+            DBUtil.execute(query)
+            query = \
+                """
+                ALTER TABLE
+                    stride_mapped_meds
+                ADD COLUMN IF NOT EXISTS
+                    pharm_class TEXT;
+                """
+            DBUtil.execute(query)
+            query = \
+                """
+                ALTER TABLE
+                    stride_mapped_meds
+                ADD COLUMN IF NOT EXISTS
+                    pharm_subclass TEXT;
+                """
+            DBUtil.execute(query)
 
             query = \
                 """select medication_id, rxcui, active_ingredient, thera_class
@@ -101,7 +132,7 @@ class STRIDEPreAdmitMedConversion:
             conn = self.connFactory.connection();
 
         # Column headers to query for that map to respective fields in analysis table
-        headers = ["stride_preadmit_med_id","pat_anon_id","contact_date","medication_id","description","thera_class","pharm_class","pharm_subclass"];
+        headers = ["medication_id","pat_anon_id","contact_date","medication_id","description","thera_class","pharm_class","pharm_subclass"];
 
         query = SQLQuery();
         for header in headers:
@@ -159,8 +190,13 @@ class STRIDEPreAdmitMedConversion:
             #   (will usually be a 1-to-1 relation, but sometimes multiple
             ingredientTheraClassByRxcui = rxcuiDataByMedId[medId];
             if len(ingredientTheraClassByRxcui) <= 1 or convOptions.normalizeMixtures:
+
                 # Single ingredient or want component active ingredients to each have one record
                 for (rxcui, (ingredient, theraClass)) in ingredientTheraClassByRxcui.iteritems():
+                    # ~250/15000 RxCUI's don't have a defined active ingredient.
+                    if ingredient is None:
+                        continue
+
                     normalizedModel = RowItemModel(rowModel);
                     normalizedModel["medication_id"] = rxcui;
                     normalizedModel["code"] = RXCUI_CODE_TEMPLATE % rxcui;
@@ -180,6 +216,10 @@ class STRIDEPreAdmitMedConversion:
                 rxcuiStrList = list();
                 ingredientList = list();
                 for (ingredient, rxcui) in ingredientRxcuiList:
+                    # ~250/15000 RxCUI's don't have a defined active ingredient.
+                    if ingredient is None:
+                        continue
+                        
                     rxcuiStrList.append(str(rxcui));
                     ingredientList.append(ingredient.title());
                 rxcuiComposite = str.join(",", rxcuiStrList );
@@ -267,7 +307,7 @@ class STRIDEPreAdmitMedConversion:
         # Produce a patient_item record model for the given sourceItem
         patientItem = \
             RowItemModel \
-            (   {   "external_id":  sourceItem["stride_preadmit_med_id"],
+            (   {   "external_id":  sourceItem["medication_id"],
                     "patient_id":  sourceItem["pat_anon_id"],
                     "encounter_id":  None,
                     "clinical_item_id":  clinicalItem["clinical_item_id"],
