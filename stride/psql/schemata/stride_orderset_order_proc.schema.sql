@@ -1,9 +1,9 @@
--- Table: starr_orderset_order_proc
+-- Table: stride_orderset_order_proc
 -- Description: Procedures ordered from order sets.
 -- Raw Files:
 --  * orderset_procedures.csv.gz
 -- Clean Files:
---  * starr_orderset_order_proc_2008_2014.csv.gz
+--  * stride_orderset_order_proc_2008_2014.csv.gz
 -- CSV Fields:
 --  * ORDER_PROC_ID (e.g. 32163106)
 --  * PROC_CODE (e.g. NUR1940)
@@ -15,7 +15,7 @@
 --  * PROTOCOL_ID (e.g. 1595)
 --  * PROTOCOL_NAME (e.g. IP INTERAGENCY DISCHARGE ORDERS)
 
-CREATE TABLE IF NOT EXISTS starr_orderset_order_proc
+CREATE TABLE IF NOT EXISTS stride_orderset_order_proc
 (
 	order_proc_id BIGINT,
 	proc_code TEXT,

@@ -1,4 +1,4 @@
--- Table: starr_order_proc
+-- Table: stride_order_proc
 -- Description: Procedure orders for procedure proc_code.
 -- Original Files:
 --	* Chen_Order_Proc_Yr1.patchcommas.csv.gz
@@ -10,14 +10,14 @@
 --  * Chen_Order_Proc_Yr7.patchcommas.csv.gz
 --  * Chen_Order_Proc_Yr8.patchcommas.csv.gz
 -- Clean Files:
---	* starr_order_proc_year_1.csv.gz
---  * starr_order_proc_year_2.csv.gz
---  * starr_order_proc_year_3.csv.gz
---  * starr_order_proc_year_4.csv.gz
---  * starr_order_proc_year_5.csv.gz
---  * starr_order_proc_year_6.csv.gz
---  * starr_order_proc_year_7.csv.gz
---  * starr_order_proc_year_8.csv.gz
+--	* stride_order_proc_year_1.csv.gz
+--  * stride_order_proc_year_2.csv.gz
+--  * stride_order_proc_year_3.csv.gz
+--  * stride_order_proc_year_4.csv.gz
+--  * stride_order_proc_year_5.csv.gz
+--  * stride_order_proc_year_6.csv.gz
+--  * stride_order_proc_year_7.csv.gz
+--  * stride_order_proc_year_8.csv.gz
 -- CSV Fields:
 --  * order_proc_id (e.g. 41330963)
 --  * pat_id (e.g. -9799065180730)
@@ -58,7 +58,7 @@
 --  * parent_ce_order_id (e.g. 381781414)
 --  * ordering_mode (e.g. "Inpatient")
 
-CREATE TABLE IF NOT EXISTS starr_order_proc
+CREATE TABLE IF NOT EXISTS stride_order_proc
 (
   order_proc_id BIGINT NOT NULL,
   pat_id TEXT,

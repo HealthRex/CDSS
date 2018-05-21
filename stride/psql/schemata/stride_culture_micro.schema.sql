@@ -1,9 +1,9 @@
--- Table: starr_culture_micro
+-- Table: stride_culture_micro
 -- Description: Orders and detailed results for blood culture labs.
 -- Raw Files:
 --  * JChen_cult_micro_7yr.patchIds.csv.gz
 -- Clean Files:
---  * starr_culture_micro_7_year.csv.gz
+--  * stride_culture_micro_7_year.csv.gz
 -- CSV Fields:
 --  * ORDER_PROC_ANON_ID (e.g. 354125129)
 --  * PAT_ANON_ID (e.g. 3512885273857)
@@ -26,7 +26,7 @@
 --  * LAB_STATUS_C (e.g. 3)
 --  * LAB_STATUS (e.g. Final result)
 
-CREATE TABLE IF NOT EXISTS starr_culture_micro
+CREATE TABLE IF NOT EXISTS stride_culture_micro
 (
   order_proc_anon_id BIGINT,
   pat_anon_id BIGINT,

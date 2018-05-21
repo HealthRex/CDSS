@@ -1,4 +1,4 @@
--- Table: starr_adt
+-- Table: stride_adt
 -- Description: Admission, Discharge, and Transfer (ADT) for patient pat_anon_id.
 --  Each row is modeled as a time window in which a patient was in place X,
 --  rather than the discrete event  of each ADT.
@@ -6,8 +6,8 @@
 --	* JChenv3_ADTTable10.csv.gz
 --  * JChenv3_ADTTable56.csv.gz
 -- Clean Files:
---	* starr_adt_2008_2014.csv.gz
---  * starr_adt_2014_2017.csv.gz
+--	* stride_adt_2008_2014.csv.gz
+--  * stride_adt_2014_2017.csv.gz
 -- CSV Fields:
 --  * PAT_ANON_ID (e.g. 4242249324038)
 --  * PAT_ENC_CSN_ANON_ID (e.g. 451502)
@@ -22,7 +22,7 @@
 --  * SHIFTED_TRANSF_OUT_DT_TM (e.g. "19-APR-12 17:00")
 --  * EVENT_OUT (e.g. "Discharge")
 
-CREATE TABLE IF NOT EXISTS starr_adt
+CREATE TABLE IF NOT EXISTS stride_adt
 (
   pat_anon_id BIGINT,
   pat_enc_csn_anon_id BIGINT,

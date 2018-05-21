@@ -1,9 +1,9 @@
--- Table: starr_orderset_order_med
+-- Table: stride_orderset_order_med
 -- Description: Medications ordered from order sets.
 -- Raw Files:
 --  * orderset_medications.csv.gz
 -- Clean Files:
---  * starr_orderset_order_med_2008_2014.csv.gz
+--  * stride_orderset_order_med_2008_2014.csv.gz
 -- CSV Fields:
 --  * ORDER_MED_ID (e.g. 3000087)
 --  * DESCRIPTION (e.g. SODIUM CHLORIDE 0.9 % 0.9 % IV SOLP)
@@ -15,7 +15,7 @@
 --  * PROTOCOL_ID (e.g. 1841)
 --  * PROTOCOL_NAME (e.g. IP SUR GENERAL ADMIT)
 
-CREATE TABLE IF NOT EXISTS starr_orderset_order_med
+CREATE TABLE IF NOT EXISTS stride_orderset_order_med
 (
   order_med_id BIGINT,
 	description TEXT,
