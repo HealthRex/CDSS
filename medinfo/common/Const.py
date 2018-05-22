@@ -4,7 +4,7 @@ import sys;
 import logging
 import Env
 
-"""See oemolistream documentation for more info on this pattern"""
+"""If specify this as the name of an input/output file, interpret as user wants to use stdin or stdout"""
 STD_FILE = "-"
 
 """File extension to identify GZipped files"""
