@@ -1,10 +1,10 @@
--- Table: icd10_cm
+-- Table: stride_icd10_cm
 -- Description: ICD-10 CM (International Classification of Diseases, Ninth
 --              Revision, Clinical Modification)
 -- Original Files:
 --  * export_ICD-10-CM_2016.csv.gz
 -- Clean Files:
---  * icd10_cm_2016.csv.gz
+--  * stride_icd10_cm_2016.csv.gz
 -- CSV Fields:
 --  * ORDER_NUMBER (e.g. 76464)
 --  * ICD10 (e.g. M60849)
@@ -13,7 +13,7 @@
 --  * FULL_DESCRIPTION (e.g. "Varicella pneumonia")
 --  * ICD10_CODE (e.g. S72.355H)
 
-CREATE TABLE IF NOT EXISTS icd10_cm
+CREATE TABLE IF NOT EXISTS stride_icd10_cm
 (
   order_number BIGINT,
 	icd10 TEXT,
