@@ -51,35 +51,22 @@ class LabCultureMatrix(FeatureMatrix):
         # First, get all the order_proc_ids for proc_code.
 
         query = SQLQuery()
-        query.addSelect('CAST(pat_order_proc_id as BIGINT)')
-        query.addFrom('micro')
-        #query.addFrom('stride_order_proc')
+        query.addSelect('order_proc_id')
+        query.addFrom('stride_order_proc')
         query.addWhereIn('proc_code', [self._lab_panel])
-        query.addGroupBy('pat_order_proc_id')
-        log.debug('Querying pat_order_proc_ids for %s...' % self._lab_panel)
+        query.addGroupBy('order_proc_id')
+        log.debug('Querying order_proc_ids for %s...' % self._lab_panel)
         results = DBUtil.execute(query)
-        #print("results in get components in lab panel", results)
         lab_order_ids = [row[0] for row in results]
-        #print("lab order ids", lab_order_ids[:5])
-
-        # check what order proc id looks like
-        # query = SQLQuery()
-        # query.addSelect('order_proc_id')
-        # query.addFrom('stride_order_results')
-        # log.debug('Querying order_proc_ids')
-        # results = DBUtil.execute(query)
-        # print("results for order proc id query", results)
 
         # Second, get all base_names from those orders.
         query = SQLQuery()
         query.addSelect('base_name')
-        query.addFrom('stride_order_results as sor')
-        query.addWhereIn('CAST(sor.order_proc_id as BIGINT)', lab_order_ids)
+        query.addFrom('stride_order_results')
+        query.addWhereIn('order_proc_id', lab_order_ids)
         query.addGroupBy('base_name')
         log.debug('Querying base_names for order_proc_ids...')
         results = DBUtil.execute(query)
-        #print("results in base name part", results[:5])
-
         components = [row[0] for row in results]
 
         return components
@@ -91,14 +78,12 @@ class LabCultureMatrix(FeatureMatrix):
         # Get average number of results for this lab test per patient.
         query = SQLQuery()
         query.addSelect('pat_id')
-        query.addSelect('COUNT(pat_order_proc_id) AS num_orders')
-        query.addFrom('micro')
-        #query.addFrom('stride_order_proc AS sop')
+        query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
+        query.addFrom('stride_order_proc AS sop')
         query.addFrom('stride_order_results AS sor')
-        query.addWhere('pat_order_proc_id = sor.order_proc_id')
+        query.addWhere('sop.order_proc_id = sor.order_proc_id')
         query.addWhereIn("proc_code", [self._lab_panel])
         components = self._get_components_in_lab_panel()
-        print("COMPONENTS", components)
         query.addWhereIn("base_name", components)
         query.addGroupBy('pat_id')
         log.debug('Querying median orders per patient...')
@@ -127,7 +112,7 @@ class LabCultureMatrix(FeatureMatrix):
         # TODO(sbala): Have option to feed in a seed for the randomness.
         query = SQLQuery()
         query.addSelect('pat_id')
-        query.addFrom('micro')
+        query.addFrom('stride_order_proc AS sop')
         query.addWhereIn('proc_code', [self._lab_panel])
         query.addOrderBy('RANDOM()')
         query.setLimit(self._num_patients)
@@ -176,35 +161,38 @@ class LabCultureMatrix(FeatureMatrix):
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
         query = SQLQuery()
-        query.addSelect('CAST(micro.pat_id AS BIGINT)')
-        query.addSelect('CAST(micro.order_time AS TIMESTAMP)')
-        #query.addSelect('sop.order_proc_id AS order_proc_id')
-        query.addSelect('proc_code')
+        query.addSelect('CAST(pat_anon_id AS BIGINT)')
+        query.addSelect('CAST(shifted_order_time AS TIMESTAMP)')
+        query.addSelect('stride_culture_micro.proc_code')
         query.addSelect('organism_name') #one for the result
-        # query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")
-        # query.addSelect("SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components")
-        # query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components")
-        # query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal")
-        # query.addFrom('stride_order_proc AS sop')
-        # query.addFrom('stride_order_results AS sor')
-        query.addFrom('micro')
-        #query.addWhere('sop.order_proc_id = sor.order_proc_id')
-        #query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
-        #query.addWhereIn("micro.proc_code", [self._lab_panel])
-        query.addWhereIn("micro.pat_id", random_patient_list)
-        query.addGroupBy('micro.pat_id')
-        #query.addGroupBy('sop.order_proc_id')
-        query.addGroupBy('proc_code')
-        query.addGroupBy('micro.order_time')
+
+        # Let us look at top 10 commonly occuring bacteria
+        query.addSelect("CASE WHEN organism_name = 'NULL' THEN 1 ELSE 0 END AS NO_BACTERIA")
+        query.addSelect("CASE WHEN organism_name = 'ESCHERICHIA COLI' THEN 1 ELSE 0 END AS ESCHERICHIA_COLI")
+        query.addSelect("CASE WHEN organism_name = 'STAPHYLOCOCCUS AUREUS' THEN 1 ELSE 0 END AS STAPHYLOCOCCUS_AUREUS")
+        query.addSelect("CASE WHEN organism_name = 'ENTEROCOCCUS SPECIES' THEN 1 ELSE 0 END AS ENTEROCOCCUS_SPECIES")
+        query.addSelect("CASE WHEN organism_name = 'KLEBSIELLA PNEUMONIAE' THEN 1 ELSE 0 END AS KLEBSIELLA_PNEUMONIAE")
+        query.addSelect("CASE WHEN organism_name = 'PSEUDOMONAS AERUGINOSA' THEN 1 ELSE 0 END AS PSEUDOMONAS_AERUGINOSA")
+        query.addSelect("CASE WHEN organism_name = 'COAG NEGATIVE STAPHYLOCOCCUS' THEN 1 ELSE 0 END AS COAG_NEGATIVE_STAPHYLOCOCCUS")
+        query.addSelect("CASE WHEN organism_name = 'ENTEROCOCCUS FAECALIS' THEN 1 ELSE 0 END AS ENTEROCOCCUS_FAECALIS")
+        query.addSelect("CASE WHEN organism_name = 'PROTEUS MIRABILIS' THEN 1 ELSE 0 END AS PROTEUS_MIRABILIS")
+        query.addSelect("CASE WHEN organism_name = 'CANDIDA ALBICANS' THEN 1 ELSE 0 END AS CANDIDA_ALBICANS")
+        
+        query.addFrom('stride_culture_micro')
+ 
+        query.addWhereIn("stride_culture_micro.proc_code", [self._lab_panel])
+        query.addWhereIn("pat_anon_id", random_patient_list)
+        query.addGroupBy('pat_anon_id')
+        query.addGroupBy('shifted_order_time')
+        query.addGroupBy('stride_culture_micro.proc_code')
         query.addGroupBy('organism_name')
-        #query.addGroupBy('abnormal_yn')
-        query.addOrderBy('micro.pat_id')
-        #query.addOrderBy('sop.order_proc_id')
-        query.addOrderBy('proc_code')
-        query.addOrderBy('micro.order_time')
+        query.addOrderBy('pat_anon_id')
+        query.addOrderBy('shifted_order_time')
+        query.addOrderBy('stride_culture_micro.proc_code')
+        query.addOrderBy('organism_name')
         query.setLimit(self._num_requested_episodes)
 
-        self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, index_time_col='order_time')
+        self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, pat_id_col='pat_anon_id', index_time_col='shifted_order_time')
 
     def _add_features(self):
         # Add lab panel order features.
@@ -218,7 +206,7 @@ class LabCultureMatrix(FeatureMatrix):
             log.info('\t%s' % pre_time_delta)
             self._factory.addLabResultFeatures(self._lab_components, False, pre_time_delta, LAB_POST_TIME_DELTA)
 
-        FeatureMatrix._add_features(self, index_time_col='order_time')
+        FeatureMatrix._add_features(self, index_time_col='shifted_order_time')
 
     def write_matrix(self, dest_path):
         log.info('Writing %s...' % dest_path)
@@ -354,7 +342,7 @@ if __name__ == "__main__":
     log.level = logging.DEBUG
     start_time = time.time()
     # Initialize lab test matrix.
-    ltm = LabCultureMatrix("LABBLC", 2)
+    ltm = LabCultureMatrix("LABBLC", 1000)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
-    ltm.write_matrix("LABBLC-panel-5-episodes-%s-sec.tab" % str(elapsed_time))
+    ltm.write_matrix("LABBLC-panel-1000-episodes-%s-sec.tab" % str(elapsed_time))
