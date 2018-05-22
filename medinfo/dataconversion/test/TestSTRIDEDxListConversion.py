@@ -78,6 +78,20 @@ class TestSTRIDEDxListConversion(DBTestCase):
             (dataItemId, isNew) = DBUtil.findOrInsertItem("stride_icd9_cm", dataModel, retrieveCol="cui" );
             self.icd9CUIdStrList.append( str(dataItemId) );
 
+        self.icd10_order_number_str_list = list()
+        headers = [
+            'order_number', 'icd10', 'hipaa_covered',
+            'short_description','full_description','icd10_code'
+        ]
+        data_models = [
+            RowItemModel([-1, '-1043100', 1, 'Diagnosis 2', 'Diagnosis 2 Full', '-10431.00'], headers),
+            RowItemModel([-2, '-104310', 0, 'Diagnosis 2b', 'Diagnosis 2b Full', '-10431.0'], headers),
+            RowItemModel([-6, '-10780', 0, 'Diagnosis 5', 'Diagnosis 5 Full', '-10780'], headers)
+        ]
+        for data_model in data_models:
+            (dataItemId, isNew) = DBUtil.findOrInsertItem("stride_icd10_cm", data_model, retrieveCol='order_number');
+            self.icd10_order_number_str_list.append( str(dataItemId) );
+
         self.converter = STRIDEDxListConversion();  # Instance to test on
 
     def tearDown(self):
@@ -116,6 +130,13 @@ class TestSTRIDEDxListConversion(DBTestCase):
         query.delete = True;
         query.addFrom("stride_icd9_cm");
         query.addWhereIn("cui", self.icd9CUIdStrList );
+        DBUtil.execute( query );
+
+
+        query = SQLQuery();
+        query.delete = True;
+        query.addFrom("stride_icd10_cm");
+        query.addWhereIn("order_number", self.icd10_order_number_str_list );
         DBUtil.execute( query );
 
         DBTestCase.tearDown(self);
@@ -161,15 +182,20 @@ class TestSTRIDEDxListConversion(DBTestCase):
                 [None, -126798, -131016557370, "Diagnosis (ADMIT_DX)", None, "ICD9.-780.9", "Diagnosis 6a", datetime(2111,7,26)],
                 [None, -126798, -131016557370, "Diagnosis (ADMIT_DX)", None, "ICD9.-780.97", "Diagnosis 6", datetime(2111,7,26)],
 
+                [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10431.0', 'Diagnosis 2b Full', datetime(2111, 10, 14, 0, 0)],
+                [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10431.00', 'Diagnosis 2 Full', datetime(2111, 10, 14, 0, 0)],
+                [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10432', '-10432', datetime(2111, 10, 14, 0, 0)],
                 [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-431.0', 'Diagnosis 2b', datetime(2111, 10, 14, 0, 0)],
                 [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-431.00', 'Diagnosis 2', datetime(2111, 10, 14, 0, 0)],
                 [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-432', '-432', datetime(2111, 10, 14, 0, 0)],
+                [None, -2126798L, -135014753610L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10482.9', '-10482.9', datetime(2111, 6, 6, 0, 0)],
+                [None, -2126798L, -135014753610L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10483', '-10483', datetime(2111, 6, 6, 0, 0)],
+                [None, -2126798L, -135014753610L, 'Diagnosis (ADMIT_DX)', None, 'ICD10.-10780', 'Diagnosis 5 Full', datetime(2111, 3, 8, 0, 0)],
                 [None, -2126798L, -135014753610L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-482.9', '-482.9', datetime(2111, 6, 6, 0, 0)],
                 [None, -2126798L, -135014753610L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-483', '-483', datetime(2111, 6, 6, 0, 0)],
-                [None, -2126798L, -135014753610L, 'Diagnosis (ADMIT_DX)', None, 'ICD9.-780', 'Diagnosis 5', datetime(2111, 3, 8, 0, 0)]
+                [None, -2126798L, -135014753610L, 'Diagnosis (ADMIT_DX)', None, 'ICD9.-780', 'Diagnosis 5', datetime(2111, 3, 8, 0, 0)],
             ];
         actualData = DBUtil.execute(testQuery);
-
         self.assertEqualTable( expectedData, actualData );
 
 def suite():
