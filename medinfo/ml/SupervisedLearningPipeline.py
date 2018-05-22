@@ -175,8 +175,13 @@ class SupervisedLearningPipeline:
                 if feature[-2:] == ".1":
                     fmt.remove_feature(feature)
                     self._removed_features.append(feature)
+
             # Impute data.
             self._impute_data(fmt, raw_matrix, params['imputation_strategies'])
+
+            # In case any all-null features were created in preprocessing,
+            # drop them now so feature selection will work
+            fmt.drop_null_features()
 
             # Build interim matrix.
             processed_matrix = fmt.fetch_matrix()
