@@ -1,9 +1,9 @@
 import sys, os, pprint; #pprint is useful for debugging
 from sets import Set;
 from optparse import OptionParser
-from CHEM.Common import DBUtil;
-from CHEM.Common.Model import RowItemModel;
-from CHEM.Common.Util import ProgressDots;
+from medinfo.db import DBUtil;
+from medinfo.db.Model import RowItemModel;
+from medinfo.db.Util import ProgressDots;
 from CHEM.DB.support import DBCopyFormatter;
 
 def main(argv):
@@ -28,7 +28,6 @@ def main(argv):
     parser.add_option("-O", "--targetPort", dest="targetPort",  metavar="<targetPort>", help="Target database port.", default=None)
 
     parser.add_option("-r", "--rowIDs", dest="rowIDs",  metavar="<rowIDs>", help="Comma-separated list of IDs to specify which rows to copy / sync.  Leave blank to copy / sync all rows from the source database.");
-    parser.add_option('-F', '--formatter', dest='formatter', metavar='<formatter>', default=None, help='Name of the formatter class to use.');
     parser.add_option('-S', '--syncSequence', dest='syncSequence', action="store_true", help='Add this option to update sequence number from the source table to the target table');
     
     """Assign options (available are above) and args (table names), that were passed via command line when script was executed
@@ -89,13 +88,7 @@ def main(argv):
             
             ##Resolve formatter to actual class
             myFormatter = None;
-            if options.formatter is not None:
-                try:
-                    myFormatter = getattr(DBCopyFormatter, options.formatter);
-                except AttributeError, e:
-                    print >> sys.stderr, "Formatter class %s does not exist" % options.formatter;
-                    raise;
-            
+
             """Sync table data
             """
             syncTable(sourceConn, targetConn, syncTableName, rowIDStrSet, myFormatter);
