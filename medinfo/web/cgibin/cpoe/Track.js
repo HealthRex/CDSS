@@ -1,3 +1,6 @@
+// When page is done loading
+$(document).on('ready', function(){initTrackingBindings()})
+
 // Store Trackers in page session (to avoid being lost across page updates)
 // Below if-statement is a good place to make one-time initializations
 if (sessionStorage.length == 0){
@@ -10,7 +13,6 @@ if (sessionStorage.length == 0){
 eventTracker = $.parseJSON(sessionStorage.getItem('eventTracker')) // Track user action events
 resultsTracker = $.parseJSON(sessionStorage.getItem('resultsTracker')) // Track results that come up
 signedItemsTracker = $.parseJSON(sessionStorage.getItem('signedItemsTracker')) // Track signed items
-// lastButtonClicked = trackers['lastButtonClicked'] // Track last clicked button to use in state of results
 lastButtonClicked = ""
 
 /**
@@ -28,15 +30,6 @@ function saveTrackers(){
   data_string = JSON.stringify(data)
 
   var encoded_data = "text/json;charset=utf-8," + encodeURIComponent(data_string)
-
-  // // var URL = 'PatientCareFrame.py?track_data=' + encodeURIComponent(JSON.stringify(data))
-  // var URL = '/medinfo/web/cgibin/cpoe/PatientCareFrame.py'
-  // alert("About to save!")
-  // $.post(URL, {'track_data': JSON.stringify(data)}, function(){alert("Trackers Saved!")}).fail(function(){alert('AAAAHHH')})
-  // // $.get(URL, function(){alert("Trackers Saved!")})
-  // // Reset storage
-
-  console.log(encoded_data)
   var a = document.createElement('a');
   a.href = 'data:' + encoded_data;
   a.download  = data['user'] + '_' + data['patient'] +'_data.json';
@@ -46,24 +39,20 @@ function saveTrackers(){
 
 /**
 * Save trackers in window.name
-* To be used with page is reloaded, to keep keep trackers persistent
+* To be used with page is reloaded, to keep trackers persistent
 */
 function setTrackers(){
   sessionStorage.setItem('eventTracker', JSON.stringify(eventTracker)) // Track user action events
   sessionStorage.setItem('resultsTracker', JSON.stringify(resultsTracker)) // Track results that come up
   sessionStorage.setItem('signedItemsTracker', JSON.stringify(signedItemsTracker)) // Track signed items
-  // trackers['lastButtonClicked'] = lastButtonClicked // Track last clicked button to use in state of results
 }
-
-// When page is done loading
-$(document).on('ready', function(){initTrackingBindings()})
 
 /**
 * Record beginning of test
 */
 function startTimer(){
   startTime = Date.now()
-  console.log(startTime)
+  // console.log(startTime)
   sessionStorage.setItem('startTime', startTime)
 }
 
@@ -72,7 +61,7 @@ function startTimer(){
 */
 function stopTimer(){
   endTime = Date.now()
-  console.log(endTime)
+  // console.log(endTime)
   sessionStorage.setItem('endTime', endTime)
 }
 
@@ -81,9 +70,9 @@ function stopTimer(){
 */
 function collectCaseInfo(){
   var simUser = $('input[type="hidden"][name="sim_user_id"]')
-  console.log(simUser.val())
+  // console.log(simUser.val())
   var simPatient = $('input[type="hidden"][name="sim_patient_id"]')
-  console.log(simPatient.val())
+  // console.log(simPatient.val())
   sessionStorage.setItem('user', simUser.val().toString())
   sessionStorage.setItem('patient', simPatient.val().toString())
 }
@@ -95,9 +84,17 @@ function initTrackingBindings(){
   collectCaseInfo()
   // Going back to setup page through top link ends test
   var home = $('.breadcrumb')
-  home.on('click', function(){
-    stopTimer()
-    saveTrackers()
+  home.on('click', function(event){
+    // Let user confirm exit (and clearing of session)
+    var exit = confirm("Exit and save user testing?")
+    if (exit) {
+      setTrackers()
+      stopTimer()
+      saveTrackers()
+    } else {
+      // If exit is cancelled, prevent page change
+      event.preventDefault()
+    }
   })
 
   var dataTable = $('#currentDataTableSpace')
@@ -143,12 +140,23 @@ function attachTimeChangeBindings(){
 function attachResultsReviewBindings(){
   // Notes
   var viewNotes = $('input[type="button"][value="Notes"]')
+  viewNotes.unbind('click')
   viewNotes.on('click load', function(){
     var state = new Object()
     incrementCounter("Notes", state)
   })
+  // Specific Notes
+  var viewSpecificNotes = $('#currentDataTableSpace a')
+  viewSpecificNotes.unbind('click')
+  viewSpecificNotes.on('click', function(){
+    var noteLinkText = this.text
+    var state = new Object()
+    state['linkText'] = noteLinkText
+    incrementCounter("NoteContent", state)
+  })
   // Results Review
   var viewResultsReview = $('input[type="button"][value="Results Review"]')
+  viewResultsReview.unbind('click')
   viewResultsReview.on('click', function(){
     // Update lastButtonClicked
     lastButtonClicked = "ResultsReview"
@@ -157,6 +165,7 @@ function attachResultsReviewBindings(){
   })
   // Active Orders
   var viewActiveOrders = $('input[type="button"][value="Active Orders"]')
+  viewActiveOrders.unbind('click')
   viewActiveOrders.on('click', function(){
     // Update lastButtonClicked
     lastButtonClicked = "ActiveOrders"
@@ -165,6 +174,7 @@ function attachResultsReviewBindings(){
   })
   // Active Orders Removal
   var activeOrdersRemoval = $('input[type="button"][value="X"]')
+  activeOrdersRemoval.unbind('click')
   activeOrdersRemoval.on('click', function(){
     // Update lastButtonClicked
     lastButtonClicked = "ActiveOrdersRemoval"
@@ -173,6 +183,7 @@ function attachResultsReviewBindings(){
   })
   // Order History
   var viewOrderHistory = $('input[type="button"][value="Order History"]')
+  viewOrderHistory.unbind('click')
   viewOrderHistory.on('click', function(){
     // Update lastButtonClicked
     lastButtonClicked = "OrderHistory"
@@ -245,7 +256,7 @@ function incrementCounter(eventName, state){
     eventTracker[eventName] = []
   }
   eventTracker[eventName].push(state)
-  console.log(eventTracker)
+  // console.log(eventTracker)
 }
 
 /**
@@ -266,7 +277,7 @@ function storeResults(results, state){
     resultsTracker[action] = []
   }
   resultsTracker[action].push(resultBlob)
-  console.log(resultsTracker)
+  // console.log(resultsTracker)
 }
 
 /**
@@ -287,7 +298,7 @@ function storeSignedOrders(){
 
   var currTime = Date.now()
   signedItemsTracker[currTime] = signedItems
-  console.log(signedItemsTracker)
+  // console.log(signedItemsTracker)
 }
 
 /**
@@ -404,7 +415,6 @@ function recordNewResults(queryType){
     results['specificOrders'] = specificOrdersValues
   }
   else {
-  // if (dataTableView.length){
     // Get value of each input
     var dataValues = dataTable.toArray().map(elem => elem.value)
     results['data'] = dataValues
