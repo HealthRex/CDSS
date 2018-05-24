@@ -1,7 +1,7 @@
 """
-Example shell script background call to run script to start up several sub processes in series
+Example shell script background call to run script to start up several sub processes
 People often just make bash shell scripts, but I find Python a more flexible language that can do all of the above and better integrate.
-    nohup python batchDriver.py &> log/driver.assocAnalysis &
+    nohup python batchDriver.py &> driver.log &
 
 """
 
@@ -12,30 +12,22 @@ LOG_FILE_TEMPLATE = "log/exampleQuery.%s.log";
 
 baseArgv = \
     [   "python","ExampleQueryApp.py",
-        "-p","0.001",
+        "-p","1",
     ];
 
-DATE_LIMITS = \
-    [   
-        ["2011-01-01",  "2011-02-01"],
-        ["2011-02-01",  "2011-03-01"],
-        ["2011-03-01",  "2011-04-01"],
-        ["2011-04-01",  "2011-05-01"],
-        ["2011-05-01",  "2011-06-01"],
-        ["2011-06-01",  "2011-07-01"],
-        ["2011-07-01",  "2011-08-01"],
-        ["2011-08-01",  "2011-09-01"],
-        ["2011-09-01",  "2011-10-01"],
-        ["2011-10-01",  "2011-11-01"],
-        ["2011-11-01",  "2011-12-01"],
-        ["2011-12-01",  "2012-01-01"],
+CATEGORY_LIST = \
+    [   "Med (Oral)", "Med (Intravenous)", "Diagnosis (ADMIT_DX)", "Lab","Lab Result",
+    ];
+ITEM_PREFIXES = \
+    [   "A","B","C","D","E","F","G","H","I",        
     ];
 specificArgvList = \
     [   
     ];
 
-for (startDate, endDate) in DATE_LIMITS:
-        specificArgv = ["-s", startDate,"-e", endDate, "results/queryResults.%s.%s.tab.gz" % (startDate, endDate) ];
+for categoryName in CATEGORY_LIST:
+    for itemPrefix in ITEM_PREFIXES:
+        specificArgv = ["-c", categoryName, "-i", itemPrefix, "results/queryResults.%s.%s.tab.gz" % (itemPrefix, categoryName) ];
         specificArgvList.append(specificArgv);
 
 prog = ProgressDots(1,1,"Processes",total=len(specificArgvList));
@@ -47,7 +39,17 @@ for specificArgv in specificArgvList:
     log.info( "Starting: "+str.join(" ", argv) );
     logFile = stdOpen(LOG_FILE_TEMPLATE % key,"w")
     
-    subprocess.call(argv, stderr=logFile);
-    # Blocking sub-process call. Can just run multiple instances to parallelize, or consider  subprocess.Popen objects instead
+    # Blocking sub-process call if want serial processes.
+    #subprocess.call(argv, stderr=logFile);
+
+    # Non-blocking subprocess.Popen to spawn parallel processes
+    process = subprocess.Popen(argv, stderr=logFile);
+    log.info("Process ID: %s" % process.pid);
+
+    # Print command lines to effectively generate a .sh script
+    #print "nohup",
+    #print str.join(" ", argv),
+    #print "&>", LOG_FILE_TEMPLATE % key,"&"
+ 
     prog.update();
 prog.printStatus();
