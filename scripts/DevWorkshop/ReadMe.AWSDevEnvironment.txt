@@ -27,7 +27,7 @@ Amazon Web Services and Development Environment Setup
 		- Availability Zone
 			Specific choice is not as important as being consistent (keep all your spawned servers in the same area to minimize network latency and security risks). I've usually been using "us-east-1c."
 		- Auto Minor Version Upgrade
-			No, don't bother if just doing some quick testing. Yes, if planning to keep a server on a for a while (which you probably should be, since you're paying by the hour).
+			No, don't bother if just doing some quick testing. Yes, if planning to keep a server on a for a while (which you probably shouldn't be, since you're paying by the hour).
 
 - Startup an EC2 (Elastic Compute) Instance
 	These are general purpose (Linux) servers that can basically do whatever you want them to (including running relational databases, if you don't need the convenience of the RDS setup).
@@ -92,20 +92,20 @@ Amazon Web Services and Development Environment Setup
 			python -m medinfo.db.DBUtil "select count(*) from clinical_item"
 
 		- Go to CDSS/scripts/DevWorkshop and Try running an example script to process data from database
-			python ExampleQueryApp.py -s 2011-01-01 -e 2011-02-02 -p 0 -
+			python ExampleQueryApp.py -c Lab -i A -p 0 -
 
 			Should output a bunch of data rows to the console. 
 			If you don't want to see it all, you can send the output to a text file
 
-			python ExampleQueryApp.py -s 2011-01-01 -e 2011-02-02 -p 0 results/dataRows.tab
+			python ExampleQueryApp.py -c Lab -i A -p 0 results/dataRows.tab
 
 		- Artificially simulate a slow/long process by adding in a 0.1 second pause between each result row
-			python ExampleQueryApp.py -s 2011-01-01 -e 2011-02-02 -p 0.1 results/dataRows.tab
+			python ExampleQueryApp.py -c Lab -i A -p 0.1 results/dataRows.tab
 
 			When you get bored waiting for above to finish, Ctrl+C to abort the process
 
 		- Run the process again, but do so in the background
-			nohup python ExampleQueryApp.py -s 2011-01-01 -e 2011-02-02 -p 0.1 results/dataRows.tab &> log/progress.log &
+			nohup python ExampleQueryApp.py -c Lab -i A -p 0.1 results/dataRows.tab &> log/progress.log &
 
 			Above will run the process in the background (ending &) and continue to do so even if you logoff from the server (nohup = "no hangup"). So you can start a long process and just let the server continue to work on it, without requiring you to keep your (laptop) client computer logged in.
 			Any error messages, progress indicators, or other text that you normally see in the console window will be redirected (&>) to the specified log file (log/progress.log)
@@ -117,7 +117,7 @@ Amazon Web Services and Development Environment Setup
 				If you need to kill a process that you don't want to continue anymore
 			top
 				Running monitor of all the most intensive processes running on the server
-				Overall reporting can track how much total free memory (RAM) the server still has available, and how much processor (CPU) is being used. Helpful when trying to gauge the bottleneck for intensive processes (need more processors or need more RAM?). Note that total CPU load can be >100% for servers with multiple CPUs. The whole point of using a multi-processor server is that you should run multiple simultaneous (parallel) processes to take advantage of extra CPUs working for you. You can't make a single process run at 200% speed with two CPUs, but you can break up the work into two separate tasks, and have each running at 100% on separate CPU. Beware that the multiple processors are both using the same shared memory (RAM), so if you have a process that uses a lot of RAM, parallelizing the process will also result in multiplying the amount of total RAM needed.
+				Overall reporting can track how much total free memory (RAM) the server still has available, and how much processor (CPU) is being used. Helpful when trying to gauge the bottleneck for intensive processes (need more processors or need more RAM?). Note that total CPU load can be >100% for servers with multiple CPUs. The whole point of using a multi-processor server is that you should run multiple simultaneous (parallel) processes to take advantage of extra CPUs working for you. You can't make a single process run at 200% speed with two CPUs, but you can break up the work into two separate tasks, and have each running at 100% on separate CPU. Beware that the multiple processors are both using the same shared memory (RAM), so if you have a process that uses a lot of RAM, parallelizing the process will also multiply the amount of total RAM needed.
 				"M" to sort the results by which processes are using the most memory
 				"q" to quit/exit when done.
 			cat log/process.log
@@ -125,30 +125,19 @@ Amazon Web Services and Development Environment Setup
 			tail -f log/process.log
 				Show just the last few lines of the redirected console output, and continue watching it until Ctrl+C to abort. (Will abort the "tail" monitoring process, it will not abort the original application process.)
 
-		- Use a batch driver script to run multiple processes
+		- Use a batch driver script to run multiple (parallel) processes
+			bash batchDriver.sh
+
+			Though bash (.sh) scripts are more common, I decided I prefer Python when it can do all of the above, is more flexible, platform independent, and unifies the programming/scripting language used. For example, rather than copy-pasting a dozen similar but different command line calls in the batchDriver.sh script, I use a Python loop to effectively generate those commands in the script below and spawn them via the subprocess module.
+
 			python batchDriver.py
 
-			Probably more common to run a shell script (e.g., bash) to chain together multiple commands, e.g. batchDriver.sh will yield same basic result, but does  parallelization via nohup &. 
-			I decided I prefer Python when it can do all of the above, is more flexible, platform independent, and unifies the programming/scripting language used. For example, rather than copy-pasting a dozen similar but different command line calls in the batchDriver.sh script, I use a Python loop to effectively generate those commands (and thus easier to tweak later).
-			Example script shows using a for loop to generate a series of command line parameter variants to keep running different versions of a script and spawn them in series (subprocess.call).
+			If prefer serial, rather than parallel, processes for more control. Remove the "nohup &" background commands from the .sh script, or change the Python subprocess.Popen to subprocess.call. You may then want to run the batchDriver itself as a background process with a redirected log file:
 
-			Alternative to directly spawn multiple (parallel background) processes through a shell script:
-				bash batchDriver.sh
-
-			Simple sequential batch process setup:
-				nohup python batchDriver.py &> log/batchDriver.log &
-			Cheap version of parallel batch processes
-				- Create copies of batchDriver.py to batchDriver1.py and batchDriver2.py
-				- Edit batchDriver1.py and batchDriver2.py so they will generate non-overlapping sets of command-line parameters / processes to run
-
-				nohup python batchDriver1.py &> log/batchDriver1.log &
-				nohup python batchDriver2.py &> log/batchDriver2.log &
-
-				Above should yield a pair of sequential batch processes running in parallel
-				This let's you get double CPU effort, but beware of shared bottlenecks (e.g., memory / RAM and single database)
+			nohup python batchDriver.py &> log/driver.log &
 
 			Additional support functionality:
 				medinfo/common/support/awaitProcess.py - Wait until an existing process completes before starting another one
-				medinfo/common/ProcessManager.py - Not implemented yet (5/14/2018). Intended to consolidate some of the above support functionality, including the ability to automatically allocate parallelization.
+				medinfo/common/ProcessManager.py - Not implemented yet (5/14/2018). Intended to consolidate some of the above support functionality.
 
-			Large compute clusters often have their own job submission and parallelization schemes (grid engines). AWS for example has Elastic Map Reduce (EMR) and AWS Batch services. Depending on the scale of your needs, you may want to look into such services. Otherwise, you can get a lot done cheaply by just taking advantage of multiple CPUs servers as above. For example, once you've got your EC2 compute setup, create a SnapShot AMImage, then restore that image onto a new, bigger server with dozens more CPUs and then just run your processes on that server. Don't forget we're paying for these servers by the hour, but the pricing is proportional to capacity. Given that proportionality, you can pay twice as much for twice as many CPUs that will get your job done in half the time. This is perfectly worth it since the amount of dollars spent is the same, but you save half your human time waiting for results.
+			Large compute clusters often have their own job submission and parallelization schemes (e.g., qsub, bsub grid engines). AWS for example has Elastic Map Reduce (EMR) and AWS Batch services. Depending on the scale of your needs, you may want to look into such services. Otherwise, you can get a lot done cheaply by just taking advantage of multiple CPU servers as above. For example, once you've got your EC2 compute setup, create a SnapShot AMImage, then restore that image onto a new, bigger server with dozens more CPUs and then just run your processes on that server. Don't forget we're paying for these servers by the hour, but the pricing is proportional to capacity. Given that proportionality, you can pay twice as much for twice as many CPUs that will get your job done in half the time. This is perfectly worth it since the amount of dollars spent is the same, but you save half your human time waiting for results.
