@@ -1,4 +1,4 @@
--- Table: stride_medication
+-- Table: stride_mapped_meds
 -- Description: Medication mapped to RxNorm Concept Unique Identifier (RxCUI).
 -- Original Files:
 --	* Chen_Mapped_Meds_5Yr.csv.gz
@@ -13,7 +13,7 @@
 --  * "GENERIC_NAME" (e.g. "LORazepam 1 mg tablet")
 --  * active_ingredient (e.g. azatadine) (this field imputed via RxNorm API)
 
-CREATE TABLE IF NOT EXISTS stride_medication
+CREATE TABLE IF NOT EXISTS stride_mapped_meds
 (
   medication_id INTEGER,
   name TEXT,
