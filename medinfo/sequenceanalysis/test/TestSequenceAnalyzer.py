@@ -1,10 +1,11 @@
 import datetime
+import numpy as np
 import pandas as pd
 import unittest
 from collections import defaultdict
 
 from scripts.LabTestAnalysis.lab_statistics.repeat_component_descriptive import RepeatComponents
-from medinfo.sequenceanalysis.SequenceAnalyzer import SequenceAnalyzer
+from medinfo.sequenceanalysis.SequenceAnalyzer import SequenceAnalyzer, utils
 
 class TestSequenceAnalyzer(unittest.TestCase):
 
@@ -151,44 +152,92 @@ class TestSequenceAnalyzer(unittest.TestCase):
       [11286739503688L, '11213R(InRange)', datetime.datetime(2011, 8, 10, 13, 56)],
       [11286739503688L, '11213R(InRange)', datetime.datetime(2011, 11, 19, 12, 23)]]
 
-    def handle_sentinel_queue_fn(window_size, queue, vars_dict, row):
-      vars_dict['prior_history'] = bool(RepeatComponents.getDayDifference(row, queue[0]) <= window_size)  # If queue is just a sentinel, this will evaluate. Example sentinel value: Cleared queue after every abnormal test, but still need to keep track of date of abnormal value
+    def extract_key_fn(row):
+      return row[0]
 
-    def filter_queue_fn(window_size, queue, vars_dict, row):
-      return RepeatComponents.getDayDifference(row, queue[0]) > window_size # Removing items that are no longer in the window
+    def handle_sentinel_queue_fn(window_size, vars_dict, sentinel, row):
+      vars_dict['prior_history'] = bool(utils.get_day_difference(row[2], sentinel[2]) <= window_size)
 
-    def emptied_queue_handler_fn(window_size, vars_dict, row):  
-      vars_dict['prior_history'] = False  # After running filter/pop queue, if results in empty queue, then do stuff here (reset prior_history record having no prior records within window / as opposed to an abnormal value being present before)
+    # def filter_queue_fn(window_size, queue, vars_dict, row):
+    #   return RepeatComponents.getDayDifference(row, queue[0]) > window_size # Removing items that are no longer in the window
 
-    def set_number_consecutive_normals_fn(window_size, queue, vars_dict, row):
-      return len(queue) if vars_dict['prior_history'] else None
+    # After running filter/pop queue, if results in empty queue, then do stuff here (reset prior_history record having no prior records within window / as opposed to an abnormal value being present before)
+    def emptied_queue_handler_fn(window_size, vars_dict, row):
+      vars_dict['prior_history'] = False
+
+    def extract_key_value_fn(window_size, queue, vars_dict):
+      if vars_dict['prior_history']:
+        # if there is prior_history, set number_consecutive_normals as usual
+        number_consecutive_normals = len(queue)
+      else:
+        # else set number_consecutive_normals as None
+        number_consecutive_normals = None
+      return (window_size, number_consecutive_normals), 1
+
+    def extract_datetime_fn(row):
+      return row[2]
+
+    # column 1 of row is a string that contains the lab result
+    def add_row_condition_fn(window_size, queue, vars_dict, row):
+      return 'InRange' in row[1]
+
+    def clear_queue_condition_fn(window_size, queue, vars_dict, row):
+      return not vars_dict['row_added']
+
+
+    # def set_number_consecutive_normals_fn(window_size, queue, vars_dict, row):
+      # return len(queue) if vars_dict['prior_history'] else None
 
     sequence_analyzer = SequenceAnalyzer()
 
-    sequence_analyzer.split_data(lambda current_split, row: row[0] != current_split[-1][0]) # Basically doing split by patientId, assuming that patientId is the first column
-    sequence_analyzer.initialize_vars({'prior_history': False}) # Prior_history reflects whether something was previously in queue. Init vars allows pass in parameter dictionary
+    # Basically doing split by patientId, assuming that patientId is the first column
+    # sequence_analyzer.split_data_on_key(extract_key_fn)
+
+    # Prior_history reflects whether something was previously in queue. Init vars allows pass in parameter dictionary
+    sequence_analyzer.initialize_vars({'prior_history': False})
+
     # sequence_analyzer.filter_row(filter_row_fn, use_vars)
-    sequence_analyzer.handle_sentinel_queue(handle_sentinel_queue_fn) # Check whether queue has a single sentinel value, but need some residual value (e.g., last date to allow maintenance of prior_history)
-    sequence_analyzer.filter_queue(filter_queue_fn, emptied_queue_handler_fn) # Pop queue criteria, for example to remove items from head of queue as progress
+    # If queue is just a sentinel, this will evaluate. Example sentinel value: Cleared queue after every abnormal test, but still need to keep track of date of abnormal value
+    # Check whether queue has a single sentinel value, but need some residual value (e.g., last date to allow maintenance of prior_history)
+    sequence_analyzer.handle_sentinel_queue(handle_sentinel_queue_fn)
+
+    sequence_analyzer.pop_queue(utils.get_day_difference, extract_datetime_fn, emptied_queue_handler_fn) # Pop queue criteria, for example to remove items from head of queue as progress
 
     #     filter_if_fn=filter_if_fn,
     #     filter_else_handler_fn=filter_else_handler_fn,
     #     filter_sentinel_fn=filter_sentinel_fn)
 
-    sequence_analyzer.set_var('number_consecutive_normals', set_number_consecutive_normals_fn)  # To change, spawn key-value pairs like a mapper? So user can then "reduce" by aggregating those items
-
+    # sequence_analyzer.set_var('number_consecutive_normals', set_number_consecutive_normals_fn)  # To change, spawn key-value pairs like a mapper? So user can then "reduce" by aggregating those items
     # sequence_analyzer.filter_sentinel(filter_sentinel_fn, use_vars)
-    # sequence_analyzer.add_row()
+
+    sequence_analyzer.extract_key_value(extract_key_value_fn)
+
+    sequence_analyzer.add_row(add_row_condition_fn)
+    sequence_analyzer.clear_queue(clear_queue_condition_fn, True)
+
+    sequence_analyzer.set_var('prior_history', lambda window_size, queue, vars_dict, row: True)
+
     # sequence_analyzer.select_window(select_window_fn, use_vars)
     # sequence_analyzer.compute_stats(compute_stats_fn, use_vars)
     # sequence_analyzer.clear_queue(clear_window_fn, use_vars)
 
     sequence_analyzer.build() # Just a signal that user is done, so Run function can check
 
-    windowSizes = [1, 2, 4, 7, 30, 90];  # list of window sizes to evaluate
-    sequence_analyzer.run(data, windowSizes);
-    # for window in sequence_analyzer.run(labTests):
-    #     pass
+    stats = defaultdict(lambda: np.array([0, 0]))
+    window_sizes = [1, 2, 4, 7, 30, 90] # list of window sizes to evaluate
+
+    for data_split in sequence_analyzer.split_data_on_key(data, extract_key_fn):
+      print('split')
+      print(data_split)
+    # for return_values in sequence_analyzer.run(data, window_sizes):
+    #   (key, value), row_added = return_values
+    #   # print(key)
+    #   # print(value)
+    #   # print(row_added)
+    #   stats[key][0] += value
+    #   if row_added:
+    #     stats[key][1] += value
+    # print(stats)
 
     # actualResults = RepeatComponents.getStats(
     #     labTests, RepeatComponents.isNormal, bins=[1])
@@ -263,7 +312,7 @@ class TestSequenceAnalyzer(unittest.TestCase):
         (4, 0): [28, 21]}
       }
     # actualResults = {k: list(v) for k, v in actualResults.iteritems()}
-    # self.assertEqual(expectedResults, actualResults)
+    # self.assertEqual(expectedResults, stats)
 
 def suite():
   """Returns the suite of tests to run for this test class / module.
