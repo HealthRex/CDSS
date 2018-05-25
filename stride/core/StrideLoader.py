@@ -1,7 +1,5 @@
 #!/usr/bin/python
 """
-Simple wrapper around BoxClient for downloading STRIDE data from Box.
-
 Class for extracting, transforming, and loading raw STRIDE files as delivered by
 Stanford into a proper format that can be analyzed (psql, R, etc).
 
@@ -26,7 +24,7 @@ from stride.box.BoxClient import BoxClient
 from medinfo.db import DBUtil
 from medinfo.common.Util import log
 from stride.rxnorm.RxNormClient import RxNormClient
-from stride.core.StrideLoaderParams import STRIDE_LOADER_PARAMS
+from stride.core.StrideLoaderParams import TABLE_PREFIX, STRIDE_LOADER_PARAMS
 
 class StrideLoader:
     @staticmethod
@@ -66,6 +64,12 @@ class StrideLoader:
         # CDSS/stride/schemata/
         psql_dir = StrideLoader.fetch_psql_dir()
         return os.path.join(psql_dir, 'schemata')
+
+    @staticmethod
+    def fetch_psql_indices_dir():
+        # CDSS/stride/indices/
+        psql_dir = StrideLoader.fetch_psql_dir()
+        return os.path.join(psql_dir, 'indices')
 
     @staticmethod
     def download_stride_data():
@@ -112,10 +116,10 @@ class StrideLoader:
         raw_data.to_csv(path_or_buf=dest_path, compression='gzip', index=False)
 
     @staticmethod
-    def build_starr_psql_schemata():
-        schemata_dir = StarrLoader.fetch_psql_schemata_dir()
-        for params in STARR_LOADER_PARAMS.values():
-            psql_table = params['psql_table']
+    def build_stride_psql_schemata():
+        schemata_dir = StrideLoader.fetch_psql_schemata_dir()
+        for params in STRIDE_LOADER_PARAMS.values():
+            psql_table = params['psql_table'] % TABLE_PREFIX
 
             log.debug('loading %s schema...' % psql_table)
 
@@ -127,43 +131,143 @@ class StrideLoader:
             schema_file.close()
 
     @staticmethod
-    def clear_starr_psql_tables():
-        log.info('Clearing starr psql tables...')
-        for params in STARR_LOADER_PARAMS.values():
-            psql_table = params['psql_table']
+    def build_stride_psql_indices():
+        indices_dir = StrideLoader.fetch_psql_indices_dir()
+        for params in STRIDE_LOADER_PARAMS.values():
+            psql_table = params['psql_table'] % TABLE_PREFIX
+
+            # Open file, feed to DBUtil, and close file.
+            indices_file_name = '.'.join([psql_table, 'indices.sql'])
+            indices_file_path = os.path.join(indices_dir, indices_file_name)
+            if os.path.exists(indices_file_path):
+                log.debug('loading %s indices...' % psql_table)
+                indices_file = open(indices_file_path, 'r')
+                DBUtil.runDBScript(indices_file)
+                indices_file.close()
+
+    @staticmethod
+    def clear_stride_psql_tables():
+        log.info('Clearing stride psql tables...')
+        for params in STRIDE_LOADER_PARAMS.values():
+            psql_table = params['psql_table'] % TABLE_PREFIX
             log.debug('dropping table %s...' % psql_table)
-            # load_starr_to_psql is not itempotent, so in case schema already
+            # load_stride_to_psql is not itempotent, so in case schema already
             # existed, clear table (avoid duplicate data).
-            # existence_query = "SELECT EXISTS(SELECT 1 FROM pg_tables WHERE tablename = '%s')"
-            # table_exists = DBUtil.execute(existence_query % psql_table)[0][0]
-            # if table_exists:
-            #     DBUtil.execute("DELETE FROM %s;" % psql_table)
             DBUtil.execute("DROP TABLE IF EXISTS %s CASCADE;" % psql_table)
 
     @staticmethod
-    def load_starr_to_psql():
+    def process_stride_psql_db():
+        # Unify labels in *_flowsheet. Can still recover distinctions
+        # based on flo_meas_id.
+        #   'Heart Rate' ==> 'Pulse'
+        heart_rate_label_command = \
+            """
+            UPDATE
+                %s_flowsheet
+        	SET
+                flowsheet_name = 'Pulse'
+        	WHERE
+                flowsheet_name = 'Heart Rate';
+            """ % TABLE_PREFIX
+        DBUtil.execute(heart_rate_label_command)
+        #   'Urine Output' ==> 'Urine'
+        urine_output_label_command = \
+            """
+            UPDATE
+                %s_flowsheet
+            SET
+                flowsheet_name = 'Urine'
+            WHERE
+                flowsheet_name = 'Urine Output';
+            """ % TABLE_PREFIX
+        DBUtil.execute(urine_output_label_command)
+
+        # Merge *_admit_vital and *_insurance into *_patient_encounter.
+        # Insert newly merged records with negative IDs, then discard and
+        # relabel old records.
+        patient_encounter_merge_command = \
+            """
+            INSERT INTO
+                %s_patient_encounter(
+                    pat_enc_csn_id, pat_id,
+                    payor_name, title,
+                    bp_systolic, bp_diastolic,
+                    temperature, pulse, respirations
+                )
+            SELECT
+                -spe1.pat_enc_csn_id, pat_id,
+                payor_name, title,
+          	    max_BPS, max_BPD,
+                max_temp, max_pulse, max_resp
+            FROM
+                (
+                    SELECT
+                        pat_enc_csn_id, pat_id, payor_name, title
+                    FROM
+                        %s_patient_encounter
+                    WHERE
+                        bp_systolic IS NULL
+                ) AS spe1,
+                (
+                    SELECT
+                        pat_enc_csn_id,
+                        MAX(bp_systolic) as max_BPS,
+                        MAX(bp_diastolic) as max_BPD,
+                        MAX(temperature) as max_temp,
+                        MAX(pulse) as max_pulse,
+                        MAX(respirations) as max_resp
+                    FROM
+                        %s_patient_encounter
+                    GROUP BY
+                        pat_enc_csn_id
+                ) spe2
+            WHERE
+                spe1.pat_enc_csn_id = spe2.pat_enc_csn_id;
+            """ % (TABLE_PREFIX, TABLE_PREFIX, TABLE_PREFIX)
+        DBUtil.execute(patient_encounter_merge_command)
+
+        patient_encounter_cleanup_command = \
+            """
+            DELETE FROM
+                %s_patient_encounter
+            WHERE
+                pat_enc_csn_id > 0;
+            """ % TABLE_PREFIX
+        DBUtil.execute(patient_encounter_cleanup_command)
+
+        patient_encounter_cleanup_command = \
+            """
+            UPDATE
+                %s_patient_encounter
+            SET
+                pat_enc_csn_id = -pat_enc_csn_id;
+            """ % TABLE_PREFIX
+        DBUtil.execute(patient_encounter_cleanup_command)
+
+    @staticmethod
+    def load_stride_to_psql():
         # Clear any old data.
-        StarrLoader.clear_starr_psql_tables()
+        StrideLoader.clear_stride_psql_tables()
         # Build schemata.
-        StarrLoader.build_starr_psql_schemata()
+        StrideLoader.build_stride_psql_schemata()
 
         # Build paths to clean data files.
-        raw_data_dir = StarrLoader.fetch_raw_data_dir()
-        clean_data_dir = StarrLoader.fetch_clean_data_dir()
-        for raw_file in sorted(STARR_LOADER_PARAMS.keys()):
-            params = STARR_LOADER_PARAMS[raw_file]
+        raw_data_dir = StrideLoader.fetch_raw_data_dir()
+        clean_data_dir = StrideLoader.fetch_clean_data_dir()
+        for raw_file in sorted(STRIDE_LOADER_PARAMS.keys()):
+            params = STRIDE_LOADER_PARAMS[raw_file]
 
             # Build clean data file.
-            clean_file = params['clean_file']
+            clean_file = params['clean_file'] % TABLE_PREFIX
             log.info('loading %s...' % clean_file)
             raw_path = os.path.join(raw_data_dir, raw_file)
             clean_path = os.path.join(clean_data_dir, clean_file)
-            log.debug('starr/data/[raw/%s] ==> [clean/%s]' % (raw_file, clean_file))
+            log.debug('stride/data/[raw/%s] ==> [clean/%s]' % (raw_file, clean_file))
             # Building the clean file is the slowest part of setup, so only
             # do it if absolutely necessary. This means that users must be
             # aware of issues like a stale cache.
             if not os.path.exists(clean_path):
-                StarrLoader.build_clean_data_file(raw_path, clean_path)
+                StrideLoader.build_clean_data_file(raw_path, clean_path)
 
             # Uncompress data file.
             unzipped_clean_path = clean_path[:-3]
@@ -171,8 +275,8 @@ class StrideLoader:
                 shutil.copyfileobj(f_in, f_out)
 
             # psql COPY data from clean files into DB.
-            psql_table = params['psql_table']
-            log.debug('starr/data/clean/%s ==> %s' % (clean_file, psql_table))
+            psql_table = params['psql_table'] % TABLE_PREFIX
+            log.debug('stride/data/clean/%s ==> %s' % (clean_file, psql_table))
             # In some cases, two files going to the same table will have
             # non-identical column names. Pass these explicitly so that
             # psql knows which columns to try to fill from file.
@@ -185,27 +289,19 @@ class StrideLoader:
             # Delete unzipped_clean_path.
             os.remove(unzipped_clean_path)
 
-        # Build starr_patient_encounter based on starr_admit_vital
-        # and stride_insurance.
-        starr_patient_encounter_query = \
-            """
-            SELECT
-                si.pat_id, si.pat_enc_csn_id,
-                payor_name, title,
-                bp_systolic, bp_diastolic,
-                temperature, pulse, respirations
-            INTO TABLE
-                stride_patient_encounter
-            FROM
-                stride_insurance AS si
-            JOIN
-                stride_admit_vital AS sav
-            ON
-                si.pat_enc_csn_id=sav.pat_enc_csn_id;
-            """
-        DBUtil.execute(starr_patient_encounter_query)
+        # Run any one-off postprocessing transformations which all users
+        # of the STRIDE database should receive. Defer any application-specific
+        # transformations to other modules.
+        StrideLoader.process_stride_psql_db()
+
+        # Build indices.
+        StrideLoader.build_stride_psql_indices()
+
+    @staticmethod
+    def dump_tables_to_gzipped_csv():
+        
 
 if __name__=='__main__':
-    # StarrLoader.download_starr_data()
+    # StrideLoader.download_stride_data()
     log.level = logging.INFO
-    StarrLoader.load_starr_to_psql()
+    StrideLoader.load_stride_to_psql()
