@@ -351,7 +351,7 @@ if __name__ == "__main__":
     log.level = logging.DEBUG
     start_time = time.time()
     # Initialize lab test matrix.
-    ltm = LabChangeMatrix("LABPTT", 12000) #11900
+    ltm = LabChangeMatrix("LABBLC", 10) #11900
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
     ltm.write_matrix("LABPTT-panel-12000-episodes-values-%s-sec.tab" % str(elapsed_time))
