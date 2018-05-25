@@ -59,7 +59,7 @@ class STRIDETreatmentTeamConversion:
 
         finally:
             conn.close();
-        # progress.PrintStatus();
+        progress.PrintStatus();
 
 
     def querySourceItems(self, convOptions, progress=None, conn=None):
