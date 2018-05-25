@@ -8,7 +8,7 @@ and clean_stride_file ==> psql_table. If other data is added in the future,
 
 # For backwards compatibility with the application code throughout the
 # database which originally calls starr.
-TABLE_PREFIX = 'starr'
+TABLE_PREFIX = 'stride'
 
 STRIDE_LOADER_PARAMS = {
     'Chen_Demographics.csv.gz': {
@@ -60,12 +60,12 @@ STRIDE_LOADER_PARAMS = {
         'psql_table': '%s_note'
     },
     'Chen_DX_List_5Yr.csv.gz': {
-        'clean_file': '%s_dx_2008_2014.csv.gz',
-        'psql_table': '%s_dx'
+        'clean_file': '%s_dx_list_2008_2014.csv.gz',
+        'psql_table': '%s_dx_list'
     },
     'Chen_Dx_List_Yrs6_8.csv.gz': {
-        'clean_file': '%s_dx_2014_2017.csv.gz',
-        'psql_table': '%s_dx'
+        'clean_file': '%s_dx_list_2014_2017.csv.gz',
+        'psql_table': '%s_dx_list'
     },
     'Chen_Insurance_Info_5Yr.csv.gz': {
         'clean_file': '%s_insurance_2008_2014.csv.gz',
@@ -76,24 +76,24 @@ STRIDE_LOADER_PARAMS = {
         'psql_table': '%s_patient_encounter'
     },
     'Chen_Mapped_Meds_5Yr.csv.gz': {
-        'clean_file': '%s_medication_2008_2014.csv.gz',
-        'psql_table': '%s_medication'
+        'clean_file': '%s_mapped_meds_2008_2014.csv.gz',
+        'psql_table': '%s_mapped_meds'
     },
     'Chen_Mapped_Meds_Yrs6_8.csv.gz': {
-        'clean_file': '%s_medication_2014_2017.csv.gz',
-        'psql_table': '%s_medication'
+        'clean_file': '%s_mapped_meds_2014_2017.csv.gz',
+        'psql_table': '%s_mapped_meds'
     },
     'Chen_MedicationID_to_MPI.csv.gz': {
         'clean_file': '%s_medication_mpi.csv.gz',
         'psql_table': '%s_medication_mpi'
     },
     'Chen_Order_MedMixInfo_5Yr.csv.gz': {
-        'clean_file': '%s_medication_mix_2008_2014.csv.gz',
-        'psql_table': '%s_medication_mix'
+        'clean_file': '%s_order_medmixinfo_2008_2014.csv.gz',
+        'psql_table': '%s_order_medmixinfo'
     },
     'Chen_MedMixInfo_Yrs6_8.patchHeader.csv.gz': {
-        'clean_file': '%s_medication_mix_2014_2017.csv.gz',
-        'psql_table': '%s_medication_mix'
+        'clean_file': '%s_order_medmixinfo_2014_2017.csv.gz',
+        'psql_table': '%s_order_medmixinfo'
     },
     'Chen_Order_Proc_Yr1.patchcommas.csv.gz': {
         'clean_file': '%s_order_proc_year_1.csv.gz',
@@ -128,36 +128,36 @@ STRIDE_LOADER_PARAMS = {
         'psql_table': '%s_order_proc'
     },
     'Chen_Order_Result_Yr1.csv.gz': {
-        'clean_file': '%s_order_result_year_1.csv.gz',
-        'psql_table': '%s_order_result'
+        'clean_file': '%s_order_results_year_1.csv.gz',
+        'psql_table': '%s_order_results'
     },
     'Chen_Order_Result_Yr2.csv.gz': {
-        'clean_file': '%s_order_result_year_2.csv.gz',
-        'psql_table': '%s_order_result'
+        'clean_file': '%s_order_results_year_2.csv.gz',
+        'psql_table': '%s_order_results'
     },
     'Chen_Order_Result_Yr3.csv.gz': {
-        'clean_file': '%s_order_result_year_3.csv.gz',
-        'psql_table': '%s_order_result'
+        'clean_file': '%s_order_results_year_3.csv.gz',
+        'psql_table': '%s_order_results'
     },
     'Chen_Order_Result_Yr4.csv.gz': {
-        'clean_file': '%s_order_result_year_4.csv.gz',
-        'psql_table': '%s_order_result'
+        'clean_file': '%s_order_results_year_4.csv.gz',
+        'psql_table': '%s_order_results'
     },
     'Chen_Order_Result_Yr5.csv.gz': {
-        'clean_file': '%s_order_result_year_5.csv.gz',
-        'psql_table': '%s_order_result'
+        'clean_file': '%s_order_results_year_5.csv.gz',
+        'psql_table': '%s_order_results'
     },
     'Chen_Order_Res_Yr6.csv.gz': {
-        'clean_file': '%s_order_result_year_6.csv.gz',
-        'psql_table': '%s_order_result'
+        'clean_file': '%s_order_results_year_6.csv.gz',
+        'psql_table': '%s_order_results'
     },
     'Chen_Order_Res_Yr7.csv.gz': {
-        'clean_file': '%s_order_result_year_7.csv.gz',
-        'psql_table': '%s_order_result'
+        'clean_file': '%s_order_results_year_7.csv.gz',
+        'psql_table': '%s_order_results'
     },
     'Chen_Order_Res_Yr8.csv.gz': {
-        'clean_file': '%s_order_result_year_8.csv.gz',
-        'psql_table': '%s_order_result'
+        'clean_file': '%s_order_results_year_8.csv.gz',
+        'psql_table': '%s_order_results'
     },
     'Chen_TreatmentTeam_Yr1.csv.gz': {
         'clean_file': '%s_treatment_team_year_1.csv.gz',
@@ -484,8 +484,12 @@ STRIDE_LOADER_PARAMS = {
         'psql_table': '%s_io_flowsheet'
     },
     'export_ICD-9-CM_2013.csv.gz': {
-        'clean_file': 'icd9_cm_2013.csv.gz',
-        'psql_table': 'icd9_cm'
+        'clean_file': '%s_icd9_cm_2013.csv.gz',
+        'psql_table': '%s_icd9_cm'
+    },
+    'export_ICD-10-CM_2016.csv.gz': {
+        'clean_file': '%s_icd10_cm_2016.csv.gz',
+        'psql_table': '%s_icd10_cm'
     },
     'JChenv3_ADTTable10.csv.gz': {
         'clean_file': '%s_adt_2008_2014.csv.gz',
@@ -496,8 +500,8 @@ STRIDE_LOADER_PARAMS = {
         'psql_table': '%s_adt'
     },
     'ChargeMaster.Stanford.2014.csv.gz': {
-        'clean_file': 'stanford_chargemaster_2014.csv.gz',
-        'psql_table': 'stanford_chargemaster'
+        'clean_file': '%s_chargemaster_2014.csv.gz',
+        'psql_table': '%s_chargemaster'
     },
     'Chen_Order_Med_5Yr.patchQuotes.csv.gz': {
         'clean_file': '%s_order_med_2008_2014.csv.gz',
@@ -526,10 +530,6 @@ STRIDE_LOADER_PARAMS = {
     'JChen_cult_micro_7yr.patchIds.csv.gz': {
         'clean_file': '%s_culture_micro_7_year.csv.gz',
         'psql_table': '%s_culture_micro'
-    },
-    'export_ICD-10-CM_2016.csv.gz': {
-        'clean_file': 'icd10_cm_2016.csv.gz',
-        'psql_table': 'icd10_cm'
     },
     'JChenv3_Admits_Table58.csv.gz': {
         'clean_file': '%s_admit_2014_2017.csv.gz',
