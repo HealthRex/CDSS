@@ -1,5 +1,9 @@
 import sys
 import json
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import datetime
 from optparse import OptionParser
 
 class SimulationAnalyzer:
@@ -62,14 +66,20 @@ class SimulationAnalyzer:
 
 		return summary
 
+	def convert_timestamp(self, ms_timestamp):
+		"""Convert millisecond timestamp to (hours, minutes, seconds)"""
+		seconds=(ms_timestamp/1000)%60
+		seconds = int(seconds)
+		minutes=(ms_timestamp/(1000*60))%60
+		minutes = int(minutes)
+		hours=(ms_timestamp/(1000*60*60))%24
+
+		return (hours, minutes, seconds)
+
 	def elapsed_time(self):
 		"""Compute total time spent on case"""
 		elapsed_time_millis = int(self.end_time) - int(self.start_time)
-		seconds=(elapsed_time_millis/1000)%60
-		seconds = int(seconds)
-		minutes=(elapsed_time_millis/(1000*60))%60
-		minutes = int(minutes)
-		hours=(elapsed_time_millis/(1000*60*60))%24
+		hours, minutes, seconds = self.convert_timestamp(elapsed_time_millis)
 
 		return ("%d:%d:%d" % (hours, minutes, seconds))
 
@@ -200,6 +210,81 @@ class SimulationAnalyzer:
 
 		return count
 
+	def construct_timeline(self):
+		"""Flatten trackers and order all events by timestamp"""
+		# Flatten eventTracker
+		event_tracker = self.event_tracker_data
+		events = []
+		for event_name in event_tracker.keys():
+			for event_ocurrence in event_tracker[event_name]:
+				event_time = event_ocurrence['eventTime']
+				events.append((event_time, event_name, event_ocurrence))
+		# Sort events by timestamp
+		sorted_events = sorted(events, key=lambda x: x[0])
+		return sorted_events
+
+	def visualize_timeline(self, timeline):
+		"""Draw timeline
+
+		Args:
+			timeline (iterable): iterable of tuples (position, name, info_dict)
+		"""
+
+		times = list(map(lambda x: datetime.datetime.fromtimestamp((x[0] - timeline[0][0])/1000.0), timeline))
+		names = list(map(lambda x: x[1], timeline))
+
+		# norm = plt.Normalize(1,4)
+		# c = np.random.randint(1,5,size=len(times))
+		# cmap = plt.cm.inferno
+		fig, ax = plt.subplots(figsize=(6,1))
+		sc = plt.scatter(times, [1]*len(times), marker='o', s=100)
+
+		ax.yaxis.set_visible(False)
+		ax.spines['right'].set_visible(False)
+		ax.spines['left'].set_visible(False)
+		ax.spines['top'].set_visible(False)
+		ax.xaxis.set_ticks_position('bottom')
+
+		ax.get_yaxis().set_ticklabels([])
+		ms = pd.to_timedelta("1", unit='ms')
+		plt.xlim(times[0] - ms, times[-1] + ms)
+
+		annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
+                    bbox=dict(boxstyle="round", fc="w"),
+                    arrowprops=dict(arrowstyle="->"))
+		annot.set_visible(False)
+
+		def update_annot(ind):
+		    pos = sc.get_offsets()[ind["ind"][0]]
+		    annot.xy = pos
+		    text = "{}, {}".format(" ".join(list(map(str,ind["ind"]))),
+		                           " ".join([names[n] for n in ind["ind"]]))
+		    annot.set_text(text)
+		    # annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
+		    annot.get_bbox_patch().set_alpha(0.4)
+
+
+		def hover(event):
+		    vis = annot.get_visible()
+		    if event.inaxes == ax:
+		        cont, ind = sc.contains(event)
+		        if cont:
+		            update_annot(ind)
+		            annot.set_visible(True)
+		            fig.canvas.draw_idle()
+		        else:
+		            if vis:
+		                annot.set_visible(False)
+		                fig.canvas.draw_idle()
+
+		fig.canvas.mpl_connect("motion_notify_event", hover)
+
+
+
+		plt.show()
+
+
+
 def main(argv):
 	parser = OptionParser()
 	parser.add_option("-f", "--file",  dest="data_file", help="JSON file containing collected data.")
@@ -217,6 +302,7 @@ def main(argv):
 	print("Recommendation batches: ", siman.retrieve_results(search_modes=["", "FindOrders"], batch=True, search_query=""))
 	print("Signed/Recommended overlap: ", siman.number_signed_in_recommended())
 	print("Total results:", siman.total_search_results())
+	print("Timeline: ", siman.visualize_timeline(siman.construct_timeline()))
 
 
 if __name__ == '__main__':
