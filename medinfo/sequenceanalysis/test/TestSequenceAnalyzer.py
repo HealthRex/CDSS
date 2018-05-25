@@ -234,6 +234,7 @@ class TestSequenceAnalyzer(unittest.TestCase):
         global_stats[base_name][k] += v
 
     def normalize_dict(d):
+      # flatten defaultdict and np.array types to dict and list
       normalized_d = {}
       for k1, v1 in d.iteritems():
         normalized_d[k1] = {k2: list(v2) for k2, v2 in v1.iteritems()}
