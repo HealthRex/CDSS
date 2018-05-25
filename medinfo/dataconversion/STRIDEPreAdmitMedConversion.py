@@ -48,16 +48,13 @@ class STRIDEPreAdmitMedConversion:
             rxcuiDataByMedId = self.loadRXCUIData(conn=conn);
 
             # Next round for medications directly from order_med table not addressed in medmix
-            i = 1
             for sourceItem in self.querySourceItems(rxcuiDataByMedId, convOptions, progress=progress, conn=conn):
                 self.convertSourceItem(sourceItem, conn=conn);
-                print i
-                i = i + 1
                 progress.Update();
 
         finally:
             conn.close();
-        # progress.PrintStatus();
+        progress.PrintStatus();
 
 
     def loadRXCUIData(self, conn=None):
@@ -219,7 +216,7 @@ class STRIDEPreAdmitMedConversion:
                     # ~250/15000 RxCUI's don't have a defined active ingredient.
                     if ingredient is None:
                         continue
-                        
+
                     rxcuiStrList.append(str(rxcui));
                     ingredientList.append(ingredient.title());
                 rxcuiComposite = str.join(",", rxcuiStrList );
