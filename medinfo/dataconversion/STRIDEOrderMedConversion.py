@@ -75,7 +75,7 @@ class STRIDEOrderMedConversion:
 
         finally:
             conn.close();
-        # progress.PrintStatus();
+        progress.PrintStatus();
 
 
     def loadRXCUIData(self, conn=None):
@@ -338,6 +338,9 @@ class STRIDEOrderMedConversion:
                 rxcuiStrList = list();
                 ingredientList = list();
                 for (ingredient, rxcui) in ingredientRxcuiList:
+                    # ~250/15000 RxCUI's don't have a defined active ingredient.
+                    if ingredient is None:
+                        continue
                     rxcuiStrList.append(str(rxcui));
                     ingredientList.append(ingredient.title());
                 rxcuiComposite = str.join(",", rxcuiStrList );
