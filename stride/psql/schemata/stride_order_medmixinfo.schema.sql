@@ -1,4 +1,4 @@
--- Table: stride_medication_mix
+-- Table: stride_order_medmixinfo
 -- Description: 1-to-many mapping from order order_med_id to medication(s)
 -- in order (identified by medication_id). Note both min_dose_amount (nominal
 -- prescribed amount) vs min_calc_dose_amt (calculated amount based on
@@ -27,7 +27,7 @@
 --  * dose_calc_info (formula for min_dose_amount -> min_calc_dose_amt, e.g.
 --                    "50 mg ? 1 mL/25 mg = 2 mL ? 25,000 mcg/mL = 50,000 mcg")
 
-CREATE TABLE IF NOT EXISTS stride_medication_mix
+CREATE TABLE IF NOT EXISTS stride_order_medmixinfo
 (
   order_med_id BIGINT,
   line INTEGER,
