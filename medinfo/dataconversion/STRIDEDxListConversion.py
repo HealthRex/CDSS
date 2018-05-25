@@ -53,14 +53,14 @@ class STRIDEDxListConversion:
         endDate - If provided, only return items whose noted_date is before that date.
         """
         log.info("Conversion for items dated %s to %s" % (startDate, endDate));
-        # progress = ProgressDots();
+        progress = ProgressDots();
         conn = self.connFactory.connection();
         try:
-            for sourceItem in self.querySourceItems(startDate, endDate, progress=None, conn=conn):
+            for sourceItem in self.querySourceItems(startDate, endDate, progress=progress, conn=conn):
                 self.convertSourceItem(sourceItem, conn=conn);
         finally:
             conn.close();
-        # progress.PrintStatus();
+        progress.PrintStatus();
 
 
     def querySourceItems(self, startDate=None, endDate=None, progress=None, conn=None):
@@ -178,10 +178,8 @@ class STRIDEDxListConversion:
 
                             yield row_model
 
-            # Process ICD10 codes.
-
             row = cursor.fetchone();
-            # progress.Update();
+            progress.Update();
 
         # Slight risk here.  Normally DB connection closing should be in finally of a try block,
         #   but using the "yield" generator construct forbids us from using a try, finally construct.
