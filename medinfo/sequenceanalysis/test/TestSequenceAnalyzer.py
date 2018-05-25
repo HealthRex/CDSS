@@ -11,16 +11,10 @@ class TestSequenceAnalyzer(unittest.TestCase):
 
   def setUp(self):
     """Prepare state for test cases"""
-    # Create temp (SQLite) database file to work with
-    # self.conn = sqlite3.connect(TEMP_DATABASE_FILENAME);
-
-    # Application instance to test on
-    self.maxDiff = None
+    pass
 
   def tearDown(self):
     """Restore state from any setUp or test steps"""
-    # Close DB connection
-    # self.conn.close()
     pass
 
   def testSequenceAnalyzerBulk(self):
@@ -156,7 +150,8 @@ class TestSequenceAnalyzer(unittest.TestCase):
       ])
     ]
 
-    def extract_key_fn(row):
+    # Extract the patient_id from a row, where patient_id is in column 0
+    def extract_patient_id_key_fn(row):
       return row[0]
 
     def handle_sentinel_queue_fn(window_size, vars_dict, sentinel, row):
@@ -166,6 +161,7 @@ class TestSequenceAnalyzer(unittest.TestCase):
     def emptied_queue_handler_fn(window_size, vars_dict, row):
       vars_dict['prior_history'] = False
 
+    # Acts as the mapper of a map-reduce step, where the "reduce" is left up to the user
     def extract_key_value_fn(window_size, queue, vars_dict):
       if vars_dict['prior_history']:
         # if there is prior_history, set number_consecutive_normals as usual
@@ -175,10 +171,11 @@ class TestSequenceAnalyzer(unittest.TestCase):
         number_consecutive_normals = None
       return (window_size, number_consecutive_normals), 1
 
+    # Extract the datetime from a row, where datetime is in column 2
     def extract_datetime_fn(row):
       return row[2]
 
-    # column 1 of row is a string that contains the lab result
+    # Column 1 of row is a string that contains the lab result
     def add_row_condition_fn(window_size, queue, vars_dict, row):
       return 'InRange' in row[1]
 
@@ -188,7 +185,7 @@ class TestSequenceAnalyzer(unittest.TestCase):
     sequence_analyzer = SequenceAnalyzer()
 
     # Basically doing split by patientId, assuming that patientId is the first column
-    sequence_analyzer.split_data_on_key(extract_key_fn)
+    sequence_analyzer.split_data_on_key(extract_patient_id_key_fn)
 
     # Prior_history reflects whether something was previously in queue. Init vars allows pass in parameter dictionary
     sequence_analyzer.initialize_vars({'prior_history': False})
@@ -197,7 +194,8 @@ class TestSequenceAnalyzer(unittest.TestCase):
     # Check whether queue has a single sentinel value, but need some residual value (e.g., last date to allow maintenance of prior_history)
     sequence_analyzer.handle_sentinel_queue(handle_sentinel_queue_fn)
 
-    sequence_analyzer.pop_queue(utils.get_day_difference, extract_datetime_fn, emptied_queue_handler_fn) # Pop queue criteria, for example to remove items from head of queue as progress
+    # Pop queue criteria, for example to remove items from head of queue as progress
+    sequence_analyzer.pop_queue(utils.get_day_difference, extract_datetime_fn, emptied_queue_handler_fn)
 
     sequence_analyzer.extract_key_value(extract_key_value_fn)
 
@@ -206,7 +204,7 @@ class TestSequenceAnalyzer(unittest.TestCase):
 
     sequence_analyzer.set_var('prior_history', lambda window_size, queue, vars_dict, row: True)
 
-    sequence_analyzer.build() # Just a signal that user is done, so Run function can check
+    sequence_analyzer.build(2)
 
     global_stats = defaultdict(lambda: defaultdict(lambda: np.array([0, 0])))
     window_sizes = [1, 2, 4, 7, 30, 90] # list of window sizes to evaluate
@@ -223,11 +221,12 @@ class TestSequenceAnalyzer(unittest.TestCase):
       # and switch (window_size, None) to be the total count
       total_counts = defaultdict(lambda: np.array([0, 0]))
       for k, v in counts.iteritems():
+        # Aggregate total number of results and positive results
         total_counts[k[0]] += v
       for window_size in window_sizes:
-        # then set 1,0 to 1,None
+        # Set (1, 0) to (1, None)
         counts[(window_size, 0)] = counts[(window_size, None)]
-        # set window_size,None to the sum of calculated above
+        # Set (window_size, None) to the sum of calculated above
         counts[(window_size, None)] = total_counts[window_size]
 
       for k, v in counts.iteritems():
