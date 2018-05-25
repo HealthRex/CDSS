@@ -3,6 +3,10 @@ from collections import defaultdict, deque
 
 class SequenceAnalyzer(object):
   def __init__(self):
+    self.initialized_add_row = False
+    self.initialized_extract_key_value = False
+    self.initialized_pop_queue = False
+    self.num_return_values = 0
     self.built = False
     self.pipeline = []
 
@@ -60,10 +64,13 @@ class SequenceAnalyzer(object):
           queue.popleft()
       if emptied_queue_handler_fn is not None and popped_queue and not queue:
         emptied_queue_handler_fn(window_size, vars_dict, row)
+    self.initialized_pop_queue = True
     self.pipeline.append(('pop_queue', func))
 
   def extract_key_value(self, extract_key_value_fn):
     self.pipeline.append(('extract_key_value', extract_key_value_fn))
+    self.initialized_extract_key_value = True
+    self.num_return_values += 1
 
   def set_var(self, var_name, set_value_fn):
     def func(window_size, queue, vars_dict, row):
@@ -75,12 +82,15 @@ class SequenceAnalyzer(object):
 
   def add_row(self, condition_fn):
     def func(window_size, queue, vars_dict, row):
-      vars_dict['row_added'] = condition_fn(window_size, queue, vars_dict, row)
-      if vars_dict['row_added']:
+      vars_dict['row_added'] = False
+      if condition_fn(window_size, queue, vars_dict, row):
+        vars_dict['row_added'] = True
         queue.append(row)
       return vars_dict['row_added']
 
     self.pipeline.append(('add_row', func))
+    self.initialized_add_row = True
+    self.num_return_values += 1
 
   def clear_queue(self, condition_fn, add_sentinel=False):
     def func(window_size, queue, vars_dict, row):
@@ -96,7 +106,15 @@ class SequenceAnalyzer(object):
   def compute_stats(self, compute_stats_fn, use_vars):
     pass
 
-  def build(self):
+  def build(self, num_return_values):
+    # Ensure that extract_key_value, pop_queue, and add_row are all called,
+    # the module will not function properly if they aren't called
+    assert self.initialized_add_row
+    assert self.initialized_extract_key_value
+    assert self.initialized_pop_queue
+
+    # Checks that user knows how many values are going to be returned
+    assert num_return_values == self.num_return_values
     self.built = True
 
   def run(self, data, bins):
