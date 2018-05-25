@@ -29,11 +29,10 @@ class SequenceAnalyzer(object):
   def filter_row(self, filter_row_fn):
     pass
 
-  # TODO handle placement of None somewhere else (if date is in column 0, this might need to happen. possible solution, make a tuple of (None, row) to denote a sentinel
   def handle_sentinel_queue(self, handle_sentinel_queue_fn):
     def func(window_size, queue, vars_dict, row):
       if queue and queue[0][0] is None:
-        handle_sentinel_queue_fn(window_size, vars_dict, queue[0], row)
+        handle_sentinel_queue_fn(window_size, vars_dict, queue[0][1], row)
         queue.clear()
     self.pipeline.append(('handle_sentinel_queue', func))
 
@@ -52,12 +51,10 @@ class SequenceAnalyzer(object):
   #       filter_sentinel_fn(window_size, vars_dict, row)
   #   self.pipeline.append('filter_queue', func)
 
-
   def pop_queue(self, timedelta_fn, extract_datetime_fn, emptied_queue_handler_fn=None):
     def func(window_size, queue, vars_dict, row):
       popped_queue = False
       if queue and queue[0][0] is not None:
-        # while queue and filter_queue_fn(window_size, queue, vars_dict, row):
         while queue and timedelta_fn(extract_datetime_fn(row), extract_datetime_fn(queue[0])) > window_size:
           popped_queue = True
           queue.popleft()
@@ -80,15 +77,9 @@ class SequenceAnalyzer(object):
     def func(window_size, queue, vars_dict, row):
       vars_dict['row_added'] = condition_fn(window_size, queue, vars_dict, row)
       if vars_dict['row_added']:
-        # if normal, increment normal_count
         queue.append(row)
       return vars_dict['row_added']
 
-      #   stats[(window_size, number_consecutive_normals)][1] += 1
-      # else:
-      #   vars_dict['row_added'] = False
-      #   # else clear the queue and add a sentinel value with the date of the
-      #   # most recent result
     self.pipeline.append(('add_row', func))
 
   def clear_queue(self, condition_fn, add_sentinel=False):
@@ -96,8 +87,7 @@ class SequenceAnalyzer(object):
       if condition_fn(window_size, queue, vars_dict, row):
         queue.clear()
         if add_sentinel:
-          # queue.append((None, row))
-          queue.append((None, None, row[2]))
+          queue.append((None, row))
     self.pipeline.append(('clear_queue', func))
 
   def select_window(self, select_window_fn, use_vars):
@@ -119,13 +109,10 @@ class SequenceAnalyzer(object):
       pipeline = pipeline[1:]
 
     for data_split in data_split_generator:
-      # print(data_split)
       bins_queue = [deque() for _ in xrange(len(bins))]
       bins_vars_dict = [dict(self.vars) for _ in xrange(len(bins))]
       for row in data_split:
-        # print(row)
         for window_size, queue, vars_dict in zip(bins, bins_queue, bins_vars_dict):
-          # print(queue)
           vars_dict['row_added'] = False
           return_values = []
           for name, func in pipeline:
@@ -141,7 +128,6 @@ class SequenceAnalyzer(object):
               return_values.append(func(window_size, queue, vars_dict, row))
             elif name == 'clear_queue':
               func(window_size, queue, vars_dict, row)
-          # print(queue)
           yield return_values
 
 
