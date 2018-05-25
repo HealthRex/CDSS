@@ -1,4 +1,4 @@
--- Table: stride_dx
+-- Table: stride_dx_list
 -- Description: Diagnoses for patient pat_id in encounter pat_enc_csn_id.
 -- Original Files:
 --	* Chen_DX_List_5Yr.csv.gz
@@ -16,7 +16,7 @@
 --  * dx_icd10_code_list (e.g. "D70.9, R50.81") (stride_dx_2014_2017.csv.gz only)
 --  * data_source (e.g. "PROBLEM_LIST")
 
-CREATE TABLE IF NOT EXISTS stride_dx
+CREATE TABLE IF NOT EXISTS stride_dx_list
 (
   pat_id BIGINT,
   pat_enc_csn_id BIGINT,
