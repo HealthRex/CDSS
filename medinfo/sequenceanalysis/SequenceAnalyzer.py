@@ -1,5 +1,5 @@
 import types
-from collections import defaultdict, deque
+from collections import deque
 
 class SequenceAnalyzer(object):
   def __init__(self):
