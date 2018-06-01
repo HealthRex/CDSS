@@ -3,7 +3,6 @@ import numpy as np
 import unittest
 from collections import defaultdict
 
-from scripts.LabTestAnalysis.lab_statistics.repeat_component_descriptive import RepeatComponents
 from medinfo.sequenceanalysis.SequenceAnalyzer import SequenceAnalyzer, utils
 
 class TestSequenceAnalyzer(unittest.TestCase):
