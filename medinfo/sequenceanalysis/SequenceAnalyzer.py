@@ -30,9 +30,6 @@ class SequenceAnalyzer(object):
   def initialize_vars(self, vars_dict):
     self.vars = vars_dict
 
-  def filter_row(self, filter_row_fn):
-    pass
-
   def handle_sentinel_queue(self, handle_sentinel_queue_fn):
     def func(window_size, queue, vars_dict, row):
       if queue and queue[0][0] is None:
@@ -40,26 +37,11 @@ class SequenceAnalyzer(object):
         queue.clear()
     self.pipeline.append(('handle_sentinel_queue', func))
 
-  # def filter_queue(self, filter_queue_fn, filter_if_fn=None, filter_else_handler_fn=None, filter_sentinel_fn=None):
-  #   def func(window_size, queue, vars_dict, popped_queue, row):
-  #     if queue:
-  #       # TODO: handle NONE
-  #       if filter_if_fn(window_size, queue, vars_dict, row):
-  #         while queue and filter_queue_fn(window_size, queue, vars_dict, row):
-  #           popped_queue = True
-  #           queue.popleft()
-  #       elif filter_else_handler_fn is not None:
-  #         filter_else_handler_fn(window_size, queue, vars_dict, row)
-
-  #     if filter_sentinel_fn is not None and popped_queue and len(queue) == 0:
-  #       filter_sentinel_fn(window_size, vars_dict, row)
-  #   self.pipeline.append('filter_queue', func)
-
-  def pop_queue(self, timedelta_fn, extract_datetime_fn, emptied_queue_handler_fn=None):
+  def pop_queue(self, extract_datetime_fn, emptied_queue_handler_fn=None):
     def func(window_size, queue, vars_dict, row):
       popped_queue = False
       if queue and queue[0][0] is not None:
-        while queue and timedelta_fn(extract_datetime_fn(row), extract_datetime_fn(queue[0])) > window_size:
+        while queue and extract_datetime_fn(row) - extract_datetime_fn(queue[0]) > window_size:
           popped_queue = True
           queue.popleft()
       if emptied_queue_handler_fn is not None and popped_queue and not queue:
@@ -76,9 +58,6 @@ class SequenceAnalyzer(object):
     def func(window_size, queue, vars_dict, row):
       vars_dict[var_name] = set_value_fn(window_size, queue, vars_dict, row)
     self.pipeline.append(('set_var', func))
-
-  def filter_sentinel(self, filter_sentinel_fn, use_vars):
-    pass
 
   def add_row(self, condition_fn):
     def func(window_size, queue, vars_dict, row):
@@ -99,12 +78,6 @@ class SequenceAnalyzer(object):
         if add_sentinel:
           queue.append((None, row))
     self.pipeline.append(('clear_queue', func))
-
-  def select_window(self, select_window_fn, use_vars):
-    pass
-
-  def compute_stats(self, compute_stats_fn, use_vars):
-    pass
 
   def build(self, num_return_values):
     # Ensure that extract_key_value, pop_queue, and add_row are all called,
