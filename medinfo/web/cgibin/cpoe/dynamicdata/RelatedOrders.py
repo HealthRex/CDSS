@@ -41,13 +41,13 @@ class RelatedOrders(BaseDynamicData):
     """
     def __init__(self):
         BaseDynamicData.__init__(self);
-        
+
         self.requestData["searchStr"] = "";
         self.requestData["analysisStatus"] = "1";
-        
+
         self.requestData["sim_patient_id"] = "";
         self.requestData["sim_time"] = "";
-        
+
         self.requestData["sourceTables"] = "stride_order_proc,stride_order_med";    # Default comma-separated list of source tables to expect orders to reside in
         self.requestData["queryItemIds"] = "";
         self.requestData["targetItemIds"] = "";
@@ -68,7 +68,7 @@ class RelatedOrders(BaseDynamicData):
         self.requestData["title"] = "Order Search Results";
         self.requestData["fieldHeaders"] = "";
         self.requestData["dataRows"] = '<tr><td colspan=100 align=center height=200><img src="../../resource/ajax-loader.gif"></td></tr>';
-        
+
         self.addHandler("searchStr", RelatedOrders.action_orderSearch.__name__);
         self.addHandler("queryItemIds", RelatedOrders.action_default.__name__);
         self.addHandler("sim_patient_id", RelatedOrders.action_searchByPatient.__name__);
@@ -101,7 +101,7 @@ class RelatedOrders(BaseDynamicData):
             htmlLines.append( self.formatRowHTML(dataModel, colNames, showCategory) );
             lastModel = dataModel;
         self.requestData["dataRows"] = str.join("\n", htmlLines );
-    
+
     def action_default(self):
         """Look for related orders by association / recommender methods"""
         self.recommender = ItemAssociationRecommender();  # Instance to test on
@@ -125,14 +125,14 @@ class RelatedOrders(BaseDynamicData):
         if len(recommendedData) > 0:
             # Denormalize results with links to clinical item descriptions
             self.recommender.formatRecommenderResults(recommendedData);
-        
+
         # Display fields should append Format suffix to identify which version to display, but use original for header labels
         (self.requestData["fieldHeaders"], displayFieldsFormatSuffixed) = self.prepareDisplayHeaders(displayFields);
-        
+
         # Format for HTML and add a control field for interaction with the data
         for dataModel in recommendedData:
             self.prepareResultRow(dataModel, displayFields);
-        
+
         # Try organize by category
         if self.requestData["groupByCategory"]:
             recommendedData = self.recommender.organizeByCategory(recommendedData);
@@ -140,7 +140,7 @@ class RelatedOrders(BaseDynamicData):
         colNames = ["controls"];   # "name" for code. ,"category_description"
         colNames.extend(displayFieldsFormatSuffixed);
         colNames.extend(["description"]);
-        
+
         lastModel = None;
         htmlLines = list();
         for dataModel in recommendedData:
@@ -153,7 +153,7 @@ class RelatedOrders(BaseDynamicData):
         self.requestData["dataRows"] = str.join("\n", htmlLines );
 
     def action_searchByPatient(self):
-        """Rather than explicit query items, specify a patient state context from which 
+        """Rather than explicit query items, specify a patient state context from which
         recent items can be extracted and used to query.
         """
         patientId = int(self.requestData["sim_patient_id"]);
@@ -165,9 +165,9 @@ class RelatedOrders(BaseDynamicData):
         recentItemIdStrs = list();
         for itemId in recentItemIds:
             recentItemIdStrs.append(str(itemId));
-        
+
         self.requestData["queryItemIds"] = str.join(",", recentItemIdStrs);
-        
+
         # Delegate to default action now
         self.action_default();
 
@@ -184,9 +184,9 @@ class RelatedOrders(BaseDynamicData):
         if showCounts:
             for field in CORE_FIELDS:
                 displayFieldsFormatSuffixed.append('%sFormat' % field);
-    
+
         return (fieldHeadersHTML, displayFieldsFormatSuffixed);
-    
+
     def prepareResultRow(self, dataModel, displayFields):
         dataModel["controls"] = CONTROLS_TEMPLATE % dataModel;
         dataModel["nPreCols"] = len(displayFields)+1;   # Track spacer columns leading up to order description. +1 for control column
@@ -203,12 +203,12 @@ class RelatedOrders(BaseDynamicData):
             N = dataModel["N"];
             contStats = ContingencyStats( nAB, nA, nB, N );
             contStats.normalize(truncateNegativeValues=False);
-        
+
         for field in displayFields:
             if field not in dataModel:
                 # Unavailable field, see if it is a derived field that can be calculated
                 dataModel[field] = contStats[field];
-        
+
             if field in CORE_FIELDS:
                 pass;
             elif field in PERCENT_FIELDS:
@@ -223,8 +223,8 @@ class RelatedOrders(BaseDynamicData):
             else:
                 # Default just format as limited floating point values
                 dataModel["%sFormat" % field] = "%.1f" % dataModel[field];
-        
-        for field in CORE_FIELDS:            
+
+        for field in CORE_FIELDS:
             # Count fields express as integers, assuming available at all
             if field in BASELINE_FIELDS:
                 dataModel["%sFormat" % field] = "%d" % dataModel[field];
@@ -252,7 +252,7 @@ class RelatedOrders(BaseDynamicData):
                 htmlList.append('<td align=right>%s</td>' % dataModel[col]);
         htmlList.append('</tr>');
         return str.join("\n", htmlList);
-        
+
 # CGI Boilerplate to initiate script
 if __name__ == "__main__":
     webController =  RelatedOrders()
@@ -261,4 +261,4 @@ if __name__ == "__main__":
 # WSGI Boilerplate to initiate script
 webController = RelatedOrders()
 webController.setFilePath(__file__)
-application = webController.wsgiHandler 
+application = webController.wsgiHandler

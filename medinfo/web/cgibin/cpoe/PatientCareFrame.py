@@ -37,10 +37,10 @@ class PatientCareFrame(BaseCPOEWeb):
         self.requestData["currentDataPage"] = NotesReview.__name__;
         self.requestData["autoQuery"] = "";
         self.requestData["maxResults"] = "50";  # Maximum of results to show when searching for orders
-        
+
         self.requestData["newOrderItemId"] = list();
         self.requestData["discontinuePatientOrderId"] = list();
-        
+
         # Sub-Table / Dynamically loaded data
         self.requestData["currentDataTable"] = "";
         self.requestData["dataEntryTable"] = "";
@@ -71,18 +71,18 @@ class PatientCareFrame(BaseCPOEWeb):
         simTime = int(self.requestData["sim_time"]);
         deltaSeconds = len(subData.requestData["newOrderItemId"]) * 60;
         self.requestData["sim_time"] = simTime + deltaSeconds;
-        
+
     def action_default(self):
         """Render the details for the specified patient information, including controls to modify"""
         userId = int(self.requestData["sim_user_id"]);
         patientId = int(self.requestData["sim_patient_id"]);
         simTime = int(self.requestData["sim_time"]);
-        
+
         manager = SimManager();
         userModel = manager.loadUserInfo([userId])[0];  # Assume found good single match
         patientModel = manager.loadPatientInfo([patientId], simTime)[0];
         #print >> sys.stderr, "Loaded %(sim_patient_id)s in state %(sim_state_id)s at %(relative_time_start)s" % patientModel
-        
+
         for key, value in userModel.iteritems():
             self.requestData["sim_user."+key] = value;
         for key, value in patientModel.iteritems():
@@ -113,4 +113,4 @@ if __name__ == "__main__":
 if __name__.startswith("_mod_wsgi_"):
     webController = PatientCareFrame()
     webController.setFilePath(__file__)
-    application = webController.wsgiHandler 
+    application = webController.wsgiHandler

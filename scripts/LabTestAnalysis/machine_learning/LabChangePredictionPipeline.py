@@ -23,15 +23,20 @@ from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
 from scripts.LabTestAnalysis.machine_learning.dataExtraction.LabChangeMatrix import LabChangeMatrix
 
 class LabChangePredictionPipeline(SupervisedLearningPipeline):
-    def __init__(self, change_params, lab_panel, num_episodes, use_cache=None, random_state=None):
+    def __init__(self, change_params, lab_panel, num_episodes, use_cache=None, random_state=None, build_raw_only=False,):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state)
         self._change_params = change_params
         self._change_params['feature_old'] = self._lookup_previous_measurement_feature(self._var)
         log.debug('change_params: %s' % self._change_params)
 
-        self._build_raw_feature_matrix()
-        self._build_processed_feature_matrix()
-        self._train_and_analyze_predictors()
+        if build_raw_only:
+            self._build_raw_feature_matrix()
+            return
+
+        else:
+            self._build_raw_feature_matrix()
+            self._build_processed_feature_matrix()
+            self._train_and_analyze_predictors()
 
     def _build_model_dump_path(self, algorithm):
         template = '%s' + '-change-%s-model.pkl' % algorithm
@@ -295,10 +300,11 @@ if __name__ == '__main__':
     change_params = {}
     change_params['method'] = 'percent'
     change_params['feature_new'] = 'ord_num_value'
-
     params_to_test = [0.5, 0.4, 0.3, 0.2, 0.1]
+    sample_size = 12000
 
     for panel in labs_to_test:
+        LabChangePredictionPipeline(change_params, panel, sample_size, use_cache=True, random_state=123456789, build_raw_only=True)
         for param in params_to_test:
             change_params['param'] = param
-            LabChangePredictionPipeline(change_params, panel, 100, use_cache=True, random_state=123456789)
+            LabChangePredictionPipeline(change_params, panel, sample_size, use_cache=True, random_state=123456789)
