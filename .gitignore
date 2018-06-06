@@ -2,5 +2,6 @@
 LocalEnv.py
 .DS_Store
 scripts/LabTestAnalysis/output*
+scripts/LabTestAnalysis/machine_learning/data*
 starr/data*
 stride/data*
