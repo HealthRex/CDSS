@@ -65,8 +65,10 @@ TEST_DB_PARAM = LOCAL_TEST_DB_PARAM
 #TEST_DB_PARAM["DSN"] = "/Users/angelicaperez/Documents/JonChen/sqlite_db/dave_chan2.sqlite"
 
 
-"""Parameters on whether to do additional pre-processing when parsing text / CSV files"""
-CSV_EXPAND_QUOTES = False;
+"""Parameters on whether to do additional pre-processing when parsing text / CSV files.
+Seems necessary for STRIDE 2008-2014-2017 Order Proc dumps?
+"""
+CSV_EXPAND_QUOTES = True;
 
 def formatDBConnectString( dbParamDict ):
     connStr = ""

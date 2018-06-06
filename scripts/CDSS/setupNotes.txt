@@ -1,33 +1,50 @@
 ======== AWS Server Setup Notes ==============
 If you're just installing on your local laptop/computer, then skip to the next section, but some tips here may still be helpful.
 
+===========================================
+May be able to reuse existing dev environments
+- Find EC2 Amazon Machine Image (AMI) SnapShot (e.g., medinfo-STRIDE-2008-2014-postgresql)
+- Launch / Restore an Instance based on one
+- Login as ec2-user as described below
+	- sudo service postgresql96 restart
+- Should now have a running Linux server with running PostgreSQL database with STRIDE 2008-2014 data already loaded
+- Working git CDSS code repo available under /home/ec2-user/CDSS 
+
+================== From Scratch Version =================
 - Sign-up for AWS account
 - Free Tier eligible EC2 Micro Instance create
 - Change Security Group for instance to allow TCP ports 22 for SSH connection any others
 - Connect as ec2-user (or ubuntu) first off using public-private key default method (requires local download)
   ssh -i privateKey.pem ec2-user@xxx.xxx.xxx.xxx
 - Need to prefix "sudo " to most commands to act as root
-- Create user to login as
-sudo adduser jonc101
-sudo passwd jonc101
-- Grant user sudo privileges
-sudo visudo
-    jonc101 ALL=(ALL) ALL
-- Change setting to allow SSH password login. Beware that this is less secure!
-sudo vi /etc/ssh/sshd_config
-PasswordAuthentication yes
-sudo service sshd restart
 
-Should now be able to SSH to instance using the created username and password
+Can continue to just work as "ec2-user" or can create a separate user and account that can login by password:
+	- Create user to login as
+	sudo adduser jonc101
+	sudo passwd jonc101
+	- Grant user sudo privileges
+	sudo visudo
+	    jonc101 ALL=(ALL) ALL
+	- Change setting to allow SSH password login. Beware that this is less secure!
+	sudo vi /etc/ssh/sshd_config
+	PasswordAuthentication yes
+	sudo service sshd restart
+
+	Should now be able to SSH to instance using the created username and password
 
 - Install Amazon packages
-sudo yum install postgresql93
+sudo yum install git
+sudo yum install postgresql96
 sudo yum install python27-psycopg2
 sudo yum install httpd
 sudo yum install mod_wsgi-python27
 sudo yum install python27-scipy
+sudo yum install python27-matplotlib
 
-sudo easy_install gensim
+# Python packages
+sudo pip install pandas
+sudo pip install gensim
+#sudo easy_install gensim
 
 (Consider general SciPy dev environment setup)
 (http://blog.yhathq.com/posts/setting-up-scientific-python.html)
@@ -77,16 +94,51 @@ Update ~/.bash_profile with paths and references to make subsequent steps more c
     PYTHONPATH=$PYTHONPATH:$BASE_DIR
     export PYTHONPATH
 
+# Quick alternative
+> echo "export PYTHONPATH=$PYTHONPATH:$HOME/CDSS" >> .bash_profile
+
+
 > source ~/.bash_profile
 
 ==============================================
+# PostgreSQL Database Server Setup
+- See documentation for local setup
+- AWS RDS does much of this automatically
+- AWS EC2
+	sudo yum install postgresql96-server
+	sudo service postgresql96 initdb
+	sudo service postgresql96 restart
+	sudo -u postgres psql -U postgres 	# Connect via database superuser postgres
+
+# Create DB users and access privileges from remote connections
+# Replace "jonc101" with ec2-user or other username as per your preference
+PostgreSQL SQL Command:
+    CREATE USER "ec2-user" PASSWORD '<DBPassword>';	
+
 #   Create blank database to work with
 > createdb -U postgres -O jonc101 medinfo
 (Note that this is a command-line program. If you're already connected via psql, you can enter the CREATE DATABASE SQL command query.)
+	CREATE DATABASE medinfo OWNER "ec2-user";
+	CREATE DATABASE testmedinfo OWNER "ec2-user";
 
-# Create DB users and access privileges from remote connections
-PostgreSQL SQL Command:
-    CREATE USER jonc101 PASSWORD '<yourPassword>';
+# Need to configure PostgreSQL database server to allow connections by password, in this case, from any client host
+#sudo echo "host  all  all  0.0.0.0/0  md5" >> /var/lib/pgsql96/data/pg_hba.conf
+sudo vi /var/lib/pgsql96/data/pg_hba.conf
+	# Add line like this, saying allow connection to any database, by any user, from any IP address, if authenticates by an MD5 encrypted password
+	host  all  all  0.0.0.0/0  md5
+	# Comment out the line like below, so won't attempt to use alternative ident authentication method first
+	# host    all             all             127.0.0.1/32            ident
+
+# If want to allow connections from external hosts (e.g., your laptop), then need to also change / add line to configuration file to listen for external calls
+sudo vi /var/lib/pgsql96/data/postgresql.conf
+	# Add / edit this line to listen from all hosts
+	listen_addresses = '*'
+
+# Reset database service to capture configuration changes
+	sudo service postgresql96 restart
+
+# For convenience, can define database user password in environment so don't have to enter it everytime
+	export PGPASSWORD=<DBPassword>
 
 # If restoring from a previously pre-processed database, than just restore each data table's contents in turn
 > restoreCPOETables.sh (should be stored with data dump source)
@@ -94,10 +146,11 @@ PostgreSQL SQL Command:
 # See setupDataPreprocessingNotes.txt for details on reconstructing the pre-processing steps from scratch
 
 #   Create data definitions (If did direct restore from previous data dump, OK to expect many errors regarding "Relation already exists")
+# This is more for setting up a separate test database that just needs the blank schema, but not the actual data
 PostgreSQL: # Use timestamp data type
-> psql -f medinfo/db/definition/strideData.sql -U jonc101 medinfo		# This may be in the source data directory as schema.strideData.sql
-> psql -f medinfo/db/definition/cpoeStats.sql -U jonc101 medinfo
-> psql -f medinfo/db/definition/cpoeSimulation.sql -U jonc101 medinfo
+> psql -f medinfo/db/definition/schema.strideData.sql -U jonc101 testmedinfo		# This may be in the source data directory as schema.strideData.sql
+> psql -f medinfo/db/definition/cpoeStats.sql -U jonc101 testmedinfo
+> psql -f medinfo/db/definition/cpoeSimulation.sql -U jonc101 testmedinfo
 
 # Point Python scripts to database (may want to separate your primary database from a "test" database that unit tests run against, so that the unit tests don't accidentally clobber your primary data source).
 > vi medinfo/db/Env.py
@@ -179,6 +232,13 @@ http://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-apache-startstop.htm
 
 # Need read/execute permission on directory tree up to web files, so may need to
 chmod 755 /home/jonc101
+
+# Linux server may also need to change SELinux enforcement if running into "AH00132: file permissions deny server access"
+sudo setenforce 0
+https://wiki.apache.org/httpd/13PermissionDenied
+
+# General Tips
+- Review Apache error logs if running into server side issues: sudo tail /etc/httpd/logs/error_
 
 # Web server start / control
 sudo service httpd restart

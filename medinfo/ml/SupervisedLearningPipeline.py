@@ -132,6 +132,7 @@ class SupervisedLearningPipeline:
         # to reproduce the logic of the processing steps.
         # Principle: Minimize overridden function calls.
         #   params['features_to_add'] = features_to_add
+        #   params['features_to_filter_on'] (optional) = features_to_filter_on
         #   params['imputation_strategies'] = imputation_strategies
         #   params['features_to_remove'] = features_to_remove
         #   params['outcome_label'] = outcome_label
@@ -162,6 +163,10 @@ class SupervisedLearningPipeline:
             self._add_features(fmt, params['features_to_add'])
             # Remove features.
             self._remove_features(fmt, params['features_to_remove'])
+            # Filter on features
+            if 'features_to_filter_on' in params:
+                self._filter_on_features(fmt, params['features_to_filter_on'])
+
             # HACK: When read_csv encounters duplicate columns, it deduplicates
             # them by appending '.1, ..., .N' to the column names.
             # In future versions of pandas, simply pass mangle_dupe_cols=True
@@ -170,8 +175,13 @@ class SupervisedLearningPipeline:
                 if feature[-2:] == ".1":
                     fmt.remove_feature(feature)
                     self._removed_features.append(feature)
+
             # Impute data.
             self._impute_data(fmt, raw_matrix, params['imputation_strategies'])
+
+            # In case any all-null features were created in preprocessing,
+            # drop them now so feature selection will work
+            fmt.drop_null_features()
 
             # Build interim matrix.
             processed_matrix = fmt.fetch_matrix()
@@ -180,10 +190,12 @@ class SupervisedLearningPipeline:
             # This must happen before feature selection so that we don't
             # accidentally learn information from the test data.
             self._train_test_split(processed_matrix, params['outcome_label'])
+
             self._select_features(params['selection_problem'],
                 params['percent_features_to_select'],
                 params['selection_algorithm'],
                 params['features_to_keep'])
+
             train = self._y_train.join(self._X_train)
             test = self._y_test.join(self._X_test)
             processed_matrix = train.append(test)
@@ -203,6 +215,7 @@ class SupervisedLearningPipeline:
         indicator_features = features_to_add.get('indicator')
         threshold_features = features_to_add.get('threshold')
         logarithm_features = features_to_add.get('logarithm')
+        change_features = features_to_add.get('change')
 
         if indicator_features:
             for feature in indicator_features:
@@ -224,6 +237,20 @@ class SupervisedLearningPipeline:
                 base_feature = feature.get('base_feature')
                 logarithm = feature.get('logarithm')
                 added_feature = fmt.add_threshold_feature(base_feature, logarithm)
+                self._added_features.append(added_feature)
+
+        # TODO (raikens): right now, unchanged_yn is the only allowable name for a
+        # change feature, which means at most one change_feature can be added
+        if change_features:
+            if len(change_features) > 1:
+                 raise ValueError("Adding multiple \'change\' type features is not yet supported")
+
+            for feature in change_features:
+                feature_old = feature.get('feature_old')
+                feature_new = feature.get('feature_new')
+                method = feature.get('method')
+                param = feature.get('param')
+                added_feature = fmt.add_change_feature(method, param, feature_old, feature_new)
                 self._added_features.append(added_feature)
 
         log.debug('self._added_features: %s' % self._added_features)
@@ -257,6 +284,14 @@ class SupervisedLearningPipeline:
             self._removed_features.append(feature)
 
         log.debug('self._removed_features: %s' % self._removed_features)
+
+    def _filter_on_features(self, fmt, features_to_filter_on):
+        # Filter out rows with unwanted value for given feature
+        for filter_feature in features_to_filter_on:
+            feature = filter_feature.get('feature')
+            value = filter_feature.get('value')
+            self._num_rows = fmt.filter_on_feature(feature, value)
+            log.debug('Removed rows where %s equals \'%s\'; %d rows remain.' % (feature, str(value), self._num_rows))
 
     def _train_test_split(self, processed_matrix, outcome_label):
         log.debug('outcome_label: %s' % outcome_label)
@@ -343,7 +378,8 @@ class SupervisedLearningPipeline:
             args.append('%s=%s' % (key, value))
         command = '%s(%s)' % (class_name, ', '.join(args))
         summary.append('Command: %s' % command)
-        #
+        # Number of Observations
+        summary.append('Number of Episodes: %s' % self._num_rows)
         summary.append('')
         # Overview:
         summary.append('Overview:')
