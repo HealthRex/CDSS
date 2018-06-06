@@ -2,3 +2,4 @@
 LocalEnv.py
 .DS_Store
 scripts/LabTestAnalysis/output*
+scripts/LabCulturePrediction/data*
