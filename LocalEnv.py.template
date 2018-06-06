@@ -19,10 +19,11 @@ BOX_ACCESS_TOKEN = "BOX_API_ACCESS_TOKEN"
 BOX_STRIDE_FOLDER_ID = "BOX_STRIDE_FOLDER_ID"
 
 LOCAL_PROD_DB_PARAM = {}
-LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'
-LOCAL_PROD_DB_PARAM["DSN"] = 'prod'
-LOCAL_PROD_DB_PARAM["UID"] = 'produid'
-LOCAL_PROD_DB_PARAM["PWD"] = 'prodpwd'
+LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'   # Database host. Localhost if running on your local computer. For AWS RDS instances, look for the "Endpoint" hostname, e.g. YourDatabaseIdentifier.cwyfvxgvic6c.us-east-1.rds.amazonaws.com
+LOCAL_PROD_DB_PARAM["DSN"] = 'databaseName'    # Specific database name hosted by the database server (e.g., medinfo)
+LOCAL_PROD_DB_PARAM["UID"] = 'databaseUserId'
+LOCAL_PROD_DB_PARAM["PWD"] = 'databaseUserPassword'
+
 
 LOCAL_TEST_DB_PARAM = {}
 LOCAL_TEST_DB_PARAM["HOST"] = 'localhost'
