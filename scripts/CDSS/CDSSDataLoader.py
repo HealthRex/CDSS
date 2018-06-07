@@ -10,9 +10,11 @@ Primary result tables:
 All general postprocessing on these tables should happen here.
 """
 
+import logging
 import os
 import subprocess
 from medinfo.db import DBUtil
+from medinfo.cpoe.DataManager import DataManager
 from medinfo.common.Util import log, ProgressDots, stdOpen
 from LocalEnv import PATH_TO_CDSS
 
@@ -140,10 +142,13 @@ class CDSSDataLoader:
         CDSSDataLoader.selectively_deactivate_clinical_item_analysis()
         CDSSDataLoader.selectively_deactivate_clinical_item_recommendation()
         CDSSDataLoader.define_composite_clinical_items()
-
+        CDSSDataLoader.define_virtual_clinical_items()
+        CDSSDataLoader.add_clinical_item_synonyms()
+        CDSSDataLoader.define_possible_clinical_outcomes()
 
     @staticmethod
     def selectively_deactivate_clinical_item_analysis():
+        log.info('Selectively deactivating clinical item analysis...')
         # Certain clinical items are low-information. Manually prevent
         # analysis for these items.
         analysis_deactivation_command = \
@@ -175,7 +180,7 @@ class CDSSDataLoader:
             """
             UPDATE clinical_item
             SET analysis_status = 0
-            WHERE description LIKE 'Alanine-Arginine%';
+            WHERE description LIKE 'Alanine-Arginine%%';
             """
         DBUtil.execute(analysis_deactivation_command)
 
@@ -296,6 +301,7 @@ class CDSSDataLoader:
 
     @staticmethod
     def selectively_deactivate_clinical_item_recommendation():
+        log.info('Selectively deactivating clinical item recommendations...')
         # Certain categories of clinical items don't really make sense to
         # recommend as part of CDSS. Flip the default_recommend bit for these
         # items.
@@ -350,6 +356,7 @@ class CDSSDataLoader:
 
     @staticmethod
     def define_composite_clinical_items():
+        log.info('Defining composite clinical items...')
         # Composite certain outcome measures, for example, ICU interventions
         # (sub-categorization based on vasopressors).
 
@@ -397,7 +404,7 @@ class CDSSDataLoader:
             FROM clinical_item_category
             WHERE description = 'Med (CRRT)';
             """
-        results = DBUtil.execute(crrc_cic_id_query)
+        results = DBUtil.execute(crrt_cic_id_query)
         crrt_cic_id = results[0][0]
         #   clinical_item_category.description  name    description
         #   Med (CRRT)  MED205894   BICARB DIALY*
@@ -476,7 +483,7 @@ class CDSSDataLoader:
             """
             SELECT clinical_item_category_id
             FROM clinical_item_category
-            WHERE description = 'Procedure';
+            WHERE description = 'Procedures';
             """
         results = DBUtil.execute(procedures_cic_id_query)
         procedures_cic_id = results[0][0]
@@ -573,7 +580,7 @@ class CDSSDataLoader:
                     'AnyICULifeSupport'
                     );
             """
-        results = DBUtil.execute(icd_ci_id_query)
+        results = DBUtil.execute(icu_ci_id_query)
         icu_ci_ids = [result[0] for result in results]
         CDSSDataLoader.build_composite_clinical_item(icu_ci_ids, 'ICUOrders', \
             'ICU Specific/Correlated Orders', med_none_cic_id)
@@ -648,19 +655,23 @@ class CDSSDataLoader:
                                             component_str))
         composite_arg = '%s|%s|%s|%s' % (component_str, name, description, \
                                             category_id)
-
-        build_composite_command = [
-            'python', '-m', 'medinfo/cpoe/DataManager.py',
-            '--compositeRelated', composite_arg
-            ]
-
-        subprocess.call(build_composite_command)
+        dm = DataManager()
+        dm.main(['medinfo/cpoe/DataManager.py', '--compositeRelated', composite_arg])
 
     @staticmethod
     def define_virtual_clinical_items():
+        log.info('Defining virtual clinical items...')
         # READMISSION
         # Readmission defined as a discharge --> admission.
         # First, define a clinical item for Readmission.
+        admission_cic_id_query = \
+            """
+            SELECT clinical_item_category_id
+            FROM clinical_item_category
+            WHERE description = 'Admission';
+            """
+        results = DBUtil.execute(admission_cic_id_query)
+        admission_cic_id = results[0][0]
         readmission_definition_command = \
             """
             INSERT INTO clinical_item (
@@ -726,6 +737,7 @@ class CDSSDataLoader:
 
     @staticmethod
     def add_clinical_item_synonyms():
+        log.info('Adding clinical item synonyms...')
         # Add common synonyms to major clinical items, primarily to facilitate
         # user interface simulation order searches by name.
 
@@ -756,8 +768,9 @@ class CDSSDataLoader:
                 """
                 UPDATE clinical_item
                 SET description = description || '%s'
-                WHERE description ~% '%s';
+                WHERE description ~* '%s';
                 """ % (synonym, regex)
+            print synonym_command
             DBUtil.execute(synonym_command)
 
         # More complex cases that can't be easily looped.
@@ -807,7 +820,7 @@ class CDSSDataLoader:
             SET description = description || ' [RBC]'
             WHERE
                 description ~* 'red blood cell' AND
-                name NOT LIKE 'ICD%';
+                name NOT LIKE 'ICD%%';
             """
         DBUtil.execute(synonym_command)
 
@@ -816,7 +829,7 @@ class CDSSDataLoader:
             UPDATE clinical_item
             SET description = description || ' [PLT]'
             WHERE description ~* 'platelet'
-            AND description NOT LIKE '%PLT%';
+            AND description NOT LIKE '%%PLT%%';
             """
         DBUtil.execute(synonym_command)
 
@@ -830,6 +843,7 @@ class CDSSDataLoader:
 
     @staticmethod
     def define_possible_clinical_outcomes():
+        log.info('Defining possible clinical outcomes')
         # Highlight items that may be of interest for outcome measures.
         outcome_definition_command = \
             """
@@ -911,4 +925,5 @@ class CDSSDataLoader:
         pass
 
 if __name__ == '__main__':
-    CDSSDataLoader.load_CDSS_from_stride()
+    log.level = logging.DEBUG
+    CDSSDataLoader.process_CDSS_psql_db()
