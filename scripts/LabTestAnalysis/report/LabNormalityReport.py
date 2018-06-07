@@ -469,8 +469,6 @@ class LabNormalityReport:
             if proc_code in labs['lab_panel'].values:
                 labs.at[proc_code, 'label'] = label
 
-        print labs['label']
-
         return labs
 
     @staticmethod
@@ -497,7 +495,6 @@ class LabNormalityReport:
 
         axes.set_ylabel("")
         axes.set_yticklabels(charges['label'])
-        print charges
         axes.set_xlabel("Annual Charge Volume ($, millions)")
         # axes.set_xticklabels(['0', '0', '5', '10', '15', '20', '25'])
         axes.set_xticklabels(['0', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'])
