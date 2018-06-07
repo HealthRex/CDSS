@@ -166,6 +166,9 @@ class LabNormalityReport:
         # OSX automatically creates .DS_Store files.
         if '.DS_Store' in labs:
             labs.remove('.DS_Store')
+        # Hack to ignore data logging directory.
+        if 'log' in labs:
+            labs.remove('log')
         if 'LABNONGYN' in labs:
             labs.remove('LABNONGYN')
         return sorted(labs)
