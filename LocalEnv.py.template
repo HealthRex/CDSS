@@ -13,6 +13,11 @@
 # Other variables which are likely to vary between dev environments should
 # be added to this template file, then be given default values via setup.sh.
 
+BOX_CLIENT_ID = "BOX_API_CLIENT_ID"
+BOX_CLIENT_SECRET = "BOX_API_CLIENT_SECRET"
+BOX_ACCESS_TOKEN = "BOX_API_ACCESS_TOKEN"
+BOX_STRIDE_FOLDER_ID = "BOX_STRIDE_FOLDER_ID"
+
 LOCAL_PROD_DB_PARAM = {}
 LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'   # Database host. Localhost if running on your local computer. For AWS RDS instances, look for the "Endpoint" hostname, e.g. YourDatabaseIdentifier.cwyfvxgvic6c.us-east-1.rds.amazonaws.com
 LOCAL_PROD_DB_PARAM["DSN"] = 'databaseName'    # Specific database name hosted by the database server (e.g., medinfo)
@@ -25,5 +30,7 @@ LOCAL_TEST_DB_PARAM["HOST"] = 'localhost'
 LOCAL_TEST_DB_PARAM["DSN"] = 'test'
 LOCAL_TEST_DB_PARAM["UID"] = 'testuid'
 LOCAL_TEST_DB_PARAM["PWD"] = 'testpwd'
+
+PATH_TO_CDSS = "/foo/bar/"
 
 TEST_RUNNER_VERBOSITY = 2

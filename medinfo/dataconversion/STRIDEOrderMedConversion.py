@@ -75,7 +75,7 @@ class STRIDEOrderMedConversion:
 
         finally:
             conn.close();
-        # progress.PrintStatus();
+        progress.PrintStatus();
 
 
     def loadRXCUIData(self, conn=None):
@@ -317,6 +317,10 @@ class STRIDEOrderMedConversion:
             if len(ingredientByRxcui) <= 1 or convOptions.normalizeMixtures:
                 # Single ingredient or want component active ingredients to each have one record
                 for (rxcui, ingredient) in ingredientByRxcui.iteritems():
+                    # ~250/15000 RxCUI's don't have a defined active ingredient.
+                    if ingredient is None:
+                        continue
+
                     normalizedModel = RowItemModel(rowModel);
                     normalizedModel["medication_id"] = rxcui;
                     normalizedModel["code"] = RXCUI_CODE_TEMPLATE % normalizedModel["medication_id"];
@@ -334,6 +338,9 @@ class STRIDEOrderMedConversion:
                 rxcuiStrList = list();
                 ingredientList = list();
                 for (ingredient, rxcui) in ingredientRxcuiList:
+                    # ~250/15000 RxCUI's don't have a defined active ingredient.
+                    if ingredient is None:
+                        continue
                     rxcuiStrList.append(str(rxcui));
                     ingredientList.append(ingredient.title());
                 rxcuiComposite = str.join(",", rxcuiStrList );
