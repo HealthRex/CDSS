@@ -1,0 +1,1 @@
+This file is for testing the Box client download functionality.
