@@ -54,7 +54,7 @@ class STRIDEOrderProcConversion:
                 progress.Update();
         finally:
             conn.close();
-        # progress.PrintStatus();
+        progress.PrintStatus();
 
 
     def querySourceItems(self, startDate=None, endDate=None, progress=None, conn=None):

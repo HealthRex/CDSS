@@ -41,7 +41,8 @@ class STRIDEDxListConversion:
 
         self.categoryBySourceDescr = dict();
         self.clinicalItemByCategoryIdExtId = dict();
-        self.icd9StrByCode = None;
+        self.icd9_str_by_code = None
+        self.icd10_str_by_code = None
 
     def convertSourceItems(self, startDate=None, endDate=None):
         """Primary run function to process the contents of the source table
@@ -59,7 +60,7 @@ class STRIDEDxListConversion:
                 self.convertSourceItem(sourceItem, conn=conn);
         finally:
             conn.close();
-        # progress.PrintStatus();
+        progress.PrintStatus();
 
 
     def querySourceItems(self, startDate=None, endDate=None, progress=None, conn=None):
@@ -71,19 +72,20 @@ class STRIDEDxListConversion:
         if not extConn:
             conn = self.connFactory.connection();
 
-        # Facilitate rapid lookup of ICD9 codes
-        if self.icd9StrByCode is None:
-            self.prepareICD9Lookup(conn=conn);
+        # Facilitate rapid lookup of ICD9/ICD10 codes
+        if self.icd9_str_by_code is None:
+            self.prepare_icd9_lookup(conn=conn)
+        if self.icd10_str_by_code is None:
+            self.prepare_icd10_lookup(conn=conn)
 
         # Column headers to query for that map to respective fields in analysis table
-        headers = ["pat_id","pat_enc_csn_id","noted_date","resolved_date","dx_icd9_code","data_source"];
+        headers = ["pat_id","pat_enc_csn_id","noted_date","resolved_date","dx_icd9_code","dx_icd9_code_list","dx_icd10_code_list","data_source"];
 
         query = SQLQuery();
         for header in headers:
             query.addSelect( header );
         query.addFrom("stride_dx_list as dx");
         query.addWhere("noted_date is not null");   # Only work with elements that have dates assigned for now
-        query.addWhere("dx_icd9_code is not null");   # Can't process nullcodes
         if startDate is not None:
             query.addWhereOp("noted_date",">=", startDate);
         if endDate is not None:
@@ -99,28 +101,82 @@ class STRIDEDxListConversion:
 
         row = cursor.fetchone();
         while row is not None:
-            rowModel = RowItemModel( row, headers );
+            row_model = RowItemModel( row, headers );
 
-            # Lookup ICD9 string, otherwise default to ICD9 code
-            rowModel["icd9_str"] = rowModel["dx_icd9_code"];
-            if rowModel["dx_icd9_code"] in self.icd9StrByCode:
-                rowModel["icd9_str"] = self.icd9StrByCode[rowModel["dx_icd9_code"]];
+            # 2014-2017 data does not have dx_icd9_code. Instead, has
+            # both dx_icd9_code_list and dx_icd10_code_list. For these items,
+            # there is a one:many mapping of source item to converted item.
+            # Collect icd10 codes.
+            icd10_codes = set()
+            if row_model['dx_icd10_code_list'] not in ['', None]:
+                codes = row_model['dx_icd10_code_list'].split(',')
+                for code in codes:
+                    icd10_codes.add(code)
+            # Collect icd9 codes.
+            icd9_codes = set()
+            if row_model['dx_icd9_code'] not in ['', None]:
+                icd9_codes.add(row_model['dx_icd9_code'])
+            else:
+                if row_model['dx_icd9_code_list'] not in ['', None]:
+                    codes = row_model['dx_icd9_code_list'].split(',')
+                    for code in codes:
+                        icd9_codes.add(code)
 
-            yield rowModel; # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
+            # If there are no ICD codes, skip to next row.
+            if len(icd9_codes) == 0 and len(icd10_codes) == 0:
+                row = cursor.fetchone()
+                continue
 
-            origCode = rowModel["dx_icd9_code"];
-            if SUBCODE_DELIM in origCode:
-                # Insert copies of item for parent node codes to aggregate component diagnoses into general categories
-                while rowModel["dx_icd9_code"][-1] != SUBCODE_DELIM:
-                    rowModel["dx_icd9_code"] = rowModel["dx_icd9_code"][:-1];   # Truncate off one trailing digit
-                    if rowModel["dx_icd9_code"] in self.icd9StrByCode:
-                        rowModel["icd9_str"] = self.icd9StrByCode[rowModel["dx_icd9_code"]];
-                        yield rowModel; # Found a matching parent code, so yield this version
-                # One more cycle to get parent node with no subcode delimiter at all
-                rowModel["dx_icd9_code"] = rowModel["dx_icd9_code"][:-1];   # Truncate off SUBCODE_DELIM
-                if rowModel["dx_icd9_code"] in self.icd9StrByCode:
-                    rowModel["icd9_str"] = self.icd9StrByCode[rowModel["dx_icd9_code"]];
-                    yield rowModel; # Found a matching parent code, so yield this version
+            # Process ICD codes.
+            # Build a temporary dictionary so that a single loop can take care
+            # of both ICD9 and ICD10 without mixing the data.
+            icd_versions = {
+                'ICD9': {
+                    'codes': icd9_codes,
+                    'lookup': self.icd9_str_by_code
+                },
+                'ICD10': {
+                    'codes': icd10_codes,
+                    'lookup': self.icd10_str_by_code
+                }
+            }
+
+            for version, info in icd_versions.iteritems():
+                icd_codes = info['codes']
+                icd_lookup = info['lookup']
+
+                for icd_code in icd_codes:
+                    # Look up string. Otherwise default to ICD code.
+                    row_model['icd_str'] = icd_code
+                    if icd_code in icd_lookup:
+                        row_model['icd_str'] = icd_lookup[icd_code]
+                    row_model['dx_icd_code'] = version + '.' + icd_code
+
+                    # Yield one row worth of data at a time to avoid having to keep
+                    # the whole result set in memory.
+                    yield row_model
+
+                    orig_code = icd_code
+                    if SUBCODE_DELIM in orig_code:
+                        # Insert copies of item for parent node codes to aggregate
+                        # component diagnoses into general categories.
+                        while icd_code[-1] != SUBCODE_DELIM:
+                            icd_code = icd_code[:-1] # Truncate trailing digit
+                            if icd_code in icd_lookup:
+                                # Found a a matching parent code, so yield this
+                                # version.
+                                row_model['icd_str'] = icd_lookup[icd_code]
+                                row_model['dx_icd_code'] = version + '.' + icd_code
+                                yield row_model
+
+                        # One more cycle to get parent node with no subcode
+                        # delimiter at all.
+                        icd_code = icd_code[:-1] # Truncate off SUBCODE_DELIM
+                        if icd_code in icd_lookup:
+                            row_model['icd_str'] = icd_lookup[icd_code]
+                            row_model['dx_icd_code'] = version + '.' + icd_code
+
+                            yield row_model
 
             row = cursor.fetchone();
             progress.Update();
@@ -145,8 +201,8 @@ class STRIDEDxListConversion:
             #   Relatively small / finite number of categories and clinical_items, so these should only have to be instantiated
             #   in a first past, with subsequent calls just yielding back in memory cached copies
             categoryModel = self.categoryFromSourceItem(sourceItem, conn=conn);
-            clinicalItemModel = self.clinicalItemFromSourceItem(sourceItem, categoryModel, conn=conn);
-            patientItemModel = self.patientItemModelFromSourceItem(sourceItem, clinicalItemModel, conn=conn);
+            clinicalItem = self.clinicalItemFromSourceItem(sourceItem, categoryModel, conn=conn);
+            patientItem = self.patientItemModelFromSourceItem(sourceItem, clinicalItem, conn=conn);
 
         finally:
             if not extConn:
@@ -171,21 +227,22 @@ class STRIDEDxListConversion:
 
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
-        clinicalItemKey = (category["clinical_item_category_id"], sourceItem["dx_icd9_code"]);
+        clinicalItemKey = (category["clinical_item_category_id"], sourceItem['dx_icd_code']);
+
         if clinicalItemKey not in self.clinicalItemByCategoryIdExtId:
             # Clinical Item does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             clinicalItem = \
                 RowItemModel \
                 (   {   "clinical_item_category_id": category["clinical_item_category_id"],
                         "external_id": None,
-                        "name": "ICD9.%(dx_icd9_code)s" % sourceItem,
-                        "description": "%(icd9_str)s" % sourceItem,
+                        "name": "%s" % sourceItem['dx_icd_code'],
+                        "description": "%(icd_str)s" % sourceItem,
                     }
                 );
             (clinicalItemId, isNew) = DBUtil.findOrInsertItem("clinical_item", clinicalItem, conn=conn);
             clinicalItem["clinical_item_id"] = clinicalItemId;
             self.clinicalItemByCategoryIdExtId[clinicalItemKey] = clinicalItem;
-        return self.clinicalItemByCategoryIdExtId[clinicalItemKey];
+        return self.clinicalItemByCategoryIdExtId[clinicalItemKey]
 
     def patientItemModelFromSourceItem(self, sourceItem, clinicalItem, conn):
         # Produce a patient_item record model for the given sourceItem
@@ -208,13 +265,29 @@ class STRIDEDxListConversion:
             log.info(err);
             pass;
 
-    def prepareICD9Lookup(self,conn):
-        """One big query for ICD9 lookup table at one time so don't have to keep repeating
+    def prepare_icd9_lookup(self, conn):
         """
-        self.icd9StrByCode = dict();
-        results = DBUtil.execute("select code, str from stride_icd9_cm where tty in ('HT','PT')", conn=conn);
+        One big query for ICD9 lookup table at one time so don't have to keep
+        repeating.
+        """
+        query = "SELECT code, str FROM stride_icd9_cm WHERE tty IN ('HT','PT')"
+        results = DBUtil.execute(query, conn=conn)
+
+        self.icd9_str_by_code = dict()
         for (code, str) in results:
-            self.icd9StrByCode[code] = str;
+            self.icd9_str_by_code[code] = str
+
+    def prepare_icd10_lookup(self, conn):
+        """
+        One big query for ICD10 lookup table at one time so don't have to keep
+        repeating.
+        """
+        query = "SELECT icd10_code, full_description FROM stride_icd10_cm"
+        results = DBUtil.execute(query, conn=conn)
+
+        self.icd10_str_by_code = dict()
+        for (code, str) in results:
+            self.icd10_str_by_code[code] = str
 
     def main(self, argv):
         """Main method, callable from command line"""
