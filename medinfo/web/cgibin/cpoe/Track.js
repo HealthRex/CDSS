@@ -256,7 +256,7 @@ function incrementCounter(eventName, state){
     eventTracker[eventName] = []
   }
   eventTracker[eventName].push(state)
-  // console.log(eventTracker)
+  console.log(eventTracker)
 }
 
 /**
