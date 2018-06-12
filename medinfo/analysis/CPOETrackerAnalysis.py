@@ -7,7 +7,7 @@ import datetime
 from optparse import OptionParser
 
 class SimulationAnalyzer:
-	def __init__(self, data_file, trackers=['eventTracker', 'resultsTracker', 'signedItemsTracker', 'user', 'patient']):
+	def __init__(self, data_file):
 		self.data_file = data_file
 		self.load_tracker_data()
 
@@ -229,15 +229,15 @@ class SimulationAnalyzer:
 		Args:
 			timeline (iterable): iterable of tuples (position, name, info_dict)
 		"""
-
 		times = list(map(lambda x: datetime.datetime.fromtimestamp((x[0] - timeline[0][0])/1000.0), timeline))
 		names = list(map(lambda x: x[1], timeline))
+		names_unique = sorted(list(set(list(map(lambda x: x, names)))))
 
-		# norm = plt.Normalize(1,4)
-		# c = np.random.randint(1,5,size=len(times))
-		# cmap = plt.cm.inferno
-		fig, ax = plt.subplots(figsize=(6,1))
-		sc = plt.scatter(times, [1]*len(times), marker='o', s=100)
+
+		norm = plt.Normalize(1,4)
+		c = np.random.randint(1,5,size=len(names_unique))
+		cmap = plt.cm.inferno
+		fig, ax = plt.subplots(figsize=(15,4))
 
 		ax.yaxis.set_visible(False)
 		ax.spines['right'].set_visible(False)
@@ -247,42 +247,18 @@ class SimulationAnalyzer:
 
 		ax.get_yaxis().set_ticklabels([])
 		ms = pd.to_timedelta("1", unit='ms')
-		plt.xlim(times[0] - ms, times[-1] + ms)
+		plt.xlim(times[0] - 5*ms, times[-1] + 5*ms)
 
-		annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
-                    bbox=dict(boxstyle="round", fc="w"),
-                    arrowprops=dict(arrowstyle="->"))
-		annot.set_visible(False)
+		plots = []
 
-		def update_annot(ind):
-		    pos = sc.get_offsets()[ind["ind"][0]]
-		    annot.xy = pos
-		    text = "{}, {}".format(" ".join(list(map(str,ind["ind"]))),
-		                           " ".join([names[n] for n in ind["ind"]]))
-		    annot.set_text(text)
-		    # annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
-		    annot.get_bbox_patch().set_alpha(0.4)
+		for i, name in enumerate(names_unique):
+			named_events = list(filter(lambda x: x[1] == name, timeline))
+			named_times = list(map(lambda x: datetime.datetime.fromtimestamp((x[0] - timeline[0][0])/1000.0), named_events))
+			sc = plt.scatter(named_times, [i*5+1]*len(named_times), marker='o', s=100, alpha=0.8)
+			plots.append(sc)
 
-
-		def hover(event):
-		    vis = annot.get_visible()
-		    if event.inaxes == ax:
-		        cont, ind = sc.contains(event)
-		        if cont:
-		            update_annot(ind)
-		            annot.set_visible(True)
-		            fig.canvas.draw_idle()
-		        else:
-		            if vis:
-		                annot.set_visible(False)
-		                fig.canvas.draw_idle()
-
-		fig.canvas.mpl_connect("motion_notify_event", hover)
-
-
-
+		ax.legend(plots, names_unique)
 		plt.show()
-
 
 
 def main(argv):
@@ -302,7 +278,8 @@ def main(argv):
 	print("Recommendation batches: ", siman.retrieve_results(search_modes=["", "FindOrders"], batch=True, search_query=""))
 	print("Signed/Recommended overlap: ", siman.number_signed_in_recommended())
 	print("Total results:", siman.total_search_results())
-	print("Timeline: ", siman.visualize_timeline(siman.construct_timeline()))
+	print("Timeline data: ", siman.construct_timeline())
+	print("Timeline view: ", siman.visualize_timeline(siman.construct_timeline()))
 
 
 if __name__ == '__main__':
