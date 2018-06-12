@@ -20,7 +20,7 @@ from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
-from scripts.LabTestAnalysis.machine_learning.dataExtraction.LabChangeMatrix import LabChangeMatrix
+from scripts.LabTestAnalysis.machine_learning.extraction.LabChangeMatrix import LabChangeMatrix
 
 class LabChangePredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, change_params, lab_panel, num_episodes, use_cache=None, random_state=None, build_raw_only=False,):

@@ -17,3 +17,6 @@ psycopg2
 
 # scikit-learn (http://scikit-learn.org/stable/)
 scikit-learn
+
+# boxsdk (https://github.com/box/box-python-sdk)
+boxsdk==1.5.5
