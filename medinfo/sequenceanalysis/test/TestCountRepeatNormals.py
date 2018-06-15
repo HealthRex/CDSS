@@ -3,9 +3,9 @@ import numpy as np
 import unittest
 from collections import defaultdict
 
-from medinfo.sequenceanalysis.SequenceAnalyzer import SequenceAnalyzer
+from medinfo.sequenceanalysis.CountRepeatNormals import CountRepeatNormals
 
-class TestSequenceAnalyzer(unittest.TestCase):
+class TestCountRepeatNormals(unittest.TestCase):
 
   def setUp(self):
     """Prepare state for test cases"""
@@ -15,7 +15,7 @@ class TestSequenceAnalyzer(unittest.TestCase):
     """Restore state from any setUp or test steps"""
     pass
 
-  def testSequenceAnalyzerBulk(self):
+  def testCountRepeatNormalsBulk(self):
     """Lab test counting normal and abnormal consecutive lab tests"""
     data = [
       ('11210R', [
@@ -148,88 +148,13 @@ class TestSequenceAnalyzer(unittest.TestCase):
       ])
     ]
 
-    # Extract the patient_id from a row, where patient_id is in column 0
-    def extract_patient_id_key_fn(row):
-      return row[0]
-
-    def handle_sentinel_queue_fn(window_size, vars_dict, sentinel, row):
-      vars_dict['prior_history'] = bool(row[2] - sentinel[2] <= window_size)
-
-    # After running filter/pop queue, if results in empty queue, then do stuff here (reset prior_history record having no prior records within window / as opposed to an abnormal value being present before)
-    def emptied_queue_handler_fn(window_size, vars_dict, row):
-      vars_dict['prior_history'] = False
-
-    # Acts as the mapper of a map-reduce step, where the "reduce" is left up to the user
-    def extract_key_value_fn(window_size, queue, vars_dict):
-      if vars_dict['prior_history']:
-        # if there is prior_history, set number_consecutive_normals as usual
-        number_consecutive_normals = len(queue)
-      else:
-        # else set number_consecutive_normals as None
-        number_consecutive_normals = None
-      return (window_size.days, number_consecutive_normals), 1
-
-    # Extract the datetime from a row, where datetime is in column 2
-    def extract_datetime_fn(row):
-      return row[2]
-
-    # Column 1 of row is a string that contains the lab result
-    def add_row_condition_fn(window_size, queue, vars_dict, row):
-      return 'InRange' in row[1]
-
-    def clear_queue_condition_fn(window_size, queue, vars_dict, row):
-      return not vars_dict['row_added']
-
-    sequence_analyzer = SequenceAnalyzer()
-
-    # Basically doing split by patientId, assuming that patientId is the first column
-    sequence_analyzer.split_data_on_key(extract_patient_id_key_fn)
-
-    # Prior_history reflects whether something was previously in queue. Init vars allows pass in parameter dictionary
-    sequence_analyzer.initialize_vars({'prior_history': False})
-
-    # If queue is just a sentinel, this will evaluate. Example sentinel value: Cleared queue after every abnormal test, but still need to keep track of date of abnormal value
-    # Check whether queue has a single sentinel value, but need some residual value (e.g., last date to allow maintenance of prior_history)
-    sequence_analyzer.handle_sentinel_queue(handle_sentinel_queue_fn)
-
-    # Pop queue criteria, for example to remove items from head of queue as progress
-    sequence_analyzer.pop_queue(extract_datetime_fn, emptied_queue_handler_fn)
-
-    sequence_analyzer.extract_key_value(extract_key_value_fn)
-
-    sequence_analyzer.add_row(add_row_condition_fn)
-    sequence_analyzer.clear_queue(clear_queue_condition_fn, add_sentinel=True)
-
-    sequence_analyzer.set_var('prior_history', lambda window_size, queue, vars_dict, row: True)
-
-    sequence_analyzer.build(2)
-
-    global_stats = defaultdict(lambda: defaultdict(lambda: np.array([0, 0])))
     # window_sizes = [1, 2, 4, 7, 30, 90] # list of window sizes to evaluate
     window_sizes = [datetime.timedelta(days=size) for size in [1, 2, 4, 7, 30, 90]] # list of window sizes to evaluate
 
+    sequence_analyzer = CountRepeatNormals(patient_col=0, labresult_col=1, datetime_col=2, window_sizes=window_sizes)
+
     for base_name, results in data:
-      counts = defaultdict(lambda: np.array([0, 0]))
-      for return_values in sequence_analyzer.run(results, window_sizes):
-        (key, value), row_added = return_values
-        counts[key][0] += value
-        if row_added:
-          counts[key][1] += value
-
-      # switch (window_size, 0) to mean no priors,
-      # and switch (window_size, None) to be the total count
-      total_counts = defaultdict(lambda: np.array([0, 0]))
-      for k, v in counts.iteritems():
-        # Aggregate total number of results and positive results
-        total_counts[k[0]] += v
-      for window_size in window_sizes:
-        # Set (1, 0) to (1, None)
-        counts[(window_size.days, 0)] = counts[(window_size.days, None)]
-        # Set (window_size, None) to the sum of calculated above
-        counts[(window_size.days, None)] = total_counts[window_size.days]
-
-      for k, v in counts.iteritems():
-        global_stats[base_name][k] += v
+      sequence_analyzer.run(base_name, results)
 
     def normalize_dict(d):
       # flatten defaultdict and np.array types to dict and list
@@ -238,7 +163,7 @@ class TestSequenceAnalyzer(unittest.TestCase):
         normalized_d[k1] = {k2: list(v2) for k2, v2 in v1.iteritems()}
       return normalized_d
 
-    global_stats = normalize_dict(global_stats)
+    global_stats = normalize_dict(sequence_analyzer.global_stats)
 
     expectedResults = {
       '11213R': {
@@ -318,7 +243,7 @@ def suite():
   methods for the given class whose name starts with "test"
   """
   suite = unittest.TestSuite()
-  suite.addTest(unittest.makeSuite(TestSequenceAnalyzer))
+  suite.addTest(unittest.makeSuite(TestCountRepeatNormals))
   return suite
 
 
