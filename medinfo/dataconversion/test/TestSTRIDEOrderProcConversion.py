@@ -41,6 +41,7 @@ class TestSTRIDEOrderProcConversion(DBTestCase):
                 RowItemModel( [ -417843774, "2648748", 555, "Nursing", 1508, "NUR1068", "WEIGHT", "2111-12-08", None, "ONCE"], headers ),
                 RowItemModel( [ -419268931, "3039254", 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", "2112-01-04", None, "DAILY"], headers ),
                 RowItemModel( [ -419268231, "3039254", 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", "2112-01-04", "2112-01-06", "Q6H PRN"], headers ),  # Ignore instantiated / spawned child orders
+                RowItemModel( [ -419268937, "3039254", 666, "Lab", 9991721, "LABPTT", "PTT (PARTIAL THROMBOPLASTIN TIME)", "2112-01-05", None, "DAILY"], headers ), # Different proc_id, but same proc_Code. Treat like the same
                 RowItemModel( [ -419268935, "3039254", 777, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", "2112-01-04", "2112-01-07", "ONCE"], headers ),  #   Primarily only interested in the decision point with the original order
             ];
         for dataModel in dataModels:
@@ -145,6 +146,7 @@ class TestSTRIDEOrderProcConversion(DBTestCase):
         expectedData = \
             [
                 [ -419697343, 3042640, 222, "Point of Care Testing", 1001, "LABPOCGLU", "GLUCOSE BY METER", datetime(2112,01,13) ],
+                [ -419268937, 3039254, 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", datetime(2112,01,05) ],
                 [ -419268931, 3039254, 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", datetime(2112,01,04) ],
                 [ -418928388, -1612899, 333, "Point of Care Testing", 1001, "LABPOCGLU", "GLUCOSE BY METER", datetime(2111,12,28) ],
                 [ -418045499, 2087083, 444, "Nursing", 1428, "NUR1018", "MONITOR INTAKE AND OUTPUT", datetime(2111,12,11) ],
