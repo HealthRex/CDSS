@@ -10,6 +10,7 @@ import os
 import sys
 import time
 import numpy
+from optparse import OptionParser
 
 from medinfo.common.Util import log
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
@@ -336,11 +337,25 @@ class LabNormalityMatrix(FeatureMatrix):
         return summary
 
 if __name__ == "__main__":
-    log.level = logging.DEBUG
+    """Main method, callable from command line"""
+    usageStr =  "usage: %prog [options]\n"
+
+    parser = OptionParser(usage=usageStr)
+
+    parser.add_option('-n', '--numRows', dest='numRows', metavar="<numRows>", help='The number of rows in resulting matrix')
+    parser.add_option('-l', '--labCode', dest='lab', metavar='<lab>', help='proc_code for lab of interest')
+    parser.add_option('-r', '--randomState', dest='randomState', metavar='<randomState>', help='Random state for consistent results')
+
+    (options, args) = parser.parse_args(sys.argv[1:])
+
+    log.info("Starting: "+str.join(" ", sys.argv))
     start_time = time.time()
-    # Initialize lab test matrix.
-    random_state = float(123456789)/float(sys.maxint)
-    ltm = LabNormalityMatrix("LABCK", 1000, random_state=random_state)
-    # Output lab test matrix.
+
+    ltm = LabNormalityMatrix(options.lab, options.numRows, options.randomState)
+
     elapsed_time = numpy.ceil(time.time() - start_time)
-    ltm.write_matrix("LABCK-panel-1000-episodes-%s-sec.tab" % str(elapsed_time))
+    file_name = '%s-panel-%s-episodes-%s-sec.tab' % (options.lab, options.numRows, elapsed_time)
+    ltm.write_matrix(file_name)
+
+    timer = time.time() - timer
+    log.info("%.3f seconds to complete",timer);
