@@ -1,8 +1,14 @@
-export DB_HOST=localhost
-export DB_DSN=database
-export DB_USER=user
+#!/bin/sh -x
+# Define constants for connecting to database from which to dump tables.
+# For example, if dumping from local database named test_database and accessing
+# as user test_user, you would use the following lines:
+# export DB_HOST=localhost
+# export DB_DSN=test_database
+# export DB_USER=test_user
+export DB_HOST=database_host_name
+export DB_DSN=database_source_name
+export DB_USER=database_user_name
 
-gzip -d -c stride_admit_vital.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c stride_admit.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c stride_adt.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c stride_chargemaster.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
@@ -13,7 +19,6 @@ gzip -d -c stride_flowsheet.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c stride_icd9_cm.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c stride_icd10_cm.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c stride_income.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
-gzip -d -c stride_insurance.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c stride_io_flowsheet.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c stride_mapped_meds.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c stride_medication_mpi.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
