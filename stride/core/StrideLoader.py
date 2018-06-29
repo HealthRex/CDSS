@@ -16,8 +16,10 @@ import logging
 import os
 import gzip
 import shutil
+import sys
 import pandas as pd
 import numpy as np
+from optparse import OptionParser
 
 from LocalEnv import BOX_STRIDE_FOLDER_ID, PATH_TO_CDSS, LOCAL_PROD_DB_PARAM
 from stride.box.BoxClient import BoxClient
@@ -80,7 +82,7 @@ class StrideLoader:
         box.download_folder(BOX_STRIDE_FOLDER_ID, data_dir)
 
     @staticmethod
-    def build_clean_data_file(source_path, dest_path):
+    def build_clean_csv_file(source_path, dest_path):
         # Force pandas to read certain fields as an object.
         # This both makes read_csv faster and reduces parsing errors.
         # Fields that look like integers should be read as objects so that
@@ -245,21 +247,14 @@ class StrideLoader:
         DBUtil.execute(patient_encounter_cleanup_command)
 
     @staticmethod
-    def load_stride_to_psql():
-        # Clear any old data.
-        StrideLoader.clear_stride_psql_tables()
-        # Build schemata.
-        StrideLoader.build_stride_psql_schemata()
-
+    def build_clean_csv_files():
         # Build paths to clean data files.
         raw_data_dir = StrideLoader.fetch_raw_data_dir()
         clean_data_dir = StrideLoader.fetch_clean_data_dir()
         for raw_file in sorted(STRIDE_LOADER_PARAMS.keys()):
             params = STRIDE_LOADER_PARAMS[raw_file]
-
-            # Build clean data file.
+            # Build clean data file path.
             clean_file = params['clean_file'] % TABLE_PREFIX
-            log.info('loading %s...' % clean_file)
             raw_path = os.path.join(raw_data_dir, raw_file)
             clean_path = os.path.join(clean_data_dir, clean_file)
             log.debug('stride/data/[raw/%s] ==> [clean/%s]' % (raw_file, clean_file))
@@ -267,7 +262,25 @@ class StrideLoader:
             # do it if absolutely necessary. This means that users must be
             # aware of issues like a stale cache.
             if not os.path.exists(clean_path):
-                StrideLoader.build_clean_data_file(raw_path, clean_path)
+                StrideLoader.build_clean_csv_file(raw_path, clean_path)
+
+    @staticmethod
+    def load_stride_to_psql():
+        # Build clean data files.
+        StrideLoader.build_clean_csv_files()
+
+        # Build psql schemata.
+        StrideLoader.build_stride_psql_schemata()
+
+        # Build paths to clean data files.
+        clean_data_dir = StrideLoader.fetch_clean_data_dir()
+        for raw_file in sorted(STRIDE_LOADER_PARAMS.keys()):
+            params = STRIDE_LOADER_PARAMS[raw_file]
+
+            # Build clean data file.
+            clean_file = params['clean_file'] % TABLE_PREFIX
+            log.info('loading %s...' % clean_file)
+            clean_path = os.path.join(clean_data_dir, clean_file)
 
             # Uncompress data file.
             unzipped_clean_path = clean_path[:-3]
@@ -298,10 +311,40 @@ class StrideLoader:
         StrideLoader.build_stride_psql_indices()
 
     @staticmethod
-    def dump_tables_to_gzipped_csv():
-        
+    def backup_stride_psql_tables():
+        pass
 
 if __name__=='__main__':
-    # StrideLoader.download_stride_data()
-    log.level = logging.INFO
-    StrideLoader.load_stride_to_psql()
+    log.level = logging.DEBUG
+
+    # Define options for command-line usage.
+    usage_str = 'usage: %prog [options]\n'
+    parser = OptionParser(usage=usage_str)
+    parser.add_option('-s', '--schemata', dest='build_schemata',
+                        action='store_true', default=False,
+                        help='build STRIDE psql schemata')
+    parser.add_option('-c', '--clean', dest='clean_csv_files',
+                        action='store_true', default=False,
+                        help='clean raw CSV and build clean CSV files')
+    parser.add_option('-p', '--psql', dest='load_psql_data',
+                        action='store_true', default=False,
+                        help='load clean CSV data to psql database')
+    parser.add_option('-b', '--backup_psql', dest='backup_psql_tables',
+                        action='store_true', default=False,
+                        help='backup psql tables to dump files')
+    parser.add_option('-d', '--delete', dest='delete_stride',
+                        action='store_true', default=False,
+                        help='delete STRIDE tables')
+    (options, args) = parser.parse_args(sys.argv[1:])
+
+    # Handle command-line usage arguments.
+    if options.build_schemata:
+        StrideLoader.build_stride_psql_schemata()
+    elif options.clean_csv_files:
+        StrideLoader.build_clean_csv_files()
+    elif options.load_psql_data:
+        StrideLoader.load_stride_to_psql()
+    elif options.backup_psql_tables:
+        StrideLoader.backup_stride_psql_tables()
+    elif options.delete_stride:
+        StrideLoader.clear_stride_psql_tables()
