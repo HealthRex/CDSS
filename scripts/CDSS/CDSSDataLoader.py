@@ -13,6 +13,8 @@ All general postprocessing on these tables should happen here.
 import logging
 import os
 import subprocess
+from optparse import OptionParser
+import sys
 from medinfo.db import DBUtil
 from medinfo.cpoe.DataManager import DataManager
 from medinfo.common.Util import log, ProgressDots, stdOpen
@@ -36,6 +38,16 @@ class CDSSDataLoader:
         'data_cache',
         'clinical_item_association'
     ]
+
+    STRIDE_TABLE_TRANSFORMER_MAP = {
+        'stride_patient': 'medinfo.dataconversion.STRIDEDemographicsConversion',
+        'stride_preadmit_med': 'medinfo.dataconversion.STRIDEPreAdmitMedConversion',
+        'stride_dx_list': 'medinfo.dataconversion.STRIDEDxListConversion',
+        'stride_treatment_team': 'medinfo.dataconversion.STRIDETreatmentTeamConversion',
+        'stride_order_med': 'medinfo.dataconversion.STRIDEOrderMedConversion',
+        'stride_order_proc': 'medinfo.dataconversion.STRIDEOrderProcConversion',
+        'stride_order_results': 'medinfo.dataconversion.STRIDEOrderResultsConversion'
+    }
 
     @staticmethod
     def load_CDSS_from_stride():
@@ -86,56 +98,25 @@ class CDSSDataLoader:
                 DBUtil.runDBScript(schema_file)
 
     @staticmethod
-    def build_CDSS_tables():
-        STRIDE_TRANSFORM_MODULES = [
-            "medinfo.dataconversion.STRIDEDemographicsConversion",
-            "medinfo.dataconversion.STRIDEDxListConversion",
-            "medinfo.dataconversion.STRIDEPreAdmitMedConversion",
-            "medinfo.dataconversion.STRIDEOrderMedConversion",
-            "medinfo.dataconversion.STRIDETreatmentTeamConversion",
-            "medinfo.dataconversion.STRIDEOrderProcConversion",
-            "medinfo.dataconversion.STRIDEOrderResultsConversion",
-        ]
+    def transform_STRIDE_source_table(stride_source_table):
+        # Get module for doing data conversion.
+        transformer = CDSSDataLoader.STRIDE_TABLE_TRANSFORMER_MAP[stride_source_table]
 
-        # Process date ranges one year at a time.
-        DATE_RANGES = [
-            ["2008-01-01",  "2009-01-01"],
-            ["2009-01-01",  "2010-01-01"],
-            ["2010-01-01",  "2011-01-01"],
-            ["2011-01-01",  "2012-01-01"],
-            ["2012-01-01",  "2013-01-01"],
-            ["2013-01-01",  "2014-01-01"],
-            ["2014-01-01",  "2015-01-01"],
-            ["2015-01-01",  "2016-01-01"],
-            ["2016-01-01",  "2017-01-01"],
-            ["2017-01-01",  "2018-01-01"]
-        ]
+        # Build command.
+        if stride_source_table == 'stride_patient':
+            argv = ['python', '-m', transformer]
+        elif stride_source_table == 'stride_preadmit_med':
+            argv = ['python', '-m', transformer, '-m', '5', '-s', '2008-01-01']
+        elif stride_source_table == 'stride_order_med':
+            argv = ['python', '-m', transformer, '-m', '5', '-d', '5', '-s', '2008-01-01']
+        elif stride_source_table == 'stride_treatment_team':
+            argv = ['python', '-m', transformer, '-a', '-s', '2008-01-01']
+        else:
+            argv = ['python', '-m', transformer, '-a', '-s', '2008-01-01']
 
-        argv_list = list()
-
-        for module in STRIDE_TRANSFORM_MODULES:
-            # STRIDEDemographicsConversion doesn't accept start and end date
-            # parameters, so keep as a separate case.
-            if 'STRIDEDemographicsConversion' in module:
-                argv = ['python', '-m']
-                argv.extend([module])
-                argv_list.append(argv)
-            else:
-                # Iterate through date ranges.
-                for (start_date, end_date) in DATE_RANGES:
-                    argv = ['python', '-m']
-                    argv.extend([module, '-s', start_date, '-e', end_date])
-                    if 'STRIDEOrderMedConversion' in module:
-                        argv.extend(['-m', '5', '-d', '5'])
-                    if 'STRIDETreatmentTeamConversion' in module:
-                        argv.extend([module, '-a'])
-                    argv_list.append(argv)
-
-        log.info(argv_list)
-
-        for argv in argv_list:
-            log_file = stdOpen('%s.log' % ('_'.join(argv)), 'w')
-            subprocess.call(argv, stderr=log_file)
+        # Call command.
+        log_file = stdOpen('%s.log' % ('_'.join(argv)), 'w')
+        subprocess.call(argv, stderr=log_file)
 
     @staticmethod
     def process_CDSS_psql_db():
@@ -924,6 +905,35 @@ class CDSSDataLoader:
         # nohup python scripts/CDSS/assocAnalysis.py &> log/assocAnalysis &
         pass
 
-if __name__ == '__main__':
+if __name__=='__main__':
     log.level = logging.DEBUG
-    CDSSDataLoader.process_CDSS_psql_db()
+
+    # Define options for command-line usage.
+    usage_str = 'usage: %prog [options]\n'
+    parser = OptionParser(usage=usage_str)
+    parser.add_option('-s', '--schemata', dest='build_schemata',
+                        action='store_true', default=False,
+                        help='build STRIDE psql schemata')
+    parser.add_option('-t', '--transform', dest='transform_stride_table',
+                        metavar='<transform_stride_table>', default=False,
+                        help='transform STRIDE tables to CDSS tables')
+    parser.add_option('-b', '--backup_psql', dest='backup_psql_tables',
+                        action='store_true', default=False,
+                        help='backup psql tables to dump files')
+    parser.add_option('-d', '--delete', dest='delete_tables',
+                        action='store_true', default=False,
+                        help='delete CDSS tables')
+    parser.add_option('-p', '--process', dest='process_tables',
+                        action='store_true', default=False,
+                        help='post-process CDSS tables')
+    (options, args) = parser.parse_args(sys.argv[1:])
+
+    # Handle command-line usage arguments.
+    if options.build_schemata:
+        CDSSDataLoader.build_CDSS_psql_schemata()
+    elif options.transform_stride_table:
+        CDSSDataLoader.transform_STRIDE_source_table(options.transform_stride_table)
+    elif options.delete_tables:
+        CDSSDataLoader.clear_CDSS_psql_tables()
+    elif options.process_tables:
+        CDSSDataLoader.process_CDSS_psql_db()
