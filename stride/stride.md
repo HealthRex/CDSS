@@ -41,7 +41,7 @@ The clean CSVs can be easily imported into a PostgreSQL database.
 Note that this command also builds schemata, does some post-processing, and
 builds indices. Because this database is read-only for the most part, we have
 stored a backup version of this database as table dumps in
-[Stanford Medicine Box](https://stanfordmedicine.app.box.com/folder/49730909337).
+[Stanford Medicine Box](https://stanfordmedicine.app.box.com/folder/50484084132).
 
 ### psql --> dumps (runtime: 30 – 60 minutes)
 
