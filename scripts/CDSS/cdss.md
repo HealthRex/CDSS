@@ -62,7 +62,7 @@ to do some post-processing on the CDSS tables. In particular, we need to:
 ### psql --> dumps (runtime: 20 – 30 minutes)
 
 Because this process only needs to be run once, we have stored a backup
-version fo these files on [Stanford Medicine Box]().
+version fo these files on [Stanford Medicine Box](https://stanfordmedicine.app.box.com/folder/50484084132).
 
 First, edit the database variables in `scripts/CDSS/psql/dump_cdss.sh`.
 
