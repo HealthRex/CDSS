@@ -20,29 +20,37 @@ For information on how to do this, see `stride/stride.md`.
 First, build the schemata for the derived tables.
 
 **schemata (runtime: 20 – 30 seconds)**
+
 `python scripts/CDSS/CDSSDataLoader.py --schemata`
 
 Second, convert all of the STRIDE tables to derived tables.
 
 **stride_patient (runtime: 5 – 10 minutes)**
+
 `python medinfo/dataconversion/STRIDEDemographicsConversion.py`
 
 **stride_treatment_team (runtime: 60 – 90 minutes)**
+
 `python medinfo/dataconversion/STRIDETreatmentTeamConversion.py -a -s 2008-01-01`
 
 **stride_dx_list (runtime: 60 - 90 minutes)**
+
 `python medinfo/dataconversion/STRIDEDxListConversion.py -s 2008-01-01`
 
 **stride_preadmit_med (runtime: 5 – 10 minutes)**
+
 `python medinfo/dataconversion/STRIDEPreAdmitMedConversion.py -m 5 -s 2008-01-01`
 
 **stride_order_med (runtime: 3 – 4 hours)**
+
 `python medinfo/dataconversion/STRIDEOrderMedConversion.py -m 5 -d 5 -s 2008-01-01`
 
 **stride_order_proc (runtime: 15 – 20 hours)**
+
 `python medinfo/dataconversion/STRIDEOrderProcConversion.py -s 2008-01-01`
 
 **stride_order_results (runtime: 20 – 25 hours)**
+
 `python medinfo/dataconversion/STRIDEOrderResultsConversion.py -s 2008-01-01`
 
 
