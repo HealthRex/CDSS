@@ -1,4 +1,4 @@
-# STRIDE
+# STRIDE Inpatient Data Loading Notes
 
 ## Overview
 Much of our research is based on the Stanford Clinical Data Warehouse
@@ -20,6 +20,9 @@ First, download all of the data from Stanford Medicine Box to
 `CDSS/stride/data/`:
 
 https://stanfordmedicine.app.box.com/folder/48947323122
+
+(For many, you can likely skip to just downloading the pre-processed PostgreSQL dumps under data/medinfo_2008_2017.
+If you have the Box Sync desktop client, you can go to the above link and pick "Sync to Desktop" under the Details options to easily download all of the files.)
 
 ### raw --> clean (runtime: 1 – 1.5 hours)
 
