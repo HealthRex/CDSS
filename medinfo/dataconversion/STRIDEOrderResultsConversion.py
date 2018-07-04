@@ -59,7 +59,7 @@ class STRIDEOrderResultsConversion:
                 progress.Update();
         finally:
             conn.close();
-        # progress.PrintStatus();
+        progress.PrintStatus();
 
 
     def querySourceItems(self, startDate=None, endDate=None, progress=None, conn=None):
@@ -104,6 +104,10 @@ class STRIDEOrderResultsConversion:
             rowModel["order_proc_id"] = rowModel["sor.order_proc_id"];
             rowModel["result_time"] = rowModel["sor.result_time"];
 
+            if rowModel['base_name'] is None:
+                row = cursor.fetchone()
+                continue
+
             self.populateResultFlag(rowModel,conn=conn);
 
             yield rowModel; # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
@@ -133,6 +137,12 @@ class STRIDEOrderResultsConversion:
             # No specific result flag or (numerical) value provided. Just record that some result was generated at all
             resultModel["result_flag"] = FLAG_RESULT;
             return;
+        elif resultModel['base_name'] is None:
+            # With 2014-2017 data, there are fields with a null base_name.
+            # We can't build summary stats around this case, so just return
+            # FLAG_RESULT.
+            resultModel['result_flag'] = FLAG_RESULT
+            return
         #else: # General case, no immediately available result flags
 
         extConn = conn is not None;

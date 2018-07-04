@@ -3,7 +3,7 @@ import numpy as np
 import unittest
 from collections import defaultdict
 
-from medinfo.sequenceanalysis.SequenceAnalyzer import SequenceAnalyzer, utils
+from medinfo.sequenceanalysis.SequenceAnalyzer import SequenceAnalyzer
 
 class TestSequenceAnalyzer(unittest.TestCase):
 

@@ -18,7 +18,7 @@ from medinfo.db.Model import SQLQuery
 from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 
 class LabCultureMatrix(FeatureMatrix):
-    def __init__(self, lab_panel, num_episodes):
+    def __init__(self, lab_panel, num_episodes, random_state=None):
         FeatureMatrix.__init__(self, lab_panel, num_episodes)
 
         # Parse arguments.
@@ -167,7 +167,7 @@ class LabCultureMatrix(FeatureMatrix):
         query.addSelect('organism_name') #one for the result
 
         # Let us look at top 10 commonly occuring bacteria
-        query.addSelect("CASE WHEN organism_name = 'NULL' THEN 1 ELSE 0 END AS NO_BACTERIA")
+        query.addSelect("CASE WHEN organism_name IS NULL THEN 1 ELSE 0 END AS NO_BACTERIA")
         query.addSelect("CASE WHEN organism_name = 'ESCHERICHIA COLI' THEN 1 ELSE 0 END AS ESCHERICHIA_COLI")
         query.addSelect("CASE WHEN organism_name = 'STAPHYLOCOCCUS AUREUS' THEN 1 ELSE 0 END AS STAPHYLOCOCCUS_AUREUS")
         query.addSelect("CASE WHEN organism_name = 'ENTEROCOCCUS SPECIES' THEN 1 ELSE 0 END AS ENTEROCOCCUS_SPECIES")
@@ -342,7 +342,7 @@ if __name__ == "__main__":
     log.level = logging.DEBUG
     start_time = time.time()
     # Initialize lab test matrix.
-    ltm = LabCultureMatrix("LABBLC", 1000)
+    ltm = LabCultureMatrix("LABBLC", 5)
     # Output lab test matrix.
     elapsed_time = numpy.ceil(time.time() - start_time)
-    ltm.write_matrix("LABBLC-panel-1000-episodes-%s-sec.tab" % str(elapsed_time))
+    ltm.write_matrix("LABBLC-panel-5-episodes-%s-sec.tab" % str(elapsed_time))
