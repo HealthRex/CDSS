@@ -55,12 +55,19 @@
 # Treatment Team aggregation option
 
 # Helper driver script
-nohup python scripts/CDSS/dataConversiony.py &> log/driver.conversion &
+nohup python scripts/CDSS/dataConversion.py &> log/driver.conversion &
 
-python medinfo/dataconversion/STRIDEOrderMedConversion.py
 python medinfo/dataconversion/STRIDEOrderProcConversion.py
 python medinfo/dataconversion/STRIDEOrderResultsConversion.py
+python medinfo/dataconversion/STRIDEOrderMedConversion.py
+	Don't use --normalizeMixtures. Ends up separating Vicodin into separate Acetaminophen+Hydrocodone entries, leading to many pointless co-occurrence associations
+	--maxMixtureCount - If not normalizing mixtures, then this is the maximum number of mixture components will itemize for a denormalized mixture label.  If more than this, just use the summary label. Somewhat arbitrary choice, but ~5 should work okay (mixes of up to 3-4 usually want to see components, but if have big TPN mix, don't want to see components)
+	--doseCountLimit - Medication orders with a finite number of doses specified less than this limit will be labeled as different items than those without a number specified, or whose number is >= to this limit. Try <5 as well. Ends up being largely equivalent to other small numbers, since most orders are either "ONCE" or standing/continuous. Not that much in between
+
 ...
+
+
+
 
 # Manually deactivate low-information item analysis as below
 update clinical_item

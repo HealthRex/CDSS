@@ -12,11 +12,11 @@ import medinfo.db.Util;
 
 log = logging.getLogger("CDSS")
 
-handler = logging.StreamHandler(sys.stderr)
-formatter = logging.Formatter(Const.LOGGER_FORMAT)
+#handler = logging.StreamHandler(sys.stderr)
+#formatter = logging.Formatter(Const.LOGGER_FORMAT)
 
-handler.setFormatter(formatter)
-log.addHandler(handler)
+#handler.setFormatter(formatter)
+#log.addHandler(handler)
 
 # Suppress uninteresting application output
 medinfo.db.Util.log.setLevel(Const.APP_LOGGER_LEVEL)

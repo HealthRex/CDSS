@@ -10,20 +10,18 @@ from datetime import datetime;
 from Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
 from Util import log;
 
-from Util import DBTestCase;
-
 from medinfo.common.test.Util import MedInfoTestCase;
 
 from medinfo.db.ResultsFormatter import TabDictReader;
 
-class TestResultsFormatter(DBTestCase):
+class TestResultsFormatter(MedInfoTestCase):
     def setUp(self):
         """Prepare state for test cases"""
-        DBTestCase.setUp(self);
+        MedInfoTestCase.setUp(self);
 
     def tearDown(self):
         """Restore state from any setUp or test steps"""
-        DBTestCase.tearDown(self);
+        MedInfoTestCase.tearDown(self);
 
     def test_TabDictReader(self):
         """Verify expected results when reading from different delimited file examples,
@@ -67,7 +65,6 @@ class TestResultsFormatter(DBTestCase):
 
         #    1748628,-3085618212893,408616,06/27/2010 08:28,8,"Fax",21372,"WARFARIN 4 MG PO TABS","","",06/27/2010 18:00,06/28/2010 08:36,06/28/2010 15:36,,"",365888,"warfarin (COUMADIN) tablet 4 mg (Per Pharmacy Protocol"",,"",15,"Oral",06/28/2010 15:36,368883925,"200023","DAILY","QPM","4",3,"mg",9,"Discontinued",365888,372188,4,,3,"mg",2000253,"C3","2","MODIFIED",3,"Discontinued Medication","","",,,"",2,"Inpatient",,,"",,,,,,"",,,,"",,,,"","Y",4,,3,"mg",1,,5002,"Tab"
         #        {"order_med_id":"1748628", "DISPLAY_NAME":"warfarin (COUMADIN) tablet 4 mg (Per Pharmacy Protocol\""},
-
 
 
 def suite():
