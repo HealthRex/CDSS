@@ -11,7 +11,7 @@ class SequenceAnalyzer(object):
     self.pipeline = []
 
   #TODO: do something cool where each function's input variables can change / are fluid
-  def split_data_on_key(self, extract_key_fn):
+  def split_data_on_key(self, extract_split_key_fn):
     assert len(self.pipeline) == 0
     def func(data):
       if isinstance(data, types.GeneratorType):
@@ -20,7 +20,7 @@ class SequenceAnalyzer(object):
         current_split = [data[0]]
         data = data[1:]
       for row in data:
-        if extract_key_fn(row) != extract_key_fn(current_split[-1]):
+        if extract_split_key_fn(row) != extract_split_key_fn(current_split[-1]):
           yield current_split
           current_split = []
         current_split.append(row)
