@@ -15,6 +15,7 @@
 
 CREATE TABLE IF NOT EXISTS stride_preadmit_med
 (
+  stride_preadmit_med_id SERIAL,
   pat_anon_id BIGINT,
   contact_date TIMESTAMP,
   medication_id INTEGER,
