@@ -9,7 +9,8 @@ import json;
 from medinfo.common.Const import COMMENT_TAG, NULL_STRING;
 from medinfo.db.Model import SQLQuery, RowItemModel;
 
-from medinfo.db.test.Util import DBTestCase;
+#from medinfo.db.test.Util import MedInfoTestCase;
+from medinfo.common.test.Util import MedInfoTestCase;
 
 import medinfo.analysis.Util;
 
@@ -27,7 +28,7 @@ log.addHandler(handler)
 medinfo.analysis.Util.log.setLevel(Const.APP_LOGGER_LEVEL)
 
 
-class BaseTestAnalysis(DBTestCase):
+class BaseTestAnalysis(MedInfoTestCase):
 
     def assertEqualStatResults(self, expectedResults, analysisResults, colNames):
         for expectedDict, analysisDict in zip(expectedResults, analysisResults):

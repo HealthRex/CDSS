@@ -5,6 +5,7 @@ import cgi, UserDict
 import unittest
 
 from medinfo.common.test.Util import MedInfoTestCase;
+from medinfo.db import DBUtil;
 
 import medinfo.db.Env;
 import medinfo.db.Util;
@@ -23,6 +24,9 @@ medinfo.db.Util.log.setLevel(Const.APP_LOGGER_LEVEL)
 
 
 class DBTestCase(MedInfoTestCase):
+    orig_DB_PARAM = None;
+    testDBCreated = False;
+
     """Common base class for TestCase classes that cinlude queries against the databse.
     Important distinction to help put in hooks to protect a "real" database from
     test queries.
@@ -32,14 +36,23 @@ class DBTestCase(MedInfoTestCase):
         """
         MedInfoTestCase.setUp(self)
 
-        # Override default DB connection params to rest DB, but retain links to original
+        # Override default DB connection params to test DB, but retain links to original
         self.orig_DB_PARAM = dict(medinfo.db.Env.DB_PARAM);
 
         medinfo.db.Env.DB_PARAM.update(medinfo.db.Env.TEST_DB_PARAM);
 
+        # Create the temporary test database to work with
+        #DBUtil.dropDatabase(medinfo.db.Env.DB_PARAM)    # Beware of accidentally dropping an existing production database! This may still be necessary to cleanup if accidentally left a test database instance behind
+        DBUtil.createDatabase(medinfo.db.Env.DB_PARAM);
+        self.testDBCreated = True;  # If error on above (e.g., database already exists), will have aborted with a database error before this
+
     def tearDown(self):
         """Restore state after test finishes.  Subclass must call this parent method to actually use it.
         """
+        # Drop the temporary test database, but make sure we created it ourselves, so we don't accidentally drop a production database
+        if self.testDBCreated:
+            DBUtil.dropDatabase(medinfo.db.Env.DB_PARAM);
+
         medinfo.db.Env.DB_PARAM.update(self.orig_DB_PARAM);
 
         MedInfoTestCase.tearDown(self)
