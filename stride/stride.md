@@ -21,7 +21,7 @@ First, download all of the data from Stanford Medicine Box to
 
 https://stanfordmedicine.app.box.com/folder/48947323122
 
-(For many, you can likely skip to just downloading the pre-processed PostgreSQL dumps under data/medinfo_2008_2017.
+(For many, you can likely skip to just downloading the pre-processed PostgreSQL dumps under data/medinfo_2008_2017 and loading into PostgreSQL.
 If you have the Box Sync desktop client, you can go to the above link and pick "Sync to Desktop" under the Details options to easily download all of the files.)
 
 ### raw --> clean (runtime: 1 – 1.5 hours)
@@ -56,7 +56,8 @@ Then run the script in the same directory as the dump files.
 
 First, edit the database variables in `stride/psql/restore_stride.sh`
 
-Then run the script in the same directory as the dump files.
+Then run the script in the same directory as the dump files. (e.g., `bash restore_stride.sh`).
+If you don't want to have to keep entering in your PostgreSQL password at the command line, you can set an environment variable PGPASSWORD (e.g., `export PGPASSWORD=xxx` or `set PGPASSWORD=xxx` on Windows).
 
 ## Querying STRIDE
 
