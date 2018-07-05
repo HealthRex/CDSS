@@ -1,4 +1,4 @@
-# CDSS
+# Derived CDSS / CPOE Tables
 
 ## Overview
 Much of our research is based on the Stanford Clinical Data Warehouse
