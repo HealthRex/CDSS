@@ -31,6 +31,6 @@ LOCAL_TEST_DB_PARAM["DSN"] = 'test'
 LOCAL_TEST_DB_PARAM["UID"] = 'testuid'
 LOCAL_TEST_DB_PARAM["PWD"] = 'testpwd'
 
-PATH_TO_CDSS = "/foo/bar/"
+PATH_TO_CDSS = "/foo/bar/CDSS"
 
 TEST_RUNNER_VERBOSITY = 2

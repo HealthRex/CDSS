@@ -30,7 +30,7 @@
 CREATE TABLE IF NOT EXISTS stride_treatment_team
 (
   stride_treatment_team_id SERIAL, -- automatically create unique identifier
-	pat_id TEXT,
+	pat_id BIGINT,
 	pat_enc_csn_id BIGINT,
 	line INTEGER,
 	trtmnt_tm_begin_date TIMESTAMP,

@@ -87,7 +87,7 @@
 CREATE TABLE IF NOT EXISTS stride_order_med
 (
 	order_med_id BIGINT NOT NULL,
-	pat_id TEXT,
+	pat_id BIGINT,
 	pat_enc_csn_id BIGINT,
 	ordering_date TIMESTAMP,
 	order_class_c INTEGER,

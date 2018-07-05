@@ -16,7 +16,7 @@
 
 CREATE TABLE IF NOT EXISTS stride_patient
 (
-	pat_id TEXT,
+	pat_id BIGINT,
 	birth_year INTEGER,
 	gender TEXT,
 	death_date TIMESTAMP,

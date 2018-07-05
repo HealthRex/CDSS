@@ -22,7 +22,6 @@ import numpy as np
 from optparse import OptionParser
 
 from LocalEnv import BOX_STRIDE_FOLDER_ID, PATH_TO_CDSS, LOCAL_PROD_DB_PARAM
-from stride.box.BoxClient import BoxClient
 from medinfo.db import DBUtil
 from medinfo.common.Util import log
 from stride.rxnorm.RxNormClient import RxNormClient
@@ -78,6 +77,7 @@ class StrideLoader:
         data_dir = StrideLoader.fetch_data_dir()
 
         # Remote folder ID defined in LocalEnv.
+        from stride.box.BoxClient import BoxClient  # Only import boxsdk if necessary (usually won't be)
         box = BoxClient()
         box.download_folder(BOX_STRIDE_FOLDER_ID, data_dir)
 

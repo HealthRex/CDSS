@@ -68,9 +68,7 @@ class STRIDEDemographicsConversion:
     """Data conversion module to take STRIDE provided patient demographics data
     into the structured data tables to facilitate subsequent analysis.
 
-    Capturing death date for now as an event.  Should eventually incorporate
-    patient age and gender into data, though less clear what item event date
-    to assign to these to make them useful.
+    Capturing death date for now as an event.
     """
     connFactory = None; # Allow specification of alternative DB connection source
 
