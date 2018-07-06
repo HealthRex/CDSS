@@ -1,11 +1,28 @@
-# Derived CDSS / CPOE Tables
+# Derived Clinical Item Tables
 
 ## Overview
 Much of our research is based on the Stanford Clinical Data Warehouse
 aka STARR, formerly STRIDE). However, these tables are sometimes difficult
 to query because all of the information about a given patient is strewn about
 5-6 separate tables. To make day-to-day research and development easier, we
-have created "derived tables" from the original STRIDE data.
+have created derived "Clinical Item" tables from the original STRIDE data 
+that provide a simplified representation of much of the relevant clinical data.
+
+Based around a general vocabulary of clinical_items, that each correspond to 
+some type of event that can happen on a patient's timeline 
+(e.g., a medication was ordered, a diagnosis code was entered, patient died, etc.)
+
+Individual patient records are then represented as a timeline of patient_items, 
+that simply link sets of (patient_id, clinical_item, timestamp).
+
+Anything in these derived tables should be traceable back to the raw STRIDE data tables,
+but the conversion takes care of a lot of simplification and normalization
+(e.g., medications boiled down to active ingredients and route of administration, 
+rather than inconsistent medication_id or text descriptions).
+Depending on the analysis needs, it is possible to use only these derived tables, 
+and never reference the raw STRIDE tables. Unless some data type or detail you need,
+has not (yet) been converted into this simplified form.
+
 
 For more information about the raw STRIDE data, see `stride/stride.md`.
 
@@ -21,7 +38,7 @@ First, build the schemata for the derived tables.
 
 **schemata (runtime: 20 – 30 seconds)**
 
-`python scripts/CDSS/CDSSDataLoader.py --schemata`
+`python scripts/CDSS/ClinicalItemDataLoader.py --schemata`
 
 Second, convert all of the STRIDE tables to derived tables.
 
@@ -65,7 +82,7 @@ to do some post-processing on the CDSS tables. In particular, we need to:
 * define the possible outcomes we want to track.
 
 
-`python scripts/CDSS/CDSSDataLoader.py --process`
+`python scripts/CDSS/ClinicalItemDataLoader.py --process`
 
 ### psql --> dumps (runtime: 20 – 30 minutes)
 
