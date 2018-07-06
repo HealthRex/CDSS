@@ -20,6 +20,12 @@ from medinfo.cpoe.DataManager import DataManager
 from medinfo.common.Util import log, ProgressDots, stdOpen
 from LocalEnv import PATH_TO_CDSS
 
+# Switch off the analysis status for any clinical item that occurs for fewer than this percent of patient records
+MINIMUM_PATIENT_SUPPORT = 0.01; # 1%
+# Likewise for any clinical item that occurs for fewer than this fraction of the total number of patient items
+MINIMUM_PATIENT_ITEM_SUPPORT = 0.000001;
+
+
 class CDSSDataLoader:
     # The order here is significant. Some tables (e.g. clinical_item),
     # reference other tables via  FOREIGN KEY (e.g. clinical_item_category),
@@ -130,14 +136,15 @@ class CDSSDataLoader:
     @staticmethod
     def selectively_deactivate_clinical_item_analysis():
         log.info('Selectively deactivating clinical item analysis...')
-        # Certain clinical items are low-information. Manually prevent
-        # analysis for these items.
+        # Certain clinical items are rote with low or ambiguous information value.
+        #   For example, orders for Full Code, Regular Diet, Check and Report Vital Signs, and many "Nursing Orders" that don't include relevant detail
+        # Manually prevent analysis for these items.
         analysis_deactivation_command = \
             """
             UPDATE clinical_item
             SET analysis_status = 0
             WHERE name IN (
-                'RXCUI854932', 'RXCUI854934', 'RXCUI854936', 'RXCUI854938',
+                'RXCUI854932', 'RXCUI854934', 'RXCUI854936', 'RXCUI854938', # Pneumococcal vaccine components
                 'RXCUI854940', 'RXCUI854942', 'RXCUI854944', 'RXCUI854946',
                 'RXCUI854948', 'RXCUI854950', 'RXCUI854952', 'RXCUI854954',
                 'RXCUI854956', 'RXCUI854958', 'RXCUI854960', 'RXCUI854962',
@@ -197,7 +204,8 @@ class CDSSDataLoader:
             """
         DBUtil.execute(analysis_deactivation_command)
 
-        # Deactivate analysis on comments on results.
+        # Deactivate analysis on result comments.
+        # Could try simplifying with "WHERE DESCRIPTION ~* 'comment'"
         analysis_deactivation_command = \
             """
             UPDATE clinical_item
@@ -258,13 +266,14 @@ class CDSSDataLoader:
         # Skip analysis for very rare orders that excessively increase
         # association item list without adding much value. Decide the threshold
         # for "rare" on the fly. Goal is to exclude clinical items such that
-        # 99% of orders are still represented. As a rough heuristic, select
-        # any clinical_item which represents < 0.0001% of all patient items.
+        # 95%+ of data is still represented, but greatly reduce vocabulary size. 
+
+        # As a rough heuristic, ignore clinical_items which represent < 0.0001% of all patient items.
         threshold_query = \
             """
-            SELECT ROUND(0.000001 * COUNT(patient_item_id)) AS threshold
+            SELECT ROUND(%s * COUNT(patient_item_id)) AS threshold
             FROM patient_item;
-            """
+            """ % MINIMUM_PATIENT_ITEM_SUPPORT;
         results = DBUtil.execute(threshold_query)
         threshold = results[0][0]
         analysis_deactivation_command = \
@@ -279,6 +288,28 @@ class CDSSDataLoader:
             );
             """ % threshold
         DBUtil.execute(analysis_deactivation_command)
+
+        # As another rough heuristic, ignore clinical_items which occur for < 1% of all patient records.
+        threshold_query = \
+            """
+            SELECT ROUND(%s * COUNT(distinct patient_id)) AS threshold
+            FROM patient_item;
+            """ % MINIMUM_PATIENT_SUPPORT;
+        results = DBUtil.execute(threshold_query)
+        threshold = results[0][0]
+        analysis_deactivation_command = \
+            """
+            UPDATE clinical_item
+            SET analysis_status = 0
+            WHERE clinical_item_id IN (
+                SELECT clinical_item_id
+                FROM patient_item
+                GROUP BY clinical_item_id
+                HAVING COUNT(distinct patient_id) < %s
+            );
+            """ % threshold
+        DBUtil.execute(analysis_deactivation_command)
+
 
     @staticmethod
     def selectively_deactivate_clinical_item_recommendation():
@@ -330,10 +361,25 @@ class CDSSDataLoader:
                 'stride_order_results',
                 'stride_preadmit_med',
                 'stride_treatment_team',
-                'stride_patient'
+                'stride_patient',
+                'stride_dx_list'
             );
             """
         DBUtil.execute(recommendation_deactivation_command)
+
+        # Minimize subsequent confusion by propagating category level default_recommend status to individual clinical_items
+        recommendation_deactivation_command = \
+            """
+            UPDATE clinical_item
+            SET default_recommend = 0
+            WHERE clinical_item_category_id IN
+            (   SELECT clinical_item_category_id
+                FROM clinical_item_category
+                WHERE default_recommend = 0
+            );
+            """
+        DBUtil.execute(recommendation_deactivation_command)
+
 
     @staticmethod
     def define_composite_clinical_items():
