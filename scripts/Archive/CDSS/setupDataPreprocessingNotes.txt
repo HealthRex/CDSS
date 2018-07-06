@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream:scripts/CDSS/setupDataPreprocessingNotes.txt
 ####### See CDSS/scripts/insertData.sh ########
 #   Populate with STRIDE data.  
 #
@@ -573,3 +574,573 @@ where description in
 ('DISCHARGE PATIENT','ADMIT TO PHASE','TRANSFER PATIENT','INSERT AIRWAY','RESP - SPONTANEOUS BREATHING TRIAL','ADMIT/PLACE PATIENT','PATIENT TRANSPORT','DISCHARGE PATIENT WHEN CRITERIA MET','DIALYZE PATIENT','NON-VIOLENT RESTRAINTS','DNR','RESP-CPAP/BIPAP FOR OBSTRUCTIVE SLEEP APNEA','OK TO USE CENTRAL LINE','HEMODIALYSIS','INTERAGENCY REFERRAL TO HOME HOSPICE','CAR CATH CORS POSSIBLE','COMFORT CARE MEASURES','CCPD  PERITONEAL DIALYSIS','INTUBATION','PLACE IN OBSERVATION-CDU','HEMODIALYSIS WITH PUF','CAPD PERITONEAL DIALYSIS','CENTRAL LINE','CENTRAL LINE CARE','NON INVASIVE POSTIVE PRESS VENT BIPAP/CPAP','RESP - LUNG PROTECTIVE VENTILATION PROTOCOL','TRACHEOSTOMY  CARE','ARGATROBAN 1000 MCG/ML (250 ML) IV INFUSION','Fentanyl (Intravenous)','Dopamine (Intravenous)','DEXMEDETOMIDINE IV INFUSION','VASOPRESSIN 1 UNIT/ML IV INFUSION','Bicarb Dialys Soln #16 W/O Ca K (4 Meq/L) -Mg (1.5 Meq/L) Hemodial Soln (CRRT)','AMIODARONE IVPB','AMIODARONE INFUSION CENTRAL LINE ADMIN','PHENYLEPHRINE IV INFUSION','Eptifibatide (Intravenous)','AMIODARONE INFUSION PERIPH ADMIN','MIDAZOLAM IV INFUSION (CUSTOM)','Dobutamine (Intravenous)','Bicarb Dialys Soln No.8 W-O Ca K (2 Meq/L) -Mg (1 Meq/L) Hemodial Soln (CRRT)','Amiodarone (Intravenous)','D5W WITH SODIUM BICARBONATE IV INFUSION','Epinephrine (Intravenous)','Milrinone (Intravenous)','DISCHARGE PATIENT','ADMIT TO PHASE','CALL DIALYSIS RN CAP/DRAIN CAPD','CAPD PERITONEAL DIALYSIS','CCPD  PERITONEAL DIALYSIS','CENTRAL LINE CARE','COMFORT CARE MEASURES','CONT RENAL REPLACEMENT THERAPY','DIALYSIS ACCESS','DIALYSIS CATHETER CARE','DIALYZE PATIENT','HEMODIALYSIS','HEMODIALYSIS WITH PUF','OK TO USE CENTRAL LINE','TRANSFUSION EMERGENCY ISSUE','TRANSFER PATIENT','RESP - EXTUBATION','RESP - LUNG PROTECTIVE VENTILATION PROTOCOL','RESP - NON INVASIVE POS. PRESS VENT (BIPAP/CPAP)','RESP - SPONTANEOUS BREATHING TRIAL','RESP - VENTILATOR SETTINGS','RESP - WEAN VENTILATOR','RESP-CPAP/BIPAP FOR OBSTRUCTIVE SLEEP APNEA','ADMIT POST SURGERY','ADMIT/PLACE PATIENT','PLACE IN OBSERVATION-CDU','PATIENT TRANSPORT','DNR','PARTIAL CODE','ARTERIAL LINE','CENTRAL LINE','INTUBATION','AMIODARONE INFUSION CENTRAL LINE ADMIN','AMIODARONE INFUSION PERIPH ADMIN','AMIODARONE IVPB','Dobutamine (Intravenous)','Dopamine (Intravenous)','EPINEPHRINE IV INFUSION','Midazolam (Intravenous)','Milrinone (Intravenous)','NITROPRUSSIDE IV INFUSION','NOREPINEPHRINE IV INFUSION','Nitroglycerin (Intravenous)','Death Date');
 
 
+=======
+####### See CDSS/scripts/insertData.sh ########
+#   Populate with STRIDE data.  
+#
+#		For huge files, may want to "split" into pieces.  Then "cat back" together after edits, or just insert in pieces to facilitate debugging
+#			split -l10000 -a4 -d ../order_proc.txt split.order_proc.
+#			cat split.order_proc* > patch.order_proc.txt
+#
+#	Can batch together in a script, and consider running as background process for long import
+#		nohup ./batch.sh &> output.log &
+
+# Unify flowsheet labels. Can still recover original distinctions based on flo_meas_id
+	update stride_flowsheet
+	set flowsheet_name = 'Pulse' 
+	where flowsheet_name = 'Heart Rate';
+
+	update stride_flowsheet
+	set flowsheet_name = 'Urine' 
+	where flowsheet_name = 'Urine Output';
+
+# Merge Encounter info by inserting newly merged records with negative IDs, then discarding and relabeling old records
+	insert into stride_patient_encounter(pat_enc_csn_id, pat_id, payor_name, title, bp_systolic, bp_diastolic, temperature, pulse, respirations)
+	select 
+	  -spe1.pat_enc_csn_id, pat_id, payor_name, title,
+	  maxBPS, maxBPD, maxTemp, maxPulse, maxResp
+	from
+	(
+	select 
+	   pat_enc_csn_id, pat_id, payor_name, title
+	from
+	   stride_patient_encounter
+	where bp_systolic is null
+	) as spe1,
+	(
+	select 
+	   pat_enc_csn_id, max(bp_systolic) as maxBPS, max(bp_diastolic) as maxBPD, max(temperature) as maxTemp, max(pulse) as maxPulse, max(respirations) as maxResp
+	from stride_patient_encounter
+	group by pat_enc_csn_id
+	) spe2
+	where spe1.pat_enc_csn_id = spe2.pat_enc_csn_id
+
+	delete from stride_patient_encounter where pat_enc_csn_id > 0;
+	update stride_patient_encounter set pat_enc_csn_id = -pat_enc_csn_id;
+
+
+##### CDSS/scripts/CDSS/dataConversion.py ####
+#   Convert STRIDE data into structured analysis data tables.  
+# May want to drop table contraints and indexes until all inserts complete (still need unique constraint).
+# 	Create indexes afterwards to help speed up batch process
+# Consider different Med normalization options, whether want to completely separate active ingredients, 
+#	or consider each active ingredient combination as a unique item.  The former is more normalized,
+#	but get junk like TPN separated into 12 components, Zosyn listed as two items piperacillin and tazobactam,
+#	and essentially all IV fluid variations using a common Sodium Chloride IV item.  
+#	Likewise consider more administration variations for IV fluids where ingredients are less relevant than
+#	dose amount and formulation (IV bolus, IV maintenance, 3% saline vs. 1/2 NS, etc.)
+# Treatment Team aggregation option
+
+# Helper driver script
+nohup python scripts/CDSS/dataConversiony.py &> log/driver.conversion &
+
+python medinfo/dataconversion/STRIDEOrderMedConversion.py
+python medinfo/dataconversion/STRIDEOrderProcConversion.py
+python medinfo/dataconversion/STRIDEOrderResultsConversion.py
+...
+
+# Manually deactivate low-information item analysis as below
+update clinical_item
+set analysis_status = 0
+where name in ('RXCUI854932','RXCUI854934','RXCUI854936','RXCUI854938','RXCUI854940','RXCUI854942','RXCUI854944','RXCUI854946','RXCUI854948','RXCUI854950','RXCUI854952','RXCUI854954','RXCUI854956','RXCUI854958','RXCUI854960','RXCUI854962','RXCUI854964','RXCUI854966','RXCUI854968','RXCUI854970','RXCUI854972','RXCUI854974','RXCUI854932','RXCUI854934','RXCUI854936','RXCUI854938','RXCUI854940','RXCUI854942','RXCUI854944','RXCUI854946','RXCUI854948','RXCUI854950','RXCUI854952','RXCUI854954','RXCUI854956','RXCUI854958','RXCUI854960','RXCUI854962','RXCUI854964','RXCUI854966','RXCUI854968','RXCUI854970','RXCUI854972','RXCUI854974','146535','LABSPR','NUR1940','NUR1025','NUR194000','NUR350','NURSE 1500','146541','146543','COD2')
+
+update clinical_item
+set analysis_status = 0
+where name in ('DIET990','TRN2','POC14','LABPOCGLU','146537')
+
+# Excessive variants of TPN that are distracting and has a bizarrely long name when unravel amino acid ingredients
+update clinical_item
+set analysis_status = 0
+where description like 'Alanine-Arginine%';
+
+-- delete
+-- from clinical_item_association
+-- where clinical_item_id in
+-- (44618,44621,44624,44667,44668,44669,44768,44800,45037,45163,52105);
+-- 
+-- delete
+-- from clinical_item_association
+-- where subsequent_item_id in
+-- (44618,44621,44624,44667,44668,44669,44768,44800,45037,45163,52105)
+-- 
+-- CREATE INDEX clinical_item_association_subsequent_item_id ON clinical_item_association(subsequent_item_id, clinical_item_id);
+
+
+TRANSFUSION BLOOD PRODUCT X
+# Not even clear what these are orders for, since there are separate orders for RBCs, platelets, and nursing to transfuse them
+#	By coincidence, total count appears to be ~2x sum of all other blood bank orders
+update clinical_item
+set analysis_status = 0
+where name in ('LABTSLIP','LABTBP','LABTBP9','LABTBP10','LABTBP11','LABTBP12','LABTBP13','LABTBP14','LABTBP15','LABTBP16','LABTBP17','LABTBP18','LABTBP1','LABTBP19','LABTBP20','LABTBP21','LABTBP22','LABTBP23','LABTBP24','LABTBP25','LABTBP26','LABTBP27','LABTBP28','LABTBP2','LABTBP29','LABTBP30','LABTBP31','LABTBP32','LABTBP33','LABTBP34','LABTBP35','LABTBP36','LABTBP37','LABTBP38','LABTBP3','LABTBP39','LABTBP40','LABTBP41','LABTBP42','LABTBP43','LABTBP44','LABTBP45','LABTBP46','LABTBP47','LABTBP48','LABTBP4','LABTBP49','LABTBP50','LABTBP51','LABTBP52','LABTBP53','LABTBP54','LABTBP55','LABTBP56','LABTBP57','LABTBP58','LABTBP5','LABTBP59','LABTBP60','LABTBP61','LABTBP62','LABTBP63','LABTBP64','LABTBP65','LABTBP66','LABTBP67','LABTBP68','LABTBP6','LABTBP69','LABTBP70','LABTBP71','LABTBP72','LABTBP73','LABTBP74','LABTBP75','LABTBP76','LABTBP77','LABTBP78','LABTBP7','LABTBP79','LABTBP80','LABTBP81','LABTBP82','LABTBP83','LABTBP84','LABTBP85','LABTBP86','LABTBP87','LABTBP88','LABTBP8','LABTBP89','LABTBP90','LABTBP91','LABTBP92','LABTBP93');
+
+# Result comments
+update clinical_item
+set analysis_status = 0
+where name in ('BM15CO(Result)','UCMT(Result)','DOACOM(Result)','PCCOM(Result)','SREQ(Result)','SREQ(Result)','REVUE(Result)','HIACOM(Result)','PTCMT(Result)','LEICMT(Result)','PF4COM(Result)','DIMCOM(Result)','CEPCM(Result)','FCMT(Result)','SCMT(Result)','CCMT(Result)','COM(Result)','CTRXNW(Result)','11200R(Result)','PLTFCM(Result)','QBCRCM(Result)','B2GPCM(Result)','DHTLV(Result)','ATHCT(Result)','RFCOM(Result)','BMBRCT(Result)','QBMBRC(Result)','RSVCOM(Result)','KITCO(Result)','T15CO(Result)','BCRCMT(Result)','BCRKCM(Result)','BMTCMT(Result)','MTHCMT(Result)','MGMCO(Result)','SREQ(InRange)','TEGCOM(Result)','BMBCMT(Result)','BSQCO(Result)','BM11CT(Result)','SREQ(Result)','VWFPIC(Result)','CEBCM(Result)','YIFB2(Result)','YPLAB2(Result)','BM14CT(Result)','YUOPCO(Result)','YFCHY6(Result)','YUBZCO(Result)','FBCMT(Result)','PPPCOM(Result)','CF32CM(Result)','YUMECO(Result)','BCMT(Result)','YSTNCO(Result)','TCMT(Result)','11152R(Result)','TMSICO(Result)','UCMT(Result)','JAKCO(Result)','YHISS5(Result)','YHISU5(Result)','T11CT(Result)','11996R(Result)','KITCO(Result)','YVB1W2(Result)','CTSMIS(Result)','NJAKCO(Result)','T14CMT(Result)','YLCFA9(Result)','QFBCRC(Result)','TT15CO(Result)','YHISC5(Result)','TTCCMT(Result)','TBCCMT(Result)','NBTCOM(Result)','NBTCBC(Result)','FT15CO(Result)','FTCMT(Result)','SREQ(Abnormal)','9078R(Result)','9260R(Result)','MGMCOB(Result)','9584R(Result)','9574R(Result)','9464R(Result)','9450R(Result)','12291R(Result)','9433R(Result)','9420R(Result)','9181R(Result)','12486R(Result)','12473R(Result)','9280R(Result)','12255R(Result)','12468R(Result)','12461R(Result)','TBCRCT(Result)','9233R(Result)','HITI2(Result)','9120R(Result)','BGSPR(Result)','BGSPRC(Result)','HCHCO(Result)','9404R(Result)','9391R(Result)','9207R(Result)','ABID2E(Result)','PEDCOM(Result)','9344R(Result)','9586R(Result)','9582R(Result)','9374R(Result)','9361R(Result)','9099R(Result)','PMCOMMENT(Result)');
+
+# Normal / Non-Specific Results
+update clinical_item
+set analysis_status = 0
+where name like '%%(InRange)' 
+or name like '%%(Result)'
+
+
+# Customize list of items to be included in default recommendations.  
+# Or maybe better, exclude them from association analysis to minimize excess computation and storage
+
+# Exclude categories including:
+source_table	description	
+order_proc	Nursing	
+order_proc	Transport	
+order_proc	BB Call Slip	
+order_proc	None	
+order_proc	Pharmacy Supplies	
+order_proc	Diet Communication	
+order_proc	Transfer	
+order_proc	Admission	
+order_proc	Discharge	
+
+stride_order_results	Lab Result	
+stride_order_results	Point of Care Testing Result	
+stride_order_results	HIV Lab Restricted Result	
+stride_order_results	HIV Lab Non-Restricted Result	
+
+stride_preadmit_med	Preadmit Med
+stride_treatment_team	Treatment Team
+
+stride_patient	Demographics
+
+# "Recommending" diagnoses may actually be useful as diagnostic tool
+#	stride_dx_list Diagnosis (PROBLEM_LIST)
+#	stride_dx_list Diagnosis (ADMIT_DX) 
+
+update clinical_item_category
+set default_recommend = 0
+where description in ('Nursing','Transfer','Admission','Transport','BB Call Slip','None','Pharmacy Supplies','Diet Communication','Discharge')
+
+update clinical_item_category
+set default_recommend = 0
+where source_table in ('stride_order_results','stride_preadmit_med','stride_treatment_team','stride_dx_list','stride_patient')
+
+
+
+
+
+# Skip analysis for very rare orders that excessively increase association item list without adding much value
+# Decide XXX on the fly, can do summary stats and try to exclude such that still 99% of orders are represented
+# Better to break down by category, since many are nursing orders or POC glucose that are not actually interesting?
+
+	select pi.clinical_item_id, cic.source_table, cic.description, ci.name, ci.description, count(distinct patient_id), count(distinct encounter_id), count(patient_item_id)
+	from patient_item as pi, clinical_item as ci, clinical_item_category as cic
+	where pi.clinical_item_id = ci.clinical_item_id
+	and ci.clinical_item_category_id = cic.clinical_item_category_id
+	and ci.analysis_status = 1
+	group by pi.clinical_item_id, cic.source_table, cic.description, ci.name, ci.description 
+
+# Use above to identify items to deactivate
+	
+	update clinical_item set analysis_status = 0 
+	where clinical_item_id in
+	(
+		select clinical_item_id
+		from patient_item 
+		group by clinical_item_id
+		having count(patient_item_id) < 256
+	);
+
+
+##### See addSynonyms.sql for adding item description synonyms to facilitate user testing searches
+
+
+################## Composite Clinical Items #######################
+Need specific ID numbers, but may be different in different database versions
+Try working of descriptions as below to find the relevant ID numbers
+
+
+
+
+# Composite certain outcome measures, for example, ICU interventions (sub-categorization based on vasopressors)
+36086	72	7512	RXCUI7512	Norepinephrine
+43993	72	8163	RXCUI8163	Phenylephrine
+44020	72	3992	RXCUI3992	Epinephrine
+44251	72	3616	RXCUI3616	Dobutamine
+44323	72	3628	RXCUI3628	Dopamine
+65411	72	224819	MED224819	VASOPRESSIN...
+python medinfo/cpoe/DataManager.py --compositeRelated "36086,43993,44020,44251,44323,65411|AnyVasoactive|Any Vasoactive Infusion|72"
+
+# CaCl infusion and IV Citrate are very closely correlated to CRRT use, but are rarely used in other scenarios
+45328	82	205894	MED205894	BICARB
+51019	82	36676	RXCUI36676	Sodium
+51150	82	-5.55816E+18	RXCUI205894,36676	BICARB
+54189	82	500028	MED500028	CRRT
+58948	82	9863	RXCUI9863	Sodium
+59107	82	1908	RXCUI1908	Calcium
+64279	82	1.55731E+18	RXCUI205894,11295	BICARB
+49140	4	633105	NUR4084	CONT RENAL REPLACEMENT THERAPY
+python medinfo/cpoe/DataManager.py --compositeRelated "45328,51019,51150,54189,58948,59107,64279,49140|AnyCRRT|Continuous Renal Replacement Therapy Components|82"
+
+# Ventilator orders
+45768	7	472340	RT75	RESP - EXTUBATION
+45832	7	35000476272	RT104	RESP - VENTILATOR SETTINGS
+45990	7	473786	RT97	RESP - WEAN VENTILATOR
+46106	7	473357	RT90	RESP - SPONTANEOUS BREATHING TRIAL
+48769	7	660692	RT130	RESP - REPOSITION ET TUBE
+61530	7	472542	RT88	RESP - HIGH FREQUENCY OSCILLATORY VENTILATION
+62003	7	871225	RT997	RESP - LUNG PROTECTIVE VENTILATION PROTOCOL
+63826	7	897630	RT202	RESP - MONITOR, PERFORM VENTILATOR AND PATIENT ASSESSMENT
+66038	7	473327	RT91	RESP - SIMV/PRESSURE SUPPORT
+python medinfo/cpoe/DataManager.py --compositeRelated "45768,45832,45990,46106,48769,61530,62003,63826,66038|AnyVentilator|Ventilator Orders|7"
+ 
+# Can populate leaf linked items directly, or link to the above intermediate nodes and allow inheritance to pickup the rest
+Category: 12	stride_order_proc	Procedures
+71045 Vasoactives
+71046 CRRT
+71047 Ventilator
+python medinfo/cpoe/DataManager.py --compositeRelated "71045,71046,71047|AnyICULifeSupport|ICU Life Support (Vasoactives,Ventilator,CRRT)|12"
+
+# Or incrementally update an existing compomsite item
+#python medinfo/cpoe/DataManager.py -g "23701,23702|23700"
+
+# Any ICU specific (or highly correlated) orders to capture events occuring in the ICU, including other drips, nursing orders
+??????????
+	530008	MED530008	NITROPRUSSIDE IV INFUSION
+	8782	RXCUI8782	Propofol (Intravenous)
+	530025	MED530025	DEXMEDETOMIDINE IV INFUSION
+	530004	MED530004	MIDAZOLAM 50 MG IN D5W 100 ML IV INFUSION
+	8163	RXCUI8163	Phenylephrine (Intravenous)
+	114200	RXCUI114200	Citrate (Intravenous)
+	530120	MED530120	HYDROMORPHONE 10 MG IN 100 ML IV INFUSION (SHC)
+	36676	RXCUI36676	Sodium Bicarbonate (CRRT)
+	530007	MED530007	VECURONIUM IV INFUSION
+	4177	RXCUI4177	Etomidate (Intravenous)
+	10154	RXCUI10154	Succinylcholine (Intravenous)
+	520130	MED520130	CALCIUM CHLORIDE 8 G/1000 ML IV INFUSION
+	530009	MED530009	CISATRACURIUM IV INFUSION
+	530003	MED530003	FENTANYL  10 MCG/ML IV INFUSION
+	530111	MED530111	MIDAZOLAM 100 MG IN D5W 100 ML IV INFUSION
+	530114	MED530114	MILRINONE CUSTOM IV INFUSION
+	530050	MED530050	DOBUTAMINE IV INFUSION CUSTOM MIXTURE
+	530046	MED530046	HYDROMORPHONE IV INFUSION
+	530112	MED530112	MIDAZOLAM IV INFUSION (CUSTOM)
+	37217	NUR2254	MONITOR PULMONARY ARTERY CATHETER
+	78347	RT106	RESP - NITRIC OXIDE VENT
+	37120	NUR2247	MONITOR CENTRAL LINE
+	26704	NUR1942	EXTERNAL VENTRICULAR DRAIN CARE
+	17833	NUR1528	MONITOR ARTERIAL LINE
+	399682	NUR30020	RASS SEDATION ASSESSMENT
+	396282	NUR1599	MONITOR CARDIAC ASSIST DEVICE
+	17896	NUR1591	OROGASTRIC TUBE
+	17834	NUR1529	MONITOR CO/CI
+	46677	NUR2999	MONITOR SCV02
+		AnyICULifeSupport	ICU Life Support (Vasopressors,Ventilator,CRRT)
+?????
+python medinfo/cpoe/DataManager.py --compositeRelated "23700,4455,3858,634,710,466,192,113,4303,4216,4507,629,3866,4452,180,3950,4078,3951,43,117,153,201,529,793,1096,1612,1752,2205,2337,2349|ICUOrders|ICU Specific/Correlated Orders|100"
+
+
+# DNR / non-Full Code Orders
+#48737	COD3	PARTIAL CODE
+45905	COD1	DNR
+62758	COD7	DNR/C
+62911	COD5	DNR/DNE
+63717	COD1	DNR/DNI
+python medinfo/cpoe/DataManager.py --compositeRelated "45905,62758,62911,63717|AnyDNR|Any DNR Code Status|22"
+
+
+
+# Readmission by looking for triples containing Discharge then Admit
+Category: 23	stride_order_proc	Admission
+# Composite admission orders
+45814	23	471546	ADT1	ADMIT TO INPATIENT
+61845	23	35000476278	ADT16	ADMIT POST SURGERY
+61982	23	471546	ADT1	ADMIT/PLACE PATIENT
+65641	23	776046	ADT100	ADMIT TO INPATIENT
+python medinfo/cpoe/DataManager.py --compositeRelated "45814,61845,61982,65641|AnyAdmit|Any Admit (not observation nor outpatient surgery)|23"
+
+45805	13	472204	ADT12	DISCHARGE PATIENT
+
+insert into clinical_item
+(clinical_item_category_id, name, description, analysis_status, outcome_interest)
+values
+(23,'READT','Readmission',1,1);
+
+# Identify triples, but effectively requires runs full association analysis work.  Very time intensive
+python medinfo/cpoe/TripleAssociationAnalysis.py -s 45805,73932 -v 73926 patientIds.XYZ.tab
+
+
+# Run Pre-Computation Association Analysis
+# 	Memory intensive, but if can use large amount on 64bit Python saves a lot of DB hits / persistence.
+#   Use -a option to specify how many associations to keep in memory before commit to DB
+#	1,000,000 seems to just fit within 7.5 GB of RAM
+#	Still a DB intensive I/O process that can be helped by moving more database processing to memory than disk
+python medinfo/cpoe/AssociationAnalysis.py -i <patientIDFile> -u 10000 -a 900000
+(Find Patient IDs to work on, by query like 
+	select distinct patient_id 
+	from patient_item 
+	where analyze_date is null 
+	and patient_id % 10 = -1
+Use arbitrary mod parameter on patient ID and item dates to select out data subsets
+)
+
+# Helper driver script to break up into multiple processes (beware total memory overhead)
+nohup python scripts/CDSS/assocAnalysis.py &> log/assocAnalysis &
+
+#  Or just restore from another database
+medinfo/db/support/restoreCPOETables.bat
+
+
+
+
+====================================
+
+
+# Pre-Compute Analyzed Clinical Item Counts to facilitate subsequent interface queries
+python medinfo/cpoe/DataManager.py --updateClinicalItemCounts
+or
+Item Recommender Web Interface, Cache or Query = PreCompute
+or
+# Transfer baseline counts to clinical_item summary counts
+update clinical_item as ci, clinical_item_association as cia
+set ci.item_count = cia.count_0, 
+    ci.patient_count = cia.patient_count_0, 
+    ci.encounter_count = cia.encounter_count_0
+where ci.clinical_item_id = 5 
+and cia.clinical_item_id = ci.clinical_item_id and cia.subsequent_item_id = ci.clinical_item_id;
+
+
+===================================================================
+Setup simultation data
+python scripts\CDSS\populateOrderResultStats.py
+
+
+
+
+===================================================================
+Data Cleanup Options
+
+# PostgreSQL duplicate removal (Trick is ctid system column that tracks unique physical location for every entry)
+delete from stride_order_results A using 
+(   select min(ctid) as ctid, order_proc_id, line
+   from stride_order_results
+   group by order_proc_id, line having count(*) > 1
+) B
+where A.order_proc_id = B.order_proc_id and A.line = B.line
+and A.ctid <> B.ctid
+
+https://stackoverflow.com/questions/6583916/delete-duplicate-records-in-postgresql
+
+# Another in place option, but requires a unique ID column to exist
+delete
+from patient_item as test
+ where exists ( select 'x' 
+				  from patient_item as i
+				 where i.patient_id = test.patient_id
+				   and i.clinical_item_id = test.clinical_item_id
+				   and i.item_date = test.item_date
+				   and i.patient_item_id < test.patient_item_id
+			 )
+limit 10;
+
+
+
+# Use data/analysis/queryItemCount.py to help guide threshold decision
+
+select clinical_item_id, count(*)
+from patient_item as pi
+group by clinical_item_id
+having count(*) < XXX;
+
+python medinfo/cpoe/DataManager.py --deactivateAnalysisByCount <thresholdInstanceCount>
+
+
+
+# Exclude Individual Items including, should not even be analyzed:
+external_id	name	description	
+854932	RXCUI854932	Pneumococcal Capsular Polysaccharide Type 10a Vaccine (SUBCUTANEOUS)	
+854934	RXCUI854934	Pneumococcal Capsular Polysaccharide Type 11a Vaccine (SUBCUTANEOUS)	
+854936	RXCUI854936	Pneumococcal Capsular Polysaccharide Type 12f Vaccine (SUBCUTANEOUS)	
+854938	RXCUI854938	Pneumococcal Capsular Polysaccharide Type 14 Vaccine (SUBCUTANEOUS)	
+854940	RXCUI854940	Pneumococcal Capsular Polysaccharide Type 15b Vaccine (SUBCUTANEOUS)	
+854942	RXCUI854942	Pneumococcal Capsular Polysaccharide Type 17f Vaccine (SUBCUTANEOUS)	
+854944	RXCUI854944	Pneumococcal Capsular Polysaccharide Type 18c Vaccine (SUBCUTANEOUS)	
+854946	RXCUI854946	Pneumococcal Capsular Polysaccharide Type 19a Vaccine (SUBCUTANEOUS)	
+854948	RXCUI854948	Pneumococcal Capsular Polysaccharide Type 19f Vaccine (SUBCUTANEOUS)	
+854950	RXCUI854950	Pneumococcal Capsular Polysaccharide Type 2 Vaccine (SUBCUTANEOUS)	
+854952	RXCUI854952	Pneumococcal Capsular Polysaccharide Type 20 Vaccine (SUBCUTANEOUS)	
+854954	RXCUI854954	Pneumococcal Capsular Polysaccharide Type 22f Vaccine (SUBCUTANEOUS)	
+854956	RXCUI854956	Pneumococcal Capsular Polysaccharide Type 23f Vaccine (SUBCUTANEOUS)	
+854958	RXCUI854958	Pneumococcal Capsular Polysaccharide Type 3 Vaccine (SUBCUTANEOUS)	
+854960	RXCUI854960	Pneumococcal Capsular Polysaccharide Type 33f Vaccine (SUBCUTANEOUS)	
+854962	RXCUI854962	Pneumococcal Capsular Polysaccharide Type 4 Vaccine (SUBCUTANEOUS)	
+854964	RXCUI854964	Pneumococcal Capsular Polysaccharide Type 5 Vaccine (SUBCUTANEOUS)	
+854966	RXCUI854966	Pneumococcal Capsular Polysaccharide Type 6b Vaccine (SUBCUTANEOUS)	
+854968	RXCUI854968	Pneumococcal Capsular Polysaccharide Type 7f Vaccine (SUBCUTANEOUS)	
+854970	RXCUI854970	Pneumococcal Capsular Polysaccharide Type 8 Vaccine (SUBCUTANEOUS)	
+854972	RXCUI854972	Pneumococcal Capsular Polysaccharide Type 9n Vaccine (SUBCUTANEOUS)	
+854974	RXCUI854974	Pneumococcal Capsular Polysaccharide Type 9v Vaccine (SUBCUTANEOUS)	
+854932	RXCUI854932	Pneumococcal Capsular Polysaccharide Type 10a Vaccine (Intramuscular)	
+854934	RXCUI854934	Pneumococcal Capsular Polysaccharide Type 11a Vaccine (Intramuscular)	
+854936	RXCUI854936	Pneumococcal Capsular Polysaccharide Type 12f Vaccine (Intramuscular)	
+854938	RXCUI854938	Pneumococcal Capsular Polysaccharide Type 14 Vaccine (Intramuscular)	
+854940	RXCUI854940	Pneumococcal Capsular Polysaccharide Type 15b Vaccine (Intramuscular)	
+854942	RXCUI854942	Pneumococcal Capsular Polysaccharide Type 17f Vaccine (Intramuscular)	
+854944	RXCUI854944	Pneumococcal Capsular Polysaccharide Type 18c Vaccine (Intramuscular)	
+854946	RXCUI854946	Pneumococcal Capsular Polysaccharide Type 19a Vaccine (Intramuscular)	
+854948	RXCUI854948	Pneumococcal Capsular Polysaccharide Type 19f Vaccine (Intramuscular)	
+854950	RXCUI854950	Pneumococcal Capsular Polysaccharide Type 2 Vaccine (Intramuscular)	
+854952	RXCUI854952	Pneumococcal Capsular Polysaccharide Type 20 Vaccine (Intramuscular)	
+854954	RXCUI854954	Pneumococcal Capsular Polysaccharide Type 22f Vaccine (Intramuscular)	
+854956	RXCUI854956	Pneumococcal Capsular Polysaccharide Type 23f Vaccine (Intramuscular)	
+854958	RXCUI854958	Pneumococcal Capsular Polysaccharide Type 3 Vaccine (Intramuscular)	
+854960	RXCUI854960	Pneumococcal Capsular Polysaccharide Type 33f Vaccine (Intramuscular)	
+854962	RXCUI854962	Pneumococcal Capsular Polysaccharide Type 4 Vaccine (Intramuscular)	
+854964	RXCUI854964	Pneumococcal Capsular Polysaccharide Type 5 Vaccine (Intramuscular)	
+854966	RXCUI854966	Pneumococcal Capsular Polysaccharide Type 6b Vaccine (Intramuscular)	
+854968	RXCUI854968	Pneumococcal Capsular Polysaccharide Type 7f Vaccine (Intramuscular)	
+854970	RXCUI854970	Pneumococcal Capsular Polysaccharide Type 8 Vaccine (Intramuscular)	
+854972	RXCUI854972	Pneumococcal Capsular Polysaccharide Type 9n Vaccine (Intramuscular)	
+854974	RXCUI854974	Pneumococcal Capsular Polysaccharide Type 9v Vaccine (Intramuscular)	
+147420	146535	ECG PROCEDURE SCANNED REPORT	
+1883	LABSPR	SPECIMEN REMARK	
+26702	NUR1940	NURSING COMMUNICATION(FOR ORDERSET ONLY)	
+1435	NUR1025	VITAL SIGNS	
+412485	NUR194000	NURSING COMMUNICATION	
+46821	NUR350	NOTIFY MD:	
+17581	NURSE 1500	NOTIFY MD:VITAL SIGNS	
+147415	146541	OTHER PROCEDURE SCANNED REPORT	
+147416	146543	OTHER ORDER SCANNED REPORT	
+958	COD2	FULL CODE	
+
+706	DIET990	DIET REGULAR	
+1604	TRN2	PATIENT TRANSPORT	
+119815	POC14	POC GLUCOSE BY METER	
+1001	LABPOCGLU	GLUCOSE BY METER	
+
+# If setting analysis status to 0, don't need to set default_recommend to 0 since will inherently be excluded
+update clinical_item
+set analysis_status = 0
+where name in ('RXCUI854932','RXCUI854934','RXCUI854936','RXCUI854938','RXCUI854940','RXCUI854942','RXCUI854944','RXCUI854946','RXCUI854948','RXCUI854950','RXCUI854952','RXCUI854954','RXCUI854956','RXCUI854958','RXCUI854960','RXCUI854962','RXCUI854964','RXCUI854966','RXCUI854968','RXCUI854970','RXCUI854972','RXCUI854974','RXCUI854932','RXCUI854934','RXCUI854936','RXCUI854938','RXCUI854940','RXCUI854942','RXCUI854944','RXCUI854946','RXCUI854948','RXCUI854950','RXCUI854952','RXCUI854954','RXCUI854956','RXCUI854958','RXCUI854960','RXCUI854962','RXCUI854964','RXCUI854966','RXCUI854968','RXCUI854970','RXCUI854972','RXCUI854974','146535','LABSPR','NUR1940','NUR1025','NUR194000','NUR350','NURSE 1500','146541','146543','COD2')
+
+update clinical_item
+set analysis_status = 0
+where name in ('DIET990','TRN2','POC14','LABPOCGLU','146537')
+
+
+TRANSFUSION BLOOD PRODUCT X
+# Not even clear what these are orders for, since there are separate orders for RBCs, platelets, and nursing to transfuse them
+#	By coincidence, total count appears to be ~2x sum of all other blood bank orders
+update clinical_item
+set analysis_status = 0
+where name in ('LABTSLIP','LABTBP','LABTBP9','LABTBP10','LABTBP11','LABTBP12','LABTBP13','LABTBP14','LABTBP15','LABTBP16','LABTBP17','LABTBP18','LABTBP1','LABTBP19','LABTBP20','LABTBP21','LABTBP22','LABTBP23','LABTBP24','LABTBP25','LABTBP26','LABTBP27','LABTBP28','LABTBP2','LABTBP29','LABTBP30','LABTBP31','LABTBP32','LABTBP33','LABTBP34','LABTBP35','LABTBP36','LABTBP37','LABTBP38','LABTBP3','LABTBP39','LABTBP40','LABTBP41','LABTBP42','LABTBP43','LABTBP44','LABTBP45','LABTBP46','LABTBP47','LABTBP48','LABTBP4','LABTBP49','LABTBP50','LABTBP51','LABTBP52','LABTBP53','LABTBP54','LABTBP55','LABTBP56','LABTBP57','LABTBP58','LABTBP5','LABTBP59','LABTBP60','LABTBP61','LABTBP62','LABTBP63','LABTBP64','LABTBP65','LABTBP66','LABTBP67','LABTBP68','LABTBP6','LABTBP69','LABTBP70','LABTBP71','LABTBP72','LABTBP73','LABTBP74','LABTBP75','LABTBP76','LABTBP77','LABTBP78','LABTBP7','LABTBP79','LABTBP80','LABTBP81','LABTBP82','LABTBP83','LABTBP84','LABTBP85','LABTBP86','LABTBP87','LABTBP88','LABTBP8','LABTBP89','LABTBP90','LABTBP91','LABTBP92','LABTBP93');
+
+
+
+
+
+# For some of above like PNA vaccine components, may actually be more appropriate to merge/composite items 
+python medinfo/cpoe/DataManager.py --compositeRelated <clinicalItemIds>
+python medinfo/cpoe/DataManager.py --mergeRelated <clinicalItemIds>
+python medinfo/cpoe/DataManager.py --unifyRedundant <clinicalItemIds>
+
+
+# ???Highlight items that may be of interest for outcome measures
+clinical_item_id	description	count	
+20	DISCHARGE PATIENT	1532	
+31	ADMIT TO PHASE	769	
+34	TRANSFER PATIENT	581	
+55	INSERT AIRWAY	360	
+58	RESP - SPONTANEOUS BREATHING TRIAL	76	
+59	ADMIT/PLACE PATIENT	1294	
+66	PATIENT TRANSPORT	2384	
+147	DISCHARGE PATIENT WHEN CRITERIA MET	770	
+207	DIALYZE PATIENT	85	
+332	NON-VIOLENT RESTRAINTS	316	
+374	DNR	237	
+461	RESP-CPAP/BIPAP FOR OBSTRUCTIVE SLEEP APNEA	72	
+465	OK TO USE CENTRAL LINE	30	
+522	HEMODIALYSIS	120	
+523	INTERAGENCY REFERRAL TO HOME HOSPICE	18	
+563	CAR CATH CORS POSSIBLE	37	
+612	COMFORT CARE MEASURES	42	
+616	CCPD  PERITONEAL DIALYSIS	15	
+723	INTUBATION	6	
+957	PLACE IN OBSERVATION-CDU	23	
+1086	HEMODIALYSIS WITH PUF	6	
+1087	CAPD PERITONEAL DIALYSIS	3	
+1312	CENTRAL LINE	10	
+1521	CENTRAL LINE CARE	4	
+1636	NON INVASIVE POSTIVE PRESS VENT BIPAP/CPAP	3	
+1643	RESP - LUNG PROTECTIVE VENTILATION PROTOCOL	6	
+1909	TRACHEOSTOMY  CARE	2	
+6551	ARGATROBAN 1000 MCG/ML (250 ML) IV INFUSION	18	
+6700	Fentanyl (Intravenous)	77	
+6724	Dopamine (Intravenous)	72	
+6738	DEXMEDETOMIDINE IV INFUSION	146	
+6743	VASOPRESSIN 1 UNIT/ML IV INFUSION	39	
+6745	Bicarb Dialys Soln #16 W/O Ca K (4 Meq/L) -Mg (1.5 Meq/L) Hemodial Soln (CRRT)	16	
+6797	AMIODARONE IVPB	80	
+6801	AMIODARONE INFUSION CENTRAL LINE ADMIN	44	
+6823	PHENYLEPHRINE IV INFUSION	87	
+6872	Eptifibatide (Intravenous)	11	
+6936	AMIODARONE INFUSION PERIPH ADMIN	29	
+6950	MIDAZOLAM IV INFUSION (CUSTOM)	2	
+7014	Dobutamine (Intravenous)	22	
+7066	Bicarb Dialys Soln No.8 W-O Ca K (2 Meq/L) -Mg (1 Meq/L) Hemodial Soln (CRRT)	22	
+7111	Amiodarone (Intravenous)	1	
+7148	D5W WITH SODIUM BICARBONATE IV INFUSION	7	
+7167	Epinephrine (Intravenous)	12	
+7192	Milrinone (Intravenous)	10	
+20	DISCHARGE PATIENT	1532	
+31	ADMIT TO PHASE	769	
+1660	CALL DIALYSIS RN CAP/DRAIN CAPD	2	
+1087	CAPD PERITONEAL DIALYSIS	3	
+616	CCPD  PERITONEAL DIALYSIS	15	
+1521	CENTRAL LINE CARE	4	
+612	COMFORT CARE MEASURES	42	
+674	CONT RENAL REPLACEMENT THERAPY	18	
+1097	DIALYSIS ACCESS	6	
+1995	DIALYSIS CATHETER CARE	1	
+207	DIALYZE PATIENT	85	
+522	HEMODIALYSIS	120	
+1086	HEMODIALYSIS WITH PUF	6	
+465	OK TO USE CENTRAL LINE	30	
+403	TRANSFUSION EMERGENCY ISSUE	20	
+34	TRANSFER PATIENT	581	
+158	RESP - EXTUBATION	98	
+1643	RESP - LUNG PROTECTIVE VENTILATION PROTOCOL	6	
+139	RESP - NON INVASIVE POS. PRESS VENT (BIPAP/CPAP)	136	
+58	RESP - SPONTANEOUS BREATHING TRIAL	76	
+164	RESP - VENTILATOR SETTINGS	467	
+137	RESP - WEAN VENTILATOR	110	
+461	RESP-CPAP/BIPAP FOR OBSTRUCTIVE SLEEP APNEA	72	
+130	ADMIT POST SURGERY	656	
+59	ADMIT/PLACE PATIENT	1294	
+957	PLACE IN OBSERVATION-CDU	23	
+66	PATIENT TRANSPORT	2384	
+374	DNR	237	
+99	PARTIAL CODE	17	
+902	ARTERIAL LINE	11	
+1312	CENTRAL LINE	10	
+723	INTUBATION	6	
+6801	AMIODARONE INFUSION CENTRAL LINE ADMIN	44	
+6936	AMIODARONE INFUSION PERIPH ADMIN	29	
+6797	AMIODARONE IVPB	80	
+7014	Dobutamine (Intravenous)	22	
+6724	Dopamine (Intravenous)	72	
+6659	EPINEPHRINE IV INFUSION	61	
+6696	Midazolam (Intravenous)	70	
+7192	Milrinone (Intravenous)	10	
+6681	NITROPRUSSIDE IV INFUSION	99	
+6788	NOREPINEPHRINE IV INFUSION	46	
+6900	Nitroglycerin (Intravenous)	59	
+
+xxxx	Death Date	???
+xxxx	Length of Stay	???
+
+
+update clinical_item
+set outcome_interest = 1
+where description in
+('DISCHARGE PATIENT','ADMIT TO PHASE','TRANSFER PATIENT','INSERT AIRWAY','RESP - SPONTANEOUS BREATHING TRIAL','ADMIT/PLACE PATIENT','PATIENT TRANSPORT','DISCHARGE PATIENT WHEN CRITERIA MET','DIALYZE PATIENT','NON-VIOLENT RESTRAINTS','DNR','RESP-CPAP/BIPAP FOR OBSTRUCTIVE SLEEP APNEA','OK TO USE CENTRAL LINE','HEMODIALYSIS','INTERAGENCY REFERRAL TO HOME HOSPICE','CAR CATH CORS POSSIBLE','COMFORT CARE MEASURES','CCPD  PERITONEAL DIALYSIS','INTUBATION','PLACE IN OBSERVATION-CDU','HEMODIALYSIS WITH PUF','CAPD PERITONEAL DIALYSIS','CENTRAL LINE','CENTRAL LINE CARE','NON INVASIVE POSTIVE PRESS VENT BIPAP/CPAP','RESP - LUNG PROTECTIVE VENTILATION PROTOCOL','TRACHEOSTOMY  CARE','ARGATROBAN 1000 MCG/ML (250 ML) IV INFUSION','Fentanyl (Intravenous)','Dopamine (Intravenous)','DEXMEDETOMIDINE IV INFUSION','VASOPRESSIN 1 UNIT/ML IV INFUSION','Bicarb Dialys Soln #16 W/O Ca K (4 Meq/L) -Mg (1.5 Meq/L) Hemodial Soln (CRRT)','AMIODARONE IVPB','AMIODARONE INFUSION CENTRAL LINE ADMIN','PHENYLEPHRINE IV INFUSION','Eptifibatide (Intravenous)','AMIODARONE INFUSION PERIPH ADMIN','MIDAZOLAM IV INFUSION (CUSTOM)','Dobutamine (Intravenous)','Bicarb Dialys Soln No.8 W-O Ca K (2 Meq/L) -Mg (1 Meq/L) Hemodial Soln (CRRT)','Amiodarone (Intravenous)','D5W WITH SODIUM BICARBONATE IV INFUSION','Epinephrine (Intravenous)','Milrinone (Intravenous)','DISCHARGE PATIENT','ADMIT TO PHASE','CALL DIALYSIS RN CAP/DRAIN CAPD','CAPD PERITONEAL DIALYSIS','CCPD  PERITONEAL DIALYSIS','CENTRAL LINE CARE','COMFORT CARE MEASURES','CONT RENAL REPLACEMENT THERAPY','DIALYSIS ACCESS','DIALYSIS CATHETER CARE','DIALYZE PATIENT','HEMODIALYSIS','HEMODIALYSIS WITH PUF','OK TO USE CENTRAL LINE','TRANSFUSION EMERGENCY ISSUE','TRANSFER PATIENT','RESP - EXTUBATION','RESP - LUNG PROTECTIVE VENTILATION PROTOCOL','RESP - NON INVASIVE POS. PRESS VENT (BIPAP/CPAP)','RESP - SPONTANEOUS BREATHING TRIAL','RESP - VENTILATOR SETTINGS','RESP - WEAN VENTILATOR','RESP-CPAP/BIPAP FOR OBSTRUCTIVE SLEEP APNEA','ADMIT POST SURGERY','ADMIT/PLACE PATIENT','PLACE IN OBSERVATION-CDU','PATIENT TRANSPORT','DNR','PARTIAL CODE','ARTERIAL LINE','CENTRAL LINE','INTUBATION','AMIODARONE INFUSION CENTRAL LINE ADMIN','AMIODARONE INFUSION PERIPH ADMIN','AMIODARONE IVPB','Dobutamine (Intravenous)','Dopamine (Intravenous)','EPINEPHRINE IV INFUSION','Midazolam (Intravenous)','Milrinone (Intravenous)','NITROPRUSSIDE IV INFUSION','NOREPINEPHRINE IV INFUSION','Nitroglycerin (Intravenous)','Death Date');
+
+
+>>>>>>> Stashed changes:scripts/Archive/CDSS/setupDataPreprocessingNotes.txt
