@@ -1,4 +1,4 @@
-# Restore CDSS to pSQL database
+# Restore derived Clinical Item tables to PostgreSQL database
 
 ## Acquiring the data
 
@@ -23,6 +23,6 @@ The total download time might be several hours.
 
 Within `stride/data/medinfo_2008_2017`, you'll find two restore scripts.
 * `restore_stride.sql`
-* `restore_cdss.sql`
+* `restore_clinical_item.sql`
 
 Run them, wait for a few hours, and hope for success.
