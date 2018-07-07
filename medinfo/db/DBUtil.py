@@ -187,7 +187,11 @@ def createDatabase( dbParams ):
     defaultParams["DSN"] = "postgres";
     defaultConn = connection(defaultParams);
     defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
-    execute("CREATE DATABASE %s" % dbParams["DSN"], conn=defaultConn);
+    try:
+        execute("CREATE DATABASE %s" % dbParams["DSN"], conn=defaultConn);
+    finally:
+        defaultConn.close();
+
 
 def dropDatabase( dbParams ):
     """Drop the database specified by the DSN name specified in the dbParams.
@@ -198,7 +202,10 @@ def dropDatabase( dbParams ):
     defaultParams["DSN"] = "postgres";
     defaultConn = connection(defaultParams);
     defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
-    execute("DROP DATABASE %s" % dbParams["DSN"], conn=defaultConn);
+    try:
+        execute("DROP DATABASE %s" % dbParams["DSN"], conn=defaultConn);
+    finally:
+        defaultConn.close();
 
 ###################################################
 #########  END  Database Specific Stuff ###########

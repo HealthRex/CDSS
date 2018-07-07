@@ -10,6 +10,8 @@ from Const import RUNNER_VERBOSITY;
 from Util import log;
 
 from medinfo.db.test.Util import DBTestCase;
+from stride.core.StrideLoader import StrideLoader;
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
 
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel;
@@ -25,10 +27,8 @@ class TestSTRIDEOrderResultsConversion(DBTestCase):
         DBTestCase.setUp(self);
         
         log.info("Populate the database with test data")
-        
-        # Relabel any existing data to not interfere with the new test data that will be produced
-        DBUtil.execute("update clinical_item_category set source_table = 'PreTest_order_results' where source_table = '%s';" % TEST_SOURCE_TABLE);
-        DBUtil.execute("update order_result_stat set base_name = 'PreTest_' || base_name;");
+        StrideLoader.build_stride_psql_schemata()
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
 
         dataTextStr = """order_proc_id\tpat_id\tpat_enc_csn_id\torder_type\tproc_id\tproc_code\tdescription
 -30560253\t-7803\t-1772\tLab\t471521\tLABACETA\tACETAMINOPHEN, SERUM
@@ -127,10 +127,8 @@ class TestSTRIDEOrderResultsConversion(DBTestCase):
             """ % TEST_SOURCE_TABLE
         );
         DBUtil.execute("delete from clinical_item_category where source_table = '%s';" % TEST_SOURCE_TABLE);
-        DBUtil.execute("update clinical_item_category set source_table = '%s' where source_table = 'PreTest_order_results';" % TEST_SOURCE_TABLE); # Reset labels of any prior data
 
         DBUtil.execute("delete from order_result_stat where base_name not like 'PreTest_%%';");
-        DBUtil.execute("update order_result_stat set base_name = right( base_name,length(base_name)-length('PreTest_') );"); # Reset labels of any prior data
 
         DBUtil.execute("delete from stride_order_results where order_proc_id < 0" );
         DBUtil.execute("delete from stride_order_proc where order_proc_id < 0" );

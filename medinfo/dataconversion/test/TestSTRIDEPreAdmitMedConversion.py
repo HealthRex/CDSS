@@ -10,6 +10,8 @@ from Const import RUNNER_VERBOSITY;
 from Util import log;
 
 from medinfo.db.test.Util import DBTestCase;
+from stride.core.StrideLoader import StrideLoader;
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
 
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel;
@@ -23,10 +25,9 @@ class TestSTRIDEPreAdmitMedConversion(DBTestCase):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
         
-        # Relabel any existing data to not interfere with the new test data that will be produced
-        DBUtil.execute("update clinical_item_category set source_table = 'PreTest_preadmit_med' where source_table = 'stride_preadmit_med';");
-    
         log.info("Populate the database with test data")
+        StrideLoader.build_stride_psql_schemata()
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
         
         headers = ["stride_preadmit_med_id","pat_anon_id","contact_date","medication_id","description","thera_class","pharm_class","pharm_subclass"];
         dataModels = \
@@ -44,7 +45,7 @@ class TestSTRIDEPreAdmitMedConversion(DBTestCase):
             (dataItemId, isNew) = DBUtil.findOrInsertItem("stride_preadmit_med", dataModel, retrieveCol="pat_anon_id" );
 
         # Mapping table to simplify dose
-        headers = ["medication_id", "medication_name", "rxcui", "active_ingredient"];
+        headers = ["medication_id", "name", "rxcui", "active_ingredient"];
         dataModels = \
             [   # Mappings to active ingredients
                 RowItemModel( [ -5680, "NORVASC 5 MG PO TABS", -17767, "Amlodipine"], headers ),
@@ -108,7 +109,6 @@ class TestSTRIDEPreAdmitMedConversion(DBTestCase):
             """
         );
         DBUtil.execute("delete from clinical_item_category where source_table = 'stride_preadmit_med';");
-        DBUtil.execute("update clinical_item_category set source_table = 'stride_preadmit_med' where source_table = 'PreTest_preadmit_med';"); # Reset labels of any prior data
 
         DBUtil.execute("delete from stride_mapped_meds where rxcui < 0");
         DBUtil.execute("delete from stride_preadmit_med where stride_preadmit_med_id < 0");
@@ -189,7 +189,7 @@ class TestSTRIDEPreAdmitMedConversion(DBTestCase):
             """
             select 
                 medication_id,
-                medication_name,
+                name,
                 rxcui,
                 active_ingredient,
                 thera_class,
@@ -291,7 +291,7 @@ class TestSTRIDEPreAdmitMedConversion(DBTestCase):
             """
             select 
                 medication_id,
-                medication_name,
+                name,
                 rxcui,
                 active_ingredient,
                 thera_class,

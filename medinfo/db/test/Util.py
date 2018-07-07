@@ -42,9 +42,16 @@ class DBTestCase(MedInfoTestCase):
         medinfo.db.Env.DB_PARAM.update(medinfo.db.Env.TEST_DB_PARAM);
 
         # Create the temporary test database to work with
-        #DBUtil.dropDatabase(medinfo.db.Env.DB_PARAM)    # Beware of accidentally dropping an existing production database! This may still be necessary to cleanup if accidentally left a test database instance behind
-        DBUtil.createDatabase(medinfo.db.Env.DB_PARAM);
-        self.testDBCreated = True;  # If error on above (e.g., database already exists), will have aborted with a database error before this
+        try:
+            DBUtil.createDatabase(medinfo.db.Env.DB_PARAM);
+            self.testDBCreated = True;  # If error on above (e.g., database already exists), will have aborted with a database error before this
+        except DBUtil.DB_CONNECTOR_MODULE.ProgrammingError, err:
+            # Error on database creation, probably because existing one already there
+            # Drop existing database if already there, but beware!
+            # Beware of accidentally dropping an existing production database! This may still be necessary to cleanup if accidentally left a test database instance behind
+            DBUtil.dropDatabase(medinfo.db.Env.DB_PARAM)    
+            DBUtil.createDatabase(medinfo.db.Env.DB_PARAM);
+            self.testDBCreated = True;  # If error on above (e.g., database already exists), will have aborted with a database error before this
 
     def tearDown(self):
         """Restore state after test finishes.  Subclass must call this parent method to actually use it.

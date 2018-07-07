@@ -11,9 +11,9 @@ CREATE TABLE IF NOT EXISTS clinical_item
     name TEXT NOT NULL, -- e.g. MED540151
     description TEXT,   -- e.g. Warfarin
     default_recommend INTEGER DEFAULT 1, -- whether to recommend in CDSS
-    item_count INTEGER, -- summary statistic of # occurrences ()
-    patient_count INTEGER, -- summary statistic of # of unique patients
-    encounter_count INTEGER, -- summary statistic of # of unique encounters
+    item_count DOUBLE PRECISION, -- summary statistic of # occurrences ()
+    patient_count DOUBLE PRECISION, -- summary statistic of # of unique patients
+    encounter_count DOUBLE PRECISION, -- summary statistic of # of unique encounters
     analysis_status INTEGER DEFAULT 1, -- should be in assocation analysis?
     outcome_interest INTEGER DEFAULT 0, -- could be outcome measure?
     CONSTRAINT clinical_item_pkey PRIMARY KEY (clinical_item_id),

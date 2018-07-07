@@ -20,16 +20,16 @@ from medinfo.cpoe.ItemRecommender import ItemAssociationRecommender, BaselineFre
 from medinfo.cpoe.analysis.RecommendationClassificationAnalysis import RecommendationClassificationAnalysis, AnalysisQuery;
 from medinfo.cpoe.analysis.PreparePatientItems import PreparePatientItems;
 
-from Util import BaseCPOETestAnalysis;
-
 TEST_ORDERSET_ID = -3;
 
-class TestRecommendationClassificationAnalysis(BaseCPOETestAnalysis):
+class TestRecommendationClassificationAnalysis(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
-        BaseCPOETestAnalysis.setUp(self);
+        DBTestCase.setUp(self);
         
         log.info("Populate the database with test data")
+        from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
         
         self.clinicalItemCategoryIdStrList = list();
         headers = ["clinical_item_category_id","default_recommend","source_table"];
@@ -184,7 +184,7 @@ class TestRecommendationClassificationAnalysis(BaseCPOETestAnalysis):
         DBUtil.execute("delete from clinical_item where clinical_item_id < 0");
         DBUtil.execute("delete from clinical_item_category where clinical_item_category_id in (%s)" % str.join(",", self.clinicalItemCategoryIdStrList) );
         
-        BaseCPOETestAnalysis.tearDown(self);
+        DBTestCase.tearDown(self);
 
     def test_recommenderAnalysis(self):
         # Run the recommender against the mock test data above and verify expected stats afterwards.

@@ -97,6 +97,12 @@ class ClinicalItemDataLoader:
                 DBUtil.runDBScript(schema_file)
 
     @staticmethod
+    def build_cpoeSim_psql_schemata():
+        schema_file_name = os.path.join(ClinicalItemDataLoader.fetch_clinical_item_dir(), "cpoeSim", "cpoeSim.sql");
+        schema_file = open(schema_file_name);
+        DBUtil.execute(schema_file.read());
+
+    @staticmethod
     def transform_STRIDE_source_table(stride_source_table):
         # Get module for doing data conversion.
         transformer = ClinicalItemDataLoader.STRIDE_TABLE_TRANSFORMER_MAP[stride_source_table]
@@ -952,7 +958,10 @@ if __name__=='__main__':
     parser = OptionParser(usage=usage_str)
     parser.add_option('-s', '--schemata', dest='build_schemata',
                         action='store_true', default=False,
-                        help='build STRIDE psql schemata')
+                        help='build clinical_item psql schemata')
+    parser.add_option('-S', '--simSchemata', dest='build_simSchemata',
+                        action='store_true', default=False,
+                        help='build clinical provider order entry simultation psql schemata')
     parser.add_option('-t', '--transform', dest='transform_stride_table',
                         metavar='<transform_stride_table>', default=False,
                         help='transform STRIDE tables to clinical_item tables')
@@ -970,6 +979,8 @@ if __name__=='__main__':
     # Handle command-line usage arguments.
     if options.build_schemata:
         ClinicalItemDataLoader.build_clinical_item_psql_schemata()
+    if options.build_simSchemata:
+        ClinicalItemDataLoader.build_cpoeSim_psql_schemata()
     elif options.transform_stride_table:
         ClinicalItemDataLoader.transform_STRIDE_source_table(options.transform_stride_table)
     elif options.delete_tables:

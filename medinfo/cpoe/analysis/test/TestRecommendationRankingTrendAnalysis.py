@@ -26,6 +26,8 @@ class TestRecommendationRankingTrendAnalysis(DBTestCase):
         DBTestCase.setUp(self);
         
         log.info("Populate the database with test data")
+        from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
         
         self.clinicalItemCategoryIdStrList = list();
         headers = ["clinical_item_category_id","source_table"];

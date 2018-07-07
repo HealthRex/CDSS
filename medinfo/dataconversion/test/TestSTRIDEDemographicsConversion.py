@@ -11,9 +11,8 @@ from Util import log;
 
 from medinfo.db.test.Util import DBTestCase;
 
-# Temporary demonstration examples. Should consolidate this into stride data package, and relabel to derived cpoeStats or clinicalItem (and then cpoeSim) tables
 from stride.core.StrideLoader import StrideLoader;
-from scripts.CDSS.CDSSDataLoader import CDSSDataLoader; 
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
 
 
 from medinfo.db import DBUtil
@@ -22,7 +21,6 @@ from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.dataconversion.STRIDEDemographicsConversion import STRIDEDemographicsConversion;
 
 TEST_SOURCE_TABLE = "stride_patient";
-TEMP_SOURCE_TABLE = "PreTest_patient";
 
 class TestSTRIDEDemographicsConversion(DBTestCase):
     def setUp(self):
@@ -31,11 +29,8 @@ class TestSTRIDEDemographicsConversion(DBTestCase):
         
         log.info("Populate the database with test data")
         StrideLoader.build_stride_psql_schemata()
-        CDSSDataLoader.build_CDSS_psql_schemata();
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
 
-        # Relabel any existing data to not interfere with the new test data that will be produced
-        DBUtil.execute("update clinical_item_category set source_table = '%s' where source_table = '%s';" % (TEMP_SOURCE_TABLE,TEST_SOURCE_TABLE) );
-    
         dataTextStr = \
 """pat_id\tdeath_date\tbirth_year\tgender\trace\tethnicity
 -100\tNone\t1958\tMALE\tAMERICAN INDIAN OR ALASKA NATIVE\tNON-HISPANIC/NON-LATINO
@@ -132,7 +127,6 @@ class TestSTRIDEDemographicsConversion(DBTestCase):
             """ % TEST_SOURCE_TABLE
         );
         DBUtil.execute("delete from clinical_item_category where source_table = '%s';" % TEST_SOURCE_TABLE);
-        DBUtil.execute("update clinical_item_category set source_table = '%s' where source_table = '%s';" % (TEST_SOURCE_TABLE,TEMP_SOURCE_TABLE) ); # Reset labels of any prior data
 
         query = SQLQuery();
         query.delete = True;
