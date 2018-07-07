@@ -83,6 +83,7 @@ class TestSTRIDEAccessLogConversion(DBTestCase):
         DBUtil.execute("drop table %s;" % TEST_SOURCE_TABLE);
         DBTestCase.tearDown(self);
 
+    ### Disable these tests for now, as they refer to a different (old) Access Log dataset that is not being actively used (JonC, 7/6/2018)
     # def test_dataConversion(self):
     #     # Run the data conversion on the same data and look for expected records
     #     log.debug("Run the conversion process...");

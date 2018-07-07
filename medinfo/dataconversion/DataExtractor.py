@@ -440,7 +440,7 @@ class DataExtractor:
         if outputFile is not None:   # Stream output to formatter to avoid keeping all results in memory
             formatter = TextResultsFormatter(outputFile);
 
-        colNames = ["pat_anon_id","flo_meas_id","flowsheet_name","flowsheet_value","shifted_record_dt_tm"];
+        colNames = ["pat_anon_id","flo_meas_id","flowsheet_name","flowsheet_value","shifted_dt_tm"];
 
         patientIdStrs = list();
         for patientId in patientIds:
@@ -453,7 +453,7 @@ class DataExtractor:
         query.addWhereIn("flowsheet_name", flowsheetNames );
         query.addWhereIn("pat_anon_id", patientIdStrs );
         query.addOrderBy("pat_anon_id");
-        query.addOrderBy("shifted_record_dt_tm");
+        query.addOrderBy("shifted_dt_tm");
 
         return DBUtil.execute( query, includeColumnNames=True, formatter=formatter );
 
@@ -676,21 +676,21 @@ class DataExtractor:
         return self.addResultFeatures_singlePatient(patientEpisodeByIndexTime, resultsByName, baseNames, "ord_num_value", "result_time", preTimeDelta, postTimeDelta);
 
     def parseFlowsheetFile(self, resultFile):
-        for result in self.parseResultsFile(resultFile, "pat_anon_id","flowsheet_name","flowsheet_value","shifted_record_dt_tm"):
+        for result in self.parseResultsFile(resultFile, "pat_anon_id","flowsheet_name","flowsheet_value","shifted_dt_tm"):
             yield result;
 
     def parseFlowsheetData(self, resultRowIter):
-        return self.parseResultsData(resultRowIter, "pat_anon_id","flowsheet_name","flowsheet_value","shifted_record_dt_tm");
+        return self.parseResultsData(resultRowIter, "pat_anon_id","flowsheet_name","flowsheet_value","shifted_dt_tm");
 
     def parseFlowsheetData_singlePatient(self, resultRowIter, patientId=None):
-        return self.parseResultsData_singlePatient(resultRowIter, "pat_anon_id","flowsheet_name","flowsheet_value","shifted_record_dt_tm", patientId);
+        return self.parseResultsData_singlePatient(resultRowIter, "pat_anon_id","flowsheet_name","flowsheet_value","shifted_dt_tm", patientId);
 
     def addFlowsheetFeatures(self, patientEpisodeByIndexTimeById, patientIdResultsByNameGenerator, baseNames, preTimeDelta, postTimeDelta, colNames):
         #log.info("Sort flowsheet by time for each patient and find items within specified time period to aggregate");
-        return self.addResultFeatures(patientEpisodeByIndexTimeById, patientIdResultsByNameGenerator, baseNames, "flowsheet_value","shifted_record_dt_tm",  preTimeDelta, postTimeDelta, colNames)
+        return self.addResultFeatures(patientEpisodeByIndexTimeById, patientIdResultsByNameGenerator, baseNames, "flowsheet_value","shifted_dt_tm",  preTimeDelta, postTimeDelta, colNames)
 
     def addFlowsheetFeatures_singlePatient(self, patientEpisodeByIndexTime, resultsByName, baseNames, preTimeDelta, postTimeDelta):
-        return self.addResultFeatures_singlePatient(patientEpisodeByIndexTime, resultsByName, baseNames, "flowsheet_value","shifted_record_dt_tm", preTimeDelta, postTimeDelta);
+        return self.addResultFeatures_singlePatient(patientEpisodeByIndexTime, resultsByName, baseNames, "flowsheet_value","shifted_dt_tm", preTimeDelta, postTimeDelta);
 
     def queryIVFluids(self, ivfMedIds, patientIds, outputFile):
         """Can get sets of IVFluid medication IDs from medinfo/dataconversion/mapdata/Medication.IVFluids.tab

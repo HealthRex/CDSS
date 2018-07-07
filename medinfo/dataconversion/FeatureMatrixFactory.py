@@ -579,7 +579,7 @@ class FeatureMatrixFactory:
         flowsheetResults = self._queryFlowsheetResultsByName(flowsheetBaseNames)
         resultsByNameByPatientId = self._parseResultsData(flowsheetResults, \
             "pat_id", "flowsheet_name", "flowsheet_value", \
-            "shifted_record_dt_tm")
+            "shifted_dt_tm")
 
         # Define how far in advance of each episode to look at lab results.
         preTimeDays = None
@@ -595,7 +595,7 @@ class FeatureMatrixFactory:
                                     resultsByNameByPatientId,
                                     flowsheetBaseNames,
                                     "flowsheet_value",
-                                    "shifted_record_dt_tm",
+                                    "shifted_dt_tm",
                                     preTimeDelta,
                                     postTimeDelta)
 
@@ -640,7 +640,7 @@ class FeatureMatrixFactory:
 
         # Build SQL query.
         colNames = ["pat_anon_id AS pat_id", "flo_meas_id", "flowsheet_name", \
-            "flowsheet_value", "shifted_record_dt_tm"]
+            "flowsheet_value", "shifted_dt_tm"]
         query = SQLQuery()
         for col in colNames:
             query.addSelect(col)
@@ -648,7 +648,7 @@ class FeatureMatrixFactory:
         query.addWhereIn("flowsheet_name", flowsheetBaseNames)
         query.addWhereIn("pat_anon_id", patientIds)
         query.addOrderBy("pat_anon_id")
-        query.addOrderBy("shifted_record_dt_tm")
+        query.addOrderBy("shifted_dt_tm")
         log.debug(query)
 
         # Execute query.

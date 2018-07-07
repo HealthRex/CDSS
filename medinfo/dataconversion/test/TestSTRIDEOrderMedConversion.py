@@ -10,6 +10,8 @@ from Const import RUNNER_VERBOSITY;
 from Util import log;
 
 from medinfo.db.test.Util import DBTestCase;
+from stride.core.StrideLoader import StrideLoader;
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
 
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel;
@@ -23,10 +25,9 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
 
-        # Relabel any existing data to not interfere with the new test data that will be produced
-        DBUtil.execute("update clinical_item_category set source_table = 'PreTest_order_med' where source_table = 'stride_order_med';");
-
         log.info("Populate the database with test data")
+        StrideLoader.build_stride_psql_schemata()
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
 
         self.orderMedIdStrList = list();
         headers = ["order_med_id", "pat_id", "pat_enc_csn_id", "ordering_date", "medication_id", "description","freq_name","med_route","number_of_doses"];
@@ -99,7 +100,7 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
             (dataItemId, isNew) = DBUtil.findOrInsertItem("stride_order_medmixinfo", dataModel, retrieveCol="order_med_id" );
 
         # Mapping table to simplify dose
-        headers = ["medication_id", "medication_name", "rxcui", "active_ingredient"];
+        headers = ["medication_id", "name", "rxcui", "active_ingredient"];
         dataModels = \
             [   # If multiple active ingredients in a combo, unravel to active components
                 RowItemModel( [ -96559, "PIPERACILLIN-TAZOBACTAM-DEXTRS 3.375 GRAM/50 ML IV PGBK", -1001, "Piperacillin"], headers ),
@@ -211,7 +212,6 @@ class TestSTRIDEOrderMedConversion(DBTestCase):
             """
         );
         DBUtil.execute("delete from clinical_item_category where source_table = 'stride_order_med';");
-        DBUtil.execute("update clinical_item_category set source_table = 'stride_order_med' where source_table = 'PreTest_order_med';"); # Reset labels of any prior data
 
         DBUtil.execute("delete from stride_orderset_order_med where order_med_id in (%s)" % str.join(",", self.orderMedIdStrList) );
         DBUtil.execute("delete from stride_mapped_meds where rxcui < 0");

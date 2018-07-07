@@ -10,6 +10,8 @@ from Const import RUNNER_VERBOSITY;
 from Util import log;
 
 from medinfo.db.test.Util import DBTestCase;
+from stride.core.StrideLoader import StrideLoader;
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
 
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel;
@@ -24,10 +26,9 @@ class TestSTRIDETreatmentTeamConversion(DBTestCase):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
         
-        # Relabel any existing data to not interfere with the new test data that will be produced
-        DBUtil.execute("update clinical_item_category set source_table = 'PreTest_treatment_team' where source_table = 'stride_treatment_team';");
-    
         log.info("Populate the database with test data")
+        StrideLoader.build_stride_psql_schemata()
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
 
         dataTextStr = \
 """stride_treatment_team_id\tpat_id\tpat_enc_csn_id\ttrtmnt_tm_begin_date\ttrtmnt_tm_end_date\ttreatment_team\tprov_name
@@ -330,7 +331,6 @@ class TestSTRIDETreatmentTeamConversion(DBTestCase):
             """
         );
         DBUtil.execute("delete from clinical_item_category where source_table = 'stride_treatment_team';");
-        DBUtil.execute("update clinical_item_category set source_table = 'stride_treatment_team' where source_table = 'PreTest_treatment_team';"); # Reset labels of any prior data
 
         DBUtil.execute("delete from stride_treatment_team where stride_treatment_team_id < 0");
 

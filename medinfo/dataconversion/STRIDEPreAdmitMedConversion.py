@@ -129,7 +129,7 @@ class STRIDEPreAdmitMedConversion:
             conn = self.connFactory.connection();
 
         # Column headers to query for that map to respective fields in analysis table
-        headers = ["medication_id","pat_anon_id","contact_date","medication_id","description","thera_class","pharm_class","pharm_subclass"];
+        headers = ["stride_preadmit_med_id","medication_id","pat_anon_id","contact_date","medication_id","description","thera_class","pharm_class","pharm_subclass"];
 
         query = SQLQuery();
         for header in headers:
@@ -304,7 +304,7 @@ class STRIDEPreAdmitMedConversion:
         # Produce a patient_item record model for the given sourceItem
         patientItem = \
             RowItemModel \
-            (   {   "external_id":  sourceItem["medication_id"],
+            (   {   "external_id":  sourceItem["stride_preadmit_med_id"],
                     "patient_id":  sourceItem["pat_anon_id"],
                     "encounter_id":  None,
                     "clinical_item_id":  clinicalItem["clinical_item_id"],

@@ -26,8 +26,11 @@ class TestPreparePatientItems(BaseCPOETestAnalysis):
     def setUp(self):
         """Prepare state for test cases"""
         BaseCPOETestAnalysis.setUp(self);
-        self.purgeTestRecords();
+
         log.info("Populate the database with test data")
+        from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
+        #self.purgeTestRecords();
         
         self.clinicalItemCategoryIdStrList = list();
         headers = ["clinical_item_category_id","default_recommend","source_table"];

@@ -11,6 +11,8 @@ from Util import log;
 from pprint import pprint
 
 from medinfo.db.test.Util import DBTestCase;
+from stride.core.StrideLoader import StrideLoader;
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
 
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel;
@@ -18,7 +20,6 @@ from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.dataconversion.STRIDEDxListConversion import STRIDEDxListConversion;
 
 TEST_SOURCE_TABLE = "stride_dx_list";
-TEMP_SOURCE_TABLE = "PreTest_dx_list";
 TEST_START_DATE = datetime(2100,1,1);   # Date in far future to start checking for test records to avoid including existing data in database
 
 class TestSTRIDEDxListConversion(DBTestCase):
@@ -27,9 +28,8 @@ class TestSTRIDEDxListConversion(DBTestCase):
         DBTestCase.setUp(self);
 
         log.info("Populate the database with test data")
-
-        # Relabel any existing data to not interfere with the new test data that will be produced
-        DBUtil.execute("update clinical_item_category set source_table = '%s' where source_table = '%s';" % (TEMP_SOURCE_TABLE,TEST_SOURCE_TABLE) );
+        StrideLoader.build_stride_psql_schemata()
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
 
         self.patientIdStrList = list();
         headers = ["pat_id","pat_enc_csn_id","noted_date","resolved_date","dx_icd9_code","dx_icd9_code_list","dx_icd10_code_list","data_source"];
@@ -118,7 +118,6 @@ class TestSTRIDEDxListConversion(DBTestCase):
             """ % TEST_SOURCE_TABLE
         );
         DBUtil.execute("delete from clinical_item_category where source_table = '%s';" % TEST_SOURCE_TABLE);
-        DBUtil.execute("update clinical_item_category set source_table = '%s' where source_table = '%s';" % (TEST_SOURCE_TABLE,TEMP_SOURCE_TABLE) ); # Reset labels of any prior data
 
         query = SQLQuery();
         query.delete = True;
