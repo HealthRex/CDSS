@@ -21,14 +21,12 @@ from medinfo.db.ResultsFormatter import TabDictReader;
 from medinfo.cpoe.TopicModel import TopicModel;
 from medinfo.cpoe.analysis.TopicModelAnalysis import TopicModelAnalysis;
 
-from Util import BaseCPOETestAnalysis;
-
 # Look for test files by module location
 import medinfo.cpoe.analysis.test;
 TEST_DIR = os.path.dirname(medinfo.cpoe.analysis.test.__file__);
 TEST_FILE_PREFIX = "TestTopicModel.model";
 
-class TestTopicModelAnalysis(BaseCPOETestAnalysis):
+class TestTopicModelAnalysis(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
