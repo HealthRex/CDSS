@@ -146,7 +146,7 @@ class MedInfoTestCase(unittest.TestCase):
             self.assertEqual(verifyItem, sampleItem)
         self.assertEqual(len(verifyList),len(sampleList), errorStr)
 
-    def assertAlmostEqualsList( self, verifyList, sampleList ):
+    def assertAlmostEqualsList( self, verifyList, sampleList, places=7 ):
         """Assumes the two parameters are each lists or tuples and
         does an "assertAlmostEqual" on each pair of items.
         Check item by item rather than whole list
@@ -155,9 +155,9 @@ class MedInfoTestCase(unittest.TestCase):
         errorStr  = "%d != %d\n" % (len(verifyList),len(sampleList));
         errorStr += str(sampleList);
 
-        self.assertEqual(len(verifyList),len(sampleList), errorStr)
+        self.assertEqual(len(verifyList),len(sampleList), errorStr);
         for verifyItem, sampleItem in zip(verifyList, sampleList):
-            self.assertAlmostEquals(verifyItem, sampleItem)
+            self.assertAlmostEquals(verifyItem, sampleItem, places);
 
 
     def assertEqualTable( self, verifyTable, sampleTable, precision=None ):
