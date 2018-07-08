@@ -4,7 +4,7 @@ Test suite for respective module in application package.
 """
 
 import datetime
-import os
+import sys, os
 import time
 import unittest
 
@@ -151,6 +151,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         for expectedPatientId in expectedPatientList:
             resultPatientId = resultPatientIterator.next()['pat_id']
             self.assertEqual(resultPatientId, expectedPatientId)
+        resultPatientIterator.close();
 
         # Build TSV file for list of patients.
         patientList = \
@@ -179,6 +180,7 @@ class TestFeatureMatrixFactory(DBTestCase):
             resultPatientId = resultPatientIterator.next()['patient_id']
             self.assertEqual(resultPatientId, expectedPatientId)
         patientListTsv.close();
+        resultPatientIterator.close();
 
         # Clean up patient_list.
         try:
@@ -396,7 +398,7 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiFlowsheet"]["expectedMatrix"]
-        self.assertEqualList(resultMatrix[2:], expectedMatrix)
+        self.assertEqualTable(resultMatrix[2:], expectedMatrix, precision=5);
 
         try:
             os.remove(self.factory.getMatrixFileName())
@@ -437,7 +439,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         self.factory.buildFeatureMatrix()
         resultMatrix = self.factory.readFeatureMatrixFile()
         expectedMatrix = FM_TEST_OUTPUT["test_addTimeCycleFeatures"]["expectedMatrix"]
-        self.assertEqualList(resultMatrix[2:], expectedMatrix)
+        self.assertEqualTable(resultMatrix[2:], expectedMatrix, precision=5);
 
         # Clean up feature matrix.
         try:
@@ -755,10 +757,11 @@ def suite():
     methods for the given class whose name starts with "test".
     """
     suite = unittest.TestSuite()
-    #suite.addTest(TestFeatureMatrixFactory("test_buildFeatureMatrix_multiClinicalItem"));
-    #suite.addTest(TestFeatureMatrixFactory("test_buildFeatureMatrix_prePostFeatures"));
+    #suite.addTest(TestFeatureMatrixFactory("test_addTimeCycleFeatures"));
+    #suite.addTest(TestFeatureMatrixFactory("test_buildFeatureMatrix_multiFlowsheet"));
     #suite.addTest(TestFeatureMatrixFactory("test_build_FeatureMatrix_multiLabTest"));
-    suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
+    suite.addTest(TestFeatureMatrixFactory("test_processPatientListInput"));
+    #suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
     return suite
 
 if __name__=="__main__":
