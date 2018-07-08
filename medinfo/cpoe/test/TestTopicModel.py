@@ -153,7 +153,7 @@ class TestTopicModel(DBTestCase):
                 expectedTFIDF = score * expectedDocCountByWordId[None] / expectedDocCountByWordId[itemId];
             
             #print >> sys.stderr, topicId, itemId, score, tfidf, expectedDocCountByWordId[itemId]
-            self.assertAlmostEqual(expectedTFIDF, tfidf);
+            self.assertAlmostEqual(expectedTFIDF, tfidf, places=5);
                 
             if topicId not in topScoreByItemIdByTopicId:
                 topScoreByItemIdByTopicId[topicId] = dict();
@@ -163,7 +163,7 @@ class TestTopicModel(DBTestCase):
 
         for topicId, topScoreByItemId in topScoreByItemIdByTopicId.iteritems():
             scoreByItemId = scoreByItemIdByTopicId[topicId];
-            self.assertAlmostEqualsDict( topScoreByItemId, scoreByItemId );
+            self.assertAlmostEqualsDict( topScoreByItemId, scoreByItemId, places=5 );
 
 def suite():
     """Returns the suite of tests to run for this test class / module.

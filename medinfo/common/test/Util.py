@@ -4,6 +4,7 @@ import logging
 import cgi, UserDict
 import unittest
 import re;
+import json;
 
 import medinfo.common.Util;
 from medinfo.common.Const import COMMENT_TAG, NULL_STRING;

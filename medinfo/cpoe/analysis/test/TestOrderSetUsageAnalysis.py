@@ -18,10 +18,7 @@ from medinfo.db.ResultsFormatter import TabDictReader;
 
 from medinfo.cpoe.analysis.OrderSetUsageAnalysis import OrderSetUsageAnalysis;
 
-from Util import BaseCPOETestAnalysis;
-
-
-class TestOrderSetUsageAnalysis(BaseCPOETestAnalysis):
+class TestOrderSetUsageAnalysis(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);

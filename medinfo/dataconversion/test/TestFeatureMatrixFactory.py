@@ -178,6 +178,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         for expectedPatientId in expectedPatientList:
             resultPatientId = resultPatientIterator.next()['patient_id']
             self.assertEqual(resultPatientId, expectedPatientId)
+        patientListTsv.close();
 
         # Clean up patient_list.
         try:

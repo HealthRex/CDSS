@@ -20,12 +20,10 @@ from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.cpoe.ItemRecommender import RecommenderQuery;
 from medinfo.cpoe.analysis.PreparePatientItems import PreparePatientItems, AnalysisQuery;
 
-from Util import BaseCPOETestAnalysis;
-
-class TestPreparePatientItems(BaseCPOETestAnalysis):
+class TestPreparePatientItems(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
-        BaseCPOETestAnalysis.setUp(self);
+        DBTestCase.setUp(self);
 
         log.info("Populate the database with test data")
         from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
@@ -231,7 +229,7 @@ class TestPreparePatientItems(BaseCPOETestAnalysis):
     def tearDown(self):
         """Restore state from any setUp or test steps"""
         self.purgeTestRecords();
-        BaseCPOETestAnalysis.tearDown(self);
+        DBTestCase.tearDown(self);
 
     def purgeTestRecords(self):
         log.info("Purge test records from the database")
