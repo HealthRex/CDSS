@@ -760,8 +760,9 @@ def suite():
     #suite.addTest(TestFeatureMatrixFactory("test_addTimeCycleFeatures"));
     #suite.addTest(TestFeatureMatrixFactory("test_buildFeatureMatrix_multiFlowsheet"));
     #suite.addTest(TestFeatureMatrixFactory("test_build_FeatureMatrix_multiLabTest"));
-    suite.addTest(TestFeatureMatrixFactory("test_processPatientListInput"));
-    #suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
+    #suite.addTest(TestFeatureMatrixFactory("test_processPatientListInput"));
+    #suite.addTest(TestFeatureMatrixFactory("test_buildFeatureMatrix_multiClinicalItem"));
+    suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
     return suite
 
 if __name__=="__main__":
