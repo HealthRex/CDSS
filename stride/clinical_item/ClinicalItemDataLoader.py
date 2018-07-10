@@ -130,7 +130,6 @@ class ClinicalItemDataLoader:
         ClinicalItemDataLoader.define_composite_clinical_items()
         ClinicalItemDataLoader.define_virtual_clinical_items()
         ClinicalItemDataLoader.add_clinical_item_synonyms()
-        ClinicalItemDataLoader.define_possible_clinical_outcomes()
 
     @staticmethod
     def selectively_deactivate_clinical_item_analysis():
@@ -386,7 +385,7 @@ class ClinicalItemDataLoader:
         # Composite certain outcome measures, for example, ICU interventions
         # (sub-categorization based on vasopressors).
 
-        # VASOACTIVE INFUSION
+        # VASOACTIVE INFUSION - Look for by name, though may be too broad if getting single small doses for peri-procedure or other purposes
         # Category = Med (Intravenous)
         intravenous_med_cic_id_query = \
             """
@@ -396,23 +395,20 @@ class ClinicalItemDataLoader:
             """
         results = DBUtil.execute(intravenous_med_cic_id_query)
         intravenous_med_cic_id = results[0][0]
-        #   clinical_item_category.description  name    description
-        #   Med (Intravenous)   RXCUI3616   Dobutamine*
-        #   Med (Intravenous)   RXCUI3628   Dopamine*
-        #   Med (Intravenous)   RXCUI3992   Epinephrine*
-        #   Med (Intravenous)   RXCUI7512   Norepinephrine*
-        #   Med (Intravenous)   RXCUI8163   Phenylephrine*
-        #   Med (Intravenous)   MED224819   VASOPRESSIN*
         vasoactive_infusion_id_query = \
             """
-            SELECT clinical_item_id
-            FROM clinical_item
-            WHERE
-                clinical_item_category_id = %s AND
-                name IN (
-                    'RXCUI3616', 'RXCUI3628', 'RXCUI3992', 'RXCUI7512',
-                    'RXCUI8163', 'MED224819'
-                );
+            select clinical_item_id
+            from clinical_item
+            where clinical_item_category_id = %s
+            and 
+            ( description ~* '^Dobutamine' or
+              description ~* '^Dopamine' or
+              description ~* '^Epinephrine' or
+              description ~* '^Norepinephrine' or
+              description ~* '^Phenylephrine' or
+              description ~* '^Vasopressin'
+            )
+            order by description
             """ % intravenous_med_cic_id
         results = DBUtil.execute(vasoactive_infusion_id_query)
         vasoactive_infusion_ci_ids = [result[0] for result in results]
@@ -432,27 +428,13 @@ class ClinicalItemDataLoader:
             """
         results = DBUtil.execute(crrt_cic_id_query)
         crrt_cic_id = results[0][0]
-        #   clinical_item_category.description  name    description
-        #   Med (CRRT)  MED205894   BICARB DIALY*
-        #   Med (CRRT)  RXCUI36676  Sodium Bicarbonate*
-        #   Med (CRRT)  RXCUI205894,36676   BICARB DIALY-Sodium Bicarbonate (CRRT)
-        #   Med (CRRT)  MED500028   CRRT*
-        #   Med (CRRT)  RXCUI9863   Sodium Chloride*
-        #   Med (CRRT)  RXCUI1908   Calcium Gluconate*
-        #   Med (CRRT)  RXCUI205894,11295   BICARB DIALY SOLN HEMODIAL SOLN-Water (CRRT)
-        #   Nursing NUR4084 CONT RENAL REPLACEMENT THERAPY
         crrt_ci_id_query = \
             """
             SELECT clinical_item_id
             FROM clinical_item
             WHERE
                 (
-                    clinical_item_category_id = %s AND
-                    name IN (
-                        'MED205894', 'RXCUI36676', 'RXCUI205894,36676',
-                        'MED500028', 'RXCUI9863', 'RXCUI1908',
-                        'RXCUI205894,11295'
-                    )
+                    clinical_item_category_id = %s
                 ) OR
                 (
                     name = 'NUR4084'
@@ -531,11 +513,13 @@ class ClinicalItemDataLoader:
             'ICU Life Support (Vasoactives, Ventilator, CRRT)', \
             procedures_cic_id)
 
+        
         # ICU CARE
         # Any ICU specific (or highly correlated) orders to capture events
         # occuring in the ICU, including other drips, nursing orders, etc.
         # Note that some medications have multiple multiple medications with
-        # the same name. Use the descrition to disambiguate.
+        # the same name. Use the description to disambiguate?
+        # Beware that this set of items is not reliable to correspond to the target due to variations in naming or categorization.
         med_none_cic_id_query = \
             """
             SELECT clinical_item_category_id
@@ -547,7 +531,7 @@ class ClinicalItemDataLoader:
         #   name    description
         #   MED530008	NITROPRUSSIDE IV INFUSION
         #   RXCUI8782	Propofol (Intravenous)
-        #   MED530025	DEXMEDETOMIDINE IV INFUSION
+        #   RXCUI48937	Dexmedetomidine (Intravenous)
         #   MED530004	MIDAZOLAM 50 MG IN D5W 100 ML IV INFUSION
         #   RXCUI8163	Phenylephrine (Intravenous)
         #   RXCUI114200	Citrate (Intravenous)
@@ -597,7 +581,7 @@ class ClinicalItemDataLoader:
                     description = 'NITROPRUSSIDE IV INFUSION'
                 ) OR
                 name IN (
-                    'RXCUI8782', 'MED530025', 'MED530004',
+                    'RXCUI8782', 'RXCUI48937', 'MED530004',
                     'RXCUI114200', 'MED530120', 'MED530007', 'RXCUI4177',
                     'MED520130', 'MED530009', 'MED530003', 'MED530111',
                     'MED530114', 'MED530050', 'MED530046', 'MED530112',
@@ -626,14 +610,17 @@ class ClinicalItemDataLoader:
         #   COD7	DNR/C
         #   COD5	DNR/DNE
         #   COD1	DNR/DNI
+        #   COD3    Partial Code    # Note that this is NOT being included in "AnyDNR"
         dnr_ci_id_query = \
             """
             SELECT clinical_item_id
             FROM clinical_item
             WHERE name IN (
                 'COD1', 'COD5', 'COD7'
-            );
-            """
+            ) AND
+            clinical_item_category_id = %s
+            ;
+            """ % code_status_cic_id;
         results = DBUtil.execute(dnr_ci_id_query)
         dnr_ci_ids = [result[0] for result in results]
         ClinicalItemDataLoader.build_composite_clinical_item(dnr_ci_ids, 'AnyDNR', \
@@ -651,19 +638,14 @@ class ClinicalItemDataLoader:
         # Composite admission orders
         #   name    description
         #   ADT1    ADMIT TO INPATIENT
-        #   ADT16	ADMIT POST SURGERY
         #   ADT1	ADMIT/PLACE PATIENT
         #   ADT100	ADMIT TO INPATIENT
+        #   ADT16   ADMIT POST SURGERY    # Not sure about this one. Looks like outpatient procedure in more recent labels
         admission_ci_id_query = \
             """
             SELECT clinical_item_id
             FROM clinical_item
-            WHERE
-                (
-                    name = 'ADT16' AND
-                    description = 'ADMIT POST SURGERY'
-                ) OR
-                name IN ('ADT1', 'ADT100');
+            WHERE name IN ('ADT1', 'ADT100');
             """
         results = DBUtil.execute(admission_ci_id_query)
         admission_ci_ids = [result[0] for result in results]
@@ -704,14 +686,12 @@ class ClinicalItemDataLoader:
                 clinical_item_category_id,
                 name,
                 description,
-                analysis_status,
-                outcome_interest
+                analysis_status
             )
             VALUES (
                 %s,
                 'READT',
                 'Readmission',
-                1,
                 1
             );
             """ % admission_cic_id
@@ -866,57 +846,6 @@ class ClinicalItemDataLoader:
             WHERE description ~* 'fresh frozen plasma';
             """
         DBUtil.execute(synonym_command)
-
-    @staticmethod
-    def define_possible_clinical_outcomes():
-        log.info('Defining possible clinical outcomes')
-        # Highlight items that may be of interest for outcome measures.
-        outcome_definition_command = \
-            """
-            UPDATE clinical_item
-            SET outcome_interest = 1
-            WHERE description IN (
-                'ADMIT POST SURGERY', 'ADMIT TO PHASE', 'ADMIT/PLACE PATIENT',
-                 'AMIODARONE INFUSION CENTRAL LINE ADMIN',
-                 'AMIODARONE INFUSION PERIPH ADMIN', 'AMIODARONE IVPB',
-                 'ARGATROBAN 1000 MCG/ML (250 ML) IV INFUSION',
-                 'ARTERIAL LINE', 'Amiodarone (Intravenous)',
-                 'Bicarb Dialys Soln #16 W/O Ca K (4 Meq/L) -Mg (1.5 Meq/L) Hemodial Soln (CRRT)',
-                 'Bicarb Dialys Soln No.8 W-O Ca K (2 Meq/L) -Mg (1 Meq/L) Hemodial Soln (CRRT)',
-                 'CALL DIALYSIS RN CAP/DRAIN CAPD', 'CAPD PERITONEAL DIALYSIS',
-                 'CAR CATH CORS POSSIBLE', 'CCPD  PERITONEAL DIALYSIS',
-                 'CENTRAL LINE', 'CENTRAL LINE CARE', 'COMFORT CARE MEASURES',
-                 'CONT RENAL REPLACEMENT THERAPY',
-                 'D5W WITH SODIUM BICARBONATE IV INFUSION',
-                 'DEXMEDETOMIDINE IV INFUSION', 'DIALYSIS ACCESS',
-                 'DIALYSIS CATHETER CARE', 'DIALYZE PATIENT',
-                 'DISCHARGE PATIENT', 'DISCHARGE PATIENT WHEN CRITERIA MET',
-                 'DNR', 'Death Date', 'Dobutamine (Intravenous)',
-                 'Dopamine (Intravenous)', 'EPINEPHRINE IV INFUSION',
-                 'Epinephrine (Intravenous)', 'Eptifibatide (Intravenous)',
-                 'Fentanyl (Intravenous)', 'HEMODIALYSIS',
-                 'HEMODIALYSIS WITH PUF', 'INSERT AIRWAY',
-                 'INTERAGENCY REFERRAL TO HOME HOSPICE', 'INTUBATION',
-                 'MIDAZOLAM IV INFUSION (CUSTOM)', 'Midazolam (Intravenous)',
-                 'Milrinone (Intravenous)', 'NITROPRUSSIDE IV INFUSION',
-                 'NON INVASIVE POSTIVE PRESS VENT BIPAP/CPAP',
-                 'NON-VIOLENT RESTRAINTS', 'NOREPINEPHRINE IV INFUSION',
-                 'Nitroglycerin (Intravenous)', 'OK TO USE CENTRAL LINE',
-                 'PARTIAL CODE', 'PATIENT TRANSPORT',
-                 'PHENYLEPHRINE IV INFUSION', 'PLACE IN OBSERVATION-CDU',
-                 'RESP - EXTUBATION',
-                 'RESP - LUNG PROTECTIVE VENTILATION PROTOCOL',
-                 'RESP - NON INVASIVE POS. PRESS VENT (BIPAP/CPAP)',
-                 'RESP - SPONTANEOUS BREATHING TRIAL',
-                 'RESP - VENTILATOR SETTINGS',
-                 'RESP - WEAN VENTILATOR',
-                 'RESP-CPAP/BIPAP FOR OBSTRUCTIVE SLEEP APNEA',
-                 'TRACHEOSTOMY  CARE', 'TRANSFER PATIENT',
-                 'TRANSFUSION EMERGENCY ISSUE',
-                 'VASOPRESSIN 1 UNIT/ML IV INFUSION'
-            );
-            """
-        DBUtil.execute(outcome_definition_command)
 
     @staticmethod
     def build_clinical_item_indices():
