@@ -1,11 +1,9 @@
 import datetime
 import numpy as np
-import pandas as pd
 import unittest
 from collections import defaultdict
 
-from scripts.LabTestAnalysis.lab_statistics.repeat_component_descriptive import RepeatComponents
-from medinfo.sequenceanalysis.SequenceAnalyzer import SequenceAnalyzer, utils
+from medinfo.sequenceanalysis.SequenceAnalyzer import SequenceAnalyzer
 
 class TestSequenceAnalyzer(unittest.TestCase):
 
@@ -155,7 +153,7 @@ class TestSequenceAnalyzer(unittest.TestCase):
       return row[0]
 
     def handle_sentinel_queue_fn(window_size, vars_dict, sentinel, row):
-      vars_dict['prior_history'] = bool(utils.get_day_difference(row[2], sentinel[2]) <= window_size)
+      vars_dict['prior_history'] = bool(row[2] - sentinel[2] <= window_size)
 
     # After running filter/pop queue, if results in empty queue, then do stuff here (reset prior_history record having no prior records within window / as opposed to an abnormal value being present before)
     def emptied_queue_handler_fn(window_size, vars_dict, row):
@@ -169,7 +167,7 @@ class TestSequenceAnalyzer(unittest.TestCase):
       else:
         # else set number_consecutive_normals as None
         number_consecutive_normals = None
-      return (window_size, number_consecutive_normals), 1
+      return (window_size.days, number_consecutive_normals), 1
 
     # Extract the datetime from a row, where datetime is in column 2
     def extract_datetime_fn(row):
@@ -195,7 +193,7 @@ class TestSequenceAnalyzer(unittest.TestCase):
     sequence_analyzer.handle_sentinel_queue(handle_sentinel_queue_fn)
 
     # Pop queue criteria, for example to remove items from head of queue as progress
-    sequence_analyzer.pop_queue(utils.get_day_difference, extract_datetime_fn, emptied_queue_handler_fn)
+    sequence_analyzer.pop_queue(extract_datetime_fn, emptied_queue_handler_fn)
 
     sequence_analyzer.extract_key_value(extract_key_value_fn)
 
@@ -207,7 +205,8 @@ class TestSequenceAnalyzer(unittest.TestCase):
     sequence_analyzer.build(2)
 
     global_stats = defaultdict(lambda: defaultdict(lambda: np.array([0, 0])))
-    window_sizes = [1, 2, 4, 7, 30, 90] # list of window sizes to evaluate
+    # window_sizes = [1, 2, 4, 7, 30, 90] # list of window sizes to evaluate
+    window_sizes = [datetime.timedelta(days=size) for size in [1, 2, 4, 7, 30, 90]] # list of window sizes to evaluate
 
     for base_name, results in data:
       counts = defaultdict(lambda: np.array([0, 0]))
@@ -225,9 +224,9 @@ class TestSequenceAnalyzer(unittest.TestCase):
         total_counts[k[0]] += v
       for window_size in window_sizes:
         # Set (1, 0) to (1, None)
-        counts[(window_size, 0)] = counts[(window_size, None)]
+        counts[(window_size.days, 0)] = counts[(window_size.days, None)]
         # Set (window_size, None) to the sum of calculated above
-        counts[(window_size, None)] = total_counts[window_size]
+        counts[(window_size.days, None)] = total_counts[window_size.days]
 
       for k, v in counts.iteritems():
         global_stats[base_name][k] += v

@@ -18,15 +18,15 @@ from medinfo.db.ResultsFormatter import TabDictReader;
 
 from medinfo.cpoe.analysis.OrderSetUsageAnalysis import OrderSetUsageAnalysis;
 
-from Util import BaseCPOETestAnalysis;
-
-
-class TestOrderSetUsageAnalysis(BaseCPOETestAnalysis):
+class TestOrderSetUsageAnalysis(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
-        self.purgeTestRecords();
+
         log.info("Populate the database with test data")
+        from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
+        #self.purgeTestRecords();
         
         headers = ["clinical_item_category_id","default_recommend","source_table"];
         dataModels = \

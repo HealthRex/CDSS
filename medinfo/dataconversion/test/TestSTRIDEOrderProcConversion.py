@@ -10,6 +10,8 @@ from Const import RUNNER_VERBOSITY;
 from Util import log;
 
 from medinfo.db.test.Util import DBTestCase;
+from stride.core.StrideLoader import StrideLoader;
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
 
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel;
@@ -24,9 +26,8 @@ class TestSTRIDEOrderProcConversion(DBTestCase):
         DBTestCase.setUp(self);
         
         log.info("Populate the database with test data")
-        
-        # Relabel any existing data to not interfere with the new test data that will be produced
-        DBUtil.execute("update clinical_item_category set source_table = 'PreTest_order_proc' where source_table = 'stride_order_proc';");
+        StrideLoader.build_stride_psql_schemata()
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
     
         self.orderProcIdStrList = list();
         headers = ["order_proc_id", "pat_id", "pat_enc_csn_id", "order_type", "proc_id", "proc_code", "description", "order_time", "instantiated_time","stand_interval"];
@@ -41,6 +42,7 @@ class TestSTRIDEOrderProcConversion(DBTestCase):
                 RowItemModel( [ -417843774, "2648748", 555, "Nursing", 1508, "NUR1068", "WEIGHT", "2111-12-08", None, "ONCE"], headers ),
                 RowItemModel( [ -419268931, "3039254", 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", "2112-01-04", None, "DAILY"], headers ),
                 RowItemModel( [ -419268231, "3039254", 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", "2112-01-04", "2112-01-06", "Q6H PRN"], headers ),  # Ignore instantiated / spawned child orders
+                RowItemModel( [ -419268937, "3039254", 666, "Lab", 9991721, "LABPTT", "PTT (PARTIAL THROMBOPLASTIN TIME)", "2112-01-05", None, "DAILY"], headers ), # Different proc_id, but same proc_Code. Treat like the same
                 RowItemModel( [ -419268935, "3039254", 777, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", "2112-01-04", "2112-01-07", "ONCE"], headers ),  #   Primarily only interested in the decision point with the original order
             ];
         for dataModel in dataModels:
@@ -107,7 +109,6 @@ class TestSTRIDEOrderProcConversion(DBTestCase):
             """
         );
         DBUtil.execute("delete from clinical_item_category where source_table = 'stride_order_proc';");
-        DBUtil.execute("update clinical_item_category set source_table = 'stride_order_proc' where source_table = 'PreTest_order_proc';"); # Reset labels of any prior data
 
         DBUtil.execute("delete from stride_orderset_order_proc where order_proc_id in (%s)" % str.join(",", self.orderProcIdStrList) );
         DBUtil.execute("delete from stride_order_proc where order_proc_id in (%s)" % str.join(",", self.orderProcIdStrList) );
@@ -145,6 +146,7 @@ class TestSTRIDEOrderProcConversion(DBTestCase):
         expectedData = \
             [
                 [ -419697343, 3042640, 222, "Point of Care Testing", 1001, "LABPOCGLU", "GLUCOSE BY METER", datetime(2112,01,13) ],
+                [ -419268937, 3039254, 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", datetime(2112,01,05) ],
                 [ -419268931, 3039254, 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", datetime(2112,01,04) ],
                 [ -418928388, -1612899, 333, "Point of Care Testing", 1001, "LABPOCGLU", "GLUCOSE BY METER", datetime(2111,12,28) ],
                 [ -418045499, 2087083, 444, "Nursing", 1428, "NUR1018", "MONITOR INTAKE AND OUTPUT", datetime(2111,12,11) ],

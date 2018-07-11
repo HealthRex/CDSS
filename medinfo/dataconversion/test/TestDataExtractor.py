@@ -12,6 +12,8 @@ import logging
 
 from medinfo.common.Const import NULL_STRING;
 from medinfo.db.test.Util import DBTestCase;
+from stride.core.StrideLoader import StrideLoader;
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
 
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel, modelListFromTable;
@@ -26,8 +28,10 @@ class TestDataExtractor(DBTestCase):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
 
-        self.purgeTestRecords();
         log.info("Populate the database with test data")
+        StrideLoader.build_stride_psql_schemata()
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
+        #self.purgeTestRecords();
 
         dataTextStr = \
 """clinical_item_category_id\tsource_table\tdescription
@@ -84,7 +88,7 @@ class TestDataExtractor(DBTestCase):
         DBUtil.insertFile( StringIO(dataTextStr), "stride_order_results", delim="\t", dateColFormats={"result_time": None} );
 
         dataTextStr = \
-"""pat_anon_id\tflo_meas_id\tflowsheet_name\tflowsheet_value\tshifted_record_dt_tm
+"""pat_anon_id\tflo_meas_id\tflowsheet_name\tflowsheet_value\tshifted_dt_tm
 -123\t-1\tFiO2\t0.2\t4/6/2009 6:36
 -123\t-1\tFiO2\t0\t4/6/2009 16:34
 -123\t-2\tGlasgow Coma Scale Score\t2.1\t4/6/2009 15:12
@@ -97,7 +101,7 @@ class TestDataExtractor(DBTestCase):
 -789\t-2\tGlasgow Coma Scale Score\t1\t4/6/2009 12:00
 -789\t-3\tBP_High_Systolic\t151\t5/6/2009 15:12
 """
-        DBUtil.insertFile( StringIO(dataTextStr), "stride_flowsheet", delim="\t", dateColFormats={"shifted_record_dt_tm": None} );
+        DBUtil.insertFile( StringIO(dataTextStr), "stride_flowsheet", delim="\t", dateColFormats={"shifted_dt_tm": None} );
 
         dataTextStr = \
 """order_med_id\tpat_id\tmedication_id\tdescription\tstart_taking_time\tend_taking_time\tfreq_name\tmin_discrete_dose\tmin_rate
@@ -645,7 +649,7 @@ class TestDataExtractor(DBTestCase):
             row["num_value"] = None;
             if row["flowsheet_value"] is not None and row["flowsheet_value"] != NULL_STRING:
                 row["num_value"] = float(row["flowsheet_value"]);
-            row["result_time"] = DBUtil.parseDateValue(row["shifted_record_dt_tm"]);
+            row["result_time"] = DBUtil.parseDateValue(row["shifted_dt_tm"]);
 
             #print >> sys.stderr, "%(pat_id)s, %(base_name)s, %(num_value)s, %(result_time)s" % row;
 
@@ -787,6 +791,7 @@ def suite():
     #suite.addTest(TestDataExtractor("test_generateDateRangeIndexTimes_repeatPatient"));
     #suite.addTest(TestDataExtractor('test_labResults_perPatient'));
     #suite.addTest(TestDataExtractor('test_labResults'));
+    #suite.addTest(TestDataExtractor('test_flowsheet'));
     #suite.addTest(TestDataExtractor('test_addTimeCycleFeatures'));
     suite.addTest(unittest.makeSuite(TestDataExtractor));
 

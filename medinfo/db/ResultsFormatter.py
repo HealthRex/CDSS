@@ -214,6 +214,7 @@ class TabDictReader(csv.DictReader):
     strip any flanking whitespace.
     """
     def __init__(self, f, fieldnames=None, restkey=None, restval=None, dialect=None, delimiter=None, *args, **kwds):
+        self.infile = f;
         self.commentLines = list(); # Track comment lines
         self.firstLine = None;  # Track the first non-comment line
         
@@ -224,6 +225,9 @@ class TabDictReader(csv.DictReader):
         lineGenerator = self.lineGenerator(f, delimiter);
         csv.DictReader.__init__(self, lineGenerator, fieldnames=fieldnames, restkey=restkey, restval=restval, dialect=dialect, delimiter=delimiter, *args, **kwds);
     
+    def close(self):
+        self.infile.close();
+
     def lineGenerator(self, f, delimiter):
         # Generator expression to drop lines that start with comment tag
         # http://stackoverflow.com/questions/14158868/python-skip-comment-lines-marked-with-in-csv-dictreader

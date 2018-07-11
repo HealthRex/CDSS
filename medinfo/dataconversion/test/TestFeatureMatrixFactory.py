@@ -4,7 +4,7 @@ Test suite for respective module in application package.
 """
 
 import datetime
-import os
+import sys, os
 import time
 import unittest
 
@@ -17,6 +17,8 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel, modelListFromTable
 from medinfo.db.ResultsFormatter import TextResultsFormatter
 from medinfo.db.test.Util import DBTestCase
+from stride.core.StrideLoader import StrideLoader;
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
 
 from Util import log
 
@@ -24,10 +26,14 @@ class TestFeatureMatrixFactory(DBTestCase):
     def setUp(self):
         """Prepare state for test cases."""
         DBTestCase.setUp(self)
+        StrideLoader.build_stride_psql_schemata()
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
+
         self._deleteTestRecords()
         self._insertTestRecords()
 
         self.factory = FeatureMatrixFactory()
+        self.connection = DBUtil.connection();  # Setup a common connection for test cases to work with, can catch in finally tearDown method to close/cleanup
 
     def _insertTestRecords(self):
         """Populate database for with patient data."""
@@ -60,7 +66,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         testRecords = FM_TEST_INPUT_TABLES.get("stride_flowsheet")
         DBUtil.insertFile(StringIO(testRecords), "stride_flowsheet", \
                             delim="\t", \
-                            dateColFormats={"shifted_record_dt_tm": None})
+                            dateColFormats={"shifted_dt_tm": None})
 
         # Populate stride_order_med.
         testRecords = FM_TEST_INPUT_TABLES.get("stride_order_med")
@@ -85,7 +91,6 @@ class TestFeatureMatrixFactory(DBTestCase):
     def tearDown(self):
         """Restore state from any setUp or test steps."""
         self._deleteTestRecords()
-        DBTestCase.tearDown(self)
 
         # Clean up files that might have lingered from failed tests.
         try:
@@ -105,6 +110,10 @@ class TestFeatureMatrixFactory(DBTestCase):
         except:
             pass
 
+        self.connection.close();
+
+        DBTestCase.tearDown(self)
+
     def test_dbCache(self):
         """Test database result caching."""
         factory = FeatureMatrixFactory(cacheDBResults=False)
@@ -121,8 +130,7 @@ class TestFeatureMatrixFactory(DBTestCase):
             self.factory.processPatientListInput()
 
         # Initialize DB cursor.
-        connection = DBUtil.connection()
-        cursor = connection.cursor()
+        cursor = self.connection.cursor()
 
         # Build SQL query for list of patients.
         patientListQuery = SQLQuery()
@@ -143,6 +151,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         for expectedPatientId in expectedPatientList:
             resultPatientId = resultPatientIterator.next()['pat_id']
             self.assertEqual(resultPatientId, expectedPatientId)
+        resultPatientIterator.close();
 
         # Build TSV file for list of patients.
         patientList = \
@@ -170,6 +179,8 @@ class TestFeatureMatrixFactory(DBTestCase):
         for expectedPatientId in expectedPatientList:
             resultPatientId = resultPatientIterator.next()['patient_id']
             self.assertEqual(resultPatientId, expectedPatientId)
+        patientListTsv.close();
+        resultPatientIterator.close();
 
         # Clean up patient_list.
         try:
@@ -185,8 +196,7 @@ class TestFeatureMatrixFactory(DBTestCase):
             self.factory.processPatientEpisodeInput()
 
         # Initialize DB cursor.
-        connection = DBUtil.connection()
-        cursor = connection.cursor()
+        cursor = self.connection.cursor()
 
         # Build SQL query for list of patient episodes.
         patientEpisodeQuery = SQLQuery()
@@ -226,11 +236,6 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         self.assertEqualList(resultMatrix[2:], expectedMatrix)
 
-        try:
-            os.remove(self.factory.getMatrixFileName())
-        except OSError:
-            pass
-
     def test_buildFeatureMatrix_prePostFeatures(self):
         """
         Test features parameter in addClinicalItemFeatures which allows
@@ -243,8 +248,7 @@ class TestFeatureMatrixFactory(DBTestCase):
             self.factory.processPatientEpisodeInput()
 
         # Initialize DB cursor.
-        connection = DBUtil.connection()
-        cursor = connection.cursor()
+        cursor = self.connection.cursor()
 
         # Build SQL query for list of patient episodes.
         patientEpisodeQuery = SQLQuery()
@@ -280,12 +284,6 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         self.assertEqualList(resultMatrix[2:], expectedMatrix)
 
-        try:
-            os.remove(self.factory.getMatrixFileName())
-        except OSError:
-            pass
-
-
     def test_build_FeatureMatrix_multiLabTest(self):
         """
         Test buildFeatureMatrix() and addLabFeatures().
@@ -299,8 +297,7 @@ class TestFeatureMatrixFactory(DBTestCase):
             self.factory.processPatientEpisodeInput()
 
         # Initialize DB cursor.
-        connection = DBUtil.connection()
-        cursor = connection.cursor()
+        cursor = self.connection.cursor()
 
         # Build SQL query for list of patient episodes.
         patientEpisodeQuery = SQLQuery()
@@ -342,7 +339,7 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiLabTest"]["expectedMatrix"]
-        self.assertEqualTable(resultMatrix[2:], expectedMatrix)
+        self.assertEqualTable(resultMatrix[2:], expectedMatrix, precision=5)
 
         try:
             os.remove(self.factory.getMatrixFileName())
@@ -359,8 +356,7 @@ class TestFeatureMatrixFactory(DBTestCase):
             self.factory.processPatientEpisodeInput()
 
         # Initialize DB cursor.
-        connection = DBUtil.connection()
-        cursor = connection.cursor()
+        cursor = self.connection.cursor()
 
         # Build SQL query for list of patient episodes.
         patientEpisodeQuery = SQLQuery()
@@ -402,7 +398,7 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiFlowsheet"]["expectedMatrix"]
-        self.assertEqualList(resultMatrix[2:], expectedMatrix)
+        self.assertEqualTable(resultMatrix[2:], expectedMatrix, precision=5);
 
         try:
             os.remove(self.factory.getMatrixFileName())
@@ -414,8 +410,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         Test .addTimeCycleFeatures()
         """
         # Initialize DB cursor.
-        connection = DBUtil.connection()
-        cursor = connection.cursor()
+        cursor = self.connection.cursor()
 
         # Build SQL query for list of patient episodes.
         patientEpisodeQuery = SQLQuery()
@@ -444,7 +439,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         self.factory.buildFeatureMatrix()
         resultMatrix = self.factory.readFeatureMatrixFile()
         expectedMatrix = FM_TEST_OUTPUT["test_addTimeCycleFeatures"]["expectedMatrix"]
-        self.assertEqualList(resultMatrix[2:], expectedMatrix)
+        self.assertEqualTable(resultMatrix[2:], expectedMatrix, precision=5);
 
         # Clean up feature matrix.
         try:
@@ -474,8 +469,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         Test performance against DataExtractor.
         """
         # Initialize DB cursor.
-        connection = DBUtil.connection()
-        cursor = connection.cursor()
+        cursor = self.connection.cursor()
 
         # Initialize FeatureMatrixFactory.
         factoryStart = time.time()
@@ -763,6 +757,11 @@ def suite():
     methods for the given class whose name starts with "test".
     """
     suite = unittest.TestSuite()
+    #suite.addTest(TestFeatureMatrixFactory("test_addTimeCycleFeatures"));
+    #suite.addTest(TestFeatureMatrixFactory("test_buildFeatureMatrix_multiFlowsheet"));
+    #suite.addTest(TestFeatureMatrixFactory("test_build_FeatureMatrix_multiLabTest"));
+    #suite.addTest(TestFeatureMatrixFactory("test_processPatientListInput"));
+    #suite.addTest(TestFeatureMatrixFactory("test_buildFeatureMatrix_multiClinicalItem"));
     suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
     return suite
 

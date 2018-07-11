@@ -9,17 +9,16 @@ import unittest
 from Const import RUNNER_VERBOSITY;
 from Util import log;
 
-from medinfo.db.test.Util import DBTestCase;
+from medinfo.common.test.Util import MedInfoTestCase;
 
-from medinfo.db import DBUtil
-from medinfo.db.Model import SQLQuery, RowItemModel, generatePlaceholders;
+from medinfo.db.Model import RowItemModel;
 
 from medinfo.dataconversion.ResidentScheduleFormat import ResidentScheduleFormat;
 
-class TestResidentScheduleFormat(DBTestCase):
+class TestResidentScheduleFormat(MedInfoTestCase):
     def setUp(self):
         """Prepare state for test cases"""
-        DBTestCase.setUp(self);
+        MedInfoTestCase.setUp(self);
 
         self.BASE_YEAR = 2013;  # Expected base/start year that the test data represents
 
@@ -66,7 +65,7 @@ class TestResidentScheduleFormat(DBTestCase):
 
     def tearDown(self):
         """Restore state from any setUp or test steps"""
-        DBTestCase.tearDown(self);
+        MedInfoTestCase.tearDown(self);
 
     def test_dataConversion(self):
         # Run the data conversion on the same data and look for expected records
