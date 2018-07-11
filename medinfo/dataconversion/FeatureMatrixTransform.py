@@ -196,6 +196,22 @@ class FeatureMatrixTransform:
         elif method == "interval":
             change_col = self._matrix.apply(self._interval_change, \
             args=(feature_old, feature_new, param), axis = 1)
+        elif method == "sd": #TODO (raikens): finish this
+            k = 300 #TODO (raikens): make this user-specified
+            n = self._matrix.shape[0]
+            if (n <= k):
+                raise ValueError("Not enough data to estimate sd")
+
+            # estimate sd from sample and drop sample rows
+            sample_rows = np.random.choice(n, k, replace = False)
+            sd = np.std(self._matrix.loc[sample_rows, feature_new], ddof = 1)
+            self._matrix.drop(sample_rows, inplace = True)
+            self._matrix.reset_index(drop=True, inplace = True)
+            margin = param*sd
+
+            change_col = self._matrix.apply(self._interval_change, \
+            args=(feature_old, feature_new, margin), axis = 1)
+
         else:
             raise ValueError("Must specify a supported method for change calculation")
 
@@ -204,7 +220,7 @@ class FeatureMatrixTransform:
         # change feature can be added.
         col_index = self._matrix.columns.get_loc(feature_new)
         self._matrix.insert(col_index + 1, "unchanged_yn", change_col)
-        return "unchange_yn"
+        return "unchanged_yn"
 
     def _is_numeric(self, x):
         try:

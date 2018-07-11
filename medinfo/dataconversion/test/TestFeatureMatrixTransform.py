@@ -4,6 +4,7 @@ from pandas.util.testing import assert_frame_equal
 from scipy.stats import powerlaw
 import unittest
 import numpy as np
+import sys
 
 from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import MedInfoTestCase, make_test_suite
@@ -139,6 +140,27 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
         # Verify feature addition.
         actual_matrix = self.fmt.fetch_matrix()
         assert_frame_equal(expected_matrix, actual_matrix)
+
+    """
+    add_change_feature with 'sd' is not meant to run on matrices smaller than 301
+    rows.  To run a test of this function, uncomment this test function and
+    set k = 3 in the body of add_change_feature in FeatureMatrixTransform.py
+    (normal value is 300).
+
+    def test_add_change_sd_feature(self):
+        # add change feature
+        np.random.seed(123)
+        sample = self.fmt.add_change_feature('sd', 0.5, 'patient_id', 'f2')
+
+        expected_matrix = MANUAL_FM_TEST_CASE['test_add_change_sd_feature']
+        cols = list(expected_matrix.columns)
+        cols.insert(2, cols.pop())
+        expected_matrix = expected_matrix[cols]
+
+        # Verify feature addition
+        actual_matrix = self.fmt.fetch_matrix()
+        assert_frame_equal(expected_matrix, actual_matrix)
+        """
 
     def test_zero_data_imputation(self):
         # Impute zero(f2).
