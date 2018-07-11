@@ -298,10 +298,10 @@ if __name__ == '__main__':
     log.level = logging.DEBUG
     labs_to_test = [argv[1]]
     change_params = {}
-    change_params['method'] = 'percent'
+    change_params['method'] = 'sd'
     change_params['feature_new'] = 'ord_num_value'
-    params_to_test = [0.4]
-    sample_size = 7183
+    params_to_test = [0.5]
+    sample_size = 12000
 
     for panel in labs_to_test:
         LabChangePredictionPipeline(change_params, panel, sample_size, use_cache=True, random_state=123456789, build_raw_only=True)
