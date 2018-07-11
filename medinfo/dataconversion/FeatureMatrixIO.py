@@ -16,8 +16,8 @@ class FeatureMatrixIO:
         if datetime_col_index is None:
             datetime_col_index = 1
         data_frame = read_csv(in_file_path, sep='\t', comment='#', \
-            parse_dates=[datetime_col_index], na_values=['None'], \
-            lineterminator='\n', dtype={'death_date': str})
+            parse_dates=[datetime_col_index], na_values=['None'], 
+            dtype={'death_date': str})
 
         return data_frame
 

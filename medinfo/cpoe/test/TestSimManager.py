@@ -20,6 +20,9 @@ class TestSimManager(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
+        from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
+        ClinicalItemDataLoader.build_cpoeSim_psql_schemata();
 
         self.testPatientId = None;
 
@@ -600,7 +603,7 @@ def suite():
     #suite.addTest(TestSimManager("test_compositeRelated"));
     #suite.addTest(TestSimManager("test_insertFile_skipErrors"));
     #suite.addTest(TestSimManager('test_executeIterator'));
-    #suite.addTest(TestSimManager('test_deactivateAnalysis'));
+    #suite.addTest(TestSimManager('test_stateTransition'));
     suite.addTest(unittest.makeSuite(TestSimManager));
 
     return suite;

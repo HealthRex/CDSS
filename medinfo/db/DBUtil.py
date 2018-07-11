@@ -178,6 +178,35 @@ def sequenceName( tableName ):
     pgSeqName = tableName[:29] + "_" + idCol[:29] + "_seq"
     return pgSeqName; #PostgreSQL auto generated object name for sequence
 
+def createDatabase( dbParams ):
+    """Create a database based on the DSN name specified in the dbParams.
+    Will likely require logging in first as the user-password specified in the dbParams.
+    """
+    # For PostgreSQL, have to connect to some database first before can create a new one. Connect to default "postgres" database to start.
+    defaultParams = dict(dbParams);
+    defaultParams["DSN"] = "postgres";
+    defaultConn = connection(defaultParams);
+    defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
+    try:
+        execute("CREATE DATABASE %s" % dbParams["DSN"], conn=defaultConn);
+    finally:
+        defaultConn.close();
+
+
+def dropDatabase( dbParams ):
+    """Drop the database specified by the DSN name specified in the dbParams.
+    Will likely require logging in first as the user-password specified.
+    """
+    # For PostgreSQL, cannot drop database while connected to it, so connect to default "postgres" database to start.
+    defaultParams = dict(dbParams);
+    defaultParams["DSN"] = "postgres";
+    defaultConn = connection(defaultParams);
+    defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
+    try:
+        execute("DROP DATABASE %s" % dbParams["DSN"], conn=defaultConn);
+    finally:
+        defaultConn.close();
+
 ###################################################
 #########  END  Database Specific Stuff ###########
 ###################################################

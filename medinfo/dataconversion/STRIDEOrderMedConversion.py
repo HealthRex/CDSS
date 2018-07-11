@@ -75,7 +75,7 @@ class STRIDEOrderMedConversion:
 
         finally:
             conn.close();
-        # progress.PrintStatus();
+        progress.PrintStatus();
 
 
     def loadRXCUIData(self, conn=None):
@@ -317,6 +317,10 @@ class STRIDEOrderMedConversion:
             if len(ingredientByRxcui) <= 1 or convOptions.normalizeMixtures:
                 # Single ingredient or want component active ingredients to each have one record
                 for (rxcui, ingredient) in ingredientByRxcui.iteritems():
+                    # ~250/15000 RxCUI's don't have a defined active ingredient.
+                    if ingredient is None:
+                        continue
+
                     normalizedModel = RowItemModel(rowModel);
                     normalizedModel["medication_id"] = rxcui;
                     normalizedModel["code"] = RXCUI_CODE_TEMPLATE % normalizedModel["medication_id"];
@@ -334,6 +338,9 @@ class STRIDEOrderMedConversion:
                 rxcuiStrList = list();
                 ingredientList = list();
                 for (ingredient, rxcui) in ingredientRxcuiList:
+                    # ~250/15000 RxCUI's don't have a defined active ingredient.
+                    if ingredient is None:
+                        continue
                     rxcuiStrList.append(str(rxcui));
                     ingredientList.append(ingredient.title());
                 rxcuiComposite = str.join(",", rxcuiStrList );
@@ -518,7 +525,7 @@ class STRIDEOrderMedConversion:
         parser.add_option("-e", "--endDate", dest="endDate", metavar="<endDate>",  help="Date string (e.g., 2011-12-15), if provided, will only run conversion on items with ordering time before this date.");
         parser.add_option("-n", "--normalizeMixtures", dest="normalizeMixtures", action="store_true",  help="If set, when find medication mixtures, will unravel / normalize into separate entries, one for each ingredient");
         parser.add_option("-m", "--maxMixtureCount", dest="maxMixtureCount", help="If not normalizing mixtures, then this is the maximum number of mixture components will itemize for a mixture.  If more than this, just use the summary label.");
-        parser.add_option("-d", "--doseCountLimit", dest="doseCountLimit", help="Medication orders with a finite number of doses specified less than this limit will be labeled as different items than those without a number specified, or whose number is >= to this limit.");
+        parser.add_option("-d", "--doseCountLimit", dest="doseCountLimit", help="Medication orders with a finite number of doses specified less than this limit will be labeled as different items than those without a number specified, or whose number is >= to this limit. Intended to distinguish things like IV single bolus / use vs. continuous infusions and standing medication orders");
         (options, args) = parser.parse_args(argv[1:])
 
         log.info("Starting: "+str.join(" ", argv))

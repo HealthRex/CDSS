@@ -12,7 +12,6 @@ import time;
 from optparse import OptionParser
 from cStringIO import StringIO;
 import json;
-import pylab;
 from scipy.stats import chi2;
 from medinfo.db.Model import columnFromModelList;
 from medinfo.common.Const import COMMENT_TAG;
@@ -104,8 +103,10 @@ class CalibrationPlot(BaseAnalysis):
             Eg = result["predictedOutcomes"];
             Ng = result["totalInstances"];
             PIg= result["predictedRate"];
-            hlStat += (Og-Eg)**2 / (Ng*PIg*(1-PIg));
-            g += 1;
+
+            if Ng > 0:  # Skip bins with no data
+                hlStat += (Og-Eg)**2 / (Ng*PIg*(1-PIg));
+                g += 1;
 
         degFreedom = g-2;
         hlP = 1 - chi2.cdf(hlStat, degFreedom);
@@ -115,6 +116,7 @@ class CalibrationPlot(BaseAnalysis):
     def generateFigure(self, calibrationResults, figureFilename=None):
         """Quickly generate an example visualization figure with pylab (matplotlib)
         """
+        import pylab;   # Only import dependency as needed
         predictedRates = columnFromModelList(calibrationResults,"predictedRate");
         observedRates = columnFromModelList(calibrationResults,"observedRate");
         instanceCounts = columnFromModelList(calibrationResults,"totalInstances");

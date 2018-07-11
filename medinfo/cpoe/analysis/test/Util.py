@@ -9,8 +9,6 @@ import json;
 from medinfo.common.Const import COMMENT_TAG, NULL_STRING;
 from medinfo.db.Model import SQLQuery, RowItemModel;
 
-from medinfo.analysis.test.Util import BaseTestAnalysis;
-
 import medinfo.cpoe.analysis.Util;
 
 
@@ -25,9 +23,3 @@ log.addHandler(handler)
 
 # Suppress uninteresting application output
 medinfo.cpoe.analysis.Util.log.setLevel(Const.APP_LOGGER_LEVEL)
-
-
-class BaseCPOETestAnalysis(BaseTestAnalysis):
-
-    def nofunction(self):
-        pass;

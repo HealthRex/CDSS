@@ -3,7 +3,6 @@
 Test suite for respective module in application package.
 """
 
-import networkx as nx
 import unittest
 
 from Const import RUNNER_VERBOSITY
@@ -13,11 +12,15 @@ from medinfo.dataconversion.EventDigraph import EventDigraph
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 from medinfo.db.test.Util import DBTestCase
+from stride.core.StrideLoader import StrideLoader;
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
 
 class TestEventDigraph(DBTestCase):
     def setUp(self):
         """Prepare state for test cases."""
         DBTestCase.setUp(self)
+        StrideLoader.build_stride_psql_schemata()
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
         self._deleteTestRecords()
         self._insertTestRecords()
 

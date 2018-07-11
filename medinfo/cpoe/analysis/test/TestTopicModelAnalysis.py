@@ -21,20 +21,20 @@ from medinfo.db.ResultsFormatter import TabDictReader;
 from medinfo.cpoe.TopicModel import TopicModel;
 from medinfo.cpoe.analysis.TopicModelAnalysis import TopicModelAnalysis;
 
-from Util import BaseCPOETestAnalysis;
-
 # Look for test files by module location
 import medinfo.cpoe.analysis.test;
 TEST_DIR = os.path.dirname(medinfo.cpoe.analysis.test.__file__);
 TEST_FILE_PREFIX = "TestTopicModel.model";
 
-class TestTopicModelAnalysis(BaseCPOETestAnalysis):
+class TestTopicModelAnalysis(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
-        self.purgeTestRecords();
         
         log.info("Populate the database with test data")
+        from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
+        ClinicalItemDataLoader.build_clinical_item_psql_schemata();
+        #self.purgeTestRecords();
         
         headers = ["clinical_item_category_id","source_table"];
         dataModels = \

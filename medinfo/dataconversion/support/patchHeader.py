@@ -22,7 +22,7 @@ sed -i '1 i order_proc_id\tpat_id\tpat_enc_csn_id\tordering_date\torder_type\tpr
 ## Example Usage:
 python patchHeader.py originalFile.txt headerFile.txt
 <<<Manually Edit headerFile.txt to desired header>>>
-python patchHEader.py originalFile.txt patchedFile.txt headerFile.txt
+python patchHeader.py originalFile.txt patchedFile.txt headerFile.txt
 """
 
 import sys;

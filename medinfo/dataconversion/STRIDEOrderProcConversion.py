@@ -27,6 +27,18 @@ class STRIDEOrderProcConversion:
 
     Consider Ignore PRN orders for now to simplify data set and focus on standing orders
         (but a small minority for these orders anyway)
+
+    Beware of usage of this module and how it accounts for new unique clinical_items (probably applies to all the conversion scripts)
+    # This should be what determines a new unique clinical_item. 
+    #   Some debate about whether to distinguish by proc_id or proc_code, but there are many labs and other procs 
+    #   that use different proc_ids even though they are obviously the same. Go link in STRIDE_ORDER_PROC for examples like LABA1C.
+    # The self.clinicalItemByCategoryIdExtId is supposed to keep track of which clinical_items we're already aware of, 
+    #   but not that it starts blank when this module runs. 
+    #   So you in theory should only run this conversion process on a database once 
+    #   (otherwise it will not be aware that a bunch of duplicate clinical_items already exist in the database). 
+    #   Alternatively, this module should be updated, so that it initializes this key tracker with whatever is already in the database.
+
+
     """
     def __init__(self):
         """Default constructor"""
@@ -54,7 +66,7 @@ class STRIDEOrderProcConversion:
                 progress.Update();
         finally:
             conn.close();
-        # progress.PrintStatus();
+        progress.PrintStatus();
 
 
     def querySourceItems(self, startDate=None, endDate=None, progress=None, conn=None):
@@ -148,7 +160,15 @@ class STRIDEOrderProcConversion:
 
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
-        clinicalItemKey = (category["clinical_item_category_id"], sourceItem["proc_id"]);
+        clinicalItemKey = (category["clinical_item_category_id"], sourceItem["proc_code"]); 
+        # This should be what determines a new unique clinical_item. 
+        #   Some debate about whether to distinguish by proc_id or proc_code, but there are many labs and other procs 
+        #   that use different proc_ids even though they are obviously the same. Go link in STRIDE_ORDER_PROC for examples like LABA1C.
+        # The self.clinicalItemByCategoryIdExtId is supposed to keep track of which clinical_items we're already aware of, 
+        #   but not that it starts blank when this module runs. 
+        #   So you in theory should only run this conversion process on a database once 
+        #   (otherwise it will not be aware that a bunch of duplicate clinical_items already exist in the database). 
+        #   Alternatively, this module should be updated, so that it initializes this key tracker with whatever is already in the database.
         if clinicalItemKey not in self.clinicalItemByCategoryIdExtId:
             # Clinical Item does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             clinicalItem = \
@@ -254,7 +274,8 @@ class STRIDEOrderProcConversion:
 
     def main(self, argv):
         """Main method, callable from command line"""
-        usageStr =  "usage: %prog [options]\n"
+        usageStr =  "usage: %prog [options]\n"+\
+            "Beware that this module is intended to be run only ONCE ever on a database. Currently will end up with duplicate clinical item keys if you try to run it in parallel or even serially."
         parser = OptionParser(usage=usageStr)
         parser.add_option("-s", "--startDate", dest="startDate", metavar="<startDate>",  help="Date string (e.g., 2011-12-15), if provided, will only run conversion on items with ordering time on or after this date.");
         parser.add_option("-e", "--endDate", dest="endDate", metavar="<endDate>",  help="Date string (e.g., 2011-12-15), if provided, will only run conversion on items with ordering time before this date.");
