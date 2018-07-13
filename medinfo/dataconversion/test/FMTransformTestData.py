@@ -223,6 +223,23 @@ MANUAL_FM_TEST_CASE = {
         'f3': [True, None, True, False, True, False, True, False, True],
         'f4': ['Foo', 'Bar', 'Baz', 'Foo', None, 'Baz', 'Foo', 'Bar', None]
     }),
+    # test_add_change_sd_feature: Add change(sd, 1, patient_id, f2)
+    'test_add_change_sd_feature': pd.DataFrame({
+        'patient_id': [2, 3, 1, 2, 1, 3],
+        'index_time': [
+            pd.Timestamp('2018-01-02 02:00:00'),
+            pd.Timestamp('2018-01-03 03:00:00'),
+            pd.Timestamp('2018-01-04 04:00:00'),
+            pd.Timestamp('2018-01-05 05:00:00'),
+            pd.Timestamp('2018-01-07 07:00:00'),
+            pd.Timestamp('2018-01-09 09:00:00')],
+        'output': ['Y', 'N', 'Y', 'N', 'N', 'Y'],
+        'f1': [200, 300, 400, 500, 700, 900],
+        'f2': [1.5, 2.0, None, 3.0, None, 5.0],
+        'unchanged_yn': [1, 0, 9999999, 0, 9999999, 0],
+        'f3': [None, True, False, True, True, True],
+        'f4': ['Bar', 'Baz', 'Foo', None, 'Foo', None]
+    }),
     # test_zero_data_imputation: Impute zero(f2).
     "test_zero_data_imputation": pd.DataFrame({
         'patient_id': [1, 2, 3, 1, 2, 3, 1, 2, 3],
