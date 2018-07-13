@@ -16,7 +16,7 @@ TOP_NON_PANEL_TESTS_BY_VOLUME = set([
     "LABCRP", "LABCK", "LABESRP", "LABNA", "LABFER",
     "LABUSPG", "LABB12", "LABURNA", "LABFT4", "LABFIB",
     "LABURIC", "LABPALB", "LABUOSM", "LABNH3", "LABUCR",
-    "LABTRIG", "LABFE", "LABALB", "LABUPREG", "LABHAP",
+    "LABTRIG", "LABFE", "LABALB", "LABUPREG", "LABHAP"
     # "LABNONGYN", # No base names.
 ])
 
@@ -42,7 +42,7 @@ NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
     'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH', 'LABUCR', 'LABUOSM',
     'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
 ]
-labs_to_test = ['LABPHOS', 'LABMGN']
+labs_to_test = ['LABCK']
 
 baseArgv = \
     ["python","LabChangePredictionPipeline.py"]

@@ -1,0 +1,146 @@
+---
+title: "Classifier Performance"
+author: "Rachael Caelie Aikens"
+date: "May 1, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_knit$set(root.dir = 'data')
+
+library(ggplot2)
+library(gridExtra)
+library(data.table)
+library(knitr)
+library(tidyr)
+library(dplyr)
+```
+
+# Functions for loading and preprocessing data
+
+
+
+```{r basic parameters of analysis}
+labs_done <- c("TNI", "PTT", "PHOS", "MGN", "LACWB", "HEPAR", "CRP", "K", "FER", "PLTS", "HCTX", "LIPS", "NTBNP")
+percents <- 1:5*10
+n_models <- 6
+```
+
+```{r functions to load data}
+# construct from filepath and load
+load_data <- function(lab, percents = 1:5, n_models = 6){
+  paths <- paste("LAB", lab, "/change_percent_0", percents/10, "/LAB", lab, "-change-prediction-report.tab",
+               sep = "")
+  report <- rbindlist(lapply(paths, read.csv,
+                             sep = "\t", 
+                             comment.char = "#",
+                             stringsAsFactors = FALSE))
+  return(report)
+}
+```
+
+```{r preprocessing functions}
+# parse dictionary string and return number of cases 
+get_n_cases <- function(y_dict){
+  str_list <- gsub('.{1}$', '', strsplit(y_dict, " ")[[1]])
+  case <- as.numeric(str_list[4])
+  return(case)
+}
+
+# parse dictionary string and return number of control
+get_n_controls <- function(y_dict){
+  str_list <- gsub('.{1}$', '', strsplit(y_dict, " ")[[1]])
+  control <- as.numeric(str_list[2])
+  return(control)
+}
+
+# preprocess raw loaded data
+preprocess_data <- function(report, lab, percents = 1:5, n_models = 6){
+  report$percent_change <-  rep(percents, each = n_models)
+  report$LAB <- lab
+  report$test_cases <- sapply(report$y_test.value_counts.., 
+                                        function(x) get_n_cases(x))
+  report$test_controls <- sapply(report$y_test.value_counts.., 
+                                        function(x) get_n_controls(x))
+  return(report)
+}
+
+# run load and preprocessing and return processed result data
+load_and_process <- function(lab, percents = 1:5, n_models = 6){
+  raw <- load_data(lab, percents, n_models)
+  return(preprocess_data(raw, lab, percents, n_models))
+}
+```
+
+# Analysis
+
+## One Lab
+
+Here is an example of analyses we could do for a single lab test.  Here, we use TNI
+
+```{r}
+full_report <- load_and_process("FER", percents)
+```
+
+```{r}
+report_summary <- full_report %>%
+  group_by(percent_change) %>%
+  summarize(max_roc = max(roc_auc),
+            max_percent_predictability = max(percent_predictably_positive),
+            test_cases = first(test_cases),
+            test_controls = first(test_controls))
+report_summary
+```
+
+```{r}
+ggplot(report_summary, aes(x = percent_change, y = max_roc)) + 
+  geom_line()+
+  labs(x = "Percent change threshold", y = "AU-ROC")
+```
+
+```{r}
+ggplot(report_summary, aes(x = percent_change, y = max_percent_predictability)) + 
+  geom_line() + 
+  geom_line(aes(x = percent_change, y = test_cases/(test_cases+test_controls)), linetype = "dashed") +
+  #geom_line(aes(x = percent_change, y = max_percent_predictability*test_cases/(test_cases+test_controls)), linetype = "dashed")+
+  labs(x = "Percent change threshold", y = "Percent predictibly positive")
+
+```
+
+# Many Labs
+
+```{r}
+full_data <- rbindlist(lapply(labs_done, load_and_process, percents = percents))
+```
+
+```{r}
+report_summary <- full_data %>%
+  group_by(percent_change, LAB) %>%
+  summarize(max_roc = max(roc_auc),
+            max_percent_predictability = max(percent_predictably_positive),
+            test_cases = first(test_cases),
+            test_controls = first(test_controls))
+```
+
+```{r}
+ggplot(report_summary, aes(x = percent_change, y = max_roc, group = LAB, color = LAB)) + 
+  geom_line()+
+  labs(x = "Percent change threshold", y = "AU-ROC")
+```
+
+```{r, figure.width = 3}
+ggplot(report_summary, aes(x = percent_change, y = max_percent_predictability, group = LAB, color = LAB)) + 
+  geom_line() + 
+  #geom_line(aes(x = percent_change, y = test_cases/(test_cases+test_controls)), linetype = "dashed") +
+  #geom_line(aes(x = percent_change, y = max_percent_predictability*test_cases/(test_cases+test_controls)), linetype = "dashed")+
+  labs(x = "Percent change threshold", y = "Percent predictibly positive")
+```
+```{r}
+ggplot(report_summary, aes(x = percent_change, y = test_cases/(test_cases+test_controls), group = LAB, color = LAB)) + 
+  geom_line() + 
+  #geom_line(aes(x = percent_change, y = test_cases/(test_cases+test_controls)), linetype = "dashed") +
+  #geom_line(aes(x = percent_change, y = max_percent_predictability*test_cases/(test_cases+test_controls)), linetype = "dashed")+
+  labs(x = "Percent change threshold", y = "Percent with label 1")
+```
+

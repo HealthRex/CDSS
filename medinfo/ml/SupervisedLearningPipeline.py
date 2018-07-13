@@ -253,6 +253,10 @@ class SupervisedLearningPipeline:
                 added_feature = fmt.add_change_feature(method, param, feature_old, feature_new)
                 self._added_features.append(added_feature)
 
+                # sd method discards 300 rows for measuring sd
+                if method == 'sd':
+                    self._num_rows = self._num_rows - 300
+
         log.debug('self._added_features: %s' % self._added_features)
 
     def _impute_data(self, fmt, raw_matrix, imputation_strategies):
