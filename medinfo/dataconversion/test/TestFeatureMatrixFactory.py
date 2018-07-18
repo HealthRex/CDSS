@@ -339,7 +339,7 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiLabTest"]["expectedMatrix"]
-        self.assertEqualTable(resultMatrix[2:], expectedMatrix, precision=5)
+        self.assertEqualTable(expectedMatrix, resultMatrix[2:], precision=5)
 
         try:
             os.remove(self.factory.getMatrixFileName())
@@ -398,7 +398,7 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         # Verify results.
         expectedMatrix = FM_TEST_OUTPUT["test_buildFeatureMatrix_multiFlowsheet"]["expectedMatrix"]
-        self.assertEqualTable(resultMatrix[2:], expectedMatrix, precision=5);
+        self.assertEqualTable(expectedMatrix, resultMatrix[2:], precision=5);
 
         try:
             os.remove(self.factory.getMatrixFileName())
@@ -439,7 +439,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         self.factory.buildFeatureMatrix()
         resultMatrix = self.factory.readFeatureMatrixFile()
         expectedMatrix = FM_TEST_OUTPUT["test_addTimeCycleFeatures"]["expectedMatrix"]
-        self.assertEqualTable(resultMatrix[2:], expectedMatrix, precision=5);
+        self.assertEqualTable(expectedMatrix, resultMatrix[2:], precision=5);
 
         # Clean up feature matrix.
         try:
