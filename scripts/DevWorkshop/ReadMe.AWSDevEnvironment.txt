@@ -15,6 +15,7 @@ Amazon Web Services and Development Environment Setup
 - Account on Amazon Web Services (use shared lab account via LastPass or you can setup a free one)
 
 == Workshop Steps ==
+- Login to the AWS Management Console and then find the respective service section (e.g., EC2 or RDS)
 
 === Version A - Starting from blank EC2 Linux Server and Connecting to a separate RDS (Database) Server ===
 (This is worth going through to learn how the different parts connect, but many will find it more convenient to just load up an EC2 Linux instance that already has a database locally installed. Skip to Version B for notes.)
@@ -101,7 +102,7 @@ Amazon Web Services and Development Environment Setup
 		- stride-inpatient-2008-2014-postgresql - Will already have a local PostgreSQL database installed with deidentified STRIDE inpatient data from 2008-2014
 		- stride-inpatient-2008-2017-postgresql - Should be a superset of the above, updating dataset up to 2017
 	- Additional Configuration and Connection Steps
-		Subsequent steps should all basically be the same as above notes, except for "Add Storage" there already be a default Root volume (100GB or larger) that includes the locally installed database.
+		See above for the basic configuration steps, which should all basically be the same, except for "Add Storage" there already be a default Root volume (100GB or larger) that includes the locally installed database.
 
 	- Pre-Installed Server Setup
 		Once the EC2 server is started / restored and you're able to connect to it, you should find several things already there
