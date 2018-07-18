@@ -109,7 +109,7 @@ Amazon Web Services and Development Environment Setup
 		~/CDSS/LocalEnv.py should already have the connection parameters to the local database.
 		~/.bash_profile should already have some auto-startup configurations to point the PYTHONPATH to the code directory and ensure the local PostgreSQL database service is running.
 
-		Depending upon your needs, you may still need to install or update some additional library dependencies with yum or pip or other package manager.
+		Depending upon your needs, you may still need to install or update some additional library dependencies with yum or pip or other package manager (e.g., `sudo yum install XXX` or `sudo python -m pip install XXX`).
 
 == Testing and Running (Batch) Processes ==
 On EC2 Linux Server:
