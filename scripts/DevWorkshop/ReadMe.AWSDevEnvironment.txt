@@ -19,7 +19,8 @@ Amazon Web Services and Development Environment Setup
 - Login to the AWS Management Console and then find the respective service section (e.g., EC2 or RDS)
 
 === Version A - Starting from blank EC2 Linux Server and Connecting to a separate RDS (Database) Server ===
-(This is worth going through to learn how the different parts connect, but many will find it more convenient to just load up an EC2 Linux instance that already has a database locally installed. Skip to Version B for notes.)
+(This is worth going through to learn how the different parts connect, but many will find it more convenient to just 
+load up an EC2 Linux instance that already has a database locally installed. Skip to Version B in that case.)
 
 - Startup / Restore an RDS (Relational Database Server) Instance
 	Under Snapshots section, find a copy of the database server you want to clone
