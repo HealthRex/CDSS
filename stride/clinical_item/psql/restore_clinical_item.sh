@@ -21,13 +21,4 @@ gzip -d -c collection_type.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c item_collection_item.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c patient_item_collection_link.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
 gzip -d -c order_result_stat.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
-
-
-# Existing PostgreSQL Table Level Dumps do not restore indexes (only table constraints)?
-#	May need to add indexes and then recreate the table dumps
-psql -h $DB_HOST -U $DB_USER -f indices/clinical_item.indices.sql $DB_DSN
-psql -h $DB_HOST -U $DB_USER -f indices/clinical_item_association.indices.sql $DB_DSN
-psql -h $DB_HOST -U $DB_USER -f indices/clinical_item_category.indices.sql $DB_DSN
-psql -h $DB_HOST -U $DB_USER -f indices/item_collection_item.indices.sql $DB_DSN
-psql -h $DB_HOST -U $DB_USER -f indices/patient_item.indices.sql $DB_DSN
-psql -h $DB_HOST -U $DB_USER -f indices/patient_item_collection_link.indices.sql $DB_DSN
+gzip -d -c data_cache.schema.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN
