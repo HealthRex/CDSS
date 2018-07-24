@@ -63,6 +63,7 @@ preprocess_data <- function(report, lab, percents = 1:5, n_models = 6){
                                         function(x) get_n_cases(x))
   report$test_controls <- sapply(report$y_test.value_counts.., 
                                         function(x) get_n_controls(x))
+  report$proportion_unchanged <- report$test_cases/(report$test_cases + report$test_controls)
   return(report)
 }
 
@@ -77,36 +78,47 @@ load_and_process <- function(lab, percents = 1:5, n_models = 6){
 
 ## One Lab
 
-Here is an example of analyses we could do for a single lab test.  Here, we use TNI
+Here is an example of analyses we could do for a single lab test.  Here, we use FER
 
 ```{r}
-full_report <- load_and_process("FER", percents)
+one_report <- load_and_process("FER", percents)
 ```
 
 ```{r}
-report_summary <- full_report %>%
+report_summary_example <- one_report %>%
   group_by(percent_change) %>%
   summarize(max_roc = max(roc_auc),
             max_percent_predictability = max(percent_predictably_positive),
             test_cases = first(test_cases),
-            test_controls = first(test_controls))
-report_summary
+            test_controls = first(test_controls),
+            proportion_unchanged = first(proportion_unchanged))
+report_summary_example
 ```
 
 ```{r}
-ggplot(report_summary, aes(x = percent_change, y = max_roc)) + 
+ggplot(report_summary_example, aes(x = percent_change, y = max_roc)) + 
   geom_line()+
   labs(x = "Percent change threshold", y = "AU-ROC")
 ```
 
 ```{r}
-ggplot(report_summary, aes(x = percent_change, y = max_percent_predictability)) + 
+ggplot(report_summary_example, aes(x = percent_change, y = max_percent_predictability)) + 
   geom_line() + 
-  geom_line(aes(x = percent_change, y = test_cases/(test_cases+test_controls)), linetype = "dashed") +
+  geom_line(aes(x = percent_change, y = proportion_unchanged), linetype = "dashed") +
   #geom_line(aes(x = percent_change, y = max_percent_predictability*test_cases/(test_cases+test_controls)), linetype = "dashed")+
   labs(x = "Percent change threshold", y = "Percent predictibly positive")
-
 ```
+
+## Percent of labs that are stable
+
+An interesting sub-result that we can find is that many repeat lab tests are actually quite close to their original value.
+
+```{r}
+ggplot(report_summary_example,  aes(percent_change, proportion_unchanged))+
+  geom_col(fill = "steelblue3")+
+  labs(x = "Percent change threshold", y = "Proportion unchanged")
+```
+
 
 # Many Labs
 
@@ -120,8 +132,19 @@ report_summary <- full_data %>%
   summarize(max_roc = max(roc_auc),
             max_percent_predictability = max(percent_predictably_positive),
             test_cases = first(test_cases),
-            test_controls = first(test_controls))
+            test_controls = first(test_controls),
+            proportion_unchanged = first(proportion_unchanged))
 ```
+
+First, we can check how many lab tests are unchanged from the previous measurement, for any given percent threshold.
+
+```{r}
+ggplot(report_summary %>% filter(percent_change == 10) ,
+       aes(reorder(LAB, -proportion_unchanged), proportion_unchanged)) +
+  geom_col(fill = "steelblue3") +
+  labs(x = "Lab test code", y = "Proportion of repeat tests \nwithin 10% of previous measurement")
+```
+
 
 ```{r}
 ggplot(report_summary, aes(x = percent_change, y = max_roc, group = LAB, color = LAB)) + 
