@@ -8,17 +8,20 @@ Pivot Charts - Pivot Tables - Quick Data Manipulation and Visualization in Excel
 - Excel Pivot Tables and Pivot Charts
 - Raster vs. Vector Graphics
 
-
 == Preconditions ==
 - Microsoft Excel installed (or your preferred data manipulation environment)
+- Review the Difference between "Wide" vs. "Long" Data Formats
+  https://sejdemyr.github.io/r-tutorials/basics/wide-and-long/
 
 == Workshop Steps ==
 - Download and review Figure 1a and 2a from the linked paper to see an example of what we're trying to reproduce
 https://informaticssummit2018.zerista.com/event/member/470474
 
 - Create a new blank Excel Workbook
-- Copy sampleData/labConsecutiveNormalStats.tsv and sampleData/labBaseDisplayNameLookup.tsv 
-(Tab-separated files, like CSV, but with tabs) to Excel worksheet(s). Be sure to use the first row.
+- Copy
+  [sampleData/labConsecutiveNormalStats.tsv](https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/sampleData/labConsecutiveNormalStats.tsv) and
+  [sampleData/labBaseDisplayNameLookup.tsv](https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/sampleData/labBaseDisplayNameLookup.tsv)
+  (Tab-separated files, like CSV, but with tabs) to Excel worksheet(s). Be sure to use the first row.
 
 - Apply "Freeze Panes" to the Top Row, so that the data will still be visible under the header row, even if scroll down
 
@@ -30,8 +33,6 @@ https://informaticssummit2018.zerista.com/event/member/470474
 
 - Select all of the columns of potential interest in the primary data table, and create a new Pivot Chart 
   (Which necessarily creates a respective Pivot Table)
-  Among other things, this makes it very easy to summarize long (relational) format data into groups and charts
-  http://www.cookbook-r.com/Manipulating_data/Converting_data_between_wide_and_long_format/
 
 - Drag-and-Drop the columns of interest into different filters, x-axis, y-axis, and value fields in the PivotTable/Chart
 - Try different chart types to visualize (will almost always be column/bar and line)
