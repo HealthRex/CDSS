@@ -1,0 +1,202 @@
+Mortality OR Readmission Predictor: given a patient's demographic data, initial vital signs, past medical history, lab tests, and other relevant covariates collected between encountering the physician, we predict the patient's probability of dying (within 30 days of admission) or being readmitted (within 30 days of discharge)
+
+```{r}
+# Load in required libraries
+library(caret)
+library(ggplot2)
+library(dplyr)
+library(mice)
+library(Matching)
+library(tableone)
+require(reshape2)
+Sys.setenv(TZ='UTC')  
+  
+###################################
+### Read and format data frames ###
+###################################
+print("Reading and formatting data frames...")
+  
+# Read tab-delimited input using header row labels and interpret Python None strings as R NA values
+df_raw = tbl_df(read.csv("/Users/jwang/Desktop/Results/2008-2009_patient_feature_matrix.csv",header=TRUE,sep=",",na.strings="None", stringsAsFactors=FALSE));
+
+# Convert T/F = 1/0 (Columns labeled under binary_columns)
+for (col_id in c(22:49)) {
+  df_raw[,col_id] <- factor(ifelse(df_raw[,col_id]=="True", 1, 0))
+}
+
+# Condense dataframe
+columns_of_interest = c(1, 6:51, 56) # id, relevant covariates, label columns
+df_raw <- df_raw[,columns_of_interest]
+
+# Ensure legitimate variable names
+colnames(df_raw) <- make.names(colnames(df_raw))
+
+###################
+### Missingness ###
+###################
+
+# Remove features with too much NA/missing data (by manual inspection)
+df_raw = df_raw[,c(1:3,6:48)]
+
+# Remove lab tests to reduce bias: columns 7-15 in df
+for (i in 7:15) {
+  ratio_na = sum(is.na(df_raw[,i]))/dim(df_raw)[1]
+  print(colnames(df_raw)[i])
+  print(ratio_na)
+}
+
+# Remove urine, column 7 (missingness > 20%)
+df_raw = df_raw[,c(1:6, 8:46)]
+
+# Impute the remaining NA values: predictive mean imputation
+md.pattern(df_raw);
+md_data <- mice(df_raw,m=1,maxit=5,meth='pmm',seed=500);
+df <- complete(md_data,1);
+```
+
+```{r}
+# Split into training and test/validation set
+label_column <- dim(df)[2]
+id_column <- 1
+df[,label_column] <- factor(ifelse(df[,label_column]=="yes", 1, 0))
+
+Train <- createDataPartition(df$readmission_or_death_30, p=0.6, list=FALSE)
+training <- df[Train, c(-id_column)]
+testing <- df[-Train, c(-id_column)]
+
+# Train + evaluate via 10-folds cross-validation (just 2008-2009 data)
+# glm.fit <- glm(death ~., data=training, family=binomial(link='logit'))
+ctrl <- trainControl(method = "repeatedcv", number = 10, savePredictions = TRUE)
+glm.fit <- train(readmission_or_death_30 ~., data=training, method="glm", family="binomial", trControl = ctrl, tuneLength = 5)
+glm.fit$results
+
+pred = predict(glm.fit, newdata=testing)
+confusionMatrix(data=pred, testing$readmission_or_death_30)
+
+# Evalution via ROC analysis (just 2008-2009 data)
+library(ROCR)
+# Compute AUC for predicting death with the model
+prob <- predict(glm.fit, newdata=testing, type="prob")
+
+# Convert prob into binary label
+# prob_binned <- factor(ifelse(prob$`1`>0.5, 1, 0))
+  
+pred <- prediction(as.numeric(prob[,2]), as.numeric(testing$readmission_or_death_30))
+perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+plot(perf)
+auc <- performance(pred, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+
+# Caveat: test set is predominantly composed of "survived individuals"
+length(which(testing$readmission_or_death_30 == 1))/length(testing$readmission_or_death_30)
+
+```
+
+```{r}
+####################################################
+### Mortality/Readmission Probs for 2010 Onwards ###
+####################################################
+
+# 30-day mortality or readmission
+
+# When applying the model to 2010 onwards, we use ALL of 2008-2009 data to train
+label_column <- dim(df)[2]
+training <- df[, c(-id_column)]
+
+# Train + evaluate via 10-folds cross-validation
+ctrl <- trainControl(method = "repeatedcv", number = 10, savePredictions = TRUE)
+glm.fit <- train(readmission_or_death_30 ~., data=training, method="glm", family="binomial", trControl = ctrl, tuneLength = 5)
+glm.fit$results
+
+##############################
+### Load in 2010-2013 data ###
+##############################
+df_raw_10_13 = tbl_df(read.csv("/Users/jwang/Desktop/Results/2010-2013_patient_feature_matrix.csv",header=TRUE,sep=",",na.strings="None", stringsAsFactors=FALSE));
+
+# Convert T/F = 1/0 (Columns labeled under binary_columns)
+for (col_id in c(22:49)) {
+  df_raw_10_13[,col_id] <- factor(ifelse(df_raw_10_13[,col_id]=="True", 1, 0))
+}
+
+# Condense dataframe
+columns_of_interest = c(1, 6:51, 56) # id, relevant covariates, label columns
+df_raw_10_13 <- df_raw_10_13[,columns_of_interest]
+
+# Ensure legitimate variable names
+colnames(df_raw_10_13) <- make.names(colnames(df_raw_10_13))
+
+###################
+### Missingness ###
+###################
+
+# Remove features with too much NA/missing data (by manual inspection)
+df_raw_10_13 = df_raw_10_13[,c(1:3,6:48)]
+
+# Remove lab tests to reduce bias: columns 7-15 in df
+for (i in 7:15) {
+  ratio_na = sum(is.na(df_raw[,i]))/dim(df_raw)[1]
+  print(colnames(df_raw)[i])
+  print(ratio_na)
+}
+
+# Remove urine (missingness > 20%)
+df_raw_10_13 = df_raw_10_13[,c(1:6, 8:46)]
+
+# Impute the remaining NA values: predictive mean imputation
+md.pattern(df_raw_10_13);
+md_data <- mice(df_raw_10_13,m=1,maxit=5,meth='pmm',seed=500);
+df_10_13 <- complete(md_data,1);
+
+################################
+### Compute Sickness Metrics ###
+################################
+label_column <- dim(df_10_13)[2]
+df_10_13[,label_column] <- factor(ifelse(df_10_13[,label_column]=="yes", 1, 0))
+testing <- df_10_13[, c(-id_column)]
+pred = predict(glm.fit, newdata=testing)
+cm <- confusionMatrix(data=pred, testing$readmission_or_death_30)
+cm
+# sensitivity = TPR, specificity = TNR
+
+# Compute AUC for predicting death with the model
+prob <- predict(glm.fit, newdata=testing, type="prob")
+
+# Convert prob into binary label
+# prob_binned <- factor(ifelse(prob$`1`>0.5, 1, 0))
+  
+pred <- prediction(as.numeric(prob[,2]), as.numeric(testing$readmission_or_death_30))
+perf <- performance(pred, measure = "tpr", x.measure = "fpr")
+plot(perf)
+auc <- performance(pred, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+
+# Caveat: test set is predominantly composed of "survived individuals"
+length(which(testing$readmission_or_death_30 == 1))/length(testing$readmission_or_death_30)
+
+# Save sickness metrics to CSV file
+mortality_or_readmission_probs = data.frame(df_10_13$normalized_patient_id, prob$`1`)
+write.table(mortality_or_readmission_probs, file="/Users/jwang/Desktop/Results/mortality_or_readmission_probs.csv", sep=",")
+
+```
+
+```{r}
+####################
+### Overlap Plot ###
+####################
+
+require(car)
+death_prob <- prob$`1`
+died <- which(testing$readmission_or_death_30 == 1)
+died_prob <- death_prob[died]
+survived_prob <- death_prob[-died]
+
+print("Plotting overlap...")
+# note that logit = log(p/(1-p))
+logit_died <- as.numeric(logit(died_prob))
+logit_survived <- as.numeric(logit(survived_prob))
+histdata <- data.frame(rbind.data.frame(cbind.data.frame(logit=logit_died,label="logit_died_30"), cbind.data.frame(logit=logit_survived,label="logit_healthy_30")))
+plot <- ggplot(histdata, aes(x=logit, fill=label)) + geom_histogram(alpha=0.2, position="identity")
+print(plot)
+```
