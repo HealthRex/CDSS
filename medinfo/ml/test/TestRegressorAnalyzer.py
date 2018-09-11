@@ -51,7 +51,7 @@ class TestRegressorAnalyzer(MedInfoTestCase):
     def test_score_accuracy(self):
         # Compute accuracy.
         expected_accuracy = RANDOM_REGRESSION_TEST_CASE['accuracy']
-        actual_accuracy = self._analyzer.score()
+        actual_accuracy = self._analyzer.score(metric=RegressorAnalyzer.ACCURACY_SCORE)
 
         self.assertEqual(expected_accuracy, actual_accuracy)
 
