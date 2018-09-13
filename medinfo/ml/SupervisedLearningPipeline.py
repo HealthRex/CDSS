@@ -448,12 +448,15 @@ class SupervisedLearningPipeline:
         analyzer = ClassifierAnalyzer(self._predictor, self._X_test, self._y_test)
 
         # Build names for output plots and report.
+        direct_comparisons_name = '%s-direct-compare-results.csv' % pipeline_prefix
         precision_at_k_plot_name = '%s-precision-at-k-plot.png' % pipeline_prefix
         precision_recall_plot_name = '%s-precision-recall-plot.png' % pipeline_prefix
         roc_plot_name = '%s-roc-plot.png' % pipeline_prefix
         report_name = '%s-report.tab' % pipeline_prefix
 
         # Build paths.
+        direct_comparisons_path = '/'.join([dest_dir, direct_comparisons_name])
+        log.debug('direct_comparisons_path: %s' % direct_comparisons_path)
         precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
         log.debug('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
         precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
@@ -469,6 +472,7 @@ class SupervisedLearningPipeline:
         precision_at_k_plot_title = 'Precision @K (%s)' % pipeline_prefix
 
         # Write output.
+        analyzer.output_direct_comparisons(direct_comparisons_path)
         analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
         analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
         analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)

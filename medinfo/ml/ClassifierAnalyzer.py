@@ -273,6 +273,13 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         plt.savefig(dest_path)
         plt.close()
 
+    def output_direct_comparisons(self, dest_path):
+        actual_reindex = self._y_test.reset_index(drop=True)
+        predict_reindex = self._y_pred_prob.reset_index(drop=True)
+        direct_comparisons = actual_reindex.join(predict_reindex)
+        direct_comparisons.columns = ['actual', 'predict']
+        direct_comparisons.to_csv(dest_path)
+
     def compute_roc_curve(self):
         return roc_curve(self._y_test, self._y_pred_prob)
 
