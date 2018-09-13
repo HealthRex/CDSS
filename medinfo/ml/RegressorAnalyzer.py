@@ -15,15 +15,25 @@ class RegressorAnalyzer(PredictorAnalyzer):
     MEAN_ABSOLUTE_ERROR_SCORE = 'mean_absolute_error'
     EXPLAINED_VARIANCE_SCORE = 'explained_variance'
     SUPPORTED_SCORES = [
-        ACCURACY_SCORE, EXPLAINED_VARIANCE_SCORE,
-        MEAN_ABSOLUTE_ERROR_SCORE, MEDIAN_ABSOLUTE_ERROR_SCORE, R2_SCORE
+        ACCURACY_SCORE, EXPLAINED_VARIANCE_SCORE, MEAN_ABSOLUTE_ERROR_SCORE,
+        MEDIAN_ABSOLUTE_ERROR_SCORE, R2_SCORE
     ]
 
     def __init__(self, regressor, X_test, y_test):
         PredictorAnalyzer.__init__(self, regressor, X_test, y_test)
 
     def _score_accuracy(self):
-        return PredictorAnalyzer._score_accuracy(self)
+        equality_df = (self._y_predicted[0] == self._y_test['true'])
+        # If all false...return 0
+        if 'True' not in equality_df.value_counts():
+            return 0
+        # if all true...return 1
+        elif 'False' not in equality_df.value_counts():
+            return 1.0
+        else:
+            equal_count = equality_df.value_counts()[True]
+            unequal_count = equality_df.value_counts()[False]
+            return (equal_count/(equal_count + unequal_count))
 
     def _score_r2(self):
         return r2_score(self._y_test, self._y_predicted)
@@ -39,7 +49,7 @@ class RegressorAnalyzer(PredictorAnalyzer):
 
     def score(self, metric=None):
         if metric is None:
-            metric = RegressorAnalyzer.ACCURACY_SCORE
+            metric = RegressorAnalyzer.MEAN_ABSOLUTE_ERROR_SCORE
 
         if metric not in RegressorAnalyzer.SUPPORTED_SCORES:
             raise ValueError('Score metric %s not supported.' % metric)
