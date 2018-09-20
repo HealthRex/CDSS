@@ -62,6 +62,11 @@ If you don't want to have to keep entering in your PostgreSQL password at the co
 A small tip if you are running the restore_XXX.sh scripts on Mac Terminal: Be sure to take care of the linebreakers ^M that were generated in DOS (?), otherwise you get error message like "" to address: nodename nor servname provided, or not known."
 One way to manage this is (1) Use vim to open the .sh file and input ":e ++ff=unix" to make all ^M visible. (2) Input ":%s/^M//g" to delete ^M globally.
 
+Second, edit the database variables in `stride/psql/restore_clinical_item.sh`
+Then run the script in the same directory as the dump files (e.g., `bash restore_clinical_item`).
+
+Note: If you are in the Box folder stride_2008_2017/data/medinfo_2008_2017, there should be a copy of both `restore_stride.sh` and `restore_clinical_item` in there already.
+
 ## Querying STRIDE
 
 To get a better sense of the type of data contained within the STRIDE
