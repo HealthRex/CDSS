@@ -217,7 +217,7 @@ class FeatureMatrixFactory:
 
         return patientEpisodeByIndexTimeById
 
-    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None, features=None):
+    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None, features=None, is_item_component=False):
         """
         Query patient_item for the clinical item orders and results for each
         patient, and aggregate by episode timestamp.
@@ -230,7 +230,10 @@ class FeatureMatrixFactory:
         if not self.patientsProcessed:
             raise ValueError("Must process patients before clinical item.")
 
-        clinicalItemEvents = self._queryClinicalItemsByName(clinicalItemNames, column=column, operator=operator)
+        if not is_item_component:
+            clinicalItemEvents = self._queryClinicalItemsByName(clinicalItemNames, column=column, operator=operator)
+        else:
+            clinicalItemEvents = self._queryComponentItemsByName(clinicalItemNames, column=column, operator=operator)
         itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
 
         # Read clinical item features to temp file.
@@ -301,6 +304,31 @@ class FeatureMatrixFactory:
             return list()
 
         return self.queryClinicalItems(clinicalItemIds)
+
+    def _queryComponentItemsByName(self, clinicalItemNames, column=None, operator=None):
+        # """
+        # Query ComponentItemInput for all item times for all patients.
+        #
+        # Done by directly querying the stride_order_XXX tables,
+        # without using pre-assembled tables like clinical_item.
+        # Might do this in the future to boost efficiency.
+        # """
+
+        query = SQLQuery()
+        query.addSelect('CAST(pat_id AS BIGINT)')
+        query.addSelect('order_time')
+        query.addFrom('stride_order_proc AS sop')
+        query.addFrom('stride_order_results AS sor')
+        query.addWhere('sop.order_proc_id = sor.order_proc_id')
+        query.addWhereIn("base_name", clinicalItemNames)
+        query.addGroupBy('pat_id')
+        query.addGroupBy('order_time')
+        query.addOrderBy('pat_id')
+        query.addOrderBy('order_time')
+
+        results = DBUtil.execute(query)
+        componentItemEvents = [row for row in results]
+        return componentItemEvents
 
     def _queryClinicalItemsByCategory(self, categoryIds):
         """
@@ -501,6 +529,9 @@ class FeatureMatrixFactory:
             raise ValueError("Must process patients before lab result.")
 
         # Open temp file.
+        # For multi-component labels, the first element becomes None
+        labNames = [x for x in labNames if x is not None]
+
         if len(labNames) > 1:
             resultLabel = "-".join([labName for labName in labNames])[:64]
         else:
