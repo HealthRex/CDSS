@@ -342,6 +342,11 @@ class SupervisedLearningPipeline:
             self._X_test = fs.transform_matrix(self._X_test)
             if feature not in self._X_test:
                 self._X_test = self._X_test.merge(kept_X_test_feature, left_index=True, right_index=True)
+        else:
+        # Even if there is no feature to keep, still need to
+        # perform transform_matrix to drop most low-rank features
+            self._X_train = fs.transform_matrix(self._X_train)
+            self._X_test = fs.transform_matrix(self._X_test)
 
     def _build_processed_matrix_header(self, params):
         # FeatureMatrixFactory and FeatureMatrixIO expect a list of strings.
@@ -448,12 +453,15 @@ class SupervisedLearningPipeline:
         analyzer = ClassifierAnalyzer(self._predictor, self._X_test, self._y_test)
 
         # Build names for output plots and report.
+        direct_comparisons_name = '%s-direct-compare-results.csv' % pipeline_prefix
         precision_at_k_plot_name = '%s-precision-at-k-plot.png' % pipeline_prefix
         precision_recall_plot_name = '%s-precision-recall-plot.png' % pipeline_prefix
         roc_plot_name = '%s-roc-plot.png' % pipeline_prefix
         report_name = '%s-report.tab' % pipeline_prefix
 
         # Build paths.
+        direct_comparisons_path = '/'.join([dest_dir, direct_comparisons_name])
+        log.debug('direct_comparisons_path: %s' % direct_comparisons_path)
         precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
         log.debug('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
         precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
@@ -469,7 +477,45 @@ class SupervisedLearningPipeline:
         precision_at_k_plot_title = 'Precision @K (%s)' % pipeline_prefix
 
         # Write output.
+        analyzer.output_direct_comparisons(direct_comparisons_path)
         analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
         analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
         analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
         analyzer.write_report(report_path, ci=0.95)
+
+
+    # sx
+    def _analyze_predictor_traindata(self, dest_dir, pipeline_prefix):
+        analyzer = ClassifierAnalyzer(self._predictor, self._X_train, self._y_train)
+        train_label = 'traindata'
+
+        # Build names for output plots and report.
+        direct_comparisons_name = '%s-direct-compare-results-%s.csv' % (pipeline_prefix, train_label)
+        precision_at_k_plot_name = '%s-precision-at-k-plot-%s.png' % (pipeline_prefix, train_label)
+        precision_recall_plot_name = '%s-precision-recall-plot-%s.png' % (pipeline_prefix, train_label)
+        roc_plot_name = '%s-roc-plot-%s.png' % (pipeline_prefix, train_label)
+        report_name = '%s-report-%s.tab' % (pipeline_prefix, train_label)
+
+        # Build paths.
+        direct_comparisons_path = '/'.join([dest_dir, direct_comparisons_name])
+        log.debug('direct_comparisons_path: %s' % direct_comparisons_path)
+        precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
+        log.debug('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
+        precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
+        log.debug('precision_recall_plot_path: %s' % precision_recall_plot_path)
+        roc_plot_path = '/'.join([dest_dir, roc_plot_name])
+        log.debug('roc_plot_path: %s' % roc_plot_path)
+        report_path = '/'.join([dest_dir, report_name])
+        log.debug('report_path: %s' % report_path)
+
+        # Build plot titles.
+        roc_plot_title = 'ROC (%s)' % pipeline_prefix
+        precision_recall_plot_title = 'Precision-Recall (%s)' % pipeline_prefix
+        precision_at_k_plot_title = 'Precision @K (%s)' % pipeline_prefix
+
+        # Write output.
+        analyzer.output_direct_comparisons(direct_comparisons_path)
+        # analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
+        # analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
+        # analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
+        # analyzer.write_report(report_path, ci=0.95)
