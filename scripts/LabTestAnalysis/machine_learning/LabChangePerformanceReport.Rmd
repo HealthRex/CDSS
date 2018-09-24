@@ -15,25 +15,46 @@ library(data.table)
 library(knitr)
 library(tidyr)
 library(dplyr)
+library(grid)
+library(ggpubr)
+library(RColorBrewer)
+library(scales)
 ```
 
 # Functions for loading and preprocessing data
 
-
-
 ```{r basic parameters of analysis}
-labs_done <- c("TNI", "PTT", "PHOS", "MGN", "LACWB", "HEPAR", "CRP", "K", "FER", "PLTS", "HCTX", "LIPS", "NTBNP")
-percents <- 1:5*10
+labs_done_percent <- c("TNI", "CK", "PTT", "PHOS", "MGN", "LACWB", "HEPAR", "CRP", "K", "FER", "PLTS", "HCTX", "LIPS", "NTBNP", "TSH")
+labs_done_sd <- c("A1C", "CK", "TNI", "PTT", "PHOS", "MGN", "HEPAR", "CRP",  "FER", "PLTS", "LIPS", "NTBNP", "TSH", "USPG", "LACWB")
+
+labs_done_percent <- intersect(labs_done_percent, labs_done_sd)
+labs_done_sd <- intersect(labs_done_percent, labs_done_sd)
+
+full_lab_names <- paste("LAB", union(labs_done_percent, labs_done_sd), sep = "")
+
+# upload Component map
+component_map <- read.csv("../LabResultMap.tab", sep = "\t") %>%
+  filter(proc_code %in% full_lab_names) %>%
+  group_by(proc_code) %>%
+  summarize(description = first(description))
+
+# rename to lower case
+component_map$description <- c("Creatinine kinase", "C-reactive protein", "Ferritin", "Heparin Activity",
+                               "Lactate, whole blood", "Lipase", "Magnesium, serum/plasma", "NT-PROBNP",
+                               "Phospherous serum/plasma", "Platelet count", "Partial Throboplastin Time",
+                               "Troponin I", "Thyroid Stimulating Hormone")
+
+params <- 1:5*10
 n_models <- 6
 ```
 
 ```{r functions to load data}
 # construct from filepath and load
-load_data <- function(lab, percents = 1:5, n_models = 6){
-  paths <- paste("LAB", lab, "/change_percent_0", percents/10, "/LAB", lab, "-change-prediction-report.tab",
+load_data <- function(lab, params = 1:5*10, n_models = 6, change_def = "percent"){
+  paths <- paste("LAB", lab, "/change_", change_def,"_0", params/10, "/LAB", lab, "-change-prediction-report.tab",
                sep = "")
   report <- rbindlist(lapply(paths, read.csv,
-                             sep = "\t", 
+                             sep = "\t",
                              comment.char = "#",
                              stringsAsFactors = FALSE))
   return(report)
@@ -41,7 +62,7 @@ load_data <- function(lab, percents = 1:5, n_models = 6){
 ```
 
 ```{r preprocessing functions}
-# parse dictionary string and return number of cases 
+# parse dictionary string and return number of cases
 get_n_cases <- function(y_dict){
   str_list <- gsub('.{1}$', '', strsplit(y_dict, " ")[[1]])
   case <- as.numeric(str_list[4])
@@ -56,91 +77,302 @@ get_n_controls <- function(y_dict){
 }
 
 # preprocess raw loaded data
-preprocess_data <- function(report, lab, percents = 1:5, n_models = 6){
-  report$percent_change <-  rep(percents, each = n_models)
+preprocess_data <- function(report, lab, params = 1:5*10, n_models = 6, comp_map = component_map){
+  report$change_param <-  sort(rep(params, each = n_models))
   report$LAB <- lab
-  report$test_cases <- sapply(report$y_test.value_counts.., 
+  report$test_cases <- sapply(report$y_test.value_counts..,
                                         function(x) get_n_cases(x))
-  report$test_controls <- sapply(report$y_test.value_counts.., 
+  report$test_controls <- sapply(report$y_test.value_counts..,
                                         function(x) get_n_controls(x))
-  return(report)
+  report$proportion_unchanged <- report$test_cases/(report$test_cases + report$test_controls)
+  report$proc_code <- paste("LAB", report$LAB, sep = "")
+  result <- left_join(report, comp_map, by = "proc_code") %>% select(-proc_code)
+  return(result)
 }
 
 # run load and preprocessing and return processed result data
-load_and_process <- function(lab, percents = 1:5, n_models = 6){
-  raw <- load_data(lab, percents, n_models)
-  return(preprocess_data(raw, lab, percents, n_models))
+load_and_process <- function(lab, params = 1:5*10, n_models = 6, change_def = "percent"){
+  raw <- load_data(lab, params, n_models, change_def)
+  return(preprocess_data(raw, lab, params, n_models))
 }
 ```
 
 # Analysis
 
-## One Lab
-
-Here is an example of analyses we could do for a single lab test.  Here, we use TNI
+## Many Labs
 
 ```{r}
-full_report <- load_and_process("FER", percents)
+full_data_percent <- rbindlist(lapply(labs_done_percent, load_and_process, params = params, change_def = "percent"))
+full_data_sd <- rbindlist(lapply(labs_done_sd, load_and_process, params = params, change_def = "sd")) %>%
+  mutate(change_param = change_param/100)
 ```
 
 ```{r}
-report_summary <- full_report %>%
-  group_by(percent_change) %>%
+summarize_group_report <- function(full_data){
+  result <- full_data %>%
+  group_by(change_param, LAB) %>%
   summarize(max_roc = max(roc_auc),
+            max_roc_lowCI = nth(roc_auc_0.95_lower_ci, which.max(roc_auc)),
+            max_roc_highCI = nth(roc_auc_0.95_upper_ci, which.max(roc_auc)),
             max_percent_predictability = max(percent_predictably_positive),
+            max_pp_lowCI = nth(percent_predictably_positive_0.95_lower_ci,
+                               which.max(percent_predictably_positive)),
+            max_pp_highCI = nth(percent_predictably_positive_0.95_upper_ci,
+                                which.max(percent_predictably_positive)),
             test_cases = first(test_cases),
-            test_controls = first(test_controls))
-report_summary
+            test_controls = first(test_controls),
+            proportion_unchanged = first(proportion_unchanged),
+            description = first(description))
+
+  return(result)
+}
+
+report_summary_percent <- summarize_group_report(full_data_percent)
+report_summary_sd <- summarize_group_report(full_data_sd)
 ```
 
+First, we can check how many lab tests are unchanged from the previous measurement, for any given percent threshold.
+
 ```{r}
-ggplot(report_summary, aes(x = percent_change, y = max_roc)) + 
-  geom_line()+
-  labs(x = "Percent change threshold", y = "AU-ROC")
+F1A <- ggplot(report_summary_percent %>% filter(change_param == 10) ,
+       aes(description, proportion_unchanged)) +
+  geom_col(fill = "steelblue3") +
+  labs(y = "Proportion of repeat tests \nwithin 10% of previous measurement")+
+  coord_flip() +
+  ylim(c(0,1))
+
+F1B <- ggplot(report_summary_sd %>% filter(change_param == 0.1) ,
+       aes(reorder(description, proportion_unchanged), proportion_unchanged)) +
+  geom_col(fill = "steelblue3") +
+  labs(y = "Proportion of repeat tests \nwithin 0.1 standard deviations of previous measurement")+
+  coord_flip() +
+  ylim(c(0,1))
+
+grid.arrange(F1A, F1B, ncol =1)
 ```
 
-```{r}
-ggplot(report_summary, aes(x = percent_change, y = max_percent_predictability)) + 
-  geom_line() + 
-  geom_line(aes(x = percent_change, y = test_cases/(test_cases+test_controls)), linetype = "dashed") +
-  #geom_line(aes(x = percent_change, y = max_percent_predictability*test_cases/(test_cases+test_controls)), linetype = "dashed")+
-  labs(x = "Percent change threshold", y = "Percent predictibly positive")
+We can combine those:
 
+```{r, fig.height = 3.3in, fig.width = 6.1in}
+method_col <- c(rep("± 0.1 SD", dim(report_summary_sd)[1]),
+                rep("± 10%", dim(report_summary_percent)[1]))
+
+F1_plot_data <- rbind(report_summary_sd, report_summary_percent) %>%
+  ungroup() %>%
+  mutate(metric = method_col) %>%
+  filter(change_param %in% c(0.1, 10))
+
+F1 <- ggplot(F1_plot_data,
+             aes(description, proportion_unchanged)) +
+  geom_col(aes(fill = metric), position = "dodge") +
+  scale_fill_brewer(palette = "Set1") +
+  labs(y = "Proportion of repeat tests \nwithin margin of previous measurement", x = NULL, fill = "Margin\nof Change")+
+  coord_flip() +
+  ylim(c(0,1)) + theme_bw()
+
+F1
 ```
 
-# Many Labs
+Plotting the AU-ROC for the prediction tasks for all labs is too busy. To start, we make a table of our performance just at the 0.1 SD or 10% change level.
 
 ```{r}
-full_data <- rbindlist(lapply(labs_done, load_and_process, percents = percents))
+kable(F1_plot_data %>% select(LAB, metric, max_roc, max_percent_predictability), digits = 2)
 ```
 
-```{r}
-report_summary <- full_data %>%
-  group_by(percent_change, LAB) %>%
-  summarize(max_roc = max(roc_auc),
-            max_percent_predictability = max(percent_predictably_positive),
-            test_cases = first(test_cases),
-            test_controls = first(test_controls))
+
+
+Next, we filter our results to include only the lab tests for which the percent predictably positive we achieved a lower CI greater than 10 percent for at least one definition of "change."
+
+```{r filter results}
+Labs_to_keep_percent <- report_summary_percent %>%
+  group_by(LAB) %>%
+  summarise(pp_CI_lower = max(max_pp_lowCI)) %>%
+  filter(pp_CI_lower >= 0.1)
+
+Labs_to_keep_percent
+
+# proportion of the labs which make this threshold
+dim(Labs_to_keep_percent)[1]/length(labs_done_percent)
+
+report_summary_percent_best <- filter(report_summary_percent,
+                              LAB %in% Labs_to_keep_percent$LAB)
 ```
 
+
 ```{r}
-ggplot(report_summary, aes(x = percent_change, y = max_roc, group = LAB, color = LAB)) + 
-  geom_line()+
-  labs(x = "Percent change threshold", y = "AU-ROC")
+auroc_trend_plot_bygroup <- function(report_summary, my_xlab = "Change Threshold"){
+  myplot <- ggplot(report_summary,
+         aes(x = change_param, y = max_roc, group = LAB, color = LAB)) +
+    geom_line()+
+    labs(x = my_xlab, y = "AU-ROC")+
+    ylim(c(0.5,1))
+  return(myplot)
+}
+
+F3A <- auroc_trend_plot_bygroup(report_summary_percent_best, "Percent change threshold")
 ```
 
 ```{r, figure.width = 3}
-ggplot(report_summary, aes(x = percent_change, y = max_percent_predictability, group = LAB, color = LAB)) + 
-  geom_line() + 
-  #geom_line(aes(x = percent_change, y = test_cases/(test_cases+test_controls)), linetype = "dashed") +
-  #geom_line(aes(x = percent_change, y = max_percent_predictability*test_cases/(test_cases+test_controls)), linetype = "dashed")+
-  labs(x = "Percent change threshold", y = "Percent predictibly positive")
-```
-```{r}
-ggplot(report_summary, aes(x = percent_change, y = test_cases/(test_cases+test_controls), group = LAB, color = LAB)) + 
-  geom_line() + 
-  #geom_line(aes(x = percent_change, y = test_cases/(test_cases+test_controls)), linetype = "dashed") +
-  #geom_line(aes(x = percent_change, y = max_percent_predictability*test_cases/(test_cases+test_controls)), linetype = "dashed")+
-  labs(x = "Percent change threshold", y = "Percent with label 1")
+ppp_trend_plot_bygroup <- function(report_summary, my_xlab = "Change Threshold"){
+  myplot <- ggplot(report_summary,
+         aes(x = change_param, y = max_percent_predictability,
+             group = LAB, color = LAB)) +
+    geom_line() +
+    labs(x = my_xlab, y = "Percent predictibly positive")+
+    ylim(c(0,1))
+  return(myplot)
+}
+
+F3B <- ppp_trend_plot_bygroup(report_summary_percent_best, "Percent change threshold")
 ```
 
+```{r, fig.height = 4.5in, fig.width = 7.25}
+ppp_bar_plot <- function(report_summary, fill_label = "Change Threshold", mypalette = "Reds"){
+  myplot <- ggplot(report_summary, aes(description, max_percent_predictability))+
+    geom_col(aes(fill = as.factor(change_param)), position = "dodge") +
+    labs(fill = fill_label, y = "Percent Predictability@99%", x = NULL) +
+    coord_flip() +
+    scale_fill_brewer(palette = mypalette, direction= -1) +
+    ylim(c(0,1)) + theme_bw() #+
+#    theme(legend.key.size = unit(0.25, "cm"),
+#          legend.title=element_text(size=8),
+#          legend.text=element_text(size=8))
+  return(myplot)
+}
+
+roc_bar_plot <- function(report_summary, fill_label = "Change Threshold", mypalette = "Reds"){
+  myplot <- ggplot(report_summary, aes(description, max_roc))+
+    geom_col(aes(fill = as.factor(change_param)), position = "dodge") +
+    labs(fill = fill_label, y = "AU-ROC", x = NULL) +
+    coord_flip() +
+    scale_y_continuous(limits = c(0.5, 1), oob = rescale_none) +
+    scale_fill_brewer(palette = mypalette, direction= -1) + theme_bw() #+
+#   theme(legend.key.size = unit(0.25, "cm"),
+#          legend.title=element_text(size=8),
+#          legend.text=element_text(size=8))
+  return(myplot)
+}
+
+F2B <- ppp_bar_plot(report_summary_percent, "Percent change threshold", "Blues")
+F2A <- roc_bar_plot(report_summary_percent, "Percent change threshold", "Blues")
+ggarrange(F2A, F2B, common.legend = TRUE, legend = "bottom", labels = "AUTO")
+F3B <- ppp_bar_plot(report_summary_sd, "SD change threshold", "Reds")
+F3A <- roc_bar_plot(report_summary_sd, "SD change threshold", "Reds")
+ggarrange(F3A, F3B, common.legend = TRUE, legend = "bottom", labels = "AUTO")
+```
+
+```{r}
+Labs_to_keep_sd <- report_summary_sd %>%
+  group_by(LAB) %>%
+  summarise(pp_CI_lower = max(max_pp_lowCI)) %>%
+  filter(pp_CI_lower >= 0.1)
+
+Labs_to_keep_sd
+
+# proportion of the labs which make this threshold
+dim(Labs_to_keep_sd)[1]/length(labs_done_sd)
+
+report_summary_sd_best <- filter(report_summary_sd,
+                              LAB %in% Labs_to_keep_sd$LAB)
+```
+
+```{r}
+F3A <- auroc_trend_plot_bygroup(report_summary_sd_best, "Standard deviation change threshold")
+F3B <- ppp_trend_plot_bygroup(report_summary_sd_best, "Standard deviation change threshold")
+
+ggarrange(F3A, F3B, ncol = 2, common.legend = TRUE, legend = "bottom")
+```
+
+
+```{r, eval = FALSE, include = FALSE, echo = FALSE}
+# this plot isn't terribly informative
+ggplot(report_summary_best, aes(x = percent_change, y = test_cases/(test_cases+test_controls), group = LAB, color = LAB)) +
+  geom_line() +
+  #geom_line(aes(x = percent_change, y = test_cases/(test_cases+test_controls)), linetype = "dashed") +
+  #geom_line(aes(x = percent_change, y = max_percent_predictability*test_cases/(test_cases+test_controls)), linetype = "dashed")+
+  labs(x = "Percent change threshold", y = "Percent with label 1")+
+  ylim(c(0,1))
+```
+
+## Save Results to a File
+
+```{r}
+# all raw data
+write.table(full_data_percent, file = "full_data_percent.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
+write.table(full_data_sd, file = "full_data_sd.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
+
+# processed data
+write.table(report_summary_percent, file = "processed_data_percent.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
+write.table(report_summary_sd, file = "processed_data_sd.tsv", sep = "\t", quote = FALSE, row.names = FALSE)
+```
+
+# Volume Analaysis
+
+```{r upload volume info}
+volume_charge_map <- read.csv("../repeated_labs_charges_volumes.csv") %>%
+  filter(name %in% full_lab_names,
+         window == 7)
+
+report_summary_percent$name <- paste("LAB", report_summary_percent$LAB, sep = "")
+report_summary_sd$name <- paste("LAB", report_summary_sd$LAB, sep = "")
+vol_charge_table_percent <- left_join(report_summary_percent, volume_charge_map, by = "name") %>% select(-name)
+vol_charge_table_sd <- left_join(report_summary_sd, volume_charge_map, by = "name") %>% select(-name)
+```
+
+```{r, fig.height = 4.5in, fig.width = 7.25}
+predictable_vol_bar_plot <- function(report_summary, fill_label = "Change Threshold", mypalette = "Reds"){
+  myplot <- ggplot(report_summary, aes(description, max_percent_predictability*num_repeated, fill = as.factor(change_param))) +
+    geom_bar(position = "dodge", stat = "identity") +
+    labs(fill = fill_label, y = "Predictable volume (log scale)", x = NULL) +
+    geom_text(aes(label=comma(round(signif(max_percent_predictability*num_repeated,2)))),
+              hjust = -0.05, position=position_dodge(width=0.9), size = 3) +
+    coord_flip() +
+    scale_fill_brewer(palette = mypalette, direction= -1) +
+    theme_bw() +
+    scale_y_log10(labels = comma, limits = c(1, 200000)) +
+    theme(legend.key.size = unit(0.3, "cm"),
+          legend.title=element_text(size=9),
+          legend.text=element_text(size=9),
+          axis.title.x = element_text(size = 10),
+          axis.text.x = element_text(angle = 45, hjust = 1))
+  return(myplot)
+}
+
+F4A <- predictable_vol_bar_plot(vol_charge_table_percent %>% filter(change_param <= 20),
+                         fill_label = "Percent change\nthreshold", mypalette = "Blues")
+F4B <- predictable_vol_bar_plot(vol_charge_table_sd %>% filter(change_param <= 0.2),
+                         fill_label = "SD change\nthreshold", mypalette = "Reds")
+
+ggarrange(F4A, F4B, ncol = 2, common.legend = FALSE, legend = "top", labels = "AUTO", hjust = -1)
+```
+
+```{r}
+options(scipen = 1000000)
+predictable_charge_bar_plot <- function(report_summary, fill_label = "Change Threshold", mypalette = "Reds"){
+  myplot <- ggplot(report_summary, aes(description, max_percent_predictability*num_repeated*median_price, fill = as.factor(change_param))) +
+    geom_col(position = "dodge") +
+    labs(fill = fill_label, y = "Predictable charge (log scale)", x = NULL) +
+    coord_flip() +
+    scale_fill_brewer(palette = mypalette, direction= -1) +
+    geom_text(aes(label=paste("$", comma(round(signif(max_percent_predictability*num_repeated*median_price,2))), sep = "")),
+              hjust = -0.05, position=position_dodge(width=0.9), size = 2.75) +
+    theme_bw() +
+
+    scale_y_log10(labels = scales::dollar, limits = c(1, 1700000000)) +
+    theme(legend.key.size = unit(0.3, "cm"),
+          legend.title=element_text(size=9),
+          legend.text=element_text(size=9),
+          axis.title.x = element_text(size = 10),
+          axis.text.x = element_text(angle = 45, hjust = 1))
+  return(myplot)
+}
+
+F5A <- predictable_charge_bar_plot(vol_charge_table_percent %>% filter(change_param <= 20),
+                         fill_label = "Percent change\nthreshold", mypalette = "GnBu")
+F5B <- predictable_charge_bar_plot(vol_charge_table_sd %>% filter(change_param <= 0.2),
+                         fill_label = "SD change\nthreshold", mypalette = "YlGn")
+
+ggarrange(F5A, F5B, ncol = 2, common.legend = FALSE, legend = "top", labels = "AUTO", hjust = -1)
+
+ggarrange(F4A, F4B, F5A, F5B, common.legend = F, legend = "top", labels = "AUTO", hjust = -1, heights = c(1,1.05))
+```

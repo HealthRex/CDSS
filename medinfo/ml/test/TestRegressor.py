@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 
 from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import MedInfoTestCase
-from SupervisedClassifierTestData import RANDOM_REGRESSION_TEST_CASE
+from SupervisedLearningTestData import RANDOM_REGRESSION_TEST_CASE
 from medinfo.ml.Regressor import Regressor
 
 class TestRegressor(MedInfoTestCase):
