@@ -305,7 +305,7 @@ class FeatureMatrixFactory:
 
         return self.queryClinicalItems(clinicalItemIds)
 
-    def _queryComponentItemsByName(self, clinicalItemNames, column=None, operator=None):
+    def _queryComponentItemsByName(self, clinicalItemNames, column=None, operator=None): # sx
         # """
         # Query ComponentItemInput for all item times for all patients.
         #
