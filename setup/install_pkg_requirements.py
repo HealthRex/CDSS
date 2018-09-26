@@ -19,6 +19,10 @@ INSTALLATION_COMMANDS = {
     'matplotlib': {
         AMAZON_LINUX: ['sudo', 'python', '-m', 'pip', 'install', '-U', 'matplotlib'],
         MAC_OSX: ['sudo', 'python', '-m', 'pip', 'install', '-U', 'matplotlib']
+    },
+    'sklearn': {
+        AMAZON_LINUX: ['sudo', 'pip', 'install', 'sklearn'],
+        MAC_OSX: ['sudo', 'pip', 'install', 'sklearn']
     }
 }
 
