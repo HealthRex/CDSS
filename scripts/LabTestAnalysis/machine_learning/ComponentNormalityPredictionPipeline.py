@@ -274,7 +274,8 @@ if __name__ == '__main__':
     ]
     COMPONENT_TESTS = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL',
                        'CR', 'BUN', 'GLU', 'CO2', 'CA', 'HCO3', # good, from 'LABMETB'
-                        'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT'] # good, LABHFP
+                        'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT',
+                       'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A'] # good, LABHFP
 
     components_to_test = COMPONENT_TESTS #NON_PANEL_TESTS_WITH_GT_500_ORDERS
 
