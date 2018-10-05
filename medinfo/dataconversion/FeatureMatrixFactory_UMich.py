@@ -361,6 +361,7 @@ class FeatureMatrixFactory:
             query.addWhereIn(clinicalItemType, clinicalItemNames)
         # else:
         #     query.addWhereIn(clinicalItemCategory, clinicalItemNames)
+        query.addWhereIn('pat_id', patientIds)
         query.addGroupBy('pat_id')
         query.addOrderBy('pat_id')
         if clinicalItemTime: # demographic info does not have a time
@@ -438,7 +439,7 @@ class FeatureMatrixFactory:
         query.addSelect(self._patientItemTimeColumn)
         query.addFrom(tableName)
         query.addWhereIn("pat_id", list(patientIds))
-
+        # TODO: add query.addWhere('EncounterID=?labs.encounterID')
         query.addOrderBy("pat_id")
         query.addOrderBy(label)
 
