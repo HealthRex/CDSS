@@ -79,7 +79,9 @@ class ComponentNormalityMatrix(FeatureMatrix):
             # need to get for a feature matrix of requested size.
             self._num_patients = int(numpy.max([self._num_requested_episodes / \
                 avg_orders_per_patient, 1]))
-            inds_random_patients = numpy.random.choice(len(results), size=self._num_patients, replace=False)
+            # Some components may have fewer associated patients than the required sample size
+            patient_number_chosen = min([len(results),self._num_patients]) #
+            inds_random_patients = numpy.random.choice(len(results), size=patient_number_chosen, replace=False)
             # print 'inds_random_patients:', inds_random_patients
             pat_IDs_random_patients = []
             for ind in inds_random_patients:
