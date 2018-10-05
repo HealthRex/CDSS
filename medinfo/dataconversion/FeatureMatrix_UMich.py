@@ -10,7 +10,7 @@ import os
 import datetime
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
-from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
+from medinfo.dataconversion.FeatureMatrixFactory_UMich import FeatureMatrixFactory
 from medinfo.db import DBUtil
 from Util import log
 
