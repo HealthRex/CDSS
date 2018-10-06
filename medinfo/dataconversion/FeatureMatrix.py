@@ -114,7 +114,7 @@ class FeatureMatrix:
     def _add_flowsheet_features(self):
         log.info('Adding flowsheet features...')
         # Look at flowsheet results from the previous days
-        FLOW_PRE_TIME_DELTAS = [ datetime.timedelta(-14) ]
+        FLOW_PRE_TIME_DELTAS = [ datetime.timedelta(-3) ]
         # Don't look into the future, otherwise cheating the prediction
         FLOW_POST_TIME_DELTA = datetime.timedelta(0)
         # Add flowsheet features for a variety of generally useful vitals.
