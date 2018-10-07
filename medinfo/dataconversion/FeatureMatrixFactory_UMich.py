@@ -198,7 +198,9 @@ class FeatureMatrixFactory:
         patientEpisodeTempFile.close()
         self.patientsProcessed = True
 
-        return self.patientEpisodeInput.rowcount
+        # In sqlite3, rowcount is somehow "always" -1; See for details:
+        # https://docs.python.org/3.0/library/sqlite3.html#sqlite3.Cursor.rowcount
+        return self._numRows #self.patientEpisodeInput.rowcount
 
     def _processPatientEpisodeTsvFile(self):
         pass
