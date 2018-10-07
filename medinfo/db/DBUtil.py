@@ -131,7 +131,7 @@ def connection( connParams=None ):
         return cx_Oracle.connect(connStr);
 
     if DATABASE_CONNECTOR_NAME == "sqlite3":
-        return sqlite3.connect(connParams["DSN"]);
+        return sqlite3.connect(connParams["DBPATH"] + connParams["DSN"]);
 
 
     # ODBC (Access)
@@ -204,15 +204,23 @@ def dropDatabase( dbParams ):
     """Drop the database specified by the DSN name specified in the dbParams.
     Will likely require logging in first as the user-password specified.
     """
+    if DATABASE_CONNECTOR_NAME == "psycopg2":
     # For PostgreSQL, cannot drop database while connected to it, so connect to default "postgres" database to start.
-    defaultParams = dict(dbParams);
-    defaultParams["DSN"] = "postgres";
-    defaultConn = connection(defaultParams);
-    defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
-    try:
-        execute("DROP DATABASE %s" % dbParams["DSN"], conn=defaultConn);
-    finally:
-        defaultConn.close();
+        defaultParams = dict(dbParams);
+        defaultParams["DSN"] = "postgres";
+        defaultConn = connection(defaultParams);
+        defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
+        try:
+            execute("DROP DATABASE %s" % dbParams["DSN"], conn=defaultConn);
+        finally:
+            defaultConn.close();
+    elif DATABASE_CONNECTOR_NAME == "sqlite3":
+        defaultParams = dict(dbParams);
+        # Sqlite3 automatically creates a database upon connection
+        try:
+            os.remove(defaultParams['DBPATH'] + defaultParams["DSN"])
+        except:
+            pass
 
 ###################################################
 #########  END  Database Specific Stuff ###########
