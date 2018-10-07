@@ -346,9 +346,7 @@ class SupervisedLearningPipeline:
         if not features_to_keep:
         # Even if there is no feature to keep, still need to
         # perform transform_matrix to drop most low-rank features
-            log.debug('kept_X_train_feature.shape: %s' % str(kept_X_train_feature.shape))
             self._X_train = fs.transform_matrix(self._X_train)
-            log.debug('kept_X_test_feature.shape: %s' % str(kept_X_test_feature.shape))
             self._X_test = fs.transform_matrix(self._X_test)
 
     def _build_processed_matrix_header(self, params):
