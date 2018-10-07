@@ -81,7 +81,7 @@ class ComponentNormalityPredictionPipeline(SupervisedLearningPipeline):
         ]
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
-            # '%s.pre' % self._var
+            '%s.pre' % self._var
         ]
         outcome_label = 'component_normal' #sx
         selection_problem = FeatureSelector.CLASSIFICATION
