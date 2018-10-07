@@ -90,7 +90,7 @@ def connection( connParams=None ):
     database is being interfaced to.
     """
     Util.numConnections += 1;
-    
+
     if connParams is None:
         connParams = DB_PARAM;
 
@@ -182,16 +182,23 @@ def createDatabase( dbParams ):
     """Create a database based on the DSN name specified in the dbParams.
     Will likely require logging in first as the user-password specified in the dbParams.
     """
-    # For PostgreSQL, have to connect to some database first before can create a new one. Connect to default "postgres" database to start.
-    defaultParams = dict(dbParams);
-    defaultParams["DSN"] = "postgres";
-    defaultConn = connection(defaultParams);
-    defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
-    try:
-        execute("CREATE DATABASE %s" % dbParams["DSN"], conn=defaultConn);
-    finally:
-        defaultConn.close();
-
+    if DATABASE_CONNECTOR_NAME == "psycopg2":
+        # For PostgreSQL, have to connect to some database first before can create a new one. Connect to default "postgres" database to start.
+        defaultParams = dict(dbParams);
+        defaultParams["DSN"] = "postgres";
+        defaultConn = connection(defaultParams);
+        defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
+        try:
+            execute("CREATE DATABASE %s" % dbParams["DSN"], conn=defaultConn);
+        finally:
+            defaultConn.close();
+    elif DATABASE_CONNECTOR_NAME == "sqlite3":
+        defaultParams = dict(dbParams);
+        # Sqlite3 automatically creates a database upon connection
+        defaultConn = connection(defaultParams);
+        # None for autocommit mode
+        defaultConn.isolation_level = None
+        defaultConn.close()
 
 def dropDatabase( dbParams ):
     """Drop the database specified by the DSN name specified in the dbParams.
