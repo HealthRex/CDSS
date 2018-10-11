@@ -50,6 +50,8 @@ class FeatureMatrixFactory:
 
         self.patientsProcessed = None
 
+        self.RACE_FEATURES = self.queryAllRaces()
+
         PID = str(os.getpid())
 
         # When debugging, do not create so many Tempfiles in the working folder.
@@ -337,6 +339,16 @@ class FeatureMatrixFactory:
 
         return self.queryClinicalItems(clinicalItemIds)
 
+    def queryAllRaces(self):
+        query = SQLQuery()
+        query.addSelect("DISTINCT RaceName")
+        query.addFrom("demographics")
+        results = DBUtil.execute(query)
+        results = [x[0] for x in results]
+        # results = [x if x else 'Unknown' for x in results]
+        return results
+
+
     def _queryMichiganItemsByName(self, clinicalItemNames, clinicalItemType, tableName, clinicalItemTime):
         # """
         # Query ComponentItemInput for all item times for all patients.
@@ -364,7 +376,7 @@ class FeatureMatrixFactory:
         # else:
         #     query.addWhereIn(clinicalItemCategory, clinicalItemNames)
         query.addWhereIn('pat_id', patientIds)
-        query.addGroupBy('pat_id')
+        query.addGroupBy('pat_id') # TODO? should I use this?
         query.addOrderBy('pat_id')
         if clinicalItemTime: # demographic info does not have a time
             query.addSelect(clinicalItemTime)
@@ -374,24 +386,9 @@ class FeatureMatrixFactory:
         results = DBUtil.execute(query)
         componentItemEvents = [row for row in results]
 
-        if not clinicalItemTime: # TODO:decision, add dummy time for sex/race
+        if not clinicalItemTime:
             componentItemEvents = [x + [datetime.datetime(1900,1,1)] for x in componentItemEvents]
 
-        if False:#tableName == 'diagnoses':
-            print componentItemEvents
-
-        if False: #tableName != 'labs' and componentItemEvents:
-            #print query
-            #print clinicalItemNames
-            print clinicalItemType
-            print componentItemEvents
-
-        if False:#clinicalItemCategory == 'Birth':
-            print query
-            print 'componentItemEvents:', componentItemEvents
-            print 'clinicalItemNames:', clinicalItemNames
-            print clinicalItemType in clinicalItemNames
-            quit()
         return componentItemEvents
 
     def _queryComponentItemsByName(self, clinicalItemNames): # sx
@@ -419,7 +416,7 @@ class FeatureMatrixFactory:
         componentItemEvents = [row for row in results]
         return componentItemEvents
 
-    def _queryMichiganItemsByCategory(self, label, tableName): #TODO: come back later..
+    def _queryMichiganItemsByCategory(self, label, tableName): #
         """
         Query for all patient items that match with the given clinical item
         category ID.
@@ -1211,13 +1208,7 @@ class FeatureMatrixFactory:
                 features="pre")
 
     def addRaceFeatures(self):
-        RACE_FEATURES = [
-            "RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
-            "RaceHispanicLatino", "RaceBlack", "RaceAsian",
-            "RacePacificIslander", "RaceNativeAmerican",
-            "RaceOther", "RaceUnknown"
-        ]
-        for feature in RACE_FEATURES:
+        for feature in self.RACE_FEATURES:
             self.addClinicalItemFeatures([feature], dayBins=[], \
                 features="pre")
 

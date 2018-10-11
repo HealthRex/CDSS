@@ -1,10 +1,12 @@
 
+
 import sqlite3
 from itertools import islice
 import pandas as pd
 import utils_UMich
 
-db_name = 'UMich.db'
+import LocalEnv
+db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
 
 def lines2pd(lines_str, colnames):
 
@@ -28,7 +30,6 @@ def lines2pd(lines_str, colnames):
     data_df = pd.DataFrame(all_rows, columns=colnames)
     return data_df
 
-# TODO: build index simultaneously
 def pd_process_labs(labs_df):
     labs_df = labs_df.rename(columns={'PatientID':'pat_id',
                'EncounterID':'order_proc_id',
@@ -121,7 +122,7 @@ def raw2db(txtpath, build_index_patid=True):
     chunk_size = 1000 # num of rows
 
     filename_txt = txtpath.split('/')[-1]
-    print filename_txt # TODO: modify this by useful info...
+    print 'Now processing ' + filename_txt # TODO: modify this by useful info...
 
     table_name = filename_txt.replace(".sample.txt", "") #TODO
     table_name = table_name.replace('.','_')
@@ -135,7 +136,7 @@ def raw2db(txtpath, build_index_patid=True):
 
             if is_first_chunk:
                 colnames = utils_UMich.line_str2list(next_n_lines_str[0])
-                print colnames
+                # print colnames
                 data_df = lines2pd(next_n_lines_str[1:], colnames)
                 is_first_chunk = False
             else:## make each chunk into pandas
@@ -146,13 +147,14 @@ def raw2db(txtpath, build_index_patid=True):
             ##
     if build_index_patid:
         conn = sqlite3.connect(db_name)
-        build_index_query = "CREATE INDEX index_for_%s ON %s (%s);"%(table_name,table_name,'pat_id')
-        print build_index_query
+        build_index_query = "CREATE INDEX IF NOT EXISTS index_for_%s ON %s (%s);"%(table_name,table_name,'pat_id')
+        # print build_index_query
         conn.execute(build_index_query)
 
 def prepare_database(data_folder_path): #TODO: UMich.db also put here?
     import os
     if os.path.exists(db_name):
+        print db_name + "exists!"
         return
     raw_txtpaths = ['labs.sample.txt',
                  'pt.info.sample.txt',
@@ -161,7 +163,7 @@ def prepare_database(data_folder_path): #TODO: UMich.db also put here?
                  'diagnoses.sample.txt']
     raw_txtpaths  = [data_folder_path+x for x in raw_txtpaths]
 
-    for txtpath in raw_txtpaths: #TODO: what if db already exists?
+    for txtpath in raw_txtpaths:
         raw2db(txtpath, build_index_patid=True)
 
 

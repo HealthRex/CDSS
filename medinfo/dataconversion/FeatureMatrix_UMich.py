@@ -96,11 +96,7 @@ class FeatureMatrix:
 
     def _add_race_features(self):
         log.info('Adding race features...')
-        RACE_FEATURES = [
-            # TODO: get a complete list; also se MNPP
-            "Caucasian", "Hispanic", "Native Hawaiian and Other Pacific Islander"
-        ]
-        for feature in RACE_FEATURES:
+        for feature in self._factory.RACE_FEATURES:
             self._factory.addClinicalItemFeatures([feature], dayBins=[], features="pre", is_Michigan_data=True,
                                                   clinicalItemType='RaceName', clinicalItemTime=None, tableName='demographics')
 
@@ -138,18 +134,18 @@ class FeatureMatrix:
         # Add result features for a variety of generally useful components.
         BASIC_LAB_COMPONENTS = [
             'WBC',      # White Blood Cell
-            'HCTA',     # Hematocrit TODO
+            'HCTA',     # Hematocrit
             'PLT',      # Platelet Count
-            'SOD',      # Sodium, Whole Blood TODO
+            'SOD',      # Sodium, Whole Blood
             'POT',      # Potassium, Whole Blood
             'CO2',      # CO2, Serum/Plasma
-            # Blood Urea Nitrogen
-            'CK',       # Creatinine TODO
+            'UN', # Blood Urea Nitrogen TODO
+            'CREAT',       # Creatinine
             'TBIL',     # Total Bilirubin
             'ALB',      # Albumin
-            'CAL',      # Calcium TODO
-            # Lactic Acid
-            # Erythrocyte Sedimentation Rate
+            'CAL',      # Calcium
+            'LACTIC', # Lactic Acid; TODO: but LACTA & LACTV are more frequent?
+            # Erythrocyte Sedimentation Rate TODO:?
             'CRP',      # C-Reactive Protein
             'TROP',     # Troponin I
             'pHA',      # Arterial pH
