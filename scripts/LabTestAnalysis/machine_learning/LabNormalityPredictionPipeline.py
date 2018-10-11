@@ -211,6 +211,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             elif status == SupervisedClassifier.TRAINED:
                 pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
                 SupervisedLearningPipeline._analyze_predictor(self, report_dir, pipeline_prefix)
+                SupervisedLearningPipeline._analyze_predictor_traindata(self, report_dir, pipeline_prefix)
                 if meta_report is None:
                     meta_report = fm_io.read_file_to_data_frame('/'.join([report_dir, '%s-report.tab' % pipeline_prefix]))
                 else:
