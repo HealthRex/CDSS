@@ -3,6 +3,15 @@
 Pipeline class for managing end to end training, testing,
 and analysis of LabNormality prediction.
 """
+import LocalEnv
+LocalEnv.LOCAL_PROD_DB_PARAM["DSN"] = 'UMich.db'
+LocalEnv.LOCAL_PROD_DB_PARAM["DBPATH"] = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/'
+
+import medinfo.db.Env
+# Override the Env setting to temporary using sqlite3 without
+# permanently affecting other pipelines in the code base
+medinfo.db.Env.SQL_PLACEHOLDER = "?"
+medinfo.db.Env.DATABASE_CONNECTOR_NAME = "sqlite3"
 
 import inspect
 import os
@@ -18,11 +27,11 @@ from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
-from scripts.LabTestAnalysis.machine_learning.extraction.MichiganNormalityMatrix import MichiganNormalityMatrix
+from scripts.LabTestAnalysis.machine_learning.extraction.UMichNormalityMatrix import UMichNormalityMatrix
 
 import prepareData_UMich
 
-class MichiganNormalityPredictionPipeline(SupervisedLearningPipeline):
+class UMichNormalityPredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state)
 
@@ -44,7 +53,7 @@ class MichiganNormalityPredictionPipeline(SupervisedLearningPipeline):
 
     def _build_raw_feature_matrix(self):
         raw_matrix_path = self._build_raw_matrix_path()
-        matrix_class = MichiganNormalityMatrix
+        matrix_class = UMichNormalityMatrix
         SupervisedLearningPipeline._build_raw_feature_matrix(self, matrix_class, \
             raw_matrix_path)
 
@@ -63,17 +72,19 @@ class MichiganNormalityPredictionPipeline(SupervisedLearningPipeline):
         imputation_strategies = {
         }
 
-        features_to_remove = [ #TODO: a list of races, maybe dynamically
+        features_to_remove = [
             'pat_id', 'order_time', 'order_proc_id',
             'proc_code',
             # 'abnormal_panel',
             'num_normal_components', 'Birth.pre',
             'Male.preTimeDays', 'Female.preTimeDays',
+            'num_components',
             'Caucasian.preTimeDays',
             'Hispanic.preTimeDays',
-            'Native Hawaiian and Other Pacific Islander',
-            'num_components'
+            'Native Hawaiian and Other Pacific Islander'
         ]
+        RACE_FEATURES = [''] # TODO
+        features_to_remove += [x+'.preTimeDays' for x in RACE_FEATURES]
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
             '%s.pre' % self._var
@@ -82,7 +93,7 @@ class MichiganNormalityPredictionPipeline(SupervisedLearningPipeline):
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
         percent_features_to_select = 0.05
-        matrix_class = MichiganNormalityMatrix
+        matrix_class = UMichNormalityMatrix
         pipeline_file_path = inspect.getfile(inspect.currentframe())
         random_state = self._random_state
         data_overview = [
@@ -221,7 +232,7 @@ class MichiganNormalityPredictionPipeline(SupervisedLearningPipeline):
         # Note that if there were insufficient samples to build any of the
         # algorithms, then meta_report will still be None.
         if meta_report is not None:
-            header = ['LabNormalityPredictionPipeline("%s", 10000)' % self._var]
+            header = ['UMichNormalityPredictionPipeline("%s", 10000)' % self._var]
             fm_io.write_data_frame_to_file(meta_report, \
                 '/'.join([data_dir, '%s-normality-prediction-report.tab' % self._var]), header)
 
@@ -230,6 +241,8 @@ if __name__ == '__main__':
 
     prepareData_UMich.prepare_database(data_folder_path='large_data_UMich/')
 
-    labs_to_test = ['CBCP']
+    TOP_PANELS = []
+
+    labs_to_test = ['CBCP','GLUCW','']
     for panel in labs_to_test:
-        MichiganNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789)
+        UMichNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789)

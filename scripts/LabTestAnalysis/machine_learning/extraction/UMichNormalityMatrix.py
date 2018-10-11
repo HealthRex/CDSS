@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Class for generating LabNormalityMatrix.
+Class for generating UMichNormalityMatrix.
 """
 
 import datetime
@@ -13,12 +13,12 @@ import numpy
 from optparse import OptionParser
 
 from medinfo.common.Util import log
-from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
+from medinfo.dataconversion.FeatureMatrixFactory_UMich import FeatureMatrixFactory
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
-from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
+from medinfo.dataconversion.FeatureMatrix_UMich import FeatureMatrix
 
-class MichiganNormalityMatrix(FeatureMatrix):
+class UMichNormalityMatrix(FeatureMatrix):
     def __init__(self, lab_panel, num_episodes, random_state=None):
         FeatureMatrix.__init__(self, lab_panel, num_episodes)
 
@@ -38,8 +38,7 @@ class MichiganNormalityMatrix(FeatureMatrix):
         episodes = self._factory.getPatientEpisodeIterator()
         patients = set()
         for episode in episodes:
-            patient_id = int(episode[self._factory.patientEpisodeIdColumn]) #TODO
-            # patient_id = episode[self._factory.patientEpisodeIdColumn]
+            patient_id = int(episode[self._factory.patientEpisodeIdColumn])
             patients.add(patient_id)
         self._num_patients = len(patients)
 
@@ -48,6 +47,9 @@ class MichiganNormalityMatrix(FeatureMatrix):
 
         # Build matrix.
         FeatureMatrix._build_matrix(self)
+
+    def get_RACE_FEATURES(self):
+        return self._factory.RACE_FEATURES
 
     def _get_components_in_lab_panel(self):
         # Initialize DB connection.
@@ -245,6 +247,7 @@ class MichiganNormalityMatrix(FeatureMatrix):
 
         # results = DBUtil.execute(query)
         self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, index_time_col='order_time')
+        print 'self._num_reported_episodes:', self._num_reported_episodes
 
     def _add_features(self):
         # Add lab panel order features.
@@ -407,7 +410,7 @@ if __name__ == "__main__":
     log.info("Starting: "+str.join(" ", sys.argv))
     start_time = time.time()
 
-    ltm = LabNormalityMatrix(options.lab, options.numRows, options.randomState)
+    ltm = UMichNormalityMatrix(options.lab, options.numRows, options.randomState)
 
     elapsed_time = numpy.ceil(time.time() - start_time)
     file_name = '%s-panel-%s-episodes-%s-sec.tab' % (options.lab, options.numRows, elapsed_time)
