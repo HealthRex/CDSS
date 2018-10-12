@@ -3,10 +3,11 @@
 import sqlite3
 
 import pandas as pd
+import LocalEnv
+db_name = LocalEnv.LOCAL_TEST_DB_PARAM["DSN"]
+
 import utils_UMich
 
-import LocalEnv
-db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
 import os
 
 def prepare_database(raw_data_files, raw_data_folderpath, fold_enlarge_data=1): #TODO: UMich.db also put here?
@@ -34,7 +35,7 @@ def prepare_database(raw_data_files, raw_data_folderpath, fold_enlarge_data=1): 
         return
 
     for data_file in data_files:
-        utils_UMich.raw2db(data_file, data_folderpath, build_index_patid=True)
+        utils_UMich.raw2db(data_file, data_folderpath, db_name=db_name, build_index_patid=True)
 
 
 if __name__ == '__main__':
@@ -48,12 +49,12 @@ if __name__ == '__main__':
                     'encounters.sample.txt',
                     'demographics.sample.txt',
                     'diagnoses.sample.txt']
-    raw_data_folderpath = LocalEnv.PATH_TO_CDSS + '/' + 'scripts/LabTestAnalysis/machine_learning' + '/' + rawdata_foldername
+    raw_data_folderpath = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/' + rawdata_foldername
 
 
 
 
-    prepare_database(raw_data_files, raw_data_folderpath,fold_enlarge_data=100)
+    prepare_database(raw_data_files, raw_data_folderpath,fold_enlarge_data=1)
 
 
 
