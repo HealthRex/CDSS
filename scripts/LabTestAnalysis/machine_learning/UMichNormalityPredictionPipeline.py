@@ -3,6 +3,11 @@
 Pipeline class for managing end to end training, testing,
 and analysis of LabNormality prediction.
 """
+import LocalEnv
+fold_enlarge_data = 10
+LocalEnv.LOCAL_PROD_DB_PARAM["DSN"] = 'UMich.db'
+LocalEnv.LOCAL_PROD_DB_PARAM["DBPATH"] = LocalEnv.PATH_TO_CDSS \
+                    + '/scripts/LabTestAnalysis/machine_learning/raw_data_UMich/enlarged_data_by_%s_fold/'%str(fold_enlarge_data)
 
 import medinfo.db.Env
 # Override the Env setting to temporary using sqlite3 without
@@ -235,7 +240,7 @@ class UMichNormalityPredictionPipeline(SupervisedLearningPipeline):
 
 if __name__ == '__main__':
     log.level = logging.DEBUG
-    import LocalEnv
+
 
     # TODO: by default, the first one should be labs
     raw_data_files = ['labs.sample.txt',
@@ -246,11 +251,9 @@ if __name__ == '__main__':
     rawdata_foldername = 'raw_data_UMich'
     raw_data_folderpath = LocalEnv.PATH_TO_CDSS + '/' + 'scripts/LabTestAnalysis/machine_learning' + '/' + rawdata_foldername
 
-    prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, fold_enlarge_data=2)
+    db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
+    prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name, fold_enlarge_data=fold_enlarge_data)
 
-    LocalEnv.LOCAL_PROD_DB_PARAM["DSN"] = 'UMich.db'
-    LocalEnv.LOCAL_PROD_DB_PARAM["DBPATH"] = LocalEnv.PATH_TO_CDSS \
-                        + '/scripts/LabTestAnalysis/machine_learning/raw_data_UMich/enlarged_data/'
 
     TOP_PANELS = []
 
