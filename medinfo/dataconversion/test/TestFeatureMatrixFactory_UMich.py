@@ -17,7 +17,7 @@ import time
 import unittest
 from Const import RUNNER_VERBOSITY
 from cStringIO import StringIO
-from FeatureMatrixTestData import FM_TEST_INPUT_TABLES, FM_TEST_OUTPUT
+from FeatureMatrixTestData_UMich import FM_TEST_INPUT_TABLES, FM_TEST_OUTPUT
 from medinfo.dataconversion.DataExtractor import DataExtractor
 from medinfo.dataconversion.FeatureMatrixFactory_UMich import FeatureMatrixFactory
 from medinfo.db import DBUtil
@@ -33,6 +33,7 @@ class TestFeatureMatrixFactory(DBTestCase):
     def setUp(self):
         """Prepare state for test cases."""
         DBTestCase.setUp(self)
+
         # StrideLoader.build_stride_psql_schemata()
         # ClinicalItemDataLoader.build_clinical_item_psql_schemata();
 
@@ -41,45 +42,33 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         self.factory = FeatureMatrixFactory()
         self.connection = DBUtil.connection();  # Setup a common connection for test cases to work with, can catch in finally tearDown method to close/cleanup
+        # self._insertTestRecords()
+
 
     def _insertTestRecords(self):
         """Populate database for with patient data."""
         # Populate clinical_item_category.
-        testRecords = FM_TEST_INPUT_TABLES.get("clinical_item_category")
-        DBUtil.insertFile(StringIO(testRecords), "clinical_item_category", \
-                            delim="\t")
+        cursor = self.connection.cursor()
+        cursor.execute("CREATE TABLE labs (pat_id integer, order_proc_id text, ACCESSION_NUMBER);")
+
+        testRecords = FM_TEST_INPUT_TABLES.get("labs")
+        DBUtil.insertFile(StringIO(testRecords), "labs")
 
         # Populate clinical_item.
-        testRecords = FM_TEST_INPUT_TABLES.get("clinical_item")
-        DBUtil.insertFile(StringIO(testRecords), "clinical_item", delim="\t")
+        testRecords = FM_TEST_INPUT_TABLES.get("pt_info")
+        DBUtil.insertFile(StringIO(testRecords), "pt_info", delim="\t")
 
         # Populate patient_item.
-        testRecords = FM_TEST_INPUT_TABLES.get("patient_item")
-        DBUtil.insertFile(StringIO(testRecords), "patient_item", delim="\t", \
-                            dateColFormats={"item_date": None})
+        testRecords = FM_TEST_INPUT_TABLES.get("encounters")
+        DBUtil.insertFile(StringIO(testRecords), "encounters", delim="\t")
 
         # Populate stride_order_proc.
-        testRecords = FM_TEST_INPUT_TABLES.get("stride_order_proc")
-        DBUtil.insertFile(StringIO(testRecords), "stride_order_proc", \
-                            delim="\t", \
-                            dateColFormats={"item_date": None})
+        testRecords = FM_TEST_INPUT_TABLES.get("diagnoses")
+        DBUtil.insertFile(StringIO(testRecords), "diagnoses")
 
         # Populate stride_order_results.
-        testRecords = FM_TEST_INPUT_TABLES.get("stride_order_results")
-        DBUtil.insertFile(StringIO(testRecords), "stride_order_results", \
-                            delim="\t", dateColFormats={"result_time": None})
-
-        # Populate stride_flowsheet.
-        testRecords = FM_TEST_INPUT_TABLES.get("stride_flowsheet")
-        DBUtil.insertFile(StringIO(testRecords), "stride_flowsheet", \
-                            delim="\t", \
-                            dateColFormats={"shifted_record_dt_tm": None})
-
-        # Populate stride_order_med.
-        testRecords = FM_TEST_INPUT_TABLES.get("stride_order_med")
-        DBUtil.insertFile(StringIO(testRecords), "stride_order_med", \
-            delim="\t", dateColFormats = {"start_taking_time": None, \
-                "end_taking_time": None});
+        testRecords = FM_TEST_INPUT_TABLES.get("demographics")
+        DBUtil.insertFile(StringIO(testRecords), "demographics")
 
     def _deleteTestRecords(self):
         """Delete test records from database."""
@@ -121,10 +110,6 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         DBTestCase.tearDown(self)
 
-    def test1(self):
-        # a = DBUtil.execute('select * from labs limit 10;')
-        # print a
-        pass
 
     def test_overall_for_single_patient(self):
         pat_id = 4662215939608726971
@@ -203,7 +188,7 @@ class TestFeatureMatrixFactory(DBTestCase):
             this_date = DBUtil.parseDateValue(results_HCT_sorted[i][1])
             if (date_interested-this_date).days>0 and (date_interested-this_date).days<14: #TODO: might not be exact
                 all_measures.append(results_HCT_sorted[i][2])
-        print all_measures
+        # print all_measures
 
     def test_queryMichiganItemsByCategory(self):
         cursor = self.connection.cursor()
@@ -254,7 +239,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         male_list = [[x[0]] for x in componentItemEvents]
         self.assertEqualSet(correct_list, male_list)
 
-    def test_queryComponentEventsByName(self):
+    def test_queryLabPanelsByName(self):
         cursor = self.connection.cursor()
         patientEpisodeQuery = SQLQuery()
         patientEpisodeQuery.addSelect("*")
@@ -281,12 +266,13 @@ class TestFeatureMatrixFactory(DBTestCase):
         tableName = 'labs'
         clinicalItemTime = 'order_time'
         componentItemEvents = self.factory._queryMichiganItemsByName(clinicalItemNames, clinicalItemType, tableName, clinicalItemTime)
-        for componentItemEvent in componentItemEvents:
-            print componentItemEvent
+        # for componentItemEvent in componentItemEvents:
+        #     print componentItemEvent
         self.assertEqualSet(correct_list, componentItemEvents)
 
     def test_queryAllRaces(self):
-        print self.factory.queryAllRaces()
+        races = ['Caucasian', 'Hispanic', 'Native Hawaiian and Other Pacific Islander', '']
+        self.assertEqualSet(self.factory.queryAllRaces(), races)
 
     def test_queryPatientEpisodes(self):
         cursor = self.connection.cursor()
@@ -301,7 +287,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         patientEpisodeQuery.addGroupBy("pat_id, order_proc_id, proc_code, order_time")
         patientEpisodeQuery.addOrderBy("pat_id, order_proc_id, proc_code, order_time")
         cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
-        print 'os.getcwd():', os.getcwd()
+        # print 'os.getcwd():', os.getcwd()
 
         self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
         self.factory.processPatientEpisodeInput()
@@ -318,21 +304,43 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         self.assertEqualSet(patientIds, set(list_pre_queried))
 
-        print patientIds
-        print sorted(patientIds)
-        print list(patientIds)
-        print list(set(list_pre_queried))
+        # print patientIds
+        # print sorted(patientIds)
+        # print list(patientIds)
+        # print list(set(list_pre_queried))
+        #
+        #
+        # print '4662215939608726971:', ('4662215939608726971' in patientIds)
 
+    def test_queryComponentEventsByName(self):
+        cursor = self.connection.cursor()
 
-        print '4662215939608726971:', ('4662215939608726971' in patientIds)
+        patientEpisodeQuery = SQLQuery()
+        patientEpisodeQuery.addSelect("pat_id")
+        patientEpisodeQuery.addSelect("order_proc_id")
+        patientEpisodeQuery.addSelect("proc_code")
+        patientEpisodeQuery.addSelect("order_time")
+        patientEpisodeQuery.addFrom("labs")
+        # patientEpisodeQuery.addWhereEqual("proc_code", "CBCP")
+        patientEpisodeQuery.addGroupBy("pat_id, order_proc_id, proc_code, order_time")
+        patientEpisodeQuery.addOrderBy("pat_id, order_proc_id, proc_code, order_time")
+        cursor.execute(str(patientEpisodeQuery), patientEpisodeQuery.params)
+        # print 'os.getcwd():', os.getcwd()
+
+        self.factory.setPatientEpisodeInput(cursor, "pat_id", "order_time")
+        self.factory.processPatientEpisodeInput()
+        resultEpisodeIterator = self.factory.getPatientEpisodeIterator()
 
         clinicalItemNames = ['WBC']
         clinicalItemType = 'base_name'
         tableName = 'labs'
-        clinicalItemTime = None#['']
+        clinicalItemTime = 'result_time'#['']
         # print 'self.factory.getPatientEpisodeIterator():', self.factory.getPatientEpisodeIterator()
         # print patientIds
-        print self.factory._queryMichiganItemsByName(clinicalItemNames, clinicalItemType, tableName, clinicalItemTime)
+        prelist = [[-7890596177313138982, u'2017-05-03 10:59:00'], [-3384542270496665494, u'2009-07-07 13:00:00'], [974665342874392077, u'2017-07-21 09:01:00'], [1262980084096039344, u'2003-01-22 12:29:00'], [1262980084096039344, u'2003-07-09 16:48:00'], [1262980084096039344, u'2003-08-05 13:15:00'], [1262980084096039344, u'2003-08-06 15:26:00'], [4662215939608726971, u'2002-01-03 19:30:00'], [4662215939608726971, u'2004-03-27 12:20:00'], [4662215939608726971, u'2008-02-12 10:07:00'], [4662215939608726971, u'2008-04-16 14:50:00'], [4662215939608726971, u'2011-07-24 21:40:00'], [4662215939608726971, u'2011-09-07 11:46:00'], [4662215939608726971, u'2011-10-28 09:33:00'], [4662215939608726971, u'2011-11-08 09:38:00'], [4662215939608726971, u'2012-02-13 10:08:00'], [4662215939608726971, u'2012-02-21 12:26:00'], [4662215939608726971, u'2012-05-29 10:29:00'], [4662215939608726971, u'2012-10-30 11:02:00'], [4662215939608726971, u'2013-05-14 11:57:00'], [4662215939608726971, u'2013-11-01 08:31:00'], [4662215939608726971, u'2014-05-06 12:07:00'], [4662215939608726971, u'2014-11-24 08:08:00'], [4662215939608726971, u'2015-06-01 07:58:00'], [4662215939608726971, u'2015-12-07 08:26:00'], [4662215939608726971, u'2016-06-27 09:00:00'], [4662215939608726971, u'2016-12-13 09:57:00'], [4662215939608726971, u'2017-04-24 09:13:00'], [7058194537092767591, u'2002-05-31 14:08:00'], [7058194537092767591, u'2003-04-02 16:14:00'], [7058194537092767591, u'2003-09-11 17:18:00'], [7058194537092767591, u'2003-12-16 11:31:00'], [7058194537092767591, u'2004-01-22 11:16:00'], [7058194537092767591, u'2004-03-19 14:45:00'], [7058194537092767591, u'2004-08-13 15:52:00'], [7058194537092767591, u'2005-02-25 11:56:00'], [7058194537092767591, u'2005-03-17 16:20:00'], [7058194537092767591, u'2005-03-18 06:00:00'], [7058194537092767591, u'2006-06-28 13:16:00'], [7058194537092767591, u'2006-09-12 11:10:00'], [7058194537092767591, u'2007-01-10 12:42:00'], [7058194537092767591, u'2007-12-05 13:47:00'], [7058194537092767591, u'2009-01-16 10:59:00'], [7058194537092767591, u'2009-04-01 12:48:00'], [7058194537092767591, u'2009-06-26 10:25:00'], [7058194537092767591, u'2009-07-07 08:37:00'], [7058194537092767591, u'2009-07-08 05:55:00'], [7058194537092767591, u'2009-07-09 07:49:00'], [7058194537092767591, u'2009-07-10 08:24:00'], [7058194537092767591, u'2009-07-11 06:34:00'], [7058194537092767591, u'2009-07-22 09:41:00'], [7058194537092767591, u'2009-09-01 17:28:00'], [7058194537092767591, u'2009-09-09 16:51:00'], [7058194537092767591, u'2009-09-16 15:25:00'], [7058194537092767591, u'2009-09-29 15:59:00'], [7058194537092767591, u'2009-10-20 15:38:00'], [7058194537092767591, u'2009-11-10 15:57:00'], [7058194537092767591, u'2009-12-01 15:53:00'], [7058194537092767591, u'2009-12-30 14:49:00'], [7058194537092767591, u'2010-04-13 15:43:00'], [7058194537092767591, u'2010-07-14 14:52:00'], [7058194537092767591, u'2010-10-06 15:14:00'], [7058194537092767591, u'2011-01-05 15:14:00'], [7058194537092767591, u'2011-04-20 15:07:00'], [7058194537092767591, u'2011-10-19 15:17:00'], [7058194537092767591, u'2011-11-16 15:38:00'], [7058194537092767591, u'2012-05-23 15:10:00'], [7058194537092767591, u'2012-06-09 15:50:00'], [7058194537092767591, u'2012-06-10 05:34:00'], [7058194537092767591, u'2012-06-10 19:24:00'], [7058194537092767591, u'2012-06-10 23:15:00'], [7058194537092767591, u'2012-06-11 04:43:00'], [7058194537092767591, u'2012-06-11 22:37:00'], [7058194537092767591, u'2012-06-12 06:38:00'], [7058194537092767591, u'2012-06-13 09:44:00'], [7058194537092767591, u'2012-06-14 01:49:00'], [7058194537092767591, u'2013-01-11 13:50:00'], [7058194537092767591, u'2013-04-15 12:51:00'], [7058194537092767591, u'2013-07-12 07:38:00'], [7058194537092767591, u'2014-01-10 07:22:00'], [7058194537092767591, u'2016-07-26 12:27:00'], [7058194537092767591, u'2017-08-31 11:22:00'], [8765351125316159366, u'2004-05-12 05:55:00'], [8765351125316159366, u'2004-12-06 10:50:00'], [8765351125316159366, u'2005-01-18 11:07:00']]
+
+
+        self.assertEqualSet((prelist), (self.factory._queryMichiganItemsByName(clinicalItemNames, clinicalItemType, tableName, clinicalItemTime)))
 
 
 
