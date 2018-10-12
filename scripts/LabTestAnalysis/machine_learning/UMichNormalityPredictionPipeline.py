@@ -254,6 +254,18 @@ if __name__ == '__main__':
 
     TOP_PANELS = []
 
-    labs_to_test = ['CBCP','GLUCW','']
-    for panel in labs_to_test:
+    panels_to_test = []
+
+    #RESULT_CODE
+    components_to_test = ['WBC', 'HGB', 'PLT', 'SOD', 'POD',
+                       'CREAT', 'TBIL', 'GLUC-WB'
+                          'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT',
+                          'ALB', 'CAL', 'PCOAA2', 'PO2AA', 'pHA',
+                          'T PROTEIN',
+                          'ALK', # ALKALINE PHOSPHATASE
+                          'BLOU', # Blood, Urine, 'BUN'
+                          'IBIL', # Bilirubin, Indirect
+                          'HCO3'# # good, from 'LABMETB'
+                          ]
+    for panel in components_to_test:
         UMichNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789)
