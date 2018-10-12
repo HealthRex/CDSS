@@ -3,7 +3,6 @@ import pandas as pd
 from itertools import islice
 import sqlite3
 import LocalEnv
-db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
 
 def filter_nondigits(any_str):
     return ''.join([x for x in str(any_str) if x in '.0123456789'])
@@ -189,7 +188,7 @@ def pd_process_demographics(demographics_df):
     demographics_df['pat_id'] = demographics_df['pat_id'].apply(lambda x: hash(x))
     return demographics_df[['pat_id', 'GenderName', 'RaceName']]
 
-def pd2db(data_df, data_folderpath, table_name):
+def pd2db(data_df, data_folderpath, table_name, db_name):
     conn = sqlite3.connect(data_folderpath + '/' + db_name)
 
     if table_name == "labs": # TODO: ".sample!"
@@ -207,7 +206,7 @@ def pd2db(data_df, data_folderpath, table_name):
 
     data_df.to_sql(table_name, conn, if_exists="append")
     
-def raw2db(data_file, data_folderpath, build_index_patid=True):
+def raw2db(data_file, data_folderpath, db_name, build_index_patid=True):
     chunk_size = 1000 # num of rows
 
     print 'Now processing ' + data_file # TODO: modify this by useful info...
@@ -233,7 +232,7 @@ def raw2db(data_file, data_folderpath, build_index_patid=True):
                 data_df = lines2pd(next_n_lines_str, colnames)
 
             ## append each pandas to db tables
-            pd2db(data_df, data_folderpath, table_name=table_name)
+            pd2db(data_df, data_folderpath, db_name=db_name, table_name=table_name)
             ##
     if build_index_patid:
         conn = sqlite3.connect(data_folderpath + '/' + db_name)

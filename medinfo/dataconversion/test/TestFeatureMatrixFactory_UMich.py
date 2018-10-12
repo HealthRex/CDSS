@@ -17,7 +17,7 @@ import time
 import unittest
 from Const import RUNNER_VERBOSITY
 from cStringIO import StringIO
-from FeatureMatrixTestData_UMich import FM_TEST_INPUT_TABLES, FM_TEST_OUTPUT
+# from FeatureMatrixTestData_UMich import FM_TEST_INPUT_TABLES, FM_TEST_OUTPUT
 from medinfo.dataconversion.DataExtractor import DataExtractor
 from medinfo.dataconversion.FeatureMatrixFactory_UMich import FeatureMatrixFactory
 from medinfo.db import DBUtil
@@ -51,24 +51,24 @@ class TestFeatureMatrixFactory(DBTestCase):
         cursor = self.connection.cursor()
         cursor.execute("CREATE TABLE labs (pat_id integer, order_proc_id text, ACCESSION_NUMBER);")
 
-        testRecords = FM_TEST_INPUT_TABLES.get("labs")
-        DBUtil.insertFile(StringIO(testRecords), "labs")
-
-        # Populate clinical_item.
-        testRecords = FM_TEST_INPUT_TABLES.get("pt_info")
-        DBUtil.insertFile(StringIO(testRecords), "pt_info", delim="\t")
-
-        # Populate patient_item.
-        testRecords = FM_TEST_INPUT_TABLES.get("encounters")
-        DBUtil.insertFile(StringIO(testRecords), "encounters", delim="\t")
-
-        # Populate stride_order_proc.
-        testRecords = FM_TEST_INPUT_TABLES.get("diagnoses")
-        DBUtil.insertFile(StringIO(testRecords), "diagnoses")
-
-        # Populate stride_order_results.
-        testRecords = FM_TEST_INPUT_TABLES.get("demographics")
-        DBUtil.insertFile(StringIO(testRecords), "demographics")
+        # testRecords = FM_TEST_INPUT_TABLES.get("labs")
+        # DBUtil.insertFile(StringIO(testRecords), "labs")
+        #
+        # # Populate clinical_item.
+        # testRecords = FM_TEST_INPUT_TABLES.get("pt_info")
+        # DBUtil.insertFile(StringIO(testRecords), "pt_info", delim="\t")
+        #
+        # # Populate patient_item.
+        # testRecords = FM_TEST_INPUT_TABLES.get("encounters")
+        # DBUtil.insertFile(StringIO(testRecords), "encounters", delim="\t")
+        #
+        # # Populate stride_order_proc.
+        # testRecords = FM_TEST_INPUT_TABLES.get("diagnoses")
+        # DBUtil.insertFile(StringIO(testRecords), "diagnoses")
+        #
+        # # Populate stride_order_results.
+        # testRecords = FM_TEST_INPUT_TABLES.get("demographics")
+        # DBUtil.insertFile(StringIO(testRecords), "demographics")
 
     def _deleteTestRecords(self):
         """Delete test records from database."""
