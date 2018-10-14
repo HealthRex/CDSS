@@ -39,7 +39,7 @@ class SupervisedLearningPipeline:
     CLASSIFICATION = 'classification'
     REGRESSION = 'regression'
 
-    def __init__(self, variable, num_data_points, use_cache=None, random_state=None, isLabPanel=True):
+    def __init__(self, variable, num_data_points, use_cache=None, random_state=None):
         # Process arguments.
         self._var = variable
         self._num_rows = num_data_points
@@ -52,8 +52,6 @@ class SupervisedLearningPipeline:
         self._removed_features = list()
         self._added_features = list()
         self._random_state = random_state
-
-        self._isLabPanel = isLabPanel
 
     def predictor(self):
         return self._predictor
@@ -122,7 +120,7 @@ class SupervisedLearningPipeline:
             # at least 1 primary variables and # of rows.
             # Ensure that random_state is [-1, 1]
             random_state = float(self._random_state)/float(sys.maxint)
-            matrix = matrix_class(self._var, self._num_rows, random_state=random_state)#, isLabPanel=self._isLabPanel)
+            matrix = matrix_class(self._var, self._num_rows, random_state=random_state)
             matrix.write_matrix(raw_matrix_path)
 
     def _build_processed_feature_matrix(self, params):
