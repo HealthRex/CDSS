@@ -10,12 +10,6 @@ import os
 import datetime
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
-
-import LocalEnv
-# if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-#     from medinfo.dataconversion.FeatureMatrixFactory_UMich import FeatureMatrixFactory
-# elif LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-#     from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.db import DBUtil
 from Util import log
@@ -57,33 +51,19 @@ class FeatureMatrix:
         return num_episodes
 
     def _add_features(self, index_time_col=None):
-
-        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            self._add_time_features(index_time_col)
-            self._add_demographic_features()
-            self._add_treatment_team_features()
-            self._add_comorbidity_features()
-            self._add_flowsheet_features()
-            self._add_lab_component_features()
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-            self._add_time_features(index_time_col)
-            self._add_demographic_features()
-            # self._add_treatment_team_features()
-            self._add_comorbidity_features()
-            # self._add_flowsheet_features()
-            self._add_lab_component_features()
+        self._add_time_features(index_time_col)
+        self._add_demographic_features()
+        self._add_treatment_team_features()
+        self._add_comorbidity_features()
+        self._add_flowsheet_features()
+        self._add_lab_component_features()
 
     def _add_time_features(self, index_time_col=None):
         log.info('Adding admit date features...')
         # Add admission date.
         ADMIT_DX_CATEGORY_ID = 2
-
-        if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-            self._factory.addClinicalItemFeaturesByCategory_UMich([ADMIT_DX_CATEGORY_ID], \
-            dayBins=[], label='AdmitDxDate', features='pre', tableName='encounters')
-        elif LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            self._factory.addClinicalItemFeaturesByCategory([ADMIT_DX_CATEGORY_ID], \
-                                            dayBins=[], label='AdmitDxDate', features='pre')
+        self._factory.addClinicalItemFeaturesByCategory([ADMIT_DX_CATEGORY_ID], \
+            dayBins=[], label='AdmitDxDate', features='pre')
 
         # Add time cycle features.
         log.info('Adding time cycle features...')
@@ -103,32 +83,25 @@ class FeatureMatrix:
 
     def _add_lifespan_features(self):
         log.info('Adding lifespan features...')
-
-        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE': # TODO
-            self._factory.addClinicalItemFeatures(['Birth'], dayBins=[], features="pre")
-            self._factory.addClinicalItemFeatures(['Death'], dayBins=[], features="post")
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-            self._factory.addClinicalItemFeatures_UMich(['Birth'], dayBins=[], features="pre",
-                                                        clinicalItemType=None, clinicalItemTime='Birth',
-                                                        tableName='pt_info')
+        self._factory.addClinicalItemFeatures(['Birth'], dayBins=[], features="pre")
+        self._factory.addClinicalItemFeatures(['Death'], dayBins=[], features="post")
 
     def _add_sex_features(self):
         log.info('Adding sex features...')
         SEX_FEATURES = ["Male", "Female"]
         for feature in SEX_FEATURES:
-            if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':  # TODO
-                self._factory.addClinicalItemFeatures([feature], dayBins=[], features="pre")
-            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-                self._factory.addClinicalItemFeatures_UMich([feature], dayBins=[], features="pre",
-                                                   clinicalItemType='GenderName', clinicalItemTime=None, tableName="demographics")
+            self._factory.addClinicalItemFeatures([feature], dayBins=[], features="pre")
+
     def _add_race_features(self):
         log.info('Adding race features...')
-        for feature in self._factory.queryAllRaces():
-            if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':  # TODO
-                self._factory.addClinicalItemFeatures([feature], dayBins=[], features="pre")
-            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-                self._factory.addClinicalItemFeatures_UMich([feature], dayBins=[], features="pre",
-                                                  clinicalItemType='RaceName', clinicalItemTime=None, tableName='demographics')
+        RACE_FEATURES = [
+            "RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
+            "RaceHispanicLatino", "RaceBlack", "RaceAsian",
+            "RacePacificIslander", "RaceNativeAmerican",
+            "RaceOther", "RaceUnknown"
+        ]
+        for feature in RACE_FEATURES:
+            self._factory.addClinicalItemFeatures([feature], dayBins=[], features="pre")
 
     def _add_treatment_team_features(self):
         log.info('Adding treatment team features...')
@@ -162,54 +135,29 @@ class FeatureMatrix:
         LAB_POST_TIME_DELTA = datetime.timedelta(0)
 
         # Add result features for a variety of generally useful components.
-        if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-            BASIC_LAB_COMPONENTS = [
-                'WBC',      # White Blood Cell
-                'HCTA',     # Hematocrit
-                'PLT',      # Platelet Count
-                'SOD',      # Sodium, Whole Blood
-                'POT',      # Potassium, Whole Blood
-                'CO2',      # CO2, Serum/Plasma
-                'UN', # Blood Urea Nitrogen TODO
-                'CREAT',       # Creatinine
-                'TBIL',     # Total Bilirubin
-                'ALB',      # Albumin
-                'CAL',      # Calcium
-                'LACTIC', # Lactic Acid; TODO: but LACTA & LACTV are more frequent?
-                # Erythrocyte Sedimentation Rate TODO:?
-                'CRP',      # C-Reactive Protein
-                'TROP',     # Troponin I
-                'pHA',      # Arterial pH
-                'PO2AA',    # Arterial pO2
-                'PCOAA2',   # Arterial pCO2
-                'pHV',      # Venous pH
-                'pO2V',     # Venous pO2
-                'pCO2V',    # Venous pCO2
-            ]
-        elif LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            BASIC_LAB_COMPONENTS = [
-                'WBC',  # White Blood Cell
-                'HCT',  # Hematocrit
-                'PLT',  # Platelet Count
-                'NA',  # Sodium, Whole Blood
-                'K',  # Potassium, Whole Blood
-                'CO2',  # CO2, Serum/Plasma
-                'BUN',  # Blood Urea Nitrogen
-                'CR',  # Creatinine
-                'TBIL',  # Total Bilirubin
-                'ALB',  # Albumin
-                'CA',  # Calcium
-                'LAC',  # Lactic Acid
-                'ESR',  # Erythrocyte Sedimentation Rate
-                'CRP',  # C-Reactive Protein
-                'TNI',  # Troponin I
-                'PHA',  # Arterial pH
-                'PO2A',  # Arterial pO2
-                'PCO2A',  # Arterial pCO2
-                'PHV',  # Venous pH
-                'PO2V',  # Venous pO2
-                'PCO2V'  # Venous pCO2
-            ]
+        BASIC_LAB_COMPONENTS = [
+            'WBC',      # White Blood Cell
+            'HCT',      # Hematocrit
+            'PLT',      # Platelet Count
+            'NA',       # Sodium, Whole Blood
+            'K',        # Potassium, Whole Blood
+            'CO2',      # CO2, Serum/Plasma
+            'BUN',      # Blood Urea Nitrogen
+            'CR',       # Creatinine
+            'TBIL',     # Total Bilirubin
+            'ALB',      # Albumin
+            'CA',       # Calcium
+            'LAC',      # Lactic Acid
+            'ESR',      # Erythrocyte Sedimentation Rate
+            'CRP',      # C-Reactive Protein
+            'TNI',      # Troponin I
+            'PHA',      # Arterial pH
+            'PO2A',     # Arterial pO2
+            'PCO2A',    # Arterial pCO2
+            'PHV',      # Venous pH
+            'PO2V',     # Venous pO2
+            'PCO2V'     # Venous pCO2
+        ]
         log.info('Adding lab component features...')
         for component in BASIC_LAB_COMPONENTS:
             log.info('\t%s' % component)
