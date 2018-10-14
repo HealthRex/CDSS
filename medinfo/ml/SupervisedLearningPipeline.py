@@ -122,7 +122,7 @@ class SupervisedLearningPipeline:
             # at least 1 primary variables and # of rows.
             # Ensure that random_state is [-1, 1]
             random_state = float(self._random_state)/float(sys.maxint)
-            matrix = matrix_class(self._var, self._num_rows, random_state=random_state)#, isLabPanel=self._isLabPanel)
+            matrix = matrix_class(self._var, self._num_rows, random_state=random_state, isLabPanel=self._isLabPanel)
             matrix.write_matrix(raw_matrix_path)
 
     def _build_processed_feature_matrix(self, params):
