@@ -13,17 +13,12 @@ import numpy
 from optparse import OptionParser
 
 from medinfo.common.Util import log
+from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
-import LocalEnv
-# if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-#     from medinfo.dataconversion.FeatureMatrixFactory_UMich import FeatureMatrixFactory
-#     from medinfo.dataconversion.FeatureMatrix_UMich import FeatureMatrix
-# elif LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-#     from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
-#     from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
-from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
+
+import LocalEnv
 
 class LabNormalityMatrix(FeatureMatrix):
     def __init__(self, lab_var, num_episodes, random_state=None, isLabPanel=True):
@@ -109,22 +104,25 @@ class LabNormalityMatrix(FeatureMatrix):
 
         # Get average number of results for this lab test per patient.
         query = SQLQuery()
-        query.addSelect('pat_id')
-
-        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE': #TODO: add STRIDE component routine
+            query.addSelect('pat_id')
             query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
             query.addFrom('stride_order_proc AS sop')
             query.addFrom('stride_order_results AS sor')
             query.addWhere('sop.order_proc_id = sor.order_proc_id')
-            query.addWhereIn(self._varTypeInTable, [self._lab_var])
+            query.addWhereIn("proc_code", [self._lab_panel])
             components = self._get_components_in_lab_panel()
-            query.addWhereIn("base_name", components) #TODO: for avoiding nan?
+            query.addWhereIn("base_name", components)
+            query.addGroupBy('pat_id')
 
         elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            query.addSelect('pat_id')
             query.addSelect('COUNT(order_proc_id) AS num_orders')
             query.addFrom('labs')
             query.addWhereIn(self._varTypeInTable, [self._lab_var])
-        query.addGroupBy('pat_id')
+            components = self._get_components_in_lab_panel()
+            query.addWhereIn("base_name", components)
+            query.addGroupBy('pat_id')
         log.debug('Querying median orders per patient...')
         results = DBUtil.execute(query)
         order_counts = [ row[1] for row in results ]
@@ -170,19 +168,15 @@ class LabNormalityMatrix(FeatureMatrix):
             query = SQLQuery()
             query.addSelect('pat_id')
             query.addSelect('COUNT(order_proc_id) AS num_orders')
-            # query.addFrom('stride_order_proc AS sop')
-            # query.addFrom('stride_order_results AS sor')
             query.addFrom('labs')
-            # query.addWhere('sop.order_proc_id = sor.order_proc_id')
-            ##
             query.addWhereIn(self._varTypeInTable, [self._lab_var])
+            components = self._get_components_in_lab_panel()
+            query.addWhereIn("base_name", components)
             query.addGroupBy('pat_id')
             log.debug('Querying median orders per patient...')
 
             results = DBUtil.execute(query)
-
             order_counts = [ row[1] for row in results ]
-
 
             if len(results) == 0:
                 error_msg = '0 orders for order "%s."' % self._lab_var #sx
@@ -239,8 +233,8 @@ class LabNormalityMatrix(FeatureMatrix):
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
         query = SQLQuery()
-        query.addSelect('pat_id')
         if LocalEnv.DATASET_SOURCE_NAME=='STRIDE': # TODO: component
+            query.addSelect('CAST(pat_id AS BIGINT)')
             query.addSelect('sop.order_proc_id AS order_proc_id')
             query.addSelect('proc_code') #TODO:sx
             query.addSelect('order_time')
@@ -265,6 +259,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addOrderBy('order_time')
 
         elif LocalEnv.DATASET_SOURCE_NAME=='UMich':
+            query.addSelect('pat_id')
             query.addSelect(self._varTypeInTable)
             query.addSelect('order_proc_id')
             query.addSelect('order_time')
@@ -306,7 +301,9 @@ class LabNormalityMatrix(FeatureMatrix):
             self._factory.addClinicalItemFeatures([self._lab_var], features="pre")
         elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             self._factory.addClinicalItemFeatures_UMich([self._lab_var], features="pre",
-                                              clinicalItemType=self._varTypeInTable, clinicalItemTime='order_time', tableName='labs') #sx
+                                                        clinicalItemType=self._varTypeInTable,
+                                                        clinicalItemTime='order_time',
+                                                        tableName='labs') #sx
 
         # Add lab component result features, for a variety of time deltas.
         LAB_PRE_TIME_DELTAS = [datetime.timedelta(-14)]
