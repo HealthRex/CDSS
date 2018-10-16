@@ -1208,7 +1208,7 @@ class FeatureMatrixFactory:
                 features="pre")
 
     def addRaceFeatures(self):
-        for feature in self.RACE_FEATURES:
+        for feature in self.queryAllRaces():
             self.addClinicalItemFeatures([feature], dayBins=[], \
                 features="pre")
 

@@ -18,12 +18,18 @@ from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
-from scripts.LabTestAnalysis.machine_learning.extraction.LabNormalityMatrix import LabNormalityMatrix
+from extraction.LabNormalityMatrix import LabNormalityMatrix
+
+# Import FMF in order to retrieve all races name dynamically upon accessing the UMich data
+from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
+import LocalEnv
+import prepareData_UMich
+
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
-    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None):
-        SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state)
-
+    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True):
+        SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state, isLabPanel)
+        self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
         self._build_processed_feature_matrix()
         self._train_and_analyze_predictors()
@@ -61,29 +67,51 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         imputation_strategies = {
         }
 
-        features_to_remove = [
-            'pat_id', 'order_time', 'order_proc_id',
-            'proc_code', 'abnormal_panel',
-            'num_normal_components', 'Birth.pre',
-            'Male.preTimeDays', 'Female.preTimeDays',
-            'RaceWhiteHispanicLatino.preTimeDays',
-            'RaceWhiteNonHispanicLatino.preTimeDays',
-            'RaceHispanicLatino.preTimeDays',
-            'RaceAsian.preTimeDays',
-            'RaceBlack.preTimeDays',
-            'RacePacificIslander.preTimeDays',
-            'RaceNativeAmerican.preTimeDays',
-            'RaceOther.preTimeDays',
-            'RaceUnknown.preTimeDays',
-            'Death.post',
-            'Death.postTimeDays',
-            'num_components'
-        ]
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            features_to_remove = [
+                'pat_id', 'order_time', 'order_proc_id',
+                'proc_code', 'abnormal_panel',
+                'num_normal_components', 'Birth.pre',
+                'Male.preTimeDays', 'Female.preTimeDays',
+                'RaceWhiteHispanicLatino.preTimeDays',
+                'RaceWhiteNonHispanicLatino.preTimeDays',
+                'RaceHispanicLatino.preTimeDays',
+                'RaceAsian.preTimeDays',
+                'RaceBlack.preTimeDays',
+                'RacePacificIslander.preTimeDays',
+                'RaceNativeAmerican.preTimeDays',
+                'RaceOther.preTimeDays',
+                'RaceUnknown.preTimeDays',
+                'Death.post',
+                'Death.postTimeDays',
+                'num_components'
+            ]
+            outcome_label = 'all_components_normal'
+
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            features_to_remove = [
+                'pat_id', 'order_time', 'order_proc_id',
+                # 'lab_normal', # avoid info leakage
+                'Birth.pre',
+                'Male.preTimeDays', 'Female.preTimeDays',
+                # 'Caucasian.preTimeDays', # TODO!
+                # 'Hispanic.preTimeDays',
+                # 'Native Hawaiian and Other Pacific Islander.preTimeDays'
+            ]
+            RACE_FEATURES = self._factory.queryAllRaces()
+            features_to_remove += [x + '.preTimeDays' for x in RACE_FEATURES]
+            if self._isLabPanel:
+                features_to_remove += ['proc_code', 'num_normal_components', 'num_components']
+            else:
+                features_to_remove += ['base_name']
+
+            outcome_label = 'lab_normal'
+
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
             '%s.pre' % self._var
         ]
-        outcome_label = 'all_components_normal'
+
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
         percent_features_to_select = 0.05
@@ -211,7 +239,6 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             elif status == SupervisedClassifier.TRAINED:
                 pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
                 SupervisedLearningPipeline._analyze_predictor(self, report_dir, pipeline_prefix)
-                SupervisedLearningPipeline._analyze_predictor_traindata(self, report_dir, pipeline_prefix)
                 if meta_report is None:
                     meta_report = fm_io.read_file_to_data_frame('/'.join([report_dir, '%s-report.tab' % pipeline_prefix]))
                 else:
@@ -270,7 +297,45 @@ if __name__ == '__main__':
         'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH', 'LABUCR', 'LABUOSM',
         'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
     ]
-    labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 
-    for panel in labs_to_test:
-        LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789)
+    if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+        labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+        for panel in labs_to_test:
+            LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789)
+
+
+
+
+    elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        UMICH_TOP_LABPANELS = ['CBCP']
+        UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POD',  # TODO: confirm again
+                                'CREAT', 'TBIL', 'GLUC-WB'
+                                                 'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT',
+                                'ALB', 'CAL', 'PCOAA2', 'PO2AA', 'pHA',
+                                'T PROTEIN',
+                                'ALK',  # ALKALINE PHOSPHATASE
+                                'BLOU',  # Blood, Urine, 'BUN'
+                                'IBIL',  # Bilirubin, Indirect
+                                'HCO3'  # # good, from 'LABMETB'
+                                ]
+        # TODO: by default, the first one should be labs
+        raw_data_files = ['labs.sample.txt',
+                          'pt.info.sample.txt',
+                          'encounters.sample.txt',
+                          'demographics.sample.txt',
+                          'diagnoses.sample.txt']
+        # TODO: large_data_folder_name
+        raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
+        db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
+        # prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name)
+        fold_enlarge_data = 100
+        prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name,
+            fold_enlarge_data=fold_enlarge_data, large_data_folderpath=raw_data_folderpath+'/enlarged_data_by_%d_fold/'%fold_enlarge_data
+                                           )
+
+        # for panel in UMICH_TOP_LABPANELS:
+        #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
+        for component in UMICH_TOP_COMPONENTS:
+            LabNormalityPredictionPipeline(component, 1000, use_cache=True, random_state=123456789, isLabPanel=False)
+
+
