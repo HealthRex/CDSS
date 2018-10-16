@@ -157,6 +157,14 @@ class TestFeatureMatrixFactory(DBTestCase):
         return df
 
     def test__BuildMatrix_UMich(self):
+        self.factory.addClinicalItemFeatures_UMich(clinicalItemNames=['CBCP'],
+                                                   clinicalItemType='proc_code',
+                                                   tableName='labs',
+                                                   clinicalItemTime='order_time')
+        self.factory.addClinicalItemFeatures_UMich(clinicalItemNames=['WCB'],
+                                                     clinicalItemType='base_name',
+                                                     tableName='labs',
+                                                     clinicalItemTime='order_time')
         self.factory.addClinicalItemFeatures_UMich(clinicalItemNames=['HCT'],
                                                      clinicalItemType='base_name',
                                                      tableName='labs',
@@ -165,13 +173,27 @@ class TestFeatureMatrixFactory(DBTestCase):
                                                      clinicalItemType='GenderName',
                                                      tableName='demographics',
                                                      clinicalItemTime=None)
+        self.factory.addClinicalItemFeatures_UMich(clinicalItemNames=['Caucasian'],
+                                                   clinicalItemType='RaceName',
+                                                   tableName='demographics',
+                                                   clinicalItemTime=None)
+        self.factory.addClinicalItemFeatures_UMich(clinicalItemNames=['Hispanic'],
+                                                   clinicalItemType='RaceName',
+                                                   tableName='demographics',
+                                                   clinicalItemTime=None)
+        self.factory.addClinicalItemFeatures_UMich(clinicalItemNames=['Birth'],
+                                                   clinicalItemType=None,
+                                                   tableName='pt_info',
+                                                   clinicalItemTime='Birth')
+        self.factory.addCharlsonComorbidityFeatures(features='pre')
         self.factory.buildFeatureMatrix()
 
         resultMatrix = self.factory.readFeatureMatrixFile()
         # for resultrow in resultMatrix:
-        #     print resultrow
+        #     print resultrow, ','
+        # quit()
         df = self.lists_to_pd(resultMatrix[2:])
-        # df.to_csv('tmp.csv', index=False)
+        df.to_csv('tmp.csv', index=False)
         pd.testing.assert_frame_equal(df, self.lists_to_pd(FMTU.FM_TEST_OUTPUT['OUTPUT_RAW_TABLE']))
 
 
