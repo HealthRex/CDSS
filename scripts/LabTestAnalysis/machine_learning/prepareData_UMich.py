@@ -8,7 +8,7 @@ import utils_UMich
 
 import os
 
-def prepare_database(raw_data_files, raw_data_folderpath, db_name, fold_enlarge_data=1): #TODO: UMich.db also put here?
+def prepare_database(raw_data_files, raw_data_folderpath, db_name, fold_enlarge_data=1, USE_CACHED_DB=False): #TODO: UMich.db also put here?
 
     if fold_enlarge_data != 1:
         # large_data_folderpath = LocalEnv.PATH_TO_CDSS + '/' + 'scripts/LabTestAnalysis/machine_learning' + '/' + large_data_foldername
@@ -28,12 +28,12 @@ def prepare_database(raw_data_files, raw_data_folderpath, db_name, fold_enlarge_
         data_files = raw_data_files
         data_folderpath = raw_data_folderpath
 
-    if os.path.exists(data_folderpath + '/' + db_name):
-        print db_name + "exists!"
+    if USE_CACHED_DB and os.path.exists(raw_data_folderpath + '/' + db_name):
+        print db_name + " already exists!"
         return
 
     for data_file in data_files:
-        utils_UMich.raw2db(data_file, data_folderpath, db_name=db_name, build_index_patid=True)
+        utils_UMich.raw2db(data_file, data_folderpath, db_path=raw_data_folderpath, db_name=db_name, build_index_patid=True)
 
 
 if __name__ == '__main__':
@@ -51,7 +51,7 @@ if __name__ == '__main__':
 
     db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
 
-    prepare_database(raw_data_files, raw_data_folderpath, db_name, fold_enlarge_data=1)
+    prepare_database(raw_data_files, raw_data_folderpath, db_name, fold_enlarge_data=100)
 
 
 
