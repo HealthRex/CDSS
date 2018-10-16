@@ -25,9 +25,7 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import columnFromModelList, SQLQuery, modelListFromTable
 from medinfo.db.ResultsFormatter import TabDictReader, TextResultsFormatter
 
-# For UMich data, we use sqlite database to avoid the burden of
-# creating local postgres database for UMich staff
-
+# For UMich data, we use sqlite database to avoid creating local postgres database on the UMich side
 import LocalEnv
 if LocalEnv.DATABASE_CONNECTOR_NAME == 'psycopg2':
     from psycopg2.extensions import cursor
