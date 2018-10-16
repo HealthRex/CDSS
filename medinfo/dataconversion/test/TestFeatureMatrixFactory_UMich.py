@@ -33,7 +33,7 @@ from Util import log
 import pandas as pd
 pd.set_option('display.width', 300)
 import sqlite3
-import FeatureMatrixTestData_UMich as FMTU
+import UMichFeatureMatrixTestData as FMTU
 
 class TestFeatureMatrixFactory(DBTestCase):
     def setUp(self):
