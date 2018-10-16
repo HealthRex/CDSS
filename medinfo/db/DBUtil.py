@@ -70,7 +70,7 @@ if DATABASE_CONNECTOR_NAME == "cx_Oracle":
     BOOLEAN = 1;   
 
 if DATABASE_CONNECTOR_NAME == "sqlite3":
-    import sqlite3; 
+    import sqlite3;
     DB_CONNECTOR_MODULE = sqlite3;
 
 # Abstract DBAPITypes to check column type codes against
@@ -131,7 +131,7 @@ def connection( connParams=None ):
         return cx_Oracle.connect(connStr);
 
     if DATABASE_CONNECTOR_NAME == "sqlite3":
-        return sqlite3.connect(connParams["DBPATH"] + connParams["DSN"]);
+        return sqlite3.connect(connParams["DATAPATH"] + connParams["DSN"]);
 
 
     # ODBC (Access)

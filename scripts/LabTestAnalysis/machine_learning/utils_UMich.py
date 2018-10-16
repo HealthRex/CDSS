@@ -83,7 +83,7 @@ def create_large_files(raw_data_files,raw_data_folderpath,
         lines_lab = f.readlines()
         f.close()
     all_pat_ids = set([line_str2list(line)[1] for line in lines_lab[1:]]) #set([line.split('|')[1] for line in lines[1:]])
-    print 'all_pat_ids:', all_pat_ids
+    # print 'all_pat_ids:', all_pat_ids
 
     # Each time, make pat_ids into dict, and modify all tables...
     for _ in range(num_repeats):
@@ -188,8 +188,8 @@ def pd_process_demographics(demographics_df):
     demographics_df['pat_id'] = demographics_df['pat_id'].apply(lambda x: hash(x))
     return demographics_df[['pat_id', 'GenderName', 'RaceName']]
 
-def pd2db(data_df, data_folderpath, table_name, db_name):
-    conn = sqlite3.connect(data_folderpath + '/' + db_name)
+def pd2db(data_df, db_path, table_name, db_name):
+    conn = sqlite3.connect(db_path + '/' + db_name)
 
     if table_name == "labs": # TODO: ".sample!"
         data_df = pd_process_labs(data_df)
@@ -206,7 +206,7 @@ def pd2db(data_df, data_folderpath, table_name, db_name):
 
     data_df.to_sql(table_name, conn, if_exists="append")
     
-def raw2db(data_file, data_folderpath, db_name, build_index_patid=True):
+def raw2db(data_file, data_folderpath, db_path, db_name, build_index_patid=True):
     chunk_size = 1000 # num of rows
 
     print 'Now processing ' + data_file # TODO: modify this by useful info...
@@ -232,10 +232,10 @@ def raw2db(data_file, data_folderpath, db_name, build_index_patid=True):
                 data_df = lines2pd(next_n_lines_str, colnames)
 
             ## append each pandas to db tables
-            pd2db(data_df, data_folderpath, db_name=db_name, table_name=table_name)
+            pd2db(data_df, db_path=db_path, db_name=db_name, table_name=table_name)
             ##
     if build_index_patid:
-        conn = sqlite3.connect(data_folderpath + '/' + db_name)
+        conn = sqlite3.connect(db_path + '/' + db_name)
         build_index_query = "CREATE INDEX IF NOT EXISTS index_for_%s ON %s (%s);"%(table_name,table_name,'pat_id')
         # print build_index_query
         conn.execute(build_index_query)

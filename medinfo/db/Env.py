@@ -20,8 +20,9 @@ used.  Can tell which by the module's paramstyle attribute.
 Read the DB-API 2.0 specs for more info. (http://www.python.org/peps/pep-0249.html)
 Oracle expects sequential or named items like &1, &2, or :1, :2...
 """
-#SQL_PLACEHOLDER = "?"   # "qmark"
-SQL_PLACEHOLDER = "%s"  # "format" and "pyFormat"
+# #SQL_PLACEHOLDER = "?"   # "qmark"
+# SQL_PLACEHOLDER = "%s"  # "format" and "pyFormat"
+SQL_PLACEHOLDER = SQL_PLACEHOLDER
 
 """Strings to use for boolean parameters."""
 BOOLEAN_STR = dict();
@@ -32,13 +33,13 @@ BOOLEAN_STR[False]= str(False);
 #BOOLEAN_STR[True] = str(-1);
 #BOOLEAN_STR[False]= str(0);
 
-"""Designate the DB being used, which will afect some DB specific setup steps"""
-#DATABASE_CONNECTOR_NAME = "mysql.connector";
-#DATABASE_CONNECTOR_NAME = "MySQLdb";
-DATABASE_CONNECTOR_NAME = "psycopg2";
-#DATABASE_CONNECTOR_NAME = "cx_Oracle";
-#DATABASE_CONNECTOR_NAME = "sqlite3";
-
+# """Designate the DB being used, which will afect some DB specific setup steps"""
+# #DATABASE_CONNECTOR_NAME = "mysql.connector";
+# #DATABASE_CONNECTOR_NAME = "MySQLdb";
+# DATABASE_CONNECTOR_NAME = "psycopg2";
+# #DATABASE_CONNECTOR_NAME = "cx_Oracle";
+# #DATABASE_CONNECTOR_NAME = "sqlite3";
+DATABASE_CONNECTOR_NAME = DATABASE_CONNECTOR_NAME
 
 """Parameters needed to open a connection to the database.
 Dependent upon particular connection interface and database implementation

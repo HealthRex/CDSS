@@ -329,10 +329,9 @@ if __name__ == '__main__':
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
         # prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name)
-        fold_enlarge_data = 100
-        prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name,
-            fold_enlarge_data=fold_enlarge_data, large_data_folderpath=raw_data_folderpath+'/enlarged_data_by_%d_fold/'%fold_enlarge_data
-                                           )
+        fold_enlarge_data = 1
+        USE_CACHED_DB = False
+        prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name, fold_enlarge_data=fold_enlarge_data, USE_CACHED_DB=USE_CACHED_DB)
 
         # for panel in UMICH_TOP_LABPANELS:
         #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
