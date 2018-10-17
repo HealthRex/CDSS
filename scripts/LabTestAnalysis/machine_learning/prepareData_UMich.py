@@ -28,9 +28,13 @@ def prepare_database(raw_data_files, raw_data_folderpath, db_name, fold_enlarge_
         data_files = raw_data_files
         data_folderpath = raw_data_folderpath
 
-    if USE_CACHED_DB and os.path.exists(raw_data_folderpath + '/' + db_name):
-        print db_name + " already exists!"
-        return
+
+    if os.path.exists(os.path.join(raw_data_folderpath, db_name)):
+        if USE_CACHED_DB:
+            print db_name + " already exists!"
+            return
+        else:
+            os.remove(os.path.join(raw_data_folderpath, db_name))
 
     for data_file in data_files:
         utils_UMich.raw2db(data_file, data_folderpath, db_path=raw_data_folderpath, db_name=db_name, build_index_patid=True)
