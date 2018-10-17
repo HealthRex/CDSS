@@ -158,7 +158,7 @@ def pd_process_labs(labs_df):
     labs_df['order_time'] = labs_df['order_time'].apply(lambda x: remove_microsecs(x))
     labs_df['result_time'] = labs_df['result_time'].apply(lambda x: remove_microsecs(x))
 
-    labs_df.to_csv("labs_df.csv")
+    # labs_df.to_csv("labs_df.csv")
 
 
     return labs_df[['pat_id', 'order_proc_id','order_time','result_time',
