@@ -105,7 +105,7 @@ class LabNormalityMatrix(FeatureMatrix):
         # Get average number of results for this lab test per patient.
         query = SQLQuery()
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE': #TODO: add STRIDE component routine
-            query.addSelect('pat_id')
+            query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
             query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
             query.addFrom('stride_order_proc AS sop')
             query.addFrom('stride_order_results AS sor')
@@ -116,7 +116,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addGroupBy('pat_id')
 
         elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-            query.addSelect('pat_id')
+            query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
             query.addSelect('COUNT(order_proc_id) AS num_orders')
             query.addFrom('labs')
             query.addWhereIn(self._varTypeInTable, [self._lab_var])
@@ -149,7 +149,7 @@ class LabNormalityMatrix(FeatureMatrix):
             # Get numPatientsToQuery random patients who have gotten test.
             # TODO(sbala): Have option to feed in a seed for the randomness.
             query = SQLQuery()
-            query.addSelect('pat_id')
+            query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
             query.addFrom('stride_order_proc AS sop')
             query.addWhereIn('proc_code', [self._lab_var]) # TODO: components
             query.addOrderBy('RANDOM()')
@@ -166,7 +166,7 @@ class LabNormalityMatrix(FeatureMatrix):
 
             # Get average number of results for this lab test per patient.
             query = SQLQuery()
-            query.addSelect('pat_id')
+            query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
             query.addSelect('COUNT(order_proc_id) AS num_orders')
             query.addFrom('labs')
             query.addWhereIn(self._varTypeInTable, [self._lab_var])
@@ -259,7 +259,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addOrderBy('order_time')
 
         elif LocalEnv.DATASET_SOURCE_NAME=='UMich':
-            query.addSelect('pat_id')
+            query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
             query.addSelect(self._varTypeInTable)
             query.addSelect('order_proc_id')
             query.addSelect('order_time')
