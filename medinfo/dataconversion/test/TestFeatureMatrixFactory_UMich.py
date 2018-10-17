@@ -2,16 +2,15 @@
 """
 Test suite for respective module in application package.
 """
+import sys, os
 import LocalEnv
 LocalEnv.LOCAL_TEST_DB_PARAM["DSN"] = 'UMich_test.db'
-LocalEnv.LOCAL_TEST_DB_PARAM["DATAPATH"] = LocalEnv.PATH_TO_CDSS + '/medinfo/dataconversion/test/'
+LocalEnv.LOCAL_TEST_DB_PARAM["DATAPATH"] = os.path.join(LocalEnv.PATH_TO_CDSS, 'medinfo/dataconversion/test/')
 import medinfo.db.Env # TODO: comment
 medinfo.db.Env.SQL_PLACEHOLDER = "?"
 medinfo.db.Env.DATABASE_CONNECTOR_NAME = "sqlite3"
 
 import datetime
-import sys, os
-os.chdir(LocalEnv.PATH_TO_CDSS + '/' + 'medinfo/dataconversion/test/')
 
 import time
 import unittest

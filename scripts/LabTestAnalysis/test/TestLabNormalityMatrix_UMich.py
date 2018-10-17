@@ -1,7 +1,8 @@
 
+import os
 import LocalEnv
 LocalEnv.LOCAL_TEST_DB_PARAM["DSN"] = 'UMich_test.db'
-LocalEnv.LOCAL_TEST_DB_PARAM["DATAPATH"] = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/test/'
+LocalEnv.LOCAL_TEST_DB_PARAM["DATAPATH"] = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/test/')
 import medinfo.db.Env # TODO: comment
 medinfo.db.Env.SQL_PLACEHOLDER = "?"
 medinfo.db.Env.DATABASE_CONNECTOR_NAME = "sqlite3"
@@ -13,7 +14,7 @@ import unittest
 # from Const import RUNNER_VERBOSITY
 import sqlite3
 import pandas as pd
-import os
+
 from medinfo.db import DBUtil
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 
@@ -43,7 +44,7 @@ class TestLabNormalityMatrix(DBTestCase):
     def _insertUMichTestRecords(self):
         db_name = medinfo.db.Env.DB_PARAM['DSN']
         db_path = medinfo.db.Env.DB_PARAM['DATAPATH']
-        conn = sqlite3.connect(db_path + '/' + db_name)
+        conn = sqlite3.connect(os.path.join(db_path, db_name))
 
         table_names = ['labs', 'pt_info', 'demographics', 'encounters', 'diagnoses']
 
