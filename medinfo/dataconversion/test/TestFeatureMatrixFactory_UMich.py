@@ -4,7 +4,7 @@ Test suite for respective module in application package.
 """
 import LocalEnv
 LocalEnv.LOCAL_TEST_DB_PARAM["DSN"] = 'UMich_test.db'
-LocalEnv.LOCAL_TEST_DB_PARAM["DBPATH"] = LocalEnv.PATH_TO_CDSS + '/medinfo/dataconversion/test/'
+LocalEnv.LOCAL_TEST_DB_PARAM["DATAPATH"] = LocalEnv.PATH_TO_CDSS + '/medinfo/dataconversion/test/'
 import medinfo.db.Env # TODO: comment
 medinfo.db.Env.SQL_PLACEHOLDER = "?"
 medinfo.db.Env.DATABASE_CONNECTOR_NAME = "sqlite3"
@@ -131,7 +131,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         # ...]
 
         # Test SEX feature
-        MALE_events_expected = [[1, datetime.datetime(1900, 1, 1, 0, 0)]]
+        MALE_events_expected = [[1, datetime.datetime(1900, 1, 1, 0, 0)], [3, datetime.datetime(1900, 1, 1, 0, 0)]]
         MALE_events_queried = self.factory._queryMichiganItemsByName(clinicalItemNames=['Male'],
                                                      clinicalItemType='GenderName',
                                                      tableName='demographics',
