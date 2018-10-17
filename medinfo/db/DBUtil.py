@@ -131,8 +131,8 @@ def connection( connParams=None ):
         return cx_Oracle.connect(connStr);
 
     if DATABASE_CONNECTOR_NAME == "sqlite3":
-        return sqlite3.connect(connParams["DATAPATH"] + connParams["DSN"]);
-
+        import os.path;
+        return sqlite3.connect(os.path.join(connParams["DATAPATH"], connParams["DSN"]));
 
     # ODBC (Access)
     #connStr = formatDBConnectString( connParams );
