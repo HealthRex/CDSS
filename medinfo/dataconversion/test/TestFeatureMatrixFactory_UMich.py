@@ -184,7 +184,15 @@ class TestFeatureMatrixFactory(DBTestCase):
                                                    clinicalItemType=None,
                                                    tableName='pt_info',
                                                    clinicalItemTime='Birth')
+
+        self.factory.addClinicalItemFeaturesByCategory_UMich([2], #ADMIT_DX_CATEGORY_ID = 2
+            dayBins=[], label='AdmitDxDate', features='pre', tableName='encounters')
+
         self.factory.addCharlsonComorbidityFeatures(features='pre')
+
+        self.factory.addLabResultFeatures(['WCB', 'CO2'], labIsPanel=False,
+                                          preTimeDelta=datetime.timedelta(-3),
+                                          postTimeDelta=datetime.timedelta(0))
         self.factory.buildFeatureMatrix()
 
         resultMatrix = self.factory.readFeatureMatrixFile()
