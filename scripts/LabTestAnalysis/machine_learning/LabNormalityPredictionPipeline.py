@@ -260,7 +260,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 '/'.join([data_dir, '%s-normality-prediction-report.tab' % self._var]), header)
 
 if __name__ == '__main__':
-    log.level = logging.DEBUG
+    # log.level = logging.INFO
+    logging.basicConfig(filename='debug_UMich.log', level=logging.DEBUG)
     TOP_LAB_PANELS_BY_CHARGE_VOLUME = set([
         "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
         "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
@@ -309,9 +310,9 @@ if __name__ == '__main__':
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
         UMICH_TOP_LABPANELS = ['CBCP']
-        UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POD',  # TODO: confirm again
-                                'CREAT', 'TBIL', 'GLUC-WB'
-                                                 'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT',
+        UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',  # TODO: confirm again
+                                'CREAT', 'TBIL', 'GLUC-WB',
+                                'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT',
                                 'ALB', 'CAL', 'PCOAA2', 'PO2AA', 'pHA',
                                 'T PROTEIN',
                                 'ALK',  # ALKALINE PHOSPHATASE
@@ -336,6 +337,9 @@ if __name__ == '__main__':
         # for panel in UMICH_TOP_LABPANELS:
         #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
         for component in UMICH_TOP_COMPONENTS:
-            LabNormalityPredictionPipeline(component, 1000, use_cache=True, random_state=123456789, isLabPanel=False)
+            try:
+                LabNormalityPredictionPipeline(component, 1000, use_cache=True, random_state=123456789, isLabPanel=False)
+            except:
+                pass
 
 
