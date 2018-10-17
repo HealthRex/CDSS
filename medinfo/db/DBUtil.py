@@ -218,7 +218,7 @@ def dropDatabase( dbParams ):
         defaultParams = dict(dbParams);
         # Sqlite3 automatically creates a database upon connection
         try:
-            os.remove(defaultParams['DBPATH'] + defaultParams["DSN"])
+            os.remove(defaultParams['DATAPATH'] + defaultParams["DSN"])
         except:
             pass
 

@@ -400,7 +400,7 @@ class FeatureMatrixFactory:
         # clinicalItemTime can be column names like order_time, birth, birth ...
 
         query = SQLQuery()
-        query.addSelect('CAST (pat_id AS BIGINT) AS pat_id')
+        query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
         # query.addSelect('pat_id')
 
         query.addFrom(tableName)
@@ -434,7 +434,7 @@ class FeatureMatrixFactory:
         # """
 
         query = SQLQuery()
-        query.addSelect('pat_id')
+        query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
         query.addSelect('order_time')
         query.addFrom('stride_order_proc AS sop')
         query.addFrom('stride_order_results AS sor')
