@@ -5,7 +5,7 @@ platform / environment where they are installed.
 
 import sys, os;
 import logging
-from LocalEnv import *
+import LocalEnv;
 
 """Default level for application logging.  Modify these for different scenarios.
 See Python logging package documentation for more information"""
@@ -22,7 +22,7 @@ Oracle expects sequential or named items like &1, &2, or :1, :2...
 """
 # #SQL_PLACEHOLDER = "?"   # "qmark"
 # SQL_PLACEHOLDER = "%s"  # "format" and "pyFormat"
-SQL_PLACEHOLDER = SQL_PLACEHOLDER
+SQL_PLACEHOLDER = LocalEnv.SQL_PLACEHOLDER
 
 """Strings to use for boolean parameters."""
 BOOLEAN_STR = dict();
@@ -39,7 +39,7 @@ BOOLEAN_STR[False]= str(False);
 # DATABASE_CONNECTOR_NAME = "psycopg2";
 # #DATABASE_CONNECTOR_NAME = "cx_Oracle";
 # #DATABASE_CONNECTOR_NAME = "sqlite3";
-DATABASE_CONNECTOR_NAME = DATABASE_CONNECTOR_NAME
+DATABASE_CONNECTOR_NAME = LocalEnv.DATABASE_CONNECTOR_NAME
 
 """Parameters needed to open a connection to the database.
 Dependent upon particular connection interface and database implementation
@@ -47,7 +47,7 @@ Dependent upon particular connection interface and database implementation
 Note that Env.py reads database, user, and password specifications from LocalEnv.py
 """
 DB_PARAM = {}
-DB_PARAM = LOCAL_PROD_DB_PARAM
+DB_PARAM = LocalEnv.LOCAL_PROD_DB_PARAM
 
 # Opioid Notes DB
 #DB_PARAM["HOST"] = "cci-db-p03";
@@ -60,7 +60,7 @@ DB_PARAM = LOCAL_PROD_DB_PARAM
 Dependent upon particular connection interface and database implementation
 """
 TEST_DB_PARAM = {}
-TEST_DB_PARAM = LOCAL_TEST_DB_PARAM
+TEST_DB_PARAM = LocalEnv.LOCAL_TEST_DB_PARAM
 
 #TEST_DB_PARAM["DSN"] = "c:\Box Sync\NoSync\VAAlerts\dave_chan2.sqlite";
 #TEST_DB_PARAM["DSN"] = "/Users/angelicaperez/Documents/JonChen/sqlite_db/dave_chan2.sqlite"
