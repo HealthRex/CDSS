@@ -476,7 +476,7 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
             'class_weight': 'balanced'
         },
         SupervisedClassifier.DECISION_TREE: {
-            'presort': None,
+            'presort': False,
             'splitter': 'best',
             'n_jobs': -1,
             'min_impurity_decrease': 0.0,
