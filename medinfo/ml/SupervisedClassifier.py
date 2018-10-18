@@ -280,7 +280,7 @@ class SupervisedClassifier:
             self._hyperparams[hyperparam] = 'l1'
         elif hyperparam == 'presort':
             # DECISION_TREE
-            self._hyperparams[hyperparam] = None
+            self._hyperparams[hyperparam] = False
         elif hyperparam == 'priors':
             # GAUSSIAN_NAIVE_BAYES
             self._hyperparams[hyperparam] = None
