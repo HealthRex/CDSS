@@ -120,6 +120,48 @@ def lines2pd(lines_str, colnames):
     data_df = pd.DataFrame(all_rows, columns=colnames)
     return data_df
 
+def construct_result_in_range_yn(df):
+    # baseline
+    result_flag_list = df['result_flag'].apply(lambda x: 'N' if x == 'L' or x == 'H' or x == 'A' else 'Y').values.tolist()
+
+    value_list = df['ord_num_value'].values.tolist()
+    range_list = df['normal_range'].values.tolist()
+
+    row, col = df.shape
+
+    cnt_success = 0
+    for i in range(row):
+        try:
+            n = float(str(value_list[i]))
+            n1n2 = str(range_list[i]).split('-')
+            assert len(n1n2) == 2
+            n1, n2 = float(n1n2[0]), float(n1n2[1])
+            # print n, n1, n2
+
+            if n1 <= n <= n2:
+                result_flag_list[i] = 'Y'
+            else:
+                result_flag_list[i] = 'N'
+
+            # # print df.iloc[i]['ord_num_value'], df.iloc[i]['normal_range'], df.iloc[i]['result_flag']
+            # n = float(str(df_test.iloc[i]['ord_num_value']))
+            # n1n2 = str(df_test.iloc[i]['normal_range']).split('-')
+            # assert len(n1n2) == 2
+            # n1, n2 = float(n1n2[0]), float(n1n2[1])
+            # # print n, n1, n2
+            #
+            # if n1 <= n <= n2:
+            #     df_test.iloc[i]['result_in_range_yn'] = 'Y'
+            # else:
+            #     df_test.iloc[i]['result_in_range_yn'] = 'N'
+
+            cnt_success += 1
+        except:
+            pass
+    df['result_in_range_yn'] = pd.Series(result_flag_list).values
+    # pd.testing.assert_series_equal(df['result_in_range_yn'], df_test['result_in_range_yn'])
+    return df['result_in_range_yn']
+
 def pd_process_labs(labs_df):
     labs_df = labs_df.rename(columns={'PatientID':'pat_id',
                'EncounterID':'order_proc_id',
@@ -127,6 +169,7 @@ def pd_process_labs(labs_df):
                'ORDER_CODE': 'proc_code',
                'RESULT_CODE': 'base_name',
                'VALUE':'ord_num_value',
+               'RANGE':'normal_range',
                'HILONORMAL_FLAG': 'result_flag'
                 })
 
@@ -139,7 +182,9 @@ def pd_process_labs(labs_df):
     labs_df = labs_df[labs_df['base_name'].map(lambda x:str(x)!='*')]
 
     # Create redundant info to fit into CDSS pipeline
-    labs_df['result_in_range_yn'] = labs_df['result_flag'].apply(lambda x: 'N' if x=='L' or x=='H' or x=='A' else 'Y')
+    # TODO
+    # labs_df['result_in_range_yn_old'] = labs_df['result_flag'].apply(lambda x: 'N' if x=='L' or x=='H' or x=='A' else 'Y')
+    labs_df['result_in_range_yn'] = construct_result_in_range_yn(labs_df[['ord_num_value', 'normal_range', 'result_flag']])
 
     # TODO,decision: use "0.1", "60" to handles cases like "<0.1", ">60" cases
     # TODO: maybe add a column to indicate that?
