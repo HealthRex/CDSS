@@ -36,16 +36,5 @@ PATH_TO_CDSS = "/foo/bar/CDSS"; # Directory where this file is contained in
 TEST_RUNNER_VERBOSITY = 2
 
 DATASET_SOURCE_NAME = 'STRIDE'
-#DATASET_SOURCE_NAME = 'UMich'
-
-if DATASET_SOURCE_NAME == 'STRIDE':
-    DATABASE_CONNECTOR_NAME = "psycopg2"
-    SQL_PLACEHOLDER = "%s"
-
-elif DATASET_SOURCE_NAME == 'UMich':
-    DATABASE_CONNECTOR_NAME = "sqlite3"
-    SQL_PLACEHOLDER = "?"
-
-    # RAW FILE/DATABASE locations (same by default)
-    LOCAL_PROD_DB_PARAM["DATAPATH"] = PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/raw_data_UMich/'
-    LOCAL_TEST_DB_PARAM["DATAPATH"] = PATH_TO_CDSS + '/medinfo/dataconversion/test/'
+DATABASE_CONNECTOR_NAME = "psycopg2"
+SQL_PLACEHOLDER = "%s"
