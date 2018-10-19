@@ -86,15 +86,14 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 'Death.postTimeDays',
                 'num_components'
             ]
-            outcome_label = 'all_components_normal'
+            outcome_label = 'all_components_normal' # TODO: for component...
 
         elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             features_to_remove = [
                 'pat_id', 'order_time', 'order_proc_id',
-                # 'lab_normal', # avoid info leakage
                 'Birth.pre',
                 'Male.preTimeDays', 'Female.preTimeDays',
-                # 'Caucasian.preTimeDays', # TODO!
+                # 'Caucasian.preTimeDays',
                 # 'Hispanic.preTimeDays',
                 # 'Native Hawaiian and Other Pacific Islander.preTimeDays'
             ]
@@ -105,7 +104,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             else:
                 features_to_remove += ['base_name']
 
-            outcome_label = 'lab_normal'
+            outcome_label = 'abnormal_lab'
 
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
@@ -311,22 +310,26 @@ if __name__ == '__main__':
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
         UMICH_TOP_LABPANELS = ['CBCP']
         UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',  # TODO: confirm again
-                                'CREAT', 'TBIL', 'GLUC-WB',
+                                'CREAT', 'TBIL',
                                 'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT',
                                 'ALB', 'CAL', 'PCOAA2', 'PO2AA', 'pHA',
                                 'T PROTEIN',
                                 'ALK',  # ALKALINE PHOSPHATASE
-                                'BLOU',  # Blood, Urine, 'BUN'
+                                'UN',  # Blood, Urine, 'BUN'
                                 'IBIL',  # Bilirubin, Indirect
-                                'HCO3'  # # good, from 'LABMETB'
+                                'HCO3-A',  # # good, from 'LABMETB'
+                                'MAG',
+                                'PHOS',
+                                'INR',
+                                "BLD", "ICAL", "LACA"
                                 ]
-        # TODO: by default, the first one should be labs
+        # By default, the first one should be labs
         raw_data_files = ['labs.sample.txt',
                           'pt.info.sample.txt',
                           'encounters.sample.txt',
                           'demographics.sample.txt',
                           'diagnoses.sample.txt']
-        # TODO: large_data_folder_name
+
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
         # prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name)
@@ -338,8 +341,9 @@ if __name__ == '__main__':
         #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
         for component in UMICH_TOP_COMPONENTS:
             try:
-                LabNormalityPredictionPipeline(component, 1000, use_cache=True, random_state=123456789, isLabPanel=False)
-            except:
+                LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+            except Exception as e:
+                log.info(e)
                 pass
 
 
