@@ -165,18 +165,18 @@ class FeatureMatrix:
         if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             BASIC_LAB_COMPONENTS = [
                 'WBC',      # White Blood Cell
-                'HCTA',     # Hematocrit
+                'HCT',     # Hematocrit
                 'PLT',      # Platelet Count
                 'SOD',      # Sodium, Whole Blood
                 'POT',      # Potassium, Whole Blood
                 'CO2',      # CO2, Serum/Plasma
-                'UN', # Blood Urea Nitrogen TODO
+                'UN', # Blood Urea Nitrogen
                 'CREAT',       # Creatinine
                 'TBIL',     # Total Bilirubin
                 'ALB',      # Albumin
                 'CAL',      # Calcium
-                'LACTIC', # Lactic Acid; TODO: but LACTA & LACTV are more frequent?
-                # Erythrocyte Sedimentation Rate TODO:?
+                'LACTA', # Lactic Acid; LACTA & LACTV are more frequent
+                "WEST", # Erythrocyte Sedimentation Rate
                 'CRP',      # C-Reactive Protein
                 'TROP',     # Troponin I
                 'pHA',      # Arterial pH
