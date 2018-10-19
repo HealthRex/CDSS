@@ -241,7 +241,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel") #sx
             query.addSelect("SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components") #sx
             query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components") #sx
-            query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS lab_normal") #sx
+            query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal") #sx
             query.addFrom('stride_order_proc AS sop') #sx
             query.addFrom('stride_order_results AS sor') #sx
             query.addWhere('sop.order_proc_id = sor.order_proc_id') #sx
@@ -260,8 +260,8 @@ class LabNormalityMatrix(FeatureMatrix):
 
         elif LocalEnv.DATASET_SOURCE_NAME=='UMich':
             query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
-            query.addSelect(self._varTypeInTable)
             query.addSelect('order_proc_id')
+            query.addSelect(self._varTypeInTable)
             query.addSelect('order_time')
 
             query.addWhereIn(self._varTypeInTable, [self._lab_var])
@@ -270,16 +270,12 @@ class LabNormalityMatrix(FeatureMatrix):
 
                 query.addSelect("SUM(CASE WHEN result_in_range_yn IN ('N', 'Y') THEN 1 ELSE 0 END) AS num_components")
                 query.addSelect("SUM(CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END) AS num_normal_components")
-                query.addSelect("CAST(SUM(CASE WHEN result_in_range_yn = 'N' THEN 1 ELSE 0 END) = 0 AS INT) AS lab_normal")
-                query.addFrom('labs')
-                query.addWhere("result_in_range_yn in ('N', 'Y')")  # TODO:  OR result_in_range_yn IS NULL
-                query.addWhereIn("pat_id", random_patient_list)
+                query.addSelect("CAST(SUM(CASE WHEN result_in_range_yn = 'N' THEN 1 ELSE 0 END) = 0 AS INT) AS lab_normal") #TODO
             else:
-                query.addSelect('order_proc_id')
-                query.addSelect("(CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END) AS lab_normal") #TODO: or abnormal_panel
-                query.addFrom('labs')
-                query.addWhere("result_in_range_yn in ('N', 'Y')")  # TODO:  OR result_in_range_yn IS NULL
-                query.addWhereIn("pat_id", random_patient_list)
+                query.addSelect("CASE WHEN result_in_range_yn = 'Y' THEN 0 ELSE 1 END AS abnormal_lab")
+
+            query.addFrom('labs')
+            query.addWhereIn("pat_id", random_patient_list)
 
             query.addGroupBy('pat_id')
             query.addGroupBy('order_proc_id')
