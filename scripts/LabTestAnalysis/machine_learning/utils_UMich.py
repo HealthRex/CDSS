@@ -3,6 +3,7 @@ import pandas as pd
 from itertools import islice
 import sqlite3
 import LocalEnv
+from medinfo.common.Util import log
 
 def filter_nondigits(any_str):
     return ''.join([x for x in str(any_str) if x in '.0123456789'])
@@ -31,7 +32,7 @@ def line_str2list(line_str, skip_first_col=False):
 import numpy as np
 import random, string
 
-def perturb_str(any_str, seed=None): #TODO: seeding
+def perturb_str(any_str, seed=None): #TODO: Doing seeding in the future
     str_len = len(any_str)
     ind_to_perturb = np.random.choice(str_len)
     chr_to_perturb = random.choice(string.letters + '-0123456789')
@@ -53,10 +54,8 @@ def perturb_a_file(raw_file_path, target_file_path, col_patid, my_dict):
         line_as_list = line_str2list(line_raw)
         try:
             cur_pat_id = line_as_list[col_patid]
-        except:
-            # print 'raw_file:', raw_file
-            # print 'line_as_list:', line_as_list
-            # print 'col_patid:', col_patid
+        except Exception as e:
+            log.info(e)
             continue
 
         perturbed_patid = my_dict[cur_pat_id]
@@ -67,13 +66,17 @@ def perturb_a_file(raw_file_path, target_file_path, col_patid, my_dict):
 
         fw.write(line_perturbed)
 
-#TODO: enforce both name lists have the same order
+# Both name lists have the same order!
 def create_large_files(raw_data_files,raw_data_folderpath,
-                       large_data_files,large_data_folderpath,num_repeats=100):
+                       large_data_files,large_data_folderpath,num_repeats=100,USE_CACHED_DB=True):
     import os
     if os.path.exists(large_data_folderpath + '/' + large_data_files[0]):
-        print "Large files exist!"
-        return
+        if USE_CACHED_DB:
+            log.info("Large files exist!")
+            return
+        else:
+            for large_data_file in large_data_files:
+                os.remove(large_data_folderpath + '/' + large_data_file)
 
     if 'labs' not in raw_data_files[0]:
         quit("Please place labs file as the beginning of raw_data_files!") # TODO: quit(int)?
@@ -99,21 +102,14 @@ def create_large_files(raw_data_files,raw_data_folderpath,
             perturb_a_file(raw_file_path, target_file_path, col_patid=1, my_dict=my_dict)
 
 def lines2pd(lines_str, colnames):
-
-    # colnames = [x.strip() for x in lines[0].split('|')]
-    # Get rid of extra quotes
-    # colnames = [x[1:-1] for x in colnames] #TODO: second chunk does not have colnames!
     normal_num_cols = len(colnames)
 
     all_rows = []
     for line_str in lines_str:
-        # curr_row = [x.strip() for x in line.split('|')]
-        # curr_row = curr_row[1:]
-        # curr_row = [x[1:-1] for x in curr_row]
         curr_row = line_str2list(line_str, skip_first_col=True)
 
         if len(curr_row) < normal_num_cols/2: #
-            # print 'severely missing data when processing ' + filename_txt
+            # log.info('severely missing data when processing')
             continue
         all_rows.append(curr_row)
 
@@ -136,24 +132,11 @@ def construct_result_in_range_yn(df):
             n1n2 = str(range_list[i]).split('-')
             assert len(n1n2) == 2
             n1, n2 = float(n1n2[0]), float(n1n2[1])
-            # print n, n1, n2
 
             if n1 <= n <= n2:
                 result_flag_list[i] = 'Y'
             else:
                 result_flag_list[i] = 'N'
-
-            # # print df.iloc[i]['ord_num_value'], df.iloc[i]['normal_range'], df.iloc[i]['result_flag']
-            # n = float(str(df_test.iloc[i]['ord_num_value']))
-            # n1n2 = str(df_test.iloc[i]['normal_range']).split('-')
-            # assert len(n1n2) == 2
-            # n1, n2 = float(n1n2[0]), float(n1n2[1])
-            # # print n, n1, n2
-            #
-            # if n1 <= n <= n2:
-            #     df_test.iloc[i]['result_in_range_yn'] = 'Y'
-            # else:
-            #     df_test.iloc[i]['result_in_range_yn'] = 'N'
 
             cnt_success += 1
         except:
@@ -165,7 +148,7 @@ def construct_result_in_range_yn(df):
 def pd_process_labs(labs_df):
     labs_df = labs_df.rename(columns={'PatientID':'pat_id',
                'EncounterID':'order_proc_id',
-               'COLLECTION_DATE':'result_time', # TODO
+               'COLLECTION_DATE':'result_time',
                'ORDER_CODE': 'proc_code',
                'RESULT_CODE': 'base_name',
                'VALUE':'ord_num_value',
@@ -176,40 +159,28 @@ def pd_process_labs(labs_df):
     # Hash the string type pat_id to long int to fit into CDSS pipeline
     labs_df['pat_id'] = labs_df['pat_id'].apply(lambda x: hash(x))
 
-    # TODO,decision: use 'COLLECTION_DATE' (result time) as 'order_time'
+    # Decision: use 'COLLECTION_DATE' (result time) as 'order_time'
     labs_df['order_time'] = labs_df['result_time'].copy()
 
     labs_df = labs_df[labs_df['base_name'].map(lambda x:str(x)!='*')]
 
     # Create redundant info to fit into CDSS pipeline
-    # TODO
-    # labs_df['result_in_range_yn_old'] = labs_df['result_flag'].apply(lambda x: 'N' if x=='L' or x=='H' or x=='A' else 'Y')
     labs_df['result_in_range_yn'] = construct_result_in_range_yn(labs_df[['ord_num_value', 'normal_range', 'result_flag']])
 
-    # TODO,decision: use "0.1", "60" to handles cases like "<0.1", ">60" cases
-    # TODO: maybe add a column to indicate that?
-    # import re
-    # range_pattern = re.compile("\d-\d")
-    # print labs_df.ix[labs_df['ord_num_value'].map(lambda x: range_pattern.match(x)), 'ord_num_value']
-    # quit()
-    # TODO: not very robust for the "a-b" range case
-    # print labs_df.ix[labs_df['ord_num_value'].map(lambda x:'-' in x), 'ord_num_value']
+
+    # Decision: use (a+b)/2 for the "a-b" range case
     labs_df['ord_num_value'] = labs_df['ord_num_value'].apply(lambda x: filter_range(x) if '-' in x else x)
-    # print labs_df.ix[[74,261,319,509], 'ord_num_value']
-    # quit()
+    # Decision: use "0.1", "60" to handles cases like "<0.1", ">60" cases
     labs_df['ord_num_value'] = labs_df['ord_num_value'].apply(lambda x: filter_nondigits(x))
 
     # Make 00:00:00.0000000000 (hr;min;sec) into 00:00:00 to allow CDSS parse later
     labs_df['order_time'] = labs_df['order_time'].apply(lambda x: remove_microsecs(x))
     labs_df['result_time'] = labs_df['result_time'].apply(lambda x: remove_microsecs(x))
 
-    # labs_df.to_csv("labs_df.csv")
-
-
     return labs_df[['pat_id', 'order_proc_id','order_time','result_time',
                        'proc_code','base_name','ord_num_value','result_in_range_yn','result_flag']]
 
-def pd_process_pt_info(pt_info_df): # TODO
+def pd_process_pt_info(pt_info_df):
     pt_info_df = pt_info_df.rename(columns={'PatientID':'pat_id','DOB':'Birth'})
     pt_info_df['pat_id'] = pt_info_df['pat_id'].apply(lambda x: hash(x))
     pt_info_df['Birth'] = pt_info_df['Birth'].apply(lambda x: remove_microsecs(x))
@@ -221,7 +192,7 @@ def pd_process_encounters(encounters_df):
     encounters_df['AdmitDxDate'] = encounters_df['AdmitDxDate'].apply(lambda x: remove_microsecs(x))
     return encounters_df[['pat_id','order_proc_id','AdmitDxDate']]
 
-def pd_process_diagnoses(diagnoses_df): # TODO
+def pd_process_diagnoses(diagnoses_df):
     diagnoses_df = diagnoses_df.rename(columns={'PatientID':'pat_id','EncounterID':'order_proc_id','ActivityDate':'diagnose_time','TermCodeMapped':'diagnose_code'})
     diagnoses_df['pat_id'] = diagnoses_df['pat_id'].apply(lambda x: hash(x))
     diagnoses_df['diagnose_time'] = diagnoses_df['diagnose_time'].apply(lambda x: remove_microsecs(x))
@@ -236,7 +207,7 @@ def pd_process_demographics(demographics_df):
 def pd2db(data_df, db_path, table_name, db_name):
     conn = sqlite3.connect(db_path + '/' + db_name)
 
-    if table_name == "labs": # TODO: ".sample!"
+    if table_name == "labs": #
         data_df = pd_process_labs(data_df)
     elif table_name == "pt_info":
         data_df = pd_process_pt_info(data_df)
@@ -254,9 +225,9 @@ def pd2db(data_df, db_path, table_name, db_name):
 def raw2db(data_file, data_folderpath, db_path, db_name, build_index_patid=True):
     chunk_size = 1000 # num of rows
 
-    print 'Now processing ' + data_file # TODO: modify this by useful info...
+    print 'Now writing %s into database...'%data_file #
 
-    table_name = data_file.replace(".txt", "") #TODO
+    table_name = data_file.replace(".txt", "")
     table_name = table_name.replace(".sample","")
     table_name = table_name.replace(".large", "")
     table_name = table_name.replace('.','_') #pt.info
