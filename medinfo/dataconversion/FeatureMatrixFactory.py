@@ -998,7 +998,7 @@ class FeatureMatrixFactory:
         # Filtering by patient ID drags down substantially until preloaded
         # table by doing a count on the SQR table?
         columnNames = [
-            "pat_id", "base_name", "ord_num_value",
+            "CAST(pat_id AS bigint) as pat_id", "base_name", "ord_num_value",
             "result_flag", "result_in_range_yn"
         ]
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
@@ -1021,7 +1021,6 @@ class FeatureMatrixFactory:
             query.addWhere("sor.order_proc_id = sop.order_proc_id")
         elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             query.addFrom("labs")
-            query.addOrderBy("result_time")
         if isLabPanel:
             labProcCodes = labNames
             query.addWhereIn("proc_code", labProcCodes)
@@ -1032,6 +1031,8 @@ class FeatureMatrixFactory:
         query.addOrderBy("pat_id")
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
             query.addOrderBy("sor.result_time")
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            query.addOrderBy("result_time")
         log.debug(query)
         return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
 
