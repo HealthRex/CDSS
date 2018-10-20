@@ -113,7 +113,11 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
-        percent_features_to_select = 0.05
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            percent_features_to_select = 0.05
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            # This increased percentage roughly compensates for Vitals and Teams
+            percent_features_to_select = 0.08
         matrix_class = LabNormalityMatrix
         pipeline_file_path = inspect.getfile(inspect.currentframe())
         random_state = self._random_state
@@ -259,8 +263,11 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 '/'.join([data_dir, '%s-normality-prediction-report.tab' % self._var]), header)
 
 if __name__ == '__main__':
-    # log.level = logging.INFO
-    logging.basicConfig(filename='debug_UMich.log', level=logging.DEBUG)
+    log.level = logging.INFO
+    folder_debug = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/data/'
+    if not os.path.exists(folder_debug):
+        os.mkdir(folder_debug)
+    logging.basicConfig(filename=os.path.join(folder_debug,'debug_UMich.log'), level=logging.DEBUG)
     TOP_LAB_PANELS_BY_CHARGE_VOLUME = set([
         "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
         "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
@@ -304,9 +311,6 @@ if __name__ == '__main__':
         for panel in labs_to_test:
             LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789)
 
-
-
-
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
         UMICH_TOP_LABPANELS = ['CBCP']
         UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',  # TODO: confirm again
@@ -334,16 +338,19 @@ if __name__ == '__main__':
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
         # prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name)
         fold_enlarge_data = 1
-        USE_CACHED_DB = False
+        USE_CACHED_DB = False # TODO: take care of USE_CACHED_LARGEFILE in the future
         prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name, fold_enlarge_data=fold_enlarge_data, USE_CACHED_DB=USE_CACHED_DB)
 
         # for panel in UMICH_TOP_LABPANELS:
         #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
         for component in UMICH_TOP_COMPONENTS:
             try:
-                LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+                LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
             except Exception as e:
                 log.info(e)
                 pass
+        log.info("\n"
+                 "Congratz, pipelining completed! \n"
+                 "All results and reports are stored in %s", folder_debug)
 
 
