@@ -203,8 +203,6 @@ class TestFeatureMatrixFactory(DBTestCase):
         df.to_csv('tmp.csv', index=False)
         pd.testing.assert_frame_equal(df, self.lists_to_pd(FMTU.FM_TEST_OUTPUT['OUTPUT_RAW_TABLE']))
 
-
-
 def suite():
     """
     Returns the suite of tests to run for this test class / module.
