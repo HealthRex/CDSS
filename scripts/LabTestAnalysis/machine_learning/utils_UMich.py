@@ -54,8 +54,8 @@ def perturb_a_file(raw_file_path, target_file_path, col_patid, my_dict):
         line_as_list = line_str2list(line_raw)
         try:
             cur_pat_id = line_as_list[col_patid]
-        except Exception as e:
-            log.info(e)
+        except:
+            # Handle cases where the line is empty
             continue
 
         perturbed_patid = my_dict[cur_pat_id]
@@ -86,16 +86,15 @@ def create_large_files(raw_data_files,raw_data_folderpath,
         lines_lab = f.readlines()
         f.close()
     all_pat_ids = set([line_str2list(line)[1] for line in lines_lab[1:]]) #set([line.split('|')[1] for line in lines[1:]])
-    # print 'all_pat_ids:', all_pat_ids
 
-    # Each time, make pat_ids into dict, and modify all tables...
+    # Each time, perturb pat_ids in a specific random way, and modify all tables accordingly...
     for _ in range(num_repeats):
-        # create perturbation dictionary
+        # Create a different perturbation rule each time
         my_dict = {}
         for pat_id in all_pat_ids:
             my_dict[pat_id] = perturb_str(pat_id)
 
-        # perturb the lab table
+        # For each perturbation, perturb all tables
         for ind in range(len(raw_data_files)):
             raw_file_path = raw_data_folderpath+'/'+raw_data_files[ind]
             target_file_path = large_data_folderpath+'/'+large_data_files[ind]
@@ -167,7 +166,6 @@ def pd_process_labs(labs_df):
     # Create redundant info to fit into CDSS pipeline
     labs_df['result_in_range_yn'] = construct_result_in_range_yn(labs_df[['ord_num_value', 'normal_range', 'result_flag']])
 
-
     # Decision: use (a+b)/2 for the "a-b" range case
     labs_df['ord_num_value'] = labs_df['ord_num_value'].apply(lambda x: filter_range(x) if '-' in x else x)
     # Decision: use "0.1", "60" to handles cases like "<0.1", ">60" cases
@@ -202,6 +200,9 @@ def pd_process_diagnoses(diagnoses_df):
 def pd_process_demographics(demographics_df):
     demographics_df = demographics_df.rename(columns={'PatientID':'pat_id'})
     demographics_df['pat_id'] = demographics_df['pat_id'].apply(lambda x: hash(x))
+
+    demographics_df['GenderName'] = demographics_df['GenderName'].apply(lambda x: 'Unknown' if not x else x)
+    demographics_df['RaceName'] = demographics_df['RaceName'].apply(lambda x: 'Unknown' if not x else x)
     return demographics_df[['pat_id', 'GenderName', 'RaceName']]
 
 def pd2db(data_df, db_path, table_name, db_name):
