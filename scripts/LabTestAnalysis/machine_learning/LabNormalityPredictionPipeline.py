@@ -113,11 +113,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
-        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            percent_features_to_select = 0.05
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-            # This increased percentage roughly compensates for Vitals and Teams
-            percent_features_to_select = 0.08
+        percent_features_to_select = 0.05
         matrix_class = LabNormalityMatrix
         pipeline_file_path = inspect.getfile(inspect.currentframe())
         random_state = self._random_state
@@ -313,7 +309,7 @@ if __name__ == '__main__':
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
         UMICH_TOP_LABPANELS = ['CBCP']
-        UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',  # TODO: confirm again
+        UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',
                                 'CREAT', 'TBIL',
                                 'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT',
                                 'ALB', 'CAL', 'PCOAA2', 'PO2AA', 'pHA',
