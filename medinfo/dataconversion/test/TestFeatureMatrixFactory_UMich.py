@@ -200,7 +200,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         #     print resultrow, ','
         # quit()
         df = self.lists_to_pd(resultMatrix[2:])
-        df.to_csv('tmp.csv', index=False)
+        # df.to_csv('tmp.csv', index=False)
         pd.testing.assert_frame_equal(df, self.lists_to_pd(FMTU.FM_TEST_OUTPUT['OUTPUT_RAW_TABLE']))
 
 def suite():
