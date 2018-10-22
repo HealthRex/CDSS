@@ -10,6 +10,30 @@ import LocalEnv
 from medinfo.common.Util import log
 import prepareData_NonSTRIDE as utils_general
 
+def separate_demog_diagn_encnt(filepath):
+    # diagn: CSN, ICD10 (diagn time = Admission Datetime?! TODO)
+    # demog: CSN, race, sex, Birth (time)
+    # encnt: CSN, Admission Datetime
+    df = pd.read_csv(filepath, sep='\t')
+    # print df.head()
+
+    df_diagn = df[['CSN', 'Admission Datetime', 'ICD10']].copy()
+    df_diagn.to_csv('diagnoses.tsv', sep='\t')
+
+    # A couple notes: our ethnic_grp column is only really useful
+    # for hispanic versus not hispanic. The primary diagnosis is
+    # marked by the "Principal Dx Used" text in the severity column.
+    # TODO: Ethnic_Grp or Primary_Race?
+    df_demog = df[['CSN', 'Gender', 'Admission Datetime', 'Age']].copy()
+    df_demog.to_csv('demographics.tsv', sep='\t')
+
+    # TODO: it is important to differentiate 'Admission' and 'diagnose'
+    # times in our model, even though there is only a couple' days diff
+    df_encnt = df[['CSN', 'Admission Datetime']]
+    df_encnt.to_csv('encounters.tsv', sep='\t')
+
+    pass
+
 
 def construct_result_in_range_yn(df):
     # baseline

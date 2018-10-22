@@ -348,8 +348,33 @@ if __name__ == '__main__':
             except Exception as e:
                 log.info(e)
                 pass
-        log.info("\n"
-                 "Congratz, pipelining completed! \n"
-                 "All results and reports are stored in %s", folder_debug)
+
+    elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+        # TODO: a list of all components
+        UCSF_TOP_COMPONENTS = ['WBC']
+        raw_data_files = ['labs_deident.tsv',
+                    'demographics_and_diagnoses.tsv',
+                    'vitals_deident.tsv']
+        raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
+        db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
+
+        fold_enlarge_data = 1
+        USE_CACHED_DB = False  # TODO: take care of USE_CACHED_LARGEFILE in the future
+
+        prepareData_NonSTRIDE.prepare_database(raw_data_files, raw_data_folderpath,
+                                               db_name=db_name,
+                                               fold_enlarge_data=fold_enlarge_data,
+                                               USE_CACHED_DB=USE_CACHED_DB,
+                                               data_source='UCSF')
+
+        for component in UCSF_TOP_COMPONENTS:
+            LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
+        pass
+
+    log.info("\n"
+             "Congratz, pipelining completed! \n"
+             "All results and reports are stored in %s", folder_debug)
+
+
 
 
