@@ -110,7 +110,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addFrom('stride_order_proc AS sop')
             query.addFrom('stride_order_results AS sor')
             query.addWhere('sop.order_proc_id = sor.order_proc_id')
-            query.addWhereIn("proc_code", [self._lab_panel])
+            query.addWhereIn("proc_code", [self._lab_var])
             components = self._get_components_in_lab_panel()
             query.addWhereIn("base_name", components)
             query.addGroupBy('pat_id')
