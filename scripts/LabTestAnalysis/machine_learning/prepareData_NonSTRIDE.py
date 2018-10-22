@@ -130,7 +130,15 @@ def prepare_database(raw_data_files, raw_data_folderpath, db_name, data_source,
         else:
             os.remove(os.path.join(raw_data_folderpath, db_name))
 
-    if fold_enlarge_data != 1:
+    ## Have to handle UCSF by converting:
+    # Input: demographics_and_diagnoses:
+    # Output: demographics, diagnoses
+    if data_source == 'UCSF':
+        import utils_UCSF as utils_specs
+        utils_specs.separate_demog_diagn_encnt(raw_data_folderpath+'demographics_and_diagnoses.tsv')
+        pass
+
+    if fold_enlarge_data != 1: # TODO: fix for UCSF, perturbing stuff etc.
         large_data_folderpath = raw_data_folderpath + '/' + 'enlarged_data_by_%s_fold'%str(fold_enlarge_data)
 
         if not os.path.exists(large_data_folderpath):
@@ -156,31 +164,33 @@ def pd2db(data_df, db_path, table_name, db_name, data_source):
     conn = sqlite3.connect(db_path + '/' + db_name)
 
     if data_source == 'UMich':
-        import utils_UMich as utils
+        import utils_UMich as utils_specs
     elif data_source == 'UCSF':
-        import utils_UCSF as utils
+        import utils_UCSF as utils_specs
 
     if table_name == "labs":  #
-        data_df = utils.pd_process_labs(data_df)
+        data_df = utils_specs.pd_process_labs(data_df)
     elif table_name == "pt_info":
-        data_df = utils.pd_process_pt_info(data_df)
+        data_df = utils_specs.pd_process_pt_info(data_df)
     elif table_name == "encounters":
-        data_df = utils.pd_process_encounters(data_df)
+        data_df = utils_specs.pd_process_encounters(data_df)
     elif table_name == "demographics":
-        data_df = utils.pd_process_demographics(data_df)
+        data_df = utils_specs.pd_process_demographics(data_df)
     elif table_name == "diagnoses":
-        data_df = utils.pd_process_diagnoses(data_df)
+        data_df = utils_specs.pd_process_diagnoses(data_df)
     else:
         print table_name + " does not exist!"
 
     data_df.to_sql(table_name, conn, if_exists="append")
 
-
+# Chunk mechanism, should be general for any outside data
 def raw2db(data_file, data_folderpath, db_path, db_name,
            data_source, build_index_patid=True):
-    chunk_size = 1000  # num of rows
+    chunk_size = 10  # num of rows
 
     print 'Now writing %s into database...' % data_file  #
+
+    quit()
 
     table_name = data_file.replace(".txt", "")
     table_name = table_name.replace(".sample", "")
