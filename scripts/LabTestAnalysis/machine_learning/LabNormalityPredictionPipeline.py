@@ -23,8 +23,7 @@ from extraction.LabNormalityMatrix import LabNormalityMatrix
 # Import FMF in order to retrieve all races name dynamically upon accessing the UMich data
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 import LocalEnv
-import prepareData_UMich
-
+import prepareData_NonSTRIDE
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True):
@@ -332,10 +331,14 @@ if __name__ == '__main__':
 
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
-        # prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name)
         fold_enlarge_data = 1
         USE_CACHED_DB = False # TODO: take care of USE_CACHED_LARGEFILE in the future
-        prepareData_UMich.prepare_database(raw_data_files, raw_data_folderpath, db_name=db_name, fold_enlarge_data=fold_enlarge_data, USE_CACHED_DB=USE_CACHED_DB)
+
+        prepareData_NonSTRIDE.prepare_database(raw_data_files, raw_data_folderpath,
+                                               db_name=db_name,
+                                               fold_enlarge_data=fold_enlarge_data,
+                                               USE_CACHED_DB=USE_CACHED_DB,
+                                               data_source = 'UMich')
 
         # for panel in UMICH_TOP_LABPANELS:
         #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
