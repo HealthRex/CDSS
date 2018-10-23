@@ -9,10 +9,11 @@ import os
 import numpy as np
 import random, string
 
-
+def filter_nonascii(any_str):
+    return ''.join([i if ord(i) < 128 else ' ' for i in any_str])
 
 def filter_nondigits(any_str):
-    return ''.join([x for x in str(any_str) if x in '.0123456789'])
+    return ''.join([x for x in str(any_str) if x in '-.0123456789'])
 
 def filter_range(any_str):  # contains sth like range a-b
     nums = any_str.strip().split('-')
@@ -27,13 +28,21 @@ def remove_microsecs(any_str):
     except:
         return any_str
 
-def line_str2list(line_str, skip_first_col=False):
-    # Get rid of extra quotes
-    if skip_first_col:
-        # get rid of meaningless first col index
-        return [x.strip()[1:-1] for x in line_str.split('|')][1:]
-    else:
-        return [x.strip()[1:-1] for x in line_str.split('|')]
+def line_str2list(line_str, params_str2list):
+    line_list = line_str.split(params_str2list['sep'])
+    if params_str2list['skip_first_col']:
+        line_list = line_list[1:]
+    line_list = [x.strip() for x in line_list]
+    if params_str2list['has_extra_quotes']:
+        line_list = [x[1:-1] for x in line_list]
+    return line_list
+
+    # # Get rid of extra quotes
+    # if skip_first_col:
+    #     # get rid of meaningless first col index
+    #     return [x.strip()[1:-1] for x in line_str.split('|')][1:]
+    # else:
+    #     return [x.strip()[1:-1] for x in line_str.split('|')]
 
 
 def perturb_str(any_str, seed=None): #TODO: Doing seeding in the future
@@ -105,12 +114,12 @@ def create_large_files(raw_data_files,raw_data_folderpath,
             target_file_path = large_data_folderpath+'/'+large_data_files[ind]
             perturb_a_file(raw_file_path, target_file_path, col_patid=1, my_dict=my_dict)
 
-def lines2pd(lines_str, colnames):
+def lines2pd(lines_str, colnames, params_str2list):
     normal_num_cols = len(colnames)
 
     all_rows = []
     for line_str in lines_str:
-        curr_row = line_str2list(line_str, skip_first_col=True)
+        curr_row = line_str2list(line_str, params_str2list=params_str2list)
 
         if len(curr_row) < normal_num_cols/2: #
             # log.info('severely missing data when processing')
@@ -133,10 +142,6 @@ def prepare_database(raw_data_files, raw_data_folderpath, db_name, data_source,
     ## Have to handle UCSF by converting:
     # Input: demographics_and_diagnoses:
     # Output: demographics, diagnoses
-    if data_source == 'UCSF':
-        import utils_UCSF as utils_specs
-        utils_specs.separate_demog_diagn_encnt(raw_data_folderpath+'demographics_and_diagnoses.tsv')
-        pass
 
     if fold_enlarge_data != 1: # TODO: fix for UCSF, perturbing stuff etc.
         large_data_folderpath = raw_data_folderpath + '/' + 'enlarged_data_by_%s_fold'%str(fold_enlarge_data)
@@ -178,24 +183,37 @@ def pd2db(data_df, db_path, table_name, db_name, data_source):
         data_df = utils_specs.pd_process_demographics(data_df)
     elif table_name == "diagnoses":
         data_df = utils_specs.pd_process_diagnoses(data_df)
+    elif table_name == 'vitals':
+        data_df = utils_specs.pd_process_vitals(data_df)
     else:
         print table_name + " does not exist!"
 
     data_df.to_sql(table_name, conn, if_exists="append")
 
+def preprocess_files(data_source, raw_data_folderpath):
+    if data_source == 'UCSF':
+        import utils_UCSF as utils_specs
+        utils_specs.separate_demog_diagn_encnt(raw_data_folderpath)
+    else:
+        pass
+
 # Chunk mechanism, should be general for any outside data
 def raw2db(data_file, data_folderpath, db_path, db_name,
            data_source, build_index_patid=True):
-    chunk_size = 10  # num of rows
+    chunk_size = 10000  # num of rows
 
     print 'Now writing %s into database...' % data_file  #
 
-    quit()
+    if data_source == 'UMich':
+        table_name = data_file.replace(".txt", "")
+        table_name = table_name.replace(".sample", "")
+        table_name = table_name.replace(".large", "")
+        table_name = table_name.replace('.', '_')  # pt.info
+    elif data_source == 'UCSF':
+        table_name = data_file.replace(".tsv", "")  # TODO:UCSF
+        table_name = table_name.replace("_deident", "")
+        table_name = table_name.replace('.', '_')
 
-    table_name = data_file.replace(".txt", "")
-    table_name = table_name.replace(".sample", "")
-    table_name = table_name.replace(".large", "")
-    table_name = table_name.replace('.', '_')  # pt.info
     with open(data_folderpath + '/' + data_file) as f:
         is_first_chunk = True
         while True:
@@ -204,13 +222,23 @@ def raw2db(data_file, data_folderpath, db_path, db_name,
             if not next_n_lines_str:
                 break
 
+            params_str2list = {}
+            if data_source == 'UMich':
+                params_str2list['sep'] = '|'
+                params_str2list['has_extra_quotes'] = True
+                params_str2list['skip_first_col'] = True
+            elif data_source == 'UCSF':
+                params_str2list['sep'] = '\t'
+                params_str2list['has_extra_quotes'] = False
+                params_str2list['skip_first_col'] = False
+
             if is_first_chunk:
-                colnames = line_str2list(next_n_lines_str[0])
+                colnames = line_str2list(next_n_lines_str[0], params_str2list)
                 # print colnames
-                data_df = lines2pd(next_n_lines_str[1:], colnames)
+                data_df = lines2pd(next_n_lines_str[1:], colnames, params_str2list)
                 is_first_chunk = False
             else:  ## make each chunk into pandas
-                data_df = lines2pd(next_n_lines_str, colnames)
+                data_df = lines2pd(next_n_lines_str, colnames, params_str2list)
 
             ## append each pandas to db tables
             pd2db(data_df, db_path=db_path, db_name=db_name, table_name=table_name, data_source=data_source)
