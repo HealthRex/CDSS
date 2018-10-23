@@ -9,30 +9,44 @@ import sqlite3
 import LocalEnv
 from medinfo.common.Util import log
 import prepareData_NonSTRIDE as utils_general
+import datetime
+from collections import Counter
 
-def separate_demog_diagn_encnt(filepath):
+datetime_format = "%Y-%m-%dT%H:%M:%SZ"
+
+def separate_demog_diagn_encnt(folder_path):
+    file_name = 'demographics_and_diagnoses.tsv'
     # diagn: CSN, ICD10 (diagn time = Admission Datetime?! TODO)
     # demog: CSN, race, sex, Birth (time)
     # encnt: CSN, Admission Datetime
-    df = pd.read_csv(filepath, sep='\t')
+    df = pd.read_csv(folder_path + '/' + file_name, sep='\t')
     # print df.head()
 
     df_diagn = df[['CSN', 'Admission Datetime', 'ICD10']].copy()
-    df_diagn.to_csv('diagnoses.tsv', sep='\t')
+    df_diagn = df_diagn.drop_duplicates()
+    df_diagn.to_csv(folder_path + '/' + 'diagnoses.tsv', sep='\t')
 
     # A couple notes: our ethnic_grp column is only really useful
     # for hispanic versus not hispanic. The primary diagnosis is
     # marked by the "Principal Dx Used" text in the severity column.
     # TODO: Ethnic_Grp or Primary_Race?
-    df_demog = df[['CSN', 'Gender', 'Admission Datetime', 'Age']].copy()
-    df_demog.to_csv('demographics.tsv', sep='\t')
+    df_demog = df[['CSN', 'Gender', 'Primary_Race']].copy()
+    df_demog = df_demog.drop_duplicates()
+    df_demog.to_csv(folder_path + '/' + 'demographics.tsv', sep='\t')
 
     # TODO: it is important to differentiate 'Admission' and 'diagnose'
     # times in our model, even though there is only a couple' days diff
     df_encnt = df[['CSN', 'Admission Datetime']]
-    df_encnt.to_csv('encounters.tsv', sep='\t')
+    df_encnt = df_encnt.drop_duplicates()
+    df_encnt.to_csv(folder_path + '/' + 'encounters.tsv', sep='\t')
 
-    pass
+    df_pt_info = df[['CSN', 'Admission Datetime', 'Age']].copy()
+    # print df_pt_info['Admission Datetime'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)).values
+    df_pt_info['DOB'] = (df_pt_info['Admission Datetime'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)) \
+        - df_pt_info['Age'].apply(lambda x: datetime.timedelta(days=x*365))).values
+    df_pt_info = df_pt_info.drop_duplicates()
+    df_pt_info[['CSN', 'DOB']].to_csv(folder_path + '/' + 'pt.info.tsv', sep='\t')
+    return
 
 
 def construct_result_in_range_yn(df):
@@ -65,62 +79,71 @@ def construct_result_in_range_yn(df):
     return df['result_in_range_yn']
 
 def pd_process_labs(labs_df):
-    labs_df = labs_df.rename(columns={'PatientID':'pat_id',
-               'EncounterID':'order_proc_id',
-               'COLLECTION_DATE':'result_time',
-               'ORDER_CODE': 'proc_code',
-               'RESULT_CODE': 'base_name',
-               'VALUE':'ord_num_value',
-               'RANGE':'normal_range',
-               'HILONORMAL_FLAG': 'result_flag'
-                })
+    labs_df = labs_df.rename(columns={
+        'CSN': 'order_proc_id',
+        'Order Time': 'order_time',  # TODO
+        'Order Name': 'proc_code',
+        'Component Name': 'base_name',
+        'Result': 'ord_num_value',
+        'Result Flag': 'result_flag',
+        'discharge service': 'Team'
+    })
+    # print labs_df.columns
+    # Decision: Hash the string type pat_id to long int to fit into CDSS pipeline
+    labs_df['pat_id'] = labs_df['order_proc_id'].apply(lambda x: hash(x))
 
-    # Hash the string type pat_id to long int to fit into CDSS pipeline
-    labs_df['pat_id'] = labs_df['pat_id'].apply(lambda x: hash(x))
+    labs_df['order_time'] = labs_df['order_time'].apply(lambda x: datetime.datetime.strptime(x, datetime_format))
+
+    labs_df['proc_code'] = labs_df['proc_code'].apply(lambda x: x.replace('/', '-'))
+    labs_df['base_name'] = labs_df['base_name'].apply(lambda x: utils_general.filter_nonascii(x))
+    # labs_df['base_name'] = labs_df['base_name'].apply(lambda x: utils_general.clean_basename(x))
+    labs_df['base_name'] = labs_df['base_name'].apply(lambda x: x.replace('/','-'))
 
     # Decision: use 'COLLECTION_DATE' (result time) as 'order_time'
-    labs_df['order_time'] = labs_df['result_time'].copy()
+    labs_df['result_time'] = labs_df['order_time'].copy()
 
-    labs_df = labs_df[labs_df['base_name'].map(lambda x:str(x)!='*')]
+    # labs_df = labs_df[labs_df['base_name'].map(lambda x:str(x)!='*')]
 
     # Create redundant info to fit into CDSS pipeline
-    labs_df['result_in_range_yn'] = construct_result_in_range_yn(labs_df[['ord_num_value', 'normal_range', 'result_flag']])
+    # Counter({'NA': 4682, 'High': 1545, 'Low': 1341, 'High Panic': 60, 'Low Panic': 33, 'Abnormal': 19})
+    labs_df['result_in_range_yn'] = labs_df['result_flag'].apply(lambda x: 'Y' if x=='NA' else 'N')
 
-    # Decision: use (a+b)/2 for the "a-b" range case
-    labs_df['ord_num_value'] = labs_df['ord_num_value'].apply(lambda x: utils_general.filter_range(x) if '-' in x else x)
-    # Decision: use "0.1", "60" to handles cases like "<0.1", ">60" cases
+    # Counter({'Arterial': 198, 'Not specified': 155, 'Duplicate request, charge cancelled.': 152
     labs_df['ord_num_value'] = labs_df['ord_num_value'].apply(lambda x: utils_general.filter_nondigits(x))
 
-    # Make 00:00:00.0000000000 (hr;min;sec) into 00:00:00 to allow CDSS parse later
-    labs_df['order_time'] = labs_df['order_time'].apply(lambda x: utils_general.remove_microsecs(x))
-    labs_df['result_time'] = labs_df['result_time'].apply(lambda x: utils_general.remove_microsecs(x))
-
-    return labs_df[['pat_id', 'order_proc_id','order_time','result_time',
-                       'proc_code','base_name','ord_num_value','result_in_range_yn','result_flag']]
+    labs_df.to_csv("labs_df.csv")
+    return labs_df[['pat_id', 'order_proc_id', 'order_time', 'result_time',
+                    'proc_code', 'base_name', 'ord_num_value', 'result_in_range_yn', 'result_flag', 'Team']]
 
 def pd_process_pt_info(pt_info_df):
-    pt_info_df = pt_info_df.rename(columns={'PatientID':'pat_id','DOB':'Birth'})
-    pt_info_df['pat_id'] = pt_info_df['pat_id'].apply(lambda x: hash(x))
-    pt_info_df['Birth'] = pt_info_df['Birth'].apply(lambda x: utils_general.remove_microsecs(x))
+    pt_info_df = pt_info_df.rename(columns={'CSN':'order_proc_id','DOB':'Birth'})
+    pt_info_df['pat_id'] = pt_info_df['order_proc_id'].apply(lambda x: hash(x))
+    # pt_info_df['Birth'] = pt_info_df['Birth'].apply(lambda x: utils_general.remove_microsecs(x))
     return pt_info_df[['pat_id', 'Birth']]
 
 def pd_process_encounters(encounters_df):
-    encounters_df = encounters_df.rename(columns={'PatientID':'pat_id','EncounterID':'order_proc_id','AdmitDate':'AdmitDxDate'})
-    encounters_df['pat_id'] = encounters_df['pat_id'].apply(lambda x: hash(x))
-    encounters_df['AdmitDxDate'] = encounters_df['AdmitDxDate'].apply(lambda x: utils_general.remove_microsecs(x))
+    encounters_df = encounters_df.rename(columns={'CSN':'order_proc_id','Admission Datetime':'AdmitDxDate'})
+    encounters_df['pat_id'] = encounters_df['order_proc_id'].apply(lambda x: hash(x))
+    # encounters_df['AdmitDxDate'] = encounters_df['AdmitDxDate'].apply(lambda x: utils_general.remove_microsecs(x))
     return encounters_df[['pat_id','order_proc_id','AdmitDxDate']]
 
 def pd_process_diagnoses(diagnoses_df):
-    diagnoses_df = diagnoses_df.rename(columns={'PatientID':'pat_id','EncounterID':'order_proc_id','ActivityDate':'diagnose_time','TermCodeMapped':'diagnose_code'})
-    diagnoses_df['pat_id'] = diagnoses_df['pat_id'].apply(lambda x: hash(x))
-    diagnoses_df['diagnose_time'] = diagnoses_df['diagnose_time'].apply(lambda x: utils_general.remove_microsecs(x))
+    diagnoses_df = diagnoses_df.rename(columns={'CSN':'order_proc_id','Admission Datetime':'diagnose_time','ICD10':'diagnose_code'})
+    diagnoses_df['pat_id'] = diagnoses_df['order_proc_id'].apply(lambda x: hash(x))
+    # diagnoses_df['diagnose_time'] = diagnoses_df['diagnose_time'].apply(lambda x: utils_general.remove_microsecs(x))
 
     return diagnoses_df[['pat_id','order_proc_id','diagnose_time','diagnose_code']]
 
 def pd_process_demographics(demographics_df):
-    demographics_df = demographics_df.rename(columns={'PatientID':'pat_id'})
-    demographics_df['pat_id'] = demographics_df['pat_id'].apply(lambda x: hash(x))
+    demographics_df = demographics_df.rename(columns={'CSN':'order_proc_id',
+                                                      'Gender':'GenderName',
+                                                      'Primary_Race':'RaceName'
+                                                      })
+    demographics_df['pat_id'] = demographics_df['order_proc_id'].apply(lambda x: hash(x))
 
     demographics_df['GenderName'] = demographics_df['GenderName'].apply(lambda x: 'Unknown' if not x else x)
     demographics_df['RaceName'] = demographics_df['RaceName'].apply(lambda x: 'Unknown' if not x else x)
     return demographics_df[['pat_id', 'GenderName', 'RaceName']]
+
+def pd_process_vitals(vitals_df):
+    pass

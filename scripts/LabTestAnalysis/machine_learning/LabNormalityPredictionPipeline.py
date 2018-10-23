@@ -352,11 +352,20 @@ if __name__ == '__main__':
     elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
         # TODO: a list of all components
         UCSF_TOP_COMPONENTS = ['WBC']
-        raw_data_files = ['labs_deident.tsv',
-                    'demographics_and_diagnoses.tsv',
-                    'vitals_deident.tsv']
+
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
+
+        prepareData_NonSTRIDE.preprocess_files(data_source='UCSF', raw_data_folderpath=raw_data_folderpath)
+
+        raw_data_files = ['labs_deident.tsv',
+                    'demographics.tsv',
+                    'diagnoses.tsv',
+                    'encounters.tsv',
+                    'pt.info.tsv'
+                    # 'vitals_deident.tsv'
+                          ]
+
 
         fold_enlarge_data = 1
         USE_CACHED_DB = False  # TODO: take care of USE_CACHED_LARGEFILE in the future
