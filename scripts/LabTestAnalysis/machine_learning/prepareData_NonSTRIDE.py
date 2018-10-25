@@ -169,25 +169,35 @@ def pd2db(data_df, db_path, table_name, db_name, data_source):
 
     if data_source == 'UMich':
         import utils_UMich as utils_specs
+        if table_name == "labs":  #
+            tab2df_dict = utils_specs.pd_process_labs(data_df)
+        elif table_name == "pt_info":
+            tab2df_dict = utils_specs.pd_process_pt_info(data_df)
+        elif table_name == "encounters":
+            tab2df_dict = utils_specs.pd_process_encounters(data_df)
+        elif table_name == "demographics":
+            tab2df_dict = utils_specs.pd_process_demographics(data_df)
+        elif table_name == "diagnoses":
+            tab2df_dict = utils_specs.pd_process_diagnoses(data_df)
+        else:
+            print table_name + " does not exist for UMich!"
+
     elif data_source == 'UCSF':
         import utils_UCSF as utils_specs
 
-    if table_name == "labs":  #
-        data_df = utils_specs.pd_process_labs(data_df)
-    elif table_name == "pt_info":
-        data_df = utils_specs.pd_process_pt_info(data_df)
-    elif table_name == "encounters":
-        data_df = utils_specs.pd_process_encounters(data_df)
-    elif table_name == "demographics":
-        data_df = utils_specs.pd_process_demographics(data_df)
-    elif table_name == "diagnoses":
-        data_df = utils_specs.pd_process_diagnoses(data_df)
-    elif table_name == 'vitals':
-        data_df = utils_specs.pd_process_vitals(data_df)
-    else:
-        print table_name + " does not exist!"
+        if table_name == "labs":  #
+            tab2df_dict = utils_specs.pd_process_labs(data_df)
+        elif table_name == "demographics_and_diagnoses":
+            tab2df_dict = utils_specs.pd_process_demogdiagn(data_df)
+        elif table_name == 'vitals':
+            tab2df_dict = utils_specs.pd_process_vitals(data_df)
+        else:
+            print table_name + " does not exist for UCSF!"
 
-    data_df.to_sql(table_name, conn, if_exists="append")
+    for table_name in tab2df_dict.keys():
+        tab2df_dict[table_name].to_sql(table_name, conn, if_exists="append")
+
+    return tab2df_dict.keys() #TODO: for UMich, no return!
 
 def preprocess_files(data_source, raw_data_folderpath):
     if data_source == 'UCSF':
@@ -213,6 +223,8 @@ def raw2db(data_file, data_folderpath, db_path, db_name,
         table_name = data_file.replace(".tsv", "")  # TODO:UCSF
         table_name = table_name.replace("_deident", "")
         table_name = table_name.replace('.', '_')
+
+    generated_tables = []
 
     with open(data_folderpath + '/' + data_file) as f:
         is_first_chunk = True
@@ -240,10 +252,12 @@ def raw2db(data_file, data_folderpath, db_path, db_name,
                 data_df = lines2pd(next_n_lines_str, colnames, params_str2list)
 
             ## append each pandas to db tables
-            pd2db(data_df, db_path=db_path, db_name=db_name, table_name=table_name, data_source=data_source)
+            generated_tables += pd2db(data_df, db_path=db_path, db_name=db_name, table_name=table_name, data_source=data_source)
             ##
     if build_index_patid:
         conn = sqlite3.connect(db_path + '/' + db_name)
-        build_index_query = "CREATE INDEX IF NOT EXISTS index_for_%s ON %s (%s);" % (table_name, table_name, 'pat_id')
-        # print build_index_query
-        conn.execute(build_index_query)
+
+        for generated_table in generated_tables:
+            build_index_query = "CREATE INDEX IF NOT EXISTS index_for_%s ON %s (%s);" % (generated_table, generated_table, 'pat_id')
+            # print build_index_query
+            conn.execute(build_index_query)
