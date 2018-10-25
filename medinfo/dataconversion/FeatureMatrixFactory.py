@@ -1260,7 +1260,7 @@ class FeatureMatrixFactory:
             else:
             #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             # TODO: teamNames, need a whole list of Teams...
-                print 'teamNames:', teamNames
+            #     print 'teamNames:', teamNames
                 teamNames = []
                 self.addClinicalItemFeatures_UMich(teamNames, \
                     tableName='labs', clinicalItemTime = 'order_time',
