@@ -71,27 +71,28 @@ def pd_process_labs(labs_df):
     labs_df['order_time'] = labs_df['order_time'].apply(lambda x: utils_general.remove_microsecs(x))
     labs_df['result_time'] = labs_df['result_time'].apply(lambda x: utils_general.remove_microsecs(x))
 
-    return labs_df[['pat_id', 'order_proc_id','order_time','result_time',
-                       'proc_code','base_name','ord_num_value','result_in_range_yn','result_flag']]
+
+    return {'labs':labs_df[['pat_id', 'order_proc_id','order_time','result_time',
+                       'proc_code','base_name','ord_num_value','result_in_range_yn','result_flag']]}
 
 def pd_process_pt_info(pt_info_df):
     pt_info_df = pt_info_df.rename(columns={'PatientID':'pat_id','DOB':'Birth'})
     pt_info_df['pat_id'] = pt_info_df['pat_id'].apply(lambda x: hash(x))
     pt_info_df['Birth'] = pt_info_df['Birth'].apply(lambda x: utils_general.remove_microsecs(x))
-    return pt_info_df[['pat_id', 'Birth']]
+    return {'pt_info':pt_info_df[['pat_id', 'Birth']]}
 
 def pd_process_encounters(encounters_df):
     encounters_df = encounters_df.rename(columns={'PatientID':'pat_id','EncounterID':'order_proc_id','AdmitDate':'AdmitDxDate'})
     encounters_df['pat_id'] = encounters_df['pat_id'].apply(lambda x: hash(x))
     encounters_df['AdmitDxDate'] = encounters_df['AdmitDxDate'].apply(lambda x: utils_general.remove_microsecs(x))
-    return encounters_df[['pat_id','order_proc_id','AdmitDxDate']]
+    return {'encounters':encounters_df[['pat_id','order_proc_id','AdmitDxDate']]}
 
 def pd_process_diagnoses(diagnoses_df):
     diagnoses_df = diagnoses_df.rename(columns={'PatientID':'pat_id','EncounterID':'order_proc_id','ActivityDate':'diagnose_time','TermCodeMapped':'diagnose_code'})
     diagnoses_df['pat_id'] = diagnoses_df['pat_id'].apply(lambda x: hash(x))
     diagnoses_df['diagnose_time'] = diagnoses_df['diagnose_time'].apply(lambda x: utils_general.remove_microsecs(x))
 
-    return diagnoses_df[['pat_id','order_proc_id','diagnose_time','diagnose_code']]
+    return {'diagnoses':diagnoses_df[['pat_id','order_proc_id','diagnose_time','diagnose_code']]}
 
 def pd_process_demographics(demographics_df):
     demographics_df = demographics_df.rename(columns={'PatientID':'pat_id'})
@@ -99,4 +100,4 @@ def pd_process_demographics(demographics_df):
 
     demographics_df['GenderName'] = demographics_df['GenderName'].apply(lambda x: 'Unknown' if not x else x)
     demographics_df['RaceName'] = demographics_df['RaceName'].apply(lambda x: 'Unknown' if not x else x)
-    return demographics_df[['pat_id', 'GenderName', 'RaceName']]
+    return {'demographics':demographics_df[['pat_id', 'GenderName', 'RaceName']]}

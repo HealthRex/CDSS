@@ -374,13 +374,14 @@ if __name__ == '__main__':
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
 
-        prepareData_NonSTRIDE.preprocess_files(data_source='UCSF', raw_data_folderpath=raw_data_folderpath)
+        # prepareData_NonSTRIDE.preprocess_files(data_source='UCSF', raw_data_folderpath=raw_data_folderpath)
 
-        raw_data_files = ['labs.tsv',
-                    'demographics.tsv', # TODO: "deident?"
-                    'diagnoses.tsv',
-                    'encounters.tsv',
-                    'pt.info.tsv',
+        raw_data_files = ['labs_deident.tsv',
+                    # 'demographics.tsv', # TODO: "deident?"
+                    # 'diagnoses.tsv',
+                    # 'encounters.tsv',
+                    # 'pt.info.tsv',
+                    'demographics_and_diagnoses.tsv',
                     'vitals.tsv'
                           ]
 
