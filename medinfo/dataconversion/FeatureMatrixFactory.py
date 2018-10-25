@@ -1003,7 +1003,8 @@ class FeatureMatrixFactory:
         ]
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
             columnNames += ["sor.result_time"]
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             columnNames += ["result_time"]
 
         # Identify which patients to query.
@@ -1019,7 +1020,8 @@ class FeatureMatrixFactory:
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
             query.addFrom("stride_order_results AS sor, stride_order_proc AS sop")
             query.addWhere("sor.order_proc_id = sop.order_proc_id")
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             query.addFrom("labs")
         if isLabPanel:
             labProcCodes = labNames
@@ -1031,7 +1033,8 @@ class FeatureMatrixFactory:
         query.addOrderBy("pat_id")
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
             query.addOrderBy("sor.result_time")
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             query.addOrderBy("result_time")
         log.debug(query)
         return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
@@ -1220,7 +1223,8 @@ class FeatureMatrixFactory:
                 icd9prefixesByDisease[disease] = list()
             if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
                 icd9prefixesByDisease[disease].append("^ICD9." + icd9prefix)
-            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            else:
+            #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
                 icd9prefixesByDisease[disease].append(icd9prefix)
 
         for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
@@ -1229,7 +1233,8 @@ class FeatureMatrixFactory:
             if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
                 self.addClinicalItemFeatures(icd9prefixes, operator="~*", \
                                              label="Comorbidity." + disease, features=features)
-            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            else:
+            #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
                 self.addClinicalItemFeatures_UMich(icd9prefixes, 
                                         tableName = 'diagnoses', clinicalItemType='diagnose_code', clinicalItemTime='diagnose_time',
                                         label="Comorbidity."+disease, features=features)
@@ -1252,8 +1257,13 @@ class FeatureMatrixFactory:
             if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
                 self.addClinicalItemFeatures(teamNames, column="description", \
                                              label="Team." + category, features=features)
-            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            else:
+            #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            # TODO: teamNames, need a whole list of Teams...
+                print 'teamNames:', teamNames
+                teamNames = []
                 self.addClinicalItemFeatures_UMich(teamNames, \
+                    tableName='labs', clinicalItemTime = 'order_time',
                     label="Team."+category, features=features)
 
     def addSexFeatures(self):
@@ -1377,8 +1387,19 @@ class FeatureMatrixFactory:
                 "RaceOther", "RaceUnknown"
             ]
             return RACE_FEATURES
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
 
+            query = SQLQuery()
+            query.addSelect("DISTINCT RaceName")
+            query.addFrom("demographics")
+            results = DBUtil.execute(query)
+            results = [x[0] for x in results]
+            # results = [x if x else 'Unknown' for x in results]
+            return results
+
+    def queryAllTeams(self):
+        if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
             query = SQLQuery()
             query.addSelect("DISTINCT RaceName")
             query.addFrom("demographics")
