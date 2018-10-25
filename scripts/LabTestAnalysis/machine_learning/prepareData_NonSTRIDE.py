@@ -194,6 +194,7 @@ def preprocess_files(data_source, raw_data_folderpath):
     if data_source == 'UCSF':
         import utils_UCSF as utils_specs
         utils_specs.separate_demog_diagn_encnt(raw_data_folderpath)
+        utils_specs.separate_labs_team(raw_data_folderpath)
     else:
         pass
 

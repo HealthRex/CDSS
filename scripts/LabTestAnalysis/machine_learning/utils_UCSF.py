@@ -4,6 +4,7 @@
 
 
 import pandas as pd
+pd.set_option('display.width', 300)
 from itertools import islice
 import sqlite3
 import LocalEnv
@@ -13,16 +14,18 @@ import datetime
 from collections import Counter
 
 datetime_format = "%Y-%m-%dT%H:%M:%SZ"
+RUNNING_MODE = 'TEST' #TODO
 
-def separate_demog_diagn_encnt(folder_path):
-    file_name = 'demographics_and_diagnoses.tsv'
+def separate_demog_diagn_encnt(folder_path): # TODO: Do this by pieces...
+    file_name = 'demographics_and_diagnoses.tsv' # TODO: dangerous here
     # diagn: CSN, ICD10 (diagn time = Admission Datetime?! TODO)
     # demog: CSN, race, sex, Birth (time)
     # encnt: CSN, Admission Datetime
     df = pd.read_csv(folder_path + '/' + file_name, sep='\t')
     # print df.head()
 
-    df_diagn = df[['CSN', 'Admission Datetime', 'ICD10']].copy()
+    df_diagn = df.ix[df['present_on_admit']=='Yes',
+                  ['CSN', 'Admission Datetime', 'ICD10']].copy() # TODO: succeed?
     df_diagn = df_diagn.drop_duplicates()
     df_diagn.to_csv(folder_path + '/' + 'diagnoses.tsv', sep='\t')
 
@@ -32,6 +35,8 @@ def separate_demog_diagn_encnt(folder_path):
     # TODO: Ethnic_Grp or Primary_Race?
     df_demog = df[['CSN', 'Gender', 'Primary_Race']].copy()
     df_demog = df_demog.drop_duplicates()
+    if RUNNING_MODE == 'TEST':
+        df_demog['Gender'] = df_demog['Gender'].apply(lambda x: 'Male')
     df_demog.to_csv(folder_path + '/' + 'demographics.tsv', sep='\t')
 
     # TODO: it is important to differentiate 'Admission' and 'diagnose'
@@ -42,12 +47,17 @@ def separate_demog_diagn_encnt(folder_path):
 
     df_pt_info = df[['CSN', 'Admission Datetime', 'Age']].copy()
     # print df_pt_info['Admission Datetime'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)).values
-    df_pt_info['DOB'] = (df_pt_info['Admission Datetime'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)) \
-        - df_pt_info['Age'].apply(lambda x: datetime.timedelta(days=x*365))).values
+
+
+    if RUNNING_MODE=='TEST':
+        df_pt_info['DOB'] = df_pt_info['Admission Datetime'].apply(lambda x: datetime.datetime(year=1900,month=1,day=1))
+    else:
+        df_pt_info['DOB'] = (df_pt_info['Admission Datetime'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)) \
+            - df_pt_info['Age'].apply(lambda x: datetime.timedelta(days=x*365))).values
     df_pt_info = df_pt_info.drop_duplicates()
     df_pt_info[['CSN', 'DOB']].to_csv(folder_path + '/' + 'pt.info.tsv', sep='\t')
-    return
 
+    return
 
 def construct_result_in_range_yn(df):
     # baseline
@@ -78,26 +88,36 @@ def construct_result_in_range_yn(df):
     # pd.testing.assert_series_equal(df['result_in_range_yn'], df_test['result_in_range_yn'])
     return df['result_in_range_yn']
 
+def separate_labs_team(folder_path): # TODO: Do this by pieces...
+    file_name = 'labs_deident.tsv'
+    df = pd.read_csv(folder_path + '/' + file_name, sep='\t')
+    df_team = df[['CSN','Order Time','discharge service']] #: 'Team'
+    df_team = df_team.drop_duplicates()
+    df_team.to_csv(folder_path + '/' + 'treatment_team.tsv', sep='\t')
+
+    df_labs = df[['CSN','Order Time','Order Name','Order Proc ID','BASE_NAME','Result','Result Flag']]
+    df_labs.to_csv(folder_path + '/' + 'labs.tsv', sep='\t')
+
 def pd_process_labs(labs_df):
     labs_df = labs_df.rename(columns={
-        'CSN': 'order_proc_id',
+        'CSN': 'pat_id',
         'Order Time': 'order_time',  # TODO
         'Order Name': 'proc_code',
-        'Component Name': 'base_name',
+        'Order Proc ID':'order_proc_id',
+        'BASE_NAME': 'base_name',
         'Result': 'ord_num_value',
-        'Result Flag': 'result_flag',
-        'discharge service': 'Team'
+        'Result Flag': 'result_flag' #TODO: check later
     })
     # print labs_df.columns
     # Decision: Hash the string type pat_id to long int to fit into CDSS pipeline
-    labs_df['pat_id'] = labs_df['order_proc_id'].apply(lambda x: hash(x))
+    labs_df['pat_id'] = labs_df['pat_id'].apply(lambda x: hash(x))
 
     labs_df['order_time'] = labs_df['order_time'].apply(lambda x: datetime.datetime.strptime(x, datetime_format))
 
     labs_df['proc_code'] = labs_df['proc_code'].apply(lambda x: x.replace('/', '-'))
-    labs_df['base_name'] = labs_df['base_name'].apply(lambda x: utils_general.filter_nonascii(x))
+    # labs_df['base_name'] = labs_df['base_name'].apply(lambda x: utils_general.filter_nonascii(x))
     # labs_df['base_name'] = labs_df['base_name'].apply(lambda x: utils_general.clean_basename(x))
-    labs_df['base_name'] = labs_df['base_name'].apply(lambda x: x.replace('/','-'))
+    # labs_df['base_name'] = labs_df['base_name'].apply(lambda x: x.replace('/','-'))
 
     # Decision: use 'COLLECTION_DATE' (result time) as 'order_time'
     labs_df['result_time'] = labs_df['order_time'].copy()
@@ -113,11 +133,11 @@ def pd_process_labs(labs_df):
 
     labs_df.to_csv("labs_df.csv")
     return labs_df[['pat_id', 'order_proc_id', 'order_time', 'result_time',
-                    'proc_code', 'base_name', 'ord_num_value', 'result_in_range_yn', 'result_flag', 'Team']]
+                    'proc_code', 'base_name', 'ord_num_value', 'result_in_range_yn', 'result_flag']]
 
 def pd_process_pt_info(pt_info_df):
-    pt_info_df = pt_info_df.rename(columns={'CSN':'order_proc_id','DOB':'Birth'})
-    pt_info_df['pat_id'] = pt_info_df['order_proc_id'].apply(lambda x: hash(x))
+    pt_info_df = pt_info_df.rename(columns={'CSN':'pat_id','DOB':'Birth'})
+    pt_info_df['pat_id'] = pt_info_df['pat_id'].apply(lambda x: hash(x))
     # pt_info_df['Birth'] = pt_info_df['Birth'].apply(lambda x: utils_general.remove_microsecs(x))
     return pt_info_df[['pat_id', 'Birth']]
 
@@ -146,4 +166,26 @@ def pd_process_demographics(demographics_df):
     return demographics_df[['pat_id', 'GenderName', 'RaceName']]
 
 def pd_process_vitals(vitals_df):
-    pass
+    #TODO: be careful of very large df operation...
+    #TODO: is separate_demo... easy in memory?
+    # Transform the whole table...
+    # VS record time --> shifted_record_dt_tm
+    #
+    vitals_df = vitals_df.rename(columns={'CSN':'flo_meas_id',
+                                          'VS record time':'shifted_record_dt_tm',
+                                          'SBP':'flowsheet_value_SBP',
+                                          'DBP':'flowsheet_value_DBP',
+                                          'FiO2 (%)':'flowsheet_value_FiO2',
+                                          'Pulse': 'flowsheet_value_Pulse',
+                                          'Resp': 'flowsheet_value_Resp',
+                                          'Temp': 'flowsheet_value_Temp',
+                                          'o2flow': 'flowsheet_value_o2flow'
+                                          })
+    vitals_df['pat_id'] = vitals_df['flo_meas_id'].apply(lambda x: hash(x))
+
+    vitals_df_long = pd.wide_to_long(vitals_df, stubnames='flowsheet_value',
+                          i=['pat_id', 'flo_meas_id', 'shifted_record_dt_tm'],
+                          j='flowsheet_name', sep='_', suffix='\w')
+    vitals_df_long = vitals_df_long.reset_index()
+    vitals_df_long = vitals_df_long.drop(vitals_df_long[vitals_df_long.flowsheet_value=='NA'].index)
+    return vitals_df_long
