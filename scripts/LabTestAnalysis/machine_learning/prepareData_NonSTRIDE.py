@@ -28,9 +28,9 @@ def remove_microsecs(any_str):
     except:
         return any_str
 
-def line_str2list(line_str, params_str2list):
+def line_str2list(line_str, params_str2list, is_column=False):
     line_list = line_str.split(params_str2list['sep'])
-    if params_str2list['skip_first_col']:
+    if params_str2list['skip_first_col'] and not is_column:
         line_list = line_list[1:]
     line_list = [x.strip() for x in line_list]
     if params_str2list['has_extra_quotes']:
@@ -120,7 +120,6 @@ def lines2pd(lines_str, colnames, params_str2list):
     all_rows = []
     for line_str in lines_str:
         curr_row = line_str2list(line_str, params_str2list=params_str2list)
-
         if len(curr_row) < normal_num_cols/2: #
             # log.info('severely missing data when processing')
             continue
@@ -234,8 +233,7 @@ def raw2db(data_file, data_folderpath, db_path, db_name,
                 params_str2list['skip_first_col'] = False
 
             if is_first_chunk:
-                colnames = line_str2list(next_n_lines_str[0], params_str2list)
-                # print colnames
+                colnames = line_str2list(next_n_lines_str[0], params_str2list, is_column=True)
                 data_df = lines2pd(next_n_lines_str[1:], colnames, params_str2list)
                 is_first_chunk = False
             else:  ## make each chunk into pandas
