@@ -1216,26 +1216,37 @@ class FeatureMatrixFactory:
         summarizing occurrence of the associated ICD9 problems.
         """
         # Extract ICD9 prefixes per disease category
-        icd9prefixesByDisease = dict()
-        for row in self.loadMapData("CharlsonComorbidity-ICD9CM"):
-            (disease, icd9prefix) = (row["charlson"], row["icd9cm"])
-            if disease not in icd9prefixesByDisease:
-                icd9prefixesByDisease[disease] = list()
-            if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-                icd9prefixesByDisease[disease].append("^ICD9." + icd9prefix)
-            else:
-            #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-                icd9prefixesByDisease[disease].append(icd9prefix)
+        icdprefixesByDisease = dict()
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            for row in self.loadMapData("CharlsonComorbidity-ICD9CM"):
+                (disease, icd9prefix) = (row["charlson"], row["icd9cm"])
+                if disease not in icdprefixesByDisease:
+                    icdprefixesByDisease[disease] = list()
+                    icdprefixesByDisease[disease].append("^ICD9." + icd9prefix)
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            for row in self.loadMapData("CharlsonComorbidity-ICD9CM"):
+                (disease, icd9prefix) = (row["charlson"], row["icd9cm"])
+                if disease not in icdprefixesByDisease:
+                    icdprefixesByDisease[disease] = list()
+                    icdprefixesByDisease[disease].append(icd9prefix)
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+            for row in self.loadMapData("CharlsonComorbidity-ICD10"):
+                (disease, icd10prefix) = (row["Category"], row["Code"])
+                if disease not in icdprefixesByDisease:
+                    icdprefixesByDisease[disease] = list()
+                    icdprefixesByDisease[disease].append("^ICD10." + icd10prefix)
+                    icdprefixesByDisease[disease].append(icd10prefix)
+            # print icdprefixesByDisease
 
-        for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
+        for disease, icdprefixes in icdprefixesByDisease.iteritems():
             disease = disease.translate(None," ()-/") # Strip off punctuation
             log.debug('Adding %s comorbidity features...' % disease)
             if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-                self.addClinicalItemFeatures(icd9prefixes, operator="~*", \
+                self.addClinicalItemFeatures(icdprefixes, operator="~*", \
                                              label="Comorbidity." + disease, features=features)
             else:
             #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-                self.addClinicalItemFeatures_UMich(icd9prefixes, 
+                self.addClinicalItemFeatures_UMich(icdprefixes,
                                         tableName = 'diagnoses', clinicalItemType='diagnose_code', clinicalItemTime='diagnose_time',
                                         label="Comorbidity."+disease, features=features)
 
