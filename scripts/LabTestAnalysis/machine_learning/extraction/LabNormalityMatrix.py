@@ -85,7 +85,8 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addWhereIn('order_proc_id', lab_order_ids)
             query.addGroupBy('base_name')
 
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        else:
+        # elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             query = SQLQuery()
             query.addSelect('base_name')
             query.addFrom('labs')
@@ -115,7 +116,8 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addWhereIn("base_name", components)
             query.addGroupBy('pat_id')
 
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
             query.addSelect('COUNT(order_proc_id) AS num_orders')
             query.addFrom('labs')
@@ -162,7 +164,8 @@ class LabNormalityMatrix(FeatureMatrix):
 
             return random_patient_list
 
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
 
             # Get average number of results for this lab test per patient.
             query = SQLQuery()
@@ -258,7 +261,8 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addOrderBy('proc_code') #sx
             query.addOrderBy('order_time')
 
-        elif LocalEnv.DATASET_SOURCE_NAME=='UMich':
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME=='UMich':
             query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
             query.addSelect('order_proc_id')
             query.addSelect(self._varTypeInTable)
@@ -295,7 +299,8 @@ class LabNormalityMatrix(FeatureMatrix):
         # Add lab panel order features.
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
             self._factory.addClinicalItemFeatures([self._lab_var], features="pre")
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             self._factory.addClinicalItemFeatures_UMich([self._lab_var], features="pre",
                                                         clinicalItemType=self._varTypeInTable,
                                                         clinicalItemTime='order_time',

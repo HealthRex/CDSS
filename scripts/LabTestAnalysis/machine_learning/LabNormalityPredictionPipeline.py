@@ -87,7 +87,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             ]
             outcome_label = 'all_components_normal' # TODO: for component...
 
-        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             features_to_remove = [
                 'pat_id', 'order_time', 'order_proc_id',
                 'Birth.pre',
@@ -262,7 +263,7 @@ if __name__ == '__main__':
     folder_debug = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/data/'
     if not os.path.exists(folder_debug):
         os.mkdir(folder_debug)
-    logging.basicConfig(filename=os.path.join(folder_debug,'debug_UMich.log'), level=logging.DEBUG)
+    logging.basicConfig(filename=os.path.join(folder_debug,'debug_%s.log'%LocalEnv.DATASET_SOURCE_NAME), level=logging.DEBUG)
     TOP_LAB_PANELS_BY_CHARGE_VOLUME = set([
         "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
         "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
@@ -351,19 +352,36 @@ if __name__ == '__main__':
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
         # TODO: a list of all components
-        UCSF_TOP_COMPONENTS = ['WBC']
+        UCSF_TOP_COMPONENTS = [
+            'WBC', 'HGB', 'PLT', 'NAWB', 'K',
+            'CREAT', 'TBILI',
+            'CL', 'CO2', 'DBILI', 'AST', 'ALT',
+            'ALB', 'CA', 'PCO2', 'PO2', 'PH37',
+            'TP',
+            'ALKP',
+            'BUN',
+            # No IBIL
+            'HCO3',
+            'MG',
+            'PO4', #PHOSPHORUS, SERUM / PLASMA
+            'INR',
+            'P060', # PERIPHERAL BLOOD CULTURE
+            'CAI', # TODO: CALCIUM, IONIZED, SERUM/PLASMA; another option is "CAIB", CALCIUM, IONIZED, WHOLE BLOOD
+            'LACTWB'
+            # TODO: 'FIO2' isn't this vital?!
+                               ]
 
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
 
         prepareData_NonSTRIDE.preprocess_files(data_source='UCSF', raw_data_folderpath=raw_data_folderpath)
 
-        raw_data_files = ['labs_deident.tsv',
-                    'demographics.tsv',
+        raw_data_files = ['labs.tsv',
+                    'demographics.tsv', # TODO: "deident?"
                     'diagnoses.tsv',
                     'encounters.tsv',
-                    'pt.info.tsv'
-                    # 'vitals_deident.tsv'
+                    'pt.info.tsv',
+                    'vitals.tsv'
                           ]
 
 
