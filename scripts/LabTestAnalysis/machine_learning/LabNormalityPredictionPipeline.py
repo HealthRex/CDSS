@@ -332,7 +332,7 @@ if __name__ == '__main__':
 
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
-        fold_enlarge_data = 1
+        fold_enlarge_data = 10
         USE_CACHED_DB = False # TODO: take care of USE_CACHED_LARGEFILE in the future
 
         prepareData_NonSTRIDE.prepare_database(raw_data_files, raw_data_folderpath,
@@ -376,7 +376,7 @@ if __name__ == '__main__':
 
         # prepareData_NonSTRIDE.preprocess_files(data_source='UCSF', raw_data_folderpath=raw_data_folderpath)
 
-        raw_data_files = ['labs_deident.tsv',
+        raw_data_files = ['labs.tsv',
                     # 'demographics.tsv', # TODO: "deident?"
                     # 'diagnoses.tsv',
                     # 'encounters.tsv',
@@ -386,7 +386,7 @@ if __name__ == '__main__':
                           ]
 
 
-        fold_enlarge_data = 1
+        fold_enlarge_data = 10
         USE_CACHED_DB = False  # TODO: take care of USE_CACHED_LARGEFILE in the future
 
         prepareData_NonSTRIDE.prepare_database(raw_data_files, raw_data_folderpath,
