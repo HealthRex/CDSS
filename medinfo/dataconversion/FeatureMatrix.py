@@ -201,8 +201,7 @@ class FeatureMatrix:
                 'PO2V',  # Venous pO2
                 'PCO2V'  # Venous pCO2
             ]
-        else: #TODO
-        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             BASIC_LAB_COMPONENTS = [
                 'WBC',  # White Blood Cell
                 'HCT',  # Hematocrit
@@ -225,6 +224,30 @@ class FeatureMatrix:
                 'pHV',  # Venous pH
                 'pO2V',  # Venous pO2
                 'pCO2V',  # Venous pCO2
+            ]
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+            BASIC_LAB_COMPONENTS = [
+                'WBC',  # White Blood Cell
+                'HCT',  # Hematocrit
+                'PLT',  # Platelet Count
+                'NAWB',  # Sodium, Whole Blood
+                'K',  # Potassium, Whole Blood
+                'CO2',  # CO2, Serum/Plasma
+                'BUN',  # Blood Urea Nitrogen
+                'CREAT',  # Creatinine
+                'TBILI',  # Total Bilirubin
+                'ALB',  # Albumin
+                'CA',  # Calcium
+                'LACTWB',  # Lactic Acid; LACTA & LACTV are more frequent
+                "ESR",  # Erythrocyte Sedimentation Rate
+                'CRP',  # C-Reactive Protein
+                'TRPI',  # Troponin I
+                'PH37',  # Arterial pH
+                'PO2',  # Arterial pO2
+                'PCO2'  # Arterial pCO2
+                # 'pHV',  # Venous pH
+                # 'pO2V',  # Venous pO2
+                # 'pCO2V',  # Venous pCO2
             ]
         log.info('Adding lab component features...')
         for component in BASIC_LAB_COMPONENTS:
