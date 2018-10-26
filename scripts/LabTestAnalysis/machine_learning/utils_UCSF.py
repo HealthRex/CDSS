@@ -71,7 +71,7 @@ import dask.dataframe as dd
 #     df_labs.to_csv(folder_path + '/' + 'labs-*.tsv', sep='\t')
 
 def pd_process_demogdiagn(df):
-    file_name = 'demographics_and_diagnoses.tsv'  # TODO: dangerous here
+    # file_name = 'demographics_and_diagnoses.tsv'  # TODO: dangerous here
     # diagn: CSN, ICD10 (diagn time = Admission Datetime?! TODO)
     # demog: CSN, race, sex, Birth (time)
     # encnt: CSN, Admission Datetime
@@ -260,6 +260,7 @@ def pd_process_vitals(vitals_df):
                                           })
     vitals_df['pat_id'] = vitals_df['flo_meas_id'].apply(lambda x: hash(x))
 
+    # print pd.wide_to_long
     vitals_df_long = pd.wide_to_long(vitals_df, stubnames='flowsheet_value',
                           i=['pat_id', 'flo_meas_id', 'shifted_record_dt_tm'],
                           j='flowsheet_name', sep='_', suffix='\w')
