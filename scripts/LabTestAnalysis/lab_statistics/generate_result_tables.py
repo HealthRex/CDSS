@@ -194,9 +194,23 @@ def fill_df_fix_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, lab_type=None)
     return res
 
 def add_panel_cnts_fees(one_lab_alg_dict):
-    print one_lab_alg_dict
-    quit()
-    pass
+    panel =  one_lab_alg_dict['lab']
+    df_cnts_fees = pd.read_csv('data_summary_stats/labs_charges_volumes.csv')
+    cnts_fees_dict = df_cnts_fees.ix[df_cnts_fees['name']==panel, ['count',
+                                                        'min_price',
+                                                        'max_price',
+                                                        'mean_price',
+                                                        'median_price',
+                                                        'min_volume_charge',
+                                                        'max_volume_charge',
+                                                        'mean_volume_charge',
+                                                        'median_volume_charge']].to_dict(orient='list')
+    # print cnts_fees_dict
+    for key in cnts_fees_dict.keys():
+        cnts_fees_dict[key] = cnts_fees_dict[key][0]
+
+    one_lab_alg_dict.update(cnts_fees_dict)
+    return one_lab_alg_dict
 
 years = range(2010,2018,1)
 def add_component_cnts_fees(one_lab_dict):
@@ -230,13 +244,26 @@ def add_component_cnts_fees(one_lab_dict):
 
     return one_lab_dict
 
-columns = ['lab', 'alg', 'roc_auc', 'total_cnt']  # basic info
-columns += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
-columns += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
-columns += [str(year) + '_Vol' for year in years]
-columns += ['rate_mean', 'rate_median', 'rate_min', 'rate_max']
-columns += ['typical_Vol', 'PPV*Cost*Vol']
-columns += ['RATEs2018', 'SHORTDESCs']
+columns_components = ['lab', 'alg', 'roc_auc', 'total_cnt']  # basic info
+columns_components += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
+columns_components += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
+columns_components += [str(year) + '_Vol' for year in years]
+columns_components += ['rate_mean', 'rate_median', 'rate_min', 'rate_max']
+columns_components += ['typical_Vol', 'PPV*Cost*Vol']
+columns_components += ['RATEs2018', 'SHORTDESCs']
+
+columns_panels = ['lab', 'alg', 'roc_auc', 'total_cnt']
+columns_panels += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
+columns_panels += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
+columns_panels += ['count',
+                    'min_price',
+                    'max_price',
+                    'mean_price',
+                    'median_price',
+                    'min_volume_charge',
+                    'max_volume_charge',
+                    'mean_volume_charge',
+                    'median_volume_charge']
 
 def test():
     folder_path = '../machine_learning/'
@@ -283,12 +310,15 @@ def main():
             'LABCMVQT', 'LABCORT', 'LABCRP', 'LABCSFC', 'LABCSFGL', 'LABCSFTP', 'LABDIGL', 'LABESRP',
             'LABFCUL', 'LABFE', 'LABFER', 'LABFIB', 'LABFLDC', 'LABFOL', 'LABFT4', 'LABGRAM',
             'LABHAP', 'LABHBSAG', 'LABHCTX', 'LABHEPAR', 'LABHIVWBL', 'LABK', 'LABLAC', 'LABLACWB',
-            'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN', 'LABNA', 'LABNH3', 'LABNONGYN',
+            'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN',
+            # 'LABNA', # TODO: why nothing is here!
+            'LABNH3', 'LABNONGYN',
             'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI', 'LABPHOS', 'LABPLTS',
             'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP', 'LABRESPG', 'LABRETIC', 'LABSPLAC',
             'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH', 'LABUCR', 'LABUOSM',
             'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
         ]
+        columns = columns_panels
     else:
         all_panels = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL',
                            'CR', 'BUN', 'GLU', 'CO2', 'CA', 'HCO3', # good, from 'LABMETB'
@@ -296,6 +326,7 @@ def main():
                            'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A']
 
         data_folder = 'data_components'
+        columns = columns_components
     all_algs = ['adaboost', 'decision-tree', 'gaussian-naive-bayes',
                 'l1-logistic-regression-cross-validation', 'random-forest', 'regress-and-round']
 
@@ -306,21 +337,18 @@ def main():
         for lab in all_panels:
             for alg in all_algs:
                 print 'Processing lab %s with alg %s'%(lab, alg)
-                # try:
-                one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder=folder_path + '/' + data_folder,
-                                                   PPV_wanted=0.99, lab_type=lab_type)
+                try:
+                    one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder=folder_path + '/' + data_folder,
+                                                       PPV_wanted=0.99, lab_type=lab_type)
 
-                if lab_type == 'component':
-                    one_lab_alg_dict = add_component_cnts_fees(one_lab_alg_dict)
-                elif lab_type == 'panel':
-                    one_lab_alg_dict = add_panel_cnts_fees(one_lab_alg_dict)
-                print one_lab_alg_dict
-                df = df.append(one_lab_alg_dict, ignore_index=True)
-                print df.columns
-                quit()
-                # except Exception as e:
-                #     print e
-                #     pass
+                    if lab_type == 'component':
+                        one_lab_alg_dict = add_component_cnts_fees(one_lab_alg_dict)
+                    elif lab_type == 'panel':
+                        one_lab_alg_dict = add_panel_cnts_fees(one_lab_alg_dict)
+                    df = df.append(one_lab_alg_dict, ignore_index=True)
+                except Exception as e:
+                    print e
+                    pass
         print 'PPV_wanted=%.2f finished!' % PPV_wanted
 
 
