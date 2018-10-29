@@ -106,15 +106,22 @@ class LabNormalityMatrix(FeatureMatrix):
         # Get average number of results for this lab test per patient.
         query = SQLQuery()
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE': #TODO: add STRIDE component routine
-            query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
-            query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
-            query.addFrom('stride_order_proc AS sop')
-            query.addFrom('stride_order_results AS sor')
-            query.addWhere('sop.order_proc_id = sor.order_proc_id')
-            query.addWhereIn("proc_code", [self._lab_var])
-            components = self._get_components_in_lab_panel()
-            query.addWhereIn("base_name", components)
-            query.addGroupBy('pat_id')
+            if LocalEnv.LAB_TYPE == 'panel':
+                query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
+                query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
+                query.addFrom('stride_order_proc AS sop')
+                query.addFrom('stride_order_results AS sor')
+                query.addWhere('sop.order_proc_id = sor.order_proc_id')
+                query.addWhereIn("proc_code", [self._lab_var])
+                components = self._get_components_in_lab_panel()
+                query.addWhereIn("base_name", components)
+                query.addGroupBy('pat_id')
+            else: #TODO: check
+                query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
+                query.addSelect('COUNT(order_proc_id) AS num_orders')
+                query.addFrom('stride_order_results')
+                query.addWhereIn("base_name", [self._lab_var])
+                query.addGroupBy('pat_id')
 
         else:
         #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
@@ -151,9 +158,16 @@ class LabNormalityMatrix(FeatureMatrix):
             # Get numPatientsToQuery random patients who have gotten test.
             # TODO(sbala): Have option to feed in a seed for the randomness.
             query = SQLQuery()
+
             query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
-            query.addFrom('stride_order_proc AS sop')
-            query.addWhereIn('proc_code', [self._lab_var]) # TODO: components
+
+            if LocalEnv.LAB_TYPE == 'panel':
+                query.addFrom('stride_order_proc AS sop')
+                query.addWhereIn('proc_code', [self._lab_var]) # TODO: components
+            else:
+                query.addFrom('stride_order_result')
+                query.addWhereIn('base_name', [self._lab_var])
+
             query.addOrderBy('RANDOM()')
             query.setLimit(self._num_patients)
             log.debug('Querying random patient list...')
@@ -237,29 +251,55 @@ class LabNormalityMatrix(FeatureMatrix):
         #           metabolic components. Include it.
         query = SQLQuery()
         if LocalEnv.DATASET_SOURCE_NAME=='STRIDE': # TODO: component
-            query.addSelect('CAST(pat_id AS BIGINT)')
-            query.addSelect('sop.order_proc_id AS order_proc_id')
-            query.addSelect('proc_code') #TODO:sx
-            query.addSelect('order_time')
-            query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel") #sx
-            query.addSelect("SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components") #sx
-            query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components") #sx
-            query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal") #sx
-            query.addFrom('stride_order_proc AS sop') #sx
-            query.addFrom('stride_order_results AS sor') #sx
-            query.addWhere('sop.order_proc_id = sor.order_proc_id') #sx
-            query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
-            query.addWhereIn("proc_code", [self._lab_var]) #sx
-            query.addWhereIn("pat_id", random_patient_list)
-            query.addGroupBy('pat_id')
-            query.addGroupBy('sop.order_proc_id') #sx
-            query.addGroupBy('proc_code') #sx
-            query.addGroupBy('order_time')
-            query.addGroupBy('abnormal_yn') #sx
-            query.addOrderBy('pat_id')
-            query.addOrderBy('sop.order_proc_id') #sx
-            query.addOrderBy('proc_code') #sx
-            query.addOrderBy('order_time')
+
+            if LocalEnv.LAB_TYPE == 'panel':
+                query.addSelect('CAST(pat_id AS BIGINT)')
+                query.addSelect('sop.order_proc_id AS order_proc_id')
+                query.addSelect('proc_code') #TODO:sx
+                query.addSelect('order_time')
+                query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel") #sx
+                query.addSelect("SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components") #sx
+                query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components") #sx
+                query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal") #sx
+                query.addFrom('stride_order_proc AS sop') #sx
+                query.addFrom('stride_order_results AS sor') #sx
+                query.addWhere('sop.order_proc_id = sor.order_proc_id') #sx
+                query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
+                query.addWhereIn("proc_code", [self._lab_var]) #sx
+                query.addWhereIn("pat_id", random_patient_list)
+                query.addGroupBy('pat_id')
+                query.addGroupBy('sop.order_proc_id') #sx
+                query.addGroupBy('proc_code') #sx
+                query.addGroupBy('order_time')
+                query.addGroupBy('abnormal_yn') #sx
+                query.addOrderBy('pat_id')
+                query.addOrderBy('sop.order_proc_id') #sx
+                query.addOrderBy('proc_code') #sx
+                query.addOrderBy('order_time')
+            else:
+                query.addSelect('CAST(pat_id AS BIGINT)')
+                query.addSelect('sop.order_proc_id AS order_proc_id')
+                query.addSelect('base_name')  # TODO
+                query.addSelect('order_time')
+                query.addSelect(
+                    "CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 0 ELSE 1 END AS component_normal")
+                query.addFrom('stride_order_proc AS sop')
+                query.addFrom('stride_order_results AS sor')
+                query.addWhere('sop.order_proc_id = sor.order_proc_id')
+                query.addWhere(
+                    "(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
+                query.addWhereIn("base_name", [self._lab_var])
+                query.addWhereIn("pat_id", random_patient_list)
+                query.addGroupBy('pat_id')
+                query.addGroupBy('sop.order_proc_id')
+                query.addGroupBy('base_name')  # sx
+                query.addGroupBy('order_time')
+                query.addGroupBy('result_flag')
+                # query.addGroupBy('abnormal_yn') #sx
+                query.addOrderBy('pat_id')
+                query.addOrderBy('sop.order_proc_id')
+                query.addOrderBy('base_name')  # sx
+                query.addOrderBy('order_time')
 
         else:
         #elif LocalEnv.DATASET_SOURCE_NAME=='UMich':
