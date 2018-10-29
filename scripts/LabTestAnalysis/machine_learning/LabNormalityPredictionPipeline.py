@@ -69,8 +69,10 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
             features_to_remove = [
                 'pat_id', 'order_time', 'order_proc_id',
-                'proc_code', 'abnormal_panel',
-                'num_normal_components', 'Birth.pre',
+                #'proc_code', #TODO
+                'abnormal_panel',
+                'num_normal_components',
+                'Birth.pre',
                 'Male.preTimeDays', 'Female.preTimeDays',
                 'RaceWhiteHispanicLatino.preTimeDays',
                 'RaceWhiteNonHispanicLatino.preTimeDays',
@@ -83,8 +85,12 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 'RaceUnknown.preTimeDays',
                 'Death.post',
                 'Death.postTimeDays',
-                'num_components'
+                'num_components' #TODO
             ]
+            if LocalEnv.LAB_TYPE == 'panel':
+                features_to_remove += ['proc_code']
+            elif LocalEnv.LAB_TYPE == 'component':
+                features_to_remove += ['base_name']
             outcome_label = 'all_components_normal' # TODO: for component...
 
         else:
@@ -302,10 +308,21 @@ if __name__ == '__main__':
         'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
     ]
 
+    COMPONENT_TESTS = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL',
+                       'CR', 'BUN', 'GLU', 'CO2', 'CA', 'HCO3',  # good, from 'LABMETB'
+                       'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT',
+                       'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A']  # good, LABHFP
+
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-        labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-        for panel in labs_to_test:
-            LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789)
+
+        if LocalEnv.LAB_TYPE == 'panel':
+            labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+            for panel in labs_to_test:
+                LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
+        elif LocalEnv.LAB_TYPE == 'component':
+            labs_to_test = COMPONENT_TESTS
+            for panel in labs_to_test:
+                LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=False)
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
         UMICH_TOP_LABPANELS = ['CBCP']
