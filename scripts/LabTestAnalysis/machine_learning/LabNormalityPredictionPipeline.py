@@ -30,6 +30,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state, isLabPanel)
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
+        self._build_baseline_results()
         self._build_processed_feature_matrix()
         self._train_and_analyze_predictors()
 
@@ -50,6 +51,14 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         matrix_class = LabNormalityMatrix
         SupervisedLearningPipeline._build_raw_feature_matrix(self, matrix_class, \
             raw_matrix_path)
+
+    def _build_baseline_results(self):
+        template = '%s-normality-matrix-%d-episodes-raw.tab'
+        pipeline_file_name = inspect.getfile(inspect.currentframe())
+        raw_matrix_path = SupervisedLearningPipeline._build_matrix_path(self, template, \
+                                                             pipeline_file_name)
+        # Another direct call to the _factory instance
+        self._factory.obtain_baseline_results(raw_matrix_path=raw_matrix_path, random_state=self._random_state)
 
     def _build_processed_matrix_path(self):
         template = '%s-normality-matrix-%d-episodes-processed.tab'
@@ -243,6 +252,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             # If successfully trained, append to a meta report.
             elif status == SupervisedClassifier.TRAINED:
                 pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
+
                 SupervisedLearningPipeline._analyze_predictor(self, report_dir, pipeline_prefix)
                 SupervisedLearningPipeline._analyze_predictor_traindata(self, report_dir, pipeline_prefix)
                 if meta_report is None:
@@ -265,7 +275,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 '/'.join([data_dir, '%s-normality-prediction-report.tab' % self._var]), header)
 
 if __name__ == '__main__':
-    log.level = logging.INFO
+    log.level = logging.DEBUG
     folder_debug = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/data/'
     if not os.path.exists(folder_debug):
         os.mkdir(folder_debug)
@@ -318,11 +328,11 @@ if __name__ == '__main__':
         if LocalEnv.LAB_TYPE == 'panel':
             labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
             for panel in labs_to_test:
-                LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
+                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
         elif LocalEnv.LAB_TYPE == 'component':
             labs_to_test = COMPONENT_TESTS
             for panel in labs_to_test:
-                LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=False)
+                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
         UMICH_TOP_LABPANELS = ['CBCP']
