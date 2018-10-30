@@ -219,7 +219,7 @@ class FeatureMatrixFactory:
         """
         return TabDictReader(open(self._patientEpisodeTempFileName, "r"))
 
-    def obtain_baseline_results(self, random_state):
+    def obtain_baseline_results(self, raw_matrix_path, random_state):
         # for episode_dict in self.getPatientEpisodeIterator():
         #     episode_dict
 
@@ -228,10 +228,27 @@ class FeatureMatrixFactory:
         #   Step 2.1: order by order_time
         #   Step 2.2: Obtain
 
-        episode_cnt = 0
+        import pandas as pd
+        pd.set_option('display.width', 300)
+        pd.set_option('display.max_column', 10)
 
-        for _ in self.getPatientEpisodeIterator(): # less stupid way to do this
-            episode_cnt += 1
+        from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
+        fm_io = FeatureMatrixIO()
+        raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+        #
+        # print raw_matrix
+        # quit()
+
+        # print 'inside FMF, cwd=', os.getcwd()
+
+        episode_cnt = raw_matrix.shape[0]
+
+        raw_matrix = raw_matrix.rename(columns={'component_normal':'all_components_normal'})
+
+        raw_matrix_dict = raw_matrix[['pat_id', 'order_time', 'all_components_normal']].to_dict('records')
+
+        # for _ in self.getPatientEpisodeIterator(): # less stupid way to do this
+        #     episode_cnt += 1
 
         # Separate train and test
         X = range(episode_cnt)
@@ -244,7 +261,7 @@ class FeatureMatrixFactory:
 
         episode_groups_dict = {}  # pat_id: [episode_dicts]
         episode_ind = 0
-        for episode_dict in self.getPatientEpisodeIterator():
+        for episode_dict in raw_matrix_dict:
             if episode_ind in X_test:
                 if episode_dict['pat_id'] in episode_groups_dict:
                     episode_groups_dict[episode_dict['pat_id']].append(episode_dict)
@@ -259,9 +276,7 @@ class FeatureMatrixFactory:
 
         # Calc the prevalence from training data
         prevalence_1 = float(actual_cnt_1)/float(actual_cnt_1+actual_cnt_0)
-        print 'prevalence_1', prevalence_1
 
-        import pandas as pd
         baseline_comparisons = pd.DataFrame(columns=['actual', 'predict'])
 
         for pat_id in episode_groups_dict:
@@ -277,9 +292,8 @@ class FeatureMatrixFactory:
                 baseline_comparisons = baseline_comparisons.append({'actual': newlist[i]['all_components_normal'],
                                              'predict': newlist[i]['predict']}, ignore_index=True)
 
-        baseline_comparisons.to_csv('data/baseline_comparisons.csv')
-
-        pass
+        baseline_folder = '/'.join(raw_matrix_path.split('/')[:-1])
+        baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons.csv'))
 
     def _getPatientEpisodeByIndexTimeById(self):
         """
