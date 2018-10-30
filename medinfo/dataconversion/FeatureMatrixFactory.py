@@ -250,7 +250,7 @@ class FeatureMatrixFactory:
         if not is_item_component:
             clinicalItemEvents = self._queryClinicalItemsByName(clinicalItemNames, column=column, operator=operator)
         else:
-            clinicalItemEvents = self._queryComponentItemsByName(clinicalItemNames, column=column, operator=operator)
+            clinicalItemEvents = self._queryComponentItemsByName(clinicalItemNames)
         itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
 
         # Read clinical item features to temp file.

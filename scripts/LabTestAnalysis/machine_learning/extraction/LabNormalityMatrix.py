@@ -105,23 +105,16 @@ class LabNormalityMatrix(FeatureMatrix):
 
         # Get average number of results for this lab test per patient.
         query = SQLQuery()
-        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE': #TODO: add STRIDE component routine
-            if LocalEnv.LAB_TYPE == 'panel':
-                query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
-                query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
-                query.addFrom('stride_order_proc AS sop')
-                query.addFrom('stride_order_results AS sor')
-                query.addWhere('sop.order_proc_id = sor.order_proc_id')
-                query.addWhereIn("proc_code", [self._lab_var])
-                components = self._get_components_in_lab_panel()
-                query.addWhereIn("base_name", components)
-                query.addGroupBy('pat_id')
-            else: #TODO: check
-                query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
-                query.addSelect('COUNT(order_proc_id) AS num_orders')
-                query.addFrom('stride_order_results')
-                query.addWhereIn("base_name", [self._lab_var])
-                query.addGroupBy('pat_id')
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
+            query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
+            query.addFrom('stride_order_proc AS sop')
+            query.addFrom('stride_order_results AS sor')
+            query.addWhere('sop.order_proc_id = sor.order_proc_id')
+            query.addWhereIn(self._varTypeInTable, [self._lab_var])
+            components = self._get_components_in_lab_panel()
+            query.addWhereIn("base_name", components)
+            query.addGroupBy('pat_id')
 
         else:
         #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
@@ -159,24 +152,55 @@ class LabNormalityMatrix(FeatureMatrix):
             # TODO(sbala): Have option to feed in a seed for the randomness.
             query = SQLQuery()
 
-            query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
-
             if LocalEnv.LAB_TYPE == 'panel':
+                query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
                 query.addFrom('stride_order_proc AS sop')
-                query.addWhereIn('proc_code', [self._lab_var]) # TODO: components
+                query.addWhereIn('proc_code', [self._lab_var]) #
+                query.addOrderBy('RANDOM()')
+                query.setLimit(self._num_patients)
+                log.debug('Querying random patient list...')
+                results = DBUtil.execute(query)
+
+                # Get patient list.
+                random_patient_list = [ row[0] for row in results ]
+
+                return random_patient_list
+
             else:
-                query.addFrom('stride_order_result')
-                query.addWhereIn('base_name', [self._lab_var])
+                query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
+                query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
+                query.addFrom('stride_order_proc AS sop')
+                query.addFrom('stride_order_results AS sor')
+                query.addWhere('sop.order_proc_id = sor.order_proc_id')
+                ##
+                query.addWhereIn("base_name", [self._lab_var])
+                query.addGroupBy('pat_id')
+                log.debug('Querying median orders per patient...')
 
-            query.addOrderBy('RANDOM()')
-            query.setLimit(self._num_patients)
-            log.debug('Querying random patient list...')
-            results = DBUtil.execute(query)
+                results = DBUtil.execute(query)
 
-            # Get patient list.
-            random_patient_list = [ row[0] for row in results ]
+                order_counts = [row[1] for row in results]
 
-            return random_patient_list
+                if len(results) == 0:
+                    error_msg = '0 orders for component "%s."' % self._lab_var  # sx
+                    log.critical(error_msg)
+                    sys.exit('[ERROR] %s' % error_msg)
+                else:
+                    avg_orders_per_patient = numpy.median(order_counts)
+                    log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
+                    # Based on average # of results, figure out how many patients we'd
+                    # need to get for a feature matrix of requested size.
+                    self._num_patients = int(numpy.max([self._num_requested_episodes / \
+                                                        avg_orders_per_patient, 1]))
+                    # Some components may have fewer associated patients than the required sample size
+                    patient_number_chosen = min([len(results), self._num_patients])  #
+                    inds_random_patients = numpy.random.choice(len(results), size=patient_number_chosen, replace=False)
+                    # print 'inds_random_patients:', inds_random_patients
+                    pat_IDs_random_patients = []
+                    for ind in inds_random_patients:
+                        pat_IDs_random_patients.append(results[ind][0])
+                    # print pat_IDs_random_patients
+                    return pat_IDs_random_patients
 
         else:
         #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
@@ -250,7 +274,7 @@ class LabNormalityMatrix(FeatureMatrix):
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
         query = SQLQuery()
-        if LocalEnv.DATASET_SOURCE_NAME=='STRIDE': # TODO: component
+        if LocalEnv.DATASET_SOURCE_NAME=='STRIDE': #
 
             if LocalEnv.LAB_TYPE == 'panel':
                 query.addSelect('CAST(pat_id AS BIGINT)')
@@ -282,7 +306,7 @@ class LabNormalityMatrix(FeatureMatrix):
                 query.addSelect('base_name')  # TODO
                 query.addSelect('order_time')
                 query.addSelect(
-                    "CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 0 ELSE 1 END AS component_normal")
+                    "CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 0 ELSE 1 END AS all_components_normal")
                 query.addFrom('stride_order_proc AS sop')
                 query.addFrom('stride_order_results AS sor')
                 query.addWhere('sop.order_proc_id = sor.order_proc_id')
@@ -338,7 +362,11 @@ class LabNormalityMatrix(FeatureMatrix):
     def _add_features(self):
         # Add lab panel order features.
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            self._factory.addClinicalItemFeatures([self._lab_var], features="pre")
+            if LocalEnv.LAB_TYPE == 'component':
+                is_item_component = True
+            else:
+                is_item_component = False
+            self._factory.addClinicalItemFeatures([self._lab_var], features="pre", is_item_component=is_item_component)
         else:
         #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             self._factory.addClinicalItemFeatures_UMich([self._lab_var], features="pre",
