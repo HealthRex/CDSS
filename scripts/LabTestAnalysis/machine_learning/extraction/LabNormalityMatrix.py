@@ -140,19 +140,19 @@ class LabNormalityMatrix(FeatureMatrix):
         cursor = self._connection.cursor()
 
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            # Get average number of results for this lab test per patient.
-            avg_orders_per_patient = self._get_average_orders_per_patient()
-            log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
-            # Based on average # of results, figure out how many patients we'd
-            # need to get for a feature matrix of requested size.
-            self._num_patients = int(numpy.max([self._num_requested_episodes / \
-                avg_orders_per_patient, 1]))
-
-            # Get numPatientsToQuery random patients who have gotten test.
-            # TODO(sbala): Have option to feed in a seed for the randomness.
-            query = SQLQuery()
 
             if LocalEnv.LAB_TYPE == 'panel':
+                # Get average number of results for this lab test per patient.
+                avg_orders_per_patient = self._get_average_orders_per_patient() #
+                log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
+                # Based on average # of results, figure out how many patients we'd
+                # need to get for a feature matrix of requested size.
+                self._num_patients = int(numpy.max([self._num_requested_episodes / \
+                    avg_orders_per_patient, 1]))
+
+                # Get numPatientsToQuery random patients who have gotten test.
+                # TODO(sbala): Have option to feed in a seed for the randomness.
+                query = SQLQuery()
                 query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
                 query.addFrom('stride_order_proc AS sop')
                 query.addWhereIn('proc_code', [self._lab_var]) #
@@ -167,6 +167,7 @@ class LabNormalityMatrix(FeatureMatrix):
                 return random_patient_list
 
             else:
+                query = SQLQuery()
                 query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
                 query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
                 query.addFrom('stride_order_proc AS sop')
