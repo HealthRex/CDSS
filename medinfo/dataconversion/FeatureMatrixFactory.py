@@ -41,7 +41,7 @@ class FeatureMatrixFactory:
         "patient_id"
     ]
 
-    def __init__(self, cacheDBResults = True):
+    def __init__(self, cacheDBResults = True, PID=None):
         self.dbCache = None
         self.patientListInput = None
         self.patientIdColumn = None
@@ -52,7 +52,10 @@ class FeatureMatrixFactory:
 
         self.patientsProcessed = None
 
-        PID = str(os.getpid())
+        if not PID: # Allow checking existing tmp files
+            PID = str(os.getpid())
+        else:
+            PID = str(PID)
 
         # When debugging, do not create so many Tempfiles in the working folder.
         self._folderTempFiles = "fmfTempFolder"
@@ -215,6 +218,68 @@ class FeatureMatrixFactory:
         Return TabDictReader for reading processed patient episodes.
         """
         return TabDictReader(open(self._patientEpisodeTempFileName, "r"))
+
+    def obtain_baseline_results(self, random_state):
+        # for episode_dict in self.getPatientEpisodeIterator():
+        #     episode_dict
+
+        # Step1: group by pat_id
+        # Step2: For each group, obtain predicts
+        #   Step 2.1: order by order_time
+        #   Step 2.2: Obtain
+
+        episode_cnt = 0
+
+        for _ in self.getPatientEpisodeIterator(): # less stupid way to do this
+            episode_cnt += 1
+
+        # Separate train and test
+        X = range(episode_cnt)
+        y = X # just dummy
+        from sklearn.cross_validation import train_test_split
+        X_train, X_test, _, _= train_test_split(X, y, random_state=random_state) #
+
+        actual_cnt_1 = 0
+        actual_cnt_0 = 0
+
+        episode_groups_dict = {}  # pat_id: [episode_dicts]
+        episode_ind = 0
+        for episode_dict in self.getPatientEpisodeIterator():
+            if episode_ind in X_test:
+                if episode_dict['pat_id'] in episode_groups_dict:
+                    episode_groups_dict[episode_dict['pat_id']].append(episode_dict)
+                else:
+                    episode_groups_dict[episode_dict['pat_id']] = [episode_dict]
+            else:
+                if int(episode_dict['all_components_normal']) == 1:
+                    actual_cnt_1 += 1
+                else:
+                    actual_cnt_0 += 1
+            episode_ind += 1
+
+        # Calc the prevalence from training data
+        prevalence_1 = float(actual_cnt_1)/float(actual_cnt_1+actual_cnt_0)
+        print 'prevalence_1', prevalence_1
+
+        import pandas as pd
+        baseline_comparisons = pd.DataFrame(columns=['actual', 'predict'])
+
+        for pat_id in episode_groups_dict:
+            #   Step 2.1: order by order_time
+            newlist = sorted(episode_groups_dict[pat_id], key=lambda k: k['order_time'])
+
+            newlist[0]['predict'] = prevalence_1
+            baseline_comparisons = baseline_comparisons.append({'actual':newlist[0]['all_components_normal'],
+                                         'predict':newlist[0]['predict']}, ignore_index=True)
+
+            for i in range(1,len(newlist)):
+                newlist[i]['predict'] = newlist[i-1]['all_components_normal']
+                baseline_comparisons = baseline_comparisons.append({'actual': newlist[i]['all_components_normal'],
+                                             'predict': newlist[i]['predict']}, ignore_index=True)
+
+        baseline_comparisons.to_csv('data/baseline_comparisons.csv')
+
+        pass
 
     def _getPatientEpisodeByIndexTimeById(self):
         """
