@@ -130,7 +130,7 @@ def fill_df_fix_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, lab_type=None)
                          '%s-component-normality-prediction-%s-direct-compare-results.csv' % (lab, alg))
     row, col = df.shape
 
-    thres = get_thres_from_training_data_by_fixing_PPV(lab, alg, data_folder = data_folder, PPV_wanted = 0.9)
+    thres = get_thres_from_training_data_by_fixing_PPV(lab, alg, data_folder = data_folder, PPV_wanted = PPV_wanted)
     # thres = 0.5 # TODO: for quick test
 
     actual_list = df['actual'].values.tolist()
@@ -298,10 +298,9 @@ def main():
     folder_path = '../machine_learning/'
     # all_data_folders = ['LabPanel_Predictions_3daysVitals']
 
-    check_labpanels = True
     lab_type = 'panel'
 
-    if check_labpanels:
+    if lab_type == 'panel':
         data_folder = 'LabPanel_Predictions_3daysVitals'
 
         all_panels = [
@@ -339,7 +338,7 @@ def main():
                 print 'Processing lab %s with alg %s'%(lab, alg)
                 try:
                     one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder=folder_path + '/' + data_folder,
-                                                       PPV_wanted=0.99, lab_type=lab_type)
+                                                       PPV_wanted=PPV_wanted, lab_type=lab_type)
 
                     if lab_type == 'component':
                         one_lab_alg_dict = add_component_cnts_fees(one_lab_alg_dict)
@@ -352,7 +351,7 @@ def main():
         print 'PPV_wanted=%.2f finished!' % PPV_wanted
 
 
-        df[columns].to_csv('lab-alg-summary-fix-PPV-%.2f-folder-%s.csv'%(PPV_wanted,data_folder), index=False)
+        df[columns].to_csv('lab-alg-summary-fix-PPV-%.2f-%s.csv'%(PPV_wanted,data_folder), index=False)
 
 def test_labpanel_cnts_and_fees():
     # df = pd.read_csv('data_summary_stats/labs.csv')
