@@ -30,7 +30,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state, isLabPanel)
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
-        self._build_baseline_results()
+        self._build_baseline_results() #TODO: prototype in SLPP
         self._build_processed_feature_matrix()
         self._train_and_analyze_predictors()
 
@@ -58,7 +58,9 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         raw_matrix_path = SupervisedLearningPipeline._build_matrix_path(self, template, \
                                                              pipeline_file_name)
         # Another direct call to the _factory instance
-        self._factory.obtain_baseline_results(raw_matrix_path=raw_matrix_path, random_state=self._random_state)
+        self._factory.obtain_baseline_results(raw_matrix_path=raw_matrix_path,
+                                              random_state=self._random_state,
+                                              isLabPanel=self._isLabPanel)
 
     def _build_processed_matrix_path(self):
         template = '%s-normality-matrix-%d-episodes-processed.tab'
@@ -78,9 +80,6 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
             features_to_remove = [
                 'pat_id', 'order_time', 'order_proc_id',
-                #'proc_code', #TODO
-                'abnormal_panel',
-                'num_normal_components',
                 'Birth.pre',
                 'Male.preTimeDays', 'Female.preTimeDays',
                 'RaceWhiteHispanicLatino.preTimeDays',
@@ -93,17 +92,16 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 'RaceOther.preTimeDays',
                 'RaceUnknown.preTimeDays',
                 'Death.post',
-                'Death.postTimeDays',
-                'num_components' #TODO
+                'Death.postTimeDays'
             ]
-            if LocalEnv.LAB_TYPE == 'panel':
-                features_to_remove += ['proc_code']
-            elif LocalEnv.LAB_TYPE == 'component':
+            if self._isLabPanel:
+                features_to_remove += ['proc_code', 'num_components', 'num_normal_components', 'abnormal_panel']
+                outcome_label = 'all_components_normal'  #
+            else:
                 features_to_remove += ['base_name']
-            outcome_label = 'all_components_normal' # TODO: for component...
+                outcome_label = 'component_normal'
 
         else:
-        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             features_to_remove = [
                 'pat_id', 'order_time', 'order_proc_id',
                 'Birth.pre',
@@ -116,10 +114,11 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             features_to_remove += [x + '.preTimeDays' for x in RACE_FEATURES]
             if self._isLabPanel:
                 features_to_remove += ['proc_code', 'num_normal_components', 'num_components']
+                outcome_label = 'all_components_normal'
             else:
                 features_to_remove += ['base_name']
 
-            outcome_label = 'abnormal_lab'
+                outcome_label = 'component_normal' #
 
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
@@ -325,14 +324,13 @@ if __name__ == '__main__':
 
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
-        if LocalEnv.LAB_TYPE == 'panel':
-            labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-            for panel in labs_to_test:
-                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
-        elif LocalEnv.LAB_TYPE == 'component':
-            labs_to_test = COMPONENT_TESTS
-            for panel in labs_to_test:
-                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+        labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+        for panel in labs_to_test:
+            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
+
+        labs_to_test = COMPONENT_TESTS
+        for panel in labs_to_test:
+            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
         UMICH_TOP_LABPANELS = ['CBCP']
@@ -378,7 +376,6 @@ if __name__ == '__main__':
                 pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-        # TODO: a list of all components
         UCSF_TOP_COMPONENTS = [
             'WBC', 'HGB', 'PLT', 'NAWB', 'K',
             'CREAT', 'TBILI',
@@ -393,9 +390,9 @@ if __name__ == '__main__':
             'PO4', #PHOSPHORUS, SERUM / PLASMA
             'INR',
             'P060', # PERIPHERAL BLOOD CULTURE
-            'CAI', # TODO: CALCIUM, IONIZED, SERUM/PLASMA; another option is "CAIB", CALCIUM, IONIZED, WHOLE BLOOD
+            'CAI',
+            'CAIB',
             'LACTWB'
-            # TODO: 'FIO2' isn't this vital?!
                                ]
 
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
@@ -404,16 +401,12 @@ if __name__ == '__main__':
         # prepareData_NonSTRIDE.preprocess_files(data_source='UCSF', raw_data_folderpath=raw_data_folderpath)
 
         raw_data_files = ['labs.tsv',
-                    # 'demographics.tsv', # TODO: "deident?"
-                    # 'diagnoses.tsv',
-                    # 'encounters.tsv',
-                    # 'pt.info.tsv',
                     'demographics_and_diagnoses.tsv',
                     'vitals.tsv'
                           ]
 
 
-        fold_enlarge_data = 10
+        fold_enlarge_data = 1
         USE_CACHED_DB = False  # TODO: take care of USE_CACHED_LARGEFILE in the future
 
         prepareData_NonSTRIDE.prepare_database(raw_data_files, raw_data_folderpath,
