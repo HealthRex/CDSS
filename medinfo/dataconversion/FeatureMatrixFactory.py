@@ -219,7 +219,7 @@ class FeatureMatrixFactory:
         """
         return TabDictReader(open(self._patientEpisodeTempFileName, "r"))
 
-    def obtain_baseline_results(self, raw_matrix_path, random_state):
+    def obtain_baseline_results(self, raw_matrix_path, random_state, isLabPanel=True):
         # for episode_dict in self.getPatientEpisodeIterator():
         #     episode_dict
 
@@ -243,9 +243,14 @@ class FeatureMatrixFactory:
 
         episode_cnt = raw_matrix.shape[0]
 
-        raw_matrix = raw_matrix.rename(columns={'component_normal':'all_components_normal'})
+        if isLabPanel:
+            ylabel = 'all_components_normal'
+        else:
+            ylabel = 'component_normal'
 
-        raw_matrix_dict = raw_matrix[['pat_id', 'order_time', 'all_components_normal']].to_dict('records')
+        # raw_matrix = raw_matrix.rename(columns={'component_normal':'all_components_normal'})
+
+        raw_matrix_dict = raw_matrix[['pat_id', 'order_time', ylabel]].to_dict('records')
 
         # for _ in self.getPatientEpisodeIterator(): # less stupid way to do this
         #     episode_cnt += 1
@@ -268,7 +273,7 @@ class FeatureMatrixFactory:
                 else:
                     episode_groups_dict[episode_dict['pat_id']] = [episode_dict]
             else:
-                if int(episode_dict['all_components_normal']) == 1:
+                if int(episode_dict[ylabel]) == 1:
                     actual_cnt_1 += 1
                 else:
                     actual_cnt_0 += 1
@@ -284,12 +289,12 @@ class FeatureMatrixFactory:
             newlist = sorted(episode_groups_dict[pat_id], key=lambda k: k['order_time'])
 
             newlist[0]['predict'] = prevalence_1
-            baseline_comparisons = baseline_comparisons.append({'actual':newlist[0]['all_components_normal'],
+            baseline_comparisons = baseline_comparisons.append({'actual':newlist[0][ylabel],
                                          'predict':newlist[0]['predict']}, ignore_index=True)
 
             for i in range(1,len(newlist)):
-                newlist[i]['predict'] = newlist[i-1]['all_components_normal']
-                baseline_comparisons = baseline_comparisons.append({'actual': newlist[i]['all_components_normal'],
+                newlist[i]['predict'] = newlist[i-1][ylabel]
+                baseline_comparisons = baseline_comparisons.append({'actual': newlist[i][ylabel],
                                              'predict': newlist[i]['predict']}, ignore_index=True)
 
         baseline_folder = '/'.join(raw_matrix_path.split('/')[:-1])
@@ -313,7 +318,7 @@ class FeatureMatrixFactory:
 
         return patientEpisodeByIndexTimeById
 
-    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None, features=None, is_item_component=False):
+    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None, features=None, isLabPanel=True):
         """
         Query patient_item for the clinical item orders and results for each
         patient, and aggregate by episode timestamp.
@@ -326,7 +331,7 @@ class FeatureMatrixFactory:
         if not self.patientsProcessed:
             raise ValueError("Must process patients before clinical item.")
 
-        if not is_item_component:
+        if isLabPanel:
             clinicalItemEvents = self._queryClinicalItemsByName(clinicalItemNames, column=column, operator=operator)
         else:
             clinicalItemEvents = self._queryComponentItemsByName(clinicalItemNames)

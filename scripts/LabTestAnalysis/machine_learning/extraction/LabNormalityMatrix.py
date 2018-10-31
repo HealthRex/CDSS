@@ -141,7 +141,7 @@ class LabNormalityMatrix(FeatureMatrix):
 
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
-            if LocalEnv.LAB_TYPE == 'panel':
+            if self._isLabPanel:
                 # Get average number of results for this lab test per patient.
                 avg_orders_per_patient = self._get_average_orders_per_patient() #
                 log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
@@ -277,12 +277,12 @@ class LabNormalityMatrix(FeatureMatrix):
         query = SQLQuery()
         if LocalEnv.DATASET_SOURCE_NAME=='STRIDE': #
 
-            if LocalEnv.LAB_TYPE == 'panel':
+            if self._isLabPanel:
                 query.addSelect('CAST(pat_id AS BIGINT)')
                 query.addSelect('sop.order_proc_id AS order_proc_id')
                 query.addSelect('proc_code') #TODO:sx
                 query.addSelect('order_time')
-                query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel") #sx
+                query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel") #
                 query.addSelect("SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components") #sx
                 query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components") #sx
                 query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal") #sx
@@ -307,7 +307,7 @@ class LabNormalityMatrix(FeatureMatrix):
                 query.addSelect('base_name')  # TODO
                 query.addSelect('order_time')
                 query.addSelect(
-                    "CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 0 ELSE 1 END AS all_components_normal")
+                    "CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 0 ELSE 1 END AS component_normal")
                 query.addFrom('stride_order_proc AS sop')
                 query.addFrom('stride_order_results AS sor')
                 query.addWhere('sop.order_proc_id = sor.order_proc_id')
@@ -327,7 +327,6 @@ class LabNormalityMatrix(FeatureMatrix):
                 query.addOrderBy('order_time')
 
         else:
-        #elif LocalEnv.DATASET_SOURCE_NAME=='UMich':
             query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
             query.addSelect('order_proc_id')
             query.addSelect(self._varTypeInTable)
@@ -339,9 +338,9 @@ class LabNormalityMatrix(FeatureMatrix):
 
                 query.addSelect("SUM(CASE WHEN result_in_range_yn IN ('N', 'Y') THEN 1 ELSE 0 END) AS num_components")
                 query.addSelect("SUM(CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END) AS num_normal_components")
-                query.addSelect("CAST(SUM(CASE WHEN result_in_range_yn = 'N' THEN 1 ELSE 0 END) = 0 AS INT) AS lab_normal") #TODO
+                query.addSelect("CAST(SUM(CASE WHEN result_in_range_yn = 'N' THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal") #TODO
             else:
-                query.addSelect("CASE WHEN result_in_range_yn = 'Y' THEN 0 ELSE 1 END AS abnormal_lab")
+                query.addSelect("CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END AS component_normal")
 
             query.addFrom('labs')
             query.addWhereIn("pat_id", random_patient_list)
@@ -363,13 +362,9 @@ class LabNormalityMatrix(FeatureMatrix):
     def _add_features(self):
         # Add lab panel order features.
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            if LocalEnv.LAB_TYPE == 'component':
-                is_item_component = True
-            else:
-                is_item_component = False
-            self._factory.addClinicalItemFeatures([self._lab_var], features="pre", is_item_component=is_item_component)
+            self._factory.addClinicalItemFeatures([self._lab_var], features="pre", isLabPanel=self._isLabPanel)
         else:
-        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            # TODO: naming
             self._factory.addClinicalItemFeatures_UMich([self._lab_var], features="pre",
                                                         clinicalItemType=self._varTypeInTable,
                                                         clinicalItemTime='order_time',
