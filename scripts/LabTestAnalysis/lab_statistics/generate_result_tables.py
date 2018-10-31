@@ -6,69 +6,6 @@ pd.set_option("display.max_columns", 10)
 import numpy as np
 
 
-MAX_VAL = 10000. # TODO: replace this with NA
-
-
-# def fill_df_fix_thres(lab, alg, thres = 0.5):
-#
-#
-#     df = pd.read_csv(lab + '/' + alg + '/' +
-#                      '%s-normality-prediction-%s-direct-compare-results.csv'%(lab,alg))
-#
-#     # TODO: calibration?
-#
-#     df['predict_class'] = df['predict'].apply(lambda x: 1 if x>thres else 0)
-#     row, col = df.shape
-#
-#     actual_list = df['actual'].values.tolist()
-#     predict_class_list = df['predict_class'].values.tolist()
-#
-#     true_positive = 0
-#     false_positive = 0
-#     true_negative = 0
-#     false_negative = 0
-#     for i in range(row):
-#         if actual_list[i] == 1 and predict_class_list[i] == 1:
-#             true_positive += 1
-#         elif actual_list[i] == 0 and predict_class_list[i] == 1:
-#             false_positive += 1
-#         elif actual_list[i] == 1 and predict_class_list[i] == 0:
-#             false_negative += 1
-#         elif actual_list[i] == 0 and predict_class_list[i] == 0:
-#             true_negative += 1
-#         else:
-#             print "what?!"
-#
-#     res = {'lab':lab, 'alg':alg}
-#     res['sensitivity'] = float(true_positive)/float(true_positive + false_negative)
-#     res['specificity'] = float(true_negative)/float(true_negative + false_positive)
-#     try:
-#         res['LR_p'] = res['sensitivity']/(1-res['specificity'])
-#     except ZeroDivisionError:
-#         if res['sensitivity'] == 0:
-#             res['LR_p'] = float('nan')
-#         else:
-#             res['LR_p'] = MAX_VAL
-#
-#     try:
-#         res['LR_n'] = (1-res['sensitivity'])/res['specificity']
-#     except ZeroDivisionError:
-#         if res['sensitivity'] == 1:
-#             res['LR_n'] = float('nan')
-#         else:
-#             res['LR_n'] = MAX_VAL
-#
-#     try:
-#         res['PPV'] = float(true_positive)/float(true_positive + false_positive)
-#     except ZeroDivisionError:
-#         res['PPV'] = float('nan')
-#
-#     try:
-#         res['NPV'] = float(true_negative)/float(true_negative + false_negative)
-#     except ZeroDivisionError:
-#         res['PPV'] = float('nan')
-#     return res
-
 def get_thres_from_training_data_by_fixing_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9):
     if 'component' not in data_folder:
         df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
@@ -78,7 +15,6 @@ def get_thres_from_training_data_by_fixing_PPV(lab, alg, data_folder = '', PPV_w
                          '%s-component-normality-prediction-%s-direct-compare-results-traindata.csv' % (lab, alg))
 
     # TODO: calibration?
-
     row, col = df.shape
     thres_last, PPV_last = 1., 1.
     actual_list = df['actual'].values.tolist()
@@ -224,7 +160,6 @@ def add_component_cnts_fees(one_lab_dict):
         one_lab_dict[str(year)+'_Vol'] = df_cnts.ix[df_cnts['Base']==component, str(year)].values[0]
         # TODO: rename total_cnt to avoid confusion between total STRIDE cnt & testing cnt!
 
-
     df_fees = pd.read_csv('data_summary_stats/CLAB2018v1.csv', skiprows=3, sep=',')
     df_relevant = df_fees[df_fees['SHORTDESC'].str.lower().str.contains(component.lower())] #, 'RATE2018'
 
@@ -233,7 +168,6 @@ def add_component_cnts_fees(one_lab_dict):
     one_lab_dict['rate_max'] = df_relevant['RATE2018'].max()
     one_lab_dict['rate_median'] = df_relevant['RATE2018'].median()
 
-    #TODO: ask Jon
     one_lab_dict['typical_Vol'] = np.mean([one_lab_dict['2015_Vol'], one_lab_dict['2016_Vol']])
     one_lab_dict['PPV*Cost*Vol'] = one_lab_dict['typical_Vol'] * \
                                    one_lab_dict['typical_Vol'] * \
@@ -280,17 +214,7 @@ def test():
         one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder = folder_path+'/'+data_folder, PPV_wanted = 0.99)
         one_lab_alg_dict = add_component_cnts_fees(one_lab_alg_dict)
 
-        # TODO: calc weighted fees
         df_test = df_test.append(one_lab_alg_dict, ignore_index=True)
-
-    # print df_test.columns
-    # columns = ['lab', 'alg', 'roc_auc', 'total_cnt'] # basic info
-    # columns += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
-    # columns += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
-    # columns += [str(year)+'_Vol' for year in years]
-    # columns += ['rate_mean', 'rate_median', 'rate_min', 'rate_max']
-    # columns += ['typical_Vol','PPV*Cost*Vol']
-    # columns += ['RATEs2018', 'SHORTDESCs']
 
     df_test[columns].to_csv('df_test.csv')
 
@@ -301,7 +225,7 @@ def main():
     lab_type = 'panel'
 
     if lab_type == 'panel':
-        data_folder = 'LabPanel_Predictions_3daysVitals'
+        data_folder = 'data-LabNorm-3daysVitals' #'LabPanel_Predictions_3daysVitals'
 
         all_panels = [
             'LABA1C', 'LABAFBC', 'LABAFBD', 'LABALB', 'LABANER', 'LABB12', 'LABBLC', 'LABBLC2',
@@ -310,7 +234,7 @@ def main():
             'LABFCUL', 'LABFE', 'LABFER', 'LABFIB', 'LABFLDC', 'LABFOL', 'LABFT4', 'LABGRAM',
             'LABHAP', 'LABHBSAG', 'LABHCTX', 'LABHEPAR', 'LABHIVWBL', 'LABK', 'LABLAC', 'LABLACWB',
             'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN',
-            # 'LABNA', # TODO: why nothing is here!
+            # 'LABNA',
             'LABNH3', 'LABNONGYN',
             'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI', 'LABPHOS', 'LABPLTS',
             'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP', 'LABRESPG', 'LABRETIC', 'LABSPLAC',
@@ -350,26 +274,7 @@ def main():
                     pass
         print 'PPV_wanted=%.2f finished!' % PPV_wanted
 
-
         df[columns].to_csv('lab-alg-summary-fix-PPV-%.2f-%s.csv'%(PPV_wanted,data_folder), index=False)
 
-def test_labpanel_cnts_and_fees():
-    # df = pd.read_csv('data_summary_stats/labs.csv')
-    # item_id = df.ix[df['name']=='LABA1C', 'clinical_item_id'].values[0]
-    df = pd.read_csv('data_summary_stats/labs_charges_volumes.csv')
-
-    print df.ix[df['name'] == 'LABA1C', ['clinical_item_id', 'count'
-        , 'min_price,max_price', 'mean_price', 'median_price',
-        'min_volume_charge', 'max_volume_charge',
-        'mean_volume_charge', 'median_volume_charge']]
-
-    # df_cnts = pd.read_csv('data_summary_stats/labs_charges_volumes.csv')
-
-    quit()
-
-
-    pass
-
 if __name__ == '__main__':
-    # test_labpanel_cnts_and_fees()
     main()
