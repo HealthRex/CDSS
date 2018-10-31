@@ -56,25 +56,6 @@ def get_thres_from_training_data_by_fixing_PPV(lab, alg, data_folder = '', PPV_w
 
     return thres_last
 
-def bootstrap_CI(actual_list, predict_list, num_repeats=1000, stat = 'roc_auc',
-                 confident_lvl=0.95, side='two', random_state=0):
-    assert len(actual_list) == len(predict_list)
-
-    from sklearn.utils import resample
-    from sklearn.metrics import roc_auc_score
-
-    all_stats = []
-    for i in range(num_repeats):
-        actual_list_resampled, predict_list_resampled = resample(actual_list, predict_list)
-        if stat == 'roc_auc':
-            cur_roc_auc = roc_auc_score(actual_list_resampled, predict_list_resampled)
-            all_stats.append(cur_roc_auc)
-
-    roc_auc_left = np.percentile(all_stats, (1-confident_lvl)/2.*100)
-    roc_auc_right = np.percentile(all_stats, (1+confident_lvl)/2.*100)
-
-    return roc_auc_left, roc_auc_right
-
 def fill_df_fix_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, lab_type=None):
 
     if lab_type == 'panel':
@@ -92,7 +73,6 @@ def fill_df_fix_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, lab_type=None)
 
     from sklearn.metrics import roc_auc_score
     roc_auc = roc_auc_score(actual_list, df['predict'].values)
-    roc_auc_left, roc_auc_right = bootstrap_CI(actual_list, df['predict'], confident_lvl=0.95)
 
     df['predict_class'] = df['predict'].apply(lambda x: 1 if x > thres else 0)
     predict_class_list = df['predict_class'].values.tolist()
@@ -119,8 +99,7 @@ def fill_df_fix_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, lab_type=None)
     res = {'lab':lab, 'alg':alg, 'threshold': thres,
            'true_positive':true_positive, 'false_positive': false_positive,
            'true_negative':true_negative, 'false_negative':false_negative,
-           'total_cnt':total_cnt, 'roc_auc': roc_auc,
-           '95%_CI': '[%f, %f]'%(roc_auc_left,roc_auc_right)}
+           'total_cnt':total_cnt, 'roc_auc': roc_auc}
     res['sensitivity'] = float(true_positive)/float(true_positive + false_negative)
     res['specificity'] = float(true_negative)/float(true_negative + false_positive)
     try:
@@ -207,7 +186,7 @@ columns_components += ['rate_mean', 'rate_median', 'rate_min', 'rate_max']
 columns_components += ['typical_Vol', 'PPV*Cost*Vol']
 columns_components += ['RATEs2018', 'SHORTDESCs']
 
-columns_panels = ['lab', 'alg', 'roc_auc', '95%_CI', 'total_cnt']
+columns_panels = ['lab', 'alg', 'roc_auc', 'total_cnt']
 columns_panels += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
 columns_panels += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
 columns_panels += ['count',
@@ -246,7 +225,7 @@ def main():
     lab_type = 'panel'
 
     if lab_type == 'panel':
-        data_folder = 'LabPanel_Predictions_3daysVitals' #'LabPanel_Predictions_3daysVitals'
+        data_folder = 'data-LabNorm-3daysVitals' #'LabPanel_Predictions_3daysVitals'
 
         all_panels = [
             'LABA1C', 'LABAFBC', 'LABAFBD', 'LABALB', 'LABANER', 'LABB12', 'LABBLC', 'LABBLC2',
