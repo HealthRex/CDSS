@@ -273,13 +273,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             fm_io.write_data_frame_to_file(meta_report, \
                 '/'.join([data_dir, '%s-normality-prediction-report.tab' % self._var]), header)
 
-if __name__ == '__main__':
-    log.level = logging.DEBUG
-    folder_debug = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/data/'
-    if not os.path.exists(folder_debug):
-        os.mkdir(folder_debug)
-    logging.basicConfig(filename=os.path.join(folder_debug,'debug_%s.log'%LocalEnv.DATASET_SOURCE_NAME), level=logging.DEBUG)
-    TOP_LAB_PANELS_BY_CHARGE_VOLUME = set([
+TOP_LAB_PANELS_BY_CHARGE_VOLUME = set([
         "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
         "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
         "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
@@ -287,54 +281,46 @@ if __name__ == '__main__':
         "LABROMRS", "LABTNI","LABTYPSNI", "LABUA", "LABUAPRN",
         "LABURNC", "LABVANPRL", "LABVBG"
     ])
-    TOP_NON_PANEL_TESTS_BY_VOLUME = set([
-        "LABPT", "LABMGN", "LABPTT", "LABPHOS", "LABTNI",
-        "LABBLC", "LABBLC2", "LABCAI", "LABURNC", "LABLACWB",
-        "LABA1C", "LABHEPAR", "LABCDTPCR", "LABPCTNI", "LABPLTS",
-        "LABLAC", "LABLIPS", "LABRESP", "LABTSH", "LABHCTX",
-        "LABLDH", "LABMB", "LABK", "LABGRAM", "LABFCUL",
-        "LABNTBNP", "LABCRP", "LABFLDC", "LABSPLAC", "LABANER",
-        "LABCK", "LABESRP", "LABBLCTIP", "LABBLCSTK", "LABNA",
-        "LABFER", "LABUSPG", "LABB12", "LABURNA", "LABFT4",
-        "LABFIB", "LABURIC", "LABPALB", "LABPCCR", "LABTRFS",
-        "LABUOSM", "LABAFBD", "LABSTOBGD", "LABCSFGL", "LABCSFTP",
-        "LABNH3", "LABAFBC", "LABCMVQT", "LABCSFC", "LABUCR",
-        "LABTRIG", "LABFE",
-        # "LABNONGYN", # No base names.
-        "LABALB", "LABLIDOL",
-        "LABUPREG", "LABRETIC", "LABHAP", "LABBXTG", "LABHIVWBL"
-    ])
-    NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
-        'LABA1C', 'LABAFBC', 'LABAFBD', 'LABALB', 'LABANER', 'LABB12', 'LABBLC', 'LABBLC2',
-        'LABBLCSTK', 'LABBLCTIP', 'LABBUN', 'LABBXTG', 'LABCA', 'LABCAI', 'LABCDTPCR', 'LABCK',
-        'LABCMVQT', 'LABCORT', 'LABCRP', 'LABCSFC', 'LABCSFGL', 'LABCSFTP', 'LABDIGL', 'LABESRP',
-        'LABFCUL', 'LABFE', 'LABFER', 'LABFIB', 'LABFLDC', 'LABFOL', 'LABFT4', 'LABGRAM',
-        'LABHAP', 'LABHBSAG', 'LABHCTX', 'LABHEPAR', 'LABHIVWBL', 'LABK', 'LABLAC', 'LABLACWB',
-        'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN', 'LABNA', 'LABNH3', 'LABNONGYN',
-        'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI', 'LABPHOS', 'LABPLTS',
-        'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP', 'LABRESPG', 'LABRETIC', 'LABSPLAC',
-        'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH', 'LABUCR', 'LABUOSM',
-        'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
-    ]
+TOP_NON_PANEL_TESTS_BY_VOLUME = set([
+    "LABPT", "LABMGN", "LABPTT", "LABPHOS", "LABTNI",
+    "LABBLC", "LABBLC2", "LABCAI", "LABURNC", "LABLACWB",
+    "LABA1C", "LABHEPAR", "LABCDTPCR", "LABPCTNI", "LABPLTS",
+    "LABLAC", "LABLIPS", "LABRESP", "LABTSH", "LABHCTX",
+    "LABLDH", "LABMB", "LABK", "LABGRAM", "LABFCUL",
+    "LABNTBNP", "LABCRP", "LABFLDC", "LABSPLAC", "LABANER",
+    "LABCK", "LABESRP", "LABBLCTIP", "LABBLCSTK", "LABNA",
+    "LABFER", "LABUSPG", "LABB12", "LABURNA", "LABFT4",
+    "LABFIB", "LABURIC", "LABPALB", "LABPCCR", "LABTRFS",
+    "LABUOSM", "LABAFBD", "LABSTOBGD", "LABCSFGL", "LABCSFTP",
+    "LABNH3", "LABAFBC", "LABCMVQT", "LABCSFC", "LABUCR",
+    "LABTRIG", "LABFE",
+    # "LABNONGYN", # No base names.
+    "LABALB", "LABLIDOL",
+    "LABUPREG", "LABRETIC", "LABHAP", "LABBXTG", "LABHIVWBL"
+])
+NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
+    'LABA1C', 'LABAFBC', 'LABAFBD', 'LABALB', 'LABANER', 'LABB12', 'LABBLC', 'LABBLC2',
+    'LABBLCSTK', 'LABBLCTIP', 'LABBUN', 'LABBXTG', 'LABCA', 'LABCAI', 'LABCDTPCR', 'LABCK',
+    'LABCMVQT', 'LABCORT', 'LABCRP', 'LABCSFC', 'LABCSFGL', 'LABCSFTP', 'LABDIGL', 'LABESRP',
+    'LABFCUL', 'LABFE', 'LABFER', 'LABFIB', 'LABFLDC', 'LABFOL', 'LABFT4', 'LABGRAM',
+    'LABHAP', 'LABHBSAG', 'LABHCTX', 'LABHEPAR', 'LABHIVWBL', 'LABK', 'LABLAC', 'LABLACWB',
+    'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN', 'LABNA', 'LABNH3',
+    #'LABNONGYN', TODO: no components
+    'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI', 'LABPHOS', 'LABPLTS',
+    'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP', 'LABRESPG', 'LABRETIC', 'LABSPLAC',
+    'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH', 'LABUCR', 'LABUOSM',
+    'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
+]
 
-    COMPONENT_TESTS = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL',
-                       'CR', 'BUN', 'GLU', 'CO2', 'CA', 'HCO3',  # good, from 'LABMETB'
-                       'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT',
-                       'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A']  # good, LABHFP
+STRIDE_COMPONENT_TESTS = ['WBC', 'HGB', 'PLT',
+                          # 'NA', # TODO: naming of this component before some time on 2015
+                          'K', 'CL',
+                   'CR', 'BUN', 'GLU', 'CO2', 'CA',
+                          #'HCO3',  # good, from 'LABMETB'; TODO: Insufficient samples
+                   'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT',
+                   'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A']  # good, LABHFP
 
-    if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-
-        labs_to_test = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-        for panel in labs_to_test:
-            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
-
-        labs_to_test = COMPONENT_TESTS
-        for panel in labs_to_test:
-            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
-
-    elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-        UMICH_TOP_LABPANELS = ['CBCP']
-        UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',
+UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',
                                 'CREAT', 'TBIL',
                                 'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT',
                                 'ALB', 'CAL', 'PCOAA2', 'PO2AA', 'pHA',
@@ -348,6 +334,48 @@ if __name__ == '__main__':
                                 'INR',
                                 "BLD", "ICAL", "LACA"
                                 ]
+
+UCSF_TOP_COMPONENTS = [
+            'WBC', 'HGB', 'PLT', 'NAWB', 'K',
+            'CREAT', 'TBILI',
+            'CL', 'CO2', 'DBILI', 'AST', 'ALT',
+            'ALB', 'CA', 'PCO2', 'PO2', 'PH37',
+            'TP',
+            'ALKP',
+            'BUN',
+            # No IBIL
+            'HCO3',
+            'MG',
+            'PO4', #PHOSPHORUS, SERUM / PLASMA
+            'INR',
+            'P060', # PERIPHERAL BLOOD CULTURE
+            'CAI',
+            'CAIB',
+            'LACTWB'
+                               ]
+
+if __name__ == '__main__':
+    log.level = logging.DEBUG
+    folder_debug = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/data/'
+    if not os.path.exists(folder_debug):
+        os.mkdir(folder_debug)
+    logging.basicConfig(filename=os.path.join(folder_debug,'debug_%s.log'%LocalEnv.DATASET_SOURCE_NAME), level=logging.DEBUG)
+
+    if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+
+        for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+            try:
+                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
+            except ValueError:
+                import shutil
+                shutil.rmtree('data/%s'%panel)
+                print 'data/%s removed!'%panel
+                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
+        # for component in STRIDE_COMPONENT_TESTS:
+        #     LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+
+    elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+
         # By default, the first one should be labs
         raw_data_files = ['labs.sample.txt',
                           'pt.info.sample.txt',
@@ -376,24 +404,6 @@ if __name__ == '__main__':
                 pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-        UCSF_TOP_COMPONENTS = [
-            'WBC', 'HGB', 'PLT', 'NAWB', 'K',
-            'CREAT', 'TBILI',
-            'CL', 'CO2', 'DBILI', 'AST', 'ALT',
-            'ALB', 'CA', 'PCO2', 'PO2', 'PH37',
-            'TP',
-            'ALKP',
-            'BUN',
-            # No IBIL
-            'HCO3',
-            'MG',
-            'PO4', #PHOSPHORUS, SERUM / PLASMA
-            'INR',
-            'P060', # PERIPHERAL BLOOD CULTURE
-            'CAI',
-            'CAIB',
-            'LACTWB'
-                               ]
 
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
