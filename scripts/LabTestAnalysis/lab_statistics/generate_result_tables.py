@@ -5,6 +5,9 @@ pd.set_option('display.width', 300)
 pd.set_option("display.max_columns", 10)
 import numpy as np
 
+from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import \
+        NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
+
 
 def get_thres_from_training_data_by_fixing_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9):
     df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
@@ -84,8 +87,11 @@ def fill_df_fix_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, lab_type=None,
     '''
     actual_list = df['actual'].values.tolist()
     from sklearn.metrics import roc_auc_score
-    roc_auc = roc_auc_score(actual_list, df['predict'].values)
-    roc_auc_left, roc_auc_right = bootstrap_CI(actual_list, df['predict'], confident_lvl=0.95)
+    try:
+        roc_auc = roc_auc_score(actual_list, df['predict'].values)
+        roc_auc_left, roc_auc_right = bootstrap_CI(actual_list, df['predict'], confident_lvl=0.95)
+    except ValueError:
+        roc_auc, roc_auc_left, roc_auc_right = float('nan'), float('nan'), float('nan')
 
 
     '''
@@ -176,7 +182,10 @@ def add_panel_cnts_fees(one_lab_alg_dict):
                                                         'median_volume_charge']].to_dict(orient='list')
     # print cnts_fees_dict
     for key in cnts_fees_dict.keys():
-        cnts_fees_dict[key] = cnts_fees_dict[key][0]
+        try:
+            cnts_fees_dict[key] = cnts_fees_dict[key][0]
+        except IndexError:
+            cnts_fees_dict[key] = float('nan')
 
     one_lab_alg_dict.update(cnts_fees_dict)
     return one_lab_alg_dict
@@ -198,7 +207,13 @@ def add_component_cnts(one_lab_dict, years):
 
 
 def get_baseline(file_path):
+    # try:
     df = pd.read_csv(file_path + 'baseline_comparisons.csv') # TODO: baseline file should not have index!
+    # except IOError:
+    #     from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
+    #     f = FeatureMatrixFactory()
+    #     f.obtain_baseline_results(raw_matrix_path=file_path, random_state=123456789, isLabPanel=True)
+    #     df = pd.read_csv(file_path + 'baseline_comparisons.csv')
 
     from sklearn.metrics import roc_auc_score # TODO: imported twice
     return roc_auc_score(df['actual'], df['predict'])
@@ -212,17 +227,13 @@ def main_files_to_separate_stats(lab_type = 'component', vital_days = [3], PPVs_
 
     folder_path = '../machine_learning/'
 
-    from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import \
-        NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
-
     for vital_day in vital_days:
         if lab_type == 'panel':
             data_folder = 'data-panels-%ddaysVitals'%vital_day
-            all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+            all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
         else:
-            all_panels = STRIDE_COMPONENT_TESTS
+            all_labs = STRIDE_COMPONENT_TESTS
             data_folder = 'data-components-%ddaysVitals'%vital_day
-
 
         result_folder = 'data_performance_stats/all_%ss/'%lab_type
 
@@ -233,37 +244,36 @@ def main_files_to_separate_stats(lab_type = 'component', vital_days = [3], PPVs_
         from medinfo.ml.SupervisedClassifier import SupervisedClassifier
         all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
 
-        for vital_day in vital_days:
-            for PPV_wanted in PPVs_wanted:
-                curr_res_file = 'lab-alg-summary-trainPPV-%s-vitalDays-%d.csv'%(str(PPV_wanted), vital_day)
+        for PPV_wanted in PPVs_wanted:
 
+            for lab in all_labs:
+                curr_res_file = '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
                 if os.path.exists(result_folder + curr_res_file):
                     continue
 
                 df = pd.DataFrame(columns=columns)
-                for lab in all_panels:
 
-                    baseline_roc_auc = get_baseline(file_path=folder_path + '/' + data_folder + '/' + lab + '/')
+                baseline_roc_auc = get_baseline(file_path=folder_path + '/' + data_folder + '/' + lab + '/')
 
-                    for alg in all_algs:
-                        print 'Processing lab %s with alg %s'%(lab, alg)
-                        # try:
-                        one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder=folder_path + '/' + data_folder,
-                                                           PPV_wanted=PPV_wanted, lab_type=lab_type, quick_test=False)
+                for alg in all_algs:
+                    print 'Processing lab %s with alg %s'%(lab, alg)
+                    # try:
+                    one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder=folder_path + '/' + data_folder,
+                                                       PPV_wanted=PPV_wanted, lab_type=lab_type, quick_test=False)
 
-                        if lab_type == 'component':
-                            one_lab_alg_dict = add_component_cnts(one_lab_alg_dict, years=years)
-                        elif lab_type == 'panel':
-                            one_lab_alg_dict = add_panel_cnts_fees(one_lab_alg_dict)
+                    if lab_type == 'component':
+                        one_lab_alg_dict = add_component_cnts(one_lab_alg_dict, years=years)
+                    elif lab_type == 'panel':
+                        one_lab_alg_dict = add_panel_cnts_fees(one_lab_alg_dict)
 
-                        one_lab_alg_dict['baseline'] = baseline_roc_auc
+                    one_lab_alg_dict['baseline_roc'] = baseline_roc_auc
 
-                        df = df.append(one_lab_alg_dict, ignore_index=True)
-                        # except Exception as e:
-                        #     print e
-                        #     pass
+                    df = df.append(one_lab_alg_dict, ignore_index=True)
+                    # except Exception as e:
+                    #     print e
+                    #     pass
 
-                # print 'PPV_wanted=%.2f finished!' % PPV_wanted #TODO
+            # print 'PPV_wanted=%.2f finished!' % PPV_wanted #TODO
 
                 df[columns].to_csv(result_folder + curr_res_file, index=False)
 
@@ -276,50 +286,61 @@ def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = [0.99
     df_best_alg = pd.DataFrame(columns=columns_best_alg)
 
     result_folder = 'data_performance_stats/all_%ss/' % lab_type
+
+    if lab_type == 'panel':
+        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+    else:
+        all_labs = STRIDE_COMPONENT_TESTS
+
     for PPV_wanted in PPVs_wanted:
         for vital_day in vital_days: #TODO: create the column of vitals
+            for lab in all_labs:
 
-            df_cur = pd.read_csv(result_folder + 'lab-alg-summary-trainPPV-%s-vitalDays-%d.csv'%(str(PPV_wanted), vital_day))
-            df_cur['train_PPV'] = PPV_wanted
-            df_cur['vital_day'] = vital_day
+                df_cur = pd.read_csv(result_folder + '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv'%(lab, str(PPV_wanted), vital_day))
+                df_cur['train_PPV'] = PPV_wanted
+                df_cur['vital_day'] = vital_day
 
 
-            df_long = df_long.append(df_cur, ignore_index=True)
+                df_long = df_long.append(df_cur, ignore_index=True)
 
-            df_cur_best_alg = df_cur.groupby(['lab'], as_index=False).agg({'roc_auc': 'max'})
-            df_cur_best_alg = pd.merge(df_cur_best_alg, df_cur, on=['lab', 'roc_auc'], how='left')
+                df_cur_best_alg = df_cur.groupby(['lab'], as_index=False).agg({'roc_auc': 'max'})
+                df_cur_best_alg = pd.merge(df_cur_best_alg, df_cur, on=['lab', 'roc_auc'], how='left')
 
-            df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
-            df_best_alg = df_best_alg.append(df_cur_best_alg)
+                df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
+                df_best_alg = df_best_alg.append(df_cur_best_alg)
 
     df_long[columns].to_csv('data_performance_stats/'+'long-%s-summary.csv'% lab_type)
     df_best_alg[columns_best_alg].to_csv('data_performance_stats/'+'best-alg-%s-summary.csv'% lab_type)
 
 if __name__ == '__main__':
-    columns_panels = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline', 'total_cnt']
+    lab_type = 'panel'
+
+    columns_panels = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline_roc', 'total_cnt']
     columns_panels += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
     columns_panels += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
-    columns_panels += ['count',
-                       'min_price',
-                       'max_price',
-                       'mean_price',
-                       'median_price',
-                       'min_volume_charge',
-                       'max_volume_charge',
-                       'mean_volume_charge',
-                       'median_volume_charge']
+    columns_panels += ['count', 'min_price', 'max_price', 'mean_price', 'median_price',
+                       'min_volume_charge', 'max_volume_charge', 'mean_volume_charge', 'median_volume_charge']
 
+    columns_panels_agg = columns_panels[:6] + ['vital_day', 'train_PPV'] + columns_panels[6:]
     # TODO: Finish the panel routine, but first deal with the NA 2015 issue?
 
 
     years = [2016] # which years' cnt to look at
-    columns_components = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline', 'total_cnt']  # basic info
+    columns_components = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline_roc', 'total_cnt']  # basic info
     columns_components += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
     columns_components += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
     columns_components += [str(year) + '_Vol' for year in years]
 
-    # main_files_to_separate_stats(lab_type='component', vital_days=[3], PPVs_wanted=[0.99, 0.95, 0.90, 0.8], columns=columns_components)
-
     columns_components_agg = columns_components[:6] + ['vital_day', 'train_PPV'] + columns_components[6:]
 
-    main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = [0.99, 0.95, 0.90, 0.8], columns=columns_components_agg)
+
+    if lab_type == 'panel':
+        columns = columns_panels
+        columns_agg = columns_panels_agg
+    else:
+        columns = columns_components
+        columns_agg = columns_components_agg
+
+    main_files_to_separate_stats(lab_type=lab_type, vital_days=[3], PPVs_wanted=[0.99, 0.95, 0.90, 0.8], columns=columns)
+
+    main_agg_stats(lab_type=lab_type, vital_days = [3], PPVs_wanted = [0.99, 0.95, 0.90, 0.8], columns=columns_agg)
