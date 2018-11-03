@@ -195,6 +195,7 @@ class LabNormalityMatrix(FeatureMatrix):
                                                         avg_orders_per_patient, 1]))
                     # Some components may have fewer associated patients than the required sample size
                     patient_number_chosen = min([len(results), self._num_patients])  #
+                    numpy.random.seed(self._random_state)
                     inds_random_patients = numpy.random.choice(len(results), size=patient_number_chosen, replace=False)
                     # print 'inds_random_patients:', inds_random_patients
                     pat_IDs_random_patients = []
