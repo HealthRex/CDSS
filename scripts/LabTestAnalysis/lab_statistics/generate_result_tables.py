@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import \
         NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
 
+train_PPVs = [0.99, 0.95, 0.9, 0.8] #[0.5, 0.75, 0.90, 0.95, 0.975, 0.99]
 
 def get_thres_from_training_data_by_fixing_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9):
     df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
@@ -199,7 +200,7 @@ For individual component, there is no well-defined "fee".
 '''
 def add_component_cnts(one_lab_dict, years):
     component = one_lab_dict['lab']
-    df_cnts = pd.read_csv('data_summary_stats/component_cnts.txt', sep='\t')
+    df_cnts = pd.read_csv('data_summary_stats/component_cnts.txt', sep='\t', keep_default_na=False)
     # df = df.rename(columns={'Base':'lab'})
 
     for year in years:
@@ -298,12 +299,14 @@ def plot_roc(lab, all_algs, data_folder, look_baseline=False):
     fpr, tpr, threshold = roc_curve(best_actual, best_predict)
     plt.plot(fpr, tpr, label='%s AUC = %0.2f' % (lab, best_auc))
 
+all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+all_components = ['WBC', 'HGB', 'K', 'NA', 'CR', 'GLU'] #STRIDE_COMPONENT_TESTS
 
 '''
 For each (train-)PPV wanted, each vital-day dataset
 Create a summary of all algs' performances on all labs
 '''
-def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_days = [3], PPVs_wanted = [0.99, 0.95, 0.90, 0.8],
+def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_days = [3], PPVs_wanted = train_PPVs,
                                 columns = None):
 
     folder_path = '../machine_learning/'
@@ -312,9 +315,9 @@ def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_day
     for vital_day in vital_days:
         if lab_type == 'panel':
             data_folder = 'data-panels-%ddaysVitals'%vital_day
-            all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+            all_labs = all_panels
         else:
-            all_labs = ['WBC', 'HGB', 'K', 'PLT']#STRIDE_COMPONENT_TESTS
+            all_labs = all_components
             data_folder = 'data' #'data-components-%ddaysVitals'%vital_day
 
         result_folder = 'data_performance_stats/all_%ss/'%lab_type
@@ -339,7 +342,7 @@ def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_day
 
 
 
-def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = [0.99, 0.95, 0.90, 0.8], columns=None):
+def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = train_PPVs, columns=None):
 
     df_long = pd.DataFrame(columns=columns)
 
@@ -349,15 +352,15 @@ def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = [0.99
     result_folder = 'data_performance_stats/all_%ss/' % lab_type
 
     if lab_type == 'panel':
-        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+        all_labs = all_panels
     else:
-        all_labs = ['WBC', 'HGB', 'K', 'PLT']#STRIDE_COMPONENT_TESTS
+        all_labs = all_components
 
     for PPV_wanted in PPVs_wanted:
         for vital_day in vital_days: #TODO: create the column of vitals
             for lab in all_labs:
 
-                df_cur = pd.read_csv(result_folder + '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv'%(lab, str(PPV_wanted), vital_day))
+                df_cur = pd.read_csv(result_folder + '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv'%(lab, str(PPV_wanted), vital_day), keep_default_na=False)
                 df_cur['train_PPV'] = PPV_wanted
                 df_cur['vital_day'] = vital_day
 
@@ -400,21 +403,19 @@ def main():
         columns = columns_components
         columns_agg = columns_components_agg
 
-    main_files_to_separate_stats(lab_type=lab_type, years=[2016], vital_days=[3], PPVs_wanted=[0.99, 0.95, 0.90, 0.8],
+    main_files_to_separate_stats(lab_type=lab_type, years=[2016], vital_days=[3], PPVs_wanted=train_PPVs,
                                  columns=columns)
 
-    main_agg_stats(lab_type=lab_type, vital_days=[3], PPVs_wanted=[0.99, 0.95, 0.90, 0.8], columns=columns_agg)
+    main_agg_stats(lab_type=lab_type, vital_days=[3], PPVs_wanted=train_PPVs, columns=columns_agg)
 
 def main_plot_roc(lab_type = 'component', vital_day = 3, look_baseline=False):
     folder_path = '../machine_learning/'
 
     if lab_type == 'panel':
         data_folder = 'data-panels-%ddaysVitals' % vital_day
-        all_labs = ['LABA1C', 'LABLAC', 'LABK', 'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR'] # NON_PANEL_TESTS_WITH_GT_500_ORDERS
+        all_labs = all_panels #['LABA1C', 'LABLAC', 'LABK', 'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR']
     else:
-        all_labs = ['WBC', 'HGB', 'K', 'PLT', #'CR',
-                    #'GLU'
-                    ] #STRIDE_COMPONENT_TESTS
+        all_labs = all_components
         # data_folder = 'data-components-%ddaysVitals' % vital_day
         data_folder = 'data'
 
@@ -427,6 +428,48 @@ def main_plot_roc(lab_type = 'component', vital_day = 3, look_baseline=False):
     plt.legend()
     plt.show()
 
+def main_plot_sensitivity():
+    lab = 'WBC'
+    df = pd.read_csv('data_performance_stats/for_plotting_sensitivities.csv') # TODO
+
+    xs = train_PPVs
+    ys1 = []
+
+    ys2 = []
+
+    for train_PPV in train_PPVs:
+        tmp_df = df[df['train_PPV']==train_PPV].copy()
+        tmp_df['predict_positive_ratio'] = tmp_df['true_positive'] + tmp_df['false_positive']
+        tmp_df['predict_positive_num_2016'] = tmp_df['predict_positive_ratio'] * tmp_df['2016_Vol']
+        res1 = tmp_df.ix[tmp_df['lab']==lab, 'predict_positive_num_2016']
+        ys1.append(res1.values[0])
+        # ys1 = (df['true_positive'] + df['false_positive']).values # anual cnt of positive
+
+        res2 = tmp_df.ix[tmp_df['lab']==lab, 'PPV']
+        ys2.append(res2.values[0])
+    print ys1
+    print ys2
+
+    fig, ax1 = plt.subplots()
+
+    ax1.bar(xs, ys1, width=0.01)
+    ax1.set_xlabel('train PPVs (%s)'%lab)
+    # Make the y-axis label, ticks and tick labels match the line color.
+    ax1.set_ylabel('annual cnt of positive predictions', color='b')
+    ax1.tick_params('y', colors='b')
+
+    ax2 = ax1.twinx()
+    ax2.plot(xs, ys2, 'r.')
+    ax2.set_ylabel('test PPVs', color='r')
+    ax2.tick_params('y', colors='r')
+
+    fig.tight_layout()
+    plt.show()
+
+
+
 if __name__ == '__main__':
-    main_plot_roc(lab_type='component', vital_day=3, look_baseline=True)
-    # main()
+    # main_plot_roc(lab_type='component', vital_day=3, look_baseline=False)
+    main()
+
+    # main_plot_sensitivity()
