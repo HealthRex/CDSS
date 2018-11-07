@@ -139,107 +139,72 @@ class LabNormalityMatrix(FeatureMatrix):
         # Initialize DB cursor.
         cursor = self._connection.cursor()
 
+        query = SQLQuery()
+        query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
+
+
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-
             if self._isLabPanel:
-                # Get average number of results for this lab test per patient.
-                avg_orders_per_patient = self._get_average_orders_per_patient() #
-                log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
-                # Based on average # of results, figure out how many patients we'd
-                # need to get for a feature matrix of requested size.
-                self._num_patients = int(numpy.max([self._num_requested_episodes / \
-                    avg_orders_per_patient, 1]))
-
-                # Get numPatientsToQuery random patients who have gotten test.
-                # TODO(sbala): Have option to feed in a seed for the randomness.
-                query = SQLQuery()
-                query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
-                query.addFrom('stride_order_proc AS sop')
-                query.addWhereIn('proc_code', [self._lab_var]) #
-                query.addOrderBy('RANDOM()')
-                query.setLimit(self._num_patients)
-                log.debug('Querying random patient list...')
-                results = DBUtil.execute(query)
-
-                # Get patient list.
-                random_patient_list = [ row[0] for row in results ]
-
-                return random_patient_list
-
-            else:
-                query = SQLQuery()
-                query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
                 query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
                 query.addFrom('stride_order_proc AS sop')
                 query.addFrom('stride_order_results AS sor')
                 query.addWhere('sop.order_proc_id = sor.order_proc_id')
-                ##
+                query.addWhereIn('proc_code', [self._lab_var])
+
+                '''
+                sbala: Technically it's possible for someone to get a lab ordered without getting results
+                '''
+                query.addWhereIn("base_name", self._lab_components)
+
+            else:
+                query.addSelect('COUNT(sor.order_proc_id) AS num_orders')
+                query.addFrom('stride_order_proc AS sop')
+                query.addFrom('stride_order_results AS sor')
+                query.addWhere('sop.order_proc_id = sor.order_proc_id')
+            ##
                 query.addWhereIn("base_name", [self._lab_var])
-                query.addGroupBy('pat_id')
-                log.debug('Querying median orders per patient...')
-
-                results = DBUtil.execute(query)
-
-                order_counts = [row[1] for row in results]
-
-                if len(results) == 0:
-                    error_msg = '0 orders for component "%s."' % self._lab_var  # sx
-                    log.critical(error_msg)
-                    sys.exit('[ERROR] %s' % error_msg)
-                else:
-                    avg_orders_per_patient = numpy.median(order_counts)
-                    log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
-                    # Based on average # of results, figure out how many patients we'd
-                    # need to get for a feature matrix of requested size.
-                    self._num_patients = int(numpy.max([self._num_requested_episodes / \
-                                                        avg_orders_per_patient, 1]))
-                    # Some components may have fewer associated patients than the required sample size
-                    patient_number_chosen = min([len(results), self._num_patients])  #
-                    numpy.random.seed(self._random_state)
-                    inds_random_patients = numpy.random.choice(len(results), size=patient_number_chosen, replace=False)
-                    # print 'inds_random_patients:', inds_random_patients
-                    pat_IDs_random_patients = []
-                    for ind in inds_random_patients:
-                        pat_IDs_random_patients.append(results[ind][0])
-                    # print pat_IDs_random_patients
-                    return pat_IDs_random_patients
-
         else:
-        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-
-            # Get average number of results for this lab test per patient.
-            query = SQLQuery()
-            query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
             query.addSelect('COUNT(order_proc_id) AS num_orders')
             query.addFrom('labs')
-            query.addWhereIn(self._varTypeInTable, [self._lab_var])
-            components = self._get_components_in_lab_panel()
-            query.addWhereIn("base_name", components)
-            query.addGroupBy('pat_id')
-            log.debug('Querying median orders per patient...')
-
-            results = DBUtil.execute(query)
-            order_counts = [ row[1] for row in results ]
-
-            if len(results) == 0:
-                error_msg = '0 orders for order "%s."' % self._lab_var #sx
-                log.critical(error_msg)
-                sys.exit('[ERROR] %s' % error_msg)
+            if self._isLabPanel:
+                query.addWhereIn("proc_id", [self._lab_var]) # TODO
+                query.addWhereIn("base_name", self._lab_components)
             else:
-                avg_orders_per_patient = numpy.median(order_counts)
-                log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
-                # Based on average # of results, figure out how many patients we'd
-                # need to get for a feature matrix of requested size.
-                self._num_patients = int(numpy.max([self._num_requested_episodes / \
-                    avg_orders_per_patient, 1]))
-                # Some components may have fewer associated patients than the required sample size
-                patient_number_chosen = min([len(results),self._num_patients]) #
-                inds_random_patients = numpy.random.choice(len(results), size=patient_number_chosen, replace=False)
-                # print 'inds_random_patients:', inds_random_patients
-                pat_IDs_random_patients = []
-                for ind in inds_random_patients:
-                    pat_IDs_random_patients.append(results[ind][0])
-                return pat_IDs_random_patients
+                query.addWhereIn("base_name", [self._lab_var])
+
+        query.addGroupBy('pat_id')
+
+        log.debug('Querying the number of orders per patient...')
+
+        results = DBUtil.execute(query)
+
+        order_counts = [row[1] for row in results]
+
+        if len(results) == 0:
+            error_msg = '0 orders for component "%s."' % self._lab_var  # sx
+            log.critical(error_msg)
+            sys.exit('[ERROR] %s' % error_msg)
+        else:
+            avg_orders_per_patient = numpy.median(order_counts)
+            log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
+            # Based on average # of results, figure out how many patients we'd
+            # need to get for a feature matrix of requested size.
+            self._num_patients = int(numpy.max([self._num_requested_episodes / \
+                                                avg_orders_per_patient, 1]))
+
+            # Some components may have fewer associated patients than the required sample size
+            patient_number_chosen = min([len(results), self._num_patients])  #
+
+            '''
+            Set seed to ensure re-producibility of patient episodes.
+            Recover int random_state here, since numpy requires int while sql requires [-1,1]
+            '''
+            numpy.random.seed(int(self._random_state*float(sys.maxint)))
+            inds_random_patients = numpy.random.choice(len(results), size=patient_number_chosen, replace=False)
+
+            pat_IDs_random_patients = [results[ind][0] for ind in inds_random_patients]
+
+            return pat_IDs_random_patients
 
     def _query_patient_episodes(self):
         log.info('Querying patient episodes...')
@@ -276,39 +241,58 @@ class LabNormalityMatrix(FeatureMatrix):
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
         query = SQLQuery()
-        if LocalEnv.DATASET_SOURCE_NAME=='STRIDE': #
+        query.addSelect('CAST(pat_id AS BIGINT) as pat_id')
 
+        '''
+        order_proc_id
+        '''
+        if LocalEnv.DATASET_SOURCE_NAME=='STRIDE':
             if self._isLabPanel:
-                query.addSelect('CAST(pat_id AS BIGINT)')
                 query.addSelect('sop.order_proc_id AS order_proc_id')
-                query.addSelect('proc_code') #TODO:sx
-                query.addSelect('order_time')
-                query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel") #
-                query.addSelect("SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components") #sx
-                query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components") #sx
-                query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal") #sx
-                query.addFrom('stride_order_proc AS sop') #sx
-                query.addFrom('stride_order_results AS sor') #sx
-                query.addWhere('sop.order_proc_id = sor.order_proc_id') #sx
-                query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
-                query.addWhereIn("proc_code", [self._lab_var]) #sx
-                query.addWhereIn("pat_id", random_patient_list)
-                query.addGroupBy('pat_id')
-                query.addGroupBy('sop.order_proc_id') #sx
-                query.addGroupBy('proc_code') #sx
-                query.addGroupBy('order_time')
-                query.addGroupBy('abnormal_yn') #sx
-                query.addOrderBy('pat_id')
-                query.addOrderBy('sop.order_proc_id') #sx
-                query.addOrderBy('proc_code') #sx
-                query.addOrderBy('order_time')
             else:
-                query.addSelect('CAST(pat_id AS BIGINT)')
-                query.addSelect('sop.order_proc_id AS order_proc_id')
-                query.addSelect('base_name')  # TODO
-                query.addSelect('order_time')
+                query.addSelect('sor.order_proc_id AS order_proc_id')
+        else:
+            query.addSelect('order_proc_id')
+
+        query.addSelect(self._varTypeInTable)
+        query.addSelect('order_time')
+
+        '''
+        y-labels, and related info (there could be noise in y-labels)
+        '''
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            if self._isLabPanel:
+
+                # query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")  #
+                query.addSelect(
+                    "SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components")  # sx
+                query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components")  # sx
+                query.addSelect(
+                    "CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal")  # sx
+            else:
                 query.addSelect(
                     "CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 0 ELSE 1 END AS component_normal")
+
+        else:
+            if self._isLabPanel:
+                query.addSelect("SUM(CASE WHEN result_in_range_yn IN ('N', 'Y') THEN 1 ELSE 0 END) AS num_components")
+                query.addSelect("SUM(CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END) AS num_normal_components")
+                query.addSelect("CAST(SUM(CASE WHEN result_in_range_yn = 'N' THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal") #TODO
+            else:
+                query.addSelect("CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END AS component_normal")
+
+
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            if self._isLabPanel:
+                query.addFrom('stride_order_proc AS sop')  # sx
+                query.addFrom('stride_order_results AS sor')  # sx
+
+                query.addWhere('sop.order_proc_id = sor.order_proc_id')  # sx
+                query.addWhere(
+                    "(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
+                query.addWhereIn("proc_code", [self._lab_var])  # sx
+                query.addWhereIn("pat_id", random_patient_list)
+            else:
                 query.addFrom('stride_order_proc AS sop')
                 query.addFrom('stride_order_results AS sor')
                 query.addWhere('sop.order_proc_id = sor.order_proc_id')
@@ -316,45 +300,33 @@ class LabNormalityMatrix(FeatureMatrix):
                     "(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
                 query.addWhereIn("base_name", [self._lab_var])
                 query.addWhereIn("pat_id", random_patient_list)
-                query.addGroupBy('pat_id')
-                query.addGroupBy('sop.order_proc_id')
-                query.addGroupBy('base_name')  # sx
-                query.addGroupBy('order_time')
-                query.addGroupBy('result_flag')
-                # query.addGroupBy('abnormal_yn') #sx
-                query.addOrderBy('pat_id')
-                query.addOrderBy('sop.order_proc_id')
-                query.addOrderBy('base_name')  # sx
-                query.addOrderBy('order_time')
 
-        else:
-            query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
-            query.addSelect('order_proc_id')
-            query.addSelect(self._varTypeInTable)
-            query.addSelect('order_time')
-
-            query.addWhereIn(self._varTypeInTable, [self._lab_var])
-
-            if self._isLabPanel:
-
-                query.addSelect("SUM(CASE WHEN result_in_range_yn IN ('N', 'Y') THEN 1 ELSE 0 END) AS num_components")
-                query.addSelect("SUM(CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END) AS num_normal_components")
-                query.addSelect("CAST(SUM(CASE WHEN result_in_range_yn = 'N' THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal") #TODO
-            else:
-                query.addSelect("CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END AS component_normal")
-
+        else: # TODO
             query.addFrom('labs')
+            query.addWhereIn(self._varTypeInTable, [self._lab_var])
             query.addWhereIn("pat_id", random_patient_list)
 
-            query.addGroupBy('pat_id')
+        query.addGroupBy('pat_id')
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            if self._isLabPanel:
+                query.addGroupBy('sop.order_proc_id')
+            else:
+                query.addGroupBy('sor.order_proc_id')
+        else:
             query.addGroupBy('order_proc_id')
-            query.addGroupBy(self._varTypeInTable)
-            query.addGroupBy('order_time')
-
-            query.addOrderBy('pat_id')
+        query.addGroupBy(self._varTypeInTable)
+        query.addGroupBy('order_time')
+        # query.addGroupBy('abnormal_yn')  # TODO: be aware
+        query.addOrderBy('pat_id')
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            if self._isLabPanel:
+                query.addOrderBy('sop.order_proc_id')
+            else:
+                query.addOrderBy('sor.order_proc_id')
+        else:
             query.addOrderBy('order_proc_id')
-            query.addOrderBy(self._varTypeInTable)
-            query.addOrderBy('order_time')
+        query.addOrderBy(self._varTypeInTable)
+        query.addOrderBy('order_time')
 
         query.setLimit(self._num_requested_episodes)
 
