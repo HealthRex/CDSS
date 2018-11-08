@@ -21,7 +21,7 @@ from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 import LocalEnv
 
 class LabNormalityMatrix(FeatureMatrix):
-    def __init__(self, lab_var, num_episodes, random_state=None, isLabPanel=True):
+    def __init__(self, lab_var, num_episodes, random_state=None, isLabPanel=True, timeLimit=None):
         FeatureMatrix.__init__(self, lab_var, num_episodes)
 
         self._isLabPanel = isLabPanel
@@ -40,6 +40,8 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addSelect('setseed(%d);' % random_state)
             DBUtil.execute(query)
             self._random_state = random_state
+
+        self._time_limit = timeLimit
 
         # Query patient episodes.
         self._query_patient_episodes()
@@ -110,6 +112,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
             query.addFrom('stride_order_proc AS sop')
             query.addFrom('stride_order_results AS sor')
+
             query.addWhere('sop.order_proc_id = sor.order_proc_id')
             query.addWhereIn(self._varTypeInTable, [self._lab_var])
             components = self._get_components_in_lab_panel()
@@ -127,6 +130,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addGroupBy('pat_id')
         log.debug('Querying median orders per patient...')
         results = DBUtil.execute(query)
+
         order_counts = [ row[1] for row in results ]
         if len(order_counts) == 0:
             error_msg = '0 orders for lab "%s."' % self._lab_var
@@ -148,6 +152,13 @@ class LabNormalityMatrix(FeatureMatrix):
                 query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
                 query.addFrom('stride_order_proc AS sop')
                 query.addFrom('stride_order_results AS sor')
+
+                if self._time_limit:
+                    if self._time_limit[0]:
+                        query.addWhere("sop.order_time > '%s'" % self._time_limit[0])
+                    if self._time_limit[1]:
+                        query.addWhere("sop.order_time < '%s'" % self._time_limit[1])
+
                 query.addWhere('sop.order_proc_id = sor.order_proc_id')
                 query.addWhereIn('proc_code', [self._lab_var])
 
@@ -240,29 +251,40 @@ class LabNormalityMatrix(FeatureMatrix):
         #           metabolic components. Include it.
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
-        query = SQLQuery()
-        query.addSelect('CAST(pat_id AS BIGINT) as pat_id')
 
-        '''
-        order_proc_id
-        '''
         if LocalEnv.DATASET_SOURCE_NAME=='STRIDE':
+
+            query = SQLQuery()
+
+            '''
+            pat_id: hashed patient id
+            '''
+            query.addSelect('CAST(pat_id AS BIGINT) as pat_id')
+
+            '''
+            order_proc_id: unique identifier for an episode
+            '''
             if self._isLabPanel:
                 query.addSelect('sop.order_proc_id AS order_proc_id')
             else:
                 query.addSelect('sor.order_proc_id AS order_proc_id')
-        else:
-            query.addSelect('order_proc_id')
 
-        query.addSelect(self._varTypeInTable)
-        query.addSelect('order_time')
+            '''
+            self._varTypeInTable: usually proc_code or base_name, the column of the lab to be queried
+            '''
+            query.addSelect(self._varTypeInTable)
 
-        '''
-        y-labels, and related info (there could be noise in y-labels)
-        '''
-        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+
+            '''
+            order_time: The time of the order. Note that sor table does not have this info. 
+            '''
+            query.addSelect('order_time')
+
+
+            '''
+            y-labels related columns, choose one to predict (for now, use all_components_normal to predict). 
+            '''
             if self._isLabPanel:
-
                 # query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")  #
                 query.addSelect(
                     "SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components")  # sx
@@ -273,64 +295,70 @@ class LabNormalityMatrix(FeatureMatrix):
                 query.addSelect(
                     "CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 0 ELSE 1 END AS component_normal")
 
-        else:
-            if self._isLabPanel:
-                query.addSelect("SUM(CASE WHEN result_in_range_yn IN ('N', 'Y') THEN 1 ELSE 0 END) AS num_components")
-                query.addSelect("SUM(CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END) AS num_normal_components")
-                query.addSelect("CAST(SUM(CASE WHEN result_in_range_yn = 'N' THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal") #TODO
-            else:
-                query.addSelect("CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END AS component_normal")
+
+            '''
+            Relevant tables. Note that sor table does not have patient_id info; need to join sop to obtain it.  
+            '''
+            query.addFrom('stride_order_proc AS sop')
+            query.addFrom('stride_order_results AS sor')
+            query.addWhere('sop.order_proc_id = sor.order_proc_id')
+
+            '''
+            Condition: self._time_limit[0] < order_time < self._time_limit[1]
+            '''
+            if self._time_limit:
+                if self._time_limit[0]:
+                    query.addWhere("sop.order_time > '%s'" % self._time_limit[0])
+                if self._time_limit[1]:
+                    query.addWhere("sop.order_time < '%s'" % self._time_limit[1])
 
 
-        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            if self._isLabPanel:
-                query.addFrom('stride_order_proc AS sop')  # sx
-                query.addFrom('stride_order_results AS sor')  # sx
-
-                query.addWhere('sop.order_proc_id = sor.order_proc_id')  # sx
-                query.addWhere(
-                    "(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
-                query.addWhereIn("proc_code", [self._lab_var])  # sx
-                query.addWhereIn("pat_id", random_patient_list)
-            else:
-                query.addFrom('stride_order_proc AS sop')
-                query.addFrom('stride_order_results AS sor')
-                query.addWhere('sop.order_proc_id = sor.order_proc_id')
-                query.addWhere(
-                    "(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
-                query.addWhereIn("base_name", [self._lab_var])
-                query.addWhereIn("pat_id", random_patient_list)
-
-        else: # TODO
-            query.addFrom('labs')
-            query.addWhereIn(self._varTypeInTable, [self._lab_var])
+            query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
+            query.addWhereIn(self._varTypeInTable, [self._lab_var])  # sx
             query.addWhereIn("pat_id", random_patient_list)
 
-        query.addGroupBy('pat_id')
-        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            if self._isLabPanel:
-                query.addGroupBy('sop.order_proc_id')
-            else:
-                query.addGroupBy('sor.order_proc_id')
-        else:
-            query.addGroupBy('order_proc_id')
-        query.addGroupBy(self._varTypeInTable)
-        query.addGroupBy('order_time')
-        # query.addGroupBy('abnormal_yn')  # TODO: be aware
-        query.addOrderBy('pat_id')
-        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            if self._isLabPanel:
-                query.addOrderBy('sop.order_proc_id')
-            else:
-                query.addOrderBy('sor.order_proc_id')
-        else:
-            query.addOrderBy('order_proc_id')
-        query.addOrderBy(self._varTypeInTable)
-        query.addOrderBy('order_time')
+            query.addGroupBy('pat_id')
+            query.addGroupBy('sop.order_proc_id')
+            query.addGroupBy(self._varTypeInTable)
+            query.addGroupBy('order_time')
 
-        query.setLimit(self._num_requested_episodes)
+            # query.addGroupBy('abnormal_yn')  #
 
-        self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, index_time_col='order_time')
+            query.addOrderBy('pat_id')
+            query.addOrderBy('sop.order_proc_id')
+            query.addOrderBy(self._varTypeInTable)
+            query.addOrderBy('order_time')
+
+            query.setLimit(self._num_requested_episodes)
+
+            self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query,
+                                                                                index_time_col='order_time')
+
+        else:
+
+            '''
+            Sqlite3 has an interesting limit for the total number of place_holders in a query, 
+            and this limit varies across platforms/operating systems (500-99999 on mac, 999 by defaulty). 
+            
+            To avoid this problem when querying 1000-10000 patient ids, use string queries instead of the
+            default (convenient) routine in DBUtil.  
+            '''
+
+            query_str = "SELECT CAST(pat_id AS BIGINT) AS pat_id, order_proc_id, base_name, order_time, "
+            query_str += "CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END AS component_normal "
+            query_str += "FROM labs "
+            query_str += "WHERE base_name = '%s' " % self._lab_var
+            query_str += "AND pat_id IN "
+            pat_list_str = "("
+            for pat_id in random_patient_list:
+                pat_list_str += str(pat_id) + ","
+            pat_list_str = pat_list_str[:-1] + ") "
+            query_str += pat_list_str
+            query_str += "GROUP BY pat_id, order_proc_id, base_name, order_time "
+            query_str += "ORDER BY pat_id, order_proc_id, base_name, order_time "
+            query_str += "LIMIT %d" % self._num_requested_episodes
+
+            self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query_str, index_time_col='order_time')
 
     def _add_features(self):
         # Add lab panel order features.
