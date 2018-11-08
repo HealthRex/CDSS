@@ -26,13 +26,14 @@ import LocalEnv
 import prepareData_NonSTRIDE
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
-    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True):
-        SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state, isLabPanel)
+    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True, timeLimit=None, holdOut=False):
+        SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state, isLabPanel, timeLimit, holdOut)
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
         self._build_baseline_results() #TODO: prototype in SLPP
         self._build_processed_feature_matrix()
-        self._train_and_analyze_predictors()
+        if not holdOut:
+            self._train_and_analyze_predictors()
 
     def _build_model_dump_path(self, algorithm):
         template = '%s' + '-normality-%s-model.pkl' % algorithm
@@ -41,7 +42,10 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             pipeline_file_name)
 
     def _build_raw_matrix_path(self):
-        template = '%s-normality-matrix-%d-episodes-raw.tab'
+        if not self._holdOut:
+            template = '%s-normality-matrix-%d-episodes-raw.tab'
+        else:
+            template = '%s-normality-matrix-%d-episodes-raw-holdout.tab'
         pipeline_file_name = inspect.getfile(inspect.currentframe())
         return SupervisedLearningPipeline._build_matrix_path(self, template, \
             pipeline_file_name)
@@ -53,17 +57,23 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             raw_matrix_path)
 
     def _build_baseline_results(self):
-        template = '%s-normality-matrix-%d-episodes-raw.tab'
+        if not self._holdOut:
+            template = '%s-normality-matrix-%d-episodes-raw.tab'
+        else:
+            template = '%s-normality-matrix-%d-episodes-raw-holdout.tab'
         pipeline_file_name = inspect.getfile(inspect.currentframe())
         raw_matrix_path = SupervisedLearningPipeline._build_matrix_path(self, template, \
                                                              pipeline_file_name)
         # Another direct call to the _factory instance
         self._factory.obtain_baseline_results(raw_matrix_path=raw_matrix_path,
                                               random_state=self._random_state,
-                                              isLabPanel=self._isLabPanel)
+                                              isLabPanel=self._isLabPanel) #TODO: file name
 
     def _build_processed_matrix_path(self):
-        template = '%s-normality-matrix-%d-episodes-processed.tab'
+        if not self._holdOut:
+            template = '%s-normality-matrix-%d-episodes-processed.tab'
+        else:
+            template = '%s-normality-matrix-%d-episodes-processed-holdout.tab'
         pipeline_file_path = inspect.getfile(inspect.currentframe())
         return SupervisedLearningPipeline._build_matrix_path(self, template, \
             pipeline_file_path)
@@ -99,7 +109,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 outcome_label = 'all_components_normal'  #
             else:
                 features_to_remove += ['base_name']
-                outcome_label = 'component_normal'
+                outcome_label = 'component_normal' # TODO: danger, previous version might not consistent!
 
         else:
             features_to_remove = [
@@ -254,6 +264,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
                 SupervisedLearningPipeline._analyze_predictor(self, report_dir, pipeline_prefix)
                 SupervisedLearningPipeline._analyze_predictor_traindata(self, report_dir, pipeline_prefix)
+                # SupervisedLearningPipeline._analyze_predictor_holdoutset(self, report_dir, pipeline_prefix) #TODO
+
                 if meta_report is None:
                     meta_report = fm_io.read_file_to_data_frame('/'.join([report_dir, '%s-report.tab' % pipeline_prefix]))
                 else:
@@ -305,20 +317,25 @@ NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
     'LABFCUL', 'LABFE', 'LABFER', 'LABFIB', 'LABFLDC', 'LABFOL', 'LABFT4', 'LABGRAM',
     'LABHAP', 'LABHBSAG', 'LABHCTX', 'LABHEPAR', 'LABHIVWBL', 'LABK', 'LABLAC', 'LABLACWB',
     'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN', 'LABNA', 'LABNH3',
-    #'LABNONGYN', TODO: no components
+    # #'LABNONGYN', TODO: no components
     'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI', 'LABPHOS', 'LABPLTS',
     'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP', 'LABRESPG', 'LABRETIC', 'LABSPLAC',
-    'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH', 'LABUCR', 'LABUOSM',
-    'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
+    'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH',
+    # 'LABUCR', # insufficient samples
+    'LABUOSM',
+    'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC',
+    # 'LABURNA', # insufficient samples
+    'LABURNC', 'LABUSPG'
 ]
 
 STRIDE_COMPONENT_TESTS = ['WBC', 'HGB', 'PLT',
-                          # 'NA', # TODO: naming of this component before some time on 2015
+                          'NA', # TODO: Cautious, this might be identified as 'nan' by pandas
                           'K', 'CL',
                    'CR', 'BUN', 'GLU', 'CO2', 'CA',
-                          #'HCO3',  # good, from 'LABMETB'; TODO: Insufficient samples
+                          'HCO3',  # good, from 'LABMETB'; TODO: Insufficient samples
                    'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT',
-                   'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A']  # good, LABHFP
+                   'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A'
+                          ]  # good, LABHFP
 
 UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',
                                 'CREAT', 'TBIL',
@@ -363,15 +380,22 @@ if __name__ == '__main__':
 
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
-        for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
-            try:
-                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
-            except ValueError:
-                import shutil
-                shutil.rmtree('data/%s'%panel)
-                print 'data/%s removed!'%panel
-                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
-        # for component in STRIDE_COMPONENT_TESTS:
+        for panel in ['LABNA']: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+            # LabNormalityPredictionPipeline(panel, 100, use_cache=True, random_state=123456789, isLabPanel=True,
+            #                                timeLimit=('2016-01-01', '2016-10-10'), holdOut=True)
+            LabNormalityPredictionPipeline(panel, 100, use_cache=True, random_state=123456789, isLabPanel=True,
+                                           timeLimit=(None, '2015-12-31'), holdOut=False)
+
+            # try:
+            #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
+            # except ValueError:
+            #     import shutil
+            #     shutil.rmtree('data/%s'%panel)
+            #     print 'data/%s removed!'%panel
+            #     LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
+
+        # for component in ['HGB', 'WBC', 'K', 'NA', 'CR', 'GLU' #'PLT',
+        #                    ]:#STRIDE_COMPONENT_TESTS:
         #     LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
