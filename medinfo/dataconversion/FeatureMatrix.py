@@ -12,10 +12,6 @@ import datetime
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
 import LocalEnv
-# if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-#     from medinfo.dataconversion.FeatureMatrixFactory_UMich import FeatureMatrixFactory
-# elif LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-#     from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.db import DBUtil
 from Util import log
@@ -43,7 +39,11 @@ class FeatureMatrix:
         # Fetch and return results.
         log.info('query: %s' % str(query))
         log.info('query.params: %s' % str(query.params))
-        cursor.execute(str(query), query.params)
+
+        if isinstance(query, basestring):
+            cursor.execute(query)
+        else:
+            cursor.execute(str(query), query.params)
 
         # Parse arguments.
         if pat_id_col is None:
