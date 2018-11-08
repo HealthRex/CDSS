@@ -526,3 +526,44 @@ class SupervisedLearningPipeline:
         # analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
         # analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
         # analyzer.write_report(report_path, ci=0.95)
+
+
+    def _analyze_predictor_holdoutset(self, dest_dir, pipeline_prefix):
+        holdout_path = dest_dir + '/../' + 'LABNA-normality-matrix-100-episodes-processed-holdout.tab'
+        fm_io = FeatureMatrixIO()
+        processed_matrix = fm_io.read_file_to_data_frame(holdout_path)
+        y_holdout = pd.DataFrame(processed_matrix.pop('all_components_normal')) # TODO: outcome_label
+        X_holdout = processed_matrix
+        analyzer = ClassifierAnalyzer(self._predictor, X_holdout, y_holdout)
+        train_label = 'holdoutset'
+
+        # Build names for output plots and report.
+        direct_comparisons_name = '%s-direct-compare-results-%s.csv' % (pipeline_prefix, train_label)
+        precision_at_k_plot_name = '%s-precision-at-k-plot-%s.png' % (pipeline_prefix, train_label)
+        precision_recall_plot_name = '%s-precision-recall-plot-%s.png' % (pipeline_prefix, train_label)
+        roc_plot_name = '%s-roc-plot-%s.png' % (pipeline_prefix, train_label)
+        report_name = '%s-report-%s.tab' % (pipeline_prefix, train_label)
+
+        # Build paths.
+        direct_comparisons_path = '/'.join([dest_dir, direct_comparisons_name])
+        log.debug('direct_comparisons_path: %s' % direct_comparisons_path)
+        precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
+        log.debug('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
+        precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
+        log.debug('precision_recall_plot_path: %s' % precision_recall_plot_path)
+        roc_plot_path = '/'.join([dest_dir, roc_plot_name])
+        log.debug('roc_plot_path: %s' % roc_plot_path)
+        report_path = '/'.join([dest_dir, report_name])
+        log.debug('report_path: %s' % report_path)
+
+        # Build plot titles.
+        roc_plot_title = 'ROC (%s)' % pipeline_prefix
+        precision_recall_plot_title = 'Precision-Recall (%s)' % pipeline_prefix
+        precision_at_k_plot_title = 'Precision @K (%s)' % pipeline_prefix
+
+        # Write output.
+        analyzer.output_direct_comparisons(direct_comparisons_path)
+        analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
+        analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
+        analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
+        analyzer.write_report(report_path, ci=0.95)
