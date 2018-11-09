@@ -322,7 +322,8 @@ class SupervisedLearningPipeline:
                 else:
                     # TODO(sbala): Impute all time features with non-mean value.
                     imputed_value = fmt.impute(feature)
-                    self.feat2imputed_dict[feature] = imputed_value
+                    if self._isLabNormalityPredictionPipeline:
+                        self.feat2imputed_dict[feature] = imputed_value
             else:
                 '''
                 If there is no need to impute, still keep the mean value, in case test data 
@@ -577,7 +578,8 @@ class SupervisedLearningPipeline:
 
 
     def _analyze_predictor_holdoutset(self, dest_dir, pipeline_prefix):
-        holdout_path = dest_dir + '/../' + 'LABNA-normality-matrix-100-episodes-processed-holdout.tab'
+        slugified_var = '-'.join(self._var.split())
+        holdout_path = dest_dir + '/../' + '%s-normality-matrix-%d-episodes-processed-holdout.tab'%(slugified_var, self._num_rows)
         fm_io = FeatureMatrixIO()
         processed_matrix = fm_io.read_file_to_data_frame(holdout_path)
         y_holdout = pd.DataFrame(processed_matrix.pop('all_components_normal')) # TODO: outcome_label
