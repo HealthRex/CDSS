@@ -51,18 +51,21 @@ class FeatureMatrixTransform:
         if distribution is None:
             distribution = norm.rvs
 
+        # TODO sxu: modify other modules to also return stuff
         if feature == FeatureMatrixTransform.ALL_FEATURES:
             self._impute_all_features(strategy, distribution=distribution)
         else:
-            self._impute_single_feature(feature, strategy, distribution=distribution)
+            return self._impute_single_feature(feature, strategy, distribution=distribution)
 
     def _impute_all_features(self, strategy, distribution=None):
         for column in self._matrix:
             self._impute_single_feature(column, strategy, distribution=distribution)
 
+    # TODO sxu: modify other modules to also return stuff
     def _impute_single_feature(self, feature, strategy, distribution=None):
         if strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_MEAN:
             self._matrix[feature] =  self._matrix[feature].fillna(self._matrix[feature].mean(0))
+            return self._matrix[feature].mean(0)
         elif strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_MODE:
             self._matrix[feature] = self._matrix[feature].fillna(self._matrix[feature].mode().iloc[0])
         elif strategy == FeatureMatrixTransform.IMPUTE_STRATEGY_ZERO:

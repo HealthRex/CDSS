@@ -40,6 +40,7 @@ class SupervisedLearningPipeline:
     REGRESSION = 'regression'
 
     def __init__(self, variable, num_data_points, use_cache=None, random_state=None,
+                 isLabNormalityPredictionPipeline=False,
                  isLabPanel=True, timeLimit=None, holdOut=False):
         # Process arguments.
         self._var = variable
@@ -54,6 +55,7 @@ class SupervisedLearningPipeline:
         self._added_features = list()
         self._random_state = random_state
 
+        self._isLabNormalityPredictionPipeline = isLabNormalityPredictionPipeline
         self._isLabPanel = isLabPanel
         self._timeLimit = timeLimit
         self._holdOut = holdOut
@@ -125,8 +127,11 @@ class SupervisedLearningPipeline:
             # at least 1 primary variables and # of rows.
             # Ensure that random_state is [-1, 1]
             random_state = float(self._random_state)/float(sys.maxint)
-            matrix = matrix_class(self._var, self._num_rows, random_state=random_state,
+            if self._isLabNormalityPredictionPipeline:
+                matrix = matrix_class(self._var, self._num_rows, random_state=random_state,
                                   isLabPanel=self._isLabPanel, timeLimit=self._timeLimit)
+            else:
+                matrix = matrix_class(self._var, self._num_rows, random_state=random_state)
             matrix.write_matrix(raw_matrix_path)
 
     def _build_processed_feature_matrix(self, params):
@@ -206,6 +211,18 @@ class SupervisedLearningPipeline:
             test = self._y_test.join(self._X_test)
             processed_matrix = train.append(test)
 
+            '''
+            For testing the model on the holdout set, should remember features 
+            to select from the raw matrix of the holdout data. 
+            '''
+            if self._isLabNormalityPredictionPipeline and self._holdOut:
+                final_features = processed_matrix.columns.values
+                curr_keys = self.feat2imputed_dict.keys()
+
+                for one_key in curr_keys:
+                    if one_key not in final_features:
+                        self.feat2imputed_dict.pop(one_key)
+
             # Write output to new matrix file.
             header = self._build_processed_matrix_header(params)
             fm_io.write_data_frame_to_file(processed_matrix, \
@@ -283,7 +300,17 @@ class SupervisedLearningPipeline:
                     fmt.impute(feature, strategy)
                 else:
                     # TODO(sbala): Impute all time features with non-mean value.
-                    fmt.impute(feature)
+                    imputed_value = fmt.impute(feature)
+                    self.feat2imputed_dict[feature] = imputed_value
+            else:
+                '''
+                If there is no need to impute, still keep the mean value, in case test data 
+                need imputation
+                TODO sxu: take care of the case of non-mean imputation strategy
+                '''
+                if self._isLabNormalityPredictionPipeline:
+                    imputed_value = fmt.impute(feature)
+                    self.feat2imputed_dict[feature] = imputed_value
 
     def _remove_features(self, fmt, features_to_remove):
         # Prune manually identified features (meant for obviously unhelpful).
