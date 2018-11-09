@@ -108,7 +108,13 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         fm_io = FeatureMatrixIO()
         raw_matrix = fm_io.read_file_to_data_frame(self._build_raw_matrix_path())
 
-        processed_matrix = raw_matrix[self.feat2imputed_dict.keys()].copy()
+        if self._isLabPanel:
+            outcome_label = 'all_components_normal'
+        else:
+
+            outcome_label = 'component_normal'
+
+        processed_matrix = raw_matrix[self.feat2imputed_dict.keys()+[outcome_label]].copy()
 
         for feat in self.feat2imputed_dict.keys():
             processed_matrix[feat] = processed_matrix[feat].fillna(self.feat2imputed_dict[feat])
