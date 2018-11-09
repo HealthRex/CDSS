@@ -24,27 +24,38 @@ from extraction.LabNormalityMatrix import LabNormalityMatrix
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 import LocalEnv
 import prepareData_NonSTRIDE
+import pickle
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True,
                  timeLimit=None, holdOut=False):
-        SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state, isLabPanel, timeLimit, holdOut)
+        SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state,
+                                            isLabPanel, timeLimit, holdOut,
+                                            isLabNormalityPredictionPipeline=True)
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
         self._build_baseline_results() #TODO: prototype in SLPP
 
-        import pickle
-        if not holdOut:
-            self.feat2imputed_dict = {}
-            self._build_processed_feature_matrix()
-            print self.feat2imputed_dict
-            # TODO: find better place to put the dict.pkl
-            pickle.dump(self.feat2imputed_dict, open('feat2imputed_dict.pkl','w'), pickle.HIGHEST_PROTOCOL)
-            self._train_and_analyze_predictors()
-        else:
-            self.feat2imputed_dict = pickle.load(open('feat2imputed_dict.pkl','r'))
+        data_lab_folder = self._fetch_data_dir_path(inspect.getfile(inspect.currentframe()))
+        feat2imputed_dict_path = data_lab_folder + '/feat2imputed_dict.pkl'
+        if holdOut:
+            '''
+            For holdOut evaluation data, produce the raw matrix, pick features according 
+            to the saved feat2imputed_dict. 
+            '''
+            self.feat2imputed_dict = pickle.load(open(feat2imputed_dict_path, 'r'))
             self._build_processed_feature_matrix_holdout()
             self._analyze_predictors_on_holdout()
+        else:
+            '''
+            For training/validation data, record the selected features and their imputed 
+            value correspondingly. 
+            '''
+            self.feat2imputed_dict = {}
+            self._build_processed_feature_matrix()
+            # TODO: find better place to put the dict.pkl
+            pickle.dump(self.feat2imputed_dict, open(feat2imputed_dict_path, 'w'), pickle.HIGHEST_PROTOCOL)
+            # self._train_and_analyze_predictors()
 
     def _build_model_dump_path(self, algorithm):
         template = '%s' + '-normality-%s-model.pkl' % algorithm
@@ -435,8 +446,8 @@ if __name__ == '__main__':
         for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
             LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
                                            timeLimit=(None, '2015-12-31'), holdOut=False)
-            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
-                                           timeLimit=('2016-01-01', '2016-10-10'), holdOut=True)
+            # LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
+            #                                timeLimit=('2016-01-01', '2016-10-10'), holdOut=True)
 
             # try:
             #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)

@@ -40,8 +40,8 @@ class SupervisedLearningPipeline:
     REGRESSION = 'regression'
 
     def __init__(self, variable, num_data_points, use_cache=None, random_state=None,
-                 isLabNormalityPredictionPipeline=False,
-                 isLabPanel=True, timeLimit=None, holdOut=False):
+                 isLabPanel=True, timeLimit=None, holdOut=False,
+                 isLabNormalityPredictionPipeline=False):
         # Process arguments.
         self._var = variable
         self._num_rows = num_data_points
@@ -211,22 +211,36 @@ class SupervisedLearningPipeline:
             test = self._y_test.join(self._X_test)
             processed_matrix = train.append(test)
 
-            '''
-            For testing the model on the holdout set, should remember features 
-            to select from the raw matrix of the holdout data. 
-            '''
-            if self._isLabNormalityPredictionPipeline and self._holdOut:
-                final_features = processed_matrix.columns.values
-                curr_keys = self.feat2imputed_dict.keys()
-
-                for one_key in curr_keys:
-                    if one_key not in final_features:
-                        self.feat2imputed_dict.pop(one_key)
-
             # Write output to new matrix file.
             header = self._build_processed_matrix_header(params)
             fm_io.write_data_frame_to_file(processed_matrix, \
                 processed_matrix_path, header)
+
+        '''
+        For testing the model on the holdout set, should remember features 
+        to select from the raw matrix of the holdout data. 
+        '''
+        if self._isLabNormalityPredictionPipeline:
+            final_features = processed_matrix.columns.values
+            if not self.feat2imputed_dict:
+                '''
+                The dict was not created during imputation. 
+                Probably because the processed matrix was loaded from previous session. 
+                Take the 'best guess' for the imputed value as the most common one in
+                any column. 
+                '''
+                for feat in final_features:
+                    most_freq_val = processed_matrix[feat].value_counts().idxmax()
+                    self.feat2imputed_dict[feat] = most_freq_val
+
+            curr_keys = self.feat2imputed_dict.keys()
+
+            '''
+            Only need to impute the selected features for the holdOut set. 
+            '''
+            for one_key in curr_keys:
+                if one_key not in final_features:
+                    self.feat2imputed_dict.pop(one_key)
 
     def _add_features(self, fmt, features_to_add):
         # Expected format for features_to_add:
