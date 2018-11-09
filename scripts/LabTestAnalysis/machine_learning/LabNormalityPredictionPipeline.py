@@ -26,14 +26,25 @@ import LocalEnv
 import prepareData_NonSTRIDE
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
-    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True, timeLimit=None, holdOut=False):
+    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True,
+                 timeLimit=None, holdOut=False):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state, isLabPanel, timeLimit, holdOut)
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
         self._build_baseline_results() #TODO: prototype in SLPP
-        self._build_processed_feature_matrix()
+
+        import pickle
         if not holdOut:
+            self.feat2imputed_dict = {}
+            self._build_processed_feature_matrix()
+            print self.feat2imputed_dict
+            # TODO: find better place to put the dict.pkl
+            pickle.dump(self.feat2imputed_dict, open('feat2imputed_dict.pkl','w'), pickle.HIGHEST_PROTOCOL)
             self._train_and_analyze_predictors()
+        else:
+            self.feat2imputed_dict = pickle.load(open('feat2imputed_dict.pkl','r'))
+            self._build_processed_feature_matrix_holdout()
+            self._analyze_predictors_on_holdout()
 
     def _build_model_dump_path(self, algorithm):
         template = '%s' + '-normality-%s-model.pkl' % algorithm
@@ -77,6 +88,18 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         pipeline_file_path = inspect.getfile(inspect.currentframe())
         return SupervisedLearningPipeline._build_matrix_path(self, template, \
             pipeline_file_path)
+
+    def _build_processed_feature_matrix_holdout(self):
+        fm_io = FeatureMatrixIO()
+        raw_matrix = fm_io.read_file_to_data_frame(self._build_raw_matrix_path())
+
+        processed_matrix = raw_matrix[self.feat2imputed_dict.keys()].copy()
+
+        for feat in self.feat2imputed_dict.keys():
+            processed_matrix[feat] = processed_matrix[feat].fillna(self.feat2imputed_dict[feat])
+
+        fm_io.write_data_frame_to_file(processed_matrix, \
+                                       self._build_processed_matrix_path(), None)
 
     def _build_processed_feature_matrix(self):
         # Define parameters for processing steps.
@@ -181,6 +204,36 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         # Defer processing logic to SupervisedLearningPipeline.
         SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
 
+    def _analyze_predictors_on_holdout(self):
+        fm_io = FeatureMatrixIO()
+
+        algorithms_to_test = list()
+        algorithms_to_test.extend(SupervisedClassifier.SUPPORTED_ALGORITHMS)
+
+        pipeline_file_name = inspect.getfile(inspect.currentframe())
+        data_dir = SupervisedLearningPipeline._fetch_data_dir_path(self, pipeline_file_name)
+        # for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
+        #     algorithms_to_test.append('bifurcated-%s' % algorithm)
+        log.debug('algorithms_to_test: %s' % algorithms_to_test)
+        for algorithm in algorithms_to_test:
+            log.info('Training and analyzing %s...' % algorithm)
+            # If report_dir does not exist, make it.
+            report_dir = '/'.join([data_dir, algorithm])
+
+            pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
+
+            predictor_path = self._build_model_dump_path(algorithm)
+
+            if os.path.exists(predictor_path) and 'bifurcated' not in algorithm:
+                log.debug('Loading model from disk...')
+                # TODO(sbala): Fix loblib.load so that it works for bifurcated
+                # supervised classifiers.
+                self._predictor = joblib.load(predictor_path)
+                # self._features = self._X_train.columns
+                status = SupervisedClassifier.TRAINED
+
+            SupervisedLearningPipeline._analyze_predictor_holdoutset(self, report_dir, pipeline_prefix)
+
     def _train_and_analyze_predictors(self):
         log.info('Training and analyzing predictors...')
         problem = SupervisedLearningPipeline.CLASSIFICATION
@@ -264,7 +317,6 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
                 SupervisedLearningPipeline._analyze_predictor(self, report_dir, pipeline_prefix)
                 SupervisedLearningPipeline._analyze_predictor_traindata(self, report_dir, pipeline_prefix)
-                # SupervisedLearningPipeline._analyze_predictor_holdoutset(self, report_dir, pipeline_prefix) #TODO
 
                 if meta_report is None:
                     meta_report = fm_io.read_file_to_data_frame('/'.join([report_dir, '%s-report.tab' % pipeline_prefix]))
@@ -380,11 +432,11 @@ if __name__ == '__main__':
 
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
-        for panel in ['LABNA']: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
-            # LabNormalityPredictionPipeline(panel, 100, use_cache=True, random_state=123456789, isLabPanel=True,
-            #                                timeLimit=('2016-01-01', '2016-10-10'), holdOut=True)
-            LabNormalityPredictionPipeline(panel, 100, use_cache=True, random_state=123456789, isLabPanel=True,
+        for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
                                            timeLimit=(None, '2015-12-31'), holdOut=False)
+            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
+                                           timeLimit=('2016-01-01', '2016-10-10'), holdOut=True)
 
             # try:
             #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
