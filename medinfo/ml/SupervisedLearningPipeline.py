@@ -120,6 +120,10 @@ class SupervisedLearningPipeline:
         else:
             self._raw_matrix_params = params
         if os.path.exists(raw_matrix_path) and not self._flush_cache:
+            if self._isLabNormalityPredictionPipeline and not self._holdOut:
+                fm_io = FeatureMatrixIO()
+                matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+                self.used_patient_set = set(matrix['pat_id'].values)
             pass
         else:
             # Each matrix class may have a custom set of parameters which should
@@ -129,7 +133,10 @@ class SupervisedLearningPipeline:
             random_state = float(self._random_state)/float(sys.maxint)
             if self._isLabNormalityPredictionPipeline:
                 matrix = matrix_class(self._var, self._num_rows, random_state=random_state,
-                                  isLabPanel=self._isLabPanel, timeLimit=self._timeLimit)
+                                  isLabPanel=self._isLabPanel, timeLimit=self._timeLimit,
+                                      notUsePatIds=self.notUsePatIds)
+                if not self._holdOut:
+                    self.used_patient_set = matrix.patients
             else:
                 matrix = matrix_class(self._var, self._num_rows, random_state=random_state)
             matrix.write_matrix(raw_matrix_path)

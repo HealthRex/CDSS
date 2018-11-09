@@ -21,7 +21,8 @@ from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 import LocalEnv
 
 class LabNormalityMatrix(FeatureMatrix):
-    def __init__(self, lab_var, num_episodes, random_state=None, isLabPanel=True, timeLimit=None):
+    def __init__(self, lab_var, num_episodes, random_state=None,
+                 isLabPanel=True, timeLimit=None, notUsePatIds=None):
         FeatureMatrix.__init__(self, lab_var, num_episodes)
 
         self._isLabPanel = isLabPanel
@@ -42,6 +43,8 @@ class LabNormalityMatrix(FeatureMatrix):
             self._random_state = random_state
 
         self._time_limit = timeLimit
+
+        self._notUsePatIds = list(notUsePatIds)
 
         # Query patient episodes.
         self._query_patient_episodes()
@@ -182,6 +185,12 @@ class LabNormalityMatrix(FeatureMatrix):
                 query.addWhereIn("base_name", self._lab_components)
             else:
                 query.addWhereIn("base_name", [self._lab_var])
+
+        '''
+        Fo hold-out set, do not use the patients already used in training/validation. 
+        '''
+        if self._notUsePatIds:
+            query.addWhereNotIn('pat_id', self._notUsePatIds)
 
         query.addGroupBy('pat_id')
 
