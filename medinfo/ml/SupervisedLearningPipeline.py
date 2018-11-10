@@ -173,7 +173,7 @@ class SupervisedLearningPipeline:
             Make sure the order of rows is consistent before splitting
             '''
             processed_matrix.sort_index(inplace=True)
-            self._train_test_split(processed_matrix, params['outcome_label'])
+            self._train_test_split(processed_matrix, params['outcome_label']) #TODO sxu: when reloading, no pat_id
         else:
             # Read raw matrix.
             raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
@@ -486,6 +486,22 @@ class SupervisedLearningPipeline:
             value = filter_feature.get('value')
             self._num_rows = fmt.filter_on_feature(feature, value)
             log.debug('Removed rows where %s equals \'%s\'; %d rows remain.' % (feature, str(value), self._num_rows))
+
+    '''
+    Strategy 1: split by pat_id, no overlapping between train/test
+    '''
+    def _train_test_split_sx1(self, processed_matrix, outcome_label):
+        log.debug('outcome_label: %s' % outcome_label)
+        all_pat_ids = list(set(processed_matrix['pat_id'].values))
+        train_pat_ids, test_pat_ids = train_test_split(all_pat_ids, random_state=self._random_state)
+
+        train_matrix = processed_matrix[processed_matrix['pat_id'].isin(train_pat_ids)].copy()
+        self._y_train = pd.DataFrame(train_matrix.pop(outcome_label))
+        self._X_train = train_matrix
+
+        test_matrix = processed_matrix[processed_matrix['pat_id'].isin(test_pat_ids)].copy()
+        self._y_test = pd.DataFrame(test_matrix.pop(outcome_label))
+        self._X_test = test_matrix
 
     def _train_test_split(self, processed_matrix, outcome_label):
         log.debug('outcome_label: %s' % outcome_label)
