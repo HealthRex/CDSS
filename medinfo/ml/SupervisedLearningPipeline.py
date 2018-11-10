@@ -141,6 +141,141 @@ class SupervisedLearningPipeline:
                 matrix = matrix_class(self._var, self._num_rows, random_state=random_state)
             matrix.write_matrix(raw_matrix_path)
 
+    def _build_processed_feature_matrix_sx(self, params):
+        # params is a dict defining the details of how the raw feature matrix
+        # should be transformed into the processed matrix. Given the sequence
+        # of steps will be identical across all pipelines, sbala decided to
+        # pack all the variability into this dict. It's not ideal because the
+        # dict has 10+ values, but that seems better than forcing all pipelines
+        # to reproduce the logic of the processing steps.
+        # Principle: Minimize overridden function calls.
+        #   params['features_to_add'] = features_to_add
+        #   params['features_to_filter_on'] (optional) = features_to_filter_on
+        #   params['imputation_strategies'] = imputation_strategies
+        #   params['features_to_remove'] = features_to_remove
+        #   params['outcome_label'] = outcome_label
+        #   params['selection_problem'] = selection_problem
+        #   params['selection_algorithm'] = selection_algorithm
+        #   params['percent_features_to_select'] = percent_features_to_select
+        #   params['matrix_class'] = matrix_class
+        #   params['pipeline_file_path'] = pipeline_file_path
+        #   TODO(sbala): Determine which fields should have defaults.
+        fm_io = FeatureMatrixIO()
+        log.debug('params: %s' % params)
+        # If processed matrix exists, and the client has not requested to flush
+        # the cache, just use the matrix that already exists and return.
+        processed_matrix_path = params['processed_matrix_path']
+        if os.path.exists(processed_matrix_path) and not self._flush_cache:
+            # Assume feature selection already happened, but we still need
+            # to split the data into training and test data.
+            processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
+            '''
+            Make sure the order of rows is consistent before splitting
+            '''
+            processed_matrix.sort_index(inplace=True)
+            self._train_test_split(processed_matrix, params['outcome_label'])
+        else:
+            # Read raw matrix.
+            raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
+            # Initialize FMT.
+
+            # Divide processed_matrix into training and test data.
+            # This must happen before feature selection so that we don't
+            # accidentally learn information from the test data.
+
+            # TODO: work on this...
+            self._train_test_split(raw_matrix, params['outcome_label'])
+
+            fmt = FeatureMatrixTransform()
+            train_df = self._X_train.join(self._y_train)
+            fmt.set_input_matrix(train_df)
+
+            # Add features.
+            self._add_features(fmt, params['features_to_add'])
+
+            # Remove features.
+            self._remove_features(fmt, params['features_to_remove'])
+            # Filter on features
+            if 'features_to_filter_on' in params:
+                self._filter_on_features(fmt, params['features_to_filter_on'])
+
+            # HACK: When read_csv encounters duplicate columns, it deduplicates
+            # them by appending '.1, ..., .N' to the column names.
+            # In future versions of pandas, simply pass mangle_dupe_cols=True
+            # to read_csv, but not ready as of pandas 0.22.0.
+            for feature in raw_matrix.columns.values:
+                if feature[-2:] == ".1":
+                    fmt.remove_feature(feature)
+                    self._removed_features.append(feature)
+
+            # Impute data.
+            self._impute_data(fmt, train_df, params['imputation_strategies'])
+
+            # In case any all-null features were created in preprocessing,
+            # drop them now so feature selection will work
+            fmt.drop_null_features()
+
+            # Build interim matrix.
+            train_df = fmt.fetch_matrix()
+
+            self._y_train = pd.DataFrame(train_df.pop(params['outcome_label']))
+            self._X_train = train_df
+
+            '''
+            Select X_test columns according to processed X_train
+            '''
+            self._X_test = self._X_test[self._X_train.columns]
+            '''
+            Impute data according to the same strategy when training
+            '''
+            for feat in self._X_test.columns:
+                self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
+
+            self._select_features(params['selection_problem'],
+                params['percent_features_to_select'],
+                params['selection_algorithm'],
+                params['features_to_keep'])
+
+            train = self._y_train.join(self._X_train)
+            test = self._y_test.join(self._X_test)
+
+            processed_matrix = train.append(test)
+            '''
+            Need to recover the order of rows before writing into disk
+            '''
+            processed_matrix.sort_index(inplace=True)
+
+            # Write output to new matrix file.
+            header = self._build_processed_matrix_header(params)
+            fm_io.write_data_frame_to_file(processed_matrix, \
+                processed_matrix_path, header)
+
+        '''
+        For testing the model on the holdout set, should remember features 
+        to select from the raw matrix of the holdout data. 
+        '''
+        if self._isLabNormalityPredictionPipeline:
+            final_features = processed_matrix.columns.values
+            if not self.feat2imputed_dict:
+                '''
+                The dict was not created during imputation. 
+                Probably because the processed matrix was loaded from previous session. 
+                Take the 'best guess' for the imputed value as the most common one in
+                any column. 
+                '''
+                for feat in final_features:
+                    most_freq_val = processed_matrix[feat].value_counts().idxmax()
+                    self.feat2imputed_dict[feat] = most_freq_val
+
+            curr_keys = self.feat2imputed_dict.keys()
+
+            '''
+            Only need to impute the selected features for the holdOut set. 
+            '''
+            for one_key in curr_keys:
+                if one_key not in final_features:
+                    self.feat2imputed_dict.pop(one_key)
+
     def _build_processed_feature_matrix(self, params):
         # params is a dict defining the details of how the raw feature matrix
         # should be transformed into the processed matrix. Given the sequence
@@ -582,7 +717,10 @@ class SupervisedLearningPipeline:
         holdout_path = dest_dir + '/../' + '%s-normality-matrix-%d-episodes-processed-holdout.tab'%(slugified_var, self._num_rows)
         fm_io = FeatureMatrixIO()
         processed_matrix = fm_io.read_file_to_data_frame(holdout_path)
-        y_holdout = pd.DataFrame(processed_matrix.pop('all_components_normal')) # TODO: outcome_label
+        if self._isLabPanel:
+            y_holdout = pd.DataFrame(processed_matrix.pop('all_components_normal'))
+        else:
+            y_holdout = pd.DataFrame(processed_matrix.pop('component_normal'))
         X_holdout = processed_matrix
         analyzer = ClassifierAnalyzer(self._predictor, X_holdout, y_holdout)
         train_label = 'holdoutset'
