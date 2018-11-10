@@ -273,10 +273,7 @@ class LabNormalityMatrix(FeatureMatrix):
             '''
             order_proc_id: unique identifier for an episode
             '''
-            if self._isLabPanel:
-                query.addSelect('sop.order_proc_id AS order_proc_id')
-            else:
-                query.addSelect('sor.order_proc_id AS order_proc_id')
+            query.addSelect('sop.order_proc_id')
 
             '''
             self._varTypeInTable: usually proc_code or base_name, the column of the lab to be queried
@@ -330,6 +327,8 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addGroupBy('sop.order_proc_id')
             query.addGroupBy(self._varTypeInTable)
             query.addGroupBy('order_time')
+            if not self._isLabPanel:
+                query.addGroupBy('result_flag')
 
             # query.addGroupBy('abnormal_yn')  #
 
