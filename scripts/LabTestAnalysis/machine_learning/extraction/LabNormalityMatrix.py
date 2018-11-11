@@ -36,15 +36,19 @@ class LabNormalityMatrix(FeatureMatrix):
         self._num_requested_episodes = num_episodes
         self._num_reported_episodes = 0
         # SQLite's random() function does not support a seed value.
-        if random_state and LocalEnv.DATABASE_CONNECTOR_NAME == 'psycopg2':
-            query = SQLQuery()
-            query.addSelect('setseed(%d);' % random_state)
-            DBUtil.execute(query)
+        if random_state:
             self._random_state = random_state
+            if LocalEnv.DATABASE_CONNECTOR_NAME == 'psycopg2':
+                query = SQLQuery()
+                query.addSelect('setseed(%d);' % random_state)
+                DBUtil.execute(query)
 
         self._time_limit = timeLimit
 
-        self._notUsePatIds = list(notUsePatIds)
+        if notUsePatIds:
+            self._notUsePatIds = list(notUsePatIds)
+        else:
+            self._notUsePatIds = []
 
         # Query patient episodes.
         self._query_patient_episodes()

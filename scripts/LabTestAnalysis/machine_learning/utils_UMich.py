@@ -11,6 +11,37 @@ from medinfo.common.Util import log
 import prepareData_NonSTRIDE as utils_general
 
 
+def line_str2list(line_str, skip_first_col=False, test_mode=False):
+
+
+# params_str2list=None, is_column=False):
+# if not params_str2list:
+#     params_str2list = {'skip_first_col':False,
+#                        'sep':'\t',
+#                        'has_extra_quotes':False
+#                        }
+#
+# line_list = line_str.split(params_str2list['sep'])
+# if params_str2list['skip_first_col'] and not is_column:
+#     line_list = line_list[1:]
+# line_list = [x.strip() for x in line_list]
+# if params_str2list['has_extra_quotes']:
+#     line_list = [x[1:-1] for x in line_list]
+# return line_list
+
+    if test_mode:
+        '''
+        In the sample data, there is extra quotes, redundant indices,
+        and | as the separator.
+        '''
+        if skip_first_col:
+            # get rid of meaningless first col index
+            return [x.strip()[1:-1] for x in line_str.split('|')][1:]
+        else:
+            return [x.strip()[1:-1] for x in line_str.split('|')]
+    else:
+        return [x.strip() for x in line_str.split('\t')]
+
 def construct_result_in_range_yn(df):
     # baseline
     result_flag_list = df['result_flag'].apply(lambda x: 'N' if x == 'L' or x == 'H' or x == 'A' else 'Y').values.tolist()
@@ -40,7 +71,7 @@ def construct_result_in_range_yn(df):
     # pd.testing.assert_series_equal(df['result_in_range_yn'], df_test['result_in_range_yn'])
     return df['result_in_range_yn']
 
-def pd_process_labs(labs_df):
+def pd_process_labs(labs_df, time_min=None):
     labs_df = labs_df.rename(columns={'PatientID':'pat_id',
                'EncounterID':'order_proc_id',
                'COLLECTION_DATE':'result_time',
@@ -50,6 +81,9 @@ def pd_process_labs(labs_df):
                'RANGE':'normal_range',
                'HILONORMAL_FLAG': 'result_flag'
                 })
+
+    if time_min:
+        labs_df = labs_df[labs_df['result_time'] > time_min]
 
     # Hash the string type pat_id to long int to fit into CDSS pipeline
     labs_df['pat_id'] = labs_df['pat_id'].apply(lambda x: hash(x))
@@ -81,14 +115,20 @@ def pd_process_pt_info(pt_info_df):
     pt_info_df['Birth'] = pt_info_df['Birth'].apply(lambda x: utils_general.remove_microsecs(x))
     return {'pt_info':pt_info_df[['pat_id', 'Birth']]}
 
-def pd_process_encounters(encounters_df):
+def pd_process_encounters(encounters_df, time_min=None, outpatient=False):
     encounters_df = encounters_df.rename(columns={'PatientID':'pat_id','EncounterID':'order_proc_id','AdmitDate':'AdmitDxDate'})
+    if time_min:
+        encounters_df = encounters_df[encounters_df['AdmitDxDate'] > time_min]
+    if not outpatient:
+        encounters_df = encounters_df[encounters_df['PatientClassCode'] != 'Outpatient']
     encounters_df['pat_id'] = encounters_df['pat_id'].apply(lambda x: hash(x))
     encounters_df['AdmitDxDate'] = encounters_df['AdmitDxDate'].apply(lambda x: utils_general.remove_microsecs(x))
     return {'encounters':encounters_df[['pat_id','order_proc_id','AdmitDxDate']]}
 
-def pd_process_diagnoses(diagnoses_df):
+def pd_process_diagnoses(diagnoses_df, time_min=None):
     diagnoses_df = diagnoses_df.rename(columns={'PatientID':'pat_id','EncounterID':'order_proc_id','ActivityDate':'diagnose_time','TermCodeMapped':'diagnose_code'})
+    if time_min:
+        diagnoses_df = diagnoses_df[diagnoses_df['diagnose_time'] > time_min]
     diagnoses_df['pat_id'] = diagnoses_df['pat_id'].apply(lambda x: hash(x))
     diagnoses_df['diagnose_time'] = diagnoses_df['diagnose_time'].apply(lambda x: utils_general.remove_microsecs(x))
 
@@ -100,4 +140,5 @@ def pd_process_demographics(demographics_df):
 
     demographics_df['GenderName'] = demographics_df['GenderName'].apply(lambda x: 'Unknown' if not x else x)
     demographics_df['RaceName'] = demographics_df['RaceName'].apply(lambda x: 'Unknown' if not x else x)
+    demographics_df['RaceName'] = demographics_df['RaceName'].apply(lambda x: x.replace("/", "-"))
     return {'demographics':demographics_df[['pat_id', 'GenderName', 'RaceName']]}

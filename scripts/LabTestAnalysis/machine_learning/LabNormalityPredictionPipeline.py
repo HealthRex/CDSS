@@ -23,7 +23,7 @@ from extraction.LabNormalityMatrix import LabNormalityMatrix
 # Import FMF in order to retrieve all races name dynamically upon accessing the UMich data
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 import LocalEnv
-import prepareData_NonSTRIDE
+from prepareData_NonSTRIDE import DB_Preparor
 import pickle
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
@@ -53,13 +53,12 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             For training/validation data, record the pat_ids, 
             selected features and their imputed value correspondingly. 
             '''
-
             pickle.dump(self.used_patient_set, open('data/used_patient_set_%s.pkl'%self._var, 'w'), pickle.HIGHEST_PROTOCOL)
             self.feat2imputed_dict = {}
             self._build_processed_feature_matrix()
             # TODO: find better place to put the dict.pkl
             pickle.dump(self.feat2imputed_dict, open(feat2imputed_dict_path, 'w'), pickle.HIGHEST_PROTOCOL)
-            # self._train_and_analyze_predictors()
+            self._train_and_analyze_predictors()
 
     def _build_model_dump_path(self, algorithm):
         template = '%s' + '-normality-%s-model.pkl' % algorithm
@@ -111,7 +110,6 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         if self._isLabPanel:
             outcome_label = 'all_components_normal'
         else:
-
             outcome_label = 'component_normal'
 
         processed_matrix = raw_matrix[self.feat2imputed_dict.keys()+[outcome_label]].copy()
@@ -453,9 +451,9 @@ if __name__ == '__main__':
 
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
-        for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
-            # LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
-            #                                timeLimit=(None, '2015-12-31'), notUsePatIds=None, holdOut=False)
+        for panel in ['LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
+                                           timeLimit=(None, None), notUsePatIds=None, holdOut=False)
             used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
             LabNormalityPredictionPipeline(panel, 2000, use_cache=True, random_state=123456789, isLabPanel=True,
                                            timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
@@ -475,31 +473,43 @@ if __name__ == '__main__':
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
 
         # By default, the first one should be labs
-        raw_data_files = ['labs.sample.txt',
-                          'pt.info.sample.txt',
-                          'encounters.sample.txt',
-                          'demographics.sample.txt',
-                          'diagnoses.sample.txt']
+        test_mode = True
+
+        if test_mode:
+            raw_data_files = ['labs.sample.txt',
+                              'pt.info.sample.txt',
+                              'encounters.sample.txt',
+                              'demographics.sample.txt',
+                              'diagnoses.sample.txt']
+        else:
+            raw_data_files = ['labs.txt',
+                              'pt.info.txt',
+                              'encounters.txt',
+                              'demographics.txt',
+                              'diagnoses.txt']
 
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
-        fold_enlarge_data = 10
-        USE_CACHED_DB = False # TODO: take care of USE_CACHED_LARGEFILE in the future
+        fold_enlarge_data = 1000
+        USE_CACHED_DB = True # TODO: take care of USE_CACHED_LARGEFILE in the future
 
-        prepareData_NonSTRIDE.prepare_database(raw_data_files, raw_data_folderpath,
+        db_preparor = DB_Preparor(raw_data_files, raw_data_folderpath,
                                                db_name=db_name,
                                                fold_enlarge_data=fold_enlarge_data,
                                                USE_CACHED_DB=USE_CACHED_DB,
-                                               data_source = 'UMich')
+                                               data_source = 'UMich',
+                                               time_min=None,#'2015-01-01',
+                                               test_mode=test_mode)
+        # prepare_database
 
         # for panel in UMICH_TOP_LABPANELS:
         #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
-        for component in UMICH_TOP_COMPONENTS:
-            try:
+        for component in ['WBC']: #UMICH_TOP_COMPONENTS:
+            # try:
                 LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
-            except Exception as e:
-                log.info(e)
-                pass
+            # except Exception as e:
+            #     log.info(e)
+            #     pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
 
@@ -517,7 +527,7 @@ if __name__ == '__main__':
         fold_enlarge_data = 1
         USE_CACHED_DB = False  # TODO: take care of USE_CACHED_LARGEFILE in the future
 
-        prepareData_NonSTRIDE.prepare_database(raw_data_files, raw_data_folderpath,
+        DB_Preparor.prepare_database(raw_data_files, raw_data_folderpath,
                                                db_name=db_name,
                                                fold_enlarge_data=fold_enlarge_data,
                                                USE_CACHED_DB=USE_CACHED_DB,
