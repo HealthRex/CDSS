@@ -264,6 +264,9 @@ class SupervisedLearningPipeline:
                 any column. 
                 '''
                 for feat in final_features:
+                    if feat == params['outcome_label']:
+                        #Do not impute y-label.
+                        continue
                     most_freq_val = processed_matrix[feat].value_counts().idxmax()
                     self.feat2imputed_dict[feat] = most_freq_val
 
@@ -372,6 +375,9 @@ class SupervisedLearningPipeline:
                 any column. 
                 '''
                 for feat in final_features:
+                    if feat == params['outcome_label']:
+                        #Do not impute y-label.
+                        continue
                     most_freq_val = processed_matrix[feat].value_counts().idxmax()
                     self.feat2imputed_dict[feat] = most_freq_val
 
@@ -466,6 +472,9 @@ class SupervisedLearningPipeline:
                 TODO sxu: take care of the case of non-mean imputation strategy
                 '''
                 if self._isLabNormalityPredictionPipeline:
+                    if feature == 'all_components_normal' or feature == 'component_normal':
+                        # Do not impute y-label
+                        continue
                     imputed_value = fmt.impute(feature)
                     self.feat2imputed_dict[feature] = imputed_value
 
