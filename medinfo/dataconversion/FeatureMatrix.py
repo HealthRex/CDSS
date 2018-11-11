@@ -38,11 +38,11 @@ class FeatureMatrix:
 
         # Fetch and return results.
         log.info('query: %s' % str(query))
-        log.info('query.params: %s' % str(query.params))
 
         if isinstance(query, basestring):
             cursor.execute(query)
         else:
+            log.info('query.params: %s' % str(query.params))
             cursor.execute(str(query), query.params)
 
         # Parse arguments.
