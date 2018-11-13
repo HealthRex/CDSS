@@ -120,10 +120,6 @@ class SupervisedLearningPipeline:
         else:
             self._raw_matrix_params = params
         if os.path.exists(raw_matrix_path) and not self._flush_cache:
-            if self._isLabNormalityPredictionPipeline and not self._holdOut:
-                fm_io = FeatureMatrixIO()
-                matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
-                self.used_patient_set = set(matrix['pat_id'].values)
             pass
         else:
             # Each matrix class may have a custom set of parameters which should
@@ -135,11 +131,14 @@ class SupervisedLearningPipeline:
                 matrix = matrix_class(self._var, self._num_rows, random_state=random_state,
                                   isLabPanel=self._isLabPanel, timeLimit=self._timeLimit,
                                       notUsePatIds=self.notUsePatIds)
-                if not self._holdOut:
-                    self.used_patient_set = matrix.patients
             else:
                 matrix = matrix_class(self._var, self._num_rows, random_state=random_state)
             matrix.write_matrix(raw_matrix_path)
+
+        if self._isLabNormalityPredictionPipeline and not self._holdOut:
+            fm_io = FeatureMatrixIO()
+            matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+            self.used_patient_set = set(matrix['pat_id'].values)
 
     def _build_processed_feature_matrix_sx(self, params):
         # params is a dict defining the details of how the raw feature matrix
@@ -173,7 +172,7 @@ class SupervisedLearningPipeline:
             Make sure the order of rows is consistent before splitting
             '''
             processed_matrix.sort_index(inplace=True)
-            self._train_test_split(processed_matrix, params['outcome_label']) #TODO sxu: when reloading, no pat_id
+            self._train_test_split_sx1(processed_matrix, params['outcome_label']) #TODO sxu: when reloading, no pat_id
         else:
             # Read raw matrix.
             raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
@@ -183,8 +182,17 @@ class SupervisedLearningPipeline:
             # This must happen before feature selection so that we don't
             # accidentally learn information from the test data.
 
-            # TODO: work on this...
-            self._train_test_split(raw_matrix, params['outcome_label'])
+            self._train_test_split_sx1(raw_matrix, params['outcome_label'])
+            # ##
+            # folder_path = '/'.join(params['raw_matrix_path'].split('/')[:-1])
+            # self._X_train.join(self._y_train).to_csv(folder_path + '/' + 'train_raw.csv', index=False)
+            # self._X_test.join(self._y_test).to_csv(folder_path + '/' + 'test_raw.csv', index=False)
+            #
+            # '''
+            # Mini-test that there are no overlapping patients
+            # '''
+            # assert bool(set(self._X_train['pat_id'].values) & set(self._X_test['pat_id'].values)) == False
+            # ##
 
             fmt = FeatureMatrixTransform()
             train_df = self._X_train.join(self._y_train)
