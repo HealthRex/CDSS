@@ -33,6 +33,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state,
                                             isLabPanel, timeLimit, holdOut,
                                             isLabNormalityPredictionPipeline=True)
+        # TODO: naming of lab_panel
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
         self._build_baseline_results() #TODO: prototype in SLPP
@@ -112,7 +113,17 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         else:
             outcome_label = 'component_normal'
 
+        if outcome_label in self.feat2imputed_dict:
+            self.feat2imputed_dict.pop(outcome_label)
+
         processed_matrix = raw_matrix[self.feat2imputed_dict.keys()+[outcome_label]].copy()
+
+        # TODO: tmp solution!
+        tmp_path = self._build_processed_matrix_path().replace("2000","10000").replace("-holdout","")
+        fm_io1 = FeatureMatrixIO()
+        processed_matrix_previous = fm_io1.read_file_to_data_frame(tmp_path)
+        processed_matrix = processed_matrix[processed_matrix_previous.columns]
+        # TODO: tmp solution!
 
         for feat in self.feat2imputed_dict.keys():
             processed_matrix[feat] = processed_matrix[feat].fillna(self.feat2imputed_dict[feat])
@@ -221,7 +232,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         params['random_state'] = random_state
 
         # Defer processing logic to SupervisedLearningPipeline.
-        SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
+        SupervisedLearningPipeline._build_processed_feature_matrix_sx(self, params)
 
     def _analyze_predictors_on_holdout(self):
         fm_io = FeatureMatrixIO()
@@ -235,7 +246,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         #     algorithms_to_test.append('bifurcated-%s' % algorithm)
         log.debug('algorithms_to_test: %s' % algorithms_to_test)
         for algorithm in algorithms_to_test:
-            log.info('Training and analyzing %s...' % algorithm)
+            log.info('analyzing %s...' % algorithm)
             # If report_dir does not exist, make it.
             report_dir = '/'.join([data_dir, algorithm])
 
@@ -451,9 +462,9 @@ if __name__ == '__main__':
 
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
-        for panel in ['LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
-            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
-                                           timeLimit=(None, None), notUsePatIds=None, holdOut=False)
+        for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS[1:]:#['LABMGN', 'LABK', 'LABLAC']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+            # LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
+            #                                timeLimit=(None, None), notUsePatIds=None, holdOut=False)
             used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
             LabNormalityPredictionPipeline(panel, 2000, use_cache=True, random_state=123456789, isLabPanel=True,
                                            timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
