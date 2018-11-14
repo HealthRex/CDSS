@@ -492,7 +492,7 @@ class FeatureMatrixFactory:
         if clinicalItemType:
             query_str += "WHERE %s IN (" % (clinicalItemType)
             for clinicalItemName in clinicalItemNames:
-                query_str += "'%s'," % clinicalItemName
+                query_str += '"%s",' % clinicalItemName
             query_str = query_str[:-1] + ") AND "
         else:
             query_str += "WHERE "
@@ -511,7 +511,9 @@ class FeatureMatrixFactory:
         if clinicalItemTime:
             query_str += ", %s " % clinicalItemTime
 
-        results = DBUtil.connection().cursor().execute(query_str).fetchall()
+        _cursor = DBUtil.connection().cursor()
+        _cursor.execute(query_str)
+        results = _cursor.fetchall()
 
         componentItemEvents = [list(row) for row in results]
         if not clinicalItemTime:
@@ -1394,22 +1396,29 @@ class FeatureMatrixFactory:
         """
         # Extract out lists of treatment team names per care category
         teamNameByCategory = dict()
-        for row in self.loadMapData("TreatmentTeamGroups"):
-            (category, teamName) = (row["team_category"], row["treatment_team"])
-            if category not in teamNameByCategory:
-                teamNameByCategory[category] = list()
-            teamNameByCategory[category].append(teamName)
 
-        for category, teamNames in teamNameByCategory.iteritems():
-            log.debug('Adding %s treatment team features...' % category)
-            if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            for row in self.loadMapData("TreatmentTeamGroups"):
+                (category, teamName) = (row["team_category"], row["treatment_team"])
+                if category not in teamNameByCategory:
+                    teamNameByCategory[category] = list()
+                teamNameByCategory[category].append(teamName)
+
+            for category, teamNames in teamNameByCategory.iteritems():
+                log.debug('Adding %s treatment team features...' % category)
                 self.addClinicalItemFeatures(teamNames, column="description", \
-                                             label="Team." + category, features=features)
-            else:
-            #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-            # TODO: teamNames, need a whole list of Teams...
-            #     print 'teamNames:', teamNames
-                teamNames = []
+                                                 label="Team." + category, features=features)
+
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+            for row in self.loadMapData("TreatmentTeamGroups_UCSF"):
+                (category, teamName) = (row["team_category"], row["treatment_team"])
+                if category not in teamNameByCategory:
+                    teamNameByCategory[category] = list()
+                teamNameByCategory[category].append(teamName)
+
+            for category, teamNames in teamNameByCategory.iteritems():
+                log.debug('Adding %s treatment team features...' % category)
+                # TODO sx: rename
                 self.addClinicalItemFeatures_UMich(teamNames, \
                     tableName='labs', clinicalItemTime = 'order_time',
                     label="Team."+category, features=features)
