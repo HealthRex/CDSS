@@ -923,15 +923,23 @@ class FeatureMatrixFactory:
             patientIds.add(episode[self.patientEpisodeIdColumn])
 
         # Build SQL query.
-        colNames = ["pat_anon_id AS pat_id", "flo_meas_id", "flowsheet_name", \
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            pat_col = "pat_anon_id"
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+            pat_col = "pat_id"
+
+        colNames = ["%s AS pat_id"%pat_col, "flo_meas_id", "flowsheet_name", \
             "flowsheet_value", "shifted_record_dt_tm"]
         query = SQLQuery()
         for col in colNames:
             query.addSelect(col)
-        query.addFrom("stride_flowsheet")
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            query.addFrom("stride_flowsheet")
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+            query.addFrom("vitals")
         query.addWhereIn("flowsheet_name", flowsheetBaseNames)
-        query.addWhereIn("pat_anon_id", patientIds)
-        query.addOrderBy("pat_anon_id")
+        query.addWhereIn(pat_col, patientIds)
+        query.addOrderBy(pat_col)
         query.addOrderBy("shifted_record_dt_tm")
         log.debug(query)
 
@@ -1203,7 +1211,7 @@ class FeatureMatrixFactory:
                 baseName = result[nameCol]
                 try:
                     resultValue = float(result[valueCol])
-                except: # TODO: weird values of ord_num_value cannot be converted..
+                except: # TODO sx: weird values of ord_num_value cannot be converted..
                     continue
                 resultTime = DBUtil.parseDateValue(result[datetimeCol])
 
@@ -1375,7 +1383,6 @@ class FeatureMatrixFactory:
                     icdprefixesByDisease[disease] = list()
                     icdprefixesByDisease[disease].append("^ICD10." + icd10prefix)
                     icdprefixesByDisease[disease].append(icd10prefix)
-            # print icdprefixesByDisease
 
         for disease, icdprefixes in icdprefixesByDisease.iteritems():
             disease = disease.translate(None," ()-/") # Strip off punctuation
@@ -1555,12 +1562,12 @@ class FeatureMatrixFactory:
             # results = [x if x else 'Unknown' for x in results]
             return results
 
-    def queryAllTeams(self):
-        if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-            query = SQLQuery()
-            query.addSelect("DISTINCT RaceName")
-            query.addFrom("demographics")
-            results = DBUtil.execute(query)
-            results = [x[0] for x in results]
-            # results = [x if x else 'Unknown' for x in results]
-            return results
+    # def queryAllTeams(self):
+    #     if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+    #         query = SQLQuery()
+    #         query.addSelect("DISTINCT RaceName")
+    #         query.addFrom("demographics")
+    #         results = DBUtil.execute(query)
+    #         results = [x[0] for x in results]
+    #         # results = [x if x else 'Unknown' for x in results]
+    #         return results

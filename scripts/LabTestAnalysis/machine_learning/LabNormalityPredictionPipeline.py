@@ -232,7 +232,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         params['random_state'] = random_state
 
         # Defer processing logic to SupervisedLearningPipeline.
-        SupervisedLearningPipeline._build_processed_feature_matrix_sx(self, params)
+        SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
 
     def _analyze_predictors_on_holdout(self):
         fm_io = FeatureMatrixIO()
@@ -462,12 +462,19 @@ if __name__ == '__main__':
 
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
-        for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS[1:]:#['LABMGN', 'LABK', 'LABLAC']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+        for panel in ['LABA1C']:#NON_PANEL_TESTS_WITH_GT_500_ORDERS[0]:#['LABMGN', 'LABK', 'LABLAC']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
             # LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
             #                                timeLimit=(None, None), notUsePatIds=None, holdOut=False)
             used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
             LabNormalityPredictionPipeline(panel, 2000, use_cache=True, random_state=123456789, isLabPanel=True,
                                            timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
+        for panel in ['LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+            # LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
+            #                                timeLimit=(None, None), notUsePatIds=None, holdOut=False)
+            # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
+            # LabNormalityPredictionPipeline(panel, 2000, use_cache=True, random_state=123456789, isLabPanel=True,
+            #                                timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
+            pass
 
             # try:
             #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
@@ -477,9 +484,13 @@ if __name__ == '__main__':
             #     print 'data/%s removed!'%panel
             #     LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
 
-        # for component in ['HGB', 'WBC', 'K', 'NA', 'CR', 'GLU' #'PLT',
-        #                    ]:#STRIDE_COMPONENT_TESTS:
-        #     LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+        for component in ['CR' #'HGB', 'WBC', 'K', 'NA', 'CR', 'GLU' #'PLT',
+                           ]:#STRIDE_COMPONENT_TESTS:
+            print 'start %s...'%component
+            # LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+            used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
+            LabNormalityPredictionPipeline(component, 2000, use_cache=True, random_state=123456789, isLabPanel=False,
+                                       timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
 
@@ -538,15 +549,19 @@ if __name__ == '__main__':
         fold_enlarge_data = 1
         USE_CACHED_DB = False  # TODO: take care of USE_CACHED_LARGEFILE in the future
 
-        DB_Preparor.prepare_database(raw_data_files, raw_data_folderpath,
+        db_preparor = DB_Preparor(raw_data_files, raw_data_folderpath,
                                                db_name=db_name,
                                                fold_enlarge_data=fold_enlarge_data,
                                                USE_CACHED_DB=USE_CACHED_DB,
-                                               data_source='UCSF')
+                                  test_mode=True) #TODO
 
         for component in UCSF_TOP_COMPONENTS:
-            LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
-        pass
+            # try:
+                LabNormalityPredictionPipeline(component, 3000, use_cache=False, random_state=123456789, isLabPanel=False)
+            # except SystemExit as se:
+            #     log.info(se)
+            # except Exception as e:
+            #     log.info(e)
 
     log.info("\n"
              "Congratz, pipelining completed! \n"
