@@ -219,7 +219,7 @@ class FeatureMatrixFactory:
         """
         return TabDictReader(open(self._patientEpisodeTempFileName, "r"))
 
-    def obtain_baseline_results(self, raw_matrix_path, random_state, isLabPanel=True):
+    def obtain_baseline_results(self, raw_matrix_path, random_state, isLabPanel=True, isHoldOut=False):
         # for episode_dict in self.getPatientEpisodeIterator():
         #     episode_dict
 
@@ -298,7 +298,11 @@ class FeatureMatrixFactory:
                                              'predict': newlist[i]['predict']}, ignore_index=True)
 
         baseline_folder = '/'.join(raw_matrix_path.split('/')[:-1])
-        baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons.csv'))
+
+        if not isHoldOut:
+            baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons.csv'))
+        else:
+            baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons_holdout.csv'))
 
     def _getPatientEpisodeByIndexTimeById(self):
         """
