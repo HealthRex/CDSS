@@ -14,7 +14,10 @@ import datetime
 from collections import Counter
 
 datetime_format = "%Y-%m-%dT%H:%M:%SZ"
-RUNNING_MODE = 'TEST' #TODO
+test_mode = False #TODO
+
+def line_str2list(line_str, skip_first_col=False, test_mode=False):
+    return [x.strip() for x in line_str.split('\t')]
 
 def pd_process_demogdiagn(df):
     # file_name = 'demographics_and_diagnoses.tsv'  #
@@ -29,6 +32,11 @@ def pd_process_demogdiagn(df):
     df_diagn = df_diagn.rename(
         columns={'CSN': 'order_proc_id', 'Admission Datetime': 'diagnose_time', 'ICD10': 'diagnose_code'})
     df_diagn['pat_id'] = df_diagn['order_proc_id'].apply(lambda x: hash(x))
+    df_diagn['diagnose_time'] = df_diagn['diagnose_time'].apply(lambda x: datetime.datetime.strptime(x, datetime_format))
+    '''
+    Use the bigger category to summarize ICD10 code
+    '''
+    df_diagn['diagnose_code'] = df_diagn['diagnose_code'].apply(lambda x: "".join(x.split(".")[:-1]))
     tab2df_dict['diagnoses'] = df_diagn[['pat_id', 'order_proc_id', 'diagnose_time', 'diagnose_code']]
 
     # diagnoses_df['diagnose_time'] = diagnoses_df['diagnose_time'].apply(lambda x: utils_general.remove_microsecs(x))
@@ -39,7 +47,7 @@ def pd_process_demogdiagn(df):
     # TODO: Ethnic_Grp or Primary_Race?
     df_demog = df[['CSN', 'Gender', 'Primary_Race']].copy()
     df_demog = df_demog.drop_duplicates()
-    if RUNNING_MODE == 'TEST':
+    if test_mode:
         df_demog['Gender'] = df_demog['Gender'].apply(lambda x: 'Male')
 
     df_demog = df_demog.rename(columns={'Gender': 'GenderName',
@@ -49,6 +57,7 @@ def pd_process_demogdiagn(df):
 
     df_demog['GenderName'] = df_demog['GenderName'].apply(lambda x: 'Unknown' if not x else x)
     df_demog['RaceName'] = df_demog['RaceName'].apply(lambda x: 'Unknown' if not x else x)
+    df_demog['RaceName'] = df_demog['RaceName'].apply(lambda x: x.replace('/', '-'))
 
     tab2df_dict['demographics'] = df_demog[['pat_id', 'GenderName', 'RaceName']]
 
@@ -68,10 +77,11 @@ def pd_process_demogdiagn(df):
 
     df_pt_info['pat_id'] = df_pt_info['CSN'].apply(lambda x: hash(x))
     # pt_info_df['Birth'] = pt_info_df['Birth'].apply(lambda x: utils_general.remove_microsecs(x))
-    if RUNNING_MODE == 'TEST':
+    if test_mode:
         df_pt_info['Birth'] = df_pt_info['Admission Datetime'].apply(
             lambda x: datetime.datetime(year=1900, month=1, day=1))
     else:
+        # df_pt_info['Age'] = df_pt_info['Age'].apply(lambda x: 23)
         df_pt_info['Birth'] = (
                     df_pt_info['Admission Datetime'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)) \
                     - df_pt_info['Age'].apply(lambda x: datetime.timedelta(days=x * 365))).values
@@ -138,6 +148,7 @@ def pd_process_vitals(vitals_df):
                                           'o2flow': 'flowsheet_value_o2flow'
                                           })
     vitals_df['pat_id'] = vitals_df['flo_meas_id'].apply(lambda x: hash(x))
+    vitals_df['shifted_record_dt_tm'] = vitals_df['shifted_record_dt_tm'].apply(lambda x: datetime.datetime.strptime(x, datetime_format))
 
     # print pd.wide_to_long
     vitals_df_long = pd.wide_to_long(vitals_df, stubnames='flowsheet_value',

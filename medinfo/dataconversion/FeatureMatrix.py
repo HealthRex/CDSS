@@ -69,13 +69,12 @@ class FeatureMatrix:
         # elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             self._add_time_features(index_time_col)
             self._add_demographic_features()
-            # self._add_treatment_team_features()
             self._add_comorbidity_features()
-            # self._add_flowsheet_features()
             self._add_lab_component_features()
 
-            if LocalEnv.DATASET_SOURCE_NAME == 'UCSF': # TODO
+            if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
                 self._add_treatment_team_features()
+                self._add_flowsheet_features()
 
     def _add_time_features(self, index_time_col=None):
         log.info('Adding admit date features...')

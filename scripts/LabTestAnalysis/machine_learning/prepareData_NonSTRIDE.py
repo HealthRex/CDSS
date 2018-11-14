@@ -40,11 +40,9 @@ class DB_Preparor:
                        db_name,
                        fold_enlarge_data,
                        USE_CACHED_DB,
-                       data_source = 'UMich',
                        time_min='2015-01-01',
                        test_mode=False):
 
-        self.data_source = 'UMich'
         self.num_repeats = fold_enlarge_data
         self.time_min = time_min
         self.test_mode = test_mode
@@ -89,7 +87,7 @@ class DB_Preparor:
 
         for data_file in data_files:
             self.raw2db(data_file, data_folderpath, db_path=raw_data_folderpath,
-                   db_name=db_name, build_index_patid=True, data_source=data_source)
+                   db_name=db_name, build_index_patid=True)
 
 
 
@@ -230,10 +228,10 @@ class DB_Preparor:
         return data_df
 
 
-    def pd2db(self, data_df, df_name, db_path, db_name, data_source):
+    def pd2db(self, data_df, df_name, db_path, db_name):
         conn = sqlite3.connect(db_path + '/' + db_name)
 
-        if data_source == 'UMich':
+        if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             if df_name == "labs":  #
                 tab2df_dict = utils_NonSTRIDE.pd_process_labs(data_df)
             elif df_name == "pt_info":
@@ -247,7 +245,7 @@ class DB_Preparor:
             else:
                 print df_name + " does not exist for UMich!"
 
-        elif data_source == 'UCSF':
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
 
             if df_name == "labs":  #
                 tab2df_dict = utils_NonSTRIDE.pd_process_labs(data_df)
@@ -261,10 +259,13 @@ class DB_Preparor:
         for table_name in tab2df_dict.keys():
             tab2df_dict[table_name].to_sql(table_name, conn, if_exists="append")
 
+            if self.test_mode:
+                tab2df_dict[table_name].to_csv('raw_data_UCSF/' + table_name + '.csv')
+
         return tab2df_dict.keys()
 
-    def preprocess_files(self, data_source, raw_data_folderpath):
-        if data_source == 'UCSF':
+    def preprocess_files(self, raw_data_folderpath):
+        if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
             import utils_UCSF as utils_specs
             utils_specs.separate_demog_diagn_encnt(raw_data_folderpath)
             utils_specs.separate_labs_team(raw_data_folderpath)
@@ -273,7 +274,7 @@ class DB_Preparor:
 
     # Chunk mechanism, should be general for any outside data
     def raw2db(self, data_file, data_folderpath, db_path, db_name,
-           data_source, build_index_patid=True):
+           build_index_patid=True):
         chunk_size = 100000  # num of rows
 
         print 'Now writing %s into database...' % data_file  #
@@ -288,20 +289,19 @@ class DB_Preparor:
                 if not next_n_lines_str:
                     break
 
-                params_str2list = {}
-                if data_source == 'UMich':
-                    params_str2list['sep'] = '|'
-                    params_str2list['has_extra_quotes'] = True
-                    params_str2list['skip_first_col'] = True
-                elif data_source == 'UCSF':
-                    params_str2list['sep'] = '\t'
-                    params_str2list['has_extra_quotes'] = False
-                    params_str2list['skip_first_col'] = False
+                # params_str2list = {}
+                # if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+                #     params_str2list['sep'] = '|'
+                #     params_str2list['has_extra_quotes'] = True
+                #     params_str2list['skip_first_col'] = True
+                # elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+                #     params_str2list['sep'] = '\t'
+                #     params_str2list['has_extra_quotes'] = False
+                #     params_str2list['skip_first_col'] = False
 
                 if is_first_chunk:
                     colnames = utils_NonSTRIDE.line_str2list(next_n_lines_str[0],
                                                              test_mode=self.test_mode)
-                                                             # , params_str2list, is_column=True)
                     data_df = self.lines2pd(next_n_lines_str[1:], colnames)
                                        #, params_str2list)
                     is_first_chunk = False
@@ -310,17 +310,18 @@ class DB_Preparor:
                                        # params_str2list)
 
                 ## append each pandas to db tables
-                if data_source == 'UMich':
+                if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
                     df_name = data_file.replace(".txt", "")
                     df_name = df_name.replace(".sample", "")
                     df_name = df_name.replace(".test", "")
                     df_name = df_name.replace(".large", "")
                     df_name = df_name.replace('.', '_')  # pt.info
-                elif data_source == 'UCSF':
+                elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
                     df_name = data_file.replace(".tsv", "")  #
                     df_name = df_name.replace("_deident", "")
                     df_name = df_name.replace('.', '_')
-                generated_tables += self.pd2db(data_df, df_name=df_name, db_path=db_path, db_name=db_name, data_source=data_source)
+
+                generated_tables += self.pd2db(data_df, df_name=df_name, db_path=db_path, db_name=db_name)
                 ##
 
         if build_index_patid:
@@ -328,5 +329,6 @@ class DB_Preparor:
 
             for generated_table in generated_tables:
                 build_index_query = "CREATE INDEX IF NOT EXISTS index_for_%s ON %s (%s);" % (generated_table, generated_table, 'pat_id')
+                log.info(build_index_query)
                 # print build_index_query
                 conn.execute(build_index_query)
