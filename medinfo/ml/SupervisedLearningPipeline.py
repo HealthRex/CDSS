@@ -169,6 +169,8 @@ class SupervisedLearningPipeline:
             # to split the data into training and test data.
             processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
             self._train_test_split(processed_matrix, params['outcome_label'])
+            self._X_train = self._X_train.drop(['pat_id'], axis=1)
+            self._X_test = self._X_test.drop(['pat_id'], axis=1)
         else:
             # Read raw matrix.
             raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
@@ -177,6 +179,8 @@ class SupervisedLearningPipeline:
             # Divide processed_matrix into training and test data.
             # This must happen before feature selection so that we don't
             # accidentally learn information from the test data.
+
+            pat_ids = raw_matrix['pat_id'].copy()
 
             self._train_test_split(raw_matrix, params['outcome_label'])
             # ##
@@ -251,12 +255,13 @@ class SupervisedLearningPipeline:
 
             # Write output to new matrix file.
             header = self._build_processed_matrix_header(params)
-            fm_io.write_data_frame_to_file(processed_matrix, \
+            fm_io.write_data_frame_to_file(processed_matrix.join(pat_ids), \
                 processed_matrix_path, header)
 
         '''
         For testing the model on the holdout set, should remember features 
         to select from the raw matrix of the holdout data. 
+        TODO sx: put into LabNormalityPredictionPipeline.py
         '''
         if self._isLabNormalityPredictionPipeline:
             final_features = processed_matrix.columns.values
