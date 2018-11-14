@@ -10,8 +10,10 @@ import logging
 
 from sys import argv
 from pandas import DataFrame, Series
+import pandas as pd
 import numpy as np
 from sklearn.externals import joblib
+from sklearn.model_selection import train_test_split
 
 from medinfo.common.Util import log
 from medinfo.ml.FeatureSelector import FeatureSelector
@@ -25,6 +27,7 @@ from scripts.LabTestAnalysis.machine_learning.extraction.LabChangeMatrix import 
 class LabChangePredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, change_params, lab_panel, num_episodes, use_cache=None, random_state=None, build_raw_only=False,):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state)
+        self.feat2imputed_dict = {}
         self._change_params = change_params
         self._change_params['feature_old'] = self._lookup_previous_measurement_feature(self._var)
         log.debug('change_params: %s' % self._change_params)
@@ -157,8 +160,148 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
         params['pipeline_file_path'] = pipeline_file_path
         params['data_overview'] = data_overview
 
-        # Defer processing logic to SupervisedLearningPipeline.
-        SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
+        # defer to SupervisedLearningPipeline logic by SX
+        fm_io = FeatureMatrixIO()
+        log.debug('params: %s' % params)
+        # If processed matrix exists, and the client has not requested to flush
+        # the cache, just use the matrix that already exists and return.
+        processed_matrix_path = params['processed_matrix_path']
+        if os.path.exists(processed_matrix_path) and not self._flush_cache:
+            # Assume feature selection already happened, but we still need
+            # to split the data into training and test data.
+            processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
+            '''
+            Make sure the order of rows is consistent before splitting
+            '''
+            processed_matrix.sort_index(inplace=True)
+            self._train_test_split(processed_matrix, params['outcome_label']) #TODO sxu: when reloading, no pat_id
+        else:
+            # Read raw matrix.
+            raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
+            # Initialize FMT.
+
+            # Add outcome label
+            raw_fmt = FeatureMatrixTransform()
+            raw_fmt.set_input_matrix(raw_matrix)
+            self._filter_on_features(raw_fmt, params['features_to_filter_on'])
+            self._add_features(raw_fmt, params['features_to_add'])
+            raw_matrix = raw_fmt.fetch_matrix()
+
+            # Divide processed_matrix into training and test data.
+            # This must happen before feature selection so that we don't
+            # accidentally learn information from the test data.
+
+            # TODO: work on this...
+            self._train_test_split(raw_matrix, params['outcome_label'])
+
+            fmt = FeatureMatrixTransform()
+            train_df = self._X_train.join(self._y_train)
+            fmt.set_input_matrix(train_df)
+
+            # Remove features.
+            self._remove_features(fmt, params['features_to_remove'])
+            # Filter on features
+            if 'features_to_filter_on' in params:
+                self._filter_on_features(fmt, params['features_to_filter_on'])
+
+            # HACK: When read_csv encounters duplicate columns, it deduplicates
+            # them by appending '.1, ..., .N' to the column names.
+            # In future versions of pandas, simply pass mangle_dupe_cols=True
+            # to read_csv, but not ready as of pandas 0.22.0.
+            for feature in raw_matrix.columns.values:
+                if feature[-2:] == ".1":
+                    fmt.remove_feature(feature)
+                    self._removed_features.append(feature)
+
+            # Impute data.
+            self._impute_data(fmt, train_df, params['imputation_strategies'])
+
+            # In case any all-null features were created in preprocessing,
+            # drop them now so feature selection will work
+            fmt.drop_null_features()
+
+            # Build interim matrix.
+            train_df = fmt.fetch_matrix()
+
+            self._y_train = pd.DataFrame(train_df.pop(params['outcome_label']))
+            self._X_train = train_df
+
+            '''
+            Select X_test columns according to processed X_train
+            '''
+            self._X_test = self._X_test[self._X_train.columns]
+
+            '''
+            Impute data according to the same strategy when training
+            '''
+            for feat in self._X_test.columns:
+                self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
+
+            self._select_features(params['selection_problem'],
+                params['percent_features_to_select'],
+                params['selection_algorithm'],
+                params['features_to_keep'])
+
+            train = self._y_train.join(self._X_train)
+            test = self._y_test.join(self._X_test)
+
+            processed_matrix = train.append(test)
+            '''
+            Need to recover the order of rows before writing into disk
+            '''
+            processed_matrix.sort_index(inplace=True)
+
+            # Write output to new matrix file.
+            header = self._build_processed_matrix_header(params)
+            fm_io.write_data_frame_to_file(processed_matrix, \
+                processed_matrix_path, header)
+
+    def _impute_data(self, fmt, raw_matrix, imputation_strategies):
+        for feature in raw_matrix.columns.values:
+            if feature in self._removed_features:
+                continue
+            # If all values are null, just remove the feature.
+            # Otherwise, imputation will fail (there's no mean value),
+            # and sklearn will ragequit.
+            if raw_matrix[feature].isnull().all():
+                fmt.remove_feature(feature)
+                self._removed_features.append(feature)
+            # Only try to impute if some of the values are null.
+            elif raw_matrix[feature].isnull().any():
+                # If an imputation strategy is specified, follow it.
+                if imputation_strategies.get(feature):
+                    strategy = imputation_strategies.get(feature)
+                    fmt.impute(feature, strategy)
+                else:
+                    # TODO(sbala): Impute all time features with non-mean value.
+                    imputed_value = fmt.impute(feature)
+                    self.feat2imputed_dict[feature] = imputed_value
+            else:
+                '''
+                If there is no need to impute, still keep the mean value, in case test data
+                need imputation
+                TODO sxu: take care of the case of non-mean imputation strategy
+                '''
+                imputed_value = fmt.impute(feature)
+                self.feat2imputed_dict[feature] = imputed_value
+
+    '''
+    Strategy 1: split by pat_id, no overlapping between train/test
+    implemented by sx, lifted to here while the code in SupervisedLearningPipeline
+    is in flux
+    '''
+    def _train_test_split(self, processed_matrix, outcome_label):
+        log.debug('outcome_label: %s' % outcome_label)
+        all_pat_ids = list(set(processed_matrix['pat_id'].values))
+        train_pat_ids, test_pat_ids = train_test_split(all_pat_ids, random_state=self._random_state)
+
+        train_matrix = processed_matrix[processed_matrix['pat_id'].isin(train_pat_ids)].copy()
+        self._y_train = pd.DataFrame(train_matrix.pop(outcome_label))
+        self._X_train = train_matrix
+
+        test_matrix = processed_matrix[processed_matrix['pat_id'].isin(test_pat_ids)].copy()
+        self._y_test = pd.DataFrame(test_matrix.pop(outcome_label))
+        self._X_test = test_matrix
 
     def _fetch_data_dir_path(self, pipeline_module_path):
         # e.g. app_dir = CDSS/scripts/LabTestAnalysis/machine_learning
