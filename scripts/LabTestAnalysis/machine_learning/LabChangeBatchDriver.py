@@ -43,12 +43,7 @@ NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
     'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
 ]
 
-labs_to_test = ["LABLACWB"]
-#    [#"LABMGN, #"LABPTT", #"LABPHOS", "LABTNI", #"LABLACWB",
-#    #"LABA1C", #"LABHEPAR", #"LABPLTS", "LABLAC","LABLIPS",
-#    "LABTSH", "LABHCTX", "LABLDH", "LABK", "LABNTBNP",
-#    "LABCRP", "LABCK", #"LABFER",
-#    "LABUSPG"]
+labs_to_test = ["LABTNI", "LABTSH", "LABPLTS", "LABPHOS", "LABPTT", "LABNTBNP", "LABMGN", "LABLIPS", "LABLACWB", "LABHEPAR", "LABFER", "LABCK", "LABCRP"]
 
 baseArgv = \
     ["python","LabChangePredictionPipeline.py"]

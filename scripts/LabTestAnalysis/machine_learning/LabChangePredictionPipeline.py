@@ -285,24 +285,6 @@ class LabChangePredictionPipeline(SupervisedLearningPipeline):
                 imputed_value = fmt.impute(feature)
                 self.feat2imputed_dict[feature] = imputed_value
 
-    '''
-    Strategy 1: split by pat_id, no overlapping between train/test
-    implemented by sx, lifted to here while the code in SupervisedLearningPipeline
-    is in flux
-    '''
-    def _train_test_split(self, processed_matrix, outcome_label):
-        log.debug('outcome_label: %s' % outcome_label)
-        all_pat_ids = list(set(processed_matrix['pat_id'].values))
-        train_pat_ids, test_pat_ids = train_test_split(all_pat_ids, random_state=self._random_state)
-
-        train_matrix = processed_matrix[processed_matrix['pat_id'].isin(train_pat_ids)].copy()
-        self._y_train = pd.DataFrame(train_matrix.pop(outcome_label))
-        self._X_train = train_matrix
-
-        test_matrix = processed_matrix[processed_matrix['pat_id'].isin(test_pat_ids)].copy()
-        self._y_test = pd.DataFrame(test_matrix.pop(outcome_label))
-        self._X_test = test_matrix
-
     def _fetch_data_dir_path(self, pipeline_module_path):
         # e.g. app_dir = CDSS/scripts/LabTestAnalysis/machine_learning
         app_dir = os.path.dirname(os.path.abspath(pipeline_module_path))
