@@ -55,7 +55,6 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             selected features and their imputed value correspondingly. 
             '''
             pickle.dump(self.used_patient_set, open('data/used_patient_set_%s.pkl'%self._var, 'w'), pickle.HIGHEST_PROTOCOL)
-            self.feat2imputed_dict = {}
             self._build_processed_feature_matrix()
             # TODO: find better place to put the dict.pkl
             pickle.dump(self.feat2imputed_dict, open(feat2imputed_dict_path, 'w'), pickle.HIGHEST_PROTOCOL)
@@ -82,6 +81,11 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         SupervisedLearningPipeline._build_raw_feature_matrix(self, matrix_class, \
             raw_matrix_path)
 
+        if not self._holdOut:
+            fm_io = FeatureMatrixIO()
+            matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+            self.used_patient_set = set(matrix['pat_id'].values)
+
     def _build_baseline_results(self):
         if not self._holdOut:
             template = '%s-normality-matrix-%d-episodes-raw.tab'
@@ -93,7 +97,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         # Another direct call to the _factory instance
         self._factory.obtain_baseline_results(raw_matrix_path=raw_matrix_path,
                                               random_state=self._random_state,
-                                              isLabPanel=self._isLabPanel) #TODO: file name
+                                              isLabPanel=self._isLabPanel,
+                                              isHoldOut=self._holdOut) #TODO: file name
 
     def _build_processed_matrix_path(self):
         if not self._holdOut:
@@ -113,10 +118,14 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         else:
             outcome_label = 'component_normal'
 
-        if outcome_label in self.feat2imputed_dict:
-            self.feat2imputed_dict.pop(outcome_label)
-
-        processed_matrix = raw_matrix[self.feat2imputed_dict.keys()+[outcome_label]].copy()
+        # if outcome_label in self.feat2imputed_dict:
+        #     self.feat2imputed_dict.pop(outcome_label)
+        #
+        # processed_matrix = raw_matrix[self.feat2imputed_dict.keys()+[outcome_label]].copy()
+        '''
+        TODO: feat2imputed_dict includes the outcome label
+        '''
+        processed_matrix = raw_matrix[self.feat2imputed_dict.keys()].copy()
 
         # TODO: tmp solution!
         tmp_path = self._build_processed_matrix_path().replace("2000","10000").replace("-holdout","")
@@ -233,6 +242,34 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
         # Defer processing logic to SupervisedLearningPipeline.
         SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
+
+        '''
+        For testing the model on the holdout set, should remember features 
+        to select from the raw matrix of the holdout data. 
+        '''
+        final_features = self._X_train.columns.values
+        if not self.feat2imputed_dict:
+            '''
+            The dict was not created during imputation. 
+            Probably because the processed matrix was loaded from previous session. 
+            Take the 'best guess' for the imputed value as the most common one in
+            any column. 
+            '''
+            for feat in final_features:
+                most_freq_val = self._X_train[feat].value_counts().idxmax()
+                self.feat2imputed_dict[feat] = most_freq_val
+
+        '''
+        TODO: useless?!
+        '''
+        # curr_keys = self.feat2imputed_dict.keys()
+        #
+        # '''
+        # Only need to impute the selected features for the holdOut set.
+        # '''
+        # for one_key in curr_keys:
+        #     if one_key not in final_features:
+        #         self.feat2imputed_dict.pop(one_key)
 
     def _analyze_predictors_on_holdout(self):
         fm_io = FeatureMatrixIO()
@@ -392,46 +429,45 @@ TOP_NON_PANEL_TESTS_BY_VOLUME = set([
     "LABALB", "LABLIDOL",
     "LABUPREG", "LABRETIC", "LABHAP", "LABBXTG", "LABHIVWBL"
 ])
+
 NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
     'LABA1C', 'LABAFBC', 'LABAFBD', 'LABALB', 'LABANER', 'LABB12', 'LABBLC', 'LABBLC2',
-    'LABBLCSTK', 'LABBLCTIP', 'LABBUN', 'LABBXTG', 'LABCA', 'LABCAI', 'LABCDTPCR', 'LABCK',
-    'LABCMVQT', 'LABCORT', 'LABCRP', 'LABCSFC', 'LABCSFGL', 'LABCSFTP', 'LABDIGL', 'LABESRP',
-    'LABFCUL', 'LABFE', 'LABFER', 'LABFIB', 'LABFLDC', 'LABFOL', 'LABFT4', 'LABGRAM',
-    'LABHAP', 'LABHBSAG', 'LABHCTX', 'LABHEPAR', 'LABHIVWBL', 'LABK', 'LABLAC', 'LABLACWB',
-    'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN', 'LABNA', 'LABNH3',
-    # #'LABNONGYN', TODO: no components
-    'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI', 'LABPHOS', 'LABPLTS',
-    'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP', 'LABRESPG', 'LABRETIC', 'LABSPLAC',
-    'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH',
-    # 'LABUCR', # insufficient samples
-    'LABUOSM',
-    'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC',
-    # 'LABURNA', # insufficient samples
-    'LABURNC', 'LABUSPG'
+    'LABBLCSTK', 'LABBLCTIP', 'LABBUN', 'LABBXTG', 'LABCA', 'LABCAI', 'LABCDTPCR',
+    #
+    'LABCK', 'LABCMVQT', 'LABCORT', 'LABCRP', 'LABCSFC', 'LABCSFGL', 'LABCSFTP', 'LABDIGL',
+    'LABESRP', 'LABFCUL', 'LABFE', 'LABFER', 'LABFIB', 'LABFLDC', 'LABFOL',
+    #
+    'LABFT4', 'LABGRAM', 'LABHAP', 'LABHBSAG', 'LABHCTX', 'LABHEPAR', 'LABHIVWBL', 'LABK',
+    'LABLAC', 'LABLACWB', 'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN',
+    #
+    'LABNA', 'LABNH3', 'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI',
+    'LABPHOS', 'LABPLTS', 'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP',
+    #
+    'LABRESPG', 'LABRETIC', 'LABSPLAC', 'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG',
+    'LABTSH', 'LABUOSM', 'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNC', 'LABUSPG'
+# #'LABNONGYN', TODO: no components
+# 'LABUCR', # insufficient samples
+# 'LABURNA', # insufficient samples
 ]
 
-STRIDE_COMPONENT_TESTS = ['WBC', 'HGB', 'PLT',
-                          'NA', # TODO: Cautious, this might be identified as 'nan' by pandas
-                          'K', 'CL',
-                   'CR', 'BUN', 'GLU', 'CO2', 'CA',
-                          'HCO3',  # good, from 'LABMETB'; TODO: Insufficient samples
-                   'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT',
-                   'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A'
+# TODO: Cautious, this might be identified as 'nan' by pandas
+#'HCO3',  # good, from 'LABMETB'; TODO: Insufficient samples
+STRIDE_COMPONENT_TESTS = [
+    'WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'GLU', 'CO2', 'CA',
+    #
+    'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A'
                           ]  # good, LABHFP
 
-UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',
-                                'CREAT', 'TBIL',
-                                'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT',
-                                'ALB', 'CAL', 'PCOAA2', 'PO2AA', 'pHA',
-                                'T PROTEIN',
-                                'ALK',  # ALKALINE PHOSPHATASE
-                                'UN',  # Blood, Urine, 'BUN'
-                                'IBIL',  # Bilirubin, Indirect
-                                'HCO3-A',  # # good, from 'LABMETB'
-                                'MAG',
-                                'PHOS',
-                                'INR',
-                                "BLD", "ICAL", "LACA"
+# ALKALINE PHOSPHATASE
+# Blood, Urine, 'BUN'
+# Bilirubin, Indirect
+# # good, from 'LABMETB'
+UMICH_TOP_COMPONENTS = [
+    'WBC', 'HGB', 'PLT', 'SOD', 'POT', 'CREAT', 'TBIL',
+    'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT', 'ALB', 'CAL',
+    #
+    'PCOAA2', 'PO2AA', 'pHA', 'T PROTEIN', 'ALK', 'UN', 'IBIL',
+    'HCO3-A', 'MAG', 'PHOS', 'INR', "BLD", "ICAL", "LACA"
                                 ]
 
 UCSF_TOP_COMPONENTS = [
@@ -462,15 +498,9 @@ if __name__ == '__main__':
 
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
-        for panel in ['LABA1C']:#NON_PANEL_TESTS_WITH_GT_500_ORDERS[0]:#['LABMGN', 'LABK', 'LABLAC']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
-            # LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
-            #                                timeLimit=(None, None), notUsePatIds=None, holdOut=False)
-            used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
-            LabNormalityPredictionPipeline(panel, 2000, use_cache=True, random_state=123456789, isLabPanel=True,
-                                           timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
-        for panel in ['LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
-            # LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
-            #                                timeLimit=(None, None), notUsePatIds=None, holdOut=False)
+        for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS:#['LABMGN', 'LABK', 'LABLAC']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
+                                           timeLimit=(None, None), notUsePatIds=None, holdOut=False)
             # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
             # LabNormalityPredictionPipeline(panel, 2000, use_cache=True, random_state=123456789, isLabPanel=True,
             #                                timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
@@ -484,51 +514,57 @@ if __name__ == '__main__':
             #     print 'data/%s removed!'%panel
             #     LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
 
-        for component in ['CR' #'HGB', 'WBC', 'K', 'NA', 'CR', 'GLU' #'PLT',
-                           ]:#STRIDE_COMPONENT_TESTS:
-            print 'start %s...'%component
+        for component in ['WBC']: #STRIDE_COMPONENT_TESTS: #['CR' #'HGB', 'WBC', 'K', 'NA', 'CR', 'GLU' #'PLT',]:
+                           #STRIDE_COMPONENT_TESTS:
+            # print 'start %s...'%component
             # LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
-            used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
-            LabNormalityPredictionPipeline(component, 2000, use_cache=True, random_state=123456789, isLabPanel=False,
-                                       timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
+            # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
+            # LabNormalityPredictionPipeline(component, 2000, use_cache=True, random_state=123456789, isLabPanel=False,
+            #                            timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
+            pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        print "here!"
 
-        # By default, the first one should be labs
-        test_mode = True
 
-        if test_mode:
-            raw_data_files = ['labs.sample.txt',
-                              'pt.info.sample.txt',
-                              'encounters.sample.txt',
-                              'demographics.sample.txt',
-                              'diagnoses.sample.txt']
-        else:
-            raw_data_files = ['labs.txt',
-                              'pt.info.txt',
-                              'encounters.txt',
-                              'demographics.txt',
-                              'diagnoses.txt']
+        if False:
+            test_mode = True
 
-        raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
-        db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
-        fold_enlarge_data = 1000
-        USE_CACHED_DB = True # TODO: take care of USE_CACHED_LARGEFILE in the future
+            if test_mode:
+                raw_data_files = ['labs.sample.txt',
+                                  'pt.info.sample.txt',
+                                  'encounters.sample.txt',
+                                  'demographics.sample.txt',
+                                  'diagnoses.sample.txt']
+            else:
+                raw_data_files = ['labs.txt',
+                                  'pt.info.txt',
+                                  'encounters.txt',
+                                  'demographics.txt',
+                                  'diagnoses.txt']
 
-        db_preparor = DB_Preparor(raw_data_files, raw_data_folderpath,
-                                               db_name=db_name,
-                                               fold_enlarge_data=fold_enlarge_data,
-                                               USE_CACHED_DB=USE_CACHED_DB,
-                                               data_source = 'UMich',
-                                               time_min=None,#'2015-01-01',
-                                               test_mode=test_mode)
+            raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
+            db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
+            fold_enlarge_data = 1000
+            USE_CACHED_DB = True # TODO: take care of USE_CACHED_LARGEFILE in the future
+
+            db_preparor = DB_Preparor(raw_data_files, raw_data_folderpath,
+                                                   db_name=db_name,
+                                                   fold_enlarge_data=fold_enlarge_data,
+                                                   USE_CACHED_DB=USE_CACHED_DB,
+                                                   data_source = 'UMich',
+                                                   time_min=None,#'2015-01-01',
+                                                   test_mode=test_mode)
         # prepare_database
 
         # for panel in UMICH_TOP_LABPANELS:
         #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
-        for component in ['WBC']: #UMICH_TOP_COMPONENTS:
+        for component in UMICH_TOP_COMPONENTS:
             # try:
-                LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
+                LabNormalityPredictionPipeline(component, 3000, use_cache=True, random_state=123456789, isLabPanel=False)
+                # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
+                # LabNormalityPredictionPipeline(component, 1000, use_cache=True, random_state=123456789, isLabPanel=False,
+                #                                timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
             # except Exception as e:
             #     log.info(e)
             #     pass
