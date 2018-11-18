@@ -10,7 +10,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.metrics import f1_score, roc_auc_score, make_scorer
 from sklearn.utils.validation import column_or_1d
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold, cross_val_score, GroupKFold
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.naive_bayes import GaussianNB
 from sklearn.exceptions import ConvergenceWarning
@@ -33,8 +33,9 @@ class SupervisedClassifier:
 
     # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
     # TODO(sbala): Neural Network: http://scikit-learn.org/stable/modules/neural_networks_supervised.html#neural-networks-supervised
-    SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST, \
-        REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES]
+    SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST,
+        REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES
+    ]
 
     # Hyperparam search strategies.
     EXHAUSTIVE_SEARCH = 'exhaustive-search'
@@ -45,12 +46,19 @@ class SupervisedClassifier:
     TRAINED = 'model-trained'
     INSUFFICIENT_SAMPLES = 'insufficient-samples-per-class'
 
-    def __init__(self, classes, hyperparams=None):
+    CV_STRATEGY = 'StratifiedKFold'#'GroupKFold' #'StratifiedKFold'
+
+    def __init__(self, classes, hyperparams=None, groups=None):
         self._classes = classes
 
         # Initialize params.
         self._params = {}
         self._model = None
+
+        '''
+        Used by GroupKFold for splitting train/validation. 
+        '''
+        self._groups = groups
 
         # Initialize hyperparams.
         self._hyperparams = {} if hyperparams is None else hyperparams
@@ -506,11 +514,23 @@ class SupervisedClassifier:
         else:
             n_splits = 10
         log.debug('n_splits: %s' % n_splits)
-        return StratifiedKFold(n_splits=n_splits, shuffle=False, \
-                                random_state=self._hyperparams['random_state'])
 
-    def train(self, X, y):
+        if self.CV_STRATEGY == 'StratifiedKFold':
+            return StratifiedKFold(n_splits=n_splits, shuffle=False, \
+                                random_state=self._hyperparams['random_state'])
+        elif self.CV_STRATEGY == 'GroupKFold':
+            '''
+            GroupKFold is not randomized at all. Hence the random_state=None
+            '''
+            return GroupKFold(n_splits=n_splits)
+
+    def train(self, X, y, groups=None):
+
+        self._groups = groups
+        assert ('pat_id' not in X.columns)
+
         self._features = X.columns
+
         y = self._maybe_reshape_y(y)
 
         # Verify that there are at least 2 samples of each class.
@@ -728,6 +748,7 @@ class SupervisedClassifier:
             # Compute ROC AUC.
             scores = cross_val_score(self._model, X, y, \
                 cv=self._hyperparams['cv'], \
+                groups=self._groups, \
                 scoring=self._hyperparams['scoring'], \
                 n_jobs=self._hyperparams['n_jobs'])
             # Compute mean across K folds.
@@ -767,6 +788,7 @@ class SupervisedClassifier:
         log.debug('initial hyperparams: %s' % self._hyperparams)
         pre_tuning_score = np.mean(cross_val_score(self._model, X, y, \
                                     cv=self._hyperparams['cv'], \
+                                    groups=self._groups, \
                                     scoring=self._hyperparams['scoring'], \
                                     n_jobs=self._hyperparams['n_jobs']))
 
@@ -791,7 +813,7 @@ class SupervisedClassifier:
                                         cv=self._hyperparams['cv'], \
                                         random_state=self._hyperparams['random_state'], \
                                         return_train_score=False)
-        tuner.fit(X, y)
+        tuner.fit(X, y, groups=self._groups)
 
         # Set model and hyperparams.
         self._model = tuner.best_estimator_

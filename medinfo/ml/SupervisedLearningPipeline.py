@@ -59,6 +59,17 @@ class SupervisedLearningPipeline:
         self._isLabPanel = isLabPanel
         self._timeLimit = timeLimit
         self._holdOut = holdOut
+        self.feat2imputed_dict = {}
+
+        '''
+        patients in both the train and validation set (cv).
+        '''
+        self._patIds_train = []
+
+        '''
+        patients in the holdout test set. 
+        '''
+        self._patIds_test = []
 
     def predictor(self):
         return self._predictor
@@ -135,11 +146,6 @@ class SupervisedLearningPipeline:
                 matrix = matrix_class(self._var, self._num_rows, random_state=random_state)
             matrix.write_matrix(raw_matrix_path)
 
-        if self._isLabNormalityPredictionPipeline and not self._holdOut:
-            fm_io = FeatureMatrixIO()
-            matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
-            self.used_patient_set = set(matrix['pat_id'].values)
-
     def _build_processed_feature_matrix(self, params):
         # params is a dict defining the details of how the raw feature matrix
         # should be transformed into the processed matrix. Given the sequence
@@ -169,20 +175,26 @@ class SupervisedLearningPipeline:
             # to split the data into training and test data.
             processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
             self._train_test_split(processed_matrix, params['outcome_label'])
-            self._X_train = self._X_train.drop(['pat_id'], axis=1)
-            self._X_test = self._X_test.drop(['pat_id'], axis=1)
+            '''
+            Pandas dataframe may automatically convert bigint to float (and round the last
+            few digits), which may damage the uniqueness of pat_ids. 
+            '''
+            processed_matrix['pat_id'] = processed_matrix['pat_id'].apply(lambda x: str(x))
         else:
             # Read raw matrix.
             raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
+            raw_matrix['pat_id'] = raw_matrix['pat_id'].apply(lambda x: str(x))
             # Initialize FMT.
 
             # Divide processed_matrix into training and test data.
             # This must happen before feature selection so that we don't
             # accidentally learn information from the test data.
 
-            pat_ids = raw_matrix['pat_id'].copy()
+            patIds_df = raw_matrix['pat_id'].copy()
+
 
             self._train_test_split(raw_matrix, params['outcome_label'])
+
             # ##
             # folder_path = '/'.join(params['raw_matrix_path'].split('/')[:-1])
             # self._X_train.join(self._y_train).to_csv(folder_path + '/' + 'train_raw.csv', index=False)
@@ -244,49 +256,41 @@ class SupervisedLearningPipeline:
                 params['selection_algorithm'],
                 params['features_to_keep'])
 
+            '''
+            The join is based on index by default.
+            Will remove 'pat_id' (TODO sxu: more general in the future) later in train().
+            '''
+            self._X_train = self._X_train.join(patIds_df, how='left')
+            self._X_test = self._X_test.join(patIds_df, how='left')
+
             train = self._y_train.join(self._X_train)
             test = self._y_test.join(self._X_test)
 
+            processed_trainMatrix_path = processed_matrix_path.replace("matrix", "train-matrix")
+            fm_io.write_data_frame_to_file(train, processed_trainMatrix_path)
+            processed_testMatrix_path = processed_matrix_path.replace("matrix", "test-matrix")
+            fm_io.write_data_frame_to_file(test, processed_testMatrix_path)
+
             processed_matrix = train.append(test)
             '''
-            Need to recover the order of rows before writing into disk
+            Recover the order of rows before writing into disk, 
+            where the index info will be missing.
             '''
             processed_matrix.sort_index(inplace=True)
 
             # Write output to new matrix file.
             header = self._build_processed_matrix_header(params)
-            fm_io.write_data_frame_to_file(processed_matrix.join(pat_ids), \
+            fm_io.write_data_frame_to_file(processed_matrix, \
                 processed_matrix_path, header)
+            print processed_matrix.head()['pat_id']
 
         '''
-        For testing the model on the holdout set, should remember features 
-        to select from the raw matrix of the holdout data. 
-        TODO sx: put into LabNormalityPredictionPipeline.py
+        Pop out pat_id from the feature matrices. 
+        Also check whether there is pat_id leakage. 
         '''
-        if self._isLabNormalityPredictionPipeline:
-            final_features = processed_matrix.columns.values
-            if not self.feat2imputed_dict:
-                '''
-                The dict was not created during imputation. 
-                Probably because the processed matrix was loaded from previous session. 
-                Take the 'best guess' for the imputed value as the most common one in
-                any column. 
-                '''
-                for feat in final_features:
-                    if feat == params['outcome_label']:
-                        #Do not impute y-label.
-                        continue
-                    most_freq_val = processed_matrix[feat].value_counts().idxmax()
-                    self.feat2imputed_dict[feat] = most_freq_val
-
-            curr_keys = self.feat2imputed_dict.keys()
-
-            '''
-            Only need to impute the selected features for the holdOut set. 
-            '''
-            for one_key in curr_keys:
-                if one_key not in final_features:
-                    self.feat2imputed_dict.pop(one_key)
+        self._patIds_train = self._X_train.pop('pat_id').values.tolist()
+        self._patIds_test = self._X_test.pop('pat_id').values.tolist()
+        assert not (set(self._patIds_train) & set(self._patIds_test))
 
     def _add_features(self, fmt, features_to_add):
         # Expected format for features_to_add:
@@ -361,20 +365,15 @@ class SupervisedLearningPipeline:
                 else:
                     # TODO(sbala): Impute all time features with non-mean value.
                     imputed_value = fmt.impute(feature)
-                    if self._isLabNormalityPredictionPipeline:
-                        self.feat2imputed_dict[feature] = imputed_value
+                    self.feat2imputed_dict[feature] = imputed_value
             else:
                 '''
                 If there is no need to impute, still keep the mean value, in case test data 
                 need imputation
                 TODO sxu: take care of the case of non-mean imputation strategy
                 '''
-                if self._isLabNormalityPredictionPipeline:
-                    if feature == 'all_components_normal' or feature == 'component_normal':
-                        # Do not impute y-label
-                        continue
-                    imputed_value = fmt.impute(feature)
-                    self.feat2imputed_dict[feature] = imputed_value
+                imputed_value = fmt.impute(feature)
+                self.feat2imputed_dict[feature] = imputed_value
 
     def _remove_features(self, fmt, features_to_remove):
         # Prune manually identified features (meant for obviously unhelpful).
@@ -399,7 +398,8 @@ class SupervisedLearningPipeline:
     '''
     def _train_test_split(self, processed_matrix, outcome_label, columnToSplitOn='pat_id'):
         log.debug('outcome_label: %s' % outcome_label)
-        all_possible_ids = list(set(processed_matrix[columnToSplitOn].values))
+        all_possible_ids = sorted(set(processed_matrix[columnToSplitOn].values.tolist()))
+
         train_ids, test_ids = train_test_split(all_possible_ids, random_state=self._random_state)
 
         train_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(train_ids)].copy()
@@ -409,6 +409,7 @@ class SupervisedLearningPipeline:
         test_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(test_ids)].copy()
         self._y_test = pd.DataFrame(test_matrix.pop(outcome_label))
         self._X_test = test_matrix
+
 
     def _select_features(self, problem, percent_features_to_select, algorithm, features_to_keep=None):
         # Initialize FeatureSelector.
@@ -552,7 +553,8 @@ class SupervisedLearningPipeline:
         elif problem == SupervisedLearningPipeline.REGRESSION:
             learning_class = Regressor
             self._predictor = learning_class(algorithm=algorithm)
-        status = self._predictor.train(self._X_train, column_or_1d(self._y_train))
+        status = self._predictor.train(self._X_train, column_or_1d(self._y_train),
+                                       groups = self._patIds_train)
 
         return status
 
