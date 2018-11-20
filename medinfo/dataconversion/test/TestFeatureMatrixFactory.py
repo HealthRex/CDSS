@@ -18,7 +18,7 @@ from medinfo.db.Model import SQLQuery, RowItemModel, modelListFromTable
 from medinfo.db.ResultsFormatter import TextResultsFormatter
 from medinfo.db.test.Util import DBTestCase
 from stride.core.StrideLoader import StrideLoader;
-from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
+from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader;
 
 from Util import log
 
@@ -66,7 +66,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         testRecords = FM_TEST_INPUT_TABLES.get("stride_flowsheet")
         DBUtil.insertFile(StringIO(testRecords), "stride_flowsheet", \
                             delim="\t", \
-                            dateColFormats={"shifted_dt_tm": None})
+                            dateColFormats={"shifted_record_dt_tm": None})
 
         # Populate stride_order_med.
         testRecords = FM_TEST_INPUT_TABLES.get("stride_order_med")

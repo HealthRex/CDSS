@@ -39,7 +39,9 @@ class SupervisedLearningPipeline:
     CLASSIFICATION = 'classification'
     REGRESSION = 'regression'
 
-    def __init__(self, variable, num_data_points, use_cache=None, random_state=None):
+    def __init__(self, variable, num_data_points, use_cache=None, random_state=None,
+                 isLabPanel=True, timeLimit=None, holdOut=False,
+                 isLabNormalityPredictionPipeline=False):
         # Process arguments.
         self._var = variable
         self._num_rows = num_data_points
@@ -52,6 +54,22 @@ class SupervisedLearningPipeline:
         self._removed_features = list()
         self._added_features = list()
         self._random_state = random_state
+
+        self._isLabNormalityPredictionPipeline = isLabNormalityPredictionPipeline
+        self._isLabPanel = isLabPanel
+        self._timeLimit = timeLimit
+        self._holdOut = holdOut
+        self.feat2imputed_dict = {}
+
+        '''
+        patients in both the train and validation set (cv).
+        '''
+        self._patIds_train = []
+
+        '''
+        patients in the holdout test set. 
+        '''
+        self._patIds_test = []
 
     def predictor(self):
         return self._predictor
@@ -120,7 +138,12 @@ class SupervisedLearningPipeline:
             # at least 1 primary variables and # of rows.
             # Ensure that random_state is [-1, 1]
             random_state = float(self._random_state)/float(sys.maxint)
-            matrix = matrix_class(self._var, self._num_rows, random_state=random_state)
+            if self._isLabNormalityPredictionPipeline:
+                matrix = matrix_class(self._var, self._num_rows, random_state=random_state,
+                                  isLabPanel=self._isLabPanel, timeLimit=self._timeLimit,
+                                      notUsePatIds=self.notUsePatIds)
+            else:
+                matrix = matrix_class(self._var, self._num_rows, random_state=random_state)
             matrix.write_matrix(raw_matrix_path)
 
     def _build_processed_feature_matrix(self, params):
@@ -152,15 +175,44 @@ class SupervisedLearningPipeline:
             # to split the data into training and test data.
             processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
             self._train_test_split(processed_matrix, params['outcome_label'])
+            '''
+            Pandas dataframe may automatically convert bigint to float (and round the last
+            few digits), which may damage the uniqueness of pat_ids. 
+            '''
+            processed_matrix['pat_id'] = processed_matrix['pat_id'].apply(lambda x: str(x))
         else:
             # Read raw matrix.
             raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
+            raw_matrix['pat_id'] = raw_matrix['pat_id'].apply(lambda x: str(x))
             # Initialize FMT.
+
+            # Divide processed_matrix into training and test data.
+            # This must happen before feature selection so that we don't
+            # accidentally learn information from the test data.
+
+            patIds_df = raw_matrix['pat_id'].copy()
+
+
+            self._train_test_split(raw_matrix, params['outcome_label'])
+
+            # ##
+            # folder_path = '/'.join(params['raw_matrix_path'].split('/')[:-1])
+            # self._X_train.join(self._y_train).to_csv(folder_path + '/' + 'train_raw.csv', index=False)
+            # self._X_test.join(self._y_test).to_csv(folder_path + '/' + 'test_raw.csv', index=False)
+            #
+            # '''
+            # Mini-test that there are no overlapping patients
+            # '''
+            # assert bool(set(self._X_train['pat_id'].values) & set(self._X_test['pat_id'].values)) == False
+            # ##
+
             fmt = FeatureMatrixTransform()
-            fmt.set_input_matrix(raw_matrix)
+            train_df = self._X_train.join(self._y_train)
+            fmt.set_input_matrix(train_df)
 
             # Add features.
             self._add_features(fmt, params['features_to_add'])
+
             # Remove features.
             self._remove_features(fmt, params['features_to_remove'])
             # Filter on features
@@ -177,33 +229,68 @@ class SupervisedLearningPipeline:
                     self._removed_features.append(feature)
 
             # Impute data.
-            self._impute_data(fmt, raw_matrix, params['imputation_strategies'])
+            self._impute_data(fmt, train_df, params['imputation_strategies'])
 
             # In case any all-null features were created in preprocessing,
             # drop them now so feature selection will work
             fmt.drop_null_features()
 
             # Build interim matrix.
-            processed_matrix = fmt.fetch_matrix()
+            train_df = fmt.fetch_matrix()
 
-            # Divide processed_matrix into training and test data.
-            # This must happen before feature selection so that we don't
-            # accidentally learn information from the test data.
-            self._train_test_split(processed_matrix, params['outcome_label'])
+            self._y_train = pd.DataFrame(train_df.pop(params['outcome_label']))
+            self._X_train = train_df
+
+            '''
+            Select X_test columns according to processed X_train
+            '''
+            self._X_test = self._X_test[self._X_train.columns]
+            '''
+            Impute data according to the same strategy when training
+            '''
+            for feat in self._X_test.columns:
+                self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
 
             self._select_features(params['selection_problem'],
                 params['percent_features_to_select'],
                 params['selection_algorithm'],
                 params['features_to_keep'])
 
+            '''
+            The join is based on index by default.
+            Will remove 'pat_id' (TODO sxu: more general in the future) later in train().
+            '''
+            self._X_train = self._X_train.join(patIds_df, how='left')
+            self._X_test = self._X_test.join(patIds_df, how='left')
+
             train = self._y_train.join(self._X_train)
             test = self._y_test.join(self._X_test)
+
+            processed_trainMatrix_path = processed_matrix_path.replace("matrix", "train-matrix")
+            fm_io.write_data_frame_to_file(train, processed_trainMatrix_path)
+            processed_testMatrix_path = processed_matrix_path.replace("matrix", "test-matrix")
+            fm_io.write_data_frame_to_file(test, processed_testMatrix_path)
+
             processed_matrix = train.append(test)
+            '''
+            Recover the order of rows before writing into disk, 
+            where the index info will be missing.
+            '''
+            processed_matrix.sort_index(inplace=True)
 
             # Write output to new matrix file.
             header = self._build_processed_matrix_header(params)
             fm_io.write_data_frame_to_file(processed_matrix, \
                 processed_matrix_path, header)
+            print processed_matrix.head()['pat_id']
+
+        '''
+        Pop out pat_id from the feature matrices. 
+        Also check whether there is pat_id leakage. 
+        '''
+        self._patIds_train = self._X_train.pop('pat_id').values.tolist()
+        self._patIds_test = self._X_test.pop('pat_id').values.tolist()
+        assert not (set(self._patIds_train) & set(self._patIds_test))
 
     def _add_features(self, fmt, features_to_add):
         # Expected format for features_to_add:
@@ -277,7 +364,16 @@ class SupervisedLearningPipeline:
                     fmt.impute(feature, strategy)
                 else:
                     # TODO(sbala): Impute all time features with non-mean value.
-                    fmt.impute(feature)
+                    imputed_value = fmt.impute(feature)
+                    self.feat2imputed_dict[feature] = imputed_value
+            else:
+                '''
+                If there is no need to impute, still keep the mean value, in case test data 
+                need imputation
+                TODO sxu: take care of the case of non-mean imputation strategy
+                '''
+                imputed_value = fmt.impute(feature)
+                self.feat2imputed_dict[feature] = imputed_value
 
     def _remove_features(self, fmt, features_to_remove):
         # Prune manually identified features (meant for obviously unhelpful).
@@ -297,12 +393,23 @@ class SupervisedLearningPipeline:
             self._num_rows = fmt.filter_on_feature(feature, value)
             log.debug('Removed rows where %s equals \'%s\'; %d rows remain.' % (feature, str(value), self._num_rows))
 
-    def _train_test_split(self, processed_matrix, outcome_label):
+    '''
+    Strategy 1: split by pat_id by default, no overlapping between train/test
+    '''
+    def _train_test_split(self, processed_matrix, outcome_label, columnToSplitOn='pat_id'):
         log.debug('outcome_label: %s' % outcome_label)
-        y = pd.DataFrame(processed_matrix.pop(outcome_label))
-        X = processed_matrix
-        log.debug('X.columns: %s' % X.columns)
-        self._X_train, self._X_test, self._y_train, self._y_test = train_test_split(X, y, random_state=self._random_state)
+        all_possible_ids = sorted(set(processed_matrix[columnToSplitOn].values.tolist()))
+
+        train_ids, test_ids = train_test_split(all_possible_ids, random_state=self._random_state)
+
+        train_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(train_ids)].copy()
+        self._y_train = pd.DataFrame(train_matrix.pop(outcome_label))
+        self._X_train = train_matrix
+
+        test_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(test_ids)].copy()
+        self._y_test = pd.DataFrame(test_matrix.pop(outcome_label))
+        self._X_test = test_matrix
+
 
     def _select_features(self, problem, percent_features_to_select, algorithm, features_to_keep=None):
         # Initialize FeatureSelector.
@@ -342,6 +449,12 @@ class SupervisedLearningPipeline:
             self._X_test = fs.transform_matrix(self._X_test)
             if feature not in self._X_test:
                 self._X_test = self._X_test.merge(kept_X_test_feature, left_index=True, right_index=True)
+
+        if not features_to_keep:
+        # Even if there is no feature to keep, still need to
+        # perform transform_matrix to drop most low-rank features
+            self._X_train = fs.transform_matrix(self._X_train)
+            self._X_test = fs.transform_matrix(self._X_test)
 
     def _build_processed_matrix_header(self, params):
         # FeatureMatrixFactory and FeatureMatrixIO expect a list of strings.
@@ -440,7 +553,8 @@ class SupervisedLearningPipeline:
         elif problem == SupervisedLearningPipeline.REGRESSION:
             learning_class = Regressor
             self._predictor = learning_class(algorithm=algorithm)
-        status = self._predictor.train(self._X_train, column_or_1d(self._y_train))
+        status = self._predictor.train(self._X_train, column_or_1d(self._y_train),
+                                       groups = self._patIds_train)
 
         return status
 
@@ -448,12 +562,15 @@ class SupervisedLearningPipeline:
         analyzer = ClassifierAnalyzer(self._predictor, self._X_test, self._y_test)
 
         # Build names for output plots and report.
+        direct_comparisons_name = '%s-direct-compare-results.csv' % pipeline_prefix
         precision_at_k_plot_name = '%s-precision-at-k-plot.png' % pipeline_prefix
         precision_recall_plot_name = '%s-precision-recall-plot.png' % pipeline_prefix
         roc_plot_name = '%s-roc-plot.png' % pipeline_prefix
         report_name = '%s-report.tab' % pipeline_prefix
 
         # Build paths.
+        direct_comparisons_path = '/'.join([dest_dir, direct_comparisons_name])
+        log.debug('direct_comparisons_path: %s' % direct_comparisons_path)
         precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
         log.debug('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
         precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
@@ -469,6 +586,89 @@ class SupervisedLearningPipeline:
         precision_at_k_plot_title = 'Precision @K (%s)' % pipeline_prefix
 
         # Write output.
+        analyzer.output_direct_comparisons(direct_comparisons_path)
+        analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
+        analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
+        analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
+        analyzer.write_report(report_path, ci=0.95)
+
+
+    # sx
+    def _analyze_predictor_traindata(self, dest_dir, pipeline_prefix):
+        analyzer = ClassifierAnalyzer(self._predictor, self._X_train, self._y_train)
+        train_label = 'traindata'
+
+        # Build names for output plots and report.
+        direct_comparisons_name = '%s-direct-compare-results-%s.csv' % (pipeline_prefix, train_label)
+        precision_at_k_plot_name = '%s-precision-at-k-plot-%s.png' % (pipeline_prefix, train_label)
+        precision_recall_plot_name = '%s-precision-recall-plot-%s.png' % (pipeline_prefix, train_label)
+        roc_plot_name = '%s-roc-plot-%s.png' % (pipeline_prefix, train_label)
+        report_name = '%s-report-%s.tab' % (pipeline_prefix, train_label)
+
+        # Build paths.
+        direct_comparisons_path = '/'.join([dest_dir, direct_comparisons_name])
+        log.debug('direct_comparisons_path: %s' % direct_comparisons_path)
+        precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
+        log.debug('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
+        precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
+        log.debug('precision_recall_plot_path: %s' % precision_recall_plot_path)
+        roc_plot_path = '/'.join([dest_dir, roc_plot_name])
+        log.debug('roc_plot_path: %s' % roc_plot_path)
+        report_path = '/'.join([dest_dir, report_name])
+        log.debug('report_path: %s' % report_path)
+
+        # Build plot titles.
+        roc_plot_title = 'ROC (%s)' % pipeline_prefix
+        precision_recall_plot_title = 'Precision-Recall (%s)' % pipeline_prefix
+        precision_at_k_plot_title = 'Precision @K (%s)' % pipeline_prefix
+
+        # Write output.
+        analyzer.output_direct_comparisons(direct_comparisons_path)
+        analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
+        analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
+        analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
+        analyzer.write_report(report_path, ci=0.95)
+
+
+    def _analyze_predictor_holdoutset(self, dest_dir, pipeline_prefix):
+        slugified_var = '-'.join(self._var.split())
+        holdout_path = dest_dir + '/../' + '%s-normality-matrix-%d-episodes-processed-holdout.tab'%(slugified_var, self._num_rows)
+        fm_io = FeatureMatrixIO()
+        processed_matrix = fm_io.read_file_to_data_frame(holdout_path)
+        if self._isLabPanel:
+            y_holdout = pd.DataFrame(processed_matrix.pop('all_components_normal'))
+        else:
+            y_holdout = pd.DataFrame(processed_matrix.pop('component_normal'))
+        X_holdout = processed_matrix
+        analyzer = ClassifierAnalyzer(self._predictor, X_holdout, y_holdout)
+        train_label = 'holdoutset'
+
+        # Build names for output plots and report.
+        direct_comparisons_name = '%s-direct-compare-results-%s.csv' % (pipeline_prefix, train_label)
+        precision_at_k_plot_name = '%s-precision-at-k-plot-%s.png' % (pipeline_prefix, train_label)
+        precision_recall_plot_name = '%s-precision-recall-plot-%s.png' % (pipeline_prefix, train_label)
+        roc_plot_name = '%s-roc-plot-%s.png' % (pipeline_prefix, train_label)
+        report_name = '%s-report-%s.tab' % (pipeline_prefix, train_label)
+
+        # Build paths.
+        direct_comparisons_path = '/'.join([dest_dir, direct_comparisons_name])
+        log.debug('direct_comparisons_path: %s' % direct_comparisons_path)
+        precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
+        log.debug('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
+        precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
+        log.debug('precision_recall_plot_path: %s' % precision_recall_plot_path)
+        roc_plot_path = '/'.join([dest_dir, roc_plot_name])
+        log.debug('roc_plot_path: %s' % roc_plot_path)
+        report_path = '/'.join([dest_dir, report_name])
+        log.debug('report_path: %s' % report_path)
+
+        # Build plot titles.
+        roc_plot_title = 'ROC (%s)' % pipeline_prefix
+        precision_recall_plot_title = 'Precision-Recall (%s)' % pipeline_prefix
+        precision_at_k_plot_title = 'Precision @K (%s)' % pipeline_prefix
+
+        # Write output.
+        analyzer.output_direct_comparisons(direct_comparisons_path)
         analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
         analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
         analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)

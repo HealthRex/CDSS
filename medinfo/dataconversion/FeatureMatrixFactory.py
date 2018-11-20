@@ -24,7 +24,14 @@ from medinfo.cpoe.Const import SECONDS_PER_DAY, DELTA_NAME_BY_DAYS
 from medinfo.db import DBUtil
 from medinfo.db.Model import columnFromModelList, SQLQuery, modelListFromTable
 from medinfo.db.ResultsFormatter import TabDictReader, TextResultsFormatter
-from psycopg2.extensions import cursor
+
+# For UMich data, we use sqlite database to avoid creating local postgres database on the UMich side
+import LocalEnv
+if LocalEnv.DATABASE_CONNECTOR_NAME == 'psycopg2':
+    from psycopg2.extensions import cursor
+elif LocalEnv.DATABASE_CONNECTOR_NAME == 'sqlite3':
+    from sqlite3 import Cursor as cursor
+
 # from Util import log
 from medinfo.common.Util import log
 import Util
@@ -34,7 +41,7 @@ class FeatureMatrixFactory:
         "patient_id"
     ]
 
-    def __init__(self, cacheDBResults = True):
+    def __init__(self, cacheDBResults = True, PID=None):
         self.dbCache = None
         self.patientListInput = None
         self.patientIdColumn = None
@@ -45,13 +52,21 @@ class FeatureMatrixFactory:
 
         self.patientsProcessed = None
 
-        PID = str(os.getpid())
+        if not PID: # Allow checking existing tmp files
+            PID = str(os.getpid())
+        else:
+            PID = str(PID)
 
-        self._patientListTempFileName = "fmf.patient_list_" + PID + ".tsv"
-        self._patientEpisodeTempFileName = "fmf.patient_episodes_" + PID + ".tsv"
-        self._patientItemTempFileNameFormat = "fmf.patient_%s_" + PID + ".tsv"
-        self._patientTimeCycleTempFileNameFormat = "fmf.patient_%s_%s_" + PID + ".tsv"
-        self._patientResultTempFileNameFormat = "fmf.patient_%s_%s_%s_" + PID + ".tsv"
+        # When debugging, do not create so many Tempfiles in the working folder.
+        self._folderTempFiles = "fmfTempFolder"
+        if not os.path.exists(self._folderTempFiles):
+            os.mkdir(self._folderTempFiles)
+
+        self._patientListTempFileName = self._folderTempFiles + '/' + "fmf.patient_list_" + PID + ".tsv"
+        self._patientEpisodeTempFileName = self._folderTempFiles + '/' + "fmf.patient_episodes_" + PID + ".tsv"
+        self._patientItemTempFileNameFormat = self._folderTempFiles + '/' + "fmf.patient_%s_" + PID + ".tsv"
+        self._patientTimeCycleTempFileNameFormat = self._folderTempFiles + '/' + "fmf.patient_%s_%s_" + PID + ".tsv"
+        self._patientResultTempFileNameFormat = self._folderTempFiles + '/' + "fmf.patient_%s_%s_%s_" + PID + ".tsv"
         self._matrixFileName = None
 
         # Look at lab results from the previous days
@@ -188,7 +203,12 @@ class FeatureMatrixFactory:
         patientEpisodeTempFile.close()
         self.patientsProcessed = True
 
-        return self.patientEpisodeInput.rowcount
+        if LocalEnv.DATABASE_CONNECTOR_NAME == 'psycopg2':
+            return self.patientEpisodeInput.rowcount
+        elif LocalEnv.DATABASE_CONNECTOR_NAME == 'sqlite3':
+        # In sqlite3, rowcount is somehow "always" -1; See for details:
+        # https://docs.python.org/3.0/library/sqlite3.html#sqlite3.Cursor.rowcount
+            return self._numRows #self.patientEpisodeInput.rowcount
 
     def _processPatientEpisodeTsvFile(self):
         pass
@@ -198,6 +218,91 @@ class FeatureMatrixFactory:
         Return TabDictReader for reading processed patient episodes.
         """
         return TabDictReader(open(self._patientEpisodeTempFileName, "r"))
+
+    def obtain_baseline_results(self, raw_matrix_path, random_state, isLabPanel=True, isHoldOut=False):
+        # for episode_dict in self.getPatientEpisodeIterator():
+        #     episode_dict
+
+        # Step1: group by pat_id
+        # Step2: For each group, obtain predicts
+        #   Step 2.1: order by order_time
+        #   Step 2.2: Obtain
+
+        import pandas as pd
+        pd.set_option('display.width', 300)
+        pd.set_option('display.max_column', 10)
+
+        from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
+        fm_io = FeatureMatrixIO()
+        raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+        #
+        # print raw_matrix
+        # quit()
+
+        # print 'inside FMF, cwd=', os.getcwd()
+
+        episode_cnt = raw_matrix.shape[0]
+
+        if isLabPanel:
+            ylabel = 'all_components_normal'
+        else:
+            ylabel = 'component_normal'
+
+        # raw_matrix = raw_matrix.rename(columns={'component_normal':'all_components_normal'})
+
+        raw_matrix_dict = raw_matrix[['pat_id', 'order_time', ylabel]].to_dict('records')
+
+        # for _ in self.getPatientEpisodeIterator(): # less stupid way to do this
+        #     episode_cnt += 1
+
+        # Separate train and test
+        X = range(episode_cnt)
+        y = X # just dummy
+        from sklearn.cross_validation import train_test_split
+        X_train, X_test, _, _= train_test_split(X, y, random_state=random_state) #
+
+        actual_cnt_1 = 0
+        actual_cnt_0 = 0
+
+        episode_groups_dict = {}  # pat_id: [episode_dicts]
+        episode_ind = 0
+        for episode_dict in raw_matrix_dict:
+            if episode_ind in X_test:
+                if episode_dict['pat_id'] in episode_groups_dict:
+                    episode_groups_dict[episode_dict['pat_id']].append(episode_dict)
+                else:
+                    episode_groups_dict[episode_dict['pat_id']] = [episode_dict]
+            else:
+                if int(episode_dict[ylabel]) == 1:
+                    actual_cnt_1 += 1
+                else:
+                    actual_cnt_0 += 1
+            episode_ind += 1
+
+        # Calc the prevalence from training data
+        prevalence_1 = float(actual_cnt_1)/float(actual_cnt_1+actual_cnt_0)
+
+        baseline_comparisons = pd.DataFrame(columns=['actual', 'predict'])
+
+        for pat_id in episode_groups_dict:
+            #   Step 2.1: order by order_time
+            newlist = sorted(episode_groups_dict[pat_id], key=lambda k: k['order_time'])
+
+            newlist[0]['predict'] = prevalence_1
+            baseline_comparisons = baseline_comparisons.append({'actual':newlist[0][ylabel],
+                                         'predict':newlist[0]['predict']}, ignore_index=True)
+
+            for i in range(1,len(newlist)):
+                newlist[i]['predict'] = newlist[i-1][ylabel]
+                baseline_comparisons = baseline_comparisons.append({'actual': newlist[i][ylabel],
+                                             'predict': newlist[i]['predict']}, ignore_index=True)
+
+        baseline_folder = '/'.join(raw_matrix_path.split('/')[:-1])
+
+        if not isHoldOut:
+            baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons.csv'))
+        else:
+            baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons_holdout.csv'))
 
     def _getPatientEpisodeByIndexTimeById(self):
         """
@@ -217,7 +322,7 @@ class FeatureMatrixFactory:
 
         return patientEpisodeByIndexTimeById
 
-    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None, features=None):
+    def addClinicalItemFeatures(self, clinicalItemNames, dayBins=None, column=None, operator=None, label=None, features=None, isLabPanel=True):
         """
         Query patient_item for the clinical item orders and results for each
         patient, and aggregate by episode timestamp.
@@ -230,7 +335,37 @@ class FeatureMatrixFactory:
         if not self.patientsProcessed:
             raise ValueError("Must process patients before clinical item.")
 
-        clinicalItemEvents = self._queryClinicalItemsByName(clinicalItemNames, column=column, operator=operator)
+        if isLabPanel:
+            clinicalItemEvents = self._queryClinicalItemsByName(clinicalItemNames, column=column, operator=operator)
+        else:
+            clinicalItemEvents = self._queryComponentItemsByName(clinicalItemNames)
+        itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
+
+        # Read clinical item features to temp file.
+        patientEpisodes = self.getPatientEpisodeIterator()
+        self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
+                                        clinicalItemNames, dayBins, label=label, features=features)
+
+    # Updated this core function for Component and UMich data. Responsible for creating features of:
+    # lab_panel, component (for counting "order times"), birth/death, sex, race, comorbidity
+    def addClinicalItemFeatures_UMich(self, clinicalItemNames, dayBins=None, label=None, features=None
+                                , clinicalItemType=None, clinicalItemTime=None, tableName=None):
+        """
+        Query patient_item for the clinical item orders and results for each
+        patient, and aggregate by episode timestamp.
+        column: determines column in clinical_item to match clinicalItemNames.
+        operator: determines how to match clinicalItemNames against column.
+        label: sets the column prefix in the final feature matrix.
+        features: determines whether to include "pre", "post" or "all".
+        """
+        # Verify patient list and/or patient episode has been processed.
+        if not self.patientsProcessed:
+            raise ValueError("Must process patients before clinical item.")
+
+        # For adapting to UMich data, instead of creating intermediate tables clinical_items
+        # and patient_items, we directly query "raw" tables from the UMich.db
+        clinicalItemEvents = self._queryMichiganItemsByName(clinicalItemNames=clinicalItemNames, clinicalItemType=clinicalItemType,
+                                                            tableName=tableName, clinicalItemTime=clinicalItemTime)
         itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
 
         # Read clinical item features to temp file.
@@ -253,6 +388,31 @@ class FeatureMatrixFactory:
             label = "-".join(categoryIds)
 
         clinicalItemEvents = self._queryClinicalItemsByCategory(categoryIds)
+        itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
+
+        # Read clinical item features to temp file.
+        patientEpisodes = self.getPatientEpisodeIterator()
+        self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
+                                        categoryIds, dayBins, label=label, features=features)
+
+    # This function is only used for handling the feature of AdmitDxDate
+    def addClinicalItemFeaturesByCategory_UMich(self, categoryIds, label=None, dayBins=None, features=None,
+                                          tableName=None):
+        """
+        Query patient_item for the clinical item orders and results for each
+        patient (based on clinical item category ID instead of item name), and
+        aggregate by episode timestamp.
+        features: determines whether to include "pre", "post" or "all".
+        """
+        # Verify patient list and/or patient episode has been processed.
+        if not self.patientsProcessed:
+            raise ValueError("Must process patients before clinical item.")
+
+        if label is None:
+            label = "-".join(categoryIds)
+
+        # For UMich data, directly query label='AdmitDxDate' from the raw table
+        clinicalItemEvents = self._queryMichiganItemsByCategory(label,tableName) #
         itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
 
         # Read clinical item features to temp file.
@@ -290,7 +450,15 @@ class FeatureMatrixFactory:
 
             nameClauses = list()
             for itemName in clinicalItemNames:
-                nameClauses.append("%s %s %%s" % (column, operator))
+                if LocalEnv.DATABASE_CONNECTOR_NAME == 'psycopg2':
+                    nameClauses.append("%s %s %%s" % (column, operator))
+
+                elif LocalEnv.DATABASE_CONNECTOR_NAME == 'sqlite3':
+                    # For postgres, placeholder is %s
+                    # For sqlite, place holder is ?
+                    # TODO: %s or %%s for postgres
+                    # nameClauses.append("%s %s %%s" % (column, operator))
+                    nameClauses.append("%s %s " % (column, operator) + DBUtil.SQL_PLACEHOLDER) #
                 query.params.append(itemName)
             query.addWhere(str.join(" or ", nameClauses))
 
@@ -301,6 +469,123 @@ class FeatureMatrixFactory:
             return list()
 
         return self.queryClinicalItems(clinicalItemIds)
+
+    def _queryMichiganItemsByName(self, clinicalItemNames, clinicalItemType, tableName, clinicalItemTime):
+        # """
+        # Query ComponentItemInput for all item times for all patients.
+        #
+        # Done by directly querying the stride_order_XXX tables,
+        # without using pre-assembled tables like clinical_item.
+        # Might do this in the future to boost efficiency.
+        # """
+        patientIds = set()
+        patientEpisodes = self.getPatientEpisodeIterator()
+        for episode in patientEpisodes:
+            patientIds.add(episode[self.patientEpisodeIdColumn])
+
+        # clinicalItemNames can be specific examples like CBCD, anything, male,
+        # clinicalItemCategory can be column names like proc_code, birth, sex,
+        # clinicalItemTime can be column names like order_time, birth, birth ...
+
+        query_str = "SELECT CAST(pat_id AS BIGINT) AS pat_id "
+        if clinicalItemTime:
+            query_str += ", %s " % clinicalItemTime
+
+        query_str += "FROM %s " % tableName
+
+        if clinicalItemType:
+            query_str += "WHERE %s IN (" % (clinicalItemType)
+            for clinicalItemName in clinicalItemNames:
+                query_str += '"%s",' % clinicalItemName
+            query_str = query_str[:-1] + ") AND "
+        else:
+            query_str += "WHERE "
+
+        query_str += "pat_id IN "
+        pat_list_str = "("
+        for pat_id in patientIds:
+            pat_list_str += str(pat_id) + ","
+        pat_list_str = pat_list_str[:-1] + ") "
+        query_str += pat_list_str
+        query_str += "GROUP BY pat_id "
+        if clinicalItemTime:
+            query_str += ", %s " % clinicalItemTime
+
+        query_str += "ORDER BY pat_id "
+        if clinicalItemTime:
+            query_str += ", %s " % clinicalItemTime
+
+        _cursor = DBUtil.connection().cursor()
+        _cursor.execute(query_str)
+        results = _cursor.fetchall()
+
+        componentItemEvents = [list(row) for row in results]
+        if not clinicalItemTime:
+            componentItemEvents = [x + [datetime.datetime(1900, 1, 1)] for x in componentItemEvents]
+
+        return componentItemEvents
+
+
+    def _queryComponentItemsByName(self, clinicalItemNames): # sx
+        # """
+        # Query ComponentItemInput for all item times for all patients.
+        #
+        # Done by directly querying the stride_order_XXX tables,
+        # without using pre-assembled tables like clinical_item.
+        # Might do this in the future to boost efficiency.
+        # """
+
+        query = SQLQuery()
+        query.addSelect('CAST(pat_id AS BIGINT) AS pat_id')
+        query.addSelect('order_time')
+        query.addFrom('stride_order_proc AS sop')
+        query.addFrom('stride_order_results AS sor')
+        query.addWhere('sop.order_proc_id = sor.order_proc_id')
+        query.addWhereIn("base_name", clinicalItemNames)
+        query.addGroupBy('pat_id')
+        query.addGroupBy('order_time')
+        query.addOrderBy('pat_id')
+        query.addOrderBy('order_time')
+
+        results = DBUtil.execute(query)
+        componentItemEvents = [row for row in results]
+        return componentItemEvents
+
+    def _queryMichiganItemsByCategory(self, label, tableName): #
+        """
+        Query for all patient items that match with the given clinical item
+        category ID.
+        """
+        # Identify which columns to pull from patient_item table.
+
+        # return sth like
+        # clinicalItemEvents=[[-3384542270496665494, u'2009-07-07 13:00:00'], [1262980084096039344, u'2003-01-22 12:29:00'], ...]
+        self._patientItemIdColumn = "pat_id"
+        self._patientItemTimeColumn = label
+
+        patientIds = set()
+        patientEpisodes = self.getPatientEpisodeIterator()
+        for episode in patientEpisodes:
+            patientIds.add(episode[self.patientEpisodeIdColumn])
+
+        query_str = "SELECT %s, %s " % (self._patientItemIdColumn, self._patientItemTimeColumn)
+
+        query_str += " FROM %s " % tableName
+
+        query_str += "WHERE pat_id IN "
+        pat_list_str = "("
+        for pat_id in patientIds:
+            pat_list_str += str(pat_id) + ","
+        pat_list_str = pat_list_str[:-1] + ") "
+        query_str += pat_list_str
+
+        query_str += "ORDER BY pat_id, %s " % label
+
+        results = DBUtil.connection().cursor().execute(query_str).fetchall()
+
+        clinicalItemEvents = [list(row) for row in results]
+        return clinicalItemEvents
+
 
     def _queryClinicalItemsByCategory(self, categoryIds):
         """
@@ -440,7 +725,7 @@ class FeatureMatrixFactory:
                         # Need this extra check because if a given event
                         # has not occurred yet, but will occur, itemTime will
                         # be none while itemTimes is not None.
-                        if itemTime is None:
+                        if (itemTime is None) or (not isinstance(itemTime, datetime.datetime)):
                             continue
                         timeDiffSeconds = (itemTime - episodeTime).total_seconds()
                         timeDiffDays = timeDiffSeconds / SECONDS_PER_DAY
@@ -501,6 +786,9 @@ class FeatureMatrixFactory:
             raise ValueError("Must process patients before lab result.")
 
         # Open temp file.
+        # For multi-component labels, the first element becomes None
+        labNames = [x for x in labNames if x is not None]
+
         if len(labNames) > 1:
             resultLabel = "-".join([labName for labName in labNames])[:64]
         else:
@@ -579,7 +867,7 @@ class FeatureMatrixFactory:
         flowsheetResults = self._queryFlowsheetResultsByName(flowsheetBaseNames)
         resultsByNameByPatientId = self._parseResultsData(flowsheetResults, \
             "pat_id", "flowsheet_name", "flowsheet_value", \
-            "shifted_dt_tm")
+            "shifted_record_dt_tm")
 
         # Define how far in advance of each episode to look at lab results.
         preTimeDays = None
@@ -595,7 +883,7 @@ class FeatureMatrixFactory:
                                     resultsByNameByPatientId,
                                     flowsheetBaseNames,
                                     "flowsheet_value",
-                                    "shifted_dt_tm",
+                                    "shifted_record_dt_tm",
                                     preTimeDelta,
                                     postTimeDelta)
 
@@ -639,16 +927,24 @@ class FeatureMatrixFactory:
             patientIds.add(episode[self.patientEpisodeIdColumn])
 
         # Build SQL query.
-        colNames = ["pat_anon_id AS pat_id", "flo_meas_id", "flowsheet_name", \
-            "flowsheet_value", "shifted_dt_tm"]
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            pat_col = "pat_anon_id"
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+            pat_col = "pat_id"
+
+        colNames = ["%s AS pat_id"%pat_col, "flo_meas_id", "flowsheet_name", \
+            "flowsheet_value", "shifted_record_dt_tm"]
         query = SQLQuery()
         for col in colNames:
             query.addSelect(col)
-        query.addFrom("stride_flowsheet")
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            query.addFrom("stride_flowsheet")
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+            query.addFrom("vitals")
         query.addWhereIn("flowsheet_name", flowsheetBaseNames)
-        query.addWhereIn("pat_anon_id", patientIds)
-        query.addOrderBy("pat_anon_id")
-        query.addOrderBy("shifted_dt_tm")
+        query.addWhereIn(pat_col, patientIds)
+        query.addOrderBy(pat_col)
+        query.addOrderBy("shifted_record_dt_tm")
         log.debug(query)
 
         # Execute query.
@@ -812,9 +1108,14 @@ class FeatureMatrixFactory:
         # Filtering by patient ID drags down substantially until preloaded
         # table by doing a count on the SQR table?
         columnNames = [
-            "CAST(pat_id AS bigint)", "base_name", "ord_num_value",
-            "result_flag", "result_in_range_yn", "sor.result_time"
+            "CAST(pat_id AS bigint) as pat_id", "base_name", "ord_num_value",
+            "result_flag", "result_in_range_yn"
         ]
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            columnNames += ["sor.result_time"]
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            columnNames += ["result_time"]
 
         # Identify which patients to query.
         patientIds = set()
@@ -823,22 +1124,71 @@ class FeatureMatrixFactory:
             patientIds.add(episode[self.patientEpisodeIdColumn])
 
         # Construct query to pull from stride_order_results, stride_order_proc
-        query = SQLQuery()
-        for column in columnNames:
-            query.addSelect(column)
-        query.addFrom("stride_order_results AS sor, stride_order_proc AS sop")
-        query.addWhere("sor.order_proc_id = sop.order_proc_id")
-        if isLabPanel:
-            labProcCodes = labNames
-            query.addWhereIn("proc_code", labProcCodes)
+
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            query = SQLQuery()
+            for column in columnNames:
+                query.addSelect(column)
+            query.addFrom("stride_order_results AS sor, stride_order_proc AS sop")
+            query.addWhere("sor.order_proc_id = sop.order_proc_id")
+            if isLabPanel:
+                query.addWhereIn("proc_code", labNames)
+            else:
+                query.addWhereIn("base_name", labNames)
+
+            query.addWhereIn("pat_id", patientIds)
+            query.addOrderBy("pat_id")
+            query.addOrderBy("sor.result_time")
+
+            log.debug(query)
+            return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
+
+
         else:
-            labBaseNames = labNames
-            query.addWhereIn("base_name", labBaseNames)
-        query.addWhereIn("pat_id", patientIds)
-        query.addOrderBy("pat_id")
-        query.addOrderBy("sor.result_time")
-        log.debug(query)
-        return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
+
+            query_str = "SELECT "
+            for column in columnNames:
+                query_str += column + ","
+            query_str = query_str[:-1] + " FROM labs "
+
+            if isLabPanel:
+                clinicalItemType = 'proc_code'
+            else:
+                clinicalItemType = 'base_name'
+
+            query_str += "WHERE %s IN (" % (clinicalItemType)
+            for labName in labNames:
+                query_str += "'%s'," % labName
+            query_str = query_str[:-1] + ") "
+
+            query_str += "AND pat_id IN "
+            pat_list_str = "("
+            for pat_id in patientIds:
+                pat_list_str += str(pat_id) + ","
+            pat_list_str = pat_list_str[:-1] + ") "
+            query_str += pat_list_str
+
+            query_str += "ORDER BY pat_id"
+            if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+                query_str += ", sor.result_time"
+            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+                query_str += ", result_time"
+
+            cur = DBUtil.connection().cursor()
+            cur.execute(query_str)
+
+            results = []
+            colNames = DBUtil.columnNamesFromCursor(cur)
+            results.append(colNames)
+            # DBUtil.execute(query_str, includeColumnNames=True)
+
+            dataTable = list(cur.fetchall())
+            for i, row in enumerate(dataTable):
+                dataTable[i] = list(row);
+                results.extend(dataTable);
+
+            return modelListFromTable(results)
+
 
     def _parseResultsData(self, resultRowIter, patientIdCol, nameCol, valueCol, datetimeCol):
         """
@@ -863,7 +1213,10 @@ class FeatureMatrixFactory:
             if result[valueCol] is not None and result[valueCol] != NULL_STRING:
                 patientId = int(result[patientIdCol])
                 baseName = result[nameCol]
-                resultValue = float(result[valueCol])
+                try:
+                    resultValue = float(result[valueCol])
+                except: # TODO sx: weird values of ord_num_value cannot be converted..
+                    continue
                 resultTime = DBUtil.parseDateValue(result[datetimeCol])
 
                 # Skip apparent placeholder values
@@ -1014,18 +1367,38 @@ class FeatureMatrixFactory:
         summarizing occurrence of the associated ICD9 problems.
         """
         # Extract ICD9 prefixes per disease category
-        icd9prefixesByDisease = dict()
-        for row in self.loadMapData("CharlsonComorbidity-ICD9CM"):
-            (disease, icd9prefix) = (row["charlson"], row["icd9cm"])
-            if disease not in icd9prefixesByDisease:
-                icd9prefixesByDisease[disease] = list()
-            icd9prefixesByDisease[disease].append("^ICD9." + icd9prefix)
+        icdprefixesByDisease = dict()
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            for row in self.loadMapData("CharlsonComorbidity-ICD9CM"):
+                (disease, icd9prefix) = (row["charlson"], row["icd9cm"])
+                if disease not in icdprefixesByDisease:
+                    icdprefixesByDisease[disease] = list()
+                    icdprefixesByDisease[disease].append("^ICD9." + icd9prefix)
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            for row in self.loadMapData("CharlsonComorbidity-ICD9CM"):
+                (disease, icd9prefix) = (row["charlson"], row["icd9cm"])
+                if disease not in icdprefixesByDisease:
+                    icdprefixesByDisease[disease] = list()
+                    icdprefixesByDisease[disease].append(icd9prefix)
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+            for row in self.loadMapData("CharlsonComorbidity-ICD10"):
+                (disease, icd10prefix) = (row["Category"], row["Code"])
+                if disease not in icdprefixesByDisease:
+                    icdprefixesByDisease[disease] = list()
+                    icdprefixesByDisease[disease].append("^ICD10." + icd10prefix)
+                    icdprefixesByDisease[disease].append(icd10prefix)
 
-        for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
+        for disease, icdprefixes in icdprefixesByDisease.iteritems():
             disease = disease.translate(None," ()-/") # Strip off punctuation
             log.debug('Adding %s comorbidity features...' % disease)
-            self.addClinicalItemFeatures(icd9prefixes, operator="~*", \
-                label="Comorbidity."+disease, features=features)
+            if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+                self.addClinicalItemFeatures(icdprefixes, operator="~*", \
+                                             label="Comorbidity." + disease, features=features)
+            else:
+            #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+                self.addClinicalItemFeatures_UMich(icdprefixes,
+                                        tableName = 'diagnoses', clinicalItemType='diagnose_code', clinicalItemTime='diagnose_time',
+                                        label="Comorbidity."+disease, features=features)
 
     def addTreatmentTeamFeatures(self, features=None):
         """
@@ -1034,16 +1407,32 @@ class FeatureMatrixFactory:
         """
         # Extract out lists of treatment team names per care category
         teamNameByCategory = dict()
-        for row in self.loadMapData("TreatmentTeamGroups"):
-            (category, teamName) = (row["team_category"], row["treatment_team"])
-            if category not in teamNameByCategory:
-                teamNameByCategory[category] = list()
-            teamNameByCategory[category].append(teamName)
 
-        for category, teamNames in teamNameByCategory.iteritems():
-            log.debug('Adding %s treatment team features...' % category)
-            self.addClinicalItemFeatures(teamNames, column="description", \
-                label="Team."+category, features=features)
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            for row in self.loadMapData("TreatmentTeamGroups"):
+                (category, teamName) = (row["team_category"], row["treatment_team"])
+                if category not in teamNameByCategory:
+                    teamNameByCategory[category] = list()
+                teamNameByCategory[category].append(teamName)
+
+            for category, teamNames in teamNameByCategory.iteritems():
+                log.debug('Adding %s treatment team features...' % category)
+                self.addClinicalItemFeatures(teamNames, column="description", \
+                                                 label="Team." + category, features=features)
+
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+            for row in self.loadMapData("TreatmentTeamGroups_UCSF"):
+                (category, teamName) = (row["team_category"], row["treatment_team"])
+                if category not in teamNameByCategory:
+                    teamNameByCategory[category] = list()
+                teamNameByCategory[category].append(teamName)
+
+            for category, teamNames in teamNameByCategory.iteritems():
+                log.debug('Adding %s treatment team features...' % category)
+                # TODO sx: rename
+                self.addClinicalItemFeatures_UMich(teamNames, \
+                    tableName='labs', clinicalItemTime = 'order_time',
+                    label="Team."+category, features=features)
 
     def addSexFeatures(self):
         SEX_FEATURES = ["Male", "Female"]
@@ -1052,13 +1441,7 @@ class FeatureMatrixFactory:
                 features="pre")
 
     def addRaceFeatures(self):
-        RACE_FEATURES = [
-            "RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
-            "RaceHispanicLatino", "RaceBlack", "RaceAsian",
-            "RacePacificIslander", "RaceNativeAmerican",
-            "RaceOther", "RaceUnknown"
-        ]
-        for feature in RACE_FEATURES:
+        for feature in self.queryAllRaces():
             self.addClinicalItemFeatures([feature], dayBins=[], \
                 features="pre")
 
@@ -1162,3 +1545,33 @@ class FeatureMatrixFactory:
 
     def getNumRows(self):
         return self._numRows
+
+    def queryAllRaces(self):
+        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+            RACE_FEATURES = [
+                "RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
+                "RaceHispanicLatino", "RaceBlack", "RaceAsian",
+                "RacePacificIslander", "RaceNativeAmerican",
+                "RaceOther", "RaceUnknown"
+            ]
+            return RACE_FEATURES
+        else:
+        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+
+            query = SQLQuery()
+            query.addSelect("DISTINCT RaceName")
+            query.addFrom("demographics")
+            results = DBUtil.execute(query)
+            results = [x[0] for x in results]
+            # results = [x if x else 'Unknown' for x in results]
+            return results
+
+    # def queryAllTeams(self):
+    #     if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+    #         query = SQLQuery()
+    #         query.addSelect("DISTINCT RaceName")
+    #         query.addFrom("demographics")
+    #         results = DBUtil.execute(query)
+    #         results = [x[0] for x in results]
+    #         # results = [x if x else 'Unknown' for x in results]
+    #         return results

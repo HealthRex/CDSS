@@ -34,3 +34,7 @@ LOCAL_TEST_DB_PARAM["PWD"] = 'testpwd'
 PATH_TO_CDSS = "/foo/bar/CDSS"; # Directory where this file is contained in
 
 TEST_RUNNER_VERBOSITY = 2
+
+DATASET_SOURCE_NAME = 'STRIDE'
+DATABASE_CONNECTOR_NAME = "psycopg2"
+SQL_PLACEHOLDER = "%s"
