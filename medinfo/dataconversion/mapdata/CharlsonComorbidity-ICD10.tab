@@ -1,0 +1,289 @@
+Code	Category	Code_Type	Source
+I21	Myocardial Infarction	ICD10	MHCP_Charlson
+I22	Myocardial Infarction	ICD10	MHCP_Charlson
+I252	Myocardial Infarction	ICD10	MHCP_Charlson
+I43	Congestive Heart Failure	ICD10	MHCP_Charlson
+I50	Congestive Heart Failure	ICD10	MHCP_Charlson
+I099	Congestive Heart Failure	ICD10	MHCP_Charlson
+I110	Congestive Heart Failure	ICD10	MHCP_Charlson
+I130	Congestive Heart Failure	ICD10	MHCP_Charlson
+I132	Congestive Heart Failure	ICD10	MHCP_Charlson
+I255	Congestive Heart Failure	ICD10	MHCP_Charlson
+I420	Congestive Heart Failure	ICD10	MHCP_Charlson
+I425	Congestive Heart Failure	ICD10	MHCP_Charlson
+I426	Congestive Heart Failure	ICD10	MHCP_Charlson
+I427	Congestive Heart Failure	ICD10	MHCP_Charlson
+I428	Congestive Heart Failure	ICD10	MHCP_Charlson
+I429	Congestive Heart Failure	ICD10	MHCP_Charlson
+P290	Congestive Heart Failure	ICD10	MHCP_Charlson
+I70	Periphral Vascular Disease	ICD10	MHCP_Charlson
+I71	Periphral Vascular Disease	ICD10	MHCP_Charlson
+I731	Periphral Vascular Disease	ICD10	MHCP_Charlson
+I738	Periphral Vascular Disease	ICD10	MHCP_Charlson
+I739	Periphral Vascular Disease	ICD10	MHCP_Charlson
+I771	Periphral Vascular Disease	ICD10	MHCP_Charlson
+I790	Periphral Vascular Disease	ICD10	MHCP_Charlson
+I792	Periphral Vascular Disease	ICD10	MHCP_Charlson
+K551	Periphral Vascular Disease	ICD10	MHCP_Charlson
+K558	Periphral Vascular Disease	ICD10	MHCP_Charlson
+K559	Periphral Vascular Disease	ICD10	MHCP_Charlson
+Z958	Periphral Vascular Disease	ICD10	MHCP_Charlson
+Z959	Periphral Vascular Disease	ICD10	MHCP_Charlson
+G45	Cerebrovascular Disease	ICD10	MHCP_Charlson
+G46	Cerebrovascular Disease	ICD10	MHCP_Charlson
+I60	Cerebrovascular Disease	ICD10	MHCP_Charlson
+I61	Cerebrovascular Disease	ICD10	MHCP_Charlson
+I62	Cerebrovascular Disease	ICD10	MHCP_Charlson
+I63	Cerebrovascular Disease	ICD10	MHCP_Charlson
+I64	Cerebrovascular Disease	ICD10	MHCP_Charlson
+I65	Cerebrovascular Disease	ICD10	MHCP_Charlson
+I66	Cerebrovascular Disease	ICD10	MHCP_Charlson
+I67	Cerebrovascular Disease	ICD10	MHCP_Charlson
+I68	Cerebrovascular Disease	ICD10	MHCP_Charlson
+I69	Cerebrovascular Disease	ICD10	MHCP_Charlson
+H340	Cerebrovascular Disease	ICD10	MHCP_Charlson
+F00	Dementia	ICD10	MHCP_Charlson
+F01	Dementia	ICD10	MHCP_Charlson
+F02	Dementia	ICD10	MHCP_Charlson
+F03	Dementia	ICD10	MHCP_Charlson
+G30	Dementia	ICD10	MHCP_Charlson
+F051	Dementia	ICD10	MHCP_Charlson
+G311	Dementia	ICD10	MHCP_Charlson
+J40	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J41	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J42	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J43	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J44	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J45	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J46	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J47	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J60	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J61	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J62	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J63	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J64	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J65	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J66	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J67''I278	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+I279	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J684	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J701	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+J703	Chronic Pulmonary Disease	ICD10	MHCP_Charlson
+M05	Connective Tissue Disease-Rheumatic Disease	ICD10	MHCP_Charlson
+M32	Connective Tissue Disease-Rheumatic Disease	ICD10	MHCP_Charlson
+M33	Connective Tissue Disease-Rheumatic Disease	ICD10	MHCP_Charlson
+M34	Connective Tissue Disease-Rheumatic Disease	ICD10	MHCP_Charlson
+M06	Connective Tissue Disease-Rheumatic Disease	ICD10	MHCP_Charlson
+M315	Connective Tissue Disease-Rheumatic Disease	ICD10	MHCP_Charlson
+M351	Connective Tissue Disease-Rheumatic Disease	ICD10	MHCP_Charlson
+M353	Connective Tissue Disease-Rheumatic Disease	ICD10	MHCP_Charlson
+M360	Connective Tissue Disease-Rheumatic Disease	ICD10	MHCP_Charlson
+K25	Peptic Ulcer Disease	ICD10	MHCP_Charlson
+K26	Peptic Ulcer Disease	ICD10	MHCP_Charlson
+K27	Peptic Ulcer Disease	ICD10	MHCP_Charlson
+K28	Peptic Ulcer Disease	ICD10	MHCP_Charlson
+B18	Mild Liver Disease	ICD10	MHCP_Charlson
+K73	Mild Liver Disease	ICD10	MHCP_Charlson
+K74	Mild Liver Disease	ICD10	MHCP_Charlson
+K700	Mild Liver Disease	ICD10	MHCP_Charlson
+K701	Mild Liver Disease	ICD10	MHCP_Charlson
+K702	Mild Liver Disease	ICD10	MHCP_Charlson
+K703	Mild Liver Disease	ICD10	MHCP_Charlson
+K709	Mild Liver Disease	ICD10	MHCP_Charlson
+K717	Mild Liver Disease	ICD10	MHCP_Charlson
+K713	Mild Liver Disease	ICD10	MHCP_Charlson
+K714	Mild Liver Disease	ICD10	MHCP_Charlson
+K715	Mild Liver Disease	ICD10	MHCP_Charlson
+K760	Mild Liver Disease	ICD10	MHCP_Charlson
+K762	Mild Liver Disease	ICD10	MHCP_Charlson
+K763	Mild Liver Disease	ICD10	MHCP_Charlson
+K764	Mild Liver Disease	ICD10	MHCP_Charlson
+K768	Mild Liver Disease	ICD10	MHCP_Charlson
+K769	Mild Liver Disease	ICD10	MHCP_Charlson
+Z944	Mild Liver Disease	ICD10	MHCP_Charlson
+E100	Diabetes without complications	ICD10	MHCP_Charlson
+E101	Diabetes without complications	ICD10	MHCP_Charlson
+E106	Diabetes without complications	ICD10	MHCP_Charlson
+E108	Diabetes without complications	ICD10	MHCP_Charlson
+E109	Diabetes without complications	ICD10	MHCP_Charlson
+E110	Diabetes without complications	ICD10	MHCP_Charlson
+E111	Diabetes without complications	ICD10	MHCP_Charlson
+E116	Diabetes without complications	ICD10	MHCP_Charlson
+E118	Diabetes without complications	ICD10	MHCP_Charlson
+E119	Diabetes without complications	ICD10	MHCP_Charlson
+E120	Diabetes without complications	ICD10	MHCP_Charlson
+E121	Diabetes without complications	ICD10	MHCP_Charlson
+E126	Diabetes without complications	ICD10	MHCP_Charlson
+E128	Diabetes without complications	ICD10	MHCP_Charlson
+E129	Diabetes without complications	ICD10	MHCP_Charlson
+E130	Diabetes without complications	ICD10	MHCP_Charlson
+E131	Diabetes without complications	ICD10	MHCP_Charlson
+E136	Diabetes without complications	ICD10	MHCP_Charlson
+E138	Diabetes without complications	ICD10	MHCP_Charlson
+E139	Diabetes without complications	ICD10	MHCP_Charlson
+E140	Diabetes without complications	ICD10	MHCP_Charlson
+E141	Diabetes without complications	ICD10	MHCP_Charlson
+E146	Diabetes without complications	ICD10	MHCP_Charlson
+E148	Diabetes without complications	ICD10	MHCP_Charlson
+E149	Diabetes without complications	ICD10	MHCP_Charlson
+E102	Diabetes with complications	ICD10	MHCP_Charlson
+E103	Diabetes with complications	ICD10	MHCP_Charlson
+E104	Diabetes with complications	ICD10	MHCP_Charlson
+E105	Diabetes with complications	ICD10	MHCP_Charlson
+E107	Diabetes with complications	ICD10	MHCP_Charlson
+E112	Diabetes with complications	ICD10	MHCP_Charlson
+E113	Diabetes with complications	ICD10	MHCP_Charlson
+E114	Diabetes with complications	ICD10	MHCP_Charlson
+E115	Diabetes with complications	ICD10	MHCP_Charlson
+E117	Diabetes with complications	ICD10	MHCP_Charlson
+E122	Diabetes with complications	ICD10	MHCP_Charlson
+E123	Diabetes with complications	ICD10	MHCP_Charlson
+E124	Diabetes with complications	ICD10	MHCP_Charlson
+E125	Diabetes with complications	ICD10	MHCP_Charlson
+E127	Diabetes with complications	ICD10	MHCP_Charlson
+E132	Diabetes with complications	ICD10	MHCP_Charlson
+E133	Diabetes with complications	ICD10	MHCP_Charlson
+E134	Diabetes with complications	ICD10	MHCP_Charlson
+E135	Diabetes with complications	ICD10	MHCP_Charlson
+E137	Diabetes with complications	ICD10	MHCP_Charlson
+E142	Diabetes with complications	ICD10	MHCP_Charlson
+E143	Diabetes with complications	ICD10	MHCP_Charlson
+E144	Diabetes with complications	ICD10	MHCP_Charlson
+E145	Diabetes with complications	ICD10	MHCP_Charlson
+E147	Diabetes with complications	ICD10	MHCP_Charlson
+G81	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G82	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G041	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G114	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G801	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G802	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G830	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G831	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G832	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G833	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G834	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+G839	Paraplegia and Hemiplegia	ICD10	MHCP_Charlson
+N18	Renal Disease	ICD10	MHCP_Charlson
+N19	Renal Disease	ICD10	MHCP_Charlson
+N052	Renal Disease	ICD10	MHCP_Charlson
+N053	Renal Disease	ICD10	MHCP_Charlson
+N054	Renal Disease	ICD10	MHCP_Charlson
+N055	Renal Disease	ICD10	MHCP_Charlson
+N056	Renal Disease	ICD10	MHCP_Charlson
+N057	Renal Disease	ICD10	MHCP_Charlson
+N250	Renal Disease	ICD10	MHCP_Charlson
+I120	Renal Disease	ICD10	MHCP_Charlson
+I131	Renal Disease	ICD10	MHCP_Charlson
+N032	Renal Disease	ICD10	MHCP_Charlson
+N033	Renal Disease	ICD10	MHCP_Charlson
+N034	Renal Disease	ICD10	MHCP_Charlson
+N035	Renal Disease	ICD10	MHCP_Charlson
+N036	Renal Disease	ICD10	MHCP_Charlson
+N037	Renal Disease	ICD10	MHCP_Charlson
+Z490	Renal Disease	ICD10	MHCP_Charlson
+Z491	Renal Disease	ICD10	MHCP_Charlson
+Z492	Renal Disease	ICD10	MHCP_Charlson
+Z940	Renal Disease	ICD10	MHCP_Charlson
+Z992	Renal Disease	ICD10	MHCP_Charlson
+C00	Cancer	ICD10	MHCP_Charlson
+C01	Cancer	ICD10	MHCP_Charlson
+C02	Cancer	ICD10	MHCP_Charlson
+C03	Cancer	ICD10	MHCP_Charlson
+C04	Cancer	ICD10	MHCP_Charlson
+C05	Cancer	ICD10	MHCP_Charlson
+C06	Cancer	ICD10	MHCP_Charlson
+C07	Cancer	ICD10	MHCP_Charlson
+C08	Cancer	ICD10	MHCP_Charlson
+C09	Cancer	ICD10	MHCP_Charlson
+C10	Cancer	ICD10	MHCP_Charlson
+C11	Cancer	ICD10	MHCP_Charlson
+C12	Cancer	ICD10	MHCP_Charlson
+C13	Cancer	ICD10	MHCP_Charlson
+C14	Cancer	ICD10	MHCP_Charlson
+C15	Cancer	ICD10	MHCP_Charlson
+C16	Cancer	ICD10	MHCP_Charlson
+C17	Cancer	ICD10	MHCP_Charlson
+C18	Cancer	ICD10	MHCP_Charlson
+C19	Cancer	ICD10	MHCP_Charlson
+C20	Cancer	ICD10	MHCP_Charlson
+C21	Cancer	ICD10	MHCP_Charlson
+C22	Cancer	ICD10	MHCP_Charlson
+C23	Cancer	ICD10	MHCP_Charlson
+C24	Cancer	ICD10	MHCP_Charlson
+C25	Cancer	ICD10	MHCP_Charlson
+C26	Cancer	ICD10	MHCP_Charlson
+C30	Cancer	ICD10	MHCP_Charlson
+C31	Cancer	ICD10	MHCP_Charlson
+C32	Cancer	ICD10	MHCP_Charlson
+C33	Cancer	ICD10	MHCP_Charlson
+C34	Cancer	ICD10	MHCP_Charlson
+C37	Cancer	ICD10	MHCP_Charlson
+C38	Cancer	ICD10	MHCP_Charlson
+C39	Cancer	ICD10	MHCP_Charlson
+C40	Cancer	ICD10	MHCP_Charlson
+C41	Cancer	ICD10	MHCP_Charlson
+C43	Cancer	ICD10	MHCP_Charlson
+C45	Cancer	ICD10	MHCP_Charlson
+C46	Cancer	ICD10	MHCP_Charlson
+C47	Cancer	ICD10	MHCP_Charlson
+C48	Cancer	ICD10	MHCP_Charlson
+C49	Cancer	ICD10	MHCP_Charlson
+C50	Cancer	ICD10	MHCP_Charlson
+C51	Cancer	ICD10	MHCP_Charlson
+C52	Cancer	ICD10	MHCP_Charlson
+C53	Cancer	ICD10	MHCP_Charlson
+C54	Cancer	ICD10	MHCP_Charlson
+C55	Cancer	ICD10	MHCP_Charlson
+C56	Cancer	ICD10	MHCP_Charlson
+C57	Cancer	ICD10	MHCP_Charlson
+C58	Cancer	ICD10	MHCP_Charlson
+C60	Cancer	ICD10	MHCP_Charlson
+C61	Cancer	ICD10	MHCP_Charlson
+C62	Cancer	ICD10	MHCP_Charlson
+C63	Cancer	ICD10	MHCP_Charlson
+C64	Cancer	ICD10	MHCP_Charlson
+C65	Cancer	ICD10	MHCP_Charlson
+C66	Cancer	ICD10	MHCP_Charlson
+C67	Cancer	ICD10	MHCP_Charlson
+C68	Cancer	ICD10	MHCP_Charlson
+C69	Cancer	ICD10	MHCP_Charlson
+C70	Cancer	ICD10	MHCP_Charlson
+C71	Cancer	ICD10	MHCP_Charlson
+C72	Cancer	ICD10	MHCP_Charlson
+C73	Cancer	ICD10	MHCP_Charlson
+C74	Cancer	ICD10	MHCP_Charlson
+C75	Cancer	ICD10	MHCP_Charlson
+C76	Cancer	ICD10	MHCP_Charlson
+C81	Cancer	ICD10	MHCP_Charlson
+C82	Cancer	ICD10	MHCP_Charlson
+C83	Cancer	ICD10	MHCP_Charlson
+C84	Cancer	ICD10	MHCP_Charlson
+C85	Cancer	ICD10	MHCP_Charlson
+C88	Cancer	ICD10	MHCP_Charlson
+C90	Cancer	ICD10	MHCP_Charlson
+C91	Cancer	ICD10	MHCP_Charlson
+C92	Cancer	ICD10	MHCP_Charlson
+C93	Cancer	ICD10	MHCP_Charlson
+C94	Cancer	ICD10	MHCP_Charlson
+C95	Cancer	ICD10	MHCP_Charlson
+C96	Cancer	ICD10	MHCP_Charlson
+C97	Cancer	ICD10	MHCP_Charlson
+K704	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+K711	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+K721	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+K729	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+K765	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+K766	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+K767	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+I850	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+I859	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+I864	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+I982	Moderate or Severe Liver Disease	ICD10	MHCP_Charlson
+C77	Metastatic Carcinoma	ICD10	MHCP_Charlson
+C78	Metastatic Carcinoma	ICD10	MHCP_Charlson
+C79	Metastatic Carcinoma	ICD10	MHCP_Charlson
+C80	Metastatic Carcinoma	ICD10	MHCP_Charlson
+B20	AIDS/HIV	ICD10	MHCP_Charlson
+B21	AIDS/HIV	ICD10	MHCP_Charlson
+B22	AIDS/HIV	ICD10	MHCP_Charlson
+B24	AIDS/HIV	ICD10	MHCP_Charlson

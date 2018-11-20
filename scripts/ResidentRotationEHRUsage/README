@@ -1,0 +1,11 @@
+DATA
+1) ehr_action_categories.csv: maps each EHR action ID to a broad category (e.g. chart review, results review, etc.)
+2) ehr_action_descriptions.tsv: maps each EHR action ID to its corresponding description
+3) raw_resident_access_logs.csv: dump of all resident access log data; each row/entry refers to some action by some resident user at some timestamp
+4) rotations.csv: maps each resident provider to all their rotation start and end dates; also includes the resident's during the given rotation (e.g. R1, R2, R3)
+5) usage_spreadsheet.csv: master spreadsheet containing time spent per EHR section, # EHR actions, # patient records accessed per user-day (e.g. each entry shows stats for one day that a resident was active)
+
+CODE
+1) generate_usage_spreadsheet.py: using the raw_resident_access_logs.csv, compute daily statistics for each user-day; output usage_spreadsheet.csv
+2) compute_summary_stats.py: compute summary statistics using the usage_spreadsheet.csv; includes mean (stdev), median (IQR) of EHR section usage, # patient records accessed, etc. based on year (PGY1 vs PGY2+) and rotation (night time, ICU, etc.)
+3) compute_number_ehr_actions_per_24hour_cycle.py: computes average number of EHR actions per half hour bin in a 24 hour cycle; generates data for Figure 1

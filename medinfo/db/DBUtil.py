@@ -70,7 +70,7 @@ if DATABASE_CONNECTOR_NAME == "cx_Oracle":
     BOOLEAN = 1;   
 
 if DATABASE_CONNECTOR_NAME == "sqlite3":
-    import sqlite3; 
+    import sqlite3;
     DB_CONNECTOR_MODULE = sqlite3;
 
 # Abstract DBAPITypes to check column type codes against
@@ -90,7 +90,7 @@ def connection( connParams=None ):
     database is being interfaced to.
     """
     Util.numConnections += 1;
-    
+
     if connParams is None:
         connParams = DB_PARAM;
 
@@ -131,8 +131,7 @@ def connection( connParams=None ):
         return cx_Oracle.connect(connStr);
 
     if DATABASE_CONNECTOR_NAME == "sqlite3":
-        return sqlite3.connect(connParams["DSN"]);
-
+        return sqlite3.connect(os.path.join(connParams["DATAPATH"], connParams["DSN"]));
 
     # ODBC (Access)
     #connStr = formatDBConnectString( connParams );
@@ -182,30 +181,45 @@ def createDatabase( dbParams ):
     """Create a database based on the DSN name specified in the dbParams.
     Will likely require logging in first as the user-password specified in the dbParams.
     """
-    # For PostgreSQL, have to connect to some database first before can create a new one. Connect to default "postgres" database to start.
-    defaultParams = dict(dbParams);
-    defaultParams["DSN"] = "postgres";
-    defaultConn = connection(defaultParams);
-    defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
-    try:
-        execute("CREATE DATABASE %s" % dbParams["DSN"], conn=defaultConn);
-    finally:
-        defaultConn.close();
-
+    if DATABASE_CONNECTOR_NAME == "psycopg2":
+        # For PostgreSQL, have to connect to some database first before can create a new one. Connect to default "postgres" database to start.
+        defaultParams = dict(dbParams);
+        defaultParams["DSN"] = "postgres";
+        defaultConn = connection(defaultParams);
+        defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
+        try:
+            execute("CREATE DATABASE %s" % dbParams["DSN"], conn=defaultConn);
+        finally:
+            defaultConn.close();
+    elif DATABASE_CONNECTOR_NAME == "sqlite3":
+        defaultParams = dict(dbParams);
+        # Sqlite3 automatically creates a database upon connection
+        defaultConn = connection(defaultParams);
+        # None for autocommit mode
+        defaultConn.isolation_level = None
+        defaultConn.close()
 
 def dropDatabase( dbParams ):
     """Drop the database specified by the DSN name specified in the dbParams.
     Will likely require logging in first as the user-password specified.
     """
+    if DATABASE_CONNECTOR_NAME == "psycopg2":
     # For PostgreSQL, cannot drop database while connected to it, so connect to default "postgres" database to start.
-    defaultParams = dict(dbParams);
-    defaultParams["DSN"] = "postgres";
-    defaultConn = connection(defaultParams);
-    defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
-    try:
-        execute("DROP DATABASE %s" % dbParams["DSN"], conn=defaultConn);
-    finally:
-        defaultConn.close();
+        defaultParams = dict(dbParams);
+        defaultParams["DSN"] = "postgres";
+        defaultConn = connection(defaultParams);
+        defaultConn.autocommit = True;  # Create/Drop Database not allowed in transaction blocks
+        try:
+            execute("DROP DATABASE %s" % dbParams["DSN"], conn=defaultConn);
+        finally:
+            defaultConn.close();
+    elif DATABASE_CONNECTOR_NAME == "sqlite3":
+        defaultParams = dict(dbParams);
+        # Sqlite3 automatically creates a database upon connection
+        try:
+            os.remove(os.path.join(defaultParams['DATAPATH'], defaultParams["DSN"]))
+        except:
+            pass
 
 ###################################################
 #########  END  Database Specific Stuff ###########

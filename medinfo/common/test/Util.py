@@ -133,6 +133,9 @@ class MedInfoTestCase(unittest.TestCase):
         errorMsg = verifyStr + "\n!=\n" + sampleStr;
         self.assertEqual(verifySimpleStr, sampleSimpleStr, errorMsg);
 
+    def assertEqualSet(self, verifySet, sampleSet):
+        self.assertEqualList(sorted(verifySet), sorted(sampleSet))
+
     def assertEqualList( self, verifyList, sampleList ):
         """Assumes the two parameters are each lists or tuples and
         does an "assertEqual" on each pair of items.
