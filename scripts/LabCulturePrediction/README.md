@@ -1,17 +1,28 @@
-# Goal
+# Table of Contents
+- [Goal](#goal)
+- [Background](#background)
+   - [Motivation](#background-motivation)
+   - [Terms](#background-terms)
+- [Data](#data)
+- [How tos](#howtos)
+- [ML tasks](#mltasks)
+- [Further Investigation](#further-investigation)
+- [Suggested Readings](#readings)
+
+# <a name="goal"></a>Goal
 
 The goal of this project is to predict the result of blood culture lab results. As a corollary,
 we also seek to predict the susceptibility/resistance of certain cultures to certain antibiotics.
 
-# Background
-## Motivation
+# <a name="background"></a>Background
+## <a name="background-motivation"></a>Motivation
 
 Understanding accurate predictors of blood culture labs could help physicians choose the appropriate
 spectrum antibiotic and help reduce the need to perform certain lab tests thereby reducing waste. 
 Additionally, choosing the right spectrum antibiotic is becoming more imperative as bacteria start to 
 develop resistance to broad spectrum antibiotics.
 
-## Terms
+## <a name="background-terms"></a>Terms
 
 ### Blood culture
 A test of a blood sample to find organisms that can cause infection.
@@ -29,13 +40,13 @@ Presence of bacteria in the blood.
 Change in bacteria to be less susceptible to antibiotics.
 
 
-# Data
+# <a name="data"></a>Data
 The core data for this project is in the stride_culture_micro table. This table provides a series of blood
 culture tests.
 Note: we create a new column in our matrix for our presence/absence label  using
 the organism_name column from stride_culture_micro. See LabCultureMatrix for code sample.
 
-# How tos
+# <a name="howtos"></a>How tos
 ## Loading the data needed for this project
 It is recommended that you load the data for this project from the data dumps. This is a much faster way to
 have the data in your PSql DB as the dumps are already processed from the raw data.
@@ -78,7 +89,7 @@ Currently supported algorithms are:
 Output reports will be generated for each of these algorithms.
 
 
-# ML Tasks
+# <a name="mltasks"></a>ML Tasks
 This project defines two main ML tasks.
 1. Determine presence of infection
     * Binary classification
@@ -88,13 +99,13 @@ This project defines two main ML tasks.
 Results of the above tasks are reproducible by running the current LabCulturePredictionPipeline script.
 
 
-# Further Investigation
+# <a name="further-investigation"></a>Further Investigation
 This project could benefit from including additional features such as:
 
 #### Adding previous medications as a feature
 Previous medications of a patient could give us an indication of whether the patient has previously
 grown a culture and serve as a proxy for the likelihood the patient will regrow the same culture.
-A list of commonly found medications curated from interviews with domain experts:
+Below is a list of antibiotics curated from interviews with domain experts that could serve as additional features:
    - cefepime
    - cefazolin
    - ceftriaxone
@@ -111,10 +122,15 @@ A list of commonly found medications curated from interviews with domain experts
    - caspofungin
    
 Suggested implementation: We can treat each medication as a clinical item feature and include it in our
-feature matrix. We can accomplish this via a call to the `addClinicalItemFeature` function of LabCultureMatrix.py
+feature matrix. We can accomplish this via a call to the `addClinicalItemFeature` function of LabCultureMatrix.py.
+
+#### Select biomarkers curated from domain experts
+The next phase of this project could also benefit from further refining the list of features by curating other biomarkers
+not related to medications. Further interviews with domain experts should be conducted to investigate biomarkers
+such as Alanine aminotransferase (ALT) and Alkaline phosphatase (ALP).
 
 
-# Suggested Readings
+# <a name="readings"></a>Suggested Readings
 * https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5632149/
 * https://www.sciencedirect.com/science/article/pii/S1532046418301291
 * https://www.shmabstracts.com/abstract/predicting-bacteremia-in-hospitalized-patients-an-analysis-of-electronic-health-record-data/
