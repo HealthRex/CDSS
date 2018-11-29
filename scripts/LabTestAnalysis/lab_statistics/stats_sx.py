@@ -72,10 +72,7 @@ def get_LabUsage__csv():
     print 'within 24 hrs:', prevday_cnts_dict[0]
     print 'within 48 hrs:', prevday_cnts_dict[1]
 
-
-
-def plot_rocs():
-    lab_type = 'component'
+def plot_curves(lab_type='component', curve_type="roc"):
 
     if lab_type == 'panel':
         data_folder = '../machine_learning/data-panels/'
@@ -95,12 +92,23 @@ def plot_rocs():
 
             plt.subplot2grid((5, 3), (i, j))
 
-            fpr_base, tpr_base, base_auc, fpr, tpr, best_auc = stats_utils.get_roc_onelab(lab,
-                                                        all_algs=SupervisedClassifier.SUPPORTED_ALGORITHMS,
-                                                        data_folder=data_folder)
+            #fpr_base, tpr_base, base_auc, fpr, tpr, best_auc \
+            '''
+            For precision-recall curve, the output are:
+                fpr_base, tpr_base, base_auc, 
+                fpr, tpr, best_auc.
+            For roc curve, the output are:
+                recall_base, precision_base, base_auc, 
+                fpr, tpr, best_auc
+            '''
+            xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best  \
+                = stats_utils.get_curve_onelab(lab,
+                                            all_algs=SupervisedClassifier.SUPPORTED_ALGORITHMS,
+                                            data_folder=data_folder,
+                                            curve_type=curve_type)
 
-            plt.plot(fpr_base, tpr_base, label='%0.2f' % (base_auc))
-            plt.plot(fpr, tpr, label='%0.2f' % (best_auc))
+            plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
+            plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best))
 
             plt.xticks([])
             plt.yticks([])
@@ -205,4 +213,4 @@ def print_HosmerLemeshowTest():
     print sorted(p_vals)
 
 if __name__ == '__main__':
-    get_LabUsage__csv()
+    plot_curves(lab_type='panel', curve_type="prc")

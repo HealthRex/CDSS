@@ -2,7 +2,7 @@
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 import datetime, collections
-from sklearn.metrics import roc_auc_score, roc_curve
+from sklearn.metrics import roc_auc_score, roc_curve, precision_recall_curve, average_precision_score
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -67,7 +67,7 @@ def get_prevday_cnts__dict(df):
 
     return prevday_cnts_dict
 
-def get_roc_onelab(lab, all_algs, data_folder):
+def get_curve_onelab(lab, all_algs, data_folder, curve_type):
     # curr_res_file = '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
 
     '''
@@ -76,15 +76,26 @@ def get_roc_onelab(lab, all_algs, data_folder):
 
     df = pd.read_csv(data_folder + '/' + lab + '/' + 'baseline_comparisons.csv')
     base_actual = df['actual'].values
-    base_auc = roc_auc_score(base_actual, df['predict'].values)
     base_predict = df['predict'].values
 
-    fpr_base, tpr_base, threshold_base = roc_curve(base_actual, base_predict)
+    if curve_type == 'roc':
+        fpr_base, tpr_base, _ = roc_curve(base_actual, base_predict)
+        xVal_base, yVal_base = fpr_base, tpr_base
+
+        base_auc = roc_auc_score(base_actual, base_predict)
+        base_score = base_auc
+    elif curve_type == 'prc':
+        precision, recall, _ = precision_recall_curve(base_actual, base_predict)
+        xVal_base, yVal_base = recall, precision
+
+        base_aps = average_precision_score(base_actual, base_predict)
+        base_score = base_aps
+
 
     '''
     best alg
     '''
-    best_auc = 0
+    best_score = 0
     best_alg = None
     best_actual = None
     best_predict = None
@@ -93,18 +104,31 @@ def get_roc_onelab(lab, all_algs, data_folder):
                          '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg))
         actual_list = df['actual'].values
         try:
-            cur_auc = roc_auc_score(actual_list, df['predict'].values)
+            if curve_type == 'roc':
+                cur_auc = roc_auc_score(actual_list, df['predict'].values)
+                cur_score = cur_auc
+            elif curve_type == 'prc':
+                cur_aps = average_precision_score(actual_list, df['predict'].values)
+                cur_score = cur_aps
+
         except ValueError:
-            cur_auc = float('nan')
-        if cur_auc > best_auc:
-            best_auc = cur_auc
+            cur_score = float('nan')
+        if cur_score > best_score:
+            best_score = cur_score
             best_alg = alg
             best_actual = actual_list
             best_predict = df['predict'].values
 
-    fpr, tpr, threshold = roc_curve(best_actual, best_predict)
+    if curve_type == 'roc':
+        fpr, tpr, _ = roc_curve(best_actual, best_predict)
+        xVal_best, yVal_best = fpr, tpr
 
-    return fpr_base, tpr_base, base_auc, fpr, tpr, best_auc
+    elif curve_type == 'prc':
+        precision, recall, _ = precision_recall_curve(best_actual, best_predict)
+        xVal_best, yVal_best = recall, precision
+
+
+    return xVal_base, yVal_base, base_score, xVal_best, yVal_best, best_score
 
 def split_features(feature):
     divind = feature.find('(')
