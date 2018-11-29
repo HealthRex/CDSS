@@ -17,9 +17,13 @@ from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline imp
 
 train_PPVs = [0.99, 0.95, 0.9, 0.8] #[0.5, 0.75, 0.90, 0.95, 0.975, 0.99]
 
-def get_thres_from_training_data_by_fixing_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9):
-    df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
+def get_thres_by_fixing_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, thres_mode="from_test"):
+    if thres_mode == "from_train":
+        df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
                      '%s-normality-prediction-%s-direct-compare-results-traindata.csv'%(lab,alg))
+    else:
+        df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
+                         '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg))
 
     # TODO: calibration?
     row, col = df.shape
@@ -81,7 +85,7 @@ def bootstrap_CI(actual_list, predict_list, num_repeats=1000, stat = 'roc_auc',
 
     return roc_auc_left, roc_auc_right
 
-def fill_df_fix_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, lab_type=None, quick_test=False):
+def fill_df_fix_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, lab_type=None, thres_mode="from_test"):
 
     df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
                      '%s-normality-prediction-%s-direct-compare-results.csv'%(lab,alg))
@@ -106,10 +110,11 @@ def fill_df_fix_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, lab_type=None,
     Learning score threshold by fixing training PPV at desired lvl
     This way, learned test (evaluation) PPV is "unbiased". 
     '''
-    if quick_test:
+    if thres_mode == "quick_test":
         thres = 0.5
     else:
-        thres = get_thres_from_training_data_by_fixing_PPV(lab, alg, data_folder=data_folder, PPV_wanted=PPV_wanted)
+        thres = get_thres_by_fixing_PPV(lab, alg, data_folder=data_folder, PPV_wanted=PPV_wanted, thres_mode=thres_mode)
+
     df['predict_class'] = df['predict'].apply(lambda x: 1 if x > thres else 0)
     predict_class_list = df['predict_class'].values.tolist()
 
@@ -247,7 +252,7 @@ def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day, folder_
         print 'Processing lab %s with alg %s' % (lab, alg)
         # try:
         one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder=folder_path + '/' + data_folder,
-                                           PPV_wanted=PPV_wanted, lab_type=lab_type, quick_test=False)
+                                           PPV_wanted=PPV_wanted, lab_type=lab_type)
 
         if lab_type == 'component':
             one_lab_alg_dict = add_component_cnts(one_lab_alg_dict, years=years)
@@ -315,7 +320,8 @@ def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_day
                 '''
                 try:
                     lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day, folder_path, data_folder, result_folder, columns)
-                except:
+                except Exception as e:
+                    print e
                     pass
 
 
@@ -356,8 +362,8 @@ def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = train
     df_long[columns].to_csv('data_performance_stats/'+'long-%s-summary.csv'% lab_type, index=False)
     df_best_alg[columns_best_alg].to_csv('data_performance_stats/'+'best-alg-%s-summary.csv'% lab_type, index=False)
 
-def main():
-    lab_type = 'component'
+def main(lab_type='panel'):
+
 
     columns_panels = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline_roc', 'total_cnt']
     columns_panels += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
@@ -388,68 +394,6 @@ def main():
 
     main_agg_stats(lab_type=lab_type, vital_days=[3], PPVs_wanted=train_PPVs, columns=columns_agg)
 
-def main_plot_roc(lab_type = 'component', vital_day = 3, look_baseline=False):
-    folder_path = '../machine_learning/'
-
-    if lab_type == 'panel':
-        data_folder = 'data-panels-%ddaysVitals_old' % vital_day
-        all_labs = all_panels #['LABA1C', 'LABLAC', 'LABK', 'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR']
-    else:
-        all_labs = all_components
-        # data_folder = 'data-components-%ddaysVitals' % vital_day
-        data_folder = 'data'
-
-    from medinfo.ml.SupervisedClassifier import SupervisedClassifier
-    all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
-
-    for lab in all_labs:
-
-        plot_roc(lab, all_algs, folder_path+data_folder, look_baseline=look_baseline)
-    plt.legend()
-    plt.show()
-
-def main_plot_sensitivity():
-    lab = 'WBC'
-    df = pd.read_csv('data_performance_stats/for_plotting_sensitivities.csv') # TODO
-
-    xs = train_PPVs
-    ys1 = []
-
-    ys2 = []
-
-    for train_PPV in train_PPVs:
-        tmp_df = df[df['train_PPV']==train_PPV].copy()
-        tmp_df['predict_positive_ratio'] = tmp_df['true_positive'] + tmp_df['false_positive']
-        tmp_df['predict_positive_num_2016'] = tmp_df['predict_positive_ratio'] * tmp_df['2016_Vol']
-        res1 = tmp_df.ix[tmp_df['lab']==lab, 'predict_positive_num_2016']
-        ys1.append(res1.values[0])
-        # ys1 = (df['true_positive'] + df['false_positive']).values # anual cnt of positive
-
-        res2 = tmp_df.ix[tmp_df['lab']==lab, 'PPV']
-        ys2.append(res2.values[0])
-    print ys1
-    print ys2
-
-    fig, ax1 = plt.subplots()
-
-    ax1.bar(xs, ys1, width=0.01)
-    ax1.set_xlabel('train PPVs (%s)'%lab)
-    # Make the y-axis label, ticks and tick labels match the line color.
-    ax1.set_ylabel('annual cnt of positive predictions', color='b')
-    ax1.tick_params('y', colors='b')
-
-    ax2 = ax1.twinx()
-    ax2.plot(xs, ys2, 'r.')
-    ax2.set_ylabel('test PPVs', color='r')
-    ax2.tick_params('y', colors='r')
-
-    fig.tight_layout()
-    plt.show()
-
-
-
 if __name__ == '__main__':
-    # main_plot_roc(lab_type='component', vital_day=3, look_baseline=False)
-    main()
+    main(lab_type='component')
 
-    # main_plot_sensitivity()
