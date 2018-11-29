@@ -239,8 +239,14 @@ def get_baseline(file_path):
 For each lab at each (train_PPV, vital_day), 
 write all stats (e.g. roc_auc, PPV, total cnts) into csv file. 
 '''
-def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day, folder_path, data_folder, result_folder, columns):
-    curr_res_file = '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
+def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day,
+                  folder_path, data_folder, result_folder, columns,
+                  thres_mode="from_test"):
+    if thres_mode == "from_train":
+        curr_res_file = '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
+    elif thres_mode == "from_test":
+        curr_res_file = '%s-alg-summary-testPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
+
     if os.path.exists(result_folder + curr_res_file):
         return
 
@@ -252,7 +258,7 @@ def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day, folder_
         print 'Processing lab %s with alg %s' % (lab, alg)
         # try:
         one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder=folder_path + '/' + data_folder,
-                                           PPV_wanted=PPV_wanted, lab_type=lab_type)
+                                           PPV_wanted=PPV_wanted, lab_type=lab_type, thres_mode=thres_mode)
 
         if lab_type == 'component':
             one_lab_alg_dict = add_component_cnts(one_lab_alg_dict, years=years)
@@ -283,8 +289,9 @@ all_UMich = [
 For each (train-)PPV wanted, each vital-day dataset
 Create a summary of all algs' performances on all labs
 '''
-def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_days = [3], PPVs_wanted = train_PPVs,
-                                columns = None):
+def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_days = [3],
+                                 PPVs_wanted = train_PPVs,
+                                columns = None, thres_mode="from_test"):
 
     folder_path = '../machine_learning/'
 
@@ -319,14 +326,17 @@ def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_day
                 write all stats (e.g. roc_auc, PPV, total cnts) into csv file. 
                 '''
                 try:
-                    lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day, folder_path, data_folder, result_folder, columns)
+                    lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted,
+                                  vital_day, folder_path, data_folder, result_folder, columns,
+                                  thres_mode=thres_mode)
                 except Exception as e:
                     print e
                     pass
 
 
 
-def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = train_PPVs, columns=None):
+def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = train_PPVs,
+                   columns=None, thres_mode="from_test"):
 
     df_long = pd.DataFrame(columns=columns)
 
@@ -345,9 +355,14 @@ def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = train
     for PPV_wanted in PPVs_wanted:
         for vital_day in vital_days: #TODO: create the column of vitals
             for lab in all_labs:
+                if thres_mode == "from_train":
+                    df_cur = pd.read_csv(result_folder + '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv'%(lab, str(PPV_wanted), vital_day), keep_default_na=False)
+                    df_cur['train_PPV'] = PPV_wanted
+                elif thres_mode == "from_test":
+                    df_cur = pd.read_csv(result_folder + '%s-alg-summary-testPPV-%s-vitalDays-%d.csv' % (
+                    lab, str(PPV_wanted), vital_day), keep_default_na=False)
+                    df_cur['test_PPV'] = PPV_wanted
 
-                df_cur = pd.read_csv(result_folder + '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv'%(lab, str(PPV_wanted), vital_day), keep_default_na=False)
-                df_cur['train_PPV'] = PPV_wanted
                 df_cur['vital_day'] = vital_day
 
 
@@ -362,7 +377,7 @@ def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = train
     df_long[columns].to_csv('data_performance_stats/'+'long-%s-summary.csv'% lab_type, index=False)
     df_best_alg[columns_best_alg].to_csv('data_performance_stats/'+'best-alg-%s-summary.csv'% lab_type, index=False)
 
-def main(lab_type='panel'):
+def main(lab_type='panel', thres_mode="from_test"):
 
 
     columns_panels = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline_roc', 'total_cnt']
@@ -371,8 +386,12 @@ def main(lab_type='panel'):
     columns_panels += ['count', 'min_price', 'max_price', 'mean_price', 'median_price',
                        'min_volume_charge', 'max_volume_charge', 'mean_volume_charge', 'median_volume_charge']
 
-    columns_panels_agg = columns_panels[:6] + ['vital_day', 'train_PPV'] + columns_panels[6:]
+    if thres_mode == "from_train":
+        wanted_PPV_col = 'train_PPV'
+    elif thres_mode == "from_test":
+        wanted_PPV_col = 'test_PPV'
     # TODO: Finish the panel routine, but first deal with the NA 2015 issue?
+    columns_panels_agg = columns_panels[:6] + ['vital_day', wanted_PPV_col] + columns_panels[6:]
 
     years = [2016]  # which years' cnt to look at
     columns_components = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline_roc', 'total_cnt']  # basic info
@@ -380,7 +399,7 @@ def main(lab_type='panel'):
     columns_components += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
     columns_components += [str(year) + '_Vol' for year in years]
 
-    columns_components_agg = columns_components[:6] + ['vital_day', 'train_PPV'] + columns_components[6:]
+    columns_components_agg = columns_components[:6] + ['vital_day', wanted_PPV_col] + columns_components[6:]
 
     if lab_type == 'panel':
         columns = columns_panels
@@ -390,10 +409,11 @@ def main(lab_type='panel'):
         columns_agg = columns_components_agg
 
     main_files_to_separate_stats(lab_type=lab_type, years=[2016], vital_days=[3], PPVs_wanted=train_PPVs,
-                                 columns=columns)
+                                 columns=columns, thres_mode=thres_mode)
 
-    main_agg_stats(lab_type=lab_type, vital_days=[3], PPVs_wanted=train_PPVs, columns=columns_agg)
+    main_agg_stats(lab_type=lab_type, vital_days=[3], PPVs_wanted=train_PPVs, columns=columns_agg,
+                   thres_mode=thres_mode)
 
 if __name__ == '__main__':
-    main(lab_type='component')
+    main(lab_type='component', thres_mode="from_test")
 
