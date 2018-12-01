@@ -4,6 +4,10 @@ import stats_utils
 import datetime
 import collections
 import pandas as pd
+import numpy as np
+
+pd.set_option('display.width', 500)
+pd.set_option('display.max_columns', 500)
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -212,5 +216,41 @@ def print_HosmerLemeshowTest():
 
     print sorted(p_vals)
 
+def PPV_guideline(lab_type="panel"):
+
+    df_fix_train = pd.read_csv("data_performance_stats/best-alg-%s-summary-trainPPV.csv"%lab_type)
+
+    df_fix_train = df_fix_train[~(df_fix_train['lab']=='LABHIVWBL')]
+
+    range_bins = [0.99] + np.linspace(0.95, 0.5, num=10).tolist()
+    columns = ['Target PPV', 'Total labs', 'Valid labs']
+    columns += ['[0.99, 1]']
+    for i in range(len(range_bins) - 1):
+        columns += ['[%.2f, %.2f)' % (range_bins[i + 1], range_bins[i])]
+
+    rows = []
+    for wanted_PPV in [0.8, 0.90, 0.95, 0.99][::-1]: # TODO: what is the problem with 0.9? LABHIVWBL
+        cur_row = [wanted_PPV]
+
+        PPVs_from_train = df_fix_train.ix[df_fix_train['train_PPV']==wanted_PPV, ['PPV']]
+        cur_row.append(PPVs_from_train.shape[0]) # "Total number of labs:"
+
+        PPVs_from_train = PPVs_from_train.dropna()['PPV'].values
+        cur_row.append(PPVs_from_train.shape[0]) # "Valid number of labs:"
+
+        cur_cnt = sum(PPVs_from_train >= 0.99)
+        cur_row.append(cur_cnt)
+
+        for i in range(len(range_bins)-1):
+            cur_cnt = sum((range_bins[i+1] <= PPVs_from_train) & (PPVs_from_train < range_bins[i]))
+            cur_row.append(cur_cnt)
+
+        rows.append(cur_row)
+
+    df = pd.DataFrame(rows, columns=columns)
+    df.to_csv("predict_power_%ss.csv"%lab_type, index=False)
+
+
 if __name__ == '__main__':
-    plot_curves(lab_type='panel', curve_type="prc")
+    # plot_curves(lab_type='panel', curve_type="prc")
+    PPV_guideline(lab_type="component")
