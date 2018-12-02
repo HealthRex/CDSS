@@ -22,9 +22,13 @@ TODO: Specific pipelines do not "override" this singleton class, but calls its f
 # - Run unit test -> no compiler errors, only value fails.
 # - Implement application until test passes.
 
-from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
-import os
 import LocalEnv
+import os
+
+import pandas as pd
+from sklearn.model_selection import train_test_split as sklearn_train_test_split
+
+from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
 def get_raw_matrix(lab,
                          lab_folder=
@@ -61,8 +65,37 @@ def write_processed_matrix(matrix, write_folder=""):
 def get_algs():
     return []
 
-def train_test_split():
-    return None
+
+def train_test_split(processed_matrix, outcome_label, columnToSplitOn='pat_id', random_state=0):
+    '''
+    Args:
+        processed_matrix:
+        Feature matrix ready to train (including the outcome label).
+
+        outcome_label:
+        For panels, "all_component_normal".
+        For components, "component_normal".
+
+        columnToSplitOn:
+        The column to split the matrix on.
+
+    Returns:
+        X_train, y_train, X_test, y_test as usual.
+    '''
+    # log.debug('outcome_label: %s' % outcome_label)
+    all_possible_ids = sorted(set(processed_matrix[columnToSplitOn].values.tolist()))
+
+    train_ids, test_ids = sklearn_train_test_split(all_possible_ids, random_state=random_state)
+
+    train_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(train_ids)].copy()
+    y_train = pd.DataFrame(train_matrix.pop(outcome_label))
+    X_train = train_matrix
+
+    test_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(test_ids)].copy()
+    y_test = pd.DataFrame(test_matrix.pop(outcome_label))
+    X_test = test_matrix
+
+    return X_train, y_train, X_test, y_test
 
 def train(X_train, y_train, alg):
     return None
