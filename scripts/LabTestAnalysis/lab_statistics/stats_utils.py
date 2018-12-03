@@ -278,9 +278,15 @@ def fill_df_fix_PPV(lab, alg, data_folder='', PPV_wanted=0.9, lab_type=None, thr
 
     try:
         roc_auc = roc_auc_score(actual_list, df['predict'].values)
+    except Exception as e:
+        print e
+        roc_auc = float('nan')
+
+    try:
         roc_auc_left, roc_auc_right = bootstrap_CI(actual_list, df['predict'], confident_lvl=0.95)
-    except ValueError:
-        roc_auc, roc_auc_left, roc_auc_right = float('nan'), float('nan'), float('nan')
+    except Exception as e:
+        print e
+        roc_auc_left, roc_auc_right = float('nan'), float('nan')
 
     '''
     Score threshold is used for "predict_proba --> predict_label"
@@ -454,3 +460,22 @@ def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day,
     # print 'PPV_wanted=%.2f finished!' % PPV_wanted #TODO
 
     df[columns].to_csv(result_folder + curr_res_file, index=False)
+
+if __name__ == '__main__':
+    columns_panels = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline_roc', 'total_cnt']
+    columns_panels += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
+    columns_panels += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
+    columns_panels += ['count', 'min_price', 'max_price', 'mean_price', 'median_price',
+                       'min_volume_charge', 'max_volume_charge', 'mean_volume_charge', 'median_volume_charge']
+    import generate_result_tables
+    lab2stats_csv(lab_type="panel",
+                  lab="LABHIVWBL",
+                  years=[2016],
+                  all_algs=generate_result_tables.all_algs,
+                  PPV_wanted=0.95,
+                  vital_day=3,
+                  folder_path='../machine_learning/',
+                  data_folder="data-panels/",
+                  result_folder="",
+                  columns=columns_panels,
+                  thres_mode="from_train")

@@ -25,6 +25,8 @@ all_UMich = ['WBC', 'HGB',
                 'AST', 'ALT',
             'ALB', 'CAL',
             'PO2AA', 'PCOAA2']
+all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
+
 '''
 For each (train-)PPV wanted, each vital-day dataset
 Create a summary of all algs' performances on all labs
@@ -55,7 +57,7 @@ def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_day
             os.mkdir(result_folder)
 
 
-        all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
+
 
         for PPV_wanted in PPVs_wanted:
 
