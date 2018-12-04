@@ -117,7 +117,7 @@ def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = train
                 df_best_alg = df_best_alg.append(df_cur_best_alg)
 
     df_long[columns].to_csv('data_performance_stats/'+'long-%s-summary.csv'% lab_type, index=False)
-    df_best_alg[columns_best_alg].to_csv('data_performance_stats/'+'best-alg-%s-summary.csv'% lab_type, index=False)
+    df_best_alg[columns_best_alg].to_csv('data_performance_stats/'+'best-alg-%s-summary-%s.csv'%(lab_type,thres_mode), index=False)
 
 def main(lab_type='panel', thres_mode="from_test"):
 

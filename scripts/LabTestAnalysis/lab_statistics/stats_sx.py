@@ -76,50 +76,90 @@ def get_LabUsage__csv():
     print 'within 24 hrs:', prevday_cnts_dict[0]
     print 'within 48 hrs:', prevday_cnts_dict[1]
 
-def plot_curves(lab_type='component', curve_type="roc"):
+def plot_curves__subfigs(lab_type='component', curve_type="roc"):
 
     if lab_type == 'panel':
         data_folder = '../machine_learning/data-panels/'
-        df = pd.read_csv('RF_important_features_panels.csv', keep_default_na=False)
+        # df = pd.read_csv('RF_important_features_panels.csv', keep_default_na=False)
     elif lab_type == 'component':
         data_folder = '../machine_learning/data-components/'
-        df = pd.read_csv('RF_important_features_components.csv', keep_default_na=False)
+        # df = pd.read_csv('RF_important_features_components.csv', keep_default_na=False)
 
-    labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
-    print labs
+    # labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
+    all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 
-    plt.figure(figsize=(8, 12))
-    for i in range(5):
-        for j in range(3):
-            ind = i * 3 + j
-            lab = labs[ind]
+    num_labs_in_one_fig = 10
+    col = 5
+    row = num_labs_in_one_fig/col
 
-            plt.subplot2grid((5, 3), (i, j))
+    fig_width, fig_heights = col*3., 24./col
 
-            #fpr_base, tpr_base, base_auc, fpr, tpr, best_auc \
-            '''
-            For precision-recall curve, the output are:
-                fpr_base, tpr_base, base_auc, 
-                fpr, tpr, best_auc.
-            For roc curve, the output are:
-                recall_base, precision_base, base_auc, 
-                fpr, tpr, best_auc
-            '''
-            xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best  \
-                = stats_utils.get_curve_onelab(lab,
-                                            all_algs=SupervisedClassifier.SUPPORTED_ALGORITHMS,
-                                            data_folder=data_folder,
-                                            curve_type=curve_type)
+    plt.figure(figsize=(fig_width, fig_heights))
+    for ind, lab in enumerate(all_labs):
 
-            plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
-            plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best))
+        xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best \
+            = stats_utils.get_curve_onelab(lab,
+                                           all_algs=SupervisedClassifier.SUPPORTED_ALGORITHMS,
+                                           data_folder=data_folder,
+                                           curve_type=curve_type)
 
-            plt.xticks([])
-            plt.yticks([])
-            plt.xlabel(lab)  # + ' ' + str(best_auc)[:4] + ' ' + str(base_auc)[:4]
+        # 0 -> 0, 0
+        # 1 -> 0, 1
+        # 2 -> 1, 0
+        # 3 -> 1, 1
+        ind_in_fig = ind%10
+        i, j = ind_in_fig/col, ind_in_fig%col
+        plt.subplot2grid((row, col), (i, j))
+
+        plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
+        plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best))
+        plt.xticks([])
+        plt.yticks([])
+        plt.xlabel(lab)  # + ' ' + str(best_auc)[:4] + ' ' + str(base_auc)[:4]
+        plt.legend()
+
+        if (ind+1)%num_labs_in_one_fig == 0:
+            plt.savefig('%s-%s-subfig.png'%(all_labs[ind+1-num_labs_in_one_fig],lab))
+            plt.close()
+            plt.figure(figsize=(fig_width, fig_heights))
+
+
+def plot_curves__overlap(lab_type='panel', curve_type="roc"):
+    if lab_type == 'panel':
+        data_folder = '../machine_learning/data-panels/'
+        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+    elif lab_type == 'component':
+        data_folder = '../machine_learning/data-components/'
+
+    num_labs_in_one_fig = 10
+    for i, lab in enumerate(all_labs):
+        xVal_base, yVal_base, base_score, xVal_best, yVal_best, best_score = \
+            stats_utils.get_curve_onelab(lab,
+                                     all_algs=SupervisedClassifier.SUPPORTED_ALGORITHMS,
+                                     data_folder=data_folder,
+                                     curve_type=curve_type)
+        plt.plot(xVal_base, yVal_base, label=lab+' %.2f'%base_score)
+
+        if (i+1)%num_labs_in_one_fig == 0:
             plt.legend()
+            #plt.show()
+            plt.savefig('%s-%s-baseline.png'%(all_labs[i+1-num_labs_in_one_fig],lab))
+            plt.close()
 
-    plt.show()
+    for i, lab in enumerate(all_labs):
+        xVal_base, yVal_base, base_score, xVal_best, yVal_best, best_score = \
+            stats_utils.get_curve_onelab(lab,
+                                     all_algs=SupervisedClassifier.SUPPORTED_ALGORITHMS,
+                                     data_folder=data_folder,
+                                     curve_type=curve_type)
+        plt.plot(xVal_best, yVal_best, label=lab+' %.2f'%best_score)
+
+        if (i+1)%num_labs_in_one_fig == 0:
+            plt.legend()
+            #plt.show()
+            plt.savefig('%s-%s-bestalg.png'%(all_labs[i+1-num_labs_in_one_fig],lab))
+            plt.close()
+
 
 def plot_cartoons():
     df = pd.read_csv('RF_important_features_panels.csv', keep_default_na=False)
@@ -216,11 +256,16 @@ def print_HosmerLemeshowTest():
 
     print sorted(p_vals)
 
+def PPV_judgement(lab_type="panel", PPV_wanted=0.95):
+    df_fix_test = pd.read_csv("data_performance_stats/thres_from_testPPV/best-alg-%s-summary.csv" % lab_type)
+    df_fix_test = df_fix_test[df_fix_test['test_PPV']==PPV_wanted]
+    df_fix_test['actual_normal'] = df_fix_test['true_positive'] + df_fix_test['false_negative']
+    df_fix_test['predict_normal'] = df_fix_test['true_positive'] + df_fix_test['false_positive'] #[['normal_prevalence', '']]
+    df_fix_test[['lab', 'actual_normal', 'predict_normal']].sort_values('predict_normal', ascending=False).to_csv("validation_fixPPV_%ss.csv"%lab_type, index=False) #.to_string(index=False)
+
 def PPV_guideline(lab_type="panel"):
 
     df_fix_train = pd.read_csv("data_performance_stats/best-alg-%s-summary-trainPPV.csv"%lab_type)
-
-    df_fix_train = df_fix_train[~(df_fix_train['lab']=='LABHIVWBL')]
 
     range_bins = [0.99] + np.linspace(0.95, 0.5, num=10).tolist()
     columns = ['Target PPV', 'Total labs', 'Valid labs']
@@ -252,5 +297,6 @@ def PPV_guideline(lab_type="panel"):
 
 
 if __name__ == '__main__':
-    # plot_curves(lab_type='panel', curve_type="prc")
-    PPV_guideline(lab_type="component")
+    # plot_curves__subfigs(lab_type='panel', curve_type="roc")
+    # PPV_guideline(lab_type="component")
+    PPV_judgement('panel')
