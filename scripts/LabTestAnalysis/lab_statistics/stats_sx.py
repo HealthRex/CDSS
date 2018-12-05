@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
 from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
-    import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
+    import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS, UMICH_TOP_COMPONENTS
 
 
 def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=False, look_cost=False):
@@ -96,17 +96,25 @@ def plot_curves__subfigs(lab_type='component', curve_type="roc"):
 
     if lab_type == 'panel':
         data_folder = '../machine_learning/data-panels/'
+        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
         # df = pd.read_csv('RF_important_features_panels.csv', keep_default_na=False)
     elif lab_type == 'component':
         data_folder = '../machine_learning/data-components/'
+        all_labs = STRIDE_COMPONENT_TESTS
         # df = pd.read_csv('RF_important_features_components.csv', keep_default_na=False)
+    elif lab_type == 'UMich':
+        data_folder = "../machine_learning/data-UMich/"
+        all_labs = UMICH_TOP_COMPONENTS
 
     # labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
-    all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+
 
     num_labs_in_one_fig = 10
     col = 5
     row = num_labs_in_one_fig/col
+
+    scores_base = []
+    scores_best = []
 
     fig_width, fig_heights = col*3., 24./col
 
@@ -118,6 +126,8 @@ def plot_curves__subfigs(lab_type='component', curve_type="roc"):
                                            all_algs=SupervisedClassifier.SUPPORTED_ALGORITHMS,
                                            data_folder=data_folder,
                                            curve_type=curve_type)
+        scores_base.append(score_base)
+        scores_best.append(score_best)
 
         # 0 -> 0, 0
         # 1 -> 0, 1
@@ -125,19 +135,23 @@ def plot_curves__subfigs(lab_type='component', curve_type="roc"):
         # 3 -> 1, 1
         ind_in_fig = ind%10
         i, j = ind_in_fig/col, ind_in_fig%col
-        plt.subplot2grid((row, col), (i, j))
+        # plt.subplot2grid((row, col), (i, j))
+        #
+        # plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
+        # plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best))
+        # plt.xticks([])
+        # plt.yticks([])
+        # plt.xlabel(lab)  # + ' ' + str(best_auc)[:4] + ' ' + str(base_auc)[:4]
+        # plt.legend()
+        #
+        # if (ind+1)%num_labs_in_one_fig == 0:
+        #     plt.savefig('%s-%s-subfig.png'%(all_labs[ind+1-num_labs_in_one_fig],lab))
+        #     plt.close()
+        #     plt.figure(figsize=(fig_width, fig_heights))
 
-        plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
-        plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best))
-        plt.xticks([])
-        plt.yticks([])
-        plt.xlabel(lab)  # + ' ' + str(best_auc)[:4] + ' ' + str(base_auc)[:4]
-        plt.legend()
-
-        if (ind+1)%num_labs_in_one_fig == 0:
-            plt.savefig('%s-%s-subfig.png'%(all_labs[ind+1-num_labs_in_one_fig],lab))
-            plt.close()
-            plt.figure(figsize=(fig_width, fig_heights))
+    avg_base, avg_best = np.mean(scores_base), np.mean(scores_best)
+    print "Average roc among %i labs: %.3f baseline, %.3f bestalg (an improvement of %.3f)."\
+          %(len(scores_base), avg_base, avg_best, avg_best-avg_base)
 
 
 def plot_curves__overlap(lab_type='panel', curve_type="roc"):
@@ -146,6 +160,10 @@ def plot_curves__overlap(lab_type='panel', curve_type="roc"):
         all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
     elif lab_type == 'component':
         data_folder = '../machine_learning/data-components/'
+        all_labs = STRIDE_COMPONENT_TESTS
+    elif lab_type == 'UMich':
+        data_folder = "../machine_learning/data-UMich/"
+        all_labs = UMICH_TOP_COMPONENTS
 
     num_labs_in_one_fig = 10
     for i, lab in enumerate(all_labs):
@@ -161,6 +179,7 @@ def plot_curves__overlap(lab_type='panel', curve_type="roc"):
             #plt.show()
             plt.savefig('%s-%s-baseline.png'%(all_labs[i+1-num_labs_in_one_fig],lab))
             plt.close()
+    plt.close()
 
     for i, lab in enumerate(all_labs):
         xVal_base, yVal_base, base_score, xVal_best, yVal_best, best_score = \
@@ -219,14 +238,21 @@ def plot_cartoons():
     plt.savefig('cartoons_panels.png')
 
 
-def write_importantFeatures():
+def write_importantFeatures(lab_type="component"):
     all_rows = []
     num_rf_best = 0
 
-    for lab in STRIDE_COMPONENT_TESTS:
+    if lab_type == 'component':
+        all_labs = STRIDE_COMPONENT_TESTS
+    elif lab_type == 'panel':
+        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+    elif lab_type == 'UMich':
+        all_labs = UMICH_TOP_COMPONENTS
+
+    for lab in all_labs:
         df = pd.read_csv(
-            '../machine_learning/data-components/%s/%s-normality-prediction-report.tab'
-            %(lab,lab), sep='\t', skiprows=1)
+            '../machine_learning/data-%ss/%s/%s-normality-prediction-report.tab'
+            %(lab_type,lab,lab), sep='\t', skiprows=1)
 
         best_row = df['roc_auc'].values.argmax()
         if best_row == 2:
@@ -253,7 +279,7 @@ def write_importantFeatures():
     print "Total number of labs:", len(all_rows), "num of RF best:", (num_rf_best)
 
     result_df = pd.DataFrame(all_rows, columns=['lab', 'feature 1', 'score 1', 'feature 2', 'score 2','feature 3', 'score 3'])
-    result_df.to_csv('RF_important_features_components.csv', index=False)
+    result_df.to_csv('RF_important_features_%ss.csv'%lab_type, index=False)
 
 def print_HosmerLemeshowTest():
     labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
@@ -297,7 +323,11 @@ def PPV_guideline(lab_type="panel"):
         cur_row.append(PPVs_from_train.shape[0]) # "Total number of labs:"
 
         PPVs_from_train = PPVs_from_train.dropna()['PPV'].values
-        cur_row.append(PPVs_from_train.shape[0]) # "Valid number of labs:"
+        vaild_PPV_num = PPVs_from_train.shape[0]
+        cur_row.append(vaild_PPV_num) # "Valid number of labs:"
+
+        print "When target at PPV %.2f, the mean PPV among %i labs is %.3f, std is %.3f"\
+              %(wanted_PPV, vaild_PPV_num, np.mean(PPVs_from_train), np.std(PPVs_from_train))
 
         cur_cnt = sum(PPVs_from_train >= 0.99)
         cur_row.append(cur_cnt)
@@ -311,9 +341,30 @@ def PPV_guideline(lab_type="panel"):
     df = pd.DataFrame(rows, columns=columns)
     df.to_csv("predict_power_%ss.csv"%lab_type, index=False)
 
+def check_similar_components():
+    # common_labs = list(set(STRIDE_COMPONENT_TESTS) & set(UMICH_TOP_COMPONENTS))
+
+    df_UMich = pd.read_csv('RF_important_features_UMichs.csv')
+    df_component = pd.read_csv('RF_important_features_components.csv')
+
+    columns_UMich_only = []
+    columns_component_only = []
+    for i in range(1,4):
+        df_UMich = df_UMich.rename(columns={'feature %i'%i:'UMich featu %i'%i,
+                                            'score %i'%i:'UMich score %i'%i})
+        columns_UMich_only += ['UMich featu %i'%i, 'UMich score %i'%i]
+        df_component = df_component.rename(columns={'feature %i'%i:'STRIDE featu %i'%i,
+                                                    'score %i' % i:'STRIDE score %i' % i})
+        columns_component_only += ['STRIDE featu %i'%i, 'STRIDE score %i'%i]
+
+    df_combined = pd.merge(df_component, df_UMich, on='lab', how='inner')
+    (df_combined[['lab'] + columns_UMich_only]).to_csv("UMich_feature_importance_to_compare.csv", index=False)
+    (df_combined[['lab'] + columns_component_only]).to_csv("component_feature_importance_to_compare.csv", index=False)
 
 if __name__ == '__main__':
-    # plot_curves(lab_type='panel', curve_type="prc")
+    # plot_curves__subfigs(lab_type='UMich', curve_type="roc")
+    # plot_curves__overlap(lab_type='UMich', curve_type="roc")
     # PPV_guideline(lab_type="component")
-    plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
-
+    # plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
+    check_similar_components()
+    # write_importantFeatures(lab_type='UMich')
