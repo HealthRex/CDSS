@@ -19,35 +19,51 @@ from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
     import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
 
 
-def plot_NormalRate__bar(lab_type="panel"):
+def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=False, look_cost=False):
     '''
     Horizontal bar chart for Popular labs.
     '''
 
-    df = pd.read_csv('data_performance_stats/best-alg-%s-summary.csv' % lab_type)
+    df = pd.read_csv('data_performance_stats/best-alg-%s-summary-trainPPV.csv' % lab_type)
+    df = df[df['train_PPV']==wanted_PPV]
+
     df['normal_rate'] = (df['true_positive'] + df['false_negative']).round(5)
 
     if lab_type == "component":
         df = df.rename(columns={'2016_Vol': 'count'})
         df = df.dropna()
-    df['count_scaled'] = df['count'].apply(lambda x: x / 1000000.)
+
+    df['volumn'] = df['count'].apply(lambda x: x / 1000000.)
+    volumn_label = 'Total Cnt (in millions) in 2016'
+
+    if look_cost:
+        df['volumn'] = df['volumn'] * df['mean_price']/1000. # cost
+        volumn_label = 'Total Cost (in billions) in 2016'
 
     '''
     Picking the top 20 popular labs.
     '''
-    df_sorted_by_cnts = df.sort_values('count_scaled', ascending=False).ix[:,
-                        ['lab', 'normal_rate', 'count_scaled']].drop_duplicates().head(20).copy()
-    df_sorted_by_cnts = df_sorted_by_cnts.sort_values('count_scaled', ascending=True)
+    df_sorted_by_cnts = df.sort_values('volumn', ascending=False).ix[:,
+                        ['lab', 'normal_rate', 'true_positive', 'volumn']].drop_duplicates().head(20).copy()
+    df_sorted_by_cnts = df_sorted_by_cnts.sort_values('volumn', ascending=True)
 
     fig, ax = plt.subplots(figsize=(10, 10))
-    ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['normal_rate'], color='blue', label='Normal Rate')
+    ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['normal_rate'],
+            color='blue', alpha=0.5, label='Normal Rate')
     for i, v in enumerate(df_sorted_by_cnts['normal_rate']):
         ax.text(v + 0.01, i, str("{0:.0%}".format(v)), color='k', fontweight='bold')
 
-    ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['count_scaled'], color='grey', alpha=0.5,
-            label='Total Cnt (in millions) in 2016')
+    if add_predictable:
+        ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['true_positive'],
+                color='blue', alpha=0.9, label='True Positive@0.95 train_PPV')
+        for i, v in enumerate(df_sorted_by_cnts['true_positive']):
+            ax.text(v + 0.01, i, str("{0:.0%}".format(v)), color='k', fontweight='bold')
 
-    plt.xlim([0, 1])
+    ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['volumn'], color='grey', alpha=0.5,
+            label=volumn_label)
+
+
+    plt.xlim([0,1])
     for tick in ax.xaxis.get_major_ticks():
         tick.label.set_fontsize(14)
 
@@ -297,6 +313,7 @@ def PPV_guideline(lab_type="panel"):
 
 
 if __name__ == '__main__':
-    # plot_curves__subfigs(lab_type='panel', curve_type="roc")
+    # plot_curves(lab_type='panel', curve_type="prc")
     # PPV_guideline(lab_type="component")
-    PPV_judgement('panel')
+    plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
+
