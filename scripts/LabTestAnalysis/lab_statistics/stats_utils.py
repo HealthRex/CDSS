@@ -4,6 +4,8 @@ from medinfo.db.Model import SQLQuery
 import datetime, collections
 from sklearn.metrics import roc_auc_score, roc_curve, precision_recall_curve, average_precision_score
 import pandas as pd
+pd.set_option('display.width', 500)
+pd.set_option('display.max_columns', 500)
 import numpy as np
 from scipy import stats
 import os
@@ -51,7 +53,8 @@ def get_prevday_cnts__dict(df):
     Cnt of ordering w/i one day
     '''
     df['prev_in_sec'] = df['pat_id'].apply(lambda x: 1000 * 24 * 3600)
-    df['order_time'] = df['order_time'].apply(lambda x: datetime.datetime.strptime(x, datetime_format))
+    df['order_time'] = df['order_time'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)
+                                              if isinstance(x, str) else x)
 
     prev_days = []
     row, col = df.shape
@@ -461,7 +464,30 @@ def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day,
 
     df[columns].to_csv(result_folder + curr_res_file, index=False)
 
-if __name__ == '__main__':
+def get_top_labs(lab_type='panel', top_k=10, criterion='count', lab_name_only=True):
+    df = pd.read_csv('data_performance_stats/best-alg-%s-summary-trainPPV.csv'%lab_type,
+                     keep_default_na=False)
+    if lab_type == 'component':
+        df = df.rename(columns={'2016_Vol':'count'})
+    else:
+        df['median_price'] = df['median_price'].apply(lambda x: float(x) if x else 0)
+
+    df['count'] = df['count'].apply(lambda x: int(x) if x else 0) # TODO: LABNA == 0!
+
+    if lab_type == 'component' or criterion == 'count':
+        df = df[['lab', criterion]].drop_duplicates()
+    elif criterion == 'count*price': # TODO: probably confusing, but it means count*median_price
+        df[criterion] = df['count']*df['median_price']
+        df = df[['lab', criterion]].drop_duplicates()
+
+    res = df.sort_values(criterion, ascending=False).head(top_k)
+    if lab_name_only:
+        return res['lab'].values
+    else:
+        return res
+
+
+def main():
     columns_panels = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline_roc', 'total_cnt']
     columns_panels += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
     columns_panels += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
@@ -479,3 +505,7 @@ if __name__ == '__main__':
                   result_folder="",
                   columns=columns_panels,
                   thres_mode="from_train")
+
+if __name__ == '__main__':
+    print get_top_labs(lab_type='component', top_k=20, lab_name_only=False)
+    # print get_top_labs(lab_type='panel', top_k=20, criterion='count*price')

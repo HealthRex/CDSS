@@ -18,13 +18,18 @@ from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
     import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS, UMICH_TOP_COMPONENTS
 
+all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+all_components = STRIDE_COMPONENT_TESTS
+all_UMichs = UMICH_TOP_COMPONENTS
+
 
 def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=False, look_cost=False):
     '''
     Horizontal bar chart for Popular labs.
     '''
 
-    df = pd.read_csv('data_performance_stats/best-alg-%s-summary-trainPPV.csv' % lab_type)
+    df = pd.read_csv('data_performance_stats/best-alg-%s-summary-trainPPV.csv' % lab_type,
+                     keep_default_na=False)
     df = df[df['train_PPV']==wanted_PPV]
 
     df['normal_rate'] = (df['true_positive'] + df['false_negative']).round(5)
@@ -70,27 +75,51 @@ def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=Fals
     plt.legend()
     plt.show()
 
-def get_LabUsage__csv():
+def get_LabUsage__csv(lab_type='panel'):
     '''
     Overuse of labs figure.
     '''
-    data_file = 'A1C_Usage_2016.csv'
 
-    if not os.path.exists(data_file):
-        results = stats_utils.query_lab_usage__df(lab='LABA1C',
-                                                  time_start='2016-01-01',
-                                                  time_end='2016-12-31')
-        df = pd.DataFrame(results, columns=['pat_id', 'order_time', 'result'])
-        df.to_csv(data_file, index=False)
-    else:
-        df = pd.read_csv(data_file)
+    if lab_type == 'panel':
+        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 
-    prevday_cnts_dict = stats_utils.get_prevday_cnts__dict(df)
+    for lab in all_labs[10:]:
 
-    print 'total cnt:', df.shape[0]
-    print 'repetitive cnt:', sum(prevday_cnts_dict.values())
-    print 'within 24 hrs:', prevday_cnts_dict[0]
-    print 'within 48 hrs:', prevday_cnts_dict[1]
+        data_file = '%s_Usage_2016.csv'%lab
+
+        if not os.path.exists(data_file):
+            results = stats_utils.query_lab_usage__df(lab=lab,
+                                                      time_start='2016-01-01',
+                                                      time_end='2016-12-31')
+            df = pd.DataFrame(results, columns=['pat_id', 'order_time', 'result'])
+            df.to_csv(data_file, index=False)
+        else:
+            df = pd.read_csv(data_file,keep_default_na=False)
+
+        prevday_cnts_dict = stats_utils.get_prevday_cnts__dict(df)
+
+        '''
+        We only care about (0, 1 day], (1 day, 3 days], (3 days, 7 days] stats
+        '''
+        prevday_cnts_simple_dict = {'0-1 day': prevday_cnts_dict[0],
+                                    '1-3 days:': sum(prevday_cnts_dict[x] for x in range(1,4)),
+                                    '3-7 days:': sum(prevday_cnts_dict[x] for x in range(4,8)),
+                                    'others:': sum(prevday_cnts_dict[x] for x in range(8, 365))
+                                    }
+        print prevday_cnts_simple_dict
+
+        pre_sum = 0
+        alphas = [1,0.5,0.3,0.1]
+        for i, key in enumerate(sorted(prevday_cnts_simple_dict.keys())):
+            pre_sum += prevday_cnts_simple_dict[key]
+            plt.barh([lab], pre_sum, color='b', alpha=alphas[i])
+    plt.show()
+    # quit()
+    #
+    # print 'total cnt:', df.shape[0]
+    # print 'repetitive cnt:', sum(prevday_cnts_dict.values())
+    # print 'within 24 hrs:', prevday_cnts_dict[0]
+    # print 'within 48 hrs:', prevday_cnts_dict[1]
 
 def plot_curves__subfigs(lab_type='component', curve_type="roc"):
 
@@ -196,20 +225,24 @@ def plot_curves__overlap(lab_type='panel', curve_type="roc"):
             plt.close()
 
 
-def plot_cartoons():
-    df = pd.read_csv('RF_important_features_panels.csv', keep_default_na=False)
-    labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
-    print labs
+def plot_cartoons(lab_type='panel', labs=all_panels):
+    df = pd.read_csv('RF_important_features_%ss.csv'%lab_type, keep_default_na=False)
+    # labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
+    # print labs
     plt.figure(figsize=(8, 12))
 
-    lab = 'WBC'
+    # lab = 'WBC'
     alg = 'random-forest'
 
-    data_folder = "../machine_learning/data-panels/"
+    data_folder = "../machine_learning/data-%ss/"%lab_type
 
-    for i in range(5):
-        for j in range(3):
-            ind = i * 3 + j
+    col = 3
+    row = len(labs)/col
+    has_left_labs = (len(labs)%col!=0)
+
+    for i in range(row):
+        for j in range(col):
+            ind = i * col + j
             lab = labs[ind]
 
             df = pd.read_csv(data_folder + "%s/%s/%s-normality-prediction-%s-direct-compare-results.csv"
@@ -221,7 +254,10 @@ def plot_cartoons():
                               % (lab, alg, lab, alg), sep='\t', keep_default_na=False)
             auc = df1['roc_auc'].values[0]
 
-            plt.subplot2grid((5, 3), (i, j))
+            if not has_left_labs:
+                plt.subplot2grid((row, col), (i, j))
+            else:
+                plt.subplot2grid((row+1, col), (i, j))
             plt.hist(scores_actual_0, bins=30, alpha=0.8, color='r', label="abnormal")
             plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
             plt.xlim([0, 1])
@@ -234,6 +270,33 @@ def plot_cartoons():
     # plt.xlabel("%s score for %s"%(alg,lab))
     # plt.ylabel("num episodes, auroc=%f"%auc)
     # plt.legend()
+    if has_left_labs:
+        i = row
+        for j in range(len(labs)%col):
+            ind = i * col + j
+            lab = labs[ind]
+
+            df = pd.read_csv(data_folder + "%s/%s/%s-normality-prediction-%s-direct-compare-results.csv"
+                             % (lab, alg, lab, alg), keep_default_na=False)
+            scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
+            scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
+
+            df1 = pd.read_csv(data_folder + "%s/%s/%s-normality-prediction-%s-report.tab"
+                              % (lab, alg, lab, alg), sep='\t', keep_default_na=False)
+            auc = df1['roc_auc'].values[0]
+
+            if not has_left_labs:
+                plt.subplot2grid((row, col), (i, j))
+            else:
+                plt.subplot2grid((row + 1, col), (i, j))
+            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='r', label="abnormal")
+            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
+            plt.xlim([0, 1])
+            plt.ylim([0, 500])
+            plt.xticks([])
+            plt.yticks([])
+            plt.xlabel(lab)
+    plt.show()
 
     plt.savefig('cartoons_panels.png')
 
@@ -252,7 +315,7 @@ def write_importantFeatures(lab_type="component"):
     for lab in all_labs:
         df = pd.read_csv(
             '../machine_learning/data-%ss/%s/%s-normality-prediction-report.tab'
-            %(lab_type,lab,lab), sep='\t', skiprows=1)
+            %(lab_type,lab,lab), sep='\t', skiprows=1, keep_default_na=False)
 
         best_row = df['roc_auc'].values.argmax()
         if best_row == 2:
@@ -290,7 +353,8 @@ def print_HosmerLemeshowTest():
     for lab in labs:
         df_new = pd.read_csv(
             '../machine_learning/data-panels-calibration-sigmoid/%s/%s/%s-normality-prediction-%s-direct-compare-results.csv'
-            % (lab, alg, lab, alg))
+            % (lab, alg, lab, alg),
+            keep_default_na=False)
         actual = df_new['actual'].values
         predict = df_new['predict'].values
         p_val = stats_utils.Hosmer_Lemeshow_Test(actual_labels=actual, predict_probas=predict)
@@ -299,7 +363,9 @@ def print_HosmerLemeshowTest():
     print sorted(p_vals)
 
 def PPV_judgement(lab_type="panel", PPV_wanted=0.95):
-    df_fix_test = pd.read_csv("data_performance_stats/thres_from_testPPV/best-alg-%s-summary.csv" % lab_type)
+    df_fix_test = pd.read_csv(
+        "data_performance_stats/thres_from_testPPV/best-alg-%s-summary.csv" % lab_type,
+        keep_default_na=False)
     df_fix_test = df_fix_test[df_fix_test['test_PPV']==PPV_wanted]
     df_fix_test['actual_normal'] = df_fix_test['true_positive'] + df_fix_test['false_negative']
     df_fix_test['predict_normal'] = df_fix_test['true_positive'] + df_fix_test['false_positive'] #[['normal_prevalence', '']]
@@ -307,7 +373,8 @@ def PPV_judgement(lab_type="panel", PPV_wanted=0.95):
 
 def PPV_guideline(lab_type="panel"):
 
-    df_fix_train = pd.read_csv("data_performance_stats/best-alg-%s-summary-trainPPV.csv"%lab_type)
+    df_fix_train = pd.read_csv("data_performance_stats/best-alg-%s-summary-trainPPV.csv"%lab_type,
+                               keep_default_na=False)
 
     range_bins = [0.99] + np.linspace(0.95, 0.5, num=10).tolist()
     columns = ['Target PPV', 'Total labs', 'Valid labs']
@@ -344,8 +411,8 @@ def PPV_guideline(lab_type="panel"):
 def check_similar_components():
     # common_labs = list(set(STRIDE_COMPONENT_TESTS) & set(UMICH_TOP_COMPONENTS))
 
-    df_UMich = pd.read_csv('RF_important_features_UMichs.csv')
-    df_component = pd.read_csv('RF_important_features_components.csv')
+    df_UMich = pd.read_csv('RF_important_features_UMichs.csv',keep_default_na=False)
+    df_component = pd.read_csv('RF_important_features_components.csv',keep_default_na=False)
 
     columns_UMich_only = []
     columns_component_only = []
@@ -362,9 +429,11 @@ def check_similar_components():
     (df_combined[['lab'] + columns_component_only]).to_csv("component_feature_importance_to_compare.csv", index=False)
 
 if __name__ == '__main__':
+    plot_cartoons(lab_type='component', labs=['HGB'])
     # plot_curves__subfigs(lab_type='UMich', curve_type="roc")
     # plot_curves__overlap(lab_type='UMich', curve_type="roc")
     # PPV_guideline(lab_type="component")
     # plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
-    check_similar_components()
+    # check_similar_components()
     # write_importantFeatures(lab_type='UMich')
+    # get_LabUsage__csv()
