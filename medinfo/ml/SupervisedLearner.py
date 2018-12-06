@@ -2,6 +2,9 @@
 Besides the regular pipelining, this new file allows starting from any
 intermediate step.
 
+Trying to piecing together different function parts (reliably),
+instead of realizing any specific functions.
+
 TODO: Specific pipelines do not "override" this singleton class, but calls its function?
 '''
 
@@ -105,6 +108,46 @@ def predict(X_test, model):
 
 def evaluate(y_test, y_pred):
     return None
+
+def pipelining(source_set_folder, labs, source_type, source_ids):
+    '''
+    This function aims at gluing several steps.
+
+    The full steps are:
+        Empty (data in SQL) -> raw matrix -> processed matrix
+        -> processed train, processed test -> trained models
+        -> results and reports
+
+    Args:
+        source_set_folder:
+        labs:
+        source_type:
+
+    Returns:
+
+    '''
+    status = 'ready'
+    assert os.path.exists(source_set_folder)
+
+    if source_type == 'raw-matrix':
+        # TODO:
+        # get one new lab's raw matrix
+        # get one old lab's model
+        # run it through the model
+
+
+        for lab in labs:
+            cur_folder = os.path.join(source_set_folder,
+                                      lab)
+            cur_files = os.listdir(cur_folder)
+            for cur_file in cur_files:
+                if 'raw' in cur_file and all(x in cur_file for x in source_ids):
+                    print cur_file
+
+            quit()
+
+
+    return status
 
 def main_pipelining():
     '''
