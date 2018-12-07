@@ -32,18 +32,20 @@ def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=Fals
                      keep_default_na=False)
     df = df[df['train_PPV']==wanted_PPV]
 
+    df = df[df['lab']!='LABNA'] # TODO: fix LABNA here
+
     df['normal_rate'] = (df['true_positive'] + df['false_negative']).round(5)
 
     if lab_type == "component":
         df = df.rename(columns={'2016_Vol': 'count'})
         df = df.dropna()
 
-    df['volumn'] = df['count'].apply(lambda x: x / 1000000.)
+    df['volumn'] = df['count'].apply(lambda x: float(x) / 1000000.) #
     volumn_label = 'Total Cnt (in millions) in 2016'
 
     if look_cost:
-        df['volumn'] = df['volumn'] * df['mean_price']/1000. # cost
-        volumn_label = 'Total Cost (in billions) in 2016'
+        df['volumn'] = df['volumn'] * df['mean_price'].apply(lambda x: float(x)) # cost
+        volumn_label = 'Total cost in 2016'
 
     '''
     Picking the top 20 popular labs.
@@ -53,27 +55,57 @@ def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=Fals
     df_sorted_by_cnts = df_sorted_by_cnts.sort_values('volumn', ascending=True)
 
     fig, ax = plt.subplots(figsize=(10, 10))
-    ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['normal_rate'],
-            color='blue', alpha=0.5, label='Normal Rate')
-    for i, v in enumerate(df_sorted_by_cnts['normal_rate']):
-        ax.text(v + 0.01, i, str("{0:.0%}".format(v)), color='k', fontweight='bold')
-
-    if add_predictable:
-        ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['true_positive'],
-                color='blue', alpha=0.9, label='True Positive@0.95 train_PPV')
-        for i, v in enumerate(df_sorted_by_cnts['true_positive']):
-            ax.text(v + 0.01, i, str("{0:.0%}".format(v)), color='k', fontweight='bold')
-
     ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['volumn'], color='grey', alpha=0.5,
             label=volumn_label)
 
+    df_sorted_by_cnts['normal_volumn'] = df_sorted_by_cnts['normal_rate']*df_sorted_by_cnts['volumn']
+    ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['normal_volumn'],
+            color='blue', alpha=0.5, label='Normal lab cost')
+    # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
+    #     ax.text(v + 0.01, i, str("{0:.0%}".format(v)), color='k', fontweight='bold')
 
-    plt.xlim([0,1])
+    df_sorted_by_cnts['truepo_volumn'] = df_sorted_by_cnts['true_positive']*df_sorted_by_cnts['volumn']
+    if add_predictable:
+        ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['truepo_volumn'],
+                color='blue', alpha=0.9, label='True positive saving') #'True Positive@0.95 train_PPV'
+        # for i, v in enumerate(df_sorted_by_cnts['truepo_volumn']):
+        #     ax.text(v + 0.01, i, str("{0:.0%}".format(v)), color='k', fontweight='bold')
+
+
+    # plt.xlim([0,1])
     for tick in ax.xaxis.get_major_ticks():
         tick.label.set_fontsize(14)
 
     plt.legend()
     plt.show()
+
+def get_waste_in_7days(lab_type='panel'):
+    if lab_type == 'panel':
+        all_labs = all_panels #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
+
+    res_df = pd.DataFrame()
+
+    for lab in all_labs:
+        data_file = '%s_Usage_2014-2016.csv'%lab
+
+        if not os.path.exists(data_file):
+            results = stats_utils.query_lab_usage__df(lab=lab,
+                                                      time_start='2014-01-01',
+                                                      time_end='2016-12-31')
+            df = pd.DataFrame(results, columns=['pat_id', 'order_time', 'result'])
+            df.to_csv(data_file, index=False)
+        else:
+            df = pd.read_csv(data_file,keep_default_na=False)
+
+        my_dict = {'lab':lab}
+        my_dict.update(stats_utils.get_prevweek_normal__dict(df))
+
+        print my_dict
+        res_df = res_df.append(my_dict, ignore_index=True)
+
+    max_num = len(res_df.columns)-1
+    res_df = res_df[['lab'] + [str(x)+' repeats' for x in range(max_num)]]
+    res_df.to_csv('%s_waste_in_7days.csv'%lab_type)
 
 def get_LabUsage__csv(lab_type='panel'):
     '''
@@ -81,16 +113,16 @@ def get_LabUsage__csv(lab_type='panel'):
     '''
 
     if lab_type == 'panel':
-        all_labs = stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
+        all_labs = all_panels #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
     print 'all_labs:', all_labs
 
     for lab in all_labs[::-1]:
 
-        data_file = '%s_Usage_2016.csv'%lab
+        data_file = '%s_Usage_2014-2016.csv'%lab
 
         if not os.path.exists(data_file):
             results = stats_utils.query_lab_usage__df(lab=lab,
-                                                      time_start='2016-01-01',
+                                                      time_start='2014-01-01',
                                                       time_end='2016-12-31')
             df = pd.DataFrame(results, columns=['pat_id', 'order_time', 'result'])
             df.to_csv(data_file, index=False)
@@ -453,11 +485,9 @@ if __name__ == '__main__':
     # plot_curves__subfigs(lab_type='UMich', curve_type="roc")
     # plot_curves__overlap(lab_type='UMich', curve_type="roc")
     # PPV_guideline(lab_type="component")
-    # plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
+
     # check_similar_components()
     # write_importantFeatures(lab_type='UMich')
-    # get_LabUsage__csv()
 
-    get_labs_cnts('component')
-
-
+    # plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
+    get_waste_in_7days()

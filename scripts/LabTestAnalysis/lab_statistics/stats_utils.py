@@ -45,6 +45,49 @@ def query_lab_usage__df(lab, time_start=None, time_end=None):
 
     return results
 
+def get_prevweek_normal__dict(df):
+    datetime_format = "%Y-%m-%d %H:%M:%S"
+    '''
+    Cnt of ordering w/i one day
+    '''
+    df['prev_in_sec'] = df['pat_id'].apply(lambda x: 1000 * 24 * 3600)
+    df['order_time'] = df['order_time'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)
+                                if isinstance(x, str) else x)
+    row, col = df.shape
+    my_dict = {} # key: num of normal in past week. val: [normal, normal, abnormal...]
+    for i in range(1, row):
+        if df.ix[i, 'pat_id'] == df.ix[i - 1, 'pat_id']:
+            prev_cnt = 0
+            curr_normal = False if df.ix[i, 'result'] == 'Y' else True
+
+            if prev_cnt in my_dict:
+                my_dict[prev_cnt].append(curr_normal)
+            else:
+                my_dict[prev_cnt] = [curr_normal]
+            time_diff = df.ix[i, 'order_time'] - df.ix[i - 1, 'order_time']
+
+            j = i - 1
+            while time_diff.days < 7:
+                prev_cnt += 1
+                if prev_cnt in my_dict:
+                    my_dict[prev_cnt].append(curr_normal)
+                else:
+                    my_dict[prev_cnt] = [curr_normal]
+
+                j -= 1
+                if j < 0 or df.ix[i, 'pat_id'] != df.ix[j, 'pat_id']:
+                    break
+                time_diff = df.ix[i, 'order_time'] - df.ix[j, 'order_time']
+
+    for key in my_dict:
+        my_dict[key] = float(sum(my_dict[key]))/len(my_dict[key])
+    return my_dict
+
+
+
+            # df.ix[i, 'prev_in_sec'] = time_diff_df.seconds
+            # a day has 86400 secs
+            # prev_days.append(time_diff_df.seconds/86400.)
 
 def get_prevday_cnts__dict(df):
     datetime_format = "%Y-%m-%d %H:%M:%S"
