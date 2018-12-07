@@ -428,6 +428,26 @@ def check_similar_components():
     (df_combined[['lab'] + columns_UMich_only]).to_csv("UMich_feature_importance_to_compare.csv", index=False)
     (df_combined[['lab'] + columns_component_only]).to_csv("component_feature_importance_to_compare.csv", index=False)
 
+def get_labs_cnts(lab_type):
+    df = pd.DataFrame(columns=['lab', 'cnt 2014-2016'])
+
+    if lab_type == 'panel':
+        labs = all_panels
+    elif lab_type == 'component':
+        labs = all_components
+
+    for lab in labs:
+        try:
+            cur_result = stats_utils.query_lab_cnts(lab=lab,
+                                                    lab_type=lab_type,
+                                                    time_limit=('2014-01-01', '2016-12-31'))
+            print cur_result
+            df = df.append({'lab': cur_result[0], 'cnt 2014-2016': cur_result[1]}, ignore_index=True)
+        except Exception as e:
+            print e
+
+    df.to_csv('%s-cnts-2014-2016.csv' % lab_type, index=False)
+
 if __name__ == '__main__':
     # plot_cartoons(lab_type='component', labs=['HGB'])
     # plot_curves__subfigs(lab_type='UMich', curve_type="roc")
@@ -438,7 +458,6 @@ if __name__ == '__main__':
     # write_importantFeatures(lab_type='UMich')
     # get_LabUsage__csv()
 
-    for lab in ['K']:
-        print stats_utils.query_lab_cnts(lab=lab,
-                                     lab_type='component',
-                                     time_limit=('2014-01-01', '2016-12-31'))
+    get_labs_cnts('component')
+
+
