@@ -23,6 +23,53 @@ all_components = STRIDE_COMPONENT_TESTS
 all_UMichs = UMICH_TOP_COMPONENTS
 
 
+def plot_predict_twoside_bar(lab_type="panel", wanted_PPV=0.95):
+    df = pd.read_csv('data_performance_stats/best-alg-%s-summary-trainPPV.csv' % lab_type,
+                     keep_default_na=False)
+    df = df[df['train_PPV']==wanted_PPV]
+
+    df['all_positive'] = df['true_positive'] + df['false_positive']
+    df['all_negative'] = df['true_negative'] + df['false_negative']
+
+    df['true_negative'] = -df['true_negative']
+    df['all_negative'] = -df['all_negative']
+
+    df['count'] = df['count'].apply(lambda x:float(x) if x!='' else 0)
+    if lab_type=='component':
+        df['count'] = df['count'].apply(lambda x:x/1000000)
+
+    df['all_positive'] *= df['count']
+    df['true_positive'] *= df['count']
+    df['all_negative'] *= df['count']
+    df['true_negative'] *= df['count']
+    # print df[['true_positive', 'all_positive',
+    #           'true_negative', 'all_negative']].head(5).plot(kind='barh')
+
+    df_toplot = df.head(10)
+    df_toplot.head(10)[['lab', 'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n']].to_csv('predict_panel_normal_sample.csv', index=False)
+
+    df_toplot = df_toplot.sort_values('lab', ascending=False)
+    fig, ax = plt.subplots()
+    ax.barh(df_toplot['lab'], df_toplot['all_positive'], color='orange', alpha=0.5, label='False Positive')
+    ax.barh(df_toplot['lab'], df_toplot['true_positive'], color='blue', alpha=1, label='True Positive')
+
+    ax.barh(df_toplot['lab'], df_toplot['all_negative'], color='blue', alpha=0.5, label='False Negative')
+    ax.barh(df_toplot['lab'], df_toplot['true_negative'], color='orange', alpha=1, label='True Negative')
+
+    for i, v in enumerate(df_toplot['all_negative']):
+        ax.text(-0.15, i, df_toplot['lab'].values[i], color='k')
+
+    plt.yticks([])
+    plt.legend()
+    if lab_type=='panel':
+        plt.xlabel('total lab cnt in 2014-2016')
+    elif lab_type=='component':
+        plt.xlabel('total lab cnt (in millions) in 2014-2016')
+    plt.ylabel('labs')
+
+    plt.show()
+
+
 def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=False, look_cost=False):
     '''
     Horizontal bar chart for Popular labs.
@@ -32,20 +79,21 @@ def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=Fals
                      keep_default_na=False)
     df = df[df['train_PPV']==wanted_PPV]
 
-    df = df[df['lab']!='LABNA'] # TODO: fix LABNA here
+    df = df[df['lab']!='LABNA'] # TODO: fix LABNA's price here
 
     df['normal_rate'] = (df['true_positive'] + df['false_negative']).round(5)
 
-    if lab_type == "component":
-        df = df.rename(columns={'2016_Vol': 'count'})
-        df = df.dropna()
+    # if lab_type == "component":
+    #     df = df.rename(columns={'2016_Vol': 'count'})
+    #     df = df.dropna()
+    df['count'] = df['count'].apply(lambda x: 0 if x=='' else x)
 
     df['volumn'] = df['count'].apply(lambda x: float(x) / 1000000.) #
     volumn_label = 'Total Cnt (in millions) in 2016'
 
     if look_cost:
         df['volumn'] = df['volumn'] * df['mean_price'].apply(lambda x: float(x)) # cost
-        volumn_label = 'Total cost in 2016'
+        volumn_label = 'Total cost in 2014-2016'
 
     '''
     Picking the top 20 popular labs.
@@ -62,14 +110,14 @@ def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=Fals
     ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['normal_volumn'],
             color='blue', alpha=0.5, label='Normal lab cost')
     # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
-    #     ax.text(v + 0.01, i, str("{0:.0%}".format(v)), color='k', fontweight='bold')
+    #     ax.text(v + 2, i, str("{0:.0%}".format(df_sorted_by_cnts['normal_rate'].values[i])), color='k', fontweight='bold')
 
     df_sorted_by_cnts['truepo_volumn'] = df_sorted_by_cnts['true_positive']*df_sorted_by_cnts['volumn']
     if add_predictable:
         ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['truepo_volumn'],
                 color='blue', alpha=0.9, label='True positive saving') #'True Positive@0.95 train_PPV'
-        # for i, v in enumerate(df_sorted_by_cnts['truepo_volumn']):
-        #     ax.text(v + 0.01, i, str("{0:.0%}".format(v)), color='k', fontweight='bold')
+        for i, v in enumerate(df_sorted_by_cnts['truepo_volumn']):
+            ax.text(v, i, str("{0:.0%}".format(df_sorted_by_cnts['true_positive'].values[i])), color='k', fontweight='bold')
 
 
     # plt.xlim([0,1])
@@ -82,30 +130,59 @@ def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=Fals
 def get_waste_in_7days(lab_type='panel'):
     if lab_type == 'panel':
         all_labs = all_panels #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
+    elif lab_type == 'component':
+        all_labs = all_components
 
     res_df = pd.DataFrame()
+    data_file_all = '%s_waste_in_7days.csv'%lab_type
 
-    for lab in all_labs:
-        data_file = '%s_Usage_2014-2016.csv'%lab
+    if not os.path.exists(data_file_all):
 
-        if not os.path.exists(data_file):
-            results = stats_utils.query_lab_usage__df(lab=lab,
-                                                      time_start='2014-01-01',
-                                                      time_end='2016-12-31')
-            df = pd.DataFrame(results, columns=['pat_id', 'order_time', 'result'])
-            df.to_csv(data_file, index=False)
-        else:
-            df = pd.read_csv(data_file,keep_default_na=False)
+        import tmp
 
-        my_dict = {'lab':lab}
-        my_dict.update(stats_utils.get_prevweek_normal__dict(df))
+        for i, lab in enumerate(all_labs):
+            data_file = '%s_Usage_2014-2016.csv'%lab
 
-        print my_dict
-        res_df = res_df.append(my_dict, ignore_index=True)
+            if not os.path.exists(data_file):
+                results = stats_utils.query_lab_usage__df(lab=lab,
+                                                          lab_type=lab_type,
+                                                          time_start='2014-01-01',
+                                                          time_end='2016-12-31')
+                df = pd.DataFrame(results, columns=['pat_id', 'order_time', 'result'])
+                df.to_csv(data_file, index=False)
+            else:
+                df = pd.read_csv(data_file,keep_default_na=False)
 
-    max_num = len(res_df.columns)-1
-    res_df = res_df[['lab'] + [str(x)+' repeats' for x in range(max_num)]]
-    res_df.to_csv('%s_waste_in_7days.csv'%lab_type)
+            my_dict = {'lab':lab}
+            my_dict.update(stats_utils.get_prevweek_normal__dict(df))
+
+            print my_dict
+
+            # my_dict = tmp.my_dictt[i]
+            # print my_dict
+            res_df = res_df.append(my_dict, ignore_index=True)
+
+        max_num = len(res_df.columns)-1
+        res_df = res_df[['lab'] + range(max_num)]#[str(x)+' repeats' for x in range(max_num)]]
+        res_df = res_df.rename(columns={x:str(x)+' repeats' for x in range(max_num)})
+        res_df.to_csv(data_file_all, index=False)
+    else:
+        res_df = pd.read_csv(data_file_all)
+
+    labs_toPlot = stats_utils.get_top_labs(lab_type)
+    max_repeat = 10
+    for lab in labs_toPlot: #['LABLAC', 'LABLACWB', 'LABK', 'LABPHOS']:
+        nums = res_df[res_df['lab']==lab].values[0][1:max_repeat+1]
+        print nums
+        nums_valid = [x for x in nums if x]
+        print nums_valid
+        plt.plot(range(len(nums_valid)), nums_valid, label=lab)
+
+    plt.ylim([0,1])
+    plt.xlabel('Num Normality in a Week')
+    plt.ylabel('Normal Rate')
+    plt.legend()
+    plt.show()
 
 def get_LabUsage__csv(lab_type='panel'):
     '''
@@ -261,7 +338,7 @@ def plot_cartoons(lab_type='panel', labs=all_panels):
     df = pd.read_csv('RF_important_features_%ss.csv'%lab_type, keep_default_na=False)
     # labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
     # print labs
-    plt.figure(figsize=(8, 12))
+
 
     # lab = 'WBC'
     alg = 'random-forest'
@@ -271,6 +348,8 @@ def plot_cartoons(lab_type='panel', labs=all_panels):
     col = 3
     row = len(labs)/col
     has_left_labs = (len(labs)%col!=0)
+
+    plt.figure(figsize=(8, 12))
 
     for i in range(row):
         for j in range(col):
@@ -296,7 +375,7 @@ def plot_cartoons(lab_type='panel', labs=all_panels):
             plt.ylim([0, 500])
             plt.xticks([])
             plt.yticks([])
-            plt.xlabel(lab)
+            plt.xlabel(lab + ', auroc=%.2f'%auc)
             # plt.legend(lab)
 
     # plt.xlabel("%s score for %s"%(alg,lab))
@@ -422,6 +501,7 @@ def PPV_guideline(lab_type="panel"):
         cur_row.append(PPVs_from_train.shape[0]) # "Total number of labs:"
 
         PPVs_from_train = PPVs_from_train.dropna()['PPV'].values
+        PPVs_from_train = np.array([float(x) for x in PPVs_from_train if x!='']) #TODO: why?
         vaild_PPV_num = PPVs_from_train.shape[0]
         cur_row.append(vaild_PPV_num) # "Valid number of labs:"
 
@@ -481,13 +561,18 @@ def get_labs_cnts(lab_type):
     df.to_csv('%s-cnts-2014-2016.csv' % lab_type, index=False)
 
 if __name__ == '__main__':
-    # plot_cartoons(lab_type='component', labs=['HGB'])
+    # plot_cartoons(lab_type='panel', labs=['LABUAPRN','LABCAI','LABPT',
+    #                                       'LABUA', 'LABPTT', 'LABHEPAR',
+    #                                       'LABCMVQT', 'LABURNC', 'LABPTEG'])
+
     # plot_curves__subfigs(lab_type='UMich', curve_type="roc")
     # plot_curves__overlap(lab_type='UMich', curve_type="roc")
-    # PPV_guideline(lab_type="component")
+    PPV_guideline(lab_type="UMich")
 
     # check_similar_components()
     # write_importantFeatures(lab_type='UMich')
 
     # plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
-    get_waste_in_7days()
+    # get_waste_in_7days('component')
+
+    # plot_predict_twoside_bar('component')

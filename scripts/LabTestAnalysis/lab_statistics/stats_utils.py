@@ -10,36 +10,66 @@ import numpy as np
 from scipy import stats
 import os
 
-def query_lab_usage__df(lab, time_start=None, time_end=None):
+def query_lab_usage__df(lab, lab_type='panel', time_start=None, time_end=None):
     # TODO: deal with lab_type == component?
 
-    query = SQLQuery()
-    query.addSelect('CAST(pat_id AS BIGINT) as pat_id')
-    # query.addSelect('order_proc_id')
-    query.addSelect('order_time')
-    query.addSelect('abnormal_yn')
-    # query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal")
+    if lab_type=='panel':
+        query = SQLQuery()
+        query.addSelect('CAST(pat_id AS BIGINT) as pat_id')
+        # query.addSelect('order_proc_id')
+        query.addSelect('order_time')
+        query.addSelect('abnormal_yn')
+        # query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal")
 
-    query.addFrom('stride_order_proc')
+        query.addFrom('stride_order_proc')
 
-    query.addWhere("order_status = 'Completed'")
-    query.addWhere("proc_code = '%s'"%lab)
+        query.addWhere("order_status = 'Completed'")
+        query.addWhere("proc_code = '%s'"%lab)
 
-    if time_start:
-        query.addWhere("order_time > '%s'"%time_start)
-    if time_end:
-        query.addWhere("order_time < '%s'"% time_end)
-    # query.addWhere("order_time > '2016-01-01' AND order_time < '2016-12-31'")
-    # query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
+        if time_start:
+            query.addWhere("order_time > '%s'"%time_start)
+        if time_end:
+            query.addWhere("order_time < '%s'"% time_end)
+        # query.addWhere("order_time > '2016-01-01' AND order_time < '2016-12-31'")
+        # query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
 
-    query.addGroupBy('pat_id')
-    # query.addGroupBy('order_proc_id')
-    query.addGroupBy('order_time')
-    query.addGroupBy('abnormal_yn')
+        query.addGroupBy('pat_id')
+        # query.addGroupBy('order_proc_id')
+        query.addGroupBy('order_time')
+        query.addGroupBy('abnormal_yn')
 
-    query.addOrderBy('pat_id')
-    # query.addOrderBy('order_proc_id')
-    query.addOrderBy('order_time')
+        query.addOrderBy('pat_id')
+        # query.addOrderBy('order_proc_id')
+        query.addOrderBy('order_time')
+
+    elif lab_type=='component': # TODO!
+        query = SQLQuery()
+        query.addSelect('CAST(pat_id AS BIGINT) as pat_id')
+        # query.addSelect('order_proc_id')
+        query.addSelect('order_time')
+        query.addSelect('abnormal_yn')
+        # query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal")
+
+        query.addFrom('stride_order_proc')
+
+        query.addWhere("order_status = 'Completed'")
+        query.addWhere("proc_code = '%s'" % lab)
+
+        if time_start:
+            query.addWhere("order_time > '%s'" % time_start)
+        if time_end:
+            query.addWhere("order_time < '%s'" % time_end)
+        # query.addWhere("order_time > '2016-01-01' AND order_time < '2016-12-31'")
+        # query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
+
+        query.addGroupBy('pat_id')
+        # query.addGroupBy('order_proc_id')
+        query.addGroupBy('order_time')
+        query.addGroupBy('abnormal_yn')
+
+        query.addOrderBy('pat_id')
+        # query.addOrderBy('order_proc_id')
+        query.addOrderBy('order_time')
 
     results = DBUtil.execute(query)
 
@@ -68,11 +98,13 @@ def get_prevweek_normal__dict(df):
 
             j = i - 1
             while time_diff.days < 7:
-                prev_cnt += 1
-                if prev_cnt in my_dict:
-                    my_dict[prev_cnt].append(curr_normal)
-                else:
-                    my_dict[prev_cnt] = [curr_normal]
+                prev_normal = False if df.ix[j, 'result'] == 'Y' else True
+                if prev_normal:
+                    prev_cnt += 1
+                    if prev_cnt in my_dict:
+                        my_dict[prev_cnt].append(curr_normal)
+                    else:
+                        my_dict[prev_cnt] = [curr_normal]
 
                 j -= 1
                 if j < 0 or df.ix[i, 'pat_id'] != df.ix[j, 'pat_id']:
@@ -514,7 +546,7 @@ def get_top_labs(lab_type='panel', top_k=10, criterion='count', lab_name_only=Tr
     else:
         df['median_price'] = df['median_price'].apply(lambda x: float(x) if x else 0)
 
-    df['count'] = df['count'].apply(lambda x: int(x) if x else 0) # TODO: LABNA == 0!
+    df['count'] = df['count'].apply(lambda x: float(x) if x else 0) # TODO: LABNA == 0!
 
     if lab_type == 'component' or criterion == 'count':
         df = df[['lab', criterion]].drop_duplicates()
