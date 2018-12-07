@@ -43,7 +43,6 @@ def query_lab_usage__df(lab, time_start=None, time_end=None):
 
     results = DBUtil.execute(query)
 
-
     return results
 
 
@@ -505,6 +504,45 @@ def main():
                   result_folder="",
                   columns=columns_panels,
                   thres_mode="from_train")
+
+def query_lab_cnts(lab, lab_type='panel', time_limit=None):
+    query = SQLQuery()
+
+
+    if lab_type == 'panel':
+
+        query.addSelect("proc_code")
+        query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
+        query.addFrom('stride_order_proc AS sop')
+        query.addFrom('stride_order_results AS sor')
+        if time_limit:
+            if time_limit[0]:
+                query.addWhere("sop.order_time > '%s'" % time_limit[0])
+            if time_limit[1]:
+                query.addWhere("sop.order_time < '%s'" % time_limit[1])
+        query.addWhere('sop.order_proc_id = sor.order_proc_id')
+        query.addWhere("proc_code = '%s'"%lab)
+        query.addGroupBy("proc_code")
+        query.addOrderBy("proc_code")
+
+    elif lab_type == 'component': # see NA
+        query.addSelect("base_name")
+        query.addSelect('COUNT(order_proc_id) AS num_orders')
+        query.addFrom('stride_order_results')
+        if time_limit:
+            if time_limit[0]:
+                query.addWhere("result_time > '%s'" % time_limit[0])
+            if time_limit[1]:
+                query.addWhere("result_time < '%s'" % time_limit[1])
+        query.addWhere("base_name = '%s'"%lab)
+        query.addGroupBy("base_name")
+
+    results = DBUtil.execute(query)
+
+    return results
+
+
+
 
 if __name__ == '__main__':
     print get_top_labs(lab_type='component', top_k=20, lab_name_only=False)
