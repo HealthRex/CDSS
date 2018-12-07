@@ -537,7 +537,7 @@ def query_lab_cnts(lab, lab_type='panel', time_limit=None):
         query.addWhere("base_name = '%s'"%lab)
         query.addGroupBy("base_name")
 
-    results = DBUtil.execute(query)
+    results = DBUtil.execute(query)[0]
 
     return results
 
