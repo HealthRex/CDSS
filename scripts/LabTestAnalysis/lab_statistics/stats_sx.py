@@ -81,9 +81,10 @@ def get_LabUsage__csv(lab_type='panel'):
     '''
 
     if lab_type == 'panel':
-        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+        all_labs = stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
+    print 'all_labs:', all_labs
 
-    for lab in all_labs[10:]:
+    for lab in all_labs[::-1]:
 
         data_file = '%s_Usage_2016.csv'%lab
 
@@ -106,7 +107,6 @@ def get_LabUsage__csv(lab_type='panel'):
                                     '3-7 days:': sum(prevday_cnts_dict[x] for x in range(4,8)),
                                     'others:': sum(prevday_cnts_dict[x] for x in range(8, 365))
                                     }
-        print prevday_cnts_simple_dict
 
         pre_sum = 0
         alphas = [1,0.5,0.3,0.1]
@@ -429,7 +429,7 @@ def check_similar_components():
     (df_combined[['lab'] + columns_component_only]).to_csv("component_feature_importance_to_compare.csv", index=False)
 
 if __name__ == '__main__':
-    plot_cartoons(lab_type='component', labs=['HGB'])
+    # plot_cartoons(lab_type='component', labs=['HGB'])
     # plot_curves__subfigs(lab_type='UMich', curve_type="roc")
     # plot_curves__overlap(lab_type='UMich', curve_type="roc")
     # PPV_guideline(lab_type="component")
@@ -437,3 +437,8 @@ if __name__ == '__main__':
     # check_similar_components()
     # write_importantFeatures(lab_type='UMich')
     # get_LabUsage__csv()
+
+    for lab in ['K']:
+        print stats_utils.query_lab_cnts(lab=lab,
+                                     lab_type='component',
+                                     time_limit=('2014-01-01', '2016-12-31'))
