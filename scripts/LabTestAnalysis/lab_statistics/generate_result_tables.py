@@ -47,7 +47,7 @@ def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_day
             data_folder = 'data-components'#'data-components-3daysVitals' #'data-components-%ddaysVitals'%vital_day
         elif lab_type == 'UMich':
             all_labs = all_UMich
-            data_folder = 'data-UMich'
+            data_folder = 'data-UMichs'
 
 
         result_folder = 'data_performance_stats/all_%ss/'%lab_type
@@ -157,6 +157,6 @@ def main(lab_type='panel', thres_mode="from_test"):
                    thres_mode=thres_mode)
 
 if __name__ == '__main__':
-    main(lab_type='component', thres_mode="from_test")
+    main(lab_type='UMich', thres_mode="from_train")
     # fill_df_fix_PPV('LABAFBD', alg='random-forest', data_folder='../machine_learning/data-panels/',
     #                 PPV_wanted=0.99, lab_type="panel", thres_mode="from_train")
