@@ -46,30 +46,32 @@ def query_lab_usage__df(lab, lab_type='panel', time_start=None, time_end=None):
         query = SQLQuery()
         query.addSelect('CAST(pat_id AS BIGINT) as pat_id')
         # query.addSelect('order_proc_id')
-        query.addSelect('order_time')
-        query.addSelect('abnormal_yn')
+        query.addSelect('sop.order_time')
+        query.addSelect('sor.result_in_range_yn')
         # query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal")
 
-        query.addFrom('stride_order_proc')
+        query.addFrom('stride_order_proc as sop')
+        query.addFrom('stride_order_results as sor')
 
-        query.addWhere("order_status = 'Completed'")
-        query.addWhere("proc_code = '%s'" % lab)
+        query.addWhere('sop.order_proc_id = sor.order_proc_id')
+        query.addWhere("sop.order_status = 'Completed'")
+        query.addWhere("sor.base_name = '%s'" % lab)
 
         if time_start:
-            query.addWhere("order_time > '%s'" % time_start)
+            query.addWhere("sop.order_time > '%s'" % time_start)
         if time_end:
-            query.addWhere("order_time < '%s'" % time_end)
+            query.addWhere("sop.order_time < '%s'" % time_end)
         # query.addWhere("order_time > '2016-01-01' AND order_time < '2016-12-31'")
         # query.addWhere("(result_flag in ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL)")
 
-        query.addGroupBy('pat_id')
+        query.addGroupBy('sop.pat_id')
         # query.addGroupBy('order_proc_id')
-        query.addGroupBy('order_time')
-        query.addGroupBy('abnormal_yn')
+        query.addGroupBy('sop.order_time')
+        query.addGroupBy('sor.result_in_range_yn')
 
-        query.addOrderBy('pat_id')
+        query.addOrderBy('sop.pat_id')
         # query.addOrderBy('order_proc_id')
-        query.addOrderBy('order_time')
+        query.addOrderBy('sop.order_time')
 
     results = DBUtil.execute(query)
 
@@ -140,6 +142,8 @@ def get_prevday_cnts__dict(df):
             # a day has 86400 secs
             # prev_days.append(time_diff_df.seconds/86400.)
             prev_days.append(time_diff_df.days) # TODO: ceiling of days?
+        else:
+            prev_days.append(-1)
 
     prevday_cnts_dict = collections.Counter(prev_days)
 
