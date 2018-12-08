@@ -82,9 +82,10 @@ def pd_process_demogdiagn(df):
             lambda x: datetime.datetime(year=1900, month=1, day=1))
     else:
         # df_pt_info['Age'] = df_pt_info['Age'].apply(lambda x: 23)
-        df_pt_info['Birth'] = (
+        if 'Birth' not in df_pt_info.columns:
+            df_pt_info['Birth'] = (
                     df_pt_info['Admission Datetime'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)) \
-                    - df_pt_info['Age'].apply(lambda x: datetime.timedelta(days=x * 365))).values
+                    - df_pt_info['Age'].apply(lambda x: datetime.timedelta(days=int(x) * 365))).values
     df_pt_info = df_pt_info.drop_duplicates()
     tab2df_dict['pt_info'] = df_pt_info[['pat_id', 'Birth']]
 
