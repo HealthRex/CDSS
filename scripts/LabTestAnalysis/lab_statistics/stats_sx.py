@@ -190,15 +190,19 @@ def get_LabUsage__csv(lab_type='panel'):
     '''
 
     if lab_type == 'panel':
-        all_labs = all_panels #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
+        all_labs = stats_utils.get_top_labs('panel') #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
+    elif lab_type == 'component':
+        all_labs = all_components
     print 'all_labs:', all_labs
 
-    for lab in all_labs[::-1]:
+    lab_ind = 0
+    for lab in all_labs[::-1]:#all_labs[:10][::-1]:
 
         data_file = '%s_Usage_2014-2016.csv'%lab
 
         if not os.path.exists(data_file):
             results = stats_utils.query_lab_usage__df(lab=lab,
+                                                      lab_type=lab_type,
                                                       time_start='2014-01-01',
                                                       time_end='2016-12-31')
             df = pd.DataFrame(results, columns=['pat_id', 'order_time', 'result'])
@@ -206,22 +210,41 @@ def get_LabUsage__csv(lab_type='panel'):
         else:
             df = pd.read_csv(data_file,keep_default_na=False)
 
-        prevday_cnts_dict = stats_utils.get_prevday_cnts__dict(df)
+        if True:
+            prevday_cnts_dict = stats_utils.get_prevday_cnts__dict(df)
 
-        '''
-        We only care about (0, 1 day], (1 day, 3 days], (3 days, 7 days] stats
-        '''
-        prevday_cnts_simple_dict = {'0-1 day': prevday_cnts_dict[0],
-                                    '1-3 days:': sum(prevday_cnts_dict[x] for x in range(1,4)),
-                                    '3-7 days:': sum(prevday_cnts_dict[x] for x in range(4,8)),
-                                    'others:': sum(prevday_cnts_dict[x] for x in range(8, 365))
-                                    }
+            '''
+            We only care about (0, 1 day], (1 day, 3 days], (3 days, 7 days] stats
+            '''
+            prevday_cnts_simple_dict = {'0 prev': prevday_cnts_dict[-1],
+                                        '0-1 day': prevday_cnts_dict[0],
+                                        '1-3 days': sum(prevday_cnts_dict[x] for x in range(1,4)),
+                                        '3-7 days': sum(prevday_cnts_dict[x] for x in range(4,8)),
+                                        'Longer': sum(prevday_cnts_dict[x] for x in range(8, 365))
+                                        }
+        else:
+            import tmp
+            prevday_cnts_simple_dict = tmp.prevday_cnts_simple_dicts[lab_ind]
+        print prevday_cnts_simple_dict
 
         pre_sum = 0
-        alphas = [1,0.5,0.3,0.1]
+        alphas = [1,0.5,0.4,0.3,0.2]
         for i, key in enumerate(sorted(prevday_cnts_simple_dict.keys())):
+
             pre_sum += prevday_cnts_simple_dict[key]
-            plt.barh([lab], pre_sum, color='b', alpha=alphas[i])
+
+            if i > 0:
+                if lab_ind == 0:
+                    plt.barh([lab], pre_sum, color='b', alpha=alphas[i], label=key)
+                else:
+                    plt.barh([lab], pre_sum, color='b', alpha=alphas[i])
+            else:
+                if lab_ind == 0:
+                    plt.barh([lab], pre_sum, color='b', alpha=alphas[i], label=key)
+                else:
+                    plt.barh([lab], pre_sum, color='b', alpha=alphas[i])
+        lab_ind += 1
+    plt.legend()
     plt.show()
     # quit()
     #
@@ -241,7 +264,7 @@ def plot_curves__subfigs(lab_type='component', curve_type="roc"):
         all_labs = STRIDE_COMPONENT_TESTS
         # df = pd.read_csv('RF_important_features_components.csv', keep_default_na=False)
     elif lab_type == 'UMich':
-        data_folder = "../machine_learning/data-UMich/"
+        data_folder = "../machine_learning/data-UMichs/"
         all_labs = UMICH_TOP_COMPONENTS
 
     # labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
@@ -273,19 +296,19 @@ def plot_curves__subfigs(lab_type='component', curve_type="roc"):
         # 3 -> 1, 1
         ind_in_fig = ind%10
         i, j = ind_in_fig/col, ind_in_fig%col
-        # plt.subplot2grid((row, col), (i, j))
-        #
-        # plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
-        # plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best))
-        # plt.xticks([])
-        # plt.yticks([])
-        # plt.xlabel(lab)  # + ' ' + str(best_auc)[:4] + ' ' + str(base_auc)[:4]
-        # plt.legend()
-        #
-        # if (ind+1)%num_labs_in_one_fig == 0:
-        #     plt.savefig('%s-%s-subfig.png'%(all_labs[ind+1-num_labs_in_one_fig],lab))
-        #     plt.close()
-        #     plt.figure(figsize=(fig_width, fig_heights))
+        plt.subplot2grid((row, col), (i, j))
+
+        plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
+        plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best))
+        plt.xticks([])
+        plt.yticks([])
+        plt.xlabel(lab)  # + ' ' + str(best_auc)[:4] + ' ' + str(base_auc)[:4]
+        plt.legend()
+
+        if (ind+1)%num_labs_in_one_fig == 0:
+            plt.savefig('%s-%s-subfig.png'%(all_labs[ind+1-num_labs_in_one_fig],lab))
+            plt.close()
+            plt.figure(figsize=(fig_width, fig_heights))
 
     avg_base, avg_best = np.mean(scores_base), np.mean(scores_best)
     print "Average roc among %i labs: %.3f baseline, %.3f bestalg (an improvement of %.3f)."\
@@ -564,15 +587,18 @@ if __name__ == '__main__':
     # plot_cartoons(lab_type='panel', labs=['LABUAPRN','LABCAI','LABPT',
     #                                       'LABUA', 'LABPTT', 'LABHEPAR',
     #                                       'LABCMVQT', 'LABURNC', 'LABPTEG'])
+    # plot_cartoons('UMich', labs=UMICH_TOP_COMPONENTS)
 
-    # plot_curves__subfigs(lab_type='UMich', curve_type="roc")
+    plot_curves__subfigs(lab_type='component', curve_type="roc")
     # plot_curves__overlap(lab_type='UMich', curve_type="roc")
-    PPV_guideline(lab_type="UMich")
+    # PPV_guideline(lab_type="UMich")
 
     # check_similar_components()
     # write_importantFeatures(lab_type='UMich')
 
     # plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
     # get_waste_in_7days('component')
+
+    # get_LabUsage__csv('component')
 
     # plot_predict_twoside_bar('component')
