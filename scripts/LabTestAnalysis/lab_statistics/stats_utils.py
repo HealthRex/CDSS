@@ -19,6 +19,7 @@ def query_lab_usage__df(lab, lab_type='panel', time_start=None, time_end=None):
         # query.addSelect('order_proc_id')
         query.addSelect('order_time')
         query.addSelect('abnormal_yn')
+
         # query.addSelect("CAST(SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal")
 
         query.addFrom('stride_order_proc')
@@ -123,7 +124,7 @@ def get_prevweek_normal__dict(df):
             # a day has 86400 secs
             # prev_days.append(time_diff_df.seconds/86400.)
 
-def get_prevday_cnts__dict(df):
+def get_time_since_last_order_cnts(df):
     datetime_format = "%Y-%m-%d %H:%M:%S"
     '''
     Cnt of ordering w/i one day
@@ -131,12 +132,18 @@ def get_prevday_cnts__dict(df):
     df['prev_in_sec'] = df['pat_id'].apply(lambda x: 1000 * 24 * 3600)
     df['order_time'] = df['order_time'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)
                                               if isinstance(x, str) else x)
+    df = df.reset_index(drop=True)
 
     prev_days = []
     row, col = df.shape
     for i in range(1, row):
+
         if df.ix[i, 'pat_id'] == df.ix[i - 1, 'pat_id']:
             time_diff_df = df.ix[i, 'order_time'] - df.ix[i - 1, 'order_time']
+
+            if time_diff_df.days < 1:
+                pass
+                #print df.ix[i - 1, ['pat_id', 'order_time']].values, df.ix[i, ['pat_id', 'order_time']].values
 
             # df.ix[i, 'prev_in_sec'] = time_diff_df.seconds
             # a day has 86400 secs
@@ -542,27 +549,56 @@ def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day,
 
     df[columns].to_csv(result_folder + curr_res_file, index=False)
 
-def get_top_labs(lab_type='panel', top_k=10, criterion='count', lab_name_only=True):
-    df = pd.read_csv('data_performance_stats/best-alg-%s-summary-trainPPV.csv'%lab_type,
-                     keep_default_na=False)
-    if lab_type == 'component':
-        df = df.rename(columns={'2016_Vol':'count'})
-    else:
-        df['median_price'] = df['median_price'].apply(lambda x: float(x) if x else 0)
+def get_top_labs(lab_type='panel', top_k=10, criterion='count', time_limit=None):
+    # df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv'%lab_type,
+    #                  keep_default_na=False)
+    # if lab_type == 'component':
+    #     df = df.rename(columns={'2016_Vol':'count'})
+    # else:
+    #     df['median_price'] = df['median_price'].apply(lambda x: float(x) if x else 0)
+    #
+    # df['count'] = df['count'].apply(lambda x: float(x) if x else 0) # TODO: LABNA == 0!
+    #
+    # if lab_type == 'component' or criterion == 'count':
+    #     df = df[['lab', criterion]].drop_duplicates()
+    # elif criterion == 'count*price': # TODO: probably confusing, but it means count*median_price
+    #     df[criterion] = df['count']*df['median_price']
+    #     df = df[['lab', criterion]].drop_duplicates()
+    #
+    # res = df.sort_values(criterion, ascending=False).head(top_k)
+    # if lab_name_only:
+    #     return res['lab'].values
+    # else:
+    #     return res
+    from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS
 
-    df['count'] = df['count'].apply(lambda x: float(x) if x else 0) # TODO: LABNA == 0!
+    data_folder = "query_lab_results/"
+    labs_and_cnts = []
+    for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+        data_filename = '%s.csv'%lab
+        data_path = os.path.join(data_folder, data_filename)
 
-    if lab_type == 'component' or criterion == 'count':
-        df = df[['lab', criterion]].drop_duplicates()
-    elif criterion == 'count*price': # TODO: probably confusing, but it means count*median_price
-        df[criterion] = df['count']*df['median_price']
-        df = df[['lab', criterion]].drop_duplicates()
+        df = pd.read_csv(data_path, keep_default_na=False)
+        df = df[df['order_status']=='Completed']
+        if time_limit:
+            if time_limit[0]:
+                df = df[df['order_time']>=time_limit[0]]
+            if time_limit[1]:
+                df = df[df['order_time'] <= time_limit[1]]
+        cnt = df.shape[0]
 
-    res = df.sort_values(criterion, ascending=False).head(top_k)
-    if lab_name_only:
-        return res['lab'].values
-    else:
-        return res
+        labs_and_cnts.append([lab, cnt])
+
+    labs_and_cnts = sorted(labs_and_cnts, key=lambda x:x[1])[::-1]
+
+    labs_and_cnts_df = pd.DataFrame(labs_and_cnts, columns=['lab', 'cnt'])
+    labs_and_cnts_df.to_csv("labs_and_cnts_2014-2016.csv", index=False)
+
+    print "[x[0] for x in labs_and_cnts[:top_k]]", [x[0] for x in labs_and_cnts[:top_k]]
+
+    return labs_and_cnts[:top_k]
+
+    # return df.ix[:top_k, ['lab','total cnt']].values.tolist()
 
 
 def main():
@@ -584,45 +620,134 @@ def main():
                   columns=columns_panels,
                   thres_mode="from_train")
 
-def query_lab_cnts(lab, lab_type='panel', time_limit=None):
+def query_to_dataframe(lab, lab_type='panel',
+                     columns=("proc_id", "order_proc_id",
+                              "pat_id", "order_time",
+                              "abnormal_yn", "lab_status",
+                              "order_status"),
+                     output_foldername = "query_lab_results/",
+                     time_limit=None):
+
+    output_filename = '%s.csv'%lab
+
+    output_path = os.path.join(output_foldername, output_filename)
+
+    if os.path.exists(output_path):
+        print "Cached dataframe %s exists..." % lab
+        return pd.read_csv(output_path)
+
+    print "Running query of %s..." % lab
+
+
     query = SQLQuery()
 
-
     if lab_type == 'panel':
+        for column in columns:
+            query.addSelect(column)
 
-        query.addSelect("proc_code")
-        query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
-        query.addFrom('stride_order_proc AS sop')
-        query.addFrom('stride_order_results AS sor')
+        query.addFrom('stride_order_proc')
+        # query.addFrom('stride_order_results AS sor')
         if time_limit:
             if time_limit[0]:
-                query.addWhere("sop.order_time > '%s'" % time_limit[0])
+                query.addWhere("order_time >= '%s'" % time_limit[0])
             if time_limit[1]:
-                query.addWhere("sop.order_time < '%s'" % time_limit[1])
-        query.addWhere('sop.order_proc_id = sor.order_proc_id')
-        query.addWhere("proc_code = '%s'"%lab)
-        query.addGroupBy("proc_code")
+                query.addWhere("order_time <= '%s'" % time_limit[1])
+        # query.addWhere('sop.order_proc_id = sor.order_proc_id')
+        query.addWhere("proc_code = '%s'" % lab)
+        # query.addGroupBy("proc_code")
         query.addOrderBy("proc_code")
 
-    elif lab_type == 'component': # see NA
+    elif lab_type == 'component':  # see NA
         query.addSelect("base_name")
         query.addSelect('COUNT(order_proc_id) AS num_orders')
         query.addFrom('stride_order_results')
         if time_limit:
             if time_limit[0]:
-                query.addWhere("result_time > '%s'" % time_limit[0])
+                query.addWhere("result_time >= '%s'" % time_limit[0])
             if time_limit[1]:
-                query.addWhere("result_time < '%s'" % time_limit[1])
-        query.addWhere("base_name = '%s'"%lab)
+                query.addWhere("result_time <= '%s'" % time_limit[1])
+        query.addWhere("base_name = '%s'" % lab)
         query.addGroupBy("base_name")
 
-    results = DBUtil.execute(query)[0]
+    results = DBUtil.execute(query)
 
-    return results
+    df = pd.DataFrame(results, columns=columns)
+    if not os.path.exists(output_foldername):
+        os.mkdir(output_foldername)
+    df.to_csv(output_path, index=False)
+
+    return df
+
+def query_lab_cnt(lab, lab_type='panel', time_limit=('2014-01-01','2016-12-31')):
+    output_filename = '%s.csv'%lab
+    output_foldername = "query_lab_results/"
+    if not os.path.exists(output_foldername + output_filename):
+        query_to_dataframe(lab)
+
+    df = pd.read_csv(output_foldername + output_filename)
+    if time_limit:
+        if time_limit[0]:
+            df = df[df['order_time'] >= time_limit[0]]
+        if time_limit[1]:
+            df = df[df['order_time'] <= time_limit[1]]
+    return df.shape[0]
+    # query = SQLQuery()
+    #
+    # if lab_type == 'panel':
+    #
+    #     query.addSelect("proc_code")
+    #     query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
+    #     # query.addSelect("sop.order_proc_id")
+    #     # query.addSelect("sop.lab_status")
+    #     # query.addSelect('sop.order_status')
+    #
+    #     query.addFrom('stride_order_proc AS sop')
+    #     # query.addFrom('stride_order_results AS sor')
+    #     if time_limit:
+    #         if time_limit[0]:
+    #             query.addWhere("sop.order_time >= '%s'" % time_limit[0])
+    #         if time_limit[1]:
+    #             query.addWhere("sop.order_time <= '%s'" % time_limit[1])
+    #     # query.addWhere('sop.order_proc_id = sor.order_proc_id')
+    #     query.addWhere("proc_code = '%s'"%lab)
+    #     query.addGroupBy("proc_code")
+    #     query.addOrderBy("proc_code")
+    #
+    # elif lab_type == 'component': # see NA
+    #     query.addSelect("base_name")
+    #     query.addSelect('COUNT(order_proc_id) AS num_orders')
+    #     query.addFrom('stride_order_results')
+    #     if time_limit:
+    #         if time_limit[0]:
+    #             query.addWhere("result_time >= '%s'" % time_limit[0])
+    #         if time_limit[1]:
+    #             query.addWhere("result_time <= '%s'" % time_limit[1])
+    #     query.addWhere("base_name = '%s'"%lab)
+    #     query.addGroupBy("base_name")
+    #
+    # results = DBUtil.execute(query)
 
 
+
+def test_():
+    ress = query_lab_usage__df(lab='LABALB')
+    # for i in range(1,len(ress)):
+    #     if
+    print 'Unique num of patients:', len(list(set(x[0] for x in ress)))
+    for res in ress[:10]:
+        print res
+
+    df = pd.DataFrame(ress, columns=['pat_id', 'order_time', 'result'])
+    print len(list(set(df['pat_id'].values.tolist())))
+    df.to_csv('tmpLABALB.csv', index=False)
+
+    df1 = pd.read_csv('tmpLABALB.csv')
+    print len(list(set(df1['pat_id'].values.tolist())))
 
 
 if __name__ == '__main__':
-    print get_top_labs(lab_type='component', top_k=20, lab_name_only=False)
+    # print get_top_labs(lab_type='component', top_k=20, lab_name_only=False)
     # print get_top_labs(lab_type='panel', top_k=20, criterion='count*price')
+
+    print query_lab_cnt('LABMGN')
+    print query_lab_cnt('LABCBCD')
