@@ -227,13 +227,118 @@ def plot_order_intensities_barh(lab, time_since_last_order_binned, columns, labe
             plt.barh([lab], pre_sum, color='b', alpha=alphas[i])
 
 
-def draw__Normality_Saturations():
+
+
+def draw__Normality_Saturations(lab_type):
     '''
     Drawing Figure 1 in the main text.
 
     :return:
     '''
-    pass
+
+    labs = get_important_labs()
+    print "Labs to be plot:", labs
+
+    cached_result_foldername = 'Fig1_Normality_Saturations/'
+    if not os.path.exists(cached_result_foldername):
+        os.mkdir(cached_result_foldername)
+    cached_result_filename = 'Normality_Saturations_%s.csv' % lab_type
+    cached_result_path = os.path.join(cached_result_foldername, cached_result_filename)
+
+    my_dicts = {}
+    for lab in labs:
+        df_lab = stats_utils.query_to_dataframe(lab, time_limit=('2014-01-01', '2016-12-31'))
+        df_lab = df_lab[df_lab['order_status'] == 'Completed']
+
+        cur_dict = stats_utils.get_prevweek_normal__dict(df_lab)
+        my_dicts[lab] = cur_dict
+
+    print my_dicts
+
+    max_repeat = 10
+    for lab in labs:  # ['LABLAC', 'LABLACWB', 'LABK', 'LABPHOS']:
+        cur_dict = my_dicts[lab]
+        nums = []
+        for x in range(1,max_repeat+1):
+            if x in cur_dict:
+                nums.append(cur_dict[x])
+            else:
+                nums.append(0)
+
+        #res_df[res_df['lab'] == lab].values[0][1:max_repeat + 1]
+        print nums
+        nums_valid = [x for x in nums if x]
+        print nums_valid
+        plt.plot(range(len(nums_valid)), nums_valid, label=lab)
+
+    plt.ylim([0, 1])
+    plt.xlabel('Number of Consecutive Normalities in a Week')
+    plt.ylabel('Normal Rate')
+    plt.legend()
+    plt.show()
+
+
+
+
+
+
+
+    # if lab_type == 'panel':
+    #     all_labs = all_panels #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
+    # elif lab_type == 'component':
+    #     all_labs = all_components
+    #
+    # res_df = pd.DataFrame()
+    # data_file_all = '%s_waste_in_7days.csv'%lab_type
+    #
+    # if not os.path.exists(data_file_all):
+    #
+    #     import tmp
+    #
+    #     for i, lab in enumerate(all_labs):
+    #         data_file = '%s_Usage_2014-2016.csv'%lab
+    #
+    #         if not os.path.exists(data_file):
+    #             results = stats_utils.query_lab_usage__df(lab=lab,
+    #                                                       lab_type=lab_type,
+    #                                                       time_start='2014-01-01',
+    #                                                       time_end='2016-12-31')
+    #             df = pd.DataFrame(results, columns=['pat_id', 'order_time', 'result'])
+    #             df.to_csv(data_file, index=False)
+    #         else:
+    #             df = pd.read_csv(data_file,keep_default_na=False)
+    #
+    #         my_dict = {'lab':lab}
+    #         my_dict.update(stats_utils.get_prevweek_normal__dict(df))
+    #
+    #         print my_dict
+    #
+    #         # my_dict = tmp.my_dictt[i]
+    #         # print my_dict
+    #         res_df = res_df.append(my_dict, ignore_index=True)
+    #
+    #     max_num = len(res_df.columns)-1
+    #     res_df = res_df[['lab'] + range(max_num)]#[str(x)+' repeats' for x in range(max_num)]]
+    #     res_df = res_df.rename(columns={x:str(x)+' repeats' for x in range(max_num)})
+    #     res_df.to_csv(data_file_all, index=False)
+    # else:
+    #     res_df = pd.read_csv(data_file_all)
+    #
+    # labs_toPlot = stats_utils.get_top_labs(lab_type)
+    # max_repeat = 10
+    # for lab in labs_toPlot: #['LABLAC', 'LABLACWB', 'LABK', 'LABPHOS']:
+    #     nums = res_df[res_df['lab']==lab].values[0][1:max_repeat+1]
+    #     print nums
+    #     nums_valid = [x for x in nums if x]
+    #     print nums_valid
+    #     plt.plot(range(len(nums_valid)), nums_valid, label=lab)
+    #
+    # plt.ylim([0,1])
+    # plt.xlabel('Num Normality in a Week')
+    # plt.ylabel('Normal Rate')
+    # plt.legend()
+    # plt.show()
+
 
 def draw__Order_Intensities(lab_type='panel', use_cached_fig_data=True):
     '''
@@ -692,7 +797,8 @@ if __name__ == '__main__':
     # plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
     # get_waste_in_7days('component')
 
-    draw__Order_Intensities('panel')
+    # draw__Order_Intensities('panel')
+    draw__Normality_Saturations('panel')
 
     # plot_predict_twoside_bar('component')
 
