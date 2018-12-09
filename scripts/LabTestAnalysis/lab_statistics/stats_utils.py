@@ -83,31 +83,44 @@ def get_prevweek_normal__dict(df):
     '''
     Cnt of ordering w/i one day
     '''
-    df['prev_in_sec'] = df['pat_id'].apply(lambda x: 1000 * 24 * 3600)
+    df['prev_in_sec'] = df['pat_id'].apply(lambda x: 1000 * 24 * 3600) # 1000 days
     df['order_time'] = df['order_time'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)
                                 if isinstance(x, str) else x)
+    df = df.reset_index(drop=True)
+
+
+
     row, col = df.shape
-    my_dict = {} # key: num of normal in past week. val: [normal, normal, abnormal...]
+    my_dict = {}
+    '''
+    key: num of CONSECUTIVE normal in past week. val: [normal, normal, abnormal...]
+    '''
     for i in range(1, row):
         if df.ix[i, 'pat_id'] == df.ix[i - 1, 'pat_id']:
-            prev_cnt = 0
-            curr_normal = False if df.ix[i, 'result'] == 'Y' else True
+            # There is a possibility
 
-            if prev_cnt in my_dict:
-                my_dict[prev_cnt].append(curr_normal)
-            else:
-                my_dict[prev_cnt] = [curr_normal]
+            prev_cnt = 0
+            # TODO: prev_cnt = 0 is different from prev has some normals?" For now, don't consider either
+
+            curr_normal = False if df.ix[i, 'abnormal_yn'] == 'Y' else True
+
+            # if prev_cnt in my_dict:
+            #     my_dict[prev_cnt].append(curr_normal)
+            # else:
+            #     my_dict[prev_cnt] = [curr_normal]
             time_diff = df.ix[i, 'order_time'] - df.ix[i - 1, 'order_time']
 
             j = i - 1
             while time_diff.days < 7:
-                prev_normal = False if df.ix[j, 'result'] == 'Y' else True
-                if prev_normal:
-                    prev_cnt += 1
-                    if prev_cnt in my_dict:
-                        my_dict[prev_cnt].append(curr_normal)
-                    else:
-                        my_dict[prev_cnt] = [curr_normal]
+                prev_normal = False if df.ix[j, 'abnormal_yn'] == 'Y' else True
+                if not prev_normal: # "Consecutivity" is broken
+                    break
+
+                prev_cnt += 1
+                if prev_cnt in my_dict:
+                    my_dict[prev_cnt].append(curr_normal)
+                else:
+                    my_dict[prev_cnt] = [curr_normal]
 
                 j -= 1
                 if j < 0 or df.ix[i, 'pat_id'] != df.ix[j, 'pat_id']:
