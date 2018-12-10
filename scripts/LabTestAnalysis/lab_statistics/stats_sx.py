@@ -170,7 +170,7 @@ def get_waste_in_7days(lab_type='panel'):
     else:
         res_df = pd.read_csv(data_file_all)
 
-    labs_toPlot = stats_utils.get_top_labs(lab_type)
+    labs_toPlot = stats_utils.get_top_labs_and_cnts(lab_type)
     max_repeat = 10
     for lab in labs_toPlot: #['LABLAC', 'LABLACWB', 'LABK', 'LABPHOS']:
         nums = res_df[res_df['lab']==lab].values[0][1:max_repeat+1]
@@ -196,7 +196,7 @@ def get_important_labs(lab_type='panel', order_by=None):
     # TODO: order_by
 
     if lab_type == 'panel':
-        labs_and_cnts = stats_utils.get_top_labs('panel', top_k=10)
+        labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=10)
         print labs_and_cnts
 
         '''
@@ -229,7 +229,7 @@ def plot_order_intensities_barh(lab, time_since_last_order_binned, columns, labe
 
 
 
-def draw__Normality_Saturations(lab_type):
+def draw__Normality_Saturations(lab_type, use_cached_fig_data=True):
     '''
     Drawing Figure 1 in the main text.
 
@@ -237,6 +237,7 @@ def draw__Normality_Saturations(lab_type):
     '''
 
     labs = get_important_labs()
+
     print "Labs to be plot:", labs
 
     cached_result_foldername = 'Fig1_Normality_Saturations/'
@@ -245,33 +246,52 @@ def draw__Normality_Saturations(lab_type):
     cached_result_filename = 'Normality_Saturations_%s.csv' % lab_type
     cached_result_path = os.path.join(cached_result_foldername, cached_result_filename)
 
-    my_dicts = {}
-    for lab in labs:
-        df_lab = stats_utils.query_to_dataframe(lab, time_limit=('2014-01-01', '2016-12-31'))
-        df_lab = df_lab[df_lab['order_status'] == 'Completed']
 
-        cur_dict = stats_utils.get_prevweek_normal__dict(df_lab)
-        my_dicts[lab] = cur_dict
+    if os.path.exists(cached_result_path) and use_cached_fig_data:
+        # lab2stats = pickle.load(open(cached_result_path, 'r'))
+        lab2stats_pd = pd.read_csv(cached_result_path)
+        lab2stats_pd = lab2stats_pd.set_index('lab')
+        lab2stats_pd.columns = lab2stats_pd.columns.astype(int)
 
-    print my_dicts
+        lab2stats = lab2stats_pd.to_dict(orient='index')
 
-    max_repeat = 10
+
+    else:
+
+        lab2stats = {}
+        for lab in labs:
+            df_lab = stats_utils.query_to_dataframe(lab, time_limit=('2014-01-01', '2016-12-31'))
+            df_lab = df_lab[df_lab['order_status'] == 'Completed']
+
+            cur_dict = stats_utils.get_prevweek_normal__dict(df_lab)
+            lab2stats[lab] = cur_dict
+        df_res = pd.DataFrame.from_dict(lab2stats, orient='index').reset_index().rename(columns={'index': 'lab'})
+        df_res.to_csv(cached_result_path, index=False)
+
+    print lab2stats
+
+    fig = plt.figure(figsize=(8, 6))
+    max_repeat = 5
     for lab in labs:  # ['LABLAC', 'LABLACWB', 'LABK', 'LABPHOS']:
-        cur_dict = my_dicts[lab]
+        cur_dict = lab2stats[lab]
         nums = []
-        for x in range(1,max_repeat+1):
+        for x in range(0,max_repeat+1):
             if x in cur_dict:
                 nums.append(cur_dict[x])
             else:
-                nums.append(0)
+                nums.append(float('nan'))
 
         #res_df[res_df['lab'] == lab].values[0][1:max_repeat + 1]
         print nums
-        nums_valid = [x for x in nums if x]
-        print nums_valid
-        plt.plot(range(len(nums_valid)), nums_valid, label=lab)
+        # nums_valid = [x for x in nums if x]
+        # print nums_valid
+
+
+        plt.plot(range(0,max_repeat+1), nums, label=lab)
+        plt.scatter(range(0, max_repeat + 1), nums)
 
     plt.ylim([0, 1])
+    plt.xticks(range(0, max_repeat + 1))
     plt.xlabel('Number of Consecutive Normalities in a Week')
     plt.ylabel('Normal Rate')
     plt.legend()
@@ -417,13 +437,81 @@ def draw__Order_Intensities(lab_type='panel', use_cached_fig_data=True):
 
 
 
-def draw__Confusion_Metrics():
+def draw__Confusion_Metrics(lab_type='panel', wanted_PPV=0.95, use_cached_fig_data=True):
     '''
     Drawing Figure 3 in the main text.
 
     :return:
     '''
-    pass
+    df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv' % lab_type,
+                     keep_default_na=False)
+    df = df[df['train_PPV'] == wanted_PPV]
+
+    cached_foldername = 'Fig3_Confusion_Metrics/'
+    cached_filename = 'Confusion_Metrics_%ss.csv'%lab_type
+    cached_result_path = os.path.join(cached_foldername, cached_filename)
+
+    if os.path.exists(cached_result_path) and use_cached_fig_data:
+        # lab2stats = pickle.load(open(cached_result_path, 'r'))
+        df_toplot = pd.read_csv(cached_result_path)
+
+    else:
+
+
+        labs_and_cnts = stats_utils.get_top_labs_and_cnts('component')
+        # labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
+        #                                                            time_limit=['2014-01-01', '2016-12-31'])])
+
+        df = df[df['lab'].isin([x[0] for x in labs_and_cnts])]
+        print df.head()
+        my_dict = {x[0]:x[1] for x in labs_and_cnts}
+        df['count'] = df['lab'].map(my_dict)
+
+        df['all_positive'] = df['true_positive'] + df['false_positive']
+        df['all_negative'] = df['true_negative'] + df['false_negative']
+
+        df['true_negative'] = -df['true_negative']
+        df['all_negative'] = -df['all_negative']
+
+        df['count'] = df['count'].apply(lambda x: float(x) if x != '' else 0)
+        if lab_type == 'component':
+            df['count'] = df['count'].apply(lambda x: x / 1000000)
+
+        # print df[['true_positive', 'all_positive',
+        #           'true_negative', 'all_negative']].head(5).plot(kind='barh')
+
+        df_toplot = df
+
+        df['all_positive'] *= df['count']
+        df['true_positive'] *= df['count']
+        df['all_negative'] *= df['count']
+        df['true_negative'] *= df['count']
+
+        df_toplot[['lab', 'count',
+                   'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
+                   'all_positive', 'true_positive', 'all_negative', 'true_negative']].to_csv(
+            cached_result_path, index=False)
+
+    df_toplot = df_toplot.sort_values('count', ascending=True)
+    fig, ax = plt.subplots()
+    ax.barh(df_toplot['lab'], df_toplot['all_positive'], color='orange', alpha=0.5, label='False Positive')
+    ax.barh(df_toplot['lab'], df_toplot['true_positive'], color='blue', alpha=1, label='True Positive')
+
+    ax.barh(df_toplot['lab'], df_toplot['all_negative'], color='blue', alpha=0.5, label='False Negative')
+    ax.barh(df_toplot['lab'], df_toplot['true_negative'], color='orange', alpha=1, label='True Negative')
+
+    for i, v in enumerate(df_toplot['all_negative']):
+        ax.text(-0.15, i, df_toplot['lab'].values[i], color='k')
+
+    plt.yticks([])
+    plt.legend()
+    if lab_type == 'panel':
+        plt.xlabel('total lab cnt in 2014-2016')
+    elif lab_type == 'component':
+        plt.xlabel('total lab cnt (in millions) in 2014-2016')
+    plt.ylabel('labs')
+
+    plt.show()
 
 
 def draw__Potential_Savings():
@@ -798,7 +886,8 @@ if __name__ == '__main__':
     # get_waste_in_7days('component')
 
     # draw__Order_Intensities('panel')
-    draw__Normality_Saturations('panel')
+    # draw__Normality_Saturations('panel')
+    draw__Confusion_Metrics('component')
 
     # plot_predict_twoside_bar('component')
 

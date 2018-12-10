@@ -10,6 +10,9 @@ import numpy as np
 from scipy import stats
 import os
 
+from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
+        import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
+
 def query_lab_usage__df(lab, lab_type='panel', time_start=None, time_end=None):
     # TODO: deal with lab_type == component?
 
@@ -88,21 +91,18 @@ def get_prevweek_normal__dict(df):
                                 if isinstance(x, str) else x)
     df = df.reset_index(drop=True)
 
-
-
     row, col = df.shape
     my_dict = {}
     '''
     key: num of CONSECUTIVE normal in past week. val: [normal, normal, abnormal...]
     '''
     for i in range(1, row):
+        curr_normal = False if df.ix[i, 'abnormal_yn'] == 'Y' else True
         if df.ix[i, 'pat_id'] == df.ix[i - 1, 'pat_id']:
             # There is a possibility
 
             prev_cnt = 0
             # TODO: prev_cnt = 0 is different from prev has some normals?" For now, don't consider either
-
-            curr_normal = False if df.ix[i, 'abnormal_yn'] == 'Y' else True
 
             # if prev_cnt in my_dict:
             #     my_dict[prev_cnt].append(curr_normal)
@@ -126,6 +126,11 @@ def get_prevweek_normal__dict(df):
                 if j < 0 or df.ix[i, 'pat_id'] != df.ix[j, 'pat_id']:
                     break
                 time_diff = df.ix[i, 'order_time'] - df.ix[j, 'order_time']
+        else:
+            if 0 in my_dict:
+                my_dict[0].append(curr_normal)
+            else:
+                my_dict[0] = [curr_normal]
 
     for key in my_dict:
         my_dict[key] = float(sum(my_dict[key]))/len(my_dict[key])
@@ -562,7 +567,7 @@ def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day,
 
     df[columns].to_csv(result_folder + curr_res_file, index=False)
 
-def get_top_labs(lab_type='panel', top_k=10, criterion='count', time_limit=None):
+def get_top_labs_and_cnts(lab_type='panel', top_k=10, criterion='count', time_limit=None):
     # df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv'%lab_type,
     #                  keep_default_na=False)
     # if lab_type == 'component':
@@ -583,11 +588,16 @@ def get_top_labs(lab_type='panel', top_k=10, criterion='count', time_limit=None)
     #     return res['lab'].values
     # else:
     #     return res
-    from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS
 
     data_folder = "query_lab_results/"
     labs_and_cnts = []
-    for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+
+    if lab_type == 'panel':
+        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+    elif lab_type == 'component':
+        all_labs = STRIDE_COMPONENT_TESTS
+
+    for lab in all_labs: # TODO here
         data_filename = '%s.csv'%lab
         data_path = os.path.join(data_folder, data_filename)
 
@@ -634,10 +644,7 @@ def main():
                   thres_mode="from_train")
 
 def query_to_dataframe(lab, lab_type='panel',
-                     columns=("proc_id", "order_proc_id",
-                              "pat_id", "order_time",
-                              "abnormal_yn", "lab_status",
-                              "order_status"),
+                     columns=None,
                      output_foldername = "query_lab_results/",
                      time_limit=None):
 
@@ -655,6 +662,10 @@ def query_to_dataframe(lab, lab_type='panel',
     query = SQLQuery()
 
     if lab_type == 'panel':
+        if not columns:
+            columns = ["proc_code", "order_proc_id", "pat_id", "order_time",
+                       "abnormal_yn", "lab_status", "order_status"]
+
         for column in columns:
             query.addSelect(column)
 
@@ -671,16 +682,25 @@ def query_to_dataframe(lab, lab_type='panel',
         query.addOrderBy("proc_code")
 
     elif lab_type == 'component':  # see NA
-        query.addSelect("base_name")
-        query.addSelect('COUNT(order_proc_id) AS num_orders')
-        query.addFrom('stride_order_results')
+        if not columns:
+            columns = ["sor.base_name", "sor.order_proc_id", "sor.result_time",
+                       "sor.result_in_range_yn", 'sor.ord_num_value', 'sor.reference_unit', 'sor.result_flag',
+                       "sor.lab_status",
+                       "sop.proc_code", "sop.order_proc_id", "sop.pat_id", "sop.order_time",
+                       "sop.abnormal_yn", "sop.lab_status", "sop.order_status"]
+
+        for column in columns:
+            query.addSelect(column)
+
+        query.addFrom('stride_order_results as sor')
+        query.addFrom('stride_order_proc as sop')
+        query.addWhere('sor.order_proc_id = sop.order_proc_id')
         if time_limit:
             if time_limit[0]:
-                query.addWhere("result_time >= '%s'" % time_limit[0])
+                query.addWhere("sop.order_time >= '%s'" % time_limit[0])
             if time_limit[1]:
-                query.addWhere("result_time <= '%s'" % time_limit[1])
+                query.addWhere("sop.order_time <= '%s'" % time_limit[1])
         query.addWhere("base_name = '%s'" % lab)
-        query.addGroupBy("base_name")
 
     results = DBUtil.execute(query)
 
@@ -762,5 +782,13 @@ if __name__ == '__main__':
     # print get_top_labs(lab_type='component', top_k=20, lab_name_only=False)
     # print get_top_labs(lab_type='panel', top_k=20, criterion='count*price')
 
-    print query_lab_cnt('LABMGN')
-    print query_lab_cnt('LABCBCD')
+    # print query_lab_cnt('LABMGN')
+    # print query_lab_cnt('LABCBCD')
+
+    for lab in STRIDE_COMPONENT_TESTS:
+        query_to_dataframe(lab, lab_type='component',
+                               columns=None,
+                               output_foldername="query_lab_results/",
+                               time_limit=['2014-01-01','2016-12-31'])
+
+
