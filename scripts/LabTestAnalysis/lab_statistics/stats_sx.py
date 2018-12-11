@@ -453,12 +453,11 @@ def draw__Confusion_Metrics(lab_type='panel', wanted_PPV=0.95, use_cached_fig_da
 
     if os.path.exists(cached_result_path) and use_cached_fig_data:
         # lab2stats = pickle.load(open(cached_result_path, 'r'))
-        df_toplot = pd.read_csv(cached_result_path)
+        df_toplot = pd.read_csv(cached_result_path, keep_default_na=False)
 
     else:
 
-
-        labs_and_cnts = stats_utils.get_top_labs_and_cnts('component')
+        labs_and_cnts = stats_utils.get_top_labs_and_cnts(lab_type)
         # labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
         #                                                            time_limit=['2014-01-01', '2016-12-31'])])
 
@@ -490,10 +489,9 @@ def draw__Confusion_Metrics(lab_type='panel', wanted_PPV=0.95, use_cached_fig_da
         df_toplot[['lab', 'count',
                    'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
                    'all_positive', 'true_positive', 'all_negative', 'true_negative']].to_csv(
-            cached_result_path, index=False)
+                    cached_result_path, index=False)
 
     df_toplot = df_toplot.sort_values('count', ascending=True)
-    print df_toplot
 
     fig, ax = plt.subplots()
     ax.barh(df_toplot['lab'], df_toplot['all_positive'], color='orange', alpha=0.5, label='False Positive')
@@ -502,27 +500,113 @@ def draw__Confusion_Metrics(lab_type='panel', wanted_PPV=0.95, use_cached_fig_da
     ax.barh(df_toplot['lab'], df_toplot['all_negative'], color='blue', alpha=0.5, label='False Negative')
     ax.barh(df_toplot['lab'], df_toplot['true_negative'], color='orange', alpha=1, label='True Negative')
 
-    for i, v in enumerate(df_toplot['all_negative']):
-        ax.text(-0.15, i, df_toplot['lab'].values[i], color='k')
+
+    if lab_type == 'panel':
+        for i, v in enumerate(df_toplot['all_negative']):
+            ax.text(-60000, i, df_toplot['lab'].values[i], color='k')
+
+    elif lab_type == 'component':
+        for i, v in enumerate(df_toplot['all_negative']):
+            ax.text(-150000, i, df_toplot['lab'].values[i], color='k')
+            plt.xticks([-1500000, -1000000, -500000, 0, 500000])
 
     plt.yticks([])
+
     plt.legend()
-    if lab_type == 'panel':
-        plt.xlabel('total lab cnt in 2014-2016')
-    elif lab_type == 'component':
-        plt.xlabel('total lab cnt (in millions) in 2014-2016')
+    plt.xlabel('total lab cnt in 2014-2016')
     plt.ylabel('labs')
+
+    plt.savefig(cached_foldername+'Confusion_Metrics_%ss.png'%lab_type)
 
     plt.show()
 
 
-def draw__Potential_Savings():
+def draw__Potential_Savings(wanted_PPV=0.95):
     '''
     Drawing Figure 4 in the main text.
 
     :return:
     '''
-    pass
+
+    df = pd.read_csv('data_performance_stats/best-alg-panel-summary-fix-trainPPV.csv',
+                     keep_default_na=False)
+    df = df[df['train_PPV'] == wanted_PPV]
+
+    labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=50)
+    df = df[df['lab'].isin([x[0] for x in labs_and_cnts])]
+
+    data_folder = 'Fig4_Potential_Savings/'
+    fig_filename = 'Potential_Savings.png'
+    fig_path = os.path.join(data_folder, fig_filename)
+    data_filename = 'Potential_Savings.csv'
+    data_path = os.path.join(data_folder, data_filename)
+
+    if os.path.exists(data_path):
+        df_sorted_by_normal_cost = pd.read_csv(data_path, keep_default_na=False)
+
+    else:
+
+
+        # df = df[df['lab'] != 'LABNA']  # TODO: fix LABNA's price here
+
+        df['normal_rate'] = (df['true_positive'] + df['false_negative']).round(5)
+
+        # if lab_type == "component":
+        #     df = df.rename(columns={'2016_Vol': 'count'})
+        #     df = df.dropna()
+        # df['count'] = df['count'].apply(lambda x: 0 if x == '' else x)
+
+        my_dict = {x[0]: x[1] for x in labs_and_cnts}
+        df['count'] = df['lab'].map(my_dict)
+
+        # df['total cost'] = df['count'].apply(lambda x: float(x) / 1000000.)  #
+
+        df['total_cost'] = df['count'] * df['median_price'].apply(lambda x:float(x)/1000000. if x!='' else 0)  # cost
+        # volumn_label = 'Total cost in 2014-2016'
+
+        '''
+        Picking the top 20 popular labs.
+        '''
+        # df_sorted_by_cnts = df.sort_values('total_cost', ascending=True).ix[:,
+        #                     ['lab', 'normal_rate', 'true_positive', 'total_cost']].drop_duplicates()#.head(20).copy()
+        df = df[['lab', 'normal_rate', 'true_positive', 'total_cost']]
+
+        # df_sorted_by_cnts = df_sorted_by_cnts.sort_values('volumn', ascending=True)
+
+
+        # ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['volumn'], color='grey', alpha=0.5,
+        #         label=volumn_label)
+
+        df['normal_cost'] = df['normal_rate'] * df['total_cost']
+        df['truepo_cost'] = df['true_positive'] * df['total_cost']
+
+        df_sorted_by_normal_cost = df.sort_values('truepo_cost', ascending=True).tail(10)
+        df_sorted_by_normal_cost.to_csv(data_path, index=False)
+
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.barh(df_sorted_by_normal_cost['lab'], df_sorted_by_normal_cost['normal_cost'],
+            color='blue', alpha=0.5, label='Normal lab cost')
+    # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
+    #     ax.text(v + 2, i, str("{0:.0%}".format(df_sorted_by_cnts['normal_rate'].values[i])), color='k', fontweight='bold')
+
+    # if add_predictable:
+    ax.barh(df_sorted_by_normal_cost['lab'], df_sorted_by_normal_cost['truepo_cost'],
+            color='blue', alpha=1, label='True positive saving')  # 'True Positive@0.95 train_PPV'
+    for i, v in enumerate(df_sorted_by_normal_cost['truepo_cost']):
+        ax.text(v, i, str("{0:.0%}".format(df_sorted_by_normal_cost['true_positive'].values[i])), color='k',
+                fontweight='bold')
+
+    # plt.xlim([0,1])
+    for tick in ax.xaxis.get_major_ticks():
+        tick.label.set_fontsize(14)
+
+    plt.legend()
+    plt.xlabel('Total Cnt (in millions) in 2014-2016')
+
+    plt.savefig(fig_path)
+
+    plt.show()
 
 
 
@@ -888,9 +972,13 @@ if __name__ == '__main__':
     # plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
     # get_waste_in_7days('component')
 
+    draw__Potential_Savings()
+
+
     # draw__Order_Intensities('panel')
     # draw__Normality_Saturations('panel')
-    draw__Confusion_Metrics('component')
+    # draw__Confusion_Metrics('component')
+
 
     # plot_predict_twoside_bar('component')
 
