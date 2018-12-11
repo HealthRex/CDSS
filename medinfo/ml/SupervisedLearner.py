@@ -171,11 +171,44 @@ def train_ml_models(X_train, y_train, lab, algs):
 
     return ml_models
 
-def pick_threshold(y_true, y_pred, target_PPV):
+def pick_threshold(X_pick, y_pick, ml_models, target_PPV):
+    for model in ml_models:
+        y_pick_pred = predict(X_pick, model)
     pass
 
 def load_data(data_type, data_source):
     pass
+
+def evaluate_ml_models(X_test, y_test, ml_models, thresholds):
+    '''
+    Include AUROC, AUPRC,
+    After picking a threshold, also confusion metrics
+
+    Args:
+        X_test:
+        y_test:
+        ml_models:
+
+    Returns:
+
+    '''
+    for tag, model in ml_models.items():
+        y_pred = predict(X_test, model)
+        evaluate(y_test, y_pred)
+
+def main_pipelining1():
+    raw_matrix = get_raw_matrix(lab, "")
+    processed_matrix, process_template = process_matrix(raw_matrix)
+
+    ml_models = load_ml_models()
+
+    raw_matrix_pick = load_data(datapath="")
+    processed_matrix, _ = process_matrix(raw_matrix, process_template)
+    y_pick = processed_matrix.pop(outcome_label)
+    X_pick = processed_matrix
+    thresholds = pick_threshold(X_pick, y_pick, ml_models, target_PPV=0.95)
+
+    evaluate_ml_models(X_test, y_test, ml_models, thresholds)
 
 def main_pipelining():
     '''
@@ -183,25 +216,18 @@ def main_pipelining():
     '''
 
     lab = "LABA1C"
+    lab_type = 'panel'
+    outcome_label = 'all_component_normal'
+    algs = get_algs()
 
 
     raw_matrix = get_raw_matrix(lab, "")
-
-    processed_matrix = process_matrix(raw_matrix)
-
+    processed_matrix, process_template = process_matrix(raw_matrix)
     X_train, y_train, X_test, y_test = train_test_split()
-
-    algs = get_algs()
-    ml_models = train_ml_models(X_train, y_train, algs) # key: (lab,alg), value: model
+    ml_models = train_ml_models(X_train, y_train, lab, algs)  # key: (lab,alg), value: model
 
 
-    for tag, model in ml_models.items():
-        y_pred = predict(X_test, model)
-        evaluate(y_test, y_pred)
-
-        X_pick, y_pick = load_data(data_type='raw_matrix', data_source='AWS')
-        y_pick_pred = predict(X_pick, model)
-        pick_threshold(y_true=y_pick, y_pred=y_pick_pred, target_PPV=0.95)
+    evaluate_ml_models(X_test, y_test, ml_models)
 
 
 
