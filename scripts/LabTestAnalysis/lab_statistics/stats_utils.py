@@ -590,34 +590,44 @@ def get_top_labs_and_cnts(lab_type='panel', top_k=10, criterion='count', time_li
     #     return res
 
     data_folder = "query_lab_results/"
-    labs_and_cnts = []
+    labs_and_cnts_file = "%ss_and_cnts_2014-2016.csv" % lab_type
+    labs_and_cnts_path = os.path.join(data_folder, labs_and_cnts_file)
+    if os.path.exists(labs_and_cnts_path):
+        labs_and_cnts_df = pd.read_csv(labs_and_cnts_path, keep_default_na=False)
+        labs_and_cnts = labs_and_cnts_df.values.tolist()
 
-    if lab_type == 'panel':
-        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-    elif lab_type == 'component':
-        all_labs = STRIDE_COMPONENT_TESTS
+    else:
 
-    for lab in all_labs: # TODO here
-        data_filename = '%s.csv'%lab
-        data_path = os.path.join(data_folder, data_filename)
+        labs_and_cnts = []
 
-        df = pd.read_csv(data_path, keep_default_na=False)
-        df = df[df['order_status']=='Completed']
-        if time_limit:
-            if time_limit[0]:
-                df = df[df['order_time']>=time_limit[0]]
-            if time_limit[1]:
-                df = df[df['order_time'] <= time_limit[1]]
-        cnt = df.shape[0]
+        if lab_type == 'panel':
+            all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+        elif lab_type == 'component':
+            all_labs = STRIDE_COMPONENT_TESTS
 
-        labs_and_cnts.append([lab, cnt])
+        for lab in all_labs: # TODO here
+            lab_data_filename = '%s.csv'%lab
+            lab_data_path = os.path.join(data_folder, lab_data_filename)
 
-    labs_and_cnts = sorted(labs_and_cnts, key=lambda x:x[1])[::-1]
+            df = pd.read_csv(lab_data_path, keep_default_na=False)
+            if lab_type == 'panel':
+                df = df[df['order_status']=='Completed']
+            if time_limit:
+                if time_limit[0]:
+                    df = df[df['order_time']>=time_limit[0]]
+                if time_limit[1]:
+                    df = df[df['order_time'] <= time_limit[1]]
+            cnt = df.shape[0]
 
-    labs_and_cnts_df = pd.DataFrame(labs_and_cnts, columns=['lab', 'cnt'])
-    labs_and_cnts_df.to_csv("labs_and_cnts_2014-2016.csv", index=False)
+            labs_and_cnts.append([lab, cnt])
 
-    print "[x[0] for x in labs_and_cnts[:top_k]]", [x[0] for x in labs_and_cnts[:top_k]]
+        labs_and_cnts = sorted(labs_and_cnts, key=lambda x:x[1])[::-1]
+
+        labs_and_cnts_df = pd.DataFrame(labs_and_cnts, columns=['lab', 'cnt'])
+
+        labs_and_cnts_df.to_csv(labs_and_cnts_path, index=False)
+
+    # print "[x[0] for x in labs_and_cnts[:top_k]]", [x[0] for x in labs_and_cnts[:top_k]]
 
     return labs_and_cnts[:top_k]
 
