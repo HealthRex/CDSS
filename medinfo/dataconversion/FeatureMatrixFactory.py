@@ -1557,14 +1557,19 @@ class FeatureMatrixFactory:
             return RACE_FEATURES
         else:
         #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            RACE_FEATURES = ['Caucasian', 'Unknown', 'African American',
+                             'American Indian or Alaska Native', 'Patient Refused',
+                             'Native Hawaiian and Other Pacific Islander',
+                             'Other', 'Middle Eastern', 'Hispanic', 'Multi Racial',
+                             'Asian - Pacific Islander', 'Asian']
 
-            query = SQLQuery()
-            query.addSelect("DISTINCT RaceName")
-            query.addFrom("demographics")
-            results = DBUtil.execute(query)
-            results = [x[0] for x in results]
+            # query = SQLQuery()
+            # query.addSelect("DISTINCT RaceName")
+            # query.addFrom("demographics")
+            # results = DBUtil.execute(query)
+            # results = [x[0] for x in results]
             # results = [x if x else 'Unknown' for x in results]
-            return results
+            return RACE_FEATURES
 
     # def queryAllTeams(self):
     #     if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
