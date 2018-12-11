@@ -474,8 +474,8 @@ def draw__Confusion_Metrics(lab_type='panel', wanted_PPV=0.95, use_cached_fig_da
         df['all_negative'] = -df['all_negative']
 
         df['count'] = df['count'].apply(lambda x: float(x) if x != '' else 0)
-        if lab_type == 'component':
-            df['count'] = df['count'].apply(lambda x: x / 1000000)
+        # if lab_type == 'component':
+        #     df['count'] = df['count'].apply(lambda x: x / 1000000)
 
         # print df[['true_positive', 'all_positive',
         #           'true_negative', 'all_negative']].head(5).plot(kind='barh')
@@ -493,6 +493,8 @@ def draw__Confusion_Metrics(lab_type='panel', wanted_PPV=0.95, use_cached_fig_da
             cached_result_path, index=False)
 
     df_toplot = df_toplot.sort_values('count', ascending=True)
+    print df_toplot
+
     fig, ax = plt.subplots()
     ax.barh(df_toplot['lab'], df_toplot['all_positive'], color='orange', alpha=0.5, label='False Positive')
     ax.barh(df_toplot['lab'], df_toplot['true_positive'], color='blue', alpha=1, label='True Positive')
@@ -874,6 +876,7 @@ if __name__ == '__main__':
     #                                       'LABUA', 'LABPTT', 'LABHEPAR',
     #                                       'LABCMVQT', 'LABURNC', 'LABPTEG'])
     # plot_cartoons('UMich', labs=UMICH_TOP_COMPONENTS)
+    # plot_cartoons('component', labs=['HGB'])
 
     # plot_curves__subfigs(lab_type='component', curve_type="roc")
     # plot_curves__overlap(lab_type='UMich', curve_type="roc")

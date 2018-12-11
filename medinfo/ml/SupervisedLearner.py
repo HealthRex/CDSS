@@ -149,14 +149,7 @@ def pipelining(source_set_folder, labs, source_type, source_ids):
 
     return status
 
-def main_pipelining():
-    '''
-    This pipelining procedure is consistent to the previous SupervisedLearningPipeline.py
-    '''
-
-    lab = "LABA1C"
-    raw_matrix = get_raw_matrix(lab, "")
-
+def process_matrix(raw_matrix):
     intermediate_matrix = raw_matrix
     intermediate_matrix = remove_features(intermediate_matrix, features_to_remove=[])
     intermediate_matrix = impute_features(intermediate_matrix, strategy="mean")
@@ -165,15 +158,52 @@ def main_pipelining():
 
     write_processed_matrix(processed_matrix, "")
 
-    X_train, y_train, X_test, y_test = train_test_split()
-    algs = get_algs()
+    return processed_matrix
+
+
+def train_ml_models(X_train, y_train, lab, algs):
+    ml_models = {}  # key: (lab,alg), value: model
+
     for alg in algs:
         model = train(X_train, y_train, alg)
 
+        ml_models[(lab,alg)] = model
 
+    return ml_models
+
+def pick_threshold(y_true, y_pred, target_PPV):
+    pass
+
+def load_data(data_type, data_source):
+    pass
+
+def main_pipelining():
+    '''
+    This pipelining procedure is consistent to the previous SupervisedLearningPipeline.py
+    '''
+
+    lab = "LABA1C"
+
+
+    raw_matrix = get_raw_matrix(lab, "")
+
+    processed_matrix = process_matrix(raw_matrix)
+
+    X_train, y_train, X_test, y_test = train_test_split()
+
+    algs = get_algs()
+    ml_models = train_ml_models(X_train, y_train, algs) # key: (lab,alg), value: model
+
+
+    for tag, model in ml_models.items():
         y_pred = predict(X_test, model)
-
         evaluate(y_test, y_pred)
+
+        X_pick, y_pick = load_data(data_type='raw_matrix', data_source='AWS')
+        y_pick_pred = predict(X_pick, model)
+        pick_threshold(y_true=y_pick, y_pred=y_pick_pred, target_PPV=0.95)
+
+
 
 if __name__ == '__main__':
     main_pipelining()
