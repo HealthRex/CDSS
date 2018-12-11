@@ -29,36 +29,85 @@ import LocalEnv
 import os
 
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split as sklearn_train_test_split
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
-def get_raw_matrix(lab,
-                         lab_folder=
-                         os.path.join(LocalEnv.PATH_TO_CDSS,
-                                      'scripts/LabTestAnalysis/machine_learning/data-panels')):
-    processed_matrix_filename = "%s-normality-matrix-10000-episodes-raw.tab"%lab
+def get_raw_matrix(lab, lab_folder):
     fm_io = FeatureMatrixIO()
-    processed_matrix = fm_io.read_file_to_data_frame(os.path.join(lab_folder, lab, processed_matrix_filename))
-    return processed_matrix
+
+    raw_matrix_path = os.path.join(lab_folder, '%s-normality-matrix-10000-episodes-raw.tab'%lab)
+
+    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+    return raw_matrix
+
+    # processed_matrix_filename = "%s-normality-matrix-10000-episodes-raw.tab"%lab
+
+    # processed_matrix = fm_io.read_file_to_data_frame(os.path.join(lab_folder, lab, processed_matrix_filename))
 
 def get_processed_matrix(lab,
                          lab_folder=
                          os.path.join(LocalEnv.PATH_TO_CDSS,
                                       'scripts/LabTestAnalysis/machine_learning/data-panels')):
-    processed_matrix_filename = "%s-normality-matrix-10000-episodes-processed.tab"%lab
-    fm_io = FeatureMatrixIO()
-    processed_matrix = fm_io.read_file_to_data_frame(os.path.join(lab_folder, lab, processed_matrix_filename))
-    return processed_matrix
+    '''
+    Create processed matrix anyway (do not try to load). Because this step is fast. TODO
 
-def impute_features(matrix, strategy):
-    return None
+    :param lab:
+    :param lab_folder:
+    :return:
+    '''
+
+    processed_matrix_filename = "%s-normality-matrix-10000-episodes-processed.tab"%lab
+
+
+def impute_features(matrix, strategy, impute_template=None):
+
+    if impute_template:
+        #TODO
+        pass
+
+    else:
+        impute_template = {}
+
+    features_to_remove = {}
+    for feature in matrix.columns.values:
+        # if feature in self._removed_features:
+        #     continue
+        # TODO _removed_features?
+
+        # If all values are null, just remove the feature.
+        # Otherwise, imputation will fail (there's no mean value),
+        # and sklearn will ragequit.
+        if matrix[feature].isnull().all():
+            # remove_feature(feature)
+            # self._removed_features.append(feature)
+            features_to_remove.append(feature)
+
+        # Only try to impute if some of the values are null.
+        # elif matrix[feature].isnull().any():
+        else:
+            #TODO: other strategies
+            if matrix[feature].dtype not in (int, long, float):
+                print feature, matrix[feature].dtype
+                continue
+
+            imputed_value = matrix[feature].mean()
+            impute_template[feature] = imputed_value
+
+            matrix[feature].fillna(imputed_value)
+
+    matrix = matrix.drop(features_to_remove, axis=1)
+    # TODO: assert all existing features have impute values
+
+    return matrix, impute_template
 
 def remove_features(matrix, features_to_remove):
-    return None
+    matrix = matrix.drop(features_to_remove, axis=1)
+    return matrix
 
 def select_features(matrix, strategy):
-    return None
+    return matrix
 
 def write_processed_matrix(matrix, write_folder=""):
     fm_io = FeatureMatrixIO()
@@ -69,7 +118,7 @@ def get_algs():
     return []
 
 
-def train_test_split(processed_matrix, outcome_label, columnToSplitOn='pat_id', random_state=0):
+def train_test_split(processed_matrix, columnToSplitOn='pat_id', random_state=0):
     '''
     Args:
         processed_matrix:
@@ -90,15 +139,21 @@ def train_test_split(processed_matrix, outcome_label, columnToSplitOn='pat_id', 
 
     train_ids, test_ids = sklearn_train_test_split(all_possible_ids, random_state=random_state)
 
-    train_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(train_ids)].copy()
-    y_train = pd.DataFrame(train_matrix.pop(outcome_label))
-    X_train = train_matrix
+    train_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(train_ids)]
+    # y_train = pd.DataFrame(train_matrix.pop(outcome_label))
+    # X_train = train_matrix
 
-    test_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(test_ids)].copy()
-    y_test = pd.DataFrame(test_matrix.pop(outcome_label))
-    X_test = test_matrix
+    test_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(test_ids)]
+    # y_test = pd.DataFrame(test_matrix.pop(outcome_label))
+    # X_test = test_matrix
 
-    return X_train, y_train, X_test, y_test
+    # TODO: test here, no overlapping
+    patIds_train = train_matrix['pat_id'].values.tolist()
+    patIds_test = test_matrix['pat_id'].values.tolist()
+    assert (set(patIds_train) & set(patIds_test)) == set([])
+    assert train_matrix.shape[0] + test_matrix.shape[0] == processed_matrix.shape[0]
+
+    return train_matrix, test_matrix
 
 def train(X_train, y_train, alg):
     return None
@@ -149,16 +204,173 @@ def pipelining(source_set_folder, labs, source_type, source_ids):
 
     return status
 
-def process_matrix(raw_matrix):
-    intermediate_matrix = raw_matrix
-    intermediate_matrix = remove_features(intermediate_matrix, features_to_remove=[])
-    intermediate_matrix = impute_features(intermediate_matrix, strategy="mean")
-    intermediate_matrix = select_features(intermediate_matrix, strategy="")
-    processed_matrix = intermediate_matrix
+def process_matrix(raw_matrix, output_folder="", impute_template=None):
+
+
+
+
+    '''
+    final features: (imputation value, order)
+    also order! 
+    '''
+    if impute_template:
+        intermediate_matrix = raw_matrix
+        columns_ordered = [""] * len(impute_template.keys())
+        for feature, value_order in impute_template.items():
+            impute_value, column_order = value_order
+            intermediate_matrix[feature] = intermediate_matrix[feature].fillna(impute_value)
+            columns_ordered[column_order] = feature
+
+        processed_matrix = intermediate_matrix[columns_ordered]
+        return processed_matrix
+    else:
+
+        '''
+        Procedure 1 (no impute template):
+        raw_matrix_train -> outcome_label (all_components_normal)
+                         -> info_matrix (pat_id, order_proc_id, proc_code, order_time)
+                         -> leak_matrix (abnormal_panel, num_components, num_normal_components)
+                         -> numeric_matrix (all others) -> imputed_matrix -> impute_template
+                                                                          -> selected_matrix (5% left)
+
+        selected_matrix + outcome_label + info_matrix + leak_matrix -> processed_matrix_full -> to_csv
+        selected_matrix + outcome_label -> processed_matrix
+
+        '''
+        raw_features_all = raw_matrix.columns.values.tolist()
+
+        outcome_label = 'all_components_normal'
+        info_features = ['pat_id', 'order_proc_id', 'proc_code', 'order_time']
+        leak_features = ['abnormal_panel', 'num_components', 'num_normal_components']
+        non_impute_features = info_features + leak_features + [outcome_label]
+        numeric_features = [x for x in raw_features_all if x not in non_impute_features]
+
+        numeric_matrix = raw_matrix[numeric_features]
+        numeric_matrix, impute_template = impute_features(numeric_matrix, strategy="mean")
+        numeric_matrix = select_features(numeric_matrix, strategy="")
+
+        print "numeric_matrix.head()"
+        print numeric_matrix.head()
+
+        print "raw_matrix[non_impute_features].head()"
+        print raw_matrix[non_impute_features].head()
+        processed_matrix_full = pd.concat([raw_matrix[non_impute_features], numeric_matrix], axis=1) # TODO: on?!
+        processed_matrix_full.sort_values(by=['pat_id','order_proc_id','order_time']).to_csv("TODO.csv", index=False)
+
+        processed_matrix = pd.concat([raw_matrix[outcome_label], numeric_matrix], axis=1)
+        # final_columns = processed_matrix.columns.values.tolist()
+        # # TODO: outcome label
+        # for feature, _ in impute_template.items():
+        #     if feature not in final_columns:
+        #         impute_features.pop(feature)
+        # for i, feature in enumerate(final_columns):
+        #     impute_template[feature] = (impute_template[feature], i)
+
+        # print impute_template
+        return processed_matrix, impute_template
+
+        # intermediate_matrix = remove_features(intermediate_matrix, features_to_remove=[])
+        quit()
+
+
 
     write_processed_matrix(processed_matrix, "")
 
-    return processed_matrix
+    fm_io = FeatureMatrixIO()
+    # processed_matrix = fm_io.read_file_to_data_frame(os.path.join(lab_folder, lab, processed_matrix_filename))
+
+
+
+    patIds_df = raw_matrix['pat_id'].copy()
+
+    self._train_test_split(raw_matrix, params['outcome_label'])
+
+    # ##
+    # folder_path = '/'.join(params['raw_matrix_path'].split('/')[:-1])
+    # self._X_train.join(self._y_train).to_csv(folder_path + '/' + 'train_raw.csv', index=False)
+    # self._X_test.join(self._y_test).to_csv(folder_path + '/' + 'test_raw.csv', index=False)
+    #
+    # '''
+    # Mini-test that there are no overlapping patients
+    # '''
+    # assert bool(set(self._X_train['pat_id'].values) & set(self._X_test['pat_id'].values)) == False
+    # ##
+
+    fmt = FeatureMatrixTransform()
+    train_df = self._X_train.join(self._y_train)
+    fmt.set_input_matrix(train_df)
+
+    # Add features.
+    self._add_features(fmt, params['features_to_add'])
+
+    # Remove features.
+    self._remove_features(fmt, params['features_to_remove'])
+    # Filter on features
+    if 'features_to_filter_on' in params:
+        self._filter_on_features(fmt, params['features_to_filter_on'])
+
+    # HACK: When read_csv encounters duplicate columns, it deduplicates
+    # them by appending '.1, ..., .N' to the column names.
+    # In future versions of pandas, simply pass mangle_dupe_cols=True
+    # to read_csv, but not ready as of pandas 0.22.0.
+    for feature in raw_matrix.columns.values:
+        if feature[-2:] == ".1":
+            fmt.remove_feature(feature)
+            self._removed_features.append(feature)
+
+    # Impute data.
+    self._impute_data(fmt, train_df, params['imputation_strategies'])
+
+    # In case any all-null features were created in preprocessing,
+    # drop them now so feature selection will work
+    fmt.drop_null_features()
+
+    # Build interim matrix.
+    train_df = fmt.fetch_matrix()
+
+    self._y_train = pd.DataFrame(train_df.pop(params['outcome_label']))
+    self._X_train = train_df
+
+    '''
+    Select X_test columns according to processed X_train
+    '''
+    self._X_test = self._X_test[self._X_train.columns]
+    '''
+    Impute data according to the same strategy when training
+    '''
+    for feat in self._X_test.columns:
+        self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
+
+    self._select_features(params['selection_problem'],
+                          params['percent_features_to_select'],
+                          params['selection_algorithm'],
+                          params['features_to_keep'])
+
+    '''
+    The join is based on index by default.
+    Will remove 'pat_id' (TODO sxu: more general in the future) later in train().
+    '''
+    self._X_train = self._X_train.join(patIds_df, how='left')
+    self._X_test = self._X_test.join(patIds_df, how='left')
+
+    train = self._y_train.join(self._X_train)
+    test = self._y_test.join(self._X_test)
+
+    processed_trainMatrix_path = processed_matrix_path.replace("matrix", "train-matrix")
+    fm_io.write_data_frame_to_file(train, processed_trainMatrix_path)
+    processed_testMatrix_path = processed_matrix_path.replace("matrix", "test-matrix")
+    fm_io.write_data_frame_to_file(test, processed_testMatrix_path)
+
+    processed_matrix = train.append(test)
+    '''
+    Recover the order of rows before writing into disk, 
+    where the index info will be missing.
+    '''
+    processed_matrix.sort_index(inplace=True)
+
+    return processed_matrix, process_template
+
+    return processed_matrix, process_template
 
 
 def train_ml_models(X_train, y_train, lab, algs):
@@ -196,19 +408,7 @@ def evaluate_ml_models(X_test, y_test, ml_models, thresholds):
         y_pred = predict(X_test, model)
         evaluate(y_test, y_pred)
 
-def main_pipelining1():
-    raw_matrix = get_raw_matrix(lab, "")
-    processed_matrix, process_template = process_matrix(raw_matrix)
 
-    ml_models = load_ml_models()
-
-    raw_matrix_pick = load_data(datapath="")
-    processed_matrix, _ = process_matrix(raw_matrix, process_template)
-    y_pick = processed_matrix.pop(outcome_label)
-    X_pick = processed_matrix
-    thresholds = pick_threshold(X_pick, y_pick, ml_models, target_PPV=0.95)
-
-    evaluate_ml_models(X_test, y_test, ml_models, thresholds)
 
 def main_pipelining():
     '''
@@ -222,10 +422,20 @@ def main_pipelining():
 
 
     raw_matrix = get_raw_matrix(lab, "")
-    processed_matrix, process_template = process_matrix(raw_matrix)
-    X_train, y_train, X_test, y_test = train_test_split()
+    raw_matrix_train, raw_matrix_test = train_test_split(raw_matrix)
+
+
+    processed_matrix_train, process_template = process_matrix(raw_matrix_train)
+
+    X_train, y_train = processed_matrix_train # TODO
+
     ml_models = train_ml_models(X_train, y_train, lab, algs)  # key: (lab,alg), value: model
 
+
+
+
+    processed_matrix_test, _ = process_matrix(raw_matrix_train, process_template)
+    X_test, y_test = processed_matrix_test # TODO
 
     evaluate_ml_models(X_test, y_test, ml_models)
 
