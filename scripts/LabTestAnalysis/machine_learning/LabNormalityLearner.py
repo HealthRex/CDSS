@@ -33,14 +33,16 @@ def main_pipelining1():
 
     features_dict = {
         'non_impute_features':non_impute_features,
-        'outcome_label':outcome_label
+        'outcome_label':outcome_label,
+        'info_features':info_features,
+        'leak_features':leak_features
     }
 
     src_folder = "data-panels-10000-episodes/"
 
     process_template = SL.load_process_template(lab, non_impute_features, src_folder)
 
-    algs = SL.get_algs()
+    algs = ['random-forest'] #SL.get_algs()
 
     ml_models = []
     for alg in algs:
@@ -53,23 +55,38 @@ def main_pipelining1():
     processed_matrix_pick = SL.process_matrix(lab, raw_matrix_pick, features_dict,
                                               dst_folder, process_template)
 
-    X_pick = processed_matrix_pick.loc[:, processed_matrix_pick.columns != outcome_label]
-    y_pick = processed_matrix_pick.loc[:, [outcome_label]]
+    X_pick, y_pick = SL.split_Xy(processed_matrix_pick, outcome_label=outcome_label)
+
+
+    processed_matrix_test = SL.load_processed_matrix(lab, features_dict, src_folder, tag='test')
+    X_test, y_test = SL.split_Xy(processed_matrix_test, outcome_label=outcome_label)
 
     for ml_model in ml_models:
-        y_pick_pred = pd.DataFrame(ml_model.predict_probability(X_pick)[:,1], columns=['y_pred'])
-        print y_pick_pred
-        threshold = SL.pick_threshold(y_pick_pred, y_pick, target_PPV=0.95)
+        y_pick_pred = ml_model.predict_probability(X_pick)[:,1]
 
+        # print y_pick_pred
+        threshold = SL.pick_threshold(y_pick.values, y_pick_pred, target_PPV=0.95)
+
+
+        y_test_pred = ml_model.predict_probability(X_test)[:,1]
+
+        confusion_metrics = SL.get_confusion_metrics(y_test.values, y_test_pred, threshold=threshold)
+        print confusion_metrics
         quit()
+
+        # SL.evaluate(lab, y_test_pred, y_test, threshold=threshold)
+
+
+
+
     #
     # # TODO: Assume different folder name, but same file names!
     #
     #
     # threshold = SL.pick_threshold(processed_matrix_pick, target_PPV=0.95)
     #
-    # processed_matrix_test = SL.load_processed_matrix(lab, src_folder, tag='test')
-    # SL.evaluate(lab, processed_matrix_test, threshold)
+    #
+    #
 
 
 
