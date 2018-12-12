@@ -37,7 +37,8 @@ from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
 
-def load_processed_matrix(lab, data_folder, tag=None):
+def load_processed_matrix(lab, features_dict, data_folder, tag=None):
+    # TODO: feature order should not matter..
     # TODO sxu: delete '10000' in the future
     # TODO: correct old file names in the old script
     processed_matrix_filename = '%s-normality-matrix-processed'%lab
@@ -47,7 +48,13 @@ def load_processed_matrix(lab, data_folder, tag=None):
 
     processed_matrix_path = os.path.join(data_folder, lab, processed_matrix_filename)
     fm_io = FeatureMatrixIO()
-    return fm_io.read_file_to_data_frame(processed_matrix_path)
+    processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
+
+    #TODO: test columns?
+    columns = [x for x in processed_matrix.columns.values.tolist()
+               if x not in features_dict['info_features']+features_dict['leak_features']]
+    return processed_matrix[columns]
+
 
 def load_raw_matrix(lab, data_folder):
     raw_matrix_filename = '%s-normality-matrix-raw.tab' % lab
@@ -221,11 +228,11 @@ def train_test_split(processed_matrix, columnToSplitOn='pat_id', random_state=0)
 def train(X_train, y_train, alg):
     return None
 
-def predict(X, model):
-    return None
 
-def evaluate(y_test, y_pred):
-    return None
+def split_Xy(data_matrix, outcome_label):
+    X = data_matrix.loc[:, data_matrix.columns != outcome_label]
+    y = data_matrix.loc[:, [outcome_label]]
+    return X, y
 
 def pipelining(source_set_folder, labs, source_type, source_ids):
     '''
@@ -463,8 +470,88 @@ def train_ml_models(X_train, y_train, lab, algs):
 
     return ml_models
 
-def pick_threshold(y_pick_pred, y_pick, target_PPV=0.95):
-    pass
+def get_confusion_counts(actual_labels, predict_labels):
+
+    true_positive = 0
+    false_positive = 0
+    true_negative = 0
+    false_negative = 0
+    for i in range(len(actual_labels)):
+        if actual_labels[i] == 1 and predict_labels[i] == 1:
+            true_positive += 1
+        elif actual_labels[i] == 0 and predict_labels[i] == 1:
+            false_positive += 1
+        elif actual_labels[i] == 1 and predict_labels[i] == 0:
+            false_negative += 1
+        elif actual_labels[i] == 0 and predict_labels[i] == 0:
+            true_negative += 1
+        else:
+            print "what?!"
+    return true_positive, false_positive, true_negative, false_negative
+
+def get_confusion_metrics(actual_labels, predict_probas, threshold):
+    #TODO: move to stats unit
+    predict_labels = [1 if x > threshold else 0 for x in predict_probas]
+    true_positive, false_positive, true_negative, false_negative = \
+        get_confusion_counts(actual_labels, predict_labels)
+
+    res_dict = {}
+    res_dict['sensitivity'] = float(true_positive) / float(true_positive + false_negative)
+    res_dict['specificity'] = float(true_negative) / float(true_negative + false_positive)
+    try:
+        res_dict['LR_p'] = res_dict['sensitivity'] / (1 - res_dict['specificity'])
+    except ZeroDivisionError:
+        if res_dict['sensitivity'] == 0:
+            res_dict['LR_p'] = float('nan')
+        else:
+            res_dict['LR_p'] = float('inf')
+
+    try:
+        res_dict['LR_n'] = (1 - res_dict['sensitivity']) / res_dict['specificity']
+    except ZeroDivisionError:
+        if res_dict['sensitivity'] == 1:
+            res_dict['LR_n'] = float('nan')
+        else:
+            res_dict['LR_n'] = float('inf')
+
+    try:
+        res_dict['PPV'] = float(true_positive) / float(true_positive + false_positive)
+    except ZeroDivisionError:
+        res_dict['PPV'] = float('nan')
+
+    try:
+        res_dict['NPV'] = float(true_negative) / float(true_negative + false_negative)
+    except ZeroDivisionError:
+        res_dict['NPV'] = float('nan')
+
+    return res_dict
+
+
+def pick_threshold(y_pick, y_pick_pred, target_PPV=0.95):
+    # TODO: assume both are numpy arrays
+    thres_last, PPV_last = 1., 1.
+    actual_list = y_pick.flatten().tolist()
+    predicted_proba = y_pick_pred.flatten().tolist()
+    assert len(actual_list) == len(predicted_proba)
+    # TODO: also check proba's and labels
+
+    for thres in np.linspace(1, 0, num=1001):
+
+        predict_class_list = [1 if x > thres else 0 for x in predicted_proba]
+
+        TP, FP, _, _ = get_confusion_counts(actual_list, predict_class_list)
+        try:
+            PPV = float(TP) / float(TP + FP)
+        except ZeroDivisionError:
+            # PPV = float('nan')
+            continue
+
+        if PPV < target_PPV:
+            break
+        else:
+            thres_last = thres
+
+    return thres_last
 
 def load_data(data_type, data_source):
     pass
