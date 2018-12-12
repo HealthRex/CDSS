@@ -31,13 +31,18 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split as sklearn_train_test_split
+from sklearn.externals import joblib
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
-def get_raw_matrix(lab, lab_folder):
+def get_raw_matrix(lab, lab_folder, file_name=None):
     fm_io = FeatureMatrixIO()
 
-    raw_matrix_path = os.path.join(lab_folder, '%s-normality-matrix-10000-episodes-raw.tab'%lab)
+    if not file_name:
+        file_name = '%s-normality-matrix-10000-episodes-raw.tab'%lab
+
+
+    raw_matrix_path = os.path.join(lab_folder, file_name)
 
     raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
     return raw_matrix
@@ -147,7 +152,6 @@ def train_test_split(processed_matrix, columnToSplitOn='pat_id', random_state=0)
     # y_test = pd.DataFrame(test_matrix.pop(outcome_label))
     # X_test = test_matrix
 
-    # TODO: test here, no overlapping
     patIds_train = train_matrix['pat_id'].values.tolist()
     patIds_test = test_matrix['pat_id'].values.tolist()
     assert (set(patIds_train) & set(patIds_test)) == set([])
@@ -158,7 +162,7 @@ def train_test_split(processed_matrix, columnToSplitOn='pat_id', random_state=0)
 def train(X_train, y_train, alg):
     return None
 
-def predict(X_test, model):
+def predict(X, model):
     return None
 
 def evaluate(y_test, y_pred):
@@ -204,9 +208,29 @@ def pipelining(source_set_folder, labs, source_type, source_ids):
 
     return status
 
-def process_matrix(raw_matrix, output_folder="", impute_template=None):
+def get_process_template(lab, numeric_features, data_folder):
+    raw_matrix_filename = '%s-normality-matrix-10000-episodes-raw.tab' % lab
+    raw_matrix_path = os.path.join(data_folder, lab, raw_matrix_filename)
+
+    processed_matrix_filename = '%s-normality-matrix-10000-episodes-processed.tab' % lab
+    processed_matrix_path = os.path.join(data_folder, lab, processed_matrix_filename)
+
+    fm_io = FeatureMatrixIO()
+    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+    processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
+
+    final_features = processed_matrix.columns.values.tolist()
+
+    impute_template = {}
+    for feature in final_features:
+        if feature in numeric_features:
+            imputed_value = raw_matrix[feature].mean()
+            impute_template[feature] = imputed_value
+
+    return impute_template
 
 
+def process_matrix(raw_matrix, data_folder, lab, impute_template=None):
 
 
     '''
@@ -224,6 +248,10 @@ def process_matrix(raw_matrix, output_folder="", impute_template=None):
         processed_matrix = intermediate_matrix[columns_ordered]
         return processed_matrix
     else:
+        processed_matrix_filename = '%s-normality-matrix-10000-episodes-processed.tab'%lab
+        #TODO: splitted train and test processed ?
+        processed_matrix_path = os.path.join(data_folder, processed_matrix_filename)
+
 
         '''
         Procedure 1 (no impute template):
@@ -237,25 +265,20 @@ def process_matrix(raw_matrix, output_folder="", impute_template=None):
         selected_matrix + outcome_label -> processed_matrix
 
         '''
-        raw_features_all = raw_matrix.columns.values.tolist()
-
-        outcome_label = 'all_components_normal'
-        info_features = ['pat_id', 'order_proc_id', 'proc_code', 'order_time']
-        leak_features = ['abnormal_panel', 'num_components', 'num_normal_components']
-        non_impute_features = info_features + leak_features + [outcome_label]
-        numeric_features = [x for x in raw_features_all if x not in non_impute_features]
 
         numeric_matrix = raw_matrix[numeric_features]
         numeric_matrix, impute_template = impute_features(numeric_matrix, strategy="mean")
         numeric_matrix = select_features(numeric_matrix, strategy="")
 
-        print "numeric_matrix.head()"
-        print numeric_matrix.head()
+        # print "numeric_matrix.head()"
+        # print numeric_matrix.head()
 
-        print "raw_matrix[non_impute_features].head()"
-        print raw_matrix[non_impute_features].head()
+        # print "raw_matrix[non_impute_features].head()"
+        # print raw_matrix[non_impute_features].head()
         processed_matrix_full = pd.concat([raw_matrix[non_impute_features], numeric_matrix], axis=1) # TODO: on?!
-        processed_matrix_full.sort_values(by=['pat_id','order_proc_id','order_time']).to_csv("TODO.csv", index=False)
+
+        # TODO here
+        # processed_matrix_full.sort_values(by=['pat_id','order_proc_id','order_time']).to_csv("TODO.csv", index=False)
 
         processed_matrix = pd.concat([raw_matrix[outcome_label], numeric_matrix], axis=1)
         # final_columns = processed_matrix.columns.values.tolist()
@@ -270,7 +293,6 @@ def process_matrix(raw_matrix, output_folder="", impute_template=None):
         return processed_matrix, impute_template
 
         # intermediate_matrix = remove_features(intermediate_matrix, features_to_remove=[])
-        quit()
 
 
 
@@ -374,6 +396,7 @@ def process_matrix(raw_matrix, output_folder="", impute_template=None):
 
 
 def train_ml_models(X_train, y_train, lab, algs):
+    # TODO: How to easily include SVM, Xgboost, and Keras?
     ml_models = {}  # key: (lab,alg), value: model
 
     for alg in algs:
@@ -408,7 +431,10 @@ def evaluate_ml_models(X_test, y_test, ml_models, thresholds):
         y_pred = predict(X_test, model)
         evaluate(y_test, y_pred)
 
-
+def get_ml_model(lab, ml_model, data_folder):
+    predictor_path = os.path.join(data_folder, ml_model) # TODO
+    joblib.load(predictor_path)
+    pass
 
 def main_pipelining():
     '''
