@@ -34,12 +34,72 @@ from sklearn.model_selection import train_test_split as sklearn_train_test_split
 from sklearn.externals import joblib
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
+from medinfo.ml.SupervisedClassifier import SupervisedClassifier
+
+
+def load_processed_matrix(lab, data_folder, tag=None):
+    # TODO sxu: delete '10000' in the future
+    # TODO: correct old file names in the old script
+    processed_matrix_filename = '%s-normality-matrix-processed'%lab
+    if tag is not None:
+        processed_matrix_filename += '-' + tag
+    processed_matrix_filename += '.tab'
+
+    processed_matrix_path = os.path.join(data_folder, lab, processed_matrix_filename)
+    fm_io = FeatureMatrixIO()
+    return fm_io.read_file_to_data_frame(processed_matrix_path)
+
+def load_raw_matrix(lab, data_folder):
+    raw_matrix_filename = '%s-normality-matrix-raw.tab' % lab
+    raw_matrix_path = os.path.join(data_folder, lab, raw_matrix_filename)
+    fm_io = FeatureMatrixIO()
+    return fm_io.read_file_to_data_frame(raw_matrix_path)
+
+def load_process_template(lab, non_impute_features, data_folder):
+    raw_matrix_filename = '%s-normality-matrix-raw.tab' % lab
+    raw_matrix_path = os.path.join(data_folder, lab, raw_matrix_filename)
+
+    processed_matrix_filename = '%s-normality-matrix-processed.tab' % lab
+    processed_matrix_path = os.path.join(data_folder, lab, processed_matrix_filename)
+
+    fm_io = FeatureMatrixIO() # TODO: use def get_raw_matrix instead
+    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+
+    raw_features_all = raw_matrix.columns.values.tolist()
+    numeric_features = [x for x in raw_features_all if x not in non_impute_features]
+
+
+    processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
+
+    final_features = processed_matrix.columns.values.tolist()
+
+    process_template = {}
+    ind_feature = 0
+    for feature in final_features:
+        if feature in numeric_features:
+            imputed_value = raw_matrix[feature].mean()
+            process_template[feature] = (ind_feature, imputed_value)
+            ind_feature += 1
+
+    return process_template
+
+def load_ml_model(lab, ml_alg, data_folder):
+    ml_model_filename = '%s-normality-%s-model.pkl'%(lab, ml_alg)
+    predictor_path = os.path.join(data_folder, lab, ml_model_filename) # TODO
+    return joblib.load(predictor_path)
+
+
+def get_algs():
+    return SupervisedClassifier.SUPPORTED_ALGORITHMS
+
+
+
 
 def get_raw_matrix(lab, lab_folder, file_name=None):
     fm_io = FeatureMatrixIO()
 
     if not file_name:
-        file_name = '%s-normality-matrix-10000-episodes-raw.tab'%lab
+        file_name = '%s-normality-matrix-raw.tab'%lab
 
 
     raw_matrix_path = os.path.join(lab_folder, file_name)
@@ -63,7 +123,7 @@ def get_processed_matrix(lab,
     :return:
     '''
 
-    processed_matrix_filename = "%s-normality-matrix-10000-episodes-processed.tab"%lab
+    processed_matrix_filename = "%s-normality-matrix-processed.tab"%lab
 
 
 def impute_features(matrix, strategy, impute_template=None):
@@ -119,8 +179,7 @@ def write_processed_matrix(matrix, write_folder=""):
     fm_io.write_data_frame_to_file(matrix, write_folder)
     pass
 
-def get_algs():
-    return []
+
 
 
 def train_test_split(processed_matrix, columnToSplitOn='pat_id', random_state=0):
@@ -208,29 +267,11 @@ def pipelining(source_set_folder, labs, source_type, source_ids):
 
     return status
 
-def get_process_template(lab, numeric_features, data_folder):
-    raw_matrix_filename = '%s-normality-matrix-10000-episodes-raw.tab' % lab
-    raw_matrix_path = os.path.join(data_folder, lab, raw_matrix_filename)
-
-    processed_matrix_filename = '%s-normality-matrix-10000-episodes-processed.tab' % lab
-    processed_matrix_path = os.path.join(data_folder, lab, processed_matrix_filename)
-
-    fm_io = FeatureMatrixIO()
-    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
-    processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
-
-    final_features = processed_matrix.columns.values.tolist()
-
-    impute_template = {}
-    for feature in final_features:
-        if feature in numeric_features:
-            imputed_value = raw_matrix[feature].mean()
-            impute_template[feature] = imputed_value
-
-    return impute_template
 
 
-def process_matrix(raw_matrix, data_folder, lab, impute_template=None):
+
+
+def process_matrix(lab, raw_matrix, features_dict, data_folder, impute_template=None):
 
 
     '''
@@ -238,17 +279,35 @@ def process_matrix(raw_matrix, data_folder, lab, impute_template=None):
     also order! 
     '''
     if impute_template:
+        print impute_template
+
         intermediate_matrix = raw_matrix
         columns_ordered = [""] * len(impute_template.keys())
-        for feature, value_order in impute_template.items():
-            impute_value, column_order = value_order
+
+        for feature, order_value in impute_template.items():
+            column_order, impute_value = order_value
             intermediate_matrix[feature] = intermediate_matrix[feature].fillna(impute_value)
+
+            print feature, column_order, len(columns_ordered)
             columns_ordered[column_order] = feature
 
-        processed_matrix = intermediate_matrix[columns_ordered]
+        print intermediate_matrix.head()
+
+        if 'abnormal_panel' not in intermediate_matrix.columns.values.tolist():
+            intermediate_matrix['abnormal_panel'] = intermediate_matrix['all_components_normal'].apply(lambda x:1.-x) #TODO: delete in the future
+        processed_matrix_full = \
+            pd.concat([intermediate_matrix[features_dict['non_impute_features']], intermediate_matrix[columns_ordered]], axis=1)
+        processed_matrix_full_path = os.path.join(data_folder, lab,
+            "%s-normality-matrix-processed.tab"%lab)
+        processed_matrix_full.to_csv(processed_matrix_full_path) # TODO: fm_io
+
+        processed_matrix = \
+            pd.concat([intermediate_matrix[features_dict['outcome_label']], intermediate_matrix[columns_ordered]], axis=1)
+
+        # TODO: print out processed_matrix_full
         return processed_matrix
     else:
-        processed_matrix_filename = '%s-normality-matrix-10000-episodes-processed.tab'%lab
+        processed_matrix_filename = '%s-normality-matrix-processed.tab'%lab
         #TODO: splitted train and test processed ?
         processed_matrix_path = os.path.join(data_folder, processed_matrix_filename)
 
@@ -392,8 +451,6 @@ def process_matrix(raw_matrix, data_folder, lab, impute_template=None):
 
     return processed_matrix, process_template
 
-    return processed_matrix, process_template
-
 
 def train_ml_models(X_train, y_train, lab, algs):
     # TODO: How to easily include SVM, Xgboost, and Keras?
@@ -406,9 +463,7 @@ def train_ml_models(X_train, y_train, lab, algs):
 
     return ml_models
 
-def pick_threshold(X_pick, y_pick, ml_models, target_PPV):
-    for model in ml_models:
-        y_pick_pred = predict(X_pick, model)
+def pick_threshold(y_pick_pred, y_pick, target_PPV=0.95):
     pass
 
 def load_data(data_type, data_source):
@@ -431,10 +486,7 @@ def evaluate_ml_models(X_test, y_test, ml_models, thresholds):
         y_pred = predict(X_test, model)
         evaluate(y_test, y_pred)
 
-def get_ml_model(lab, ml_model, data_folder):
-    predictor_path = os.path.join(data_folder, ml_model) # TODO
-    joblib.load(predictor_path)
-    pass
+
 
 def main_pipelining():
     '''

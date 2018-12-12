@@ -295,7 +295,7 @@ class LabNormalityMatrix(FeatureMatrix):
             y-labels related columns, choose one to predict (for now, use all_components_normal to predict). 
             '''
             if self._isLabPanel:
-                # query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")  #
+                query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")  #
                 query.addSelect(
                     "SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components")  # sx
                 query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components")  # sx
@@ -333,8 +333,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addGroupBy('order_time')
             if not self._isLabPanel:
                 query.addGroupBy('result_flag')
-
-            # query.addGroupBy('abnormal_yn')  #
+            query.addGroupBy('abnormal_yn')  #
 
             query.addOrderBy('pat_id')
             query.addOrderBy('sop.order_proc_id')
