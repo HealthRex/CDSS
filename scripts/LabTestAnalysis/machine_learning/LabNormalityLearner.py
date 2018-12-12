@@ -9,23 +9,77 @@ pd.set_option('display.width', 500)
 pd.set_option('display.max_columns', 500)
 import inspect
 
+
+
 def main_pipelining1():
     '''
     Goal:
-    Load process_template and ml_models from existing results (Doing)
-    Process and predict AWS holdout 5000 matrix (TODO)
-    Get (calibrated?) threshold from AWS holdout set (TODO)
+    Load processed_matrix_test, process_template, ml_models from existing results (Doing)
+    Process and predict AWS holdout 5000 matrix for picking thresholds (TODO)
+    Use picked thresholds to  (TODO)
 
 
     :return:
     '''
 
+
     lab = 'LABA1C'
     outcome_label = 'all_components_normal'
-    random_state = 123456789
 
     info_features = ['pat_id', 'order_proc_id', 'proc_code', 'order_time']
     leak_features = ['abnormal_panel', 'num_components', 'num_normal_components']
+
+    non_impute_features = info_features + leak_features + [outcome_label]
+
+    features_dict = {
+        'non_impute_features':non_impute_features,
+        'outcome_label':outcome_label
+    }
+
+    src_folder = "data-panels-10000-episodes/"
+
+    process_template = SL.load_process_template(lab, non_impute_features, src_folder)
+
+    algs = SL.get_algs()
+
+    ml_models = []
+    for alg in algs:
+        ml_model = SL.load_ml_model(lab, alg, src_folder)
+        ml_models.append(ml_model)
+
+    dst_folder = "data-panels-5000-episodes-holdout/"
+
+    raw_matrix_pick = SL.load_raw_matrix(lab, dst_folder)
+    processed_matrix_pick = SL.process_matrix(lab, raw_matrix_pick, features_dict,
+                                              dst_folder, process_template)
+
+    X_pick = processed_matrix_pick.loc[:, processed_matrix_pick.columns != outcome_label]
+    y_pick = processed_matrix_pick.loc[:, [outcome_label]]
+
+    for ml_model in ml_models:
+        y_pick_pred = pd.DataFrame(ml_model.predict_probability(X_pick)[:,1], columns=['y_pred'])
+        print y_pick_pred
+        threshold = SL.pick_threshold(y_pick_pred, y_pick, target_PPV=0.95)
+
+        quit()
+    #
+    # # TODO: Assume different folder name, but same file names!
+    #
+    #
+    # threshold = SL.pick_threshold(processed_matrix_pick, target_PPV=0.95)
+    #
+    # processed_matrix_test = SL.load_processed_matrix(lab, src_folder, tag='test')
+    # SL.evaluate(lab, processed_matrix_test, threshold)
+
+
+
+
+
+
+
+
+    random_state = 123456789
+
 
 
 
@@ -35,12 +89,10 @@ def main_pipelining1():
 
     lab_folder = os.path.join(main_folder,
                               'data-panels/%s/' % lab)
-    raw_matrix = SL.get_raw_matrix(lab, lab_folder=lab_folder)
 
 
-    raw_features_all = raw_matrix.columns.values.tolist()
-    non_impute_features = info_features + leak_features + [outcome_label]
-    numeric_features = [x for x in raw_features_all if x not in non_impute_features]
+
+
 
     raw_matrix_train, raw_matrix_test = SL.train_test_split(raw_matrix,
                                                             columnToSplitOn='pat_id',
