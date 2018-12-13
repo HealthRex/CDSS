@@ -32,113 +32,73 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split as sklearn_train_test_split
 from sklearn.externals import joblib
+from sklearn.calibration import CalibratedClassifierCV
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
 
-def load_processed_matrix(lab, features_dict, data_folder, tag=None):
-    # TODO: feature order should not matter..
-    processed_matrix_filename = '%s-normality-matrix-processed'%lab
-    if tag is not None:
-        processed_matrix_filename += '-' + tag
-    processed_matrix_filename += '.tab'
+############# Util functions #############
+'''
+General functions for smaller tasks
+'''
+def split_rows(data_matrix, fraction=0.75, columnToSplitOn='pat_id', random_state=0):
+    all_possible_ids = sorted(set(data_matrix[columnToSplitOn].values.tolist()))
 
-    processed_matrix_path = os.path.join(data_folder, lab, processed_matrix_filename)
-    fm_io = FeatureMatrixIO()
-    processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
+    train_ids, test_ids = sklearn_train_test_split(all_possible_ids, train_size=fraction, random_state=random_state)
 
-    #TODO: test columns?
-    columns = [x for x in processed_matrix.columns.values.tolist()
-               if x not in features_dict['info_features']+features_dict['leak_features']]
-    return processed_matrix[columns]
+    train_matrix = data_matrix[data_matrix[columnToSplitOn].isin(train_ids)].copy()
+    # y_train = pd.DataFrame(train_matrix.pop(outcome_label))
+    # X_train = train_matrix
 
+    test_matrix = data_matrix[data_matrix[columnToSplitOn].isin(test_ids)].copy()
+    # y_test = pd.DataFrame(test_matrix.pop(outcome_label))
+    # X_test = test_matrix
 
-def load_raw_matrix(lab, data_folder):
-    raw_matrix_filename = '%s-normality-matrix-raw.tab' % lab
-    raw_matrix_path = os.path.join(data_folder, lab, raw_matrix_filename)
-    fm_io = FeatureMatrixIO()
-    return fm_io.read_file_to_data_frame(raw_matrix_path)
+    patIds_train = train_matrix['pat_id'].values.tolist()
+    patIds_test = test_matrix['pat_id'].values.tolist()
+    assert (set(patIds_train) & set(patIds_test)) == set([])
+    assert train_matrix.shape[0] + test_matrix.shape[0] == data_matrix.shape[0]
 
-def load_process_template(lab, non_impute_features, data_folder):
-    raw_matrix_filename = '%s-normality-matrix-raw.tab' % lab
-    raw_matrix_path = os.path.join(data_folder, lab, raw_matrix_filename)
-
-    processed_matrix_filename = '%s-normality-matrix-processed.tab' % lab
-    processed_matrix_path = os.path.join(data_folder, lab, processed_matrix_filename)
-
-    fm_io = FeatureMatrixIO() # TODO: use def get_raw_matrix instead
-    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
-
-    raw_features_all = raw_matrix.columns.values.tolist()
-    numeric_features = [x for x in raw_features_all if x not in non_impute_features]
+    return train_matrix, test_matrix
 
 
-    processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
-
-    final_features = processed_matrix.columns.values.tolist()
-
-    process_template = {}
-    ind_feature = 0
-    for feature in final_features:
-        if feature in numeric_features:
-            imputed_value = raw_matrix[feature].mean()
-            process_template[feature] = (ind_feature, imputed_value)
-            ind_feature += 1
-
-    return process_template
-
-def load_ml_model(lab, ml_alg, data_folder):
-    ml_model_filename = '%s-normality-%s-model.pkl'%(lab, ml_alg)
-    predictor_path = os.path.join(data_folder, lab, ml_model_filename) # TODO
-    return joblib.load(predictor_path)
-
+def split_Xy(data_matrix, outcome_label):
+    X = data_matrix.loc[:, data_matrix.columns != outcome_label].copy()
+    y = data_matrix.loc[:, [outcome_label]].copy()
+    return X, y
 
 def get_algs():
     return SupervisedClassifier.SUPPORTED_ALGORITHMS
+############# Util functions #############
 
 
 
 
-def get_raw_matrix(lab, lab_folder, file_name=None):
-    fm_io = FeatureMatrixIO()
 
-    if not file_name:
-        file_name = '%s-normality-matrix-raw.tab'%lab
+############# Main functions #############
+'''
+Pipelining functions for more specific tasks
+'''
+def SQL_to_raw_matrix(lab, data_path, use_cached=True):
+    # TODO: Things to test: All 0's columns,
 
-
-    raw_matrix_path = os.path.join(lab_folder, file_name)
-
-    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
-    return raw_matrix
-
-    # processed_matrix_filename = "%s-normality-matrix-10000-episodes-raw.tab"%lab
-
-    # processed_matrix = fm_io.read_file_to_data_frame(os.path.join(lab_folder, lab, processed_matrix_filename))
-
-def get_processed_matrix(lab,
-                         lab_folder=
-                         os.path.join(LocalEnv.PATH_TO_CDSS,
-                                      'scripts/LabTestAnalysis/machine_learning/data-panels')):
-    '''
-    Create processed matrix anyway (do not try to load). Because this step is fast. TODO
-
-    :param lab:
-    :param lab_folder:
-    :return:
-    '''
-
-    processed_matrix_filename = "%s-normality-matrix-processed.tab"%lab
-
-
-def impute_features(matrix, strategy, impute_template=None):
-
-    if impute_template:
-        #TODO
-        pass
+    if use_cached and os.path.exists(data_path):
+        raw_matrix = pd.read_csv(data_path, keep_default_na=False)
 
     else:
-        impute_template = {}
+        raw_matrix = pd.DataFrame()
+
+        '''
+        TODO: call the Feature Engineering functions
+        '''
+
+        raw_matrix.to_csv(data_path, index=False)
+    return raw_matrix
+
+def impute_features(matrix, strategy):
+
+    impute_template = {}
 
     features_to_remove = {}
     for feature in matrix.columns.values:
@@ -172,164 +132,38 @@ def impute_features(matrix, strategy, impute_template=None):
 
     return matrix, impute_template
 
-def remove_features(matrix, features_to_remove):
-    matrix = matrix.drop(features_to_remove, axis=1)
+
+def select_features(matrix, strategy):\
+    # TODO: fill in
     return matrix
 
-def select_features(matrix, strategy):
-    return matrix
+def process_matrix(lab, raw_matrix, features_dict, data_path, impute_template=None):
+    # General philosophy: do not change the input data
+    # TODO: Things to test:
 
-def write_processed_matrix(matrix, write_folder=""):
-    fm_io = FeatureMatrixIO()
-    fm_io.write_data_frame_to_file(matrix, write_folder)
-    pass
-
-
-
-
-def train_test_split(processed_matrix, columnToSplitOn='pat_id', random_state=0):
-    '''
-    Args:
-        processed_matrix:
-        Feature matrix ready to train (including the outcome label).
-
-        outcome_label:
-        For panels, "all_component_normal".
-        For components, "component_normal".
-
-        columnToSplitOn:
-        The column to split the matrix on.
-
-    Returns:
-        X_train, y_train, X_test, y_test as usual.
-    '''
-    # log.debug('outcome_label: %s' % outcome_label)
-    all_possible_ids = sorted(set(processed_matrix[columnToSplitOn].values.tolist()))
-
-    train_ids, test_ids = sklearn_train_test_split(all_possible_ids, random_state=random_state)
-
-    train_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(train_ids)]
-    # y_train = pd.DataFrame(train_matrix.pop(outcome_label))
-    # X_train = train_matrix
-
-    test_matrix = processed_matrix[processed_matrix[columnToSplitOn].isin(test_ids)]
-    # y_test = pd.DataFrame(test_matrix.pop(outcome_label))
-    # X_test = test_matrix
-
-    patIds_train = train_matrix['pat_id'].values.tolist()
-    patIds_test = test_matrix['pat_id'].values.tolist()
-    assert (set(patIds_train) & set(patIds_test)) == set([])
-    assert train_matrix.shape[0] + test_matrix.shape[0] == processed_matrix.shape[0]
-
-    return train_matrix, test_matrix
-
-def train(X_train, y_train, alg):
-    return None
-
-
-def split_Xy(data_matrix, outcome_label):
-    X = data_matrix.loc[:, data_matrix.columns != outcome_label]
-    y = data_matrix.loc[:, [outcome_label]]
-    return X, y
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def pipelining(source_set_folder, labs, source_type, source_ids):
-    '''
-    This function aims at gluing several steps.
-
-    The full steps are:
-        Empty (data in SQL) -> raw matrix -> processed matrix
-        -> processed train, processed test -> trained models
-        -> results and reports
-
-    Args:
-        source_set_folder:
-        labs:
-        source_type:
-
-    Returns:
-
-    '''
-    status = 'ready'
-    assert os.path.exists(source_set_folder)
-
-    if source_type == 'raw-matrix':
-        # TODO:
-        # get one new lab's raw matrix
-        # get one old lab's model
-        # run it through the model
-
-
-        for lab in labs:
-            cur_folder = os.path.join(source_set_folder,
-                                      lab)
-            cur_files = os.listdir(cur_folder)
-            for cur_file in cur_files:
-                if 'raw' in cur_file and all(x in cur_file for x in source_ids):
-                    print cur_file
-
-            quit()
-
-
-    return status
-
-
-
-
-
-def process_matrix(lab, raw_matrix, features_dict, data_folder, impute_template=None):
-    '''
-    final features: (imputation value, order)
-    also order! 
-    '''
-    if impute_template:
-        print impute_template
-
-        intermediate_matrix = raw_matrix
+    if impute_template is not None:
+        '''
+        Select and impute feature based on previous template
+        '''
+        processed_matrix_full = raw_matrix.copy()
         columns_ordered = [""] * len(impute_template.keys())
 
-        for feature, order_value in impute_template.items():
-            column_order, impute_value = order_value
-            intermediate_matrix[feature] = intermediate_matrix[feature].fillna(impute_value)
+        for feature, ind_value_pair in impute_template.items():
+            column_ind, impute_value = ind_value_pair
+            processed_matrix_full[feature] = processed_matrix_full[feature].fillna(impute_value)
+            columns_ordered[column_ind] = feature
 
-            print feature, column_order, len(columns_ordered)
-            columns_ordered[column_order] = feature
+        if 'abnormal_panel' not in processed_matrix_full.columns.values.tolist(): #TODO: delete in the future
+            processed_matrix_full['abnormal_panel'] = processed_matrix_full['all_components_normal'].apply(lambda x:1.-x)
 
-        print intermediate_matrix.head()
+        processed_matrix_full = pd.concat([processed_matrix_full[features_dict['non_impute_features']],
+                                           processed_matrix_full[columns_ordered]],
+                                          axis=1)
 
-        if 'abnormal_panel' not in intermediate_matrix.columns.values.tolist():
-            intermediate_matrix['abnormal_panel'] = intermediate_matrix['all_components_normal'].apply(lambda x:1.-x) #TODO: delete in the future
-        processed_matrix_full = \
-            pd.concat([intermediate_matrix[features_dict['non_impute_features']], intermediate_matrix[columns_ordered]], axis=1)
-        processed_matrix_full_path = os.path.join(data_folder, lab,
-            "%s-normality-matrix-processed.tab"%lab)
-        print processed_matrix_full_path
-        quit()
-        processed_matrix_full.to_csv(processed_matrix_full_path) # TODO: fm_io
+        # TODO: header info like done by fm_io?
+        processed_matrix_full.to_csv(data_path, index=False)
 
-        processed_matrix = \
-            pd.concat([intermediate_matrix[features_dict['outcome_label']], intermediate_matrix[columns_ordered]], axis=1)
-
-        # TODO: print out processed_matrix_full
-        return processed_matrix
     else:
-        processed_matrix_filename = '%s-normality-matrix-processed.tab'%lab
-        #TODO: splitted train and test processed ?
-        processed_matrix_path = os.path.join(data_folder, processed_matrix_filename)
-
 
         '''
         Procedure 1 (no impute template):
@@ -344,143 +178,147 @@ def process_matrix(lab, raw_matrix, features_dict, data_folder, impute_template=
 
         '''
 
-        numeric_matrix = raw_matrix[numeric_features]
+        numeric_matrix = raw_matrix[features_dict['numeric_features']]
+
+        '''
+        impute
+        '''
         numeric_matrix, impute_template = impute_features(numeric_matrix, strategy="mean")
+
+        '''
+        selection
+        '''
         numeric_matrix = select_features(numeric_matrix, strategy="")
 
-        # print "numeric_matrix.head()"
-        # print numeric_matrix.head()
+        processed_matrix_full = pd.concat([raw_matrix[features_dict['non_impute_features']], numeric_matrix], axis=1) # TODO: on?!
+        processed_matrix_full.to_csv(data_path, index=False) #.sort_values(by=['pat_id','order_proc_id','order_time'])
 
-        # print "raw_matrix[non_impute_features].head()"
-        # print raw_matrix[non_impute_features].head()
-        processed_matrix_full = pd.concat([raw_matrix[non_impute_features], numeric_matrix], axis=1) # TODO: on?!
 
-        # TODO here
-        # processed_matrix_full.sort_values(by=['pat_id','order_proc_id','order_time']).to_csv("TODO.csv", index=False)
-
-        processed_matrix = pd.concat([raw_matrix[outcome_label], numeric_matrix], axis=1)
-        # final_columns = processed_matrix.columns.values.tolist()
-        # # TODO: outcome label
-        # for feature, _ in impute_template.items():
-        #     if feature not in final_columns:
-        #         impute_features.pop(feature)
-        # for i, feature in enumerate(final_columns):
-        #     impute_template[feature] = (impute_template[feature], i)
-
-        # print impute_template
-        return processed_matrix, impute_template
-
-        # intermediate_matrix = remove_features(intermediate_matrix, features_to_remove=[])
+    return processed_matrix_full, impute_template
 
 
 
-    write_processed_matrix(processed_matrix, "")
-
-    fm_io = FeatureMatrixIO()
-    # processed_matrix = fm_io.read_file_to_data_frame(os.path.join(lab_folder, lab, processed_matrix_filename))
+def predict_baseline():
+    pass
 
 
 
-    patIds_df = raw_matrix['pat_id'].copy()
-
-    self._train_test_split(raw_matrix, params['outcome_label'])
-
-    # ##
-    # folder_path = '/'.join(params['raw_matrix_path'].split('/')[:-1])
-    # self._X_train.join(self._y_train).to_csv(folder_path + '/' + 'train_raw.csv', index=False)
-    # self._X_test.join(self._y_test).to_csv(folder_path + '/' + 'test_raw.csv', index=False)
-    #
-    # '''
-    # Mini-test that there are no overlapping patients
-    # '''
-    # assert bool(set(self._X_train['pat_id'].values) & set(self._X_test['pat_id'].values)) == False
-    # ##
-
-    fmt = FeatureMatrixTransform()
-    train_df = self._X_train.join(self._y_train)
-    fmt.set_input_matrix(train_df)
-
-    # Add features.
-    self._add_features(fmt, params['features_to_add'])
-
-    # Remove features.
-    self._remove_features(fmt, params['features_to_remove'])
-    # Filter on features
-    if 'features_to_filter_on' in params:
-        self._filter_on_features(fmt, params['features_to_filter_on'])
-
-    # HACK: When read_csv encounters duplicate columns, it deduplicates
-    # them by appending '.1, ..., .N' to the column names.
-    # In future versions of pandas, simply pass mangle_dupe_cols=True
-    # to read_csv, but not ready as of pandas 0.22.0.
-    for feature in raw_matrix.columns.values:
-        if feature[-2:] == ".1":
-            fmt.remove_feature(feature)
-            self._removed_features.append(feature)
-
-    # Impute data.
-    self._impute_data(fmt, train_df, params['imputation_strategies'])
-
-    # In case any all-null features were created in preprocessing,
-    # drop them now so feature selection will work
-    fmt.drop_null_features()
-
-    # Build interim matrix.
-    train_df = fmt.fetch_matrix()
-
-    self._y_train = pd.DataFrame(train_df.pop(params['outcome_label']))
-    self._X_train = train_df
-
-    '''
-    Select X_test columns according to processed X_train
-    '''
-    self._X_test = self._X_test[self._X_train.columns]
-    '''
-    Impute data according to the same strategy when training
-    '''
-    for feat in self._X_test.columns:
-        self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
-
-    self._select_features(params['selection_problem'],
-                          params['percent_features_to_select'],
-                          params['selection_algorithm'],
-                          params['features_to_keep'])
-
-    '''
-    The join is based on index by default.
-    Will remove 'pat_id' (TODO sxu: more general in the future) later in train().
-    '''
-    self._X_train = self._X_train.join(patIds_df, how='left')
-    self._X_test = self._X_test.join(patIds_df, how='left')
-
-    train = self._y_train.join(self._X_train)
-    test = self._y_test.join(self._X_test)
-
-    processed_trainMatrix_path = processed_matrix_path.replace("matrix", "train-matrix")
-    fm_io.write_data_frame_to_file(train, processed_trainMatrix_path)
-    processed_testMatrix_path = processed_matrix_path.replace("matrix", "test-matrix")
-    fm_io.write_data_frame_to_file(test, processed_testMatrix_path)
-
-    processed_matrix = train.append(test)
-    '''
-    Recover the order of rows before writing into disk, 
-    where the index info will be missing.
-    '''
-    processed_matrix.sort_index(inplace=True)
-
-    return processed_matrix, process_template
-
-
-def train_ml_models(X_train, y_train, lab, algs):
+def train_ml_model(X_train, y_train, lab, alg):
     # TODO: How to easily include SVM, Xgboost, and Keras?
     ml_models = {}  # key: (lab,alg), value: model
 
-    for alg in algs:
-        model = train(X_train, y_train, alg)
+    model = train(X_train, y_train, alg)
 
-        ml_models[(lab,alg)] = model
+    ml_models[(lab,alg)] = model
 
-    return ml_models
+    return ml_model
+
+
+def load_ml_model(lab, ml_alg, data_folder):
+    ml_model_filename = '%s-normality-%s-model.pkl'%(lab, ml_alg)
+    predictor_path = os.path.join(data_folder, lab, ml_model_filename) # TODO
+    return joblib.load(predictor_path)
+
+def calibrate_ml_model(ml_model, X_cali, y_cali, cali_method='isotonic'):
+    model_isotonic = CalibratedClassifierCV(ml_model, cv='prefit', method=cali_method)
+    model_isotonic.fit(X=X_cali, y=y_cali)
+    return model_isotonic
+
+def predict(lab, ml_classifier, X, y, data_folder):
+    pass
+
+
+############# Main functions #############
+
+
+
+
+
+############# Other functions #############
+
+
+
+
+def load_raw_matrix(lab, lab_folder, file_name=None):
+    fm_io = FeatureMatrixIO()
+
+    if not file_name:
+        file_name = '%s-normality-matrix-raw.tab'%lab
+
+
+    raw_matrix_path = os.path.join(lab_folder, file_name)
+
+    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+    return raw_matrix
+
+    # processed_matrix_filename = "%s-normality-matrix-10000-episodes-raw.tab"%lab
+
+    # processed_matrix = fm_io.read_file_to_data_frame(os.path.join(lab_folder, lab, processed_matrix_filename))
+
+def get_processed_matrix(lab,
+                         lab_folder=
+                         os.path.join(LocalEnv.PATH_TO_CDSS,
+                                      'scripts/LabTestAnalysis/machine_learning/data-panels')):
+    '''
+    Create processed matrix anyway (do not try to load). Because this step is fast. TODO
+
+    :param lab:
+    :param lab_folder:
+    :return:
+    '''
+
+    processed_matrix_filename = "%s-normality-matrix-processed.tab"%lab
+
+
+
+############# Other functions #############
+
+
+
+
+
+
+############# Compatible functions for previous results #############
+
+def load_process_template(lab, non_impute_features, data_folder):
+    raw_matrix_filename = '%s-normality-matrix-raw.tab' % lab
+    raw_matrix_path = os.path.join(data_folder, lab, raw_matrix_filename)
+
+    processed_matrix_filename = '%s-normality-matrix-processed.tab' % lab
+    processed_matrix_path = os.path.join(data_folder, lab, processed_matrix_filename)
+
+    fm_io = FeatureMatrixIO() # TODO: use def get_raw_matrix instead
+    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+
+    raw_features_all = raw_matrix.columns.values.tolist()
+    numeric_features = [x for x in raw_features_all if x not in non_impute_features]
+
+
+    processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
+
+    final_features = processed_matrix.columns.values.tolist()
+
+    process_template = {}
+    ind_feature = 0
+    for feature in final_features:
+        if feature in numeric_features:
+            imputed_value = raw_matrix[feature].mean()
+            process_template[feature] = (ind_feature, imputed_value)
+            ind_feature += 1
+
+    return process_template
+
+
+############# Compatible functions for previous results #############
+
+
+
+
+
+
+
+############# Stats functions #############
+# TODO: move to the stats module
 
 def get_confusion_counts(actual_labels, predict_labels):
 
@@ -564,27 +402,49 @@ def pick_threshold(y_pick, y_pick_pred, target_PPV=0.95):
             thres_last = thres
 
     return thres_last
+############# Stats functions #############
 
-def load_data(data_type, data_source):
-    pass
 
-def evaluate_ml_models(X_test, y_test, ml_models, thresholds):
+
+def pipelining(source_set_folder, labs, source_type, source_ids):
     '''
-    Include AUROC, AUPRC,
-    After picking a threshold, also confusion metrics
+    This function aims at gluing several steps.
+
+    The full steps are:
+        Empty (data in SQL) -> raw matrix -> processed matrix
+        -> processed train, processed test -> trained models
+        -> results and reports
 
     Args:
-        X_test:
-        y_test:
-        ml_models:
+        source_set_folder:
+        labs:
+        source_type:
 
     Returns:
 
     '''
-    for tag, model in ml_models.items():
-        y_pred = predict(X_test, model)
-        evaluate(y_test, y_pred)
+    status = 'ready'
+    assert os.path.exists(source_set_folder)
 
+    if source_type == 'raw-matrix':
+        # TODO:
+        # get one new lab's raw matrix
+        # get one old lab's model
+        # run it through the model
+
+
+        for lab in labs:
+            cur_folder = os.path.join(source_set_folder,
+                                      lab)
+            cur_files = os.listdir(cur_folder)
+            for cur_file in cur_files:
+                if 'raw' in cur_file and all(x in cur_file for x in source_ids):
+                    print cur_file
+
+            quit()
+
+
+    return status
 
 
 def main_pipelining():
