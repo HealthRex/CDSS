@@ -488,8 +488,9 @@ def draw__Confusion_Metrics(lab_type='panel', wanted_PPV=0.95, use_cached_fig_da
 
         df_toplot[['lab', 'count',
                    'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
-                   'all_positive', 'true_positive', 'all_negative', 'true_negative']].to_csv(
-                    cached_result_path, index=False)
+                   'all_positive', 'true_positive', 'all_negative', 'true_negative']]\
+                    .sort_values('count', ascending=False)\
+                    .to_csv(cached_result_path, index=False, float_format='%.2f')
 
     df_toplot = df_toplot.sort_values('count', ascending=True)
 
@@ -615,15 +616,16 @@ def draw__Potential_Savings(wanted_PPV=0.95):
 def plot_curves__subfigs(lab_type='component', curve_type="roc"):
 
     if lab_type == 'panel':
-        data_folder = '../machine_learning/data-panels/'
-        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+        data_folder = '../machine_learning/data-panels-10000-episodes/'
+        labs_and_cnts = stats_utils.get_top_labs_and_cnts(lab_type) #NON_PANEL_TESTS_WITH_GT_500_ORDERS
+        all_labs = [x[0] for x in labs_and_cnts]
         # df = pd.read_csv('RF_important_features_panels.csv', keep_default_na=False)
     elif lab_type == 'component':
         data_folder = '../machine_learning/data-components/'
         all_labs = STRIDE_COMPONENT_TESTS
         # df = pd.read_csv('RF_important_features_components.csv', keep_default_na=False)
     elif lab_type == 'UMich':
-        data_folder = "../machine_learning/data-UMichs/"
+        data_folder = "../machine_learning/data-UMichs-10000-episodes/"
         all_labs = UMICH_TOP_COMPONENTS
 
     # labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
@@ -665,13 +667,13 @@ def plot_curves__subfigs(lab_type='component', curve_type="roc"):
         plt.legend()
 
         if (ind+1)%num_labs_in_one_fig == 0:
-            plt.savefig('%s-%s-subfig.png'%(all_labs[ind+1-num_labs_in_one_fig],lab))
+            plt.savefig('%s-%s-%s.png'%(all_labs[ind+1-num_labs_in_one_fig],lab,curve_type))
             plt.close()
             plt.figure(figsize=(fig_width, fig_heights))
 
     avg_base, avg_best = np.mean(scores_base), np.mean(scores_best)
-    print "Average roc among %i labs: %.3f baseline, %.3f bestalg (an improvement of %.3f)."\
-          %(len(scores_base), avg_base, avg_best, avg_best-avg_base)
+    print "Average %s among %i labs: %.3f baseline, %.3f bestalg (an improvement of %.3f)."\
+          %(curve_type, len(scores_base), avg_base, avg_best, avg_best-avg_base)
 
 
 def plot_curves__overlap(lab_type='panel', curve_type="roc"):
@@ -717,7 +719,10 @@ def plot_curves__overlap(lab_type='panel', curve_type="roc"):
 
 
 def plot_cartoons(lab_type='panel', labs=all_panels):
-    df = pd.read_csv('RF_important_features_%ss.csv'%lab_type, keep_default_na=False)
+    try:
+        df = pd.read_csv('RF_important_features_%ss.csv'%lab_type, keep_default_na=False)
+    except:
+        write_importantFeatures(lab_type)
     # labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
     # print labs
 
@@ -725,13 +730,27 @@ def plot_cartoons(lab_type='panel', labs=all_panels):
     # lab = 'WBC'
     alg = 'random-forest'
 
-    data_folder = "../machine_learning/data-%ss/"%lab_type
+    if lab_type == 'panel':
+        data_folder = '../machine_learning/data-panels-10000-episodes/'
+        labs_and_cnts = stats_utils.get_top_labs_and_cnts(lab_type) #NON_PANEL_TESTS_WITH_GT_500_ORDERS
+        all_labs = [x[0] for x in labs_and_cnts]
+        # df = pd.read_csv('RF_important_features_panels.csv', keep_default_na=False)
+    elif lab_type == 'component':
+        data_folder = '../machine_learning/data-components/'
+        all_labs = STRIDE_COMPONENT_TESTS[:10]
+        # df = pd.read_csv('RF_important_features_components.csv', keep_default_na=False)
+    elif lab_type == 'UMich':
+        data_folder = "../machine_learning/data-UMichs-10000-episodes/"
+        all_labs = UMICH_TOP_COMPONENTS[:10]
 
-    col = 3
+    labs = all_labs
+
+    col = 5
     row = len(labs)/col
     has_left_labs = (len(labs)%col!=0)
 
-    plt.figure(figsize=(8, 12))
+    fig_width, fig_heights = col * 3., 24. / col
+    plt.figure(figsize=(fig_width, fig_heights))
 
     for i in range(row):
         for j in range(col):
@@ -791,7 +810,7 @@ def plot_cartoons(lab_type='panel', labs=all_panels):
             plt.xlabel(lab)
     plt.show()
 
-    plt.savefig('cartoons_panels.png')
+    plt.savefig('cartoons_%ss.png'%lab_type)
 
 
 def write_importantFeatures(lab_type="component"):
@@ -805,10 +824,10 @@ def write_importantFeatures(lab_type="component"):
     elif lab_type == 'UMich':
         all_labs = UMICH_TOP_COMPONENTS
 
-    for lab in all_labs:
+    for lab in all_labs: #TODO
         df = pd.read_csv(
-            '../machine_learning/data-%ss/%s/%s-normality-prediction-report.tab'
-            %(lab_type,lab,lab), sep='\t', skiprows=1, keep_default_na=False)
+            '../machine_learning/data-UMichs-10000-episodes/%s/%s-normality-prediction-report.tab'
+            %(lab,lab), sep='\t', skiprows=1, keep_default_na=False)
 
         best_row = df['roc_auc'].values.argmax()
         if best_row == 2:
@@ -962,6 +981,8 @@ if __name__ == '__main__':
     # plot_cartoons('UMich', labs=UMICH_TOP_COMPONENTS)
     # plot_cartoons('component', labs=['HGB'])
 
+    plot_cartoons('UMich')
+
     # plot_curves__subfigs(lab_type='component', curve_type="roc")
     # plot_curves__overlap(lab_type='UMich', curve_type="roc")
     # PPV_guideline(lab_type="UMich")
@@ -972,12 +993,12 @@ if __name__ == '__main__':
     # plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
     # get_waste_in_7days('component')
 
-    draw__Potential_Savings()
+    # plot_curves__subfigs('UMich', curve_type='prc')
 
 
     # draw__Order_Intensities('panel')
     # draw__Normality_Saturations('panel')
-    # draw__Confusion_Metrics('component')
+    # draw__Confusion_Metrics('panel')
 
 
     # plot_predict_twoside_bar('component')
