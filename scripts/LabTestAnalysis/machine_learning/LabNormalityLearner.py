@@ -14,6 +14,9 @@ import inspect
 def main_pipelining1():
     '''
     Goal:
+    The purpose of this pipeline is to generate results from 5000 holdout episodes
+
+    Procedure:
     Load processed_matrix_test, process_template, ml_models from existing results (Doing)
     Process and predict AWS holdout 5000 matrix for picking thresholds (TODO)
     Use picked thresholds to  (TODO)
@@ -51,28 +54,31 @@ def main_pipelining1():
 
     dst_folder = "data-panels-5000-episodes-holdout/"
 
-    raw_matrix_pick = SL.load_raw_matrix(lab, dst_folder)
-    processed_matrix_pick = SL.process_matrix(lab, raw_matrix_pick, features_dict,
+    raw_matrix_holdout = SL.load_raw_matrix(lab, dst_folder)
+    processed_matrix_holdout = SL.process_matrix(lab, raw_matrix_holdout, features_dict,
                                               dst_folder, process_template)
 
-    X_pick, y_pick = SL.split_Xy(processed_matrix_pick, outcome_label=outcome_label)
+
+    X_holdout, y_holdout = SL.split_Xy(processed_matrix_holdout, outcome_label=outcome_label)
 
 
-    processed_matrix_test = SL.load_processed_matrix(lab, features_dict, src_folder, tag='test')
-    X_test, y_test = SL.split_Xy(processed_matrix_test, outcome_label=outcome_label)
+    # processed_matrix_test = SL.load_processed_matrix(lab, features_dict, src_folder, tag='test')
+    # X_test, y_test = SL.split_Xy(processed_matrix_test, outcome_label=outcome_label)
 
     for ml_model in ml_models:
-        y_pick_pred = ml_model.predict_probability(X_pick)[:,1]
+        y_holdout_pred = ml_model.predict_probability(X_holdout)[:,1] #predict "Normal"
 
-        # print y_pick_pred
-        threshold = SL.pick_threshold(y_pick.values, y_pick_pred, target_PPV=0.95)
+        results_pick = pd.DataFrame({'y_true':y_holdout.values, 'y_pred':y_holdout_pred})
+        results_filename = "results-holdout.csv"
+        results_path = os.path.join(src_folder, lab, ml_model.algorithm(), results_filename)
+        results_pick.to_csv(results_path, index=False)
 
 
-        y_test_pred = ml_model.predict_probability(X_test)[:,1]
 
-        confusion_metrics = SL.get_confusion_metrics(y_test.values, y_test_pred, threshold=threshold)
-        print confusion_metrics
-        quit()
+
+        # threshold = SL.pick_threshold(y_pick.values, y_pick_pred, target_PPV=0.95)
+        # confusion_metrics = SL.get_confusion_metrics(y_test.values, y_test_pred, threshold=threshold)
+
 
         # SL.evaluate(lab, y_test_pred, y_test, threshold=threshold)
 

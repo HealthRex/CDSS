@@ -39,8 +39,6 @@ from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
 def load_processed_matrix(lab, features_dict, data_folder, tag=None):
     # TODO: feature order should not matter..
-    # TODO sxu: delete '10000' in the future
-    # TODO: correct old file names in the old script
     processed_matrix_filename = '%s-normality-matrix-processed'%lab
     if tag is not None:
         processed_matrix_filename += '-' + tag
@@ -234,6 +232,20 @@ def split_Xy(data_matrix, outcome_label):
     y = data_matrix.loc[:, [outcome_label]]
     return X, y
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def pipelining(source_set_folder, labs, source_type, source_ids):
     '''
     This function aims at gluing several steps.
@@ -279,8 +291,6 @@ def pipelining(source_set_folder, labs, source_type, source_ids):
 
 
 def process_matrix(lab, raw_matrix, features_dict, data_folder, impute_template=None):
-
-
     '''
     final features: (imputation value, order)
     also order! 
@@ -306,6 +316,8 @@ def process_matrix(lab, raw_matrix, features_dict, data_folder, impute_template=
             pd.concat([intermediate_matrix[features_dict['non_impute_features']], intermediate_matrix[columns_ordered]], axis=1)
         processed_matrix_full_path = os.path.join(data_folder, lab,
             "%s-normality-matrix-processed.tab"%lab)
+        print processed_matrix_full_path
+        quit()
         processed_matrix_full.to_csv(processed_matrix_full_path) # TODO: fm_io
 
         processed_matrix = \
