@@ -593,6 +593,7 @@ def get_top_labs_and_cnts(lab_type='panel', top_k=10, criterion='count', time_li
     labs_and_cnts_file = "%ss_and_cnts_2014-2016.csv" % lab_type
     labs_and_cnts_path = os.path.join(data_folder, labs_and_cnts_file)
     if os.path.exists(labs_and_cnts_path):
+        print "%s exists.."%labs_and_cnts_path
         labs_and_cnts_df = pd.read_csv(labs_and_cnts_path, keep_default_na=False)
         labs_and_cnts = labs_and_cnts_df.values.tolist()
 
@@ -628,7 +629,6 @@ def get_top_labs_and_cnts(lab_type='panel', top_k=10, criterion='count', time_li
         labs_and_cnts_df.to_csv(labs_and_cnts_path, index=False)
 
     # print "[x[0] for x in labs_and_cnts[:top_k]]", [x[0] for x in labs_and_cnts[:top_k]]
-
     return labs_and_cnts[:top_k]
 
     # return df.ix[:top_k, ['lab','total cnt']].values.tolist()
