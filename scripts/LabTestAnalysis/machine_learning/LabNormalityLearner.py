@@ -78,7 +78,7 @@ def main_pipelining_5000holdout(random_state=123456789):
         '''
         # ml_model._model = SL.calibrate_ml_model(ml_model._model, X_cali, y_cali, cali_method='isotonic')
 
-        ml_models.append(ml_model)
+        ml_classifiers.append(ml_classifier)
 
 
     processed_matrix_eval = SL.load_processed_matrix(lab, features_dict, src_folder, tag='test') # TODO:tag
@@ -87,26 +87,32 @@ def main_pipelining_5000holdout(random_state=123456789):
     '''
     
     '''
-    for ml_model in ml_models:
-        y_pick_pred = ml_model.predict_probability(X_pick)[:,1]
-        y_holdout_pred = ml_model.predict_probability(X_holdout)[:,1] #predict "Normal"
+    for ml_classifier in ml_classifiers:
+        y_pick_pred = ml_classifier.predict_probability(X_pick)[:,1]
+        y_holdout_pred = ml_classifier.predict_probability(X_holdout)[:,1] #predict "Normal"
 
         results_pick = pd.DataFrame({'y_true':y_pick.values.flatten(), 'y_pred':y_pick_pred})
         results_filename = "results-pick.csv"
-        results_path = os.path.join(src_folder, lab, ml_model.algorithm(), results_filename)
+        results_path = os.path.join(src_folder, lab, ml_classifier.algorithm(), results_filename)
         results_pick.to_csv(results_path, index=False)
 
 
 
         # TODO: remove later
-        y_pick_pred = ml_model.predict_probability(X_pick)[:,1]
-        y_eval_pred = ml_model.predict_probability(X_eval)[:,1]
+        y_pick_pred = ml_classifier.predict_probability(X_pick)[:,1]
+        y_eval_pred = ml_classifier.predict_probability(X_eval)[:,1]
 
         threshold = SL.pick_threshold(y_holdout.values.flatten(), y_holdout_pred, target_PPV=0.95)
         confusion_metrics = SL.get_confusion_metrics(y_eval.values, y_eval_pred, threshold=threshold)
         print confusion_metrics
 
 
+# TODO: Write test to make sure:
+# 1.worked on all previous use cases
+# 2.while writing tests you might find one of the few uses causes a bug
+# 3.writing tests to be faster but more involved than the coding itself. The tests should test the intention.
+# 4.The ones that do important business logic, thats where the testing is important. Test the requirements.
+# 5.Keep your tests small: one test per requirement.
 
 def main_pipelining():
     '''
@@ -123,17 +129,35 @@ def main_pipelining():
     data_folder = os.path.join(main_folder, data_subfolder)
 
     data_filename_template = '%s-normality-matrix'
+    lab_type = 'panel'
 
     for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
         '''
         Feature extraction
+        
+        Things to test:
+        More than 50 non-empty columns
+        More than 50 non-empty rows
+        
         '''
         raw_matrix_filename = data_filename_template%lab + '-raw' + '.tab'
         raw_matrix_path = os.path.join(data_folder, lab, raw_matrix_filename)
 
         raw_matrix = SL.SQL_to_raw_matrix(lab=lab,
-                                          data_path=raw_matrix_path)
-
+                                          lab_type=lab_type,
+                                          num_episodes=10000,
+                                          min_pat_num=1000,
+                                          excluted_pats=[],
+                                          data_path=raw_matrix_path,
+                                          random_state=random_state,
+                                          use_cached=True)
+        #
+        '''
+        Things to test:
+        No overlapping pat_id. 
+        Split not too imbalanced. 
+        
+        '''
         raw_matrix_train, raw_matrix_eval = SL.split_rows(raw_matrix,
                                                           fraction=0.75,
                                                           columnToSplitOn='pat_id',
@@ -142,6 +166,11 @@ def main_pipelining():
         '''
         Feature selection
         Here process_template is a dictionary w/ {feature: (ind, imputed value)}
+        
+        Things to test:
+        Number of columns left.
+        No missing values. 
+        Number of episodes for each patient does not change. 
         '''
         # TODO: also write this to file;
         processed_matrix_filename = data_filename_template % lab + '-processed' + '.tab'
@@ -150,12 +179,22 @@ def main_pipelining():
                                                          raw_matrix=raw_matrix_train,
                                                          features_dict=features_dict,
                                                          data_path=processed_matrix_path,
-                                                         impute_template=None)
+                                                         impute_template=None) # TODO: random_state?
 
+        '''
+        Things to test: numeric only
+        '''
         processed_matrix_train = processed_matrix_full_train.drop(info_features+leak_features,
                                                                   axis=1)
+
+        '''
+        Things to test:
+        No missing features
+        No overlapping features
+        '''
         X_train, y_train = SL.split_Xy(data_matrix=processed_matrix_train,
-                                       outcome_label=outcome_label)
+                                       outcome_label=outcome_label,
+                                       random_state=random_state)
 
         '''
         Baseline results
@@ -167,6 +206,9 @@ def main_pipelining():
 
         '''
         Training
+        
+        Things to test: numeric only:
+        Before and after training, the model is different
         '''
         ml_classifiers = []
         algs = SL.get_algs()
@@ -176,7 +218,7 @@ def main_pipelining():
                                               alg=alg,
                                               X_train=X_train,
                                               y_train=y_train
-                                              )
+                                              ) #random_state?
             ml_classifiers.append(ml_classifier)
 
 
@@ -202,7 +244,8 @@ def main_pipelining():
                                             process_template=process_template)
         processed_matrix_eval = processed_matrix_full_eval.drop(info_features+leak_features, axis=1)
         X_eval, y_eval = SL.split_Xy(data_matrix=processed_matrix_eval,
-                                       outcome_label=outcome_label)
+                                       outcome_label=outcome_label,
+                                     random_state=random_state)
 
         '''
         Evaluation results
