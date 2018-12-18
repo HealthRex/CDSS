@@ -11,9 +11,52 @@ from scipy import stats
 import os
 
 from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
-        import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
+        import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS, UMICH_TOP_COMPONENTS
+from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
-def query_lab_usage__df(lab, lab_type='panel', time_start=None, time_end=None):
+'''
+For each lab, get a bunch of stuff
+'''
+
+'''
+For plotting guideline,
+
+a lab, has n prev consecutive normal. 
+'''
+
+lab_type = 'UMich'
+
+all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+all_components = STRIDE_COMPONENT_TESTS
+all_UMichs = UMICH_TOP_COMPONENTS
+all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
+
+DEFAULT_TIMELIMIT = ('2014-01-01', '2017-06-30')
+DEFAULT_TIMEWINDOWS = ['2014 1st half', '2014 2st half',
+                       '2015 1st half', '2015 2st half',
+                       '2016 1st half', '2016 2st half',
+                       '2017 1st half']
+
+if lab_type == 'panel':
+    lab_folder = '../machine_learning/data-panels-10000-episodes/'
+    # labs_and_cnts = get_top_labs_and_cnts(lab_type)  #
+    all_labs = all_panels #[x[0] for x in labs_and_cnts]
+    # df = pd.read_csv('RF_important_features_panels.csv', keep_default_na=False)
+elif lab_type == 'component':
+    lab_folder = '../machine_learning/data-components/'
+    all_labs = all_components
+    # df = pd.read_csv('RF_important_features_components.csv', keep_default_na=False)
+elif lab_type == 'UMich':
+    lab_folder = "../machine_learning/data-UMichs-10000-episodes/"
+    all_labs = all_UMichs
+
+
+
+
+
+def query_lab_usage__df(lab, lab_type='panel', time_limit=None):
+    if time_limit:
+        time_start, time_end = time_limit[0], time_limit[1]
     # TODO: deal with lab_type == component?
 
     if lab_type=='panel':
@@ -81,7 +124,7 @@ def query_lab_usage__df(lab, lab_type='panel', time_start=None, time_end=None):
 
     return results
 
-def get_prevweek_normal__dict(df):
+def get_prevweek_normal__dict(df, also_get_cnt=False):
     datetime_format = "%Y-%m-%d %H:%M:%S"
     '''
     Cnt of ordering w/i one day
@@ -89,52 +132,75 @@ def get_prevweek_normal__dict(df):
     df['prev_in_sec'] = df['pat_id'].apply(lambda x: 1000 * 24 * 3600) # 1000 days
     df['order_time'] = df['order_time'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)
                                 if isinstance(x, str) else x)
+
+    df = df.sort_values(['pat_id', 'order_time'])
     df = df.reset_index(drop=True)
 
     row, col = df.shape
-    my_dict = {}
+    day2norms = {}
     '''
     key: num of CONSECUTIVE normal in past week. val: [normal, normal, abnormal...]
     '''
     for i in range(1, row):
         curr_normal = False if df.ix[i, 'abnormal_yn'] == 'Y' else True
-        if df.ix[i, 'pat_id'] == df.ix[i - 1, 'pat_id']:
-            # There is a possibility
 
-            prev_cnt = 0
-            # TODO: prev_cnt = 0 is different from prev has some normals?" For now, don't consider either
+        j = i-1
+        while j >= 0 \
+            and df.ix[i,'pat_id'] == df.ix[j,'pat_id'] \
+            and (df.ix[i,'order_time'] - df.ix[j,'order_time']).days < 7 \
+            and df.ix[j,'abnormal_yn'] != 'Y':
 
-            # if prev_cnt in my_dict:
-            #     my_dict[prev_cnt].append(curr_normal)
-            # else:
-            #     my_dict[prev_cnt] = [curr_normal]
-            time_diff = df.ix[i, 'order_time'] - df.ix[i - 1, 'order_time']
+            j -= 1
 
-            j = i - 1
-            while time_diff.days < 7:
-                prev_normal = False if df.ix[j, 'abnormal_yn'] == 'Y' else True
-                if not prev_normal: # "Consecutivity" is broken
-                    break
-
-                prev_cnt += 1
-                if prev_cnt in my_dict:
-                    my_dict[prev_cnt].append(curr_normal)
-                else:
-                    my_dict[prev_cnt] = [curr_normal]
-
-                j -= 1
-                if j < 0 or df.ix[i, 'pat_id'] != df.ix[j, 'pat_id']:
-                    break
-                time_diff = df.ix[i, 'order_time'] - df.ix[j, 'order_time']
+        prev_cnt = i-1-j
+        if prev_cnt in day2norms:
+            day2norms[prev_cnt].append(curr_normal)
         else:
-            if 0 in my_dict:
-                my_dict[0].append(curr_normal)
-            else:
-                my_dict[0] = [curr_normal]
+            day2norms[prev_cnt] = [curr_normal]
 
-    for key in my_dict:
-        my_dict[key] = float(sum(my_dict[key]))/len(my_dict[key])
-    return my_dict
+
+        # if df.ix[i, 'pat_id'] == df.ix[i - 1, 'pat_id']:
+        #     # There is a possibility
+        #
+        #     prev_cnt = 0
+        #     # TODO: prev_cnt = 0 is different from prev has some normals?" For now, don't consider either
+        #
+        #     # if prev_cnt in my_dict:
+        #     #     my_dict[prev_cnt].append(curr_normal)
+        #     # else:
+        #     #     my_dict[prev_cnt] = [curr_normal]
+        #     time_diff = df.ix[i, 'order_time'] - df.ix[i - 1, 'order_time']
+        #
+        #     j = i - 1
+        #     while time_diff.days < 7:
+        #         prev_normal = False if df.ix[j, 'abnormal_yn'] == 'Y' else True
+        #         if not prev_normal: # "Consecutivity" is broken
+        #             break
+        #
+        #         # prev_cnt += 1
+        #         # if prev_cnt in my_dict:
+        #         #     my_dict[prev_cnt].append(curr_normal)
+        #         # else:
+        #         #     my_dict[prev_cnt] = [curr_normal]
+        #
+        #         j -= 1
+        #         if j < 0 or df.ix[i, 'pat_id'] != df.ix[j, 'pat_id']:
+        #             break
+        #         time_diff = df.ix[i, 'order_time'] - df.ix[j, 'order_time']
+
+
+        # else:
+        #     if 0 in my_dict:
+        #         my_dict[0].append(curr_normal)
+        #     else:
+        #         my_dict[0] = [curr_normal]
+
+    # for key in day2norms:
+    #     if not also_get_cnt:
+    #         day2norms[key] = float(sum(day2norms[key]))/len(day2norms[key])
+    #     else:
+    #         day2norms[key] = (float(sum(day2norms[key])) / len(day2norms[key]), len(my_dict[key]))
+    return day2norms
 
 
 
@@ -142,15 +208,20 @@ def get_prevweek_normal__dict(df):
             # a day has 86400 secs
             # prev_days.append(time_diff_df.seconds/86400.)
 
-def get_time_since_last_order_cnts(df):
+def get_time_since_last_order_cnts(lab, df):
     datetime_format = "%Y-%m-%d %H:%M:%S"
+    print df.head()
     '''
     Cnt of ordering w/i one day
     '''
-    df['prev_in_sec'] = df['pat_id'].apply(lambda x: 1000 * 24 * 3600)
+    df['prev_in_day'] = df['pat_id'].apply(lambda x: -1)
     df['order_time'] = df['order_time'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)
                                               if isinstance(x, str) else x)
+    df = df.sort_values(['pat_id', 'order_time']) # TODO: bug...
     df = df.reset_index(drop=True)
+
+    df['order_in_1day'] = df['order_time'].apply(lambda x: 'No')
+    order_in_1day__inds = []
 
     prev_days = []
     row, col = df.shape
@@ -160,7 +231,10 @@ def get_time_since_last_order_cnts(df):
             time_diff_df = df.ix[i, 'order_time'] - df.ix[i - 1, 'order_time']
 
             if time_diff_df.days < 1:
-                pass
+                #
+                order_in_1day__inds.append(i)
+
+            #     pass
                 #print df.ix[i - 1, ['pat_id', 'order_time']].values, df.ix[i, ['pat_id', 'order_time']].values
 
             # df.ix[i, 'prev_in_sec'] = time_diff_df.seconds
@@ -169,6 +243,10 @@ def get_time_since_last_order_cnts(df):
             prev_days.append(time_diff_df.days) # TODO: ceiling of days?
         else:
             prev_days.append(-1)
+
+    df.ix[order_in_1day__inds, 'order_in_1day'] = 'Yes'
+
+    df.to_csv('Fig2_Order_Intensities/surprising_orders_in_1day_%s.csv'%lab)
 
     prevday_cnts_dict = collections.Counter(prev_days)
 
@@ -525,19 +603,21 @@ def get_baseline(file_path):
     return res
 
 
-'''
-For each lab at each (train_PPV, vital_day), 
-write all stats (e.g. roc_auc, PPV, total cnts) into csv file. 
-'''
 
-
-def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day,
+def lab2stats_csv(lab, PPV_wanted,
                   folder_path, data_folder, result_folder, columns,
                   thres_mode="from_test"):
+    '''
+    For each lab at each train_PPV,
+    write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
+
+
+    '''
+
     if thres_mode == "from_train":
-        curr_res_file = '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
+        curr_res_file = '%s-alg-summary-trainPPV-%s.csv' % (lab, str(PPV_wanted))
     elif thres_mode == "from_test":
-        curr_res_file = '%s-alg-summary-testPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
+        curr_res_file = '%s-alg-summary-testPPV-%s.csv' % (lab, str(PPV_wanted))
 
     if os.path.exists(result_folder + curr_res_file):
         return
@@ -552,7 +632,7 @@ def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day,
         one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder=folder_path + '/' + data_folder,
                                            PPV_wanted=PPV_wanted, lab_type=lab_type, thres_mode=thres_mode)
         if lab_type == 'component':
-            one_lab_alg_dict = add_component_cnts(one_lab_alg_dict, years=years)
+            one_lab_alg_dict = add_component_cnts(one_lab_alg_dict)
         elif lab_type == 'panel':
             one_lab_alg_dict = add_panel_cnts_fees(one_lab_alg_dict)
 
@@ -567,7 +647,28 @@ def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day,
 
     df[columns].to_csv(result_folder + curr_res_file, index=False)
 
-def get_top_labs_and_cnts(lab_type='panel', top_k=10, criterion='count', time_limit=None):
+def get_labcnt(lab, lab_type='panel', time_limit=None):
+    data_folder = "query_lab_results/"
+    labs_and_cnts_file = "%ss_and_cnts_2014-2016.csv" % lab_type
+    labs_and_cnts_path = os.path.join(data_folder, labs_and_cnts_file)
+
+    lab_data_filename = '%s.csv' % lab
+    lab_data_path = os.path.join(data_folder, lab_data_filename)
+    df = pd.read_csv(lab_data_path, keep_default_na=False)
+
+    if lab_type == 'panel':
+        df = df[df['order_status'] == 'Completed']
+    if time_limit:
+        if time_limit[0]:
+            df = df[df['order_time'] >= time_limit[0]]
+        if time_limit[1]:
+            df = df[df['order_time'] <= time_limit[1]]
+
+    cnt = df.shape[0]
+    return cnt
+
+
+def get_top_labs_and_cnts(lab_type='panel', top_k=None, bottom_k=None, criterion='count', time_limit=None):
     # df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv'%lab_type,
     #                  keep_default_na=False)
     # if lab_type == 'component':
@@ -629,7 +730,11 @@ def get_top_labs_and_cnts(lab_type='panel', top_k=10, criterion='count', time_li
         labs_and_cnts_df.to_csv(labs_and_cnts_path, index=False)
 
     # print "[x[0] for x in labs_and_cnts[:top_k]]", [x[0] for x in labs_and_cnts[:top_k]]
-    return labs_and_cnts[:top_k]
+
+    if top_k and not bottom_k:
+        return labs_and_cnts[:top_k]
+    else:
+        return labs_and_cnts[-bottom_k:]
 
     # return df.ix[:top_k, ['lab','total cnt']].values.tolist()
 
@@ -655,16 +760,15 @@ def main():
 
 def query_to_dataframe(lab, lab_type='panel',
                      columns=None,
-                     output_foldername = "query_lab_results/",
                      time_limit=None):
 
-    output_filename = '%s.csv'%lab
-
-    output_path = os.path.join(output_foldername, output_filename)
-
-    if os.path.exists(output_path):
-        print "Cached dataframe %s exists..." % lab
-        return pd.read_csv(output_path)
+    # output_filename = '%s.csv'%lab
+    #
+    # output_path = os.path.join(output_foldername, output_filename)
+    #
+    # if os.path.exists(output_path):
+    #     print "Cached dataframe %s exists..." % lab
+    #     return pd.read_csv(output_path)
 
     print "Running query of %s..." % lab
 
@@ -715,11 +819,42 @@ def query_to_dataframe(lab, lab_type='panel',
     results = DBUtil.execute(query)
 
     df = pd.DataFrame(results, columns=columns)
-    if not os.path.exists(output_foldername):
-        os.mkdir(output_foldername)
-    df.to_csv(output_path, index=False)
+    # if not os.path.exists(output_foldername):
+    #     os.mkdir(output_foldername)
+    # df.to_csv(output_path, index=False)
 
     return df
+
+def main_queryAllLabsToDF():
+    '''
+    query all labs from sql to df to make them faster for stats analysis.
+
+    Returns:
+
+    '''
+    # time_limits = [['2014-07-01', '2014-12-31'],
+    #                 ['2015-01-01', '2015-06-30'],
+    #                 ['2015-07-01', '2015-12-31'],
+    #                 ['2016-01-01', '2016-06-30'],
+    #                 ['2016-07-01', '2016-12-31'],
+    #                 ['2017-01-01', '2017-06-30']]
+
+    dst_folder = 'query_lab_results/'
+    for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+        # res = query_lab_usage__df(lab, lab_type='panel', time_limit=('2014-07-01', '2014-12-31'))
+        # print res
+        # quit()
+        # for i, time_limit in time_limits:
+        src_filepath = os.path.join(dst_folder, lab+'.csv')
+        lab_df_old = pd.read_csv(src_filepath, keep_default_na=False)
+
+        lab_df_new = query_to_dataframe(lab, lab_type='panel',
+                           time_limit=['2017-01-01', '2017-06-30'])
+
+        lab_df = pd.concat([lab_df_old, lab_df_new], axis=0, ignore_index=True)
+
+        dst_filepath = src_filepath
+        lab_df.to_csv(dst_filepath, index=False)
 
 def query_lab_cnt(lab, lab_type='panel', time_limit=('2014-01-01','2016-12-31')):
     output_filename = '%s.csv'%lab
@@ -772,20 +907,12 @@ def query_lab_cnt(lab, lab_type='panel', time_limit=('2014-01-01','2016-12-31'))
 
 
 
-def test_():
-    ress = query_lab_usage__df(lab='LABALB')
-    # for i in range(1,len(ress)):
-    #     if
-    print 'Unique num of patients:', len(list(set(x[0] for x in ress)))
-    for res in ress[:10]:
-        print res
 
-    df = pd.DataFrame(ress, columns=['pat_id', 'order_time', 'result'])
-    print len(list(set(df['pat_id'].values.tolist())))
-    df.to_csv('tmpLABALB.csv', index=False)
 
-    df1 = pd.read_csv('tmpLABALB.csv')
-    print len(list(set(df1['pat_id'].values.tolist())))
+
+
+        #'2017-06-30'
+
 
 
 if __name__ == '__main__':
@@ -794,11 +921,7 @@ if __name__ == '__main__':
 
     # print query_lab_cnt('LABMGN')
     # print query_lab_cnt('LABCBCD')
+    main_queryAllLabsToDF()
 
-    for lab in STRIDE_COMPONENT_TESTS:
-        query_to_dataframe(lab, lab_type='component',
-                               columns=None,
-                               output_foldername="query_lab_results/",
-                               time_limit=['2014-01-01','2016-12-31'])
 
 
