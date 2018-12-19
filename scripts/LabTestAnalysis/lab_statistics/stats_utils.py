@@ -10,9 +10,13 @@ import numpy as np
 from scipy import stats
 import os
 
+import LocalEnv
+
 from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
         import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS, UMICH_TOP_COMPONENTS
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
+
+from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
 '''
 For each lab, get a bunch of stuff
@@ -37,21 +41,25 @@ DEFAULT_TIMEWINDOWS = ['2014 1st half', '2014 2st half',
                        '2016 1st half', '2016 2st half',
                        '2017 1st half']
 
+main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
+
 if lab_type == 'panel':
-    lab_folder = '../machine_learning/data-panels-10000-episodes/'
-    # labs_and_cnts = get_top_labs_and_cnts(lab_type)  #
+    curr_version = '10000-episodes'
     all_labs = all_panels #[x[0] for x in labs_and_cnts]
-    # df = pd.read_csv('RF_important_features_panels.csv', keep_default_na=False)
 elif lab_type == 'component':
-    lab_folder = '../machine_learning/data-components/'
+    curr_version = '10000-episodes'
     all_labs = all_components
-    # df = pd.read_csv('RF_important_features_components.csv', keep_default_na=False)
 elif lab_type == 'UMich':
-    lab_folder = "../machine_learning/data-UMichs-10000-episodes/"
+    curr_version = '10000-episodes'
     all_labs = all_UMichs
 
+labs_folder = os.path.join(main_folder, 'machine_learning/data-%ss-%s/'%(lab_type, curr_version))
+stats_folder = os.path.join(main_folder, 'lab_statistics/stats-%ss-%s/'%(lab_type, curr_version))
 
-
+if not os.path.exists(labs_folder):
+    os.mkdir(labs_folder)
+if not os.path.exists(stats_folder):
+    os.mkdir(stats_folder)
 
 
 def query_lab_usage__df(lab, lab_type='panel', time_limit=None):
@@ -436,15 +444,21 @@ def bootstrap_CI(actual_list, predict_list, num_repeats=1000, stat='roc_auc',
 
     from sklearn.utils import resample
 
-    all_stats = []
-    for i in range(num_repeats):
-        actual_list_resampled, predict_list_resampled = resample(actual_list, predict_list)
-        if stat == 'roc_auc':
-            cur_roc_auc = roc_auc_score(actual_list_resampled, predict_list_resampled)
-            all_stats.append(cur_roc_auc)
+    try:
 
-    roc_auc_left = np.percentile(all_stats, (1 - confident_lvl) / 2. * 100)
-    roc_auc_right = np.percentile(all_stats, (1 + confident_lvl) / 2. * 100)
+        all_stats = []
+        for i in range(num_repeats):
+            actual_list_resampled, predict_list_resampled = resample(actual_list, predict_list)
+            if stat == 'roc_auc':
+                cur_roc_auc = roc_auc_score(actual_list_resampled, predict_list_resampled)
+                all_stats.append(cur_roc_auc)
+
+        roc_auc_left = np.percentile(all_stats, (1 - confident_lvl) / 2. * 100)
+        roc_auc_right = np.percentile(all_stats, (1 + confident_lvl) / 2. * 100)
+
+    except Exception as e:
+        print e
+        roc_auc_left, roc_auc_right = float('nan'), float('nan')
 
     return roc_auc_left, roc_auc_right
 
@@ -585,15 +599,21 @@ def add_component_cnts(one_lab_dict, years):
 
     return one_lab_dict
 
+'''
+Baseline 1: Predict normal only when reaching a certain number of previous consecutive normalities.
+In most cases, can not make a prediction, so have to do the test. 
+Have to pick a threshold. Cannot calculate ROC. 
+'''
+def get_baseline1_auroc(lab):
+    pass
 
-def get_baseline(file_path):
-    # try:
-    df = pd.read_csv(file_path + 'baseline_comparisons.csv')  # TODO: baseline file should not have index!
-    # except IOError:
-    #     from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
-    #     f = FeatureMatrixFactory()
-    #     f.obtain_baseline_results(raw_matrix_path=file_path, random_state=123456789, isLabPanel=True)
-    #     df = pd.read_csv(file_path + 'baseline_comparisons.csv')
+'''
+Baseline 2: Predict by last normality (when it is available), or by population average.
+In all cases, can make a prediction, so no need to make a prediction. 
+Can calculate ROC, PPV etc. Can pick a threshold. 
+'''
+def get_baseline2_auroc(lab):
+    df = pd.read_csv(os.path.join(labs_folder, lab, 'baseline_comparisons.csv'))  # TODO: baseline file should not have index!
 
     try:
         res = roc_auc_score(df['actual'], df['predict'])
@@ -602,50 +622,221 @@ def get_baseline(file_path):
 
     return res
 
+############# Stats functions #############
+# TODO: move to the stats module
+
+def get_confusion_counts(actual_labels, predict_labels):
+
+    true_positive = 0
+    false_positive = 0
+    true_negative = 0
+    false_negative = 0
+    for i in range(len(actual_labels)):
+        if actual_labels[i] == 1 and predict_labels[i] == 1:
+            true_positive += 1
+        elif actual_labels[i] == 0 and predict_labels[i] == 1:
+            false_positive += 1
+        elif actual_labels[i] == 1 and predict_labels[i] == 0:
+            false_negative += 1
+        elif actual_labels[i] == 0 and predict_labels[i] == 0:
+            true_negative += 1
+        else:
+            print "what?!"
+    return true_positive, false_positive, true_negative, false_negative
+
+def get_confusion_metrics(actual_labels, predict_probas, threshold, also_return_cnts=False):
+    #TODO: move to stats unit
+    predict_labels = [1 if x > threshold else 0 for x in predict_probas]
+    true_positive, false_positive, true_negative, false_negative = \
+        get_confusion_counts(actual_labels, predict_labels)
+
+    # res_dict = {}
+    #res_dict['sensitivity']
+    sensitivity = float(true_positive) / float(true_positive + false_negative)
+    #res_dict['specificity'] \
+    specificity = float(true_negative) / float(true_negative + false_positive)
+    try:
+        #res_dict['LR_p']
+        LR_p = sensitivity/(1-specificity)
+        #res_dict['sensitivity'] / (1 - res_dict['specificity'])
+    except ZeroDivisionError:
+        if sensitivity == 0:
+            LR_p = float('nan')
+        else:
+            LR_p = float('inf')
+
+    try:
+        #res_dict['LR_n']
+        LR_n = (1-sensitivity)/specificity
+        #(1 - res_dict['sensitivity']) / res_dict['specificity']
+    except ZeroDivisionError:
+        if sensitivity == 1:
+            #res_dict['LR_n']
+            LR_n = float('nan')
+        else:
+            #res_dict['LR_n']
+            LR_n = float('inf')
+
+    try:
+        #res_dict['PPV']
+        PPV = float(true_positive) / float(true_positive + false_positive)
+    except ZeroDivisionError:
+        #res_dict['PPV']
+        PPV = float('nan')
+
+    try:
+        #res_dict['NPV']
+        NPV = float(true_negative) / float(true_negative + false_negative)
+    except ZeroDivisionError:
+        #res_dict['NPV']
+        NPV = float('nan')
+
+    if not also_return_cnts:
+        return sensitivity, specificity, LR_p, LR_n, PPV, NPV #res_dict
+    else:
+        return true_positive, false_positive, true_negative, false_negative, \
+               sensitivity, specificity, LR_p, LR_n, PPV, NPV
 
 
-def lab2stats_csv(lab, PPV_wanted,
-                  folder_path, data_folder, result_folder, columns,
-                  thres_mode="from_test"):
+def pick_threshold(y_pick, y_pick_pred, target_PPV=0.95):
+    # TODO: assume both are numpy arrays
+    thres_last, PPV_last = 1., 1.
+    actual_list = y_pick.flatten().tolist()
+    predicted_proba = y_pick_pred.flatten().tolist()
+    assert len(actual_list) == len(predicted_proba)
+    # TODO: also check proba's and labels
+
+    for thres in np.linspace(1, 0, num=1001):
+
+        predict_class_list = [1 if x > thres else 0 for x in predicted_proba]
+
+        TP, FP, _, _ = get_confusion_counts(actual_list, predict_class_list)
+        try:
+            PPV = float(TP) / float(TP + FP)
+        except ZeroDivisionError:
+            # PPV = float('nan')
+            continue
+
+        if PPV < target_PPV:
+            break
+        else:
+            thres_last = thres
+
+    return thres_last
+############# Stats functions #############
+
+
+def get_safe_AUROC(actual_labels, predict_scores):
+    try:
+        roc_auc = roc_auc_score(actual_labels, predict_scores)
+    except Exception as e:
+        print e
+        roc_auc = float('nan')
+    return roc_auc
+
+
+######################################
+'''
+refactored
+'''
+def lab2stats(lab, targeted_PPV, columns, thres_mode):
     '''
     For each lab at each train_PPV,
     write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
 
-
     '''
+    results_subfoldername = 'stats_by_lab_alg'
+    results_subfolderpath = os.path.join(stats_folder, results_subfoldername)
+    if not os.path.exists(results_subfolderpath):
+        os.mkdir(results_subfolderpath)
 
-    if thres_mode == "from_train":
-        curr_res_file = '%s-alg-summary-trainPPV-%s.csv' % (lab, str(PPV_wanted))
-    elif thres_mode == "from_test":
-        curr_res_file = '%s-alg-summary-testPPV-%s.csv' % (lab, str(PPV_wanted))
-
-    if os.path.exists(result_folder + curr_res_file):
-        return
+    results_filename = '%s-stats-target-%s-%s.csv' % (lab, thres_mode, str(targeted_PPV))
+    results_filepath = os.path.join(results_subfolderpath, results_filename)
 
     df = pd.DataFrame(columns=columns)
 
-    baseline_roc_auc = get_baseline(file_path=folder_path + '/' + data_folder + '/' + lab + '/')
+    '''
+    Baseline 2: Predict by last normality (when it is available), or by population average.
+
+    Same across all algs
+    '''
+    baseline_roc_auc = get_baseline2_auroc(lab)
+
+    fm_io = FeatureMatrixIO()
+    processed_matrix_train_path = os.path.join(labs_folder, lab,
+                                         '%s-normality-train-matrix-10000-episodes-processed.tab'%lab)
+    # TODO: get rid of '10000' in file name
+    processed_matrix_train = fm_io.read_file_to_data_frame(processed_matrix_train_path)
+    num_train_episodes = processed_matrix_train.shape[0]
+    num_train_patient = len(set(processed_matrix_train['pat_id'].values.tolist()))
+
+    processed_matrix_test_path = os.path.join(labs_folder, lab,
+                                               '%s-normality-test-matrix-10000-episodes-processed.tab' % lab)
+    # TODO: get rid of '10000' in file name
+    processed_matrix_test = fm_io.read_file_to_data_frame(processed_matrix_test_path)
+    num_test_episodes = processed_matrix_test.shape[0]
+    num_test_patient = len(set(processed_matrix_test['pat_id'].values.tolist()))
 
     for alg in all_algs:
         print 'Processing lab %s with alg %s' % (lab, alg)
-        # try:
-        one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder=folder_path + '/' + data_folder,
-                                           PPV_wanted=PPV_wanted, lab_type=lab_type, thres_mode=thres_mode)
-        if lab_type == 'component':
-            one_lab_alg_dict = add_component_cnts(one_lab_alg_dict)
-        elif lab_type == 'panel':
-            one_lab_alg_dict = add_panel_cnts_fees(one_lab_alg_dict)
+        one_row = {}
 
-        one_lab_alg_dict['baseline_roc'] = baseline_roc_auc
+        one_row['lab'] = lab
+        one_row['alg'] = alg
 
-        df = df.append(one_lab_alg_dict, ignore_index=True)
-        # except Exception as e:
-        #     print e
-        #     pass
+        one_row.update({'num_train_episodes':num_train_episodes,
+                        'num_train_patient':num_train_patient,
+                        'num_test_episodes': num_test_episodes,
+                        'num_test_patient': num_test_patient
+                        })
 
-    # print 'PPV_wanted=%.2f finished!' % PPV_wanted #TODO
+        one_row['baseline_ROC'] = baseline_roc_auc
 
-    df[columns].to_csv(result_folder + curr_res_file, index=False)
+        df_direct_compare = pd.read_csv(labs_folder + '/' + lab + '/' + alg + '/' +
+                                        '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
+                                        keep_default_na=False)
+
+        actual_labels, predict_scores = df_direct_compare['actual'].values, df_direct_compare['predict'].values
+
+
+        one_row['AUROC'] = get_safe_AUROC(actual_labels, predict_scores)
+        AUROC_left, AUROC_right = bootstrap_CI(actual_labels, predict_scores, confident_lvl=0.95)
+        one_row['95%_CI'] = '[%f, %f]' % (AUROC_left, AUROC_right)
+
+        '''
+        Adding confusion metrics after picking a threshold
+        '''
+        score_thres = pick_threshold(actual_labels, predict_scores, target_PPV=0.95)
+        one_row['score_thres'] = score_thres
+
+        true_positive, false_positive, true_negative, false_negative, \
+        sensitivity, specificity, LR_p, LR_n, PPV, NPV = get_confusion_metrics(actual_labels,
+                                                                               predict_scores,
+                                                                               threshold=score_thres,
+                                                                               also_return_cnts=True)
+        one_row.update({
+            'true_positive':true_positive,
+            'false_positive':false_positive,
+            'true_negative':true_negative,
+            'false_negative':false_negative,
+            'sensitivity': sensitivity,
+            'specificity': specificity,
+            'LR_p': LR_p,
+            'LR_n': LR_n,
+            'PPV': PPV,
+            'NPV': NPV
+                   })
+
+        df = df.append(one_row, ignore_index=True)
+
+    df[columns].to_csv(results_filepath, index=False)
+
+    return df
+
+'''
+refactored
+'''
+######################################
 
 def get_labcnt(lab, lab_type='panel', time_limit=None):
     data_folder = "query_lab_results/"
