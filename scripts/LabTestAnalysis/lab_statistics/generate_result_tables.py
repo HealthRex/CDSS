@@ -16,7 +16,7 @@ train_PPVs = [0.99, 0.95, 0.9, 0.8] #[0.5, 0.75, 0.90, 0.95, 0.975, 0.99]
 
 lab_type = stats_utils.lab_type
 all_labs = stats_utils.all_labs
-lab_folder = stats_utils.lab_folder
+labs_folder = stats_utils.labs_folder
 all_algs = stats_utils.all_algs
 
 DEFAULT_TIMEWINDOWS = stats_utils.DEFAULT_TIMEWINDOWS
@@ -25,10 +25,8 @@ DEFAULT_TIMEWINDOWS = stats_utils.DEFAULT_TIMEWINDOWS
 For each (train-)PPV wanted, each vital-day dataset
 Create a summary of all algs' performances on all labs
 '''
-def main_files_to_separate_stats(PPVs_wanted = train_PPVs,
-                                columns = None, thres_mode="from_test"):
-
-    folder_path = '../machine_learning/'
+def main_files_to_separate_stats(targeted_PPVs = train_PPVs,
+                                columns = None, thres_mode="from_train"):
 
     result_folder = 'data_performance_stats/all_%ss/'%lab_type
 
@@ -36,22 +34,26 @@ def main_files_to_separate_stats(PPVs_wanted = train_PPVs,
     if not os.path.exists(result_folder):
         os.mkdir(result_folder)
 
+    df = pd.DataFrame(columns=columns)
 
-    for PPV_wanted in PPVs_wanted:
+    for targeted_PPV in targeted_PPVs:
 
         for lab in all_labs:
 
             '''
-            For each lab at each (train_PPV, vital_day), 
-            write all stats (e.g. roc_auc, PPV, total cnts) into csv file. 
+            For each lab at each (train_PPV), 
+            write all stats (e.g. AUROC, PPV, total cnts) into csv file. 
             '''
-            try:
-                stats_utils.lab2stats_csv(lab, all_algs, PPV_wanted,
-                              folder_path, lab_folder, result_folder, columns,
-                              thres_mode=thres_mode)
-            except Exception as e:
-                print e
-                pass
+            # try:
+
+
+            stats_utils.lab2stats(lab=lab,
+                                      targeted_PPV=targeted_PPV,
+                                      columns=columns,
+                                      thres_mode=thres_mode)
+            # except Exception as e:
+            #     print e
+            #     pass
 
 
 
@@ -104,9 +106,10 @@ def main(lab_type='panel', thres_mode="trainPPV"):
     '''
     Shared columns
     '''
-    columns = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline_roc', 'total_cnt']
-    columns += ['targeted %s'%thres_mode]
-    columns += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
+    columns = ['lab', 'num_train_episodes', 'num_train_patient', 'num_test_episodes', 'num_test_patient']
+    columns += ['alg', 'AUROC', '95%_CI', 'baseline2_ROC']
+    columns += ['targeted_PPV_%s'%thres_mode]
+    columns += ['score_thres', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
     columns += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
 
     columns_STRIDE = columns[:]
@@ -125,7 +128,7 @@ def main(lab_type='panel', thres_mode="trainPPV"):
     elif lab_type == 'UMich':
         columns = columns_UMichs
 
-    main_files_to_separate_stats(PPVs_wanted=train_PPVs,
+    main_files_to_separate_stats(targeted_PPVs=train_PPVs,
                                  columns=columns, thres_mode=thres_mode)
 
     main_agg_stats(lab_type=lab_type, vital_days=[3], PPVs_wanted=train_PPVs, columns=columns,
