@@ -21,77 +21,62 @@ all_algs = stats_utils.all_algs
 
 DEFAULT_TIMEWINDOWS = stats_utils.DEFAULT_TIMEWINDOWS
 
+
+results_subfoldername = 'stats_by_lab_alg'
+results_subfolderpath = os.path.join(stats_utils.stats_folder, results_subfoldername)
+if not os.path.exists(results_subfolderpath):
+    os.mkdir(results_subfolderpath)
+results_filename_template = '%s-stats-target-%s-%s.csv'
+results_filepath_template = os.path.join(results_subfolderpath, results_filename_template)
+
+summary_filename_template = 'summary-stats-%s-%s.csv'
+summary_filepath_template = os.path.join(stats_utils.stats_folder, summary_filename_template)
+
 '''
 For each (train-)PPV wanted, each vital-day dataset
 Create a summary of all algs' performances on all labs
 '''
-def main_files_to_separate_stats(targeted_PPVs = train_PPVs,
-                                columns = None, thres_mode="from_train"):
-
-    result_folder = 'data_performance_stats/all_%ss/'%lab_type
-
-
-    if not os.path.exists(result_folder):
-        os.mkdir(result_folder)
-
-    df = pd.DataFrame(columns=columns)
+def main_labs2stats(targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
     for targeted_PPV in targeted_PPVs:
-
         for lab in all_labs:
-
             '''
             For each lab at each (train_PPV), 
             write all stats (e.g. AUROC, PPV, total cnts) into csv file. 
             '''
-            # try:
-
+            results_filepath = results_filepath_template%(lab, thres_mode, str(targeted_PPV))
 
             stats_utils.lab2stats(lab=lab,
-                                      targeted_PPV=targeted_PPV,
-                                      columns=columns,
-                                      thres_mode=thres_mode)
-            # except Exception as e:
-            #     print e
-            #     pass
+                                  targeted_PPV=targeted_PPV,
+                                  columns=columns,
+                                  thres_mode=thres_mode,
+                                  results_filepath=results_filepath)
 
-
-
-def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = train_PPVs,
-                   columns=None, thres_mode="from_test"):
+def main_stats2summary(targeted_PPVs = train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
     df_long = pd.DataFrame(columns=columns)
 
     columns_best_alg = [x if x!='alg' else 'best_alg' for x in columns]
     df_best_alg = pd.DataFrame(columns=columns_best_alg)
 
-    result_folder = 'data_performance_stats/all_%ss/' % lab_type
-    if not os.path.exists(result_folder):
-        os.mkdir(result_folder)
-
-    for PPV_wanted in PPVs_wanted:
+    for targeted_PPV in targeted_PPVs:
         for lab in all_labs:
-            if thres_mode == "from_train":
-                df_cur = pd.read_csv(result_folder + '%s-alg-summary-trainPPV-%s.csv'%(lab, str(PPV_wanted)), keep_default_na=False)
-                df_cur['train_PPV'] = PPV_wanted
-            elif thres_mode == "from_test":
-                df_cur = pd.read_csv(result_folder + '%s-alg-summary-testPPV-%s.csv' % (
-                lab, str(PPV_wanted)), keep_default_na=False)
-                df_cur['test_PPV'] = PPV_wanted
+            results_filepath = results_filepath_template % (lab, thres_mode, str(targeted_PPV))
+            df_lab = pd.read_csv(results_filepath, keep_default_na=False)
+            df_lab['targeted_PPV_%s'%thres_mode] = targeted_PPV
 
+            df_long = df_long.append(df_lab, ignore_index=True)
 
-            df_long = df_long.append(df_cur, ignore_index=True)
-
-            df_cur_best_alg = df_cur.groupby(['lab'], as_index=False).agg({'roc_auc': 'max'})
-            df_cur_best_alg = pd.merge(df_cur_best_alg, df_cur, on=['lab', 'roc_auc'], how='left')
+            df_cur_best_alg = df_lab.groupby(['lab'], as_index=False).agg({'AUROC': 'max'})
+            df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
 
             df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
             df_best_alg = df_best_alg.append(df_cur_best_alg)
 
-    df_long[columns].to_csv('data_performance_stats/'+'long-%s-summary.csv'% lab_type, index=False)
-    df_best_alg[columns_best_alg].to_csv('data_performance_stats/'+'best-alg-%s-summary-%s.csv'%(lab_type,thres_mode), index=False)
+    df_long[columns].to_csv(summary_filepath_template%('allalgs', thres_mode), index=False)
+    df_best_alg[columns_best_alg].to_csv(summary_filepath_template%('bestalg', thres_mode), index=False)
 
-def main(lab_type='panel', thres_mode="trainPPV"):
+def main(thres_mode="fixTrainPPV"):
     '''
     Performance on test set, by choosing a threshold whether from train or test.
 
@@ -128,13 +113,15 @@ def main(lab_type='panel', thres_mode="trainPPV"):
     elif lab_type == 'UMich':
         columns = columns_UMichs
 
-    main_files_to_separate_stats(targeted_PPVs=train_PPVs,
-                                 columns=columns, thres_mode=thres_mode)
+    main_labs2stats(targeted_PPVs=train_PPVs,
+                                 columns=columns,
+                                 thres_mode=thres_mode)
 
-    main_agg_stats(lab_type=lab_type, vital_days=[3], PPVs_wanted=train_PPVs, columns=columns,
+    main_stats2summary(targeted_PPVs=train_PPVs,
+                   columns=columns,
                    thres_mode=thres_mode)
 
 if __name__ == '__main__':
-    main(lab_type='UMich', thres_mode="from_train")
+    main(thres_mode="fixTrainPPV")
     # fill_df_fix_PPV('LABAFBD', alg='random-forest', data_folder='../machine_learning/data-panels/',
     #                 PPV_wanted=0.99, lab_type="panel", thres_mode="from_train")

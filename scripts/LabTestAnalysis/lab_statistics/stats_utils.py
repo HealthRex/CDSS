@@ -28,7 +28,7 @@ For plotting guideline,
 a lab, has n prev consecutive normal. 
 '''
 
-lab_type = 'UMich'
+lab_type = 'component'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
@@ -36,10 +36,22 @@ all_UMichs = UMICH_TOP_COMPONENTS
 all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
 
 DEFAULT_TIMELIMIT = ('2014-01-01', '2017-06-30')
-DEFAULT_TIMEWINDOWS = ['2014 1st half', '2014 2st half',
-                       '2015 1st half', '2015 2st half',
-                       '2016 1st half', '2016 2st half',
-                       '2017 1st half']
+DEFAULT_TIMEWINDOWS = ['2014 1stHalf', '2014 2stHalf',
+                       '2015 1stHalf', '2015 2stHalf',
+                       '2016 1stHalf', '2016 2stHalf',
+                       '2017 1stHalf']
+DEFAULT_TIMELIMITs = []
+for time_window in DEFAULT_TIMEWINDOWS:
+    year_str, section_str = time_window.split(' ')
+
+    if section_str == '1stHalf':
+        section_timestamps = ('01-01', '06-30')
+    else:
+        section_timestamps = ('07-01', '12-31')
+
+    time_limit = ['-'.join([year_str, x]) for x in section_timestamps]
+
+    DEFAULT_TIMELIMITs.append(time_limit)
 
 main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 
@@ -55,6 +67,7 @@ elif lab_type == 'UMich':
 
 labs_folder = os.path.join(main_folder, 'machine_learning/data-%ss-%s/'%(lab_type, curr_version))
 stats_folder = os.path.join(main_folder, 'lab_statistics/stats-%ss-%s/'%(lab_type, curr_version))
+labs_query_folder = os.path.join(main_folder, 'lab_statistics/query_lab_results/')
 
 if not os.path.exists(labs_folder):
     os.mkdir(labs_folder)
@@ -739,19 +752,12 @@ def get_safe_AUROC(actual_labels, predict_scores):
 '''
 refactored
 '''
-def lab2stats(lab, targeted_PPV, columns, thres_mode):
+def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
     '''
     For each lab at each train_PPV,
     write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
 
     '''
-    results_subfoldername = 'stats_by_lab_alg'
-    results_subfolderpath = os.path.join(stats_folder, results_subfoldername)
-    if not os.path.exists(results_subfolderpath):
-        os.mkdir(results_subfolderpath)
-
-    results_filename = '%s-stats-target-%s-%s.csv' % (lab, thres_mode, str(targeted_PPV))
-    results_filepath = os.path.join(results_subfolderpath, results_filename)
 
     df = pd.DataFrame(columns=columns)
 
@@ -761,6 +767,10 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode):
     Same across all algs
     '''
     baseline_roc_auc = get_baseline2_auroc(lab)
+
+    lab_vols = []
+    for time_limit in DEFAULT_TIMELIMITs:
+        lab_vols.append(get_labvol(lab, time_limit=time_limit))
 
     fm_io = FeatureMatrixIO()
     processed_matrix_train_path = os.path.join(labs_folder, lab,
@@ -790,7 +800,7 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode):
                         'num_test_patient': num_test_patient
                         })
 
-        one_row['baseline_ROC'] = baseline_roc_auc
+        one_row['baseline2_ROC'] = baseline_roc_auc
 
         df_direct_compare = pd.read_csv(labs_folder + '/' + lab + '/' + alg + '/' +
                                         '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
@@ -806,6 +816,8 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode):
         '''
         Adding confusion metrics after picking a threshold
         '''
+        one_row['targeted_PPV_%s'%thres_mode] = targeted_PPV
+
         score_thres = pick_threshold(actual_labels, predict_scores, target_PPV=0.95)
         one_row['score_thres'] = score_thres
 
@@ -827,6 +839,11 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode):
             'NPV': NPV
                    })
 
+
+        # TODO: for STRIDE, also do cnts and costs
+        for i_tw, time_window in enumerate(DEFAULT_TIMEWINDOWS):
+            one_row['%s count'%time_window] = lab_vols[i_tw]
+
         df = df.append(one_row, ignore_index=True)
 
     df[columns].to_csv(results_filepath, index=False)
@@ -838,25 +855,37 @@ refactored
 '''
 ######################################
 
-def get_labcnt(lab, lab_type='panel', time_limit=None):
-    data_folder = "query_lab_results/"
-    labs_and_cnts_file = "%ss_and_cnts_2014-2016.csv" % lab_type
-    labs_and_cnts_path = os.path.join(data_folder, labs_and_cnts_file)
+def get_labvol(lab, time_limit=DEFAULT_TIMELIMIT):
+    lab_query_filepath = os.path.join(labs_query_folder, lab+'.csv')
+    df = pd.read_csv(lab_query_filepath, keep_default_na=False)
 
-    lab_data_filename = '%s.csv' % lab
-    lab_data_path = os.path.join(data_folder, lab_data_filename)
-    df = pd.read_csv(lab_data_path, keep_default_na=False)
+    if lab_type == 'component':
+        df = df[df['sop.order_status'] == 'Completed']
+        df = df[(df['sop.order_time']>=time_limit[0]) & (df['sop.order_time']<=time_limit[1])]
 
-    if lab_type == 'panel':
-        df = df[df['order_status'] == 'Completed']
-    if time_limit:
-        if time_limit[0]:
-            df = df[df['order_time'] >= time_limit[0]]
-        if time_limit[1]:
-            df = df[df['order_time'] <= time_limit[1]]
+    return df.shape[0]
 
-    cnt = df.shape[0]
-    return cnt
+    # quit()
+    #
+    #
+    # data_folder = "query_lab_results/"
+    # labs_and_cnts_file = "%ss_and_cnts_2014-2016.csv" % lab_type
+    # labs_and_cnts_path = os.path.join(data_folder, labs_and_cnts_file)
+    #
+    # lab_data_filename = '%s.csv' % lab
+    # lab_data_path = os.path.join(data_folder, lab_data_filename)
+    # df = pd.read_csv(lab_data_path, keep_default_na=False)
+    #
+    # if lab_type == 'panel':
+    #     df = df[df['order_status'] == 'Completed']
+    # if time_limit:
+    #     if time_limit[0]:
+    #         df = df[df['order_time'] >= time_limit[0]]
+    #     if time_limit[1]:
+    #         df = df[df['order_time'] <= time_limit[1]]
+    #
+    # cnt = df.shape[0]
+    # return cnt
 
 
 def get_top_labs_and_cnts(lab_type='panel', top_k=None, bottom_k=None, criterion='count', time_limit=None):
@@ -1016,7 +1045,7 @@ def query_to_dataframe(lab, lab_type='panel',
 
     return df
 
-def main_queryAllLabsToDF():
+def main_queryAllLabsToDF(lab_type='panel'):
     '''
     query all labs from sql to df to make them faster for stats analysis.
 
@@ -1031,7 +1060,7 @@ def main_queryAllLabsToDF():
     #                 ['2017-01-01', '2017-06-30']]
 
     dst_folder = 'query_lab_results/'
-    for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+    for lab in all_labs:
         # res = query_lab_usage__df(lab, lab_type='panel', time_limit=('2014-07-01', '2014-12-31'))
         # print res
         # quit()
@@ -1039,7 +1068,7 @@ def main_queryAllLabsToDF():
         src_filepath = os.path.join(dst_folder, lab+'.csv')
         lab_df_old = pd.read_csv(src_filepath, keep_default_na=False)
 
-        lab_df_new = query_to_dataframe(lab, lab_type='panel',
+        lab_df_new = query_to_dataframe(lab, lab_type=lab_type,
                            time_limit=['2017-01-01', '2017-06-30'])
 
         lab_df = pd.concat([lab_df_old, lab_df_new], axis=0, ignore_index=True)
@@ -1047,7 +1076,7 @@ def main_queryAllLabsToDF():
         dst_filepath = src_filepath
         lab_df.to_csv(dst_filepath, index=False)
 
-def query_lab_cnt(lab, lab_type='panel', time_limit=('2014-01-01','2016-12-31')):
+def query_lab_cnt(lab, lab_type='panel', time_limit=DEFAULT_TIMELIMIT):
     output_filename = '%s.csv'%lab
     output_foldername = "query_lab_results/"
     if not os.path.exists(output_foldername + output_filename):
@@ -1059,6 +1088,7 @@ def query_lab_cnt(lab, lab_type='panel', time_limit=('2014-01-01','2016-12-31'))
             df = df[df['order_time'] >= time_limit[0]]
         if time_limit[1]:
             df = df[df['order_time'] <= time_limit[1]]
+    df.drop_duplicates(inplace=True) # TODO: make sure later..
     return df.shape[0]
     # query = SQLQuery()
     #
@@ -1112,7 +1142,7 @@ if __name__ == '__main__':
 
     # print query_lab_cnt('LABMGN')
     # print query_lab_cnt('LABCBCD')
-    main_queryAllLabsToDF()
+    main_queryAllLabsToDF(lab_type='component')
 
 
 
