@@ -8,7 +8,7 @@ pd.set_option('display.width', 500)
 pd.set_option('display.max_columns', 500)
 import numpy as np
 from scipy import stats
-import os
+import os, sys
 
 import LocalEnv
 
@@ -28,19 +28,21 @@ For plotting guideline,
 a lab, has n prev consecutive normal. 
 '''
 
-lab_type = 'component'
+lab_type = 'panel'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
 all_UMichs = UMICH_TOP_COMPONENTS
 all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
 
-DEFAULT_TIMELIMIT = ('2014-01-01', '2017-06-30')
+DEFAULT_TIMELIMIT = ('2014-07-01', '2017-06-30')
+
+DEFAULT_TIMESPAN = ('2014-01-01', '2017-06-30')
 DEFAULT_TIMEWINDOWS = ['2014 1stHalf', '2014 2stHalf',
                        '2015 1stHalf', '2015 2stHalf',
                        '2016 1stHalf', '2016 2stHalf',
                        '2017 1stHalf']
-DEFAULT_TIMELIMITs = []
+DEFAULT_TIMELIMITS = []
 for time_window in DEFAULT_TIMEWINDOWS:
     year_str, section_str = time_window.split(' ')
 
@@ -51,7 +53,7 @@ for time_window in DEFAULT_TIMEWINDOWS:
 
     time_limit = ['-'.join([year_str, x]) for x in section_timestamps]
 
-    DEFAULT_TIMELIMITs.append(time_limit)
+    DEFAULT_TIMELIMITS.append(time_limit)
 
 main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 
@@ -65,14 +67,16 @@ elif lab_type == 'UMich':
     curr_version = '10000-episodes'
     all_labs = all_UMichs
 
-labs_folder = os.path.join(main_folder, 'machine_learning/data-%ss-%s/'%(lab_type, curr_version))
-stats_folder = os.path.join(main_folder, 'lab_statistics/stats-%ss-%s/'%(lab_type, curr_version))
+labs_ml_folder = os.path.join(main_folder, 'machine_learning/data-%ss-%s/'%(lab_type, curr_version))
+labs_stats_folder = os.path.join(main_folder, 'lab_statistics/stats-%ss-%s/'%(lab_type, curr_version))
+labs_old_stats_folder = os.path.join(main_folder, 'lab_statistics/data_summary_stats/')
 labs_query_folder = os.path.join(main_folder, 'lab_statistics/query_lab_results/')
 
-if not os.path.exists(labs_folder):
-    os.mkdir(labs_folder)
-if not os.path.exists(stats_folder):
-    os.mkdir(stats_folder)
+
+# if not os.path.exists(labs_folder):
+#     os.mkdir(labs_folder)
+if not os.path.exists(labs_stats_folder):
+    os.mkdir(labs_stats_folder)
 
 
 def query_lab_usage__df(lab, lab_type='panel', time_limit=None):
@@ -163,7 +167,7 @@ def get_prevweek_normal__dict(df, also_get_cnt=False):
     key: num of CONSECUTIVE normal in past week. val: [normal, normal, abnormal...]
     '''
     for i in range(1, row):
-        curr_normal = False if df.ix[i, 'abnormal_yn'] == 'Y' else True
+        curr_normal = 0 if df.ix[i, 'abnormal_yn'] == 'Y' else 1
 
         j = i-1
         while j >= 0 \
@@ -179,48 +183,6 @@ def get_prevweek_normal__dict(df, also_get_cnt=False):
         else:
             day2norms[prev_cnt] = [curr_normal]
 
-
-        # if df.ix[i, 'pat_id'] == df.ix[i - 1, 'pat_id']:
-        #     # There is a possibility
-        #
-        #     prev_cnt = 0
-        #     # TODO: prev_cnt = 0 is different from prev has some normals?" For now, don't consider either
-        #
-        #     # if prev_cnt in my_dict:
-        #     #     my_dict[prev_cnt].append(curr_normal)
-        #     # else:
-        #     #     my_dict[prev_cnt] = [curr_normal]
-        #     time_diff = df.ix[i, 'order_time'] - df.ix[i - 1, 'order_time']
-        #
-        #     j = i - 1
-        #     while time_diff.days < 7:
-        #         prev_normal = False if df.ix[j, 'abnormal_yn'] == 'Y' else True
-        #         if not prev_normal: # "Consecutivity" is broken
-        #             break
-        #
-        #         # prev_cnt += 1
-        #         # if prev_cnt in my_dict:
-        #         #     my_dict[prev_cnt].append(curr_normal)
-        #         # else:
-        #         #     my_dict[prev_cnt] = [curr_normal]
-        #
-        #         j -= 1
-        #         if j < 0 or df.ix[i, 'pat_id'] != df.ix[j, 'pat_id']:
-        #             break
-        #         time_diff = df.ix[i, 'order_time'] - df.ix[j, 'order_time']
-
-
-        # else:
-        #     if 0 in my_dict:
-        #         my_dict[0].append(curr_normal)
-        #     else:
-        #         my_dict[0] = [curr_normal]
-
-    # for key in day2norms:
-    #     if not also_get_cnt:
-    #         day2norms[key] = float(sum(day2norms[key]))/len(day2norms[key])
-    #     else:
-    #         day2norms[key] = (float(sum(day2norms[key])) / len(day2norms[key]), len(my_dict[key]))
     return day2norms
 
 
@@ -231,7 +193,7 @@ def get_prevweek_normal__dict(df, also_get_cnt=False):
 
 def get_time_since_last_order_cnts(lab, df):
     datetime_format = "%Y-%m-%d %H:%M:%S"
-    print df.head()
+    # print df.head()
     '''
     Cnt of ordering w/i one day
     '''
@@ -263,11 +225,10 @@ def get_time_since_last_order_cnts(lab, df):
             # prev_days.append(time_diff_df.seconds/86400.)
             prev_days.append(time_diff_df.days) # TODO: ceiling of days?
         else:
-            prev_days.append(-1)
+            prev_days.append(sys.maxint)
 
-    df.ix[order_in_1day__inds, 'order_in_1day'] = 'Yes'
-
-    df.to_csv('Fig2_Order_Intensities/surprising_orders_in_1day_%s.csv'%lab)
+    # df.ix[order_in_1day__inds, 'order_in_1day'] = 'Yes'
+    # df.to_csv('Fig2_Order_Intensities/surprising_orders_in_1day_%s.csv'%lab)
 
     prevday_cnts_dict = collections.Counter(prev_days)
 
@@ -626,7 +587,7 @@ In all cases, can make a prediction, so no need to make a prediction.
 Can calculate ROC, PPV etc. Can pick a threshold. 
 '''
 def get_baseline2_auroc(lab):
-    df = pd.read_csv(os.path.join(labs_folder, lab, 'baseline_comparisons.csv'))  # TODO: baseline file should not have index!
+    df = pd.read_csv(os.path.join(labs_ml_folder, lab, 'baseline_comparisons.csv'))  # TODO: baseline file should not have index!
 
     try:
         res = roc_auc_score(df['actual'], df['predict'])
@@ -638,6 +599,14 @@ def get_baseline2_auroc(lab):
 ############# Stats functions #############
 # TODO: move to the stats module
 
+############# Stats functions #############
+
+
+
+######################################
+'''
+refactored
+'''
 def get_confusion_counts(actual_labels, predict_labels):
 
     true_positive = 0
@@ -663,46 +632,14 @@ def get_confusion_metrics(actual_labels, predict_probas, threshold, also_return_
     true_positive, false_positive, true_negative, false_negative = \
         get_confusion_counts(actual_labels, predict_labels)
 
-    # res_dict = {}
-    #res_dict['sensitivity']
     sensitivity = float(true_positive) / float(true_positive + false_negative)
     #res_dict['specificity'] \
     specificity = float(true_negative) / float(true_negative + false_positive)
-    try:
-        #res_dict['LR_p']
-        LR_p = sensitivity/(1-specificity)
-        #res_dict['sensitivity'] / (1 - res_dict['specificity'])
-    except ZeroDivisionError:
-        if sensitivity == 0:
-            LR_p = float('nan')
-        else:
-            LR_p = float('inf')
+    LR_p = np.divide(sensitivity, 1.-specificity)
+    LR_n = np.divide(1-sensitivity, specificity)
 
-    try:
-        #res_dict['LR_n']
-        LR_n = (1-sensitivity)/specificity
-        #(1 - res_dict['sensitivity']) / res_dict['specificity']
-    except ZeroDivisionError:
-        if sensitivity == 1:
-            #res_dict['LR_n']
-            LR_n = float('nan')
-        else:
-            #res_dict['LR_n']
-            LR_n = float('inf')
-
-    try:
-        #res_dict['PPV']
-        PPV = float(true_positive) / float(true_positive + false_positive)
-    except ZeroDivisionError:
-        #res_dict['PPV']
-        PPV = float('nan')
-
-    try:
-        #res_dict['NPV']
-        NPV = float(true_negative) / float(true_negative + false_negative)
-    except ZeroDivisionError:
-        #res_dict['NPV']
-        NPV = float('nan')
+    PPV = np.divide(float(true_positive), float(true_positive + false_positive))
+    NPV = np.divide(float(true_negative), float(true_negative + false_negative))
 
     if not also_return_cnts:
         return sensitivity, specificity, LR_p, LR_n, PPV, NPV #res_dict
@@ -724,11 +661,7 @@ def pick_threshold(y_pick, y_pick_pred, target_PPV=0.95):
         predict_class_list = [1 if x > thres else 0 for x in predicted_proba]
 
         TP, FP, _, _ = get_confusion_counts(actual_list, predict_class_list)
-        try:
-            PPV = float(TP) / float(TP + FP)
-        except ZeroDivisionError:
-            # PPV = float('nan')
-            continue
+        PPV = np.divide(float(TP), float(TP + FP))
 
         if PPV < target_PPV:
             break
@@ -736,22 +669,47 @@ def pick_threshold(y_pick, y_pick_pred, target_PPV=0.95):
             thres_last = thres
 
     return thres_last
-############# Stats functions #############
 
+def get_lab_descriptions():
+    descriptions_filepath = os.path.join(labs_old_stats_folder, 'labs.csv')
+    df = pd.read_csv(descriptions_filepath, keep_default_na=False)
+    descriptions = pandas2dict(df[['name', 'description']], key='name', val='description')
+    return descriptions
 
-def get_safe_AUROC(actual_labels, predict_scores):
+def get_safe(func, *args):
     try:
-        roc_auc = roc_auc_score(actual_labels, predict_scores)
+        res = func(*args)
     except Exception as e:
         print e
-        roc_auc = float('nan')
-    return roc_auc
+        res = float('nan')
+    return res
 
+def dict2pandas(a_dict, key='lab', val='val'):
+    return pd.DataFrame.from_dict(a_dict, orient='index').reset_index().rename(columns={'index': key,
+                                                                                        0:val})
+def pandas2dict(df, key='lab', val='val'):
+    return df.set_index(key).to_dict()[val]
 
-######################################
-'''
-refactored
-'''
+def get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT):
+    lab_query_filepath = os.path.join(labs_query_folder, lab + '.csv')
+    if not os.path.exists(lab_query_filepath):
+        df = query_to_dataframe(lab, lab_query_filepath=lab_query_filepath)
+    else:
+        df = pd.read_csv(lab_query_filepath, keep_default_na=False)
+
+    if lab_type == 'component':
+        df = df[df['sop.order_status'] == 'Completed']
+        df = df[(df['sop.order_time'] >= time_limit[0]) & (df['sop.order_time'] <= time_limit[1])]
+    elif lab_type == 'panel':
+        df = df[df['order_status'] == 'Completed']
+        df = df[(df['order_time'] >= time_limit[0]) & (df['order_time'] <= time_limit[1])]
+    df.drop_duplicates(inplace=True)
+    return df
+
+def get_labvol(lab, time_limit=DEFAULT_TIMELIMIT):
+    df = get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT)
+    return df.shape[0]
+
 def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
     '''
     For each lab at each train_PPV,
@@ -768,19 +726,30 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
     '''
     baseline_roc_auc = get_baseline2_auroc(lab)
 
-    lab_vols = []
-    for time_limit in DEFAULT_TIMELIMITs:
-        lab_vols.append(get_labvol(lab, time_limit=time_limit))
+    # For STRIDE, also do cnts and costs
+    if lab_type == 'panel' or lab_type == 'component':
+        lab_vols = []
+        for time_limit in DEFAULT_TIMELIMITS:
+            lab_vols.append(get_labvol(lab, time_limit=time_limit))
+
+    # For panels, also include price info
+    if lab_type == 'panel': #TODO: no price info for LABNA
+        prices_filepath = os.path.join(labs_old_stats_folder, 'labs_charges_volumes.csv')
+        df_prices = pd.read_csv(prices_filepath, keep_default_na=False)
+        df_prices_dict = df_prices.ix[df_prices['name'] == lab,
+                                      ['min_price', 'max_price', 'mean_price', 'median_price']].to_dict(orient='list')
+        for key, val in df_prices_dict.items():
+            df_prices_dict[key] = val[0]
 
     fm_io = FeatureMatrixIO()
-    processed_matrix_train_path = os.path.join(labs_folder, lab,
+    processed_matrix_train_path = os.path.join(labs_ml_folder, lab,
                                          '%s-normality-train-matrix-10000-episodes-processed.tab'%lab)
     # TODO: get rid of '10000' in file name
     processed_matrix_train = fm_io.read_file_to_data_frame(processed_matrix_train_path)
     num_train_episodes = processed_matrix_train.shape[0]
     num_train_patient = len(set(processed_matrix_train['pat_id'].values.tolist()))
 
-    processed_matrix_test_path = os.path.join(labs_folder, lab,
+    processed_matrix_test_path = os.path.join(labs_ml_folder, lab,
                                                '%s-normality-test-matrix-10000-episodes-processed.tab' % lab)
     # TODO: get rid of '10000' in file name
     processed_matrix_test = fm_io.read_file_to_data_frame(processed_matrix_test_path)
@@ -802,14 +771,13 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
 
         one_row['baseline2_ROC'] = baseline_roc_auc
 
-        df_direct_compare = pd.read_csv(labs_folder + '/' + lab + '/' + alg + '/' +
+        df_direct_compare = pd.read_csv(labs_ml_folder + '/' + lab + '/' + alg + '/' +
                                         '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
                                         keep_default_na=False)
 
         actual_labels, predict_scores = df_direct_compare['actual'].values, df_direct_compare['predict'].values
 
-
-        one_row['AUROC'] = get_safe_AUROC(actual_labels, predict_scores)
+        one_row['AUROC'] = get_safe(roc_auc_score, actual_labels, predict_scores)
         AUROC_left, AUROC_right = bootstrap_CI(actual_labels, predict_scores, confident_lvl=0.95)
         one_row['95%_CI'] = '[%f, %f]' % (AUROC_left, AUROC_right)
 
@@ -839,10 +807,12 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
             'NPV': NPV
                    })
 
+        if lab_type == 'panel' or lab_type == 'component':
+            for i_tw, time_window in enumerate(DEFAULT_TIMEWINDOWS):
+                one_row['%s count'%time_window] = lab_vols[i_tw]
 
-        # TODO: for STRIDE, also do cnts and costs
-        for i_tw, time_window in enumerate(DEFAULT_TIMEWINDOWS):
-            one_row['%s count'%time_window] = lab_vols[i_tw]
+        if lab_type == 'panel':
+            one_row.update(df_prices_dict)
 
         df = df.append(one_row, ignore_index=True)
 
@@ -855,37 +825,7 @@ refactored
 '''
 ######################################
 
-def get_labvol(lab, time_limit=DEFAULT_TIMELIMIT):
-    lab_query_filepath = os.path.join(labs_query_folder, lab+'.csv')
-    df = pd.read_csv(lab_query_filepath, keep_default_na=False)
 
-    if lab_type == 'component':
-        df = df[df['sop.order_status'] == 'Completed']
-        df = df[(df['sop.order_time']>=time_limit[0]) & (df['sop.order_time']<=time_limit[1])]
-
-    return df.shape[0]
-
-    # quit()
-    #
-    #
-    # data_folder = "query_lab_results/"
-    # labs_and_cnts_file = "%ss_and_cnts_2014-2016.csv" % lab_type
-    # labs_and_cnts_path = os.path.join(data_folder, labs_and_cnts_file)
-    #
-    # lab_data_filename = '%s.csv' % lab
-    # lab_data_path = os.path.join(data_folder, lab_data_filename)
-    # df = pd.read_csv(lab_data_path, keep_default_na=False)
-    #
-    # if lab_type == 'panel':
-    #     df = df[df['order_status'] == 'Completed']
-    # if time_limit:
-    #     if time_limit[0]:
-    #         df = df[df['order_time'] >= time_limit[0]]
-    #     if time_limit[1]:
-    #         df = df[df['order_time'] <= time_limit[1]]
-    #
-    # cnt = df.shape[0]
-    # return cnt
 
 
 def get_top_labs_and_cnts(lab_type='panel', top_k=None, bottom_k=None, criterion='count', time_limit=None):
@@ -980,7 +920,8 @@ def main():
 
 def query_to_dataframe(lab, lab_type='panel',
                      columns=None,
-                     time_limit=None):
+                     time_limit=None,
+                       lab_query_filepath=""):
 
     # output_filename = '%s.csv'%lab
     #
@@ -1041,7 +982,7 @@ def query_to_dataframe(lab, lab_type='panel',
     df = pd.DataFrame(results, columns=columns)
     # if not os.path.exists(output_foldername):
     #     os.mkdir(output_foldername)
-    # df.to_csv(output_path, index=False)
+    df.to_csv(lab_query_filepath, index=False)
 
     return df
 
@@ -1076,63 +1017,6 @@ def main_queryAllLabsToDF(lab_type='panel'):
         dst_filepath = src_filepath
         lab_df.to_csv(dst_filepath, index=False)
 
-def query_lab_cnt(lab, lab_type='panel', time_limit=DEFAULT_TIMELIMIT):
-    output_filename = '%s.csv'%lab
-    output_foldername = "query_lab_results/"
-    if not os.path.exists(output_foldername + output_filename):
-        query_to_dataframe(lab)
-
-    df = pd.read_csv(output_foldername + output_filename)
-    if time_limit:
-        if time_limit[0]:
-            df = df[df['order_time'] >= time_limit[0]]
-        if time_limit[1]:
-            df = df[df['order_time'] <= time_limit[1]]
-    df.drop_duplicates(inplace=True) # TODO: make sure later..
-    return df.shape[0]
-    # query = SQLQuery()
-    #
-    # if lab_type == 'panel':
-    #
-    #     query.addSelect("proc_code")
-    #     query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
-    #     # query.addSelect("sop.order_proc_id")
-    #     # query.addSelect("sop.lab_status")
-    #     # query.addSelect('sop.order_status')
-    #
-    #     query.addFrom('stride_order_proc AS sop')
-    #     # query.addFrom('stride_order_results AS sor')
-    #     if time_limit:
-    #         if time_limit[0]:
-    #             query.addWhere("sop.order_time >= '%s'" % time_limit[0])
-    #         if time_limit[1]:
-    #             query.addWhere("sop.order_time <= '%s'" % time_limit[1])
-    #     # query.addWhere('sop.order_proc_id = sor.order_proc_id')
-    #     query.addWhere("proc_code = '%s'"%lab)
-    #     query.addGroupBy("proc_code")
-    #     query.addOrderBy("proc_code")
-    #
-    # elif lab_type == 'component': # see NA
-    #     query.addSelect("base_name")
-    #     query.addSelect('COUNT(order_proc_id) AS num_orders')
-    #     query.addFrom('stride_order_results')
-    #     if time_limit:
-    #         if time_limit[0]:
-    #             query.addWhere("result_time >= '%s'" % time_limit[0])
-    #         if time_limit[1]:
-    #             query.addWhere("result_time <= '%s'" % time_limit[1])
-    #     query.addWhere("base_name = '%s'"%lab)
-    #     query.addGroupBy("base_name")
-    #
-    # results = DBUtil.execute(query)
-
-
-
-
-
-
-
-        #'2017-06-30'
 
 
 
