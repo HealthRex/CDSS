@@ -17,8 +17,12 @@ import matplotlib.pyplot as plt
 
 lab_type = stats_utils.lab_type
 all_labs = stats_utils.all_labs
-lab_folder = stats_utils.lab_folder
+labs_ml_folder = stats_utils.labs_ml_folder
 all_algs = stats_utils.all_algs
+
+DEFAULT_TIMELIMIT = stats_utils.DEFAULT_TIMELIMIT
+
+lab_desciptions = stats_utils.get_lab_descriptions()
 
 def plot_predict_twoside_bar(lab_type="panel", wanted_PPV=0.95):
     df = pd.read_csv('data_performance_stats/best-alg-%s-summary-trainPPV.csv' % lab_type,
@@ -217,78 +221,100 @@ def plot_order_intensities_barh(lab, time_since_last_order_binned, columns, labe
 
         pre_sum += time_since_last_order_binned[key]
 
+        lab_desciption = lab_desciptions[lab]
+
         if labeling:
-            plt.barh([lab], pre_sum, color='b', alpha=alphas[i], label=key)
+            plt.barh([lab_desciption], pre_sum, color='b', alpha=alphas[i], label=key)
         else:
-            plt.barh([lab], pre_sum, color='b', alpha=alphas[i])
+            plt.barh([lab_desciption], pre_sum, color='b', alpha=alphas[i])
 
 
-def dict2pandas(a_dict, key='lab', val='val'):
-    return pd.DataFrame.from_dict(a_dict, orient='index').reset_index().rename(columns={'index': key,
-                                                                                        0:val})
-def pandas2dict(df, key='lab', val='val'):
-    return df.set_index(key).to_dict()[val]
 
-def draw__Normality_Saturations(lab_type, use_cached_fig_data=True):
+
+def draw__Normality_Saturations(use_cached_fig_data=True):
     '''
     Drawing Figure 1 in the main text.
 
     :return:
     '''
 
-    labs = get_important_labs()
+    labs = ['LABMETB', 'LABCBCD'] + all_labs #
 
     print "Labs to be plot:", labs
 
     cached_result_foldername = 'Fig1_Normality_Saturations/'
     if not os.path.exists(cached_result_foldername):
         os.mkdir(cached_result_foldername)
-    cached_result_filename = 'Normality_Saturations_%s.csv' % lab_type
-    cached_result_path = os.path.join(cached_result_foldername, cached_result_filename)
+    # cached_result_filename = 'Normality_Saturations_%s.csv' % lab_type
+    # cached_result_path = os.path.join(cached_result_foldername, cached_result_filename)
 
+    max_repeat = 5
 
-    if os.path.exists(cached_result_path) and use_cached_fig_data:
+    if os.path.exists(cached_result_foldername + 'lab2cnt.csv') and use_cached_fig_data:
         # lab2stats = pickle.load(open(cached_result_path, 'r'))
-        lab2stats_pd = pd.read_csv(cached_result_path)
-        lab2stats_pd = lab2stats_pd.set_index('lab')
-        lab2stats_pd.columns = lab2stats_pd.columns.astype(int)
+        # lab2stats_pd = pd.read_csv(cached_result_path)
+        # lab2stats_pd = lab2stats_pd.set_index('lab')
+        # lab2stats_pd.columns = lab2stats_pd.columns.astype(int)
+        #
+        # lab2stats = lab2stats_pd.to_dict(orient='index')
+        lab2cnt_pd = pd.read_csv(cached_result_foldername + 'lab2cnt.csv', keep_default_na=False)\
+            .set_index('lab')
+        lab2cnt_pd.columns = lab2cnt_pd.columns.astype(int)
+        lab2cnt = lab2cnt_pd.to_dict(orient='index')
 
-        lab2stats = lab2stats_pd.to_dict(orient='index')
-
-
+        lab2frac_pd = pd.read_csv(cached_result_foldername + 'lab2frac.csv', keep_default_na=False).set_index('lab')
+        lab2frac_pd.columns = lab2frac_pd.columns.astype(int)
+        lab2frac = lab2frac_pd.to_dict(orient='index')
     else:
 
-        lab2stats = {}
+        lab2cnt, lab2frac = {}, {}
         for lab in labs:
-            df_lab = stats_utils.query_to_dataframe(lab, time_limit=('2014-01-01', '2016-12-31'))
+            print 'Getting Normality Saturations for %s..' % lab
+            df_lab = stats_utils.get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT)
             df_lab = df_lab[df_lab['order_status'] == 'Completed']
 
             cur_dict = stats_utils.get_prevweek_normal__dict(df_lab)
-            lab2stats[lab] = cur_dict
-        df_res = pd.DataFrame.from_dict(lab2stats, orient='index').reset_index().rename(columns={'index': 'lab'})
-        df_res.to_csv(cached_result_path, index=False)
+            # lab2stats[lab] = cur_dict
 
-    print lab2stats
+            # cur_dict = lab2stats[lab]
+
+
+            normal_fractions = {}
+            record_counts = {}
+            for x in range(0, max_repeat + 1):
+                if x in cur_dict:
+                    record_count = len(cur_dict[x])
+                    normal_fraction = np.divide(sum(cur_dict[x]), float(record_count))
+                else:
+                    record_count = 0
+                    normal_fraction = float('nan')
+
+                record_counts[x] = record_count
+                normal_fractions[x] = (normal_fraction)
+            lab2cnt[lab] = record_counts
+            lab2frac[lab] = normal_fractions
+        df_cnts = pd.DataFrame.from_dict(lab2cnt, orient='index').reset_index().rename(columns={'index': 'lab'})
+        df_fracs = pd.DataFrame.from_dict(lab2frac, orient='index').reset_index().rename(columns={'index': 'lab'})
+
+        df_cnts.to_csv(cached_result_foldername + 'lab2cnt.csv', index=False)
+        df_fracs.to_csv(cached_result_foldername + 'lab2frac.csv', index=False)
+
+    print lab2cnt
+    print lab2frac
 
     fig = plt.figure(figsize=(8, 6))
-    max_repeat = 5
-    for lab in labs:  # ['LABLAC', 'LABLACWB', 'LABK', 'LABPHOS']:
-        cur_dict = lab2stats[lab]
-        nums = []
-        for x in range(0,max_repeat+1):
-            if x in cur_dict:
-                nums.append(cur_dict[x])
-            else:
-                nums.append(float('nan'))
 
-        #res_df[res_df['lab'] == lab].values[0][1:max_repeat + 1]
-        print nums
-        # nums_valid = [x for x in nums if x]
-        # print nums_valid
+    for lab in labs:  # :
 
-
-        plt.plot(range(0,max_repeat+1), nums, label=lab)
-        plt.scatter(range(0, max_repeat + 1), nums)
+        non_empty_inds = []
+        for i in range(0,max_repeat+1):
+            if lab2frac[lab][i]=='':
+                break
+            non_empty_inds.append(i)
+        y_s = [lab2frac[lab][i] for i in non_empty_inds]
+        print lab, y_s
+        plt.plot(non_empty_inds, y_s, label=lab)
+        plt.scatter(non_empty_inds, y_s)
 
     plt.ylim([0, 1])
     plt.xticks(range(0, max_repeat + 1))
@@ -296,150 +322,6 @@ def draw__Normality_Saturations(lab_type, use_cached_fig_data=True):
     plt.ylabel('Normal Rate')
     plt.legend()
     plt.savefig(cached_result_foldername + 'Normality_Saturations_%s'%lab_type)
-
-
-
-
-
-
-
-    # if lab_type == 'panel':
-    #     all_labs = all_panels #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
-    # elif lab_type == 'component':
-    #     all_labs = all_components
-    #
-    # res_df = pd.DataFrame()
-    # data_file_all = '%s_waste_in_7days.csv'%lab_type
-    #
-    # if not os.path.exists(data_file_all):
-    #
-    #     import tmp
-    #
-    #     for i, lab in enumerate(all_labs):
-    #         data_file = '%s_Usage_2014-2016.csv'%lab
-    #
-    #         if not os.path.exists(data_file):
-    #             results = stats_utils.query_lab_usage__df(lab=lab,
-    #                                                       lab_type=lab_type,
-    #                                                       time_start='2014-01-01',
-    #                                                       time_end='2016-12-31')
-    #             df = pd.DataFrame(results, columns=['pat_id', 'order_time', 'result'])
-    #             df.to_csv(data_file, index=False)
-    #         else:
-    #             df = pd.read_csv(data_file,keep_default_na=False)
-    #
-    #         my_dict = {'lab':lab}
-    #         my_dict.update(stats_utils.get_prevweek_normal__dict(df))
-    #
-    #         print my_dict
-    #
-    #         # my_dict = tmp.my_dictt[i]
-    #         # print my_dict
-    #         res_df = res_df.append(my_dict, ignore_index=True)
-    #
-    #     max_num = len(res_df.columns)-1
-    #     res_df = res_df[['lab'] + range(max_num)]#[str(x)+' repeats' for x in range(max_num)]]
-    #     res_df = res_df.rename(columns={x:str(x)+' repeats' for x in range(max_num)})
-    #     res_df.to_csv(data_file_all, index=False)
-    # else:
-    #     res_df = pd.read_csv(data_file_all)
-    #
-    # labs_toPlot = stats_utils.get_top_labs(lab_type)
-    # max_repeat = 10
-    # for lab in labs_toPlot: #['LABLAC', 'LABLACWB', 'LABK', 'LABPHOS']:
-    #     nums = res_df[res_df['lab']==lab].values[0][1:max_repeat+1]
-    #     print nums
-    #     nums_valid = [x for x in nums if x]
-    #     print nums_valid
-    #     plt.plot(range(len(nums_valid)), nums_valid, label=lab)
-    #
-    # plt.ylim([0,1])
-    # plt.xlabel('Num Normality in a Week')
-    # plt.ylabel('Normal Rate')
-    # plt.legend()
-    # plt.show()
-
-
-def draw__Order_Intensities(lab_type='panel', use_cached_fig_data=True):
-    '''
-    Drawing Figure 2 in the main text.
-
-    :param lab_type:
-    :return:
-    '''
-
-    '''
-    Get labs
-    '''
-    labs = get_important_labs()
-    print "Labs to be plot:", labs
-
-    cached_result_foldername = 'Fig2_Order_Intensities/'
-    if not os.path.exists(cached_result_foldername):
-        os.mkdir(cached_result_foldername)
-    cached_result_filename = 'Order_Intensities_%s.csv'%lab_type
-    cached_result_path = os.path.join(cached_result_foldername, cached_result_filename)
-
-    '''
-    Each lab 
-        -> all its orders in 2014-2016 (implicit) 
-        -> {time since last order:cnts} (cached)
-        -> {0-1 days: cnt, 1-3 days: ...} 
-        -> barh
-    '''
-    lab2stats = {}
-    columns = ['< 1 day', '1-3 days', '3-7 days', '> 7 days']
-
-    if os.path.exists(cached_result_path) and use_cached_fig_data:
-        # lab2stats = pickle.load(open(cached_result_path, 'r'))
-        lab2stats_pd = pd.read_csv(cached_result_path)
-        lab2stats = lab2stats_pd.set_index('lab').to_dict(orient='index')
-
-    else:
-        for lab in labs: #all_labs[:10][::-1]:
-
-            df_lab = stats_utils.query_to_dataframe(lab, time_limit=('2014-01-01','2016-12-31'))
-            df_lab = df_lab[df_lab['order_status']=='Completed']
-
-            dict_lab = stats_utils.get_time_since_last_order_cnts(lab, df_lab)
-
-            df_lab = pd.DataFrame.from_dict(dict_lab, orient='index').reset_index().rename(columns={'index': 'lab'})
-            # df_lab.to_csv(cached_result_foldername + '%s.csv'%lab, index=False)
-
-            sums = [dict_lab[0], sum(dict_lab[x] for x in range(1, 4)), sum(dict_lab[x] for x in range(4, 8))]
-            sums.append(sum(dict_lab[x] for x in dict_lab.keys()) - sum(sums))
-
-            time_since_last_order_binned = {columns[_]: sums[_] for _ in range(len(columns))}
-
-            lab2stats[lab] = time_since_last_order_binned
-
-        # pickle.dump(lab2stats, open(cached_result_path, 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
-        df_res = pd.DataFrame.from_dict(lab2stats, orient='index').reset_index().rename(columns={'index':'lab'})
-        df_res.to_csv(cached_result_path, index=False)
-
-
-
-    fig = plt.figure(figsize=(8, 6))
-    for i, lab in enumerate(labs):
-        time_since_last_order_binned = lab2stats[lab]
-
-        if i == 0:
-            plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=True)
-        else:
-            plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=False)
-
-    plt.legend()
-    plt.xlabel('Order number between 2014-2016')
-    plt.savefig(cached_result_foldername + 'Order_Intensities_%s.png'%lab_type)
-    # quit()
-    #
-    # print 'total cnt:', df.shape[0]
-    # print 'repetitive cnt:', sum(prevday_cnts_dict.values())
-    # print 'within 24 hrs:', prevday_cnts_dict[0]
-    # print 'within 48 hrs:', prevday_cnts_dict[1]
-
-
-
 
 
 def draw__Potential_Savings(wanted_PPV=0.95):
@@ -677,6 +559,82 @@ refactoring
 refactored
 '''
 
+def draw__Order_Intensities(use_cached_fig_data=True):
+    '''
+    Drawing Figure 2 in the main text.
+
+    :param lab_type:
+    :return:
+    '''
+
+    '''
+    Get labs
+    '''
+    labs = ['LABCBCD', 'LABMETB'] + all_labs #get_important_labs()
+    print "Labs to be plot:", labs
+
+    cached_result_foldername = 'Fig2_Order_Intensities/'
+    if not os.path.exists(cached_result_foldername):
+        os.mkdir(cached_result_foldername)
+    cached_result_filename = 'Order_Intensities_%s.csv'%lab_type
+    cached_result_path = os.path.join(cached_result_foldername, cached_result_filename)
+
+    '''
+    Each lab 
+        -> all its orders in 2014/07-2017/06 (implicit) 
+        -> {time since last order:cnts} (cached)
+        -> {0-1 days: cnt, 1-3 days: ...} 
+        -> barh
+    '''
+    lab2stats = {}
+    columns = ['< 1 day', '1-3 days', '3-7 days', '> 7 days']
+
+    if os.path.exists(cached_result_path) and use_cached_fig_data:
+        # lab2stats = pickle.load(open(cached_result_path, 'r'))
+        lab2stats_pd = pd.read_csv(cached_result_path)
+        lab2stats = lab2stats_pd.set_index('lab').to_dict(orient='index')
+
+    else:
+        for lab in labs: #all_labs[:10][::-1]:
+            print 'Getting Order Intensities of lab %s..'%lab
+
+            df_lab = stats_utils.get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT)
+
+            dict_lab = stats_utils.get_time_since_last_order_cnts(lab, df_lab)
+
+            # df_lab = pd.DataFrame.from_dict(dict_lab, orient='index').reset_index().rename(columns={'index': 'lab'})
+            # df_lab.to_csv(cached_result_foldername + '%s.csv'%lab, index=False)
+
+            sums = [dict_lab[0], sum(dict_lab[x] for x in range(1, 4)), sum(dict_lab[x] for x in range(4, 8))]
+            sums.append(sum(dict_lab[x] for x in dict_lab.keys()) - sum(sums))
+
+            time_since_last_order_binned = {columns[_]: sums[_] for _ in range(len(columns))}
+
+            lab2stats[lab] = time_since_last_order_binned
+
+        # pickle.dump(lab2stats, open(cached_result_path, 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
+
+        df_res = pd.DataFrame.from_dict(lab2stats, orient='index').reset_index().rename(columns={'index':'lab'})
+
+        df_res.to_csv(cached_result_path, index=False)
+
+    lab_ordered = sorted(labs, key=lambda x:lab2stats[x]['< 1 day'], reverse=True)
+    fig = plt.figure(figsize=(20, 12)) #
+    for i, lab in enumerate(lab_ordered[:39][::-1]):
+
+        time_since_last_order_binned = lab2stats[lab]
+
+        if i == 0:
+            plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=True)
+        else:
+            plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=False)
+
+    plt.legend(loc=(.9,.1))
+    plt.xlabel('Order number between 2014/07-2017/06')
+
+    plt.tight_layout()
+    plt.savefig(cached_result_foldername + 'Order_Intensities_%s.png'%lab_type)
+
 def draw__ROC_PRC_Curves(curve_type="roc", algs=['random-forest']):
     num_labs = len(all_labs)
     row, col, i_s, j_s = prepare_subfigs(num_labs)
@@ -905,7 +863,7 @@ refactored
 
 
 
-def plot_cartoons(lab_type='panel', labs=all_panels):
+def plot_cartoons():
     try:
         df = pd.read_csv('RF_important_features_%ss.csv'%lab_type, keep_default_na=False)
     except:
@@ -1117,25 +1075,6 @@ def check_similar_components():
     (df_combined[['lab'] + columns_UMich_only]).to_csv("UMich_feature_importance_to_compare.csv", index=False)
     (df_combined[['lab'] + columns_component_only]).to_csv("component_feature_importance_to_compare.csv", index=False)
 
-def get_labs_cnts(lab_type):
-    df = pd.DataFrame(columns=['lab', 'cnt 2014-2016'])
-
-    if lab_type == 'panel':
-        labs = all_panels
-    elif lab_type == 'component':
-        labs = all_components
-
-    for lab in labs:
-        try:
-            cur_result = stats_utils.query_lab_cnts(lab=lab,
-                                                    lab_type=lab_type,
-                                                    time_limit=('2014-01-01', '2016-12-31'))
-            print cur_result
-            df = df.append({'lab': cur_result[0], 'cnt 2014-2016': cur_result[1]}, ignore_index=True)
-        except Exception as e:
-            print e
-
-    df.to_csv('%s-cnts-2014-2016.csv' % lab_type, index=False)
 
 def test(lab):
     # data_file = pd.read_csv('stats_useful_data/' + '%s_Usage_2014-2016.csv' % lab)
@@ -1174,8 +1113,8 @@ if __name__ == '__main__':
     # plot_curves__subfigs('UMich', curve_type='prc')
 
     # draw__Potential_Savings()
-    # draw__Order_Intensities('panel')
-    # draw__Normality_Saturations('panel')
+    # draw__Order_Intensities(use_cached_fig_data=True)
+    draw__Normality_Saturations(use_cached_fig_data=True)
     # draw__Confusion_Metrics('panel')
 
 
@@ -1190,4 +1129,4 @@ if __name__ == '__main__':
 
     #draw__ROC_PRC_Curves(curve_type='prc', algs=['random-forest'])
 
-    draw__Confusion_Metrics()
+    # draw__Confusion_Metrics()

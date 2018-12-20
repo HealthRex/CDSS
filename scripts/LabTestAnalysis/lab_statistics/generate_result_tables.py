@@ -16,21 +16,21 @@ train_PPVs = [0.99, 0.95, 0.9, 0.8] #[0.5, 0.75, 0.90, 0.95, 0.975, 0.99]
 
 lab_type = stats_utils.lab_type
 all_labs = stats_utils.all_labs
-labs_folder = stats_utils.labs_folder
+labs_folder = stats_utils.labs_ml_folder
 all_algs = stats_utils.all_algs
 
 DEFAULT_TIMEWINDOWS = stats_utils.DEFAULT_TIMEWINDOWS
 
 
 results_subfoldername = 'stats_by_lab_alg'
-results_subfolderpath = os.path.join(stats_utils.stats_folder, results_subfoldername)
+results_subfolderpath = os.path.join(stats_utils.labs_stats_folder, results_subfoldername)
 if not os.path.exists(results_subfolderpath):
     os.mkdir(results_subfolderpath)
 results_filename_template = '%s-stats-target-%s-%s.csv'
 results_filepath_template = os.path.join(results_subfolderpath, results_filename_template)
 
 summary_filename_template = 'summary-stats-%s-%s.csv'
-summary_filepath_template = os.path.join(stats_utils.stats_folder, summary_filename_template)
+summary_filepath_template = os.path.join(stats_utils.labs_stats_folder, summary_filename_template)
 
 '''
 For each (train-)PPV wanted, each vital-day dataset
