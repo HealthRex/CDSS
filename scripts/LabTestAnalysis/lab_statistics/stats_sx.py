@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 lab_type = stats_utils.lab_type
 all_labs = stats_utils.all_labs
 labs_ml_folder = stats_utils.labs_ml_folder
+labs_stats_folder = stats_utils.labs_stats_folder
 all_algs = stats_utils.all_algs
 
 DEFAULT_TIMELIMIT = stats_utils.DEFAULT_TIMELIMIT
@@ -304,23 +305,25 @@ def draw__Normality_Saturations(use_cached_fig_data=True):
 
     fig = plt.figure(figsize=(8, 6))
 
-    for lab in labs:  # :
+    for lab in labs[60:]:  # :
 
         non_empty_inds = []
         for i in range(0,max_repeat+1):
             if lab2frac[lab][i]=='':
                 break
             non_empty_inds.append(i)
-        y_s = [lab2frac[lab][i] for i in non_empty_inds]
+        y_s = [float(lab2frac[lab][i]) for i in non_empty_inds]
         print lab, y_s
-        plt.plot(non_empty_inds, y_s, label=lab)
+        plt.plot(non_empty_inds, y_s, label=lab_desciptions[lab])
         plt.scatter(non_empty_inds, y_s)
 
-    plt.ylim([0, 1])
+
     plt.xticks(range(0, max_repeat + 1))
     plt.xlabel('Number of Consecutive Normalities in a Week')
     plt.ylabel('Normal Rate')
+    # plt.ylim([0, 1])
     plt.legend()
+    plt.tight_layout()
     plt.savefig(cached_result_foldername + 'Normality_Saturations_%s'%lab_type)
 
 
@@ -471,9 +474,14 @@ def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
 
     :return:
     '''
-    df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv' % lab_type,
-                     keep_default_na=False)
-    df = df[df['train_PPV'] == wanted_PPV]
+    # df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv' % lab_type,
+    #                  keep_default_na=False)
+    labs_stats_filepath = os.path.join(labs_stats_folder, 'summary-stats-bestalg-fixTrainPPV.csv')
+
+    df = pd.read_csv(labs_stats_filepath)
+
+    df = df[df['targeted_PPV_fixTrainPPV'] == wanted_PPV]
+
 
     cached_foldername = 'Fig3_Confusion_Metrics/'
     cached_filename = 'Confusion_Metrics_%ss.csv'%lab_type
@@ -485,14 +493,20 @@ def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
 
     else:
 
-        labs_and_cnts = stats_utils.get_top_labs_and_cnts(lab_type)
+        # labs_and_cnts = stats_utils.get_top_labs_and_cnts(lab_type)
+
         # labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
         #                                                            time_limit=['2014-01-01', '2016-12-31'])])
 
-        df = df[df['lab'].isin([x[0] for x in labs_and_cnts])]
+        labs = all_labs
+
+        df = df[df['lab'].isin(labs)]
         print df.head()
-        my_dict = {x[0]:x[1] for x in labs_and_cnts}
-        df['count'] = df['lab'].map(my_dict)
+
+        df['total_count'] =                            df['2014 2stHalf count'] + \
+                            df['2015 1stHalf count'] + df['2015 2stHalf count'] + \
+                            df['2016 1stHalf count'] + df['2016 2stHalf count'] + \
+                            df['2017 1stHalf count']
 
         df['all_positive'] = df['true_positive'] + df['false_positive']
         df['all_negative'] = df['true_negative'] + df['false_negative']
@@ -500,7 +514,8 @@ def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
         df['true_negative'] = -df['true_negative']
         df['all_negative'] = -df['all_negative']
 
-        df['count'] = df['count'].apply(lambda x: float(x) if x != '' else 0)
+        # df['count'] = df['count'].apply(lambda x: float(x) if x != '' else 0)
+
         # if lab_type == 'component':
         #     df['count'] = df['count'].apply(lambda x: x / 1000000)
 
@@ -509,20 +524,20 @@ def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
 
         df_toplot = df
 
-        df['all_positive'] *= df['count']
-        df['true_positive'] *= df['count']
-        df['all_negative'] *= df['count']
-        df['true_negative'] *= df['count']
+        df['all_positive'] *= df['total_count']
+        df['true_positive'] *= df['total_count']
+        df['all_negative'] *= df['total_count']
+        df['true_negative'] *= df['total_count']
 
-        df_toplot[['lab', 'count',
+        df_toplot[['lab', 'total_count',
                    'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
                    'all_positive', 'true_positive', 'all_negative', 'true_negative']]\
-                    .sort_values('count', ascending=False)\
+                    .sort_values('total_count', ascending=False)\
                     .to_csv(cached_result_path, index=False, float_format='%.2f')
 
-    df_toplot = df_toplot.sort_values('count', ascending=True)
+    df_toplot = df_toplot.sort_values(['total_count'], ascending=True).tail(38) # TODO: tune here
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10, 10))
     ax.barh(df_toplot['lab'], df_toplot['all_positive'], color='orange', alpha=0.5, label='False Positive')
     ax.barh(df_toplot['lab'], df_toplot['true_positive'], color='blue', alpha=1, label='True Positive')
 
@@ -531,19 +546,23 @@ def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
 
 
     if lab_type == 'panel':
-        for i, v in enumerate(df_toplot['all_negative']):
-            ax.text(-60000, i, df_toplot['lab'].values[i], color='k')
+        for i, v in enumerate(df_toplot['all_positive']):
+            ax.text(v, i, lab_desciptions[df_toplot['lab'].values[i]], color='k')
 
     elif lab_type == 'component':
-        for i, v in enumerate(df_toplot['all_negative']):
-            ax.text(-150000, i, df_toplot['lab'].values[i], color='k')
-            plt.xticks([-1500000, -1000000, -500000, 0, 500000])
+        for i, v in enumerate(df_toplot['all_positive']):
+            ax.text(v, i, lab_desciptions[df_toplot['lab'].values[i]], color='k')
+            # plt.xticks([-1500000, -1000000, -500000, 0, 500000])
 
     plt.yticks([])
 
-    plt.legend()
-    plt.xlabel('total lab cnt in 2014-2016')
+    # plt.xlim([-6*10**9, 2*10**9])
+
+    plt.legend(loc=[0.1,0.1])
+    plt.xlabel('total lab cnt in 2014-2017')
     plt.ylabel('labs')
+
+    plt.tight_layout()
 
     plt.savefig(cached_foldername+'Confusion_Metrics_%ss.png'%lab_type)
 
@@ -1114,8 +1133,6 @@ if __name__ == '__main__':
 
     # draw__Potential_Savings()
     # draw__Order_Intensities(use_cached_fig_data=True)
-    draw__Normality_Saturations(use_cached_fig_data=True)
-    # draw__Confusion_Metrics('panel')
 
 
     # plot_predict_twoside_bar('component')
@@ -1129,4 +1146,5 @@ if __name__ == '__main__':
 
     #draw__ROC_PRC_Curves(curve_type='prc', algs=['random-forest'])
 
-    # draw__Confusion_Metrics()
+    draw__Confusion_Metrics(use_cached_fig_data=False)
+    # draw__Normality_Saturations(use_cached_fig_data=True)

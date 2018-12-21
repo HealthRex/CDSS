@@ -28,7 +28,7 @@ For plotting guideline,
 a lab, has n prev consecutive normal. 
 '''
 
-lab_type = 'panel'
+lab_type = 'component'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
@@ -671,7 +671,10 @@ def pick_threshold(y_pick, y_pick_pred, target_PPV=0.95):
     return thres_last
 
 def get_lab_descriptions():
-    descriptions_filepath = os.path.join(labs_old_stats_folder, 'labs.csv')
+    if lab_type=='panel':
+        descriptions_filepath = os.path.join(labs_old_stats_folder, 'labs.csv')
+    elif lab_type=='component':
+        descriptions_filepath = os.path.join(labs_old_stats_folder, 'components.csv')
     df = pd.read_csv(descriptions_filepath, keep_default_na=False)
     descriptions = pandas2dict(df[['name', 'description']], key='name', val='description')
     return descriptions
@@ -738,8 +741,12 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
         df_prices = pd.read_csv(prices_filepath, keep_default_na=False)
         df_prices_dict = df_prices.ix[df_prices['name'] == lab,
                                       ['min_price', 'max_price', 'mean_price', 'median_price']].to_dict(orient='list')
+
         for key, val in df_prices_dict.items():
-            df_prices_dict[key] = val[0]
+            if lab == 'LABNA':
+                df_prices_dict[key] = 219
+            else:
+                df_prices_dict[key] = val[0]
 
     fm_io = FeatureMatrixIO()
     processed_matrix_train_path = os.path.join(labs_ml_folder, lab,

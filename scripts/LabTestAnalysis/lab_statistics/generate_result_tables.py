@@ -46,11 +46,12 @@ def main_labs2stats(targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrain
             '''
             results_filepath = results_filepath_template%(lab, thres_mode, str(targeted_PPV))
 
-            stats_utils.lab2stats(lab=lab,
-                                  targeted_PPV=targeted_PPV,
-                                  columns=columns,
-                                  thres_mode=thres_mode,
-                                  results_filepath=results_filepath)
+            if not os.path.exists(results_filepath):
+                stats_utils.lab2stats(lab=lab,
+                                      targeted_PPV=targeted_PPV,
+                                      columns=columns,
+                                      thres_mode=thres_mode,
+                                      results_filepath=results_filepath)
 
 def main_stats2summary(targeted_PPVs = train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
