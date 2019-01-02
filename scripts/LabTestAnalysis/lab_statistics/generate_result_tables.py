@@ -10,13 +10,15 @@ import stats_utils
 
 import matplotlib
 matplotlib.rcParams['backend'] = 'TkAgg'
+
+import LocalEnv
 import matplotlib.pyplot as plt
 
-train_PPVs = [0.99, 0.95, 0.9, 0.8] #[0.5, 0.75, 0.90, 0.95, 0.975, 0.99]
+train_PPVs = (0.99, 0.95, 0.9, 0.8) #[0.5, 0.75, 0.90, 0.95, 0.975, 0.99]
 
 lab_type = stats_utils.lab_type
 all_labs = stats_utils.all_labs
-labs_folder = stats_utils.labs_ml_folder
+# labs_folder = stats_utils.labs_ml_folder
 all_algs = stats_utils.all_algs
 
 DEFAULT_TIMEWINDOWS = stats_utils.DEFAULT_TIMEWINDOWS
@@ -36,7 +38,7 @@ summary_filepath_template = os.path.join(stats_utils.labs_stats_folder, summary_
 For each (train-)PPV wanted, each vital-day dataset
 Create a summary of all algs' performances on all labs
 '''
-def main_labs2stats(targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
+def main_labs2stats(train_data_folderpath, ml_results_folderpath, stats_results_folderpath, targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
     for targeted_PPV in targeted_PPVs:
         for lab in all_labs:
@@ -44,14 +46,18 @@ def main_labs2stats(targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrain
             For each lab at each (train_PPV), 
             write all stats (e.g. AUROC, PPV, total cnts) into csv file. 
             '''
-            results_filepath = results_filepath_template%(lab, thres_mode, str(targeted_PPV))
+            stats_results_filename = results_filename_template%(lab, thres_mode, str(targeted_PPV))
+            stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg', stats_results_filename)
 
-            if not os.path.exists(results_filepath):
-                stats_utils.lab2stats(lab=lab,
-                                      targeted_PPV=targeted_PPV,
-                                      columns=columns,
-                                      thres_mode=thres_mode,
-                                      results_filepath=results_filepath)
+            # if not os.path.exists(stats_results_filepath):
+            stats_utils.lab2stats(lab=lab,
+                                  targeted_PPV=targeted_PPV,
+                                  columns=columns,
+                                  thres_mode=thres_mode,
+                                  train_data_labfolderpath=os.path.join(train_data_folderpath, lab),
+                                  ml_results_labfolderpath=os.path.join(ml_results_folderpath, lab),
+                                  stats_results_filepath=stats_results_filepath
+                                  )
 
 def main_stats2summary(targeted_PPVs = train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
@@ -62,8 +68,10 @@ def main_stats2summary(targeted_PPVs = train_PPVs, columns=None, thres_mode="fix
 
     for targeted_PPV in targeted_PPVs:
         for lab in all_labs:
-            results_filepath = results_filepath_template % (lab, thres_mode, str(targeted_PPV))
-            df_lab = pd.read_csv(results_filepath, keep_default_na=False)
+            stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
+            stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg', stats_results_filename)
+            # results_filepath = results_filepath_template % (lab, thres_mode, str(targeted_PPV))
+            df_lab = pd.read_csv(stats_results_filepath, keep_default_na=False)
             df_lab['targeted_PPV_%s'%thres_mode] = targeted_PPV
 
             df_long = df_long.append(df_lab, ignore_index=True)
@@ -74,10 +82,18 @@ def main_stats2summary(targeted_PPVs = train_PPVs, columns=None, thres_mode="fix
             df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
             df_best_alg = df_best_alg.append(df_cur_best_alg)
 
-    df_long[columns].to_csv(summary_filepath_template%('allalgs', thres_mode), index=False)
-    df_best_alg[columns_best_alg].to_csv(summary_filepath_template%('bestalg', thres_mode), index=False)
+    summary_long_filename = 'summary-stats-%s-%s.csv'%('allalgs', thres_mode)
+    summary_long_filepath = os.path.join(stats_results_folderpath, summary_long_filename)
+    df_long[columns].to_csv(summary_long_filepath, index=False)
 
-def main(thres_mode="fixTrainPPV"):
+    summary_best_filename = 'summary-stats-%s-%s.csv'%('bestalg', thres_mode)
+    summary_best_filepath = os.path.join(stats_results_folderpath, summary_best_filename)
+    df_best_alg[columns_best_alg].to_csv(summary_best_filepath, index=False)
+
+    # df_long[columns].to_csv(summary_filepath_template%('allalgs', thres_mode), index=False)
+    # df_best_alg[columns_best_alg].to_csv(summary_filepath_template%('bestalg', thres_mode), index=False)
+
+def main(train_data_folderpath, ml_results_folderpath, stats_results_folderpath, thres_mode="fixTrainPPV"):
     '''
     Performance on test set, by choosing a threshold whether from train or test.
 
@@ -114,7 +130,10 @@ def main(thres_mode="fixTrainPPV"):
     elif lab_type == 'UMich':
         columns = columns_UMichs
 
-    main_labs2stats(targeted_PPVs=train_PPVs,
+    main_labs2stats(train_data_folderpath=train_data_folderpath,
+                    ml_results_folderpath=ml_results_folderpath,
+                    stats_results_folderpath=stats_results_folderpath,
+                    targeted_PPVs=train_PPVs,
                                  columns=columns,
                                  thres_mode=thres_mode)
 
@@ -123,6 +142,19 @@ def main(thres_mode="fixTrainPPV"):
                    thres_mode=thres_mode)
 
 if __name__ == '__main__':
-    main(thres_mode="fixTrainPPV")
+    project_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
+    train_data_folderpath = os.path.join(project_folder, 'machine_learning/',
+                                         'data-panels-10000-episodes')
+    ml_results_folderpath = os.path.join(project_folder, 'machine_learning/',
+                                   'results-from-panels-10000-to-panels-5000-part-1')
+    stats_results_folderpath = ml_results_folderpath.replace('machine_learning/', 'lab_statistics/')
+
+    if not os.path.exists(stats_results_folderpath):
+        os.mkdir(stats_results_folderpath)
+
+    main(train_data_folderpath=train_data_folderpath,
+         ml_results_folderpath=ml_results_folderpath,
+         stats_results_folderpath=stats_results_folderpath,
+         thres_mode="fixTrainPPV")
     # fill_df_fix_PPV('LABAFBD', alg='random-forest', data_folder='../machine_learning/data-panels/',
     #                 PPV_wanted=0.99, lab_type="panel", thres_mode="from_train")

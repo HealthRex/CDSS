@@ -501,7 +501,6 @@ def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
         labs = all_labs
 
         df = df[df['lab'].isin(labs)]
-        print df.head()
 
         df['total_count'] =                            df['2014 2stHalf count'] + \
                             df['2015 1stHalf count'] + df['2015 2stHalf count'] + \
@@ -1146,5 +1145,5 @@ if __name__ == '__main__':
 
     #draw__ROC_PRC_Curves(curve_type='prc', algs=['random-forest'])
 
-    draw__Confusion_Metrics(use_cached_fig_data=False)
+    draw__Confusion_Metrics(wanted_PPV=0.9, use_cached_fig_data=False)
     # draw__Normality_Saturations(use_cached_fig_data=True)

@@ -482,15 +482,12 @@ def main_different_testsets():
 
     from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS
 
-    ml_alg = 'random-forest'
-
     for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
 
         feat2imputed_path = os.path.join(src_folderpath, lab, 'feat2imputed_dict.csv')
         template_src = pd.read_csv(feat2imputed_path, keep_default_na=False)#get_process_template(feat2imputed_path)
 
         # TODO: such info should be hidden in the function?
-        model_src = load_ml_model(lab, ml_alg, src_folderpath)
 
         raw_matrix_src = load_raw_matrix(lab, src_folderpath)
 
@@ -500,42 +497,51 @@ def main_different_testsets():
         raw_matrix_1, raw_matrix_2 = split_rows(raw_matrix_dst, fraction=0.5)
         raw_matrices = [raw_matrix_1, raw_matrix_2]
 
-        res_foldername_template = "results-from-panels-10000-to-panels-5000-part-%i/"
-        for ind, raw_matrix_dst in enumerate(raw_matrices):
-            res_foldername = res_foldername_template%(ind+1)
-            res_folderpath = os.path.join(main_folder, res_foldername)
-
-            baseline_filename = 'baseline_comparisons.csv'
-            baseline_filepath = os.path.join(res_folderpath, lab, baseline_filename)
-            obtain_baseline_results(raw_matrix_src, raw_matrix_dst, baseline_filepath)
+        for ml_alg in SupervisedClassifier.SUPPORTED_ALGORITHMS:  # TODO
+            model_src = load_ml_model(lab, ml_alg, src_folderpath)
 
 
-            if not os.path.exists(res_folderpath):
-                os.mkdir(res_folderpath)
 
-            if not os.path.exists(os.path.join(res_folderpath, lab)):
-                os.mkdir(os.path.join(res_folderpath, lab))
+            res_foldername_template = "results-from-panels-10000-to-panels-5000-part-%i/"
+            for ind, raw_matrix_dst in enumerate(raw_matrices):
+                res_foldername = res_foldername_template%(ind+1)
+                res_folderpath = os.path.join(main_folder, res_foldername)
 
-            feat2imputed = template_src.to_dict()
-            for key in feat2imputed:
-                feat2imputed[key] = feat2imputed[key][0]
-
-
-            processed_matrix_dst = raw_matrix_dst[template_src.columns].fillna(feat2imputed)
+                baseline_filename = 'baseline_comparisons.csv'
+                baseline_filepath = os.path.join(res_folderpath, lab, baseline_filename)
+                # obtain_baseline_results(raw_matrix_src, raw_matrix_dst, baseline_filepath)
 
 
-            raw_matrix_dst.to_csv(os.path.join(
-                res_folderpath, lab, '%s-normality-matrix-raw.tab'%lab
-            ), index=False)
-            processed_matrix_dst.to_csv(os.path.join(
-                res_folderpath, lab, '%s-normality-matrix-processed.tab'%lab
-            ), index=False)
+                if not os.path.exists(res_folderpath):
+                    os.mkdir(res_folderpath)
 
-            X_test, y_test = split_Xy(processed_matrix_dst, outcome_label='all_components_normal')
+                if not os.path.exists(os.path.join(res_folderpath, lab)):
+                    os.mkdir(os.path.join(res_folderpath, lab))
 
-            output_filename = 'direct_comparisons.csv'
-            output_filepath = os.path.join(res_folderpath, lab, output_filename)
-            output_result(X_test, y_test, model_src, output_filepath)
+                feat2imputed = template_src.to_dict()
+                for key in feat2imputed:
+                    feat2imputed[key] = feat2imputed[key][0]
+
+                raw_matrix_dst_filepath = os.path.join(res_folderpath, lab, '%s-normality-test-matrix-raw.tab' % lab)
+                # raw_matrix_dst.to_csv(raw_matrix_dst_filepath, index=False)
+
+
+
+                processed_matrix_dst = raw_matrix_dst[template_src.columns.tolist()+['pat_id']].fillna(feat2imputed)
+
+                processed_matrix_dst_filepath = os.path.join(res_folderpath, lab, '%s-normality-test-matrix-processed.tab'%lab)
+                processed_matrix_dst.to_csv(processed_matrix_dst_filepath, index=False) # TODO: use fm_io
+
+                processed_matrix_dst.pop('pat_id')
+                continue
+
+                X_test, y_test = split_Xy(processed_matrix_dst, outcome_label='all_components_normal')
+
+                output_filename = 'direct_comparisons.csv'
+                output_filepath = os.path.join(res_folderpath, lab, ml_alg, output_filename)
+                if not os.path.exists(os.path.join(res_folderpath, lab, ml_alg)):
+                    os.mkdir(os.path.join(res_folderpath, lab, ml_alg))
+                output_result(X_test, y_test, model_src, output_filepath)
 
 
 
