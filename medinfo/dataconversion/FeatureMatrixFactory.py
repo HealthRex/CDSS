@@ -1122,7 +1122,6 @@ class FeatureMatrixFactory:
         patientEpisodes = self.getPatientEpisodeIterator()
         for episode in patientEpisodes:
             patientIds.add(episode[self.patientEpisodeIdColumn])
-
         # Construct query to pull from stride_order_results, stride_order_proc
 
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
