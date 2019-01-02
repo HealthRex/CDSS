@@ -1171,7 +1171,7 @@ class FeatureMatrixFactory:
             query_str += "ORDER BY pat_id"
             if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
                 query_str += ", sor.result_time"
-            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich' or LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
                 query_str += ", result_time"
 
             cur = DBUtil.connection().cursor()
@@ -1180,12 +1180,11 @@ class FeatureMatrixFactory:
             results = []
             colNames = DBUtil.columnNamesFromCursor(cur)
             results.append(colNames)
-            # DBUtil.execute(query_str, includeColumnNames=True)
 
             dataTable = list(cur.fetchall())
             for i, row in enumerate(dataTable):
                 dataTable[i] = list(row);
-                results.extend(dataTable);
+            results.extend(dataTable);
 
             return modelListFromTable(results)
 
