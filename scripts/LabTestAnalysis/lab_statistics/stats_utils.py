@@ -28,7 +28,7 @@ For plotting guideline,
 a lab, has n prev consecutive normal. 
 '''
 
-lab_type = 'component'
+lab_type = 'panel'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
@@ -67,7 +67,8 @@ elif lab_type == 'UMich':
     curr_version = '10000-episodes'
     all_labs = all_UMichs
 
-labs_ml_folder = os.path.join(main_folder, 'machine_learning/data-%ss-%s/'%(lab_type, curr_version))
+
+# labs_ml_folder = os.path.join(main_folder, 'machine_learning/data-%ss-%s/'%(lab_type, curr_version))
 labs_stats_folder = os.path.join(main_folder, 'lab_statistics/stats-%ss-%s/'%(lab_type, curr_version))
 labs_old_stats_folder = os.path.join(main_folder, 'lab_statistics/data_summary_stats/')
 labs_query_folder = os.path.join(main_folder, 'lab_statistics/query_lab_results/')
@@ -586,8 +587,13 @@ Baseline 2: Predict by last normality (when it is available), or by population a
 In all cases, can make a prediction, so no need to make a prediction. 
 Can calculate ROC, PPV etc. Can pick a threshold. 
 '''
-def get_baseline2_auroc(lab):
-    df = pd.read_csv(os.path.join(labs_ml_folder, lab, 'baseline_comparisons.csv'))  # TODO: baseline file should not have index!
+def get_baseline2_auroc(data_filepath=None):
+    #TODO: does not care file structure, only take care of function and logic
+    # if not data_folderpath:
+    #     df = pd.read_csv(os.path.join(labs_ml_folder, lab, 'baseline_comparisons.csv'))  # TODO: baseline file should not have index!
+    # else:
+    #     df = pd.read_csv(os.path.join(data_filepath, 'baseline_comparisons.csv'))
+    df = pd.read_csv(os.path.join(data_filepath, 'baseline_comparisons.csv'))
 
     try:
         res = roc_auc_score(df['actual'], df['predict'])
@@ -713,7 +719,7 @@ def get_labvol(lab, time_limit=DEFAULT_TIMELIMIT):
     df = get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT)
     return df.shape[0]
 
-def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
+def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, ml_results_labfolderpath, stats_results_filepath):
     '''
     For each lab at each train_PPV,
     write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
@@ -727,7 +733,7 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
 
     Same across all algs
     '''
-    baseline_roc_auc = get_baseline2_auroc(lab)
+    baseline_roc_auc = get_baseline2_auroc(train_data_labfolderpath)
 
     # For STRIDE, also do cnts and costs
     if lab_type == 'panel' or lab_type == 'component':
@@ -749,17 +755,17 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
                 df_prices_dict[key] = val[0]
 
     fm_io = FeatureMatrixIO()
-    processed_matrix_train_path = os.path.join(labs_ml_folder, lab,
-                                         '%s-normality-train-matrix-10000-episodes-processed.tab'%lab)
+    processed_matrix_train_path = os.path.join(train_data_labfolderpath,
+                                         '%s-normality-train-matrix-processed.tab'%lab)
     # TODO: get rid of '10000' in file name
     processed_matrix_train = fm_io.read_file_to_data_frame(processed_matrix_train_path)
     num_train_episodes = processed_matrix_train.shape[0]
     num_train_patient = len(set(processed_matrix_train['pat_id'].values.tolist()))
 
-    processed_matrix_test_path = os.path.join(labs_ml_folder, lab,
-                                               '%s-normality-test-matrix-10000-episodes-processed.tab' % lab)
+    processed_matrix_test_path = os.path.join(ml_results_labfolderpath,
+                                               '%s-normality-test-matrix-processed.tab' % lab)
     # TODO: get rid of '10000' in file name
-    processed_matrix_test = fm_io.read_file_to_data_frame(processed_matrix_test_path)
+    processed_matrix_test = pd.read_csv(processed_matrix_test_path, keep_default_na=False)#fm_io.read_file_to_data_frame(processed_matrix_test_path)
     num_test_episodes = processed_matrix_test.shape[0]
     num_test_patient = len(set(processed_matrix_test['pat_id'].values.tolist()))
 
@@ -778,8 +784,8 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
 
         one_row['baseline2_ROC'] = baseline_roc_auc
 
-        df_direct_compare = pd.read_csv(labs_ml_folder + '/' + lab + '/' + alg + '/' +
-                                        '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
+        df_direct_compare = pd.read_csv(ml_results_labfolderpath + '/' + alg + '/' + 'direct_comparisons.csv',
+                                        #'%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
                                         keep_default_na=False)
 
         actual_labels, predict_scores = df_direct_compare['actual'].values, df_direct_compare['predict'].values
@@ -793,7 +799,7 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
         '''
         one_row['targeted_PPV_%s'%thres_mode] = targeted_PPV
 
-        score_thres = pick_threshold(actual_labels, predict_scores, target_PPV=0.95)
+        score_thres = pick_threshold(actual_labels, predict_scores, target_PPV=targeted_PPV)
         one_row['score_thres'] = score_thres
 
         true_positive, false_positive, true_negative, false_negative, \
@@ -823,7 +829,7 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, results_filepath):
 
         df = df.append(one_row, ignore_index=True)
 
-    df[columns].to_csv(results_filepath, index=False)
+    df[columns].to_csv(stats_results_filepath, index=False)
 
     return df
 
