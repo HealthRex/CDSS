@@ -508,7 +508,7 @@ def main_different_testsets():
             baseline_filename = 'baseline_comparisons.csv'
             baseline_filepath = os.path.join(res_folderpath, lab, baseline_filename)
             obtain_baseline_results(raw_matrix_src, raw_matrix_dst, baseline_filepath)
-            continue
+
 
             if not os.path.exists(res_folderpath):
                 os.mkdir(res_folderpath)
@@ -520,9 +520,16 @@ def main_different_testsets():
             for key in feat2imputed:
                 feat2imputed[key] = feat2imputed[key][0]
 
+
             processed_matrix_dst = raw_matrix_dst[template_src.columns].fillna(feat2imputed)
-            print processed_matrix_dst
-            # processed_matrix_dst = process_matrix(raw_matrix_dst, template_src)
+
+
+            raw_matrix_dst.to_csv(os.path.join(
+                res_folderpath, lab, '%s-normality-matrix-raw.tab'%lab
+            ), index=False)
+            processed_matrix_dst.to_csv(os.path.join(
+                res_folderpath, lab, '%s-normality-matrix-processed.tab'%lab
+            ), index=False)
 
             X_test, y_test = split_Xy(processed_matrix_dst, outcome_label='all_components_normal')
 
