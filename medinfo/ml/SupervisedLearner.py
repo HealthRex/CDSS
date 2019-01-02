@@ -29,6 +29,8 @@ import LocalEnv
 import os
 
 import pandas as pd
+pd.set_option('display.width', 3000)
+pd.set_option('display.max_columns', 3000)
 import numpy as np
 from sklearn.model_selection import train_test_split as sklearn_train_test_split
 from sklearn.externals import joblib
@@ -65,7 +67,7 @@ def split_rows(data_matrix, fraction=0.75, columnToSplitOn='pat_id', random_stat
 
 def split_Xy(data_matrix, outcome_label):
     X = data_matrix.loc[:, data_matrix.columns != outcome_label].copy()
-    y = data_matrix.loc[:, [outcome_label]].copy()
+    y = data_matrix.loc[:, outcome_label].copy()
     return X, y
 
 def get_algs():
@@ -137,7 +139,7 @@ def select_features(matrix, strategy):\
     # TODO: fill in
     return matrix
 
-def process_matrix(lab, raw_matrix, features_dict, data_path, impute_template=None):
+def process_matrix(lab, raw_matrix, features_dict, data_path='', impute_template=None):
     # General philosophy: do not change the input data
     # TODO: Things to test:
 
@@ -219,6 +221,7 @@ def load_ml_model(lab, ml_alg, data_folder):
     predictor_path = os.path.join(data_folder, lab, ml_model_filename) # TODO
     return joblib.load(predictor_path)
 
+
 def calibrate_ml_model(ml_model, X_cali, y_cali, cali_method='isotonic'):
     model_isotonic = CalibratedClassifierCV(ml_model, cv='prefit', method=cali_method)
     model_isotonic.fit(X=X_cali, y=y_cali)
@@ -246,7 +249,7 @@ def load_raw_matrix(lab, lab_folder, file_name=None):
         file_name = '%s-normality-matrix-raw.tab'%lab
 
 
-    raw_matrix_path = os.path.join(lab_folder, file_name)
+    raw_matrix_path = os.path.join(lab_folder, lab, file_name)
 
     raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
     return raw_matrix
@@ -309,6 +312,11 @@ def load_process_template(lab, non_impute_features, data_folder):
     return process_template
 
 
+def get_process_template(feat2imputed_path):
+    import pickle
+    feat2imputed_dict = pickle.load(open(feat2imputed_path, 'r'))
+    return feat2imputed_dict
+
 ############# Compatible functions for previous results #############
 
 
@@ -316,93 +324,6 @@ def load_process_template(lab, non_impute_features, data_folder):
 
 
 
-
-############# Stats functions #############
-# TODO: move to the stats module
-
-def get_confusion_counts(actual_labels, predict_labels):
-
-    true_positive = 0
-    false_positive = 0
-    true_negative = 0
-    false_negative = 0
-    for i in range(len(actual_labels)):
-        if actual_labels[i] == 1 and predict_labels[i] == 1:
-            true_positive += 1
-        elif actual_labels[i] == 0 and predict_labels[i] == 1:
-            false_positive += 1
-        elif actual_labels[i] == 1 and predict_labels[i] == 0:
-            false_negative += 1
-        elif actual_labels[i] == 0 and predict_labels[i] == 0:
-            true_negative += 1
-        else:
-            print "what?!"
-    return true_positive, false_positive, true_negative, false_negative
-
-def get_confusion_metrics(actual_labels, predict_probas, threshold):
-    #TODO: move to stats unit
-    predict_labels = [1 if x > threshold else 0 for x in predict_probas]
-    true_positive, false_positive, true_negative, false_negative = \
-        get_confusion_counts(actual_labels, predict_labels)
-
-    res_dict = {}
-    res_dict['sensitivity'] = float(true_positive) / float(true_positive + false_negative)
-    res_dict['specificity'] = float(true_negative) / float(true_negative + false_positive)
-    try:
-        res_dict['LR_p'] = res_dict['sensitivity'] / (1 - res_dict['specificity'])
-    except ZeroDivisionError:
-        if res_dict['sensitivity'] == 0:
-            res_dict['LR_p'] = float('nan')
-        else:
-            res_dict['LR_p'] = float('inf')
-
-    try:
-        res_dict['LR_n'] = (1 - res_dict['sensitivity']) / res_dict['specificity']
-    except ZeroDivisionError:
-        if res_dict['sensitivity'] == 1:
-            res_dict['LR_n'] = float('nan')
-        else:
-            res_dict['LR_n'] = float('inf')
-
-    try:
-        res_dict['PPV'] = float(true_positive) / float(true_positive + false_positive)
-    except ZeroDivisionError:
-        res_dict['PPV'] = float('nan')
-
-    try:
-        res_dict['NPV'] = float(true_negative) / float(true_negative + false_negative)
-    except ZeroDivisionError:
-        res_dict['NPV'] = float('nan')
-
-    return res_dict
-
-
-def pick_threshold(y_pick, y_pick_pred, target_PPV=0.95):
-    # TODO: assume both are numpy arrays
-    thres_last, PPV_last = 1., 1.
-    actual_list = y_pick.flatten().tolist()
-    predicted_proba = y_pick_pred.flatten().tolist()
-    assert len(actual_list) == len(predicted_proba)
-    # TODO: also check proba's and labels
-
-    for thres in np.linspace(1, 0, num=1001):
-
-        predict_class_list = [1 if x > thres else 0 for x in predicted_proba]
-
-        TP, FP, _, _ = get_confusion_counts(actual_list, predict_class_list)
-        try:
-            PPV = float(TP) / float(TP + FP)
-        except ZeroDivisionError:
-            # PPV = float('nan')
-            continue
-
-        if PPV < target_PPV:
-            break
-        else:
-            thres_last = thres
-
-    return thres_last
-############# Stats functions #############
 
 
 
@@ -454,7 +375,7 @@ def main_pipelining():
 
     lab = "LABA1C"
     lab_type = 'panel'
-    outcome_label = 'all_component_normal'
+    outcome_label = 'all_components_normal'
     algs = get_algs()
 
 
@@ -464,7 +385,7 @@ def main_pipelining():
 
     processed_matrix_train, process_template = process_matrix(raw_matrix_train)
 
-    X_train, y_train = processed_matrix_train # TODO
+    X_train, y_train = split_rows(processed_matrix_train) # TODO
 
     ml_models = train_ml_models(X_train, y_train, lab, algs)  # key: (lab,alg), value: model
 
@@ -477,7 +398,141 @@ def main_pipelining():
     evaluate_ml_models(X_test, y_test, ml_models)
 
 
+def output_result(X_test, y_test, model_src, res_folderpath):
+    y_pred_prob = model_src.predict_probability(X_test)[:,1]
+
+    direct_comparisons = pd.DataFrame({'actual': y_test.values.flatten(), 'predict': y_pred_prob})
+    direct_comparisons.to_csv(res_folderpath)
+
+def obtain_baseline_results(train_matrix, test_matrix, dst_filepath='', isLabPanel=True):
+    # for episode_dict in self.getPatientEpisodeIterator():
+    #     episode_dict
+
+    # Step1: group by pat_id
+    # Step2: For each group, obtain predicts
+    #   Step 2.1: order by order_time
+    #   Step 2.2: Obtain
+
+    actual_cnt_1 = 0
+    actual_cnt_0 = 0
+
+    train_labels = train_matrix['all_components_normal'].values
+
+    # Calc the prevalence from training data
+    prevalence_1 = float(sum(train_labels))/float(len(train_labels))
+
+    raw_matrix = test_matrix
+    episode_cnt = raw_matrix.shape[0]
+
+    if isLabPanel:
+        ylabel = 'all_components_normal'
+    else:
+        ylabel = 'component_normal'
+
+    # raw_matrix = raw_matrix.rename(columns={'component_normal':'all_components_normal'})
+
+    raw_matrix_dict = raw_matrix[['pat_id', 'order_time', ylabel]].to_dict('records')
+
+    # for _ in self.getPatientEpisodeIterator(): # less stupid way to do this
+    #     episode_cnt += 1
+
+
+
+    episode_groups_dict = {}  # pat_id: [episode_dicts]
+    for episode_dict in raw_matrix_dict:
+        if episode_dict['pat_id'] in episode_groups_dict:
+            episode_groups_dict[episode_dict['pat_id']].append(episode_dict)
+        else:
+            episode_groups_dict[episode_dict['pat_id']] = [episode_dict]
+
+
+
+
+    baseline_comparisons = pd.DataFrame(columns=['actual', 'predict'])
+
+    for pat_id in episode_groups_dict:
+        #   Step 2.1: order by order_time
+        newlist = sorted(episode_groups_dict[pat_id], key=lambda k: k['order_time'])
+
+        newlist[0]['predict'] = prevalence_1
+        baseline_comparisons = baseline_comparisons.append({'actual':newlist[0][ylabel],
+                                     'predict':newlist[0]['predict']}, ignore_index=True)
+
+        for i in range(1,len(newlist)):
+            newlist[i]['predict'] = newlist[i-1][ylabel]
+            baseline_comparisons = baseline_comparisons.append({'actual': newlist[i][ylabel],
+                                         'predict': newlist[i]['predict']}, ignore_index=True)
+
+    baseline_comparisons.to_csv(dst_filepath)
+
+def main_different_testsets():
+    '''
+    Apply trained model on another test set.
+
+    Returns:
+
+    '''
+    main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/machine_learning/')
+
+    src_foldername = "data-panels-10000-episodes"
+    dst_foldername = "data-panels-5000-holdout"
+
+    src_folderpath = os.path.join(main_folder, src_foldername)
+    dst_folderpath = os.path.join(main_folder, dst_foldername)
+
+    from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS
+
+    ml_alg = 'random-forest'
+
+    for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+
+        feat2imputed_path = os.path.join(src_folderpath, lab, 'feat2imputed_dict.csv')
+        template_src = pd.read_csv(feat2imputed_path, keep_default_na=False)#get_process_template(feat2imputed_path)
+
+        # TODO: such info should be hidden in the function?
+        model_src = load_ml_model(lab, ml_alg, src_folderpath)
+
+        raw_matrix_src = load_raw_matrix(lab, src_folderpath)
+
+        #
+        raw_matrix_dst = load_raw_matrix(lab, dst_folderpath)
+
+        raw_matrix_1, raw_matrix_2 = split_rows(raw_matrix_dst, fraction=0.5)
+        raw_matrices = [raw_matrix_1, raw_matrix_2]
+
+        res_foldername_template = "results-from-panels-10000-to-panels-5000-part-%i/"
+        for ind, raw_matrix_dst in enumerate(raw_matrices):
+            res_foldername = res_foldername_template%(ind+1)
+            res_folderpath = os.path.join(main_folder, res_foldername)
+
+            baseline_filename = 'baseline_comparisons.csv'
+            baseline_filepath = os.path.join(res_folderpath, lab, baseline_filename)
+            obtain_baseline_results(raw_matrix_src, raw_matrix_dst, baseline_filepath)
+            continue
+
+            if not os.path.exists(res_folderpath):
+                os.mkdir(res_folderpath)
+
+            if not os.path.exists(os.path.join(res_folderpath, lab)):
+                os.mkdir(os.path.join(res_folderpath, lab))
+
+            feat2imputed = template_src.to_dict()
+            for key in feat2imputed:
+                feat2imputed[key] = feat2imputed[key][0]
+
+            processed_matrix_dst = raw_matrix_dst[template_src.columns].fillna(feat2imputed)
+            print processed_matrix_dst
+            # processed_matrix_dst = process_matrix(raw_matrix_dst, template_src)
+
+            X_test, y_test = split_Xy(processed_matrix_dst, outcome_label='all_components_normal')
+
+            output_filename = 'direct_comparisons.csv'
+            output_filepath = os.path.join(res_folderpath, lab, output_filename)
+            output_result(X_test, y_test, model_src, output_filepath)
+
+
+
 
 if __name__ == '__main__':
-    main_pipelining()
+    main_different_testsets()
 
