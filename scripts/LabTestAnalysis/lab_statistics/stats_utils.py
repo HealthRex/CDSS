@@ -719,7 +719,37 @@ def get_labvol(lab, time_limit=DEFAULT_TIMELIMIT):
     df = get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT)
     return df.shape[0]
 
-def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, ml_results_labfolderpath, stats_results_filepath):
+def get_medicare_price_dict():
+    data_folder = os.path.join(main_folder, 'lab_statistics/', 'data_summary_stats/')
+
+    df_match = pd.read_csv(os.path.join(data_folder, 'potential_matches.csv'))
+    dict_match = df_match.to_dict(orient='index')
+
+    dict_match_new = {}
+    for val in dict_match.values():
+        dict_match_new[val['lab']] = val
+    dict_match = dict_match_new
+
+    df_price = pd.read_csv(os.path.join(data_folder, 'CLAB2018v1.csv'), skiprows=3)
+    dict_price = df_price.to_dict(orient='index')
+
+    dict_price_new = {}
+    for val in dict_price.values():
+        dict_price_new[val['SHORTDESC']] = val
+    dict_price = dict_price_new
+    #
+
+    lab_price = {}
+    for lab in dict_match:
+        cur_match = dict_match[lab]
+        cond1 = cur_match['JC'] != cur_match['JC']  # TODO: other suggestions
+        cond2 = '?' not in cur_match['best matched description']
+        if cond1 and cond2:
+            cur_new_description = cur_match['best matched description']
+            lab_price[lab] = dict_price[cur_new_description]['RATE2018']
+    return lab_price
+
+def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, ml_results_labfolderpath, stats_results_filepath, price_source='medicare'):
     '''
     For each lab at each train_PPV,
     write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
@@ -742,17 +772,25 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
             lab_vols.append(get_labvol(lab, time_limit=time_limit))
 
     # For panels, also include price info
+    # TODO: this operation was repeated for each lab?!
     if lab_type == 'panel': #TODO: no price info for LABNA
-        prices_filepath = os.path.join(labs_old_stats_folder, 'labs_charges_volumes.csv')
-        df_prices = pd.read_csv(prices_filepath, keep_default_na=False)
-        df_prices_dict = df_prices.ix[df_prices['name'] == lab,
-                                      ['min_price', 'max_price', 'mean_price', 'median_price']].to_dict(orient='list')
+        if price_source == 'chargemaster':
+            prices_filepath = os.path.join(labs_old_stats_folder, 'labs_charges_volumes.csv')
+            df_prices = pd.read_csv(prices_filepath, keep_default_na=False)
+            df_prices_dict = df_prices.ix[df_prices['name'] == lab,
+                                          ['min_price', 'max_price', 'mean_price', 'median_price']].to_dict(orient='list')
+            for key, val in df_prices_dict.items():
+                if lab == 'LABNA':
+                    df_prices_dict[key] = 219
+                else:
+                    df_prices_dict[key] = val[0]
+        elif price_source == 'medicare':
+            medicare_price_dict = get_medicare_price_dict()
+            cur_price = medicare_price_dict.get(lab, float('nan'))
+            df_prices_dict = {'min_price':cur_price, 'max_price':cur_price,
+                              'mean_price':cur_price, 'median_price':cur_price}
 
-        for key, val in df_prices_dict.items():
-            if lab == 'LABNA':
-                df_prices_dict[key] = 219
-            else:
-                df_prices_dict[key] = val[0]
+
 
     fm_io = FeatureMatrixIO()
     processed_matrix_train_path = os.path.join(train_data_labfolderpath,
