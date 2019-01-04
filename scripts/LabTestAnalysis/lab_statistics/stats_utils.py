@@ -13,7 +13,7 @@ import os, sys
 import LocalEnv
 
 from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
-        import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS, UMICH_TOP_COMPONENTS
+        import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS, UMICH_TOP_COMPONENTS, UCSF_TOP_COMPONENTS
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
@@ -28,11 +28,12 @@ For plotting guideline,
 a lab, has n prev consecutive normal. 
 '''
 
-lab_type = 'panel'
+lab_type = 'UMich'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
 all_UMichs = UMICH_TOP_COMPONENTS
+all_UCSF = UCSF_TOP_COMPONENTS
 all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
 
 DEFAULT_TIMELIMIT = ('2014-07-01', '2017-06-30')
@@ -57,27 +58,27 @@ for time_window in DEFAULT_TIMEWINDOWS:
 
 main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 
+curr_version = '10000-episodes'
 if lab_type == 'panel':
-    curr_version = '10000-episodes'
     all_labs = all_panels #[x[0] for x in labs_and_cnts]
 elif lab_type == 'component':
-    curr_version = '10000-episodes'
     all_labs = all_components
 elif lab_type == 'UMich':
-    curr_version = '10000-episodes'
     all_labs = all_UMichs
+elif lab_type == 'UCSF':
+    all_labs = all_UCSF
 
 
 # labs_ml_folder = os.path.join(main_folder, 'machine_learning/data-%ss-%s/'%(lab_type, curr_version))
-labs_stats_folder = os.path.join(main_folder, 'lab_statistics/stats-%ss-%s/'%(lab_type, curr_version))
+# labs_stats_folder = os.path.join(main_folder, 'lab_statistics/stats-%ss-%s/'%(lab_type, curr_version))
 labs_old_stats_folder = os.path.join(main_folder, 'lab_statistics/data_summary_stats/')
-labs_query_folder = os.path.join(main_folder, 'lab_statistics/query_lab_results/')
+# labs_query_folder = os.path.join(main_folder, 'lab_statistics/query_lab_results/')
 
 
 # if not os.path.exists(labs_folder):
 #     os.mkdir(labs_folder)
-if not os.path.exists(labs_stats_folder):
-    os.mkdir(labs_stats_folder)
+# if not os.path.exists(labs_stats_folder):
+#     os.mkdir(labs_stats_folder)
 
 
 def query_lab_usage__df(lab, lab_type='panel', time_limit=None):
@@ -681,6 +682,11 @@ def get_lab_descriptions():
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'labs.csv')
     elif lab_type=='component':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'components.csv')
+    elif lab_type=='UCSF':
+        descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
+    elif lab_type=='UMich':
+        descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich.csv')
+
     df = pd.read_csv(descriptions_filepath, keep_default_na=False)
     descriptions = pandas2dict(df[['name', 'description']], key='name', val='description')
     return descriptions

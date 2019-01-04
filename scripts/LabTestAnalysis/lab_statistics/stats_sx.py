@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 lab_type = stats_utils.lab_type
 all_labs = stats_utils.all_labs
 # labs_ml_folder = stats_utils.labs_ml_folder
-labs_stats_folder = stats_utils.labs_stats_folder
+# labs_stats_folder = stats_utils.labs_stats_folder
 all_algs = stats_utils.all_algs
 
 DEFAULT_TIMELIMIT = stats_utils.DEFAULT_TIMELIMIT
@@ -523,10 +523,14 @@ def draw__Confusion_Metrics(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
 
         df = df[df['lab'].isin(labs)]
 
-        df['total_count'] =                            df['2014 2stHalf count'] + \
-                            df['2015 1stHalf count'] + df['2015 2stHalf count'] + \
-                            df['2016 1stHalf count'] + df['2016 2stHalf count'] + \
-                            df['2017 1stHalf count']
+        if lab_type == 'panel' or lab_type == 'component':
+            # Stanford data, scaled by vol
+            df['total_count'] =                            df['2014 2stHalf count'] + \
+                                df['2015 1stHalf count'] + df['2015 2stHalf count'] + \
+                                df['2016 1stHalf count'] + df['2016 2stHalf count'] + \
+                                df['2017 1stHalf count']
+        else:
+            df['total_count'] = 1
 
         df['all_positive'] = df['true_positive'] + df['false_positive']
         df['all_negative'] = df['true_negative'] + df['false_negative']
@@ -566,15 +570,8 @@ def draw__Confusion_Metrics(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
         ax.barh(df_toplot['lab'], df_toplot['all_negative'], color='blue', alpha=0.5, label='False Negative')
         ax.barh(df_toplot['lab'], df_toplot['true_negative'], color='orange', alpha=1, label='True Negative')
 
-
-        if lab_type == 'panel':
-            for i, v in enumerate(df_toplot['all_positive']):
-                ax.text(v, i, lab_desciptions[df_toplot['lab'].values[i]], color='k')
-
-        elif lab_type == 'component':
-            for i, v in enumerate(df_toplot['all_positive']):
-                ax.text(v, i, lab_desciptions[df_toplot['lab'].values[i]], color='k')
-                # plt.xticks([-1500000, -1000000, -500000, 0, 500000])
+        for i, v in enumerate(df_toplot['all_positive']):
+            ax.text(v, i, lab_desciptions[df_toplot['lab'].values[i]], color='k')
 
         plt.yticks([])
 
@@ -1168,10 +1165,10 @@ if __name__ == '__main__':
 
     #draw__ROC_PRC_Curves(curve_type='prc', algs=['random-forest'])
 
-    figs_to_plot = [3, 4]
+    figs_to_plot = [3]
 
     import LocalEnv
-    statsByLab_foldername = 'data-panels-10000-episodes'#'results-from-panels-10000-to-panels-5000-part-1_medicare/'
+    statsByLab_foldername = 'data-UMich-10000-episodes'#'results-from-panels-10000-to-panels-5000-part-1_medicare/'
     statsByLab_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/', statsByLab_foldername)
 
     if 3 in figs_to_plot:
