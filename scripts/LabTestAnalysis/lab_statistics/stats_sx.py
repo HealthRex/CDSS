@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 lab_type = stats_utils.lab_type
 all_labs = stats_utils.all_labs
-labs_ml_folder = stats_utils.labs_ml_folder
+# labs_ml_folder = stats_utils.labs_ml_folder
 labs_stats_folder = stats_utils.labs_stats_folder
 all_algs = stats_utils.all_algs
 
@@ -468,7 +468,7 @@ def plot_curves__overlap(lab_type='panel', curve_type="roc"):
 refactoring
 '''
 
-def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
+def draw__Confusion_Metrics(results_folderpath, wanted_PPV=0.95, use_cached_fig_data=False):
     '''
     Drawing Figure 3 in the main text.
 
@@ -476,7 +476,7 @@ def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
     '''
     # df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv' % lab_type,
     #                  keep_default_na=False)
-    labs_stats_filepath = os.path.join(labs_stats_folder, 'summary-stats-bestalg-fixTrainPPV.csv')
+    labs_stats_filepath = os.path.join(results_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
 
     df = pd.read_csv(labs_stats_filepath)
 
@@ -484,12 +484,20 @@ def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
 
 
     cached_foldername = 'Fig3_Confusion_Metrics/'
-    cached_filename = 'Confusion_Metrics_%ss.csv'%lab_type
-    cached_result_path = os.path.join(cached_foldername, cached_filename)
+    cached_folderpath = os.path.join(os.path.join(results_folderpath, cached_foldername))
 
-    if os.path.exists(cached_result_path) and use_cached_fig_data:
+    cached_tablename = 'Confusion_Metrics_%ss.csv'%lab_type
+    cached_tablepath = os.path.join(cached_folderpath, cached_tablename)
+
+    cached_figurename = 'Confusion_Metrics_%ss.png'%lab_type
+    cached_figurepath = os.path.join(cached_folderpath, cached_figurename)
+
+    if not os.path.exists(cached_folderpath):
+        os.mkdir(cached_folderpath)
+
+    if os.path.exists(cached_tablepath) and use_cached_fig_data:
         # lab2stats = pickle.load(open(cached_result_path, 'r'))
-        df_toplot = pd.read_csv(cached_result_path, keep_default_na=False)
+        df_toplot = pd.read_csv(cached_tablepath, keep_default_na=False)
 
     else:
 
@@ -532,7 +540,7 @@ def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
                    'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
                    'all_positive', 'true_positive', 'all_negative', 'true_negative']]\
                     .sort_values('total_count', ascending=False)\
-                    .to_csv(cached_result_path, index=False, float_format='%.2f')
+                    .to_csv(cached_tablepath, index=False, float_format='%.2f')
 
     df_toplot = df_toplot.sort_values(['total_count'], ascending=True).tail(38) # TODO: tune here
 
@@ -558,12 +566,12 @@ def draw__Confusion_Metrics(wanted_PPV=0.95, use_cached_fig_data=True):
     # plt.xlim([-6*10**9, 2*10**9])
 
     plt.legend(loc=[0.1,0.1])
-    plt.xlabel('total lab cnt in 2014-2017')
+    plt.xlabel('total lab cnt in 2014-2017 when fixing train PPV=%.2f'%wanted_PPV)
     plt.ylabel('labs')
 
     plt.tight_layout()
 
-    plt.savefig(cached_foldername+'Confusion_Metrics_%ss.png'%lab_type)
+    plt.savefig(cached_figurepath)
 
     plt.show()
 
@@ -1145,5 +1153,11 @@ if __name__ == '__main__':
 
     #draw__ROC_PRC_Curves(curve_type='prc', algs=['random-forest'])
 
-    draw__Confusion_Metrics(wanted_PPV=0.9, use_cached_fig_data=False)
+    import LocalEnv
+    print stats_utils.main_folder
+    results_foldername = 'results-from-panels-10000-to-panels-5000-part-2/'
+    results_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/', results_foldername)
+
+    draw__Confusion_Metrics(results_folderpath,
+        wanted_PPV=0.95, use_cached_fig_data=False)
     # draw__Normality_Saturations(use_cached_fig_data=True)
