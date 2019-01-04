@@ -25,14 +25,14 @@ DEFAULT_TIMEWINDOWS = stats_utils.DEFAULT_TIMEWINDOWS
 
 
 results_subfoldername = 'stats_by_lab_alg'
-results_subfolderpath = os.path.join(stats_utils.labs_stats_folder, results_subfoldername)
-if not os.path.exists(results_subfolderpath):
-    os.mkdir(results_subfolderpath)
+# results_subfolderpath = os.path.join(stats_utils.labs_stats_folder, results_subfoldername)
+# if not os.path.exists(results_subfolderpath):
+#     os.mkdir(results_subfolderpath)
 results_filename_template = '%s-stats-target-%s-%s.csv'
-results_filepath_template = os.path.join(results_subfolderpath, results_filename_template)
+# results_filepath_template = os.path.join(results_subfolderpath, results_filename_template)
 
 summary_filename_template = 'summary-stats-%s-%s.csv'
-summary_filepath_template = os.path.join(stats_utils.labs_stats_folder, summary_filename_template)
+# summary_filepath_template = os.path.join(stats_utils.labs_stats_folder, summary_filename_template)
 
 '''
 For each (train-)PPV wanted, each vital-day dataset
@@ -146,10 +146,11 @@ def main(train_data_folderpath, ml_results_folderpath, stats_results_folderpath,
 if __name__ == '__main__':
     project_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
     train_data_folderpath = os.path.join(project_folder, 'machine_learning/',
-                                         'data-panels-10000-episodes')
+                                         'data-UMich-10000-episodes'
+                                         )
     ml_results_folderpath = os.path.join(project_folder, 'machine_learning/',
                                    #'results-from-panels-10000-to-panels-5000-part-1'
-                                         'data-panels-10000-episodes'
+                                         'data-UMich-10000-episodes'
                                          )
     stats_results_folderpath = ml_results_folderpath.replace('machine_learning/', 'lab_statistics/')
 
