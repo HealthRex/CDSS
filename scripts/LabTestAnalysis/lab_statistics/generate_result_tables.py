@@ -51,15 +51,15 @@ def main_labs2stats(train_data_folderpath, ml_results_folderpath, stats_results_
             if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
                 os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
 
-            # if not os.path.exists(stats_results_filepath):
-            stats_utils.lab2stats(lab=lab,
-                                  targeted_PPV=targeted_PPV,
-                                  columns=columns,
-                                  thres_mode=thres_mode,
-                                  train_data_labfolderpath=os.path.join(train_data_folderpath, lab),
-                                  ml_results_labfolderpath=os.path.join(ml_results_folderpath, lab),
-                                  stats_results_filepath=stats_results_filepath
-                                  )
+            if not os.path.exists(stats_results_filepath):
+                stats_utils.lab2stats(lab=lab,
+                                      targeted_PPV=targeted_PPV,
+                                      columns=columns,
+                                      thres_mode=thres_mode,
+                                      train_data_labfolderpath=os.path.join(train_data_folderpath, lab),
+                                      ml_results_labfolderpath=os.path.join(ml_results_folderpath, lab),
+                                      stats_results_filepath=stats_results_filepath
+                                      )
 
 def main_stats2summary(targeted_PPVs = train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
@@ -148,7 +148,9 @@ if __name__ == '__main__':
     train_data_folderpath = os.path.join(project_folder, 'machine_learning/',
                                          'data-panels-10000-episodes')
     ml_results_folderpath = os.path.join(project_folder, 'machine_learning/',
-                                   'results-from-panels-10000-to-panels-5000-part-1')
+                                   #'results-from-panels-10000-to-panels-5000-part-1'
+                                         'data-panels-10000-episodes'
+                                         )
     stats_results_folderpath = ml_results_folderpath.replace('machine_learning/', 'lab_statistics/')
 
     if not os.path.exists(stats_results_folderpath):

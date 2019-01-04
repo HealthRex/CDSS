@@ -803,7 +803,8 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
     processed_matrix_test_path = os.path.join(ml_results_labfolderpath,
                                                '%s-normality-test-matrix-processed.tab' % lab)
     # TODO: get rid of '10000' in file name
-    processed_matrix_test = pd.read_csv(processed_matrix_test_path, keep_default_na=False)#fm_io.read_file_to_data_frame(processed_matrix_test_path)
+    processed_matrix_test = fm_io.read_file_to_data_frame(processed_matrix_test_path)
+    #pd.read_csv(processed_matrix_test_path, keep_default_na=False)#fm_io.read_file_to_data_frame(processed_matrix_test_path)
     num_test_episodes = processed_matrix_test.shape[0]
     num_test_patient = len(set(processed_matrix_test['pat_id'].values.tolist()))
 

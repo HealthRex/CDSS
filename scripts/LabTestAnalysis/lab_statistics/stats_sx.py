@@ -327,55 +327,72 @@ def draw__Normality_Saturations(use_cached_fig_data=True):
     plt.savefig(cached_result_foldername + 'Normality_Saturations_%s'%lab_type)
 
 
-def draw__Potential_Savings(wanted_PPV=0.95):
+def draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_fig_data=False):
     '''
     Drawing Figure 4 in the main text.
 
     :return:
     '''
 
-    df = pd.read_csv('data_performance_stats/best-alg-panel-summary-fix-trainPPV.csv',
+    df = pd.read_csv(os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv'),
                      keep_default_na=False)
-    df = df[df['train_PPV'] == wanted_PPV]
+    print df.head()
+    df = df[df['targeted_PPV_fixTrainPPV'] == wanted_PPV]
 
-    labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=50)
-    df = df[df['lab'].isin([x[0] for x in labs_and_cnts])]
+    # labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=50)
+    df = df[df['lab'].isin(all_labs)] #[x[0] for x in labs_and_cnts]
 
-    data_folder = 'Fig4_Potential_Savings/'
-    fig_filename = 'Potential_Savings.png'
-    fig_path = os.path.join(data_folder, fig_filename)
-    data_filename = 'Potential_Savings.csv'
-    data_path = os.path.join(data_folder, data_filename)
+    result_foldername = 'Fig4_Potential_Savings/'
+    result_folderpath = os.path.join(statsByLab_folderpath, result_foldername)
+    if not os.path.exists(result_folderpath):
+        os.mkdir(result_folderpath)
 
-    if os.path.exists(data_path):
+    '''
+    Hierarchy:
+    
+    '''
+
+    fig_filename = 'Potential_Savings_PPV_%.2f.png'%wanted_PPV
+    fig_path = os.path.join(result_folderpath, fig_filename)
+    data_filename = 'Potential_Savings_%.2f.csv'%wanted_PPV
+    data_path = os.path.join(result_folderpath, data_filename)
+
+    if os.path.exists(data_path) and use_cached_fig_data:
         df_sorted_by_normal_cost = pd.read_csv(data_path, keep_default_na=False)
 
     else:
 
 
         # df = df[df['lab'] != 'LABNA']  # TODO: fix LABNA's price here
+        df['true_positive_fraction'] = df['true_positive']/df['num_test_episodes']
+        df['false_negative_fraction'] = df['false_negative'] / df['num_test_episodes']
 
-        df['normal_rate'] = (df['true_positive'] + df['false_negative']).round(5)
+        df['normal_rate'] = (df['true_positive_fraction'] + df['false_negative_fraction']).round(5)
 
         # if lab_type == "component":
         #     df = df.rename(columns={'2016_Vol': 'count'})
         #     df = df.dropna()
         # df['count'] = df['count'].apply(lambda x: 0 if x == '' else x)
 
-        my_dict = {x[0]: x[1] for x in labs_and_cnts}
-        df['count'] = df['lab'].map(my_dict)
+        # my_dict = {x[0]: x[1] for x in labs_and_cnts}
+        # df['count'] = df['lab'].map(my_dict)
 
         # df['total cost'] = df['count'].apply(lambda x: float(x) / 1000000.)  #
+        df['count'] = df['2014 2stHalf count'] + df['2015 1stHalf count'] \
+                      + df['2015 2stHalf count'] + df['2016 1stHalf count'] \
+                      + df['2016 2stHalf count'] + df['2017 1stHalf count']
 
-        df['total_cost'] = df['count'] * df['median_price'].apply(lambda x:float(x)/1000000. if x!='' else 0)  # cost
+
+        df['total_cost'] = df['count'] * df['median_price'].apply(lambda x:float(x) if x!='' else 0)  # /1000000., cost
         # volumn_label = 'Total cost in 2014-2016'
+        print df.shape
+        df = df[df['total_cost']>0]
 
-        '''
-        Picking the top 20 popular labs.
-        '''
+        print df.shape
+
         # df_sorted_by_cnts = df.sort_values('total_cost', ascending=True).ix[:,
         #                     ['lab', 'normal_rate', 'true_positive', 'total_cost']].drop_duplicates()#.head(20).copy()
-        df = df[['lab', 'normal_rate', 'true_positive', 'total_cost']]
+        df = df[['lab', 'normal_rate', 'true_positive_fraction', 'total_cost']]
 
         # df_sorted_by_cnts = df_sorted_by_cnts.sort_values('volumn', ascending=True)
 
@@ -384,9 +401,9 @@ def draw__Potential_Savings(wanted_PPV=0.95):
         #         label=volumn_label)
 
         df['normal_cost'] = df['normal_rate'] * df['total_cost']
-        df['truepo_cost'] = df['true_positive'] * df['total_cost']
+        df['truepo_cost'] = df['true_positive_fraction'] * df['total_cost']
 
-        df_sorted_by_normal_cost = df.sort_values('truepo_cost', ascending=True).tail(10)
+        df_sorted_by_normal_cost = df.sort_values('truepo_cost', ascending=True)#.tail(10)
         df_sorted_by_normal_cost.to_csv(data_path, index=False)
 
 
@@ -400,7 +417,7 @@ def draw__Potential_Savings(wanted_PPV=0.95):
     ax.barh(df_sorted_by_normal_cost['lab'], df_sorted_by_normal_cost['truepo_cost'],
             color='blue', alpha=1, label='True positive saving')  # 'True Positive@0.95 train_PPV'
     for i, v in enumerate(df_sorted_by_normal_cost['truepo_cost']):
-        ax.text(v, i, str("{0:.0%}".format((df_sorted_by_normal_cost['true_positive']/df_sorted_by_normal_cost['normal_rate']).values[i])), color='k',
+        ax.text(v, i, str("{0:.1%}".format((df_sorted_by_normal_cost['true_positive_fraction']/df_sorted_by_normal_cost['normal_rate']).values[i])), color='k',
                 fontweight='bold')
 
     # plt.xlim([0,1])
@@ -408,15 +425,11 @@ def draw__Potential_Savings(wanted_PPV=0.95):
         tick.label.set_fontsize(14)
 
     plt.legend()
-    plt.xlabel('Total Cnt (in millions) in 2014-2016')
+    plt.xlabel('Total Cnt in 2014.07-2017.06, targeting PPV=%.2f'%wanted_PPV) # (in millions)
 
     plt.savefig(fig_path)
 
     plt.show()
-
-
-
-
 
 
 
@@ -468,7 +481,7 @@ def plot_curves__overlap(lab_type='panel', curve_type="roc"):
 refactoring
 '''
 
-def draw__Confusion_Metrics(results_folderpath, wanted_PPV=0.95, use_cached_fig_data=False):
+def draw__Confusion_Metrics(statsByLab_folderpath, wanted_PPV=0.95, use_cached_fig_data=False):
     '''
     Drawing Figure 3 in the main text.
 
@@ -476,7 +489,7 @@ def draw__Confusion_Metrics(results_folderpath, wanted_PPV=0.95, use_cached_fig_
     '''
     # df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv' % lab_type,
     #                  keep_default_na=False)
-    labs_stats_filepath = os.path.join(results_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
+    labs_stats_filepath = os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
 
     df = pd.read_csv(labs_stats_filepath)
 
@@ -484,12 +497,12 @@ def draw__Confusion_Metrics(results_folderpath, wanted_PPV=0.95, use_cached_fig_
 
 
     cached_foldername = 'Fig3_Confusion_Metrics/'
-    cached_folderpath = os.path.join(os.path.join(results_folderpath, cached_foldername))
+    cached_folderpath = os.path.join(os.path.join(statsByLab_folderpath, cached_foldername))
 
-    cached_tablename = 'Confusion_Metrics_%ss.csv'%lab_type
+    cached_tablename = 'Confusion_Metrics_%ss_PPV_%.2f.csv'%(lab_type, wanted_PPV)
     cached_tablepath = os.path.join(cached_folderpath, cached_tablename)
 
-    cached_figurename = 'Confusion_Metrics_%ss.png'%lab_type
+    cached_figurename = 'Confusion_Metrics_%ss_PPV_%.2f_ind.png'%(lab_type, wanted_PPV)
     cached_figurepath = os.path.join(cached_folderpath, cached_figurename)
 
     if not os.path.exists(cached_folderpath):
@@ -497,7 +510,7 @@ def draw__Confusion_Metrics(results_folderpath, wanted_PPV=0.95, use_cached_fig_
 
     if os.path.exists(cached_tablepath) and use_cached_fig_data:
         # lab2stats = pickle.load(open(cached_result_path, 'r'))
-        df_toplot = pd.read_csv(cached_tablepath, keep_default_na=False)
+        df_toplots = pd.read_csv(cached_tablepath, keep_default_na=False)
 
     else:
 
@@ -529,51 +542,53 @@ def draw__Confusion_Metrics(results_folderpath, wanted_PPV=0.95, use_cached_fig_
         # print df[['true_positive', 'all_positive',
         #           'true_negative', 'all_negative']].head(5).plot(kind='barh')
 
-        df_toplot = df
+        df_toplots = df
 
         df['all_positive'] *= df['total_count']
         df['true_positive'] *= df['total_count']
         df['all_negative'] *= df['total_count']
         df['true_negative'] *= df['total_count']
 
-        df_toplot[['lab', 'total_count',
+        df_toplots[['lab', 'total_count',
                    'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
                    'all_positive', 'true_positive', 'all_negative', 'true_negative']]\
                     .sort_values('total_count', ascending=False)\
                     .to_csv(cached_tablepath, index=False, float_format='%.2f')
 
-    df_toplot = df_toplot.sort_values(['total_count'], ascending=True).tail(38) # TODO: tune here
+    df_toplots = df_toplots.sort_values(['total_count'], ascending=True)
 
-    fig, ax = plt.subplots(figsize=(10, 10))
-    ax.barh(df_toplot['lab'], df_toplot['all_positive'], color='orange', alpha=0.5, label='False Positive')
-    ax.barh(df_toplot['lab'], df_toplot['true_positive'], color='blue', alpha=1, label='True Positive')
+    for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
-    ax.barh(df_toplot['lab'], df_toplot['all_negative'], color='blue', alpha=0.5, label='False Negative')
-    ax.barh(df_toplot['lab'], df_toplot['true_negative'], color='orange', alpha=1, label='True Negative')
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.barh(df_toplot['lab'], df_toplot['all_positive'], color='orange', alpha=0.5, label='False Positive')
+        ax.barh(df_toplot['lab'], df_toplot['true_positive'], color='blue', alpha=1, label='True Positive')
+
+        ax.barh(df_toplot['lab'], df_toplot['all_negative'], color='blue', alpha=0.5, label='False Negative')
+        ax.barh(df_toplot['lab'], df_toplot['true_negative'], color='orange', alpha=1, label='True Negative')
 
 
-    if lab_type == 'panel':
-        for i, v in enumerate(df_toplot['all_positive']):
-            ax.text(v, i, lab_desciptions[df_toplot['lab'].values[i]], color='k')
+        if lab_type == 'panel':
+            for i, v in enumerate(df_toplot['all_positive']):
+                ax.text(v, i, lab_desciptions[df_toplot['lab'].values[i]], color='k')
 
-    elif lab_type == 'component':
-        for i, v in enumerate(df_toplot['all_positive']):
-            ax.text(v, i, lab_desciptions[df_toplot['lab'].values[i]], color='k')
-            # plt.xticks([-1500000, -1000000, -500000, 0, 500000])
+        elif lab_type == 'component':
+            for i, v in enumerate(df_toplot['all_positive']):
+                ax.text(v, i, lab_desciptions[df_toplot['lab'].values[i]], color='k')
+                # plt.xticks([-1500000, -1000000, -500000, 0, 500000])
 
-    plt.yticks([])
+        plt.yticks([])
 
-    # plt.xlim([-6*10**9, 2*10**9])
+        # plt.xlim([-6*10**9, 2*10**9])
 
-    plt.legend(loc=[0.1,0.1])
-    plt.xlabel('total lab cnt in 2014-2017 when fixing train PPV=%.2f'%wanted_PPV)
-    plt.ylabel('labs')
+        plt.legend(loc=[0.1,0.1])
+        plt.xlabel('total lab cnt in 2014-2017 when fixing train PPV=%.2f'%wanted_PPV)
+        plt.ylabel('labs')
 
-    plt.tight_layout()
+        plt.tight_layout()
 
-    plt.savefig(cached_figurepath)
+        plt.savefig(cached_figurepath.replace('ind', 'ind_%i'%ind))
 
-    plt.show()
+        plt.show()
 
 '''
 refactoring
@@ -1138,7 +1153,7 @@ if __name__ == '__main__':
 
     # plot_curves__subfigs('UMich', curve_type='prc')
 
-    # draw__Potential_Savings()
+    #
     # draw__Order_Intensities(use_cached_fig_data=True)
 
 
@@ -1153,11 +1168,17 @@ if __name__ == '__main__':
 
     #draw__ROC_PRC_Curves(curve_type='prc', algs=['random-forest'])
 
-    import LocalEnv
-    print stats_utils.main_folder
-    results_foldername = 'results-from-panels-10000-to-panels-5000-part-2/'
-    results_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/', results_foldername)
+    figs_to_plot = [3, 4]
 
-    draw__Confusion_Metrics(results_folderpath,
-        wanted_PPV=0.95, use_cached_fig_data=False)
+    import LocalEnv
+    statsByLab_foldername = 'data-panels-10000-episodes'#'results-from-panels-10000-to-panels-5000-part-1_medicare/'
+    statsByLab_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/', statsByLab_foldername)
+
+    if 3 in figs_to_plot:
+
+        draw__Confusion_Metrics(statsByLab_folderpath,
+            wanted_PPV=0.90, use_cached_fig_data=False)
+
+    if 4 in figs_to_plot:
+        draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.90, use_cached_fig_data=False)
     # draw__Normality_Saturations(use_cached_fig_data=True)
