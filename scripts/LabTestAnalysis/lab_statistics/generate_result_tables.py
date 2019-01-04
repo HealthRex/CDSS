@@ -48,6 +48,8 @@ def main_labs2stats(train_data_folderpath, ml_results_folderpath, stats_results_
             '''
             stats_results_filename = results_filename_template%(lab, thres_mode, str(targeted_PPV))
             stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg', stats_results_filename)
+            if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
+                os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
 
             # if not os.path.exists(stats_results_filepath):
             stats_utils.lab2stats(lab=lab,
