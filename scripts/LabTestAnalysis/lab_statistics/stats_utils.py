@@ -28,7 +28,7 @@ For plotting guideline,
 a lab, has n prev consecutive normal. 
 '''
 
-lab_type = 'UMich'
+lab_type = 'panel'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
@@ -72,7 +72,7 @@ elif lab_type == 'UCSF':
 # labs_ml_folder = os.path.join(main_folder, 'machine_learning/data-%ss-%s/'%(lab_type, curr_version))
 # labs_stats_folder = os.path.join(main_folder, 'lab_statistics/stats-%ss-%s/'%(lab_type, curr_version))
 labs_old_stats_folder = os.path.join(main_folder, 'lab_statistics/data_summary_stats/')
-# labs_query_folder = os.path.join(main_folder, 'lab_statistics/query_lab_results/')
+labs_query_folder = os.path.join(main_folder, 'lab_statistics/query_lab_results/')
 
 
 # if not os.path.exists(labs_folder):
@@ -270,7 +270,7 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
     best_predict = None
     for alg in all_algs:
         df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
-                         '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg))
+                         'direct_comparisons.csv')
         actual_list = df['actual'].values
         try:
             if curve_type == 'roc':
@@ -722,7 +722,7 @@ def get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT):
     return df
 
 def get_labvol(lab, time_limit=DEFAULT_TIMELIMIT):
-    df = get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT)
+    df = get_queried_lab(lab, time_limit=time_limit)
     return df.shape[0]
 
 def get_medicare_price_dict():
@@ -775,6 +775,7 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
     if lab_type == 'panel' or lab_type == 'component':
         lab_vols = []
         for time_limit in DEFAULT_TIMELIMITS:
+            print time_limit
             lab_vols.append(get_labvol(lab, time_limit=time_limit))
 
     # For panels, also include price info
@@ -844,7 +845,15 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
         '''
         one_row['targeted_PPV_%s'%thres_mode] = targeted_PPV
 
-        score_thres = pick_threshold(actual_labels, predict_scores, target_PPV=targeted_PPV)
+        if thres_mode=='fixTestPPV':
+            score_thres = pick_threshold(actual_labels, predict_scores, target_PPV=targeted_PPV) # TODO!
+        else:
+            df_direct_compare_train = pd.read_csv(ml_results_labfolderpath + '/' + alg + '/' + 'direct_comparisons_train.csv',
+                                        #'%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
+                                        keep_default_na=False)
+            actual_labels_train, predict_scores_train = df_direct_compare_train['actual'].values, df_direct_compare_train['predict'].values
+            score_thres = pick_threshold(actual_labels_train, predict_scores_train, target_PPV=targeted_PPV)
+
         one_row['score_thres'] = score_thres
 
         true_positive, false_positive, true_negative, false_negative, \
