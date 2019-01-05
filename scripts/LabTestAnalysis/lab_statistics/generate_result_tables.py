@@ -112,9 +112,13 @@ def main(train_data_folderpath, ml_results_folderpath, stats_results_folderpath,
     '''
     columns = ['lab', 'num_train_episodes', 'num_train_patient', 'num_test_episodes', 'num_test_patient']
     columns += ['alg', 'AUROC', '95%_CI', 'baseline2_ROC']
-    columns += ['targeted_PPV_%s'%thres_mode]
-    columns += ['score_thres', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
-    columns += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
+    columns += ['targeted_PPV_%s' % thres_mode]
+
+    columns_statsMetrics = []
+    columns_statsMetrics += ['score_thres', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
+    columns_statsMetrics += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
+
+    columns += columns_statsMetrics
 
     columns_STRIDE = columns[:]
     columns_STRIDE += ['%s count'%x for x in DEFAULT_TIMEWINDOWS]
@@ -143,14 +147,46 @@ def main(train_data_folderpath, ml_results_folderpath, stats_results_folderpath,
                    columns=columns,
                    thres_mode=thres_mode)
 
+    main_attachBaseline(targeted_PPVs=train_PPVs,
+                   columns=[x+'_baseline' for x in columns_statsMetrics],
+                   thres_mode=thres_mode)
+
+def main_attachBaseline(targeted_PPVs, columns, thres_mode):
+    '''
+
+    Args:
+        targeted_PPVs:
+        columns:
+        thres_mode:
+
+    Returns:
+
+    '''
+
+    '''
+    Load summary-stats-bestalg-fixTrainPPV.csv
+    '''
+    summary_best_filename = 'summary-stats-%s-%s.csv' % ('bestalg', thres_mode)
+    summary_best_filepath = os.path.join(stats_results_folderpath, summary_best_filename)
+    df_best_alg = pd.read_csv(summary_best_filepath, keep_default_na=False)
+    print df_best_alg.head()
+
+    '''
+    Get Baseline results for each lab
+    '''
+
+    print columns
+
+
+
 if __name__ == '__main__':
     project_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
     train_data_folderpath = os.path.join(project_folder, 'machine_learning/',
-                                         'data-UMich-10000-episodes'
+                                         'data-%s-10000-episodes'%stats_utils.lab_type
                                          )
     ml_results_folderpath = os.path.join(project_folder, 'machine_learning/',
                                    #'results-from-panels-10000-to-panels-5000-part-1'
-                                         'data-UMich-10000-episodes'
+                                         'data-%s-10000-episodes'%stats_utils.lab_type
                                          )
     stats_results_folderpath = ml_results_folderpath.replace('machine_learning/', 'lab_statistics/')
 
