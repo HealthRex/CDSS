@@ -18,6 +18,8 @@ from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
+import matplotlib.pyplot as plt
+
 '''
 For each lab, get a bunch of stuff
 '''
@@ -80,6 +82,104 @@ labs_query_folder = os.path.join(main_folder, 'lab_statistics/query_lab_results/
 # if not os.path.exists(labs_stats_folder):
 #     os.mkdir(labs_stats_folder)
 
+def prepare_subfigs(num_figs):
+    col = 5
+    row = num_figs / col
+    cols_left = num_figs % col
+    if cols_left > 0:
+        row = row + 1
+
+    fig_width, fig_heights = col * 3., 8. / col * row
+
+    plt.figure(figsize=(fig_width, fig_heights))
+
+    i_s = []
+    j_s = []
+    for ind in range(num_figs):
+        ind_in_fig = ind % num_figs
+        i, j = ind_in_fig / col, ind_in_fig % col
+        i_s.append(i)
+        j_s.append(j)
+
+    return row, col, i_s, j_s
+
+def plot_subfigs(dict1, dict2, plot_type, result_figpath="subfigs.png"):
+    print dict1
+    print dict2
+    assert len(dict1) == len(dict2)
+
+
+    num_labs = len(dict1)
+
+    row, col, i_s, j_s = prepare_subfigs(num_labs)
+
+
+    keys = dict1.keys()
+
+    def do_one_plot(x, y, color):
+        plt.bar(x, y, color=color)
+        plt.text(x, y, '%.2f' % y, color='k')
+
+        plt.xticks([])
+        plt.ylim(0, 1.05)
+        plt.yticks([])
+
+    for ind, key in enumerate(keys):
+
+
+        i, j = i_s[ind], j_s[ind]
+        plt.subplot2grid((row, col), (i, j))
+
+
+        do_one_plot(1, dict1[key], color='blue')
+        do_one_plot(2, dict2[key], color='orange')
+
+        plt.xlabel(key)
+
+    plt.savefig(result_figpath)
+
+
+def check_similar_components():
+    # common_labs = list(set(STRIDE_COMPONENT_TESTS) & set(UMICH_TOP_COMPONENTS))
+
+    df_UMich = pd.read_csv('RF_important_features_UMichs.csv',keep_default_na=False)
+    df_component = pd.read_csv('RF_important_features_components.csv',keep_default_na=False)
+
+    columns_UMich_only = []
+    columns_component_only = []
+    for i in range(1,4):
+        df_UMich = df_UMich.rename(columns={'feature %i'%i:'UMich featu %i'%i,
+                                            'score %i'%i:'UMich score %i'%i})
+        columns_UMich_only += ['UMich featu %i'%i, 'UMich score %i'%i]
+        df_component = df_component.rename(columns={'feature %i'%i:'STRIDE featu %i'%i,
+                                                    'score %i' % i:'STRIDE score %i' % i})
+        columns_component_only += ['STRIDE featu %i'%i, 'STRIDE score %i'%i]
+
+    df_combined = pd.merge(df_component, df_UMich, on='lab', how='inner')
+    (df_combined[['lab'] + columns_UMich_only]).to_csv("UMich_feature_importance_to_compare.csv", index=False)
+    (df_combined[['lab'] + columns_component_only]).to_csv("component_feature_importance_to_compare.csv", index=False)
+
+
+def get_important_labs(lab_type='panel', order_by=None):
+    # TODO: order_by
+
+    if lab_type == 'panel':
+        labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=10)
+        print labs_and_cnts
+
+        '''
+        Adding other important labs
+        '''
+        labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
+                                            time_limit=['2014-01-01','2016-12-31'])])
+
+        #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
+    elif lab_type == 'component':
+        # TODO
+        all_labs = all_components
+
+    labs_and_cnts = sorted(labs_and_cnts, key=lambda x: x[1])
+    return [x[0] for x in labs_and_cnts]
 
 def query_lab_usage__df(lab, lab_type='panel', time_limit=None):
     if time_limit:

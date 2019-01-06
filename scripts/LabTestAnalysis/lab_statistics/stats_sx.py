@@ -17,222 +17,18 @@ import matplotlib.pyplot as plt
 
 lab_type = stats_utils.lab_type
 all_labs = stats_utils.all_labs
-# labs_ml_folder = stats_utils.labs_ml_folder
-# labs_stats_folder = stats_utils.labs_stats_folder
+# # labs_ml_folder = stats_utils.labs_ml_folder
+# # labs_stats_folder = stats_utils.labs_stats_folder
 all_algs = stats_utils.all_algs
-
+#
 DEFAULT_TIMELIMIT = stats_utils.DEFAULT_TIMELIMIT
-
+#
 lab_desciptions = stats_utils.get_lab_descriptions()
 
-def plot_predict_twoside_bar(lab_type="panel", wanted_PPV=0.95):
-    df = pd.read_csv('data_performance_stats/best-alg-%s-summary-trainPPV.csv' % lab_type,
-                     keep_default_na=False)
-    df = df[df['train_PPV']==wanted_PPV]
-
-    df['all_positive'] = df['true_positive'] + df['false_positive']
-    df['all_negative'] = df['true_negative'] + df['false_negative']
-
-    df['true_negative'] = -df['true_negative']
-    df['all_negative'] = -df['all_negative']
-
-    df['count'] = df['count'].apply(lambda x:float(x) if x!='' else 0)
-    if lab_type=='component':
-        df['count'] = df['count'].apply(lambda x:x/1000000)
-
-    df['all_positive'] *= df['count']
-    df['true_positive'] *= df['count']
-    df['all_negative'] *= df['count']
-    df['true_negative'] *= df['count']
-    # print df[['true_positive', 'all_positive',
-    #           'true_negative', 'all_negative']].head(5).plot(kind='barh')
-
-    df_toplot = df.head(10)
-    df_toplot.head(10)[['lab', 'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n']].to_csv('predict_panel_normal_sample.csv', index=False)
-
-    df_toplot = df_toplot.sort_values('lab', ascending=False)
-    fig, ax = plt.subplots()
-    ax.barh(df_toplot['lab'], df_toplot['all_positive'], color='orange', alpha=0.5, label='False Positive')
-    ax.barh(df_toplot['lab'], df_toplot['true_positive'], color='blue', alpha=1, label='True Positive')
-
-    ax.barh(df_toplot['lab'], df_toplot['all_negative'], color='blue', alpha=0.5, label='False Negative')
-    ax.barh(df_toplot['lab'], df_toplot['true_negative'], color='orange', alpha=1, label='True Negative')
-
-    for i, v in enumerate(df_toplot['all_negative']):
-        ax.text(-0.15, i, df_toplot['lab'].values[i], color='k')
-
-    plt.yticks([])
-    plt.legend()
-    if lab_type=='panel':
-        plt.xlabel('total lab cnt in 2014-2016')
-    elif lab_type=='component':
-        plt.xlabel('total lab cnt (in millions) in 2014-2016')
-    plt.ylabel('labs')
-
-    plt.show()
-
-
-def plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=False, look_cost=False):
-    '''
-    Horizontal bar chart for Popular labs.
-    '''
-
-    df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv' % lab_type,
-                     keep_default_na=False)
-    df = df[df['train_PPV']==wanted_PPV]
-
-    df = df[df['lab']!='LABNA'] # TODO: fix LABNA's price here
-
-    df['normal_rate'] = (df['true_positive'] + df['false_negative']).round(5)
-
-    # if lab_type == "component":
-    #     df = df.rename(columns={'2016_Vol': 'count'})
-    #     df = df.dropna()
-    df['count'] = df['count'].apply(lambda x: 0 if x=='' else x)
-
-    df['volumn'] = df['count'].apply(lambda x: float(x) / 1000000.) #
-    volumn_label = 'Total Cnt (in millions) in 2016'
-
-    if look_cost:
-        df['volumn'] = df['volumn'] * df['mean_price'].apply(lambda x: float(x)) # cost
-        volumn_label = 'Total cost in 2014-2016'
-
-    '''
-    Picking the top 20 popular labs.
-    '''
-    df_sorted_by_cnts = df.sort_values('volumn', ascending=False).ix[:,
-                        ['lab', 'normal_rate', 'true_positive', 'volumn']].drop_duplicates().head(20).copy()
-    df_sorted_by_cnts = df_sorted_by_cnts.sort_values('volumn', ascending=True)
-
-    fig, ax = plt.subplots(figsize=(10, 10))
-    ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['volumn'], color='grey', alpha=0.5,
-            label=volumn_label)
-
-    df_sorted_by_cnts['normal_volumn'] = df_sorted_by_cnts['normal_rate']*df_sorted_by_cnts['volumn']
-    ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['normal_volumn'],
-            color='blue', alpha=0.5, label='Normal lab cost')
-    # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
-    #     ax.text(v + 2, i, str("{0:.0%}".format(df_sorted_by_cnts['normal_rate'].values[i])), color='k', fontweight='bold')
-
-    df_sorted_by_cnts['truepo_volumn'] = df_sorted_by_cnts['true_positive']*df_sorted_by_cnts['volumn']
-    if add_predictable:
-        ax.barh(df_sorted_by_cnts['lab'], df_sorted_by_cnts['truepo_volumn'],
-                color='blue', alpha=0.9, label='True positive saving') #'True Positive@0.95 train_PPV'
-        for i, v in enumerate(df_sorted_by_cnts['truepo_volumn']):
-            ax.text(v, i, str("{0:.0%}".format(df_sorted_by_cnts['true_positive'].values[i])), color='k', fontweight='bold')
-
-
-    # plt.xlim([0,1])
-    for tick in ax.xaxis.get_major_ticks():
-        tick.label.set_fontsize(14)
-
-    plt.legend()
-    plt.show()
-
-def get_waste_in_7days(lab_type='panel'):
-    if lab_type == 'panel':
-        all_labs = all_panels #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
-    elif lab_type == 'component':
-        all_labs = all_components
-
-    res_df = pd.DataFrame()
-    data_file_all = '%s_waste_in_7days.csv'%lab_type
-
-    if not os.path.exists(data_file_all):
-
-        import tmp
-
-        for i, lab in enumerate(all_labs):
-            data_file = '%s_Usage_2014-2016.csv'%lab
-
-            if not os.path.exists(data_file):
-                results = stats_utils.query_lab_usage__df(lab=lab,
-                                                          lab_type=lab_type,
-                                                          time_start='2014-01-01',
-                                                          time_end='2016-12-31')
-                df = pd.DataFrame(results, columns=['pat_id', 'order_time', 'result'])
-                df.to_csv(data_file, index=False)
-            else:
-                df = pd.read_csv(data_file,keep_default_na=False)
-
-            my_dict = {'lab':lab}
-            my_dict.update(stats_utils.get_prevweek_normal__dict(df))
-
-            print my_dict
-
-            # my_dict = tmp.my_dictt[i]
-            # print my_dict
-            res_df = res_df.append(my_dict, ignore_index=True)
-
-        max_num = len(res_df.columns)-1
-        res_df = res_df[['lab'] + range(max_num)]#[str(x)+' repeats' for x in range(max_num)]]
-        res_df = res_df.rename(columns={x:str(x)+' repeats' for x in range(max_num)})
-        res_df.to_csv(data_file_all, index=False)
-    else:
-        res_df = pd.read_csv(data_file_all)
-
-    labs_toPlot = stats_utils.get_top_labs_and_cnts(lab_type)
-    max_repeat = 10
-    for lab in labs_toPlot: #['LABLAC', 'LABLACWB', 'LABK', 'LABPHOS']:
-        nums = res_df[res_df['lab']==lab].values[0][1:max_repeat+1]
-        print nums
-        nums_valid = [x for x in nums if x]
-        print nums_valid
-        plt.plot(range(len(nums_valid)), nums_valid, label=lab)
-
-    plt.ylim([0,1])
-    plt.xlabel('Num Normality in a Week')
-    plt.ylabel('Normal Rate')
-    plt.legend()
-    plt.show()
 
 
 
-
-
-
-
-
-def get_important_labs(lab_type='panel', order_by=None):
-    # TODO: order_by
-
-    if lab_type == 'panel':
-        labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=10)
-        print labs_and_cnts
-
-        '''
-        Adding other important labs
-        '''
-        labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
-                                            time_limit=['2014-01-01','2016-12-31'])])
-
-        #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
-    elif lab_type == 'component':
-        # TODO
-        all_labs = all_components
-
-    labs_and_cnts = sorted(labs_and_cnts, key=lambda x: x[1])
-    return [x[0] for x in labs_and_cnts]
-
-
-def plot_order_intensities_barh(lab, time_since_last_order_binned, columns, labeling=True):
-    pre_sum = 0
-    alphas = [1, 0.5, 0.3, 0.2]
-    for i, key in enumerate(columns):
-
-        pre_sum += time_since_last_order_binned[key]
-
-        lab_desciption = lab_desciptions[lab]
-
-        if labeling:
-            plt.barh([lab_desciption], pre_sum, color='b', alpha=alphas[i], label=key)
-        else:
-            plt.barh([lab_desciption], pre_sum, color='b', alpha=alphas[i])
-
-
-
-
-def draw__Normality_Saturations(use_cached_fig_data=True):
+def draw__Normality_Saturations(stats_folderpath, max_repeat = 5, use_cached_fig_data=True):
     '''
     Drawing Figure 1 in the main text.
 
@@ -243,13 +39,12 @@ def draw__Normality_Saturations(use_cached_fig_data=True):
 
     print "Labs to be plot:", labs
 
-    cached_result_foldername = 'Fig1_Normality_Saturations/'
+    cached_result_foldername = os.path.join(stats_folderpath, 'Fig1_Normality_Saturations/')
     if not os.path.exists(cached_result_foldername):
         os.mkdir(cached_result_foldername)
     # cached_result_filename = 'Normality_Saturations_%s.csv' % lab_type
     # cached_result_path = os.path.join(cached_result_foldername, cached_result_filename)
 
-    max_repeat = 5
 
     if os.path.exists(cached_result_foldername + 'lab2cnt.csv') and use_cached_fig_data:
         # lab2stats = pickle.load(open(cached_result_path, 'r'))
@@ -305,26 +100,30 @@ def draw__Normality_Saturations(use_cached_fig_data=True):
 
     fig = plt.figure(figsize=(8, 6))
 
-    for lab in labs[60:]:  # :
+    labs_to_plots = [labs[:20], labs[20:40], labs[40:60], labs[60:]]
 
-        non_empty_inds = []
-        for i in range(0,max_repeat+1):
-            if lab2frac[lab][i]=='':
-                break
-            non_empty_inds.append(i)
-        y_s = [float(lab2frac[lab][i]) for i in non_empty_inds]
-        print lab, y_s
-        plt.plot(non_empty_inds, y_s, label=lab_desciptions[lab])
-        plt.scatter(non_empty_inds, y_s)
+    for ind, labs_to_plot in enumerate(labs_to_plots):
+        for lab in labs_to_plot:  # :
+
+            non_empty_inds = []
+            for i in range(0,max_repeat+1):
+                if lab2frac[lab][i]=='':
+                    break
+                non_empty_inds.append(i)
+            y_s = [float(lab2frac[lab][i]) for i in non_empty_inds]
+            print lab, y_s
+            plt.plot(non_empty_inds, y_s, label=lab_desciptions[lab])
+            plt.scatter(non_empty_inds, y_s)
 
 
-    plt.xticks(range(0, max_repeat + 1))
-    plt.xlabel('Number of Consecutive Normalities in a Week')
-    plt.ylabel('Normal Rate')
-    # plt.ylim([0, 1])
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(cached_result_foldername + 'Normality_Saturations_%s'%lab_type)
+        plt.xticks(range(0, max_repeat + 1))
+        plt.xlabel('Number of Consecutive Normalities in a Week')
+        plt.ylabel('Normal Rate')
+        # plt.ylim([0, 1])
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(cached_result_foldername + 'Normality_Saturations_%s_%i'%(lab_type, ind))
+        plt.clf()
 
 
 def draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_fig_data=False):
@@ -434,46 +233,7 @@ def draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
 
 
 
-def plot_curves__overlap(lab_type='panel', curve_type="roc"):
-    if lab_type == 'panel':
-        data_folder = '../machine_learning/data-panels/'
-        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-    elif lab_type == 'component':
-        data_folder = '../machine_learning/data-components/'
-        all_labs = STRIDE_COMPONENT_TESTS
-    elif lab_type == 'UMich':
-        data_folder = "../machine_learning/data-UMich/"
-        all_labs = UMICH_TOP_COMPONENTS
 
-    num_labs_in_one_fig = 10
-    for i, lab in enumerate(all_labs):
-        xVal_base, yVal_base, base_score, xVal_best, yVal_best, best_score = \
-            stats_utils.get_curve_onelab(lab,
-                                     all_algs=SupervisedClassifier.SUPPORTED_ALGORITHMS,
-                                     data_folder=data_folder,
-                                     curve_type=curve_type)
-        plt.plot(xVal_base, yVal_base, label=lab+' %.2f'%base_score)
-
-        if (i+1)%num_labs_in_one_fig == 0:
-            plt.legend()
-            #plt.show()
-            plt.savefig('%s-%s-baseline.png'%(all_labs[i+1-num_labs_in_one_fig],lab))
-            plt.close()
-    plt.close()
-
-    for i, lab in enumerate(all_labs):
-        xVal_base, yVal_base, base_score, xVal_best, yVal_best, best_score = \
-            stats_utils.get_curve_onelab(lab,
-                                     all_algs=SupervisedClassifier.SUPPORTED_ALGORITHMS,
-                                     data_folder=data_folder,
-                                     curve_type=curve_type)
-        plt.plot(xVal_best, yVal_best, label=lab+' %.2f'%best_score)
-
-        if (i+1)%num_labs_in_one_fig == 0:
-            plt.legend()
-            #plt.show()
-            plt.savefig('%s-%s-bestalg.png'%(all_labs[i+1-num_labs_in_one_fig],lab))
-            plt.close()
 
 
 ######################################
@@ -600,7 +360,7 @@ refactoring
 refactored
 '''
 
-def draw__Order_Intensities(use_cached_fig_data=True):
+def draw__Order_Intensities(stats_folderpath, use_cached_fig_data=True):
     '''
     Drawing Figure 2 in the main text.
 
@@ -614,7 +374,7 @@ def draw__Order_Intensities(use_cached_fig_data=True):
     labs = ['LABCBCD', 'LABMETB'] + all_labs #get_important_labs()
     print "Labs to be plot:", labs
 
-    cached_result_foldername = 'Fig2_Order_Intensities/'
+    cached_result_foldername = os.path.join(stats_folderpath, 'Fig2_Order_Intensities/')
     if not os.path.exists(cached_result_foldername):
         os.mkdir(cached_result_foldername)
     cached_result_filename = 'Order_Intensities_%s.csv'%lab_type
@@ -659,24 +419,45 @@ def draw__Order_Intensities(use_cached_fig_data=True):
 
         df_res.to_csv(cached_result_path, index=False)
 
+
+    def plot_order_intensities_barh(lab, time_since_last_order_binned, columns, labeling=True):
+        pre_sum = 0
+        alphas = [1, 0.5, 0.3, 0.2]
+        for i, key in enumerate(columns):
+
+            pre_sum += time_since_last_order_binned[key]
+
+            lab_desciption = lab_desciptions[lab]
+
+            if labeling:
+                plt.barh([lab_desciption], pre_sum, color='b', alpha=alphas[i], label=key)
+            else:
+                plt.barh([lab_desciption], pre_sum, color='b', alpha=alphas[i])
+
+
     lab_ordered = sorted(labs, key=lambda x:lab2stats[x]['< 1 day'], reverse=True)
     fig = plt.figure(figsize=(20, 12)) #
-    for i, lab in enumerate(lab_ordered[:39][::-1]):
 
-        time_since_last_order_binned = lab2stats[lab]
+    labs_toplots = [lab_ordered[:39], lab_ordered[39:]]
 
-        if i == 0:
-            plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=True)
-        else:
-            plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=False)
+    for ind_toplot, labs_toplot in enumerate(labs_toplots):
+        for i, lab in enumerate(labs_toplot[::-1]):
 
-    plt.legend(loc=(.9,.1))
-    plt.xlabel('Order number between 2014/07-2017/06')
+            time_since_last_order_binned = lab2stats[lab]
 
-    plt.tight_layout()
-    plt.savefig(cached_result_foldername + 'Order_Intensities_%s.png'%lab_type)
+            if i == 0:
+                plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=True)
+            else:
+                plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=False)
 
-def draw__ROC_PRC_Curves(statsByLab_folderpath, curve_type="roc", algs=['random-forest']):
+        plt.legend(loc=(.9,.1))
+        plt.xlabel('Order number between 2014/07-2017/06')
+
+        plt.tight_layout()
+        plt.savefig(cached_result_foldername + 'Order_Intensities_%s_%i.png'%(lab_type,ind_toplot))
+        plt.clf()
+
+def draw__stats_Curves(statsByLab_folderpath, curve_type="roc", algs=['random-forest']):
     num_labs = len(all_labs)
     row, col, i_s, j_s = prepare_subfigs(num_labs)
 
@@ -779,10 +560,10 @@ def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
     if not os.path.exists(result_folderpath):
         os.mkdir(result_folderpath)
 
-    result_tablename = 'Comparing_Savable_Fractions.csv'
+    result_tablename = 'Comparing_Savable_Fractions_PPV_%.csv'
     result_tablepath = os.path.join(result_folderpath, result_tablename)
 
-    result_figname = 'Comparing_Savable_Fractions.png'
+    result_figname = 'Comparing_Savable_Fractions_PPV_%.2f.png'%target_PPV
     result_figpath = os.path.join(result_folderpath, result_figname)
 
     if use_cache and os.path.exists(result_tablepath):
@@ -886,69 +667,10 @@ def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
                  result_figpath=result_figpath)
 
 
-
-
-def prepare_subfigs(num_figs):
-    col = 5
-    row = num_figs / col
-    cols_left = num_figs % col
-    if cols_left > 0:
-        row = row + 1
-
-    fig_width, fig_heights = col * 3., 8. / col * row
-
-    plt.figure(figsize=(fig_width, fig_heights))
-
-    i_s = []
-    j_s = []
-    for ind in range(num_figs):
-        ind_in_fig = ind % num_figs
-        i, j = ind_in_fig / col, ind_in_fig % col
-        i_s.append(i)
-        j_s.append(j)
-
-    return row, col, i_s, j_s
-
-def plot_subfigs(dict1, dict2, plot_type, result_figpath="subfigs.png"):
-    print dict1
-    print dict2
-    assert len(dict1) == len(dict2)
-
-
-    num_labs = len(dict1)
-
-    row, col, i_s, j_s = prepare_subfigs(num_labs)
-
-
-    keys = dict1.keys()
-
-    def do_one_plot(x, y, color):
-        plt.bar(x, y, color=color)
-        plt.text(x, y, '%.2f' % y, color='k')
-
-        plt.xticks([])
-        plt.ylim(0, 1.05)
-        plt.yticks([])
-
-    for ind, key in enumerate(keys):
-
-
-        i, j = i_s[ind], j_s[ind]
-        plt.subplot2grid((row, col), (i, j))
-
-
-        do_one_plot(1, dict1[key], color='blue')
-        do_one_plot(2, dict2[key], color='orange')
-
-        plt.xlabel(key)
-
-    plt.savefig(result_figpath)
-
 '''
 refactored
 '''
 ######################################
-
 
 
 def plot_cartoons():
@@ -1096,14 +818,7 @@ def print_HosmerLemeshowTest():
 
     print sorted(p_vals)
 
-def PPV_judgement(lab_type="panel", PPV_wanted=0.95):
-    df_fix_test = pd.read_csv(
-        "data_performance_stats/thres_from_testPPV/best-alg-%s-summary.csv" % lab_type,
-        keep_default_na=False)
-    df_fix_test = df_fix_test[df_fix_test['test_PPV']==PPV_wanted]
-    df_fix_test['actual_normal'] = df_fix_test['true_positive'] + df_fix_test['false_negative']
-    df_fix_test['predict_normal'] = df_fix_test['true_positive'] + df_fix_test['false_positive'] #[['normal_prevalence', '']]
-    df_fix_test[['lab', 'actual_normal', 'predict_normal']].sort_values('predict_normal', ascending=False).to_csv("validation_fixPPV_%ss.csv"%lab_type, index=False) #.to_string(index=False)
+
 
 def get_best_calibrated_labs(statsByLab_folderpath, top_k=20):
     df_fix_train = pd.read_csv(statsByLab_folderpath + "/summary-stats-bestalg-fixTrainPPV.csv",
@@ -1165,26 +880,6 @@ def PPV_guideline(statsByLab_folderpath):
     df = pd.DataFrame(rows, columns=columns)
     df.to_csv(statsByLab_folderpath + "/predict_power_%ss.csv"%lab_type, index=False)
 
-def check_similar_components():
-    # common_labs = list(set(STRIDE_COMPONENT_TESTS) & set(UMICH_TOP_COMPONENTS))
-
-    df_UMich = pd.read_csv('RF_important_features_UMichs.csv',keep_default_na=False)
-    df_component = pd.read_csv('RF_important_features_components.csv',keep_default_na=False)
-
-    columns_UMich_only = []
-    columns_component_only = []
-    for i in range(1,4):
-        df_UMich = df_UMich.rename(columns={'feature %i'%i:'UMich featu %i'%i,
-                                            'score %i'%i:'UMich score %i'%i})
-        columns_UMich_only += ['UMich featu %i'%i, 'UMich score %i'%i]
-        df_component = df_component.rename(columns={'feature %i'%i:'STRIDE featu %i'%i,
-                                                    'score %i' % i:'STRIDE score %i' % i})
-        columns_component_only += ['STRIDE featu %i'%i, 'STRIDE score %i'%i]
-
-    df_combined = pd.merge(df_component, df_UMich, on='lab', how='inner')
-    (df_combined[['lab'] + columns_UMich_only]).to_csv("UMich_feature_importance_to_compare.csv", index=False)
-    (df_combined[['lab'] + columns_component_only]).to_csv("component_feature_importance_to_compare.csv", index=False)
-
 
 def test(lab):
     # data_file = pd.read_csv('stats_useful_data/' + '%s_Usage_2014-2016.csv' % lab)
@@ -1199,7 +894,7 @@ def test(lab):
 
     prevday_cnts_dict = stats_utils.get_prevday_cnts__dict(df)
 
-def draw__Comparing_PPVs(statsByLab_folderpath):
+def draw__Comparing_PPVs(statsByLab_folderpath, include_labnames=False):
     summary_filename = 'summary-stats-bestalg-fixTrainPPV.csv'
     summary_filepath = os.path.join(statsByLab_folderpath, summary_filename)
     df = pd.read_csv(summary_filepath, keep_default_na=False)
@@ -1207,7 +902,7 @@ def draw__Comparing_PPVs(statsByLab_folderpath):
     df = df[['lab','targeted_PPV_fixTrainPPV','PPV']]
     df = df[df['PPV']!='']
 
-    result_foldername = 'Comparing_PPVs/'
+    result_foldername = 'Fig3_Comparing_PPVs/'
     result_folderpath = os.path.join(statsByLab_folderpath, result_foldername)
     if not os.path.exists(result_folderpath):
         os.mkdir(result_folderpath)
@@ -1220,82 +915,63 @@ def draw__Comparing_PPVs(statsByLab_folderpath):
     target_PPVs = df['targeted_PPV_fixTrainPPV'].values.tolist()
     true_PPVs = [float(x) for x in df['PPV'].values.tolist() if x!='']
 
-    fig, ax = plt.subplots(figsize=(16,12))
+    fig, ax = plt.subplots(figsize=(8,6))
     plt.scatter(target_PPVs, true_PPVs)
     # plt.xlim([0, 1])
     # plt.ylim([0,1])
-    for i, txt in enumerate(labs):
-        ax.annotate(txt, (target_PPVs[i], true_PPVs[i]))
+
+    if include_labnames:
+        texts = []
+        for i, txt in enumerate(labs):
+            texts.append(ax.annotate(txt, (target_PPVs[i], true_PPVs[i])))
 
     plt.xlabel('Targetd PPV')
     plt.ylabel('Actual PPV')
+
+    import adjust_text
+
+    # adjust_text.adjust_text(texts)
+
     plt.savefig(result_figurepath)
 
 
 if __name__ == '__main__':
-    # plot_cartoons(lab_type='panel', labs=['LABUAPRN','LABCAI','LABPT',
-    #                                       'LABUA', 'LABPTT', 'LABHEPAR',
-    #                                       'LABCMVQT', 'LABURNC', 'LABPTEG'])
-    # plot_cartoons('UMich', labs=UMICH_TOP_COMPONENTS)
-    # plot_cartoons('component', labs=['HGB'])
 
-    # plot_cartoons('UMich')
-
-    # draw__guidelines_bar()
-
-    # plot_curves__subfigs(lab_type='component', curve_type="roc")
-    # plot_curves__overlap(lab_type='UMich', curve_type="roc")
-    # PPV_guideline(lab_type="UMich")
-
-    # check_similar_components()
-    # write_importantFeatures(lab_type='UMich')
-
-    # plot_NormalRate__bar(lab_type="panel", wanted_PPV=0.95, add_predictable=True, look_cost=True)
-    # get_waste_in_7days('component')
-
-    # plot_curves__subfigs('UMich', curve_type='prc')
-
-    #
-    # draw__Order_Intensities(use_cached_fig_data=True)
-
-
-    # plot_predict_twoside_bar('component')
-
-    # test('LABALB')
-
-    '''
-    refactored: 
-    '''
-
-
-    #draw__ROC_PRC_Curves(curve_type='prc', algs=['random-forest'])
-
-    figs_to_plot = ['PPV_guideline']
+    figs_to_plot = ['Comparing_PPVs']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
+    stats_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/')
+
     import LocalEnv
     statsByLab_foldername = 'data-%s-10000-episodes'%lab_type #'results-from-panels-10000-to-panels-5000-part-1_medicare/'
-    statsByLab_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/', statsByLab_foldername)
+    statsByLab_folderpath = os.path.join(stats_folderpath, statsByLab_foldername)
 
     for lab_type in possible_labtypes:
         if lab_type in statsByLab_foldername:
             break
 
-    if 'PPV_guideline' in figs_to_plot:
+    if 'Order_Intensities' in figs_to_plot:
+        draw__Order_Intensities(stats_folderpath, use_cached_fig_data=True)
+
+    if 'Normality_Saturations' in figs_to_plot:
+        draw__Normality_Saturations(stats_folderpath, use_cached_fig_data=True)
+
+    if 'PPV_distribution' in figs_to_plot:
+        PPV_guideline(statsByLab_folderpath) #TODO
         get_best_calibrated_labs(statsByLab_folderpath)
 
     if 'Savable_Fractions' in figs_to_plot:
-        draw__Comparing_Savable_Fractions(statsByLab_folderpath, target_PPV=0.90, use_cache=False)
+        draw__Comparing_Savable_Fractions(statsByLab_folderpath, target_PPV=0.95, use_cache=False)
 
     if 'Comparing_PPVs' in figs_to_plot:
         draw__Comparing_PPVs(statsByLab_folderpath)
 
     if 'roc' in figs_to_plot:
-        draw__ROC_PRC_Curves(statsByLab_folderpath, curve_type="roc", algs=['random-forest'])
+        draw__stats_Curves(statsByLab_folderpath, curve_type="roc", algs=['random-forest'])
 
     if 'prc' in figs_to_plot:
-        draw__ROC_PRC_Curves(statsByLab_folderpath, curve_type="prc", algs=['random-forest'])
+        draw__stats_Curves(statsByLab_folderpath, curve_type="prc", algs=['random-forest'])
 
     if 'Confusion_Metrics' in figs_to_plot:
 
@@ -1303,5 +979,5 @@ if __name__ == '__main__':
             wanted_PPV=0.95, use_cached_fig_data=False)
 
     if 'Potential_Savings' in figs_to_plot:
-        draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.90, use_cached_fig_data=False)
-    # draw__Normality_Saturations(use_cached_fig_data=True)
+        draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_fig_data=False)
+
