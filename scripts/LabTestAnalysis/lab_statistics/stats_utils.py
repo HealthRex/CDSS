@@ -82,8 +82,8 @@ labs_query_folder = os.path.join(main_folder, 'lab_statistics/query_lab_results/
 # if not os.path.exists(labs_stats_folder):
 #     os.mkdir(labs_stats_folder)
 
-def prepare_subfigs(num_figs):
-    col = 5
+def prepare_subfigs(num_figs, col = 5):
+
     row = num_figs / col
     cols_left = num_figs % col
     if cols_left > 0:
@@ -103,6 +103,81 @@ def prepare_subfigs(num_figs):
 
     return row, col, i_s, j_s
 
+def get_prevday2normalities(lab, mlByLab_folder, time_limit=DEFAULT_TIMELIMIT, source='full'):
+    '''
+    Why: Plot figure
+
+    What: How consecutive normality indicates the next normality?
+
+    How:
+
+    Args:
+        lab:
+        time_limit:
+
+    Returns:
+
+    '''
+
+    if source == 'full':
+        df_lab = query_to_dataframe(lab, time_limit=time_limit)
+        df_lab = df_lab[df_lab['order_status']=='Completed'].reset_index(drop=True)
+
+    else:
+        import LocalEnv
+        from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
+
+        print "processing %s..."%lab
+        # data_folder = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/data-panels/%s/' % lab
+        '''
+        First, obtain test patients
+        '''
+        data_processed_filename = '%s-normality-%s-matrix-processed.tab' % (lab, source)
+        data_processed_pathname = os.path.join(mlByLab_folder, lab, data_processed_filename)
+
+        fm_io = FeatureMatrixIO()
+        df_processed_test_lab = fm_io.read_file_to_data_frame(data_processed_pathname)
+        # print df_processed_test_lab.head()
+        # quit()
+        pat_ids_test = set(df_processed_test_lab['pat_id'].values.tolist())
+
+
+        '''
+        Then, obtain
+        '''
+
+        data_raw_filename = '%s-normality-matrix-raw.tab' % lab
+        data_raw_pathname = os.path.join(mlByLab_folder, lab, data_raw_filename)
+
+        df_raw = fm_io.read_file_to_data_frame(data_raw_pathname)
+        df_lab = df_raw[df_raw['pat_id'].isin(pat_ids_test)]
+        df_lab['abnormal_yn'] = df_lab['abnormal_panel'].apply(lambda x: 'Y' if x==1 else 'N')
+        df_lab = df_lab[['pat_id', 'order_time', 'abnormal_yn']]
+
+    day2norms = get_prevweek_normal__dict(df_lab, also_get_cnt=True)
+
+    return day2norms.keys(), day2norms.values()
+
+def check_baseline2(lab, mlByLab_folder, source="train"):
+    df = pd.read_csv(os.path.join(mlByLab_folder, lab, 'baseline_comparisons_train.csv'))
+    print df
+    # print os.path.join(mlByLab_folder, lab)
+    # data_processed_filename = '%s-normality-%s-matrix-processed.tab' % (lab, source)
+    # data_processed_pathname = os.path.join(mlByLab_folder, lab, data_processed_filename)
+    #
+    # fm_io = FeatureMatrixIO()
+    # processed_matrix_test = fm_io.read_file_to_data_frame(data_processed_pathname)
+    # pat_ids_test = set(processed_matrix_test['pat_id'].values.tolist())
+    #
+    # data_raw_filename = '%s-normality-matrix-raw.tab' % lab
+    # data_raw_pathname = os.path.join(mlByLab_folder, lab, data_raw_filename) # TODO: create template
+    # raw_matrix = fm_io.read_file_to_data_frame(data_raw_pathname)
+    # df_lab = raw_matrix[raw_matrix['pat_id'].isin(pat_ids_test)]['pat_id', 'order_time']
+    #
+    # df_lab = df_lab.sort_values(['pat_id', 'order_time'])
+    # print df_lab.head()
+    quit()
+
 def plot_subfigs(dict1, dict2, plot_type, result_figpath="subfigs.png"):
     print dict1
     print dict2
@@ -111,7 +186,7 @@ def plot_subfigs(dict1, dict2, plot_type, result_figpath="subfigs.png"):
 
     num_labs = len(dict1)
 
-    row, col, i_s, j_s = prepare_subfigs(num_labs)
+    row, col, i_s, j_s = prepare_subfigs(num_labs, col=6)
 
 
     keys = dict1.keys()
@@ -124,6 +199,7 @@ def plot_subfigs(dict1, dict2, plot_type, result_figpath="subfigs.png"):
         plt.ylim(0, 1.05)
         plt.yticks([])
 
+    lab_descriptions = get_lab_descriptions()
     for ind, key in enumerate(keys):
 
 
@@ -134,7 +210,7 @@ def plot_subfigs(dict1, dict2, plot_type, result_figpath="subfigs.png"):
         do_one_plot(1, dict1[key], color='blue')
         do_one_plot(2, dict2[key], color='orange')
 
-        plt.xlabel(key)
+        plt.xlabel(lab_descriptions[key])
 
     plt.savefig(result_figpath)
 
@@ -1193,7 +1269,13 @@ if __name__ == '__main__':
 
     # print query_lab_cnt('LABMGN')
     # print query_lab_cnt('LABCBCD')
-    main_queryAllLabsToDF(lab_type='component')
 
+    # main_queryAllLabsToDF(lab_type='component')
+
+    check_baseline2(lab='LABA1C',
+                    mlByLab_folder=os.path.join(main_folder,
+                                                'machine_learning/',
+                                                'data-panel-10000-episodes/'),
+                    source="train")
 
 
