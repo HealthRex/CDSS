@@ -23,7 +23,7 @@ all_algs = stats_utils.all_algs
 #
 DEFAULT_TIMELIMIT = stats_utils.DEFAULT_TIMELIMIT
 #
-lab_desciptions = stats_utils.get_lab_descriptions()
+lab_descriptions = stats_utils.get_lab_descriptions()
 
 
 
@@ -112,7 +112,7 @@ def draw__Normality_Saturations(stats_folderpath, max_repeat = 5, use_cached_fig
                 non_empty_inds.append(i)
             y_s = [float(lab2frac[lab][i]) for i in non_empty_inds]
             print lab, y_s
-            plt.plot(non_empty_inds, y_s, label=lab_desciptions[lab])
+            plt.plot(non_empty_inds, y_s, label=lab_descriptions[lab])
             plt.scatter(non_empty_inds, y_s)
 
 
@@ -206,14 +206,20 @@ def draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
         df_sorted_by_normal_cost.to_csv(data_path, index=False)
 
 
+    unit, scale = 'million', 10.**6
+    df_sorted_by_normal_cost['normal_cost'] = df_sorted_by_normal_cost['normal_cost']/scale
+    df_sorted_by_normal_cost['truepo_cost'] = df_sorted_by_normal_cost['truepo_cost']/scale
+    df_sorted_by_normal_cost['lab_description'] = df_sorted_by_normal_cost['lab'].apply(lambda x:lab_descriptions[x])
+
+
     fig, ax = plt.subplots(figsize=(8, 6))
-    ax.barh(df_sorted_by_normal_cost['lab'], df_sorted_by_normal_cost['normal_cost'],
+    ax.barh(df_sorted_by_normal_cost['lab_description'], df_sorted_by_normal_cost['normal_cost'],
             color='blue', alpha=0.5, label='Normal lab cost')
     # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
     #     ax.text(v + 2, i, str("{0:.0%}".format(df_sorted_by_cnts['normal_rate'].values[i])), color='k', fontweight='bold')
 
     # if add_predictable:
-    ax.barh(df_sorted_by_normal_cost['lab'], df_sorted_by_normal_cost['truepo_cost'],
+    ax.barh(df_sorted_by_normal_cost['lab_description'], df_sorted_by_normal_cost['truepo_cost'],
             color='blue', alpha=1, label='True positive saving')  # 'True Positive@0.95 train_PPV'
     for i, v in enumerate(df_sorted_by_normal_cost['truepo_cost']):
         ax.text(v, i, str("{0:.1%}".format((df_sorted_by_normal_cost['true_positive_fraction']/df_sorted_by_normal_cost['normal_rate']).values[i])), color='k',
@@ -224,8 +230,10 @@ def draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
         tick.label.set_fontsize(14)
 
     plt.legend()
-    plt.xlabel('Total Cnt in 2014.07-2017.06, targeting PPV=%.2f'%wanted_PPV) # (in millions)
+    plt.xlabel('Total Amount (in %s) in 2014.07-2017.06, targeting PPV=%.2f'%(unit, wanted_PPV)) # (in millions)
+    plt.xticks([0,0.5,1,1.5])
 
+    plt.tight_layout()
     plt.savefig(fig_path)
 
     plt.show()
@@ -334,7 +342,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
         ax.barh(df_toplot['lab'], df_toplot['true_negative'], color='orange', alpha=1, label='True Negative')
 
         for i, v in enumerate(df_toplot['all_positive']):
-            ax.text(v, i, lab_desciptions[df_toplot['lab'].values[i]], color='k')
+            ax.text(v, i, lab_descriptions[df_toplot['lab'].values[i]], color='k')
 
         plt.yticks([])
 
@@ -427,7 +435,7 @@ def draw__Order_Intensities(stats_folderpath, use_cached_fig_data=True):
 
             pre_sum += time_since_last_order_binned[key]
 
-            lab_desciption = lab_desciptions[lab]
+            lab_desciption = lab_descriptions[lab]
 
             if labeling:
                 plt.barh([lab_desciption], pre_sum, color='b', alpha=alphas[i], label=key)
@@ -459,7 +467,7 @@ def draw__Order_Intensities(stats_folderpath, use_cached_fig_data=True):
 
 def draw__stats_Curves(statsByLab_folderpath, curve_type="roc", algs=['random-forest']):
     num_labs = len(all_labs)
-    row, col, i_s, j_s = prepare_subfigs(num_labs)
+    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=6)
 
     scores_base = []
     scores_best = []
@@ -480,9 +488,9 @@ def draw__stats_Curves(statsByLab_folderpath, curve_type="roc", algs=['random-fo
         plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best))
         plt.xticks([])
         plt.yticks([])
-        plt.xlabel(lab)
+        plt.xlabel(lab_descriptions[lab])
         plt.legend()
-    plt.savefig(statsByLab_folderpath+'%s_%s.png'%(lab_type, curve_type))
+    plt.savefig(os.path.join(statsByLab_folderpath, '%s_%s.png'%(lab_type, curve_type)))
 
     avg_base, avg_best = np.mean(scores_base), np.mean(scores_best)
     print "Average %s among %i labs: %.3f baseline, %.3f bestalg (an improvement of %.3f)."\
@@ -512,9 +520,10 @@ def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
     if use_cache and os.path.exists(result_tablepath):
         df_twomethods = pd.read_csv(result_tablepath, keep_default_na=False)
         print df_twomethods
-        savable_fractions_simple = stats_utils.pandas2dict(df_twomethods, key='lab', val='savable_fraction_simple')
+        savable_fractions_baseline1 = stats_utils.pandas2dict(df_twomethods, key='lab', val='savable_fraction_baseline1')
+        savable_fractions_baseline2 = stats_utils.pandas2dict(df_twomethods, key='lab',
+                                                              val='savable_fraction_baseline2')
         savable_fractions_mlmodel = stats_utils.pandas2dict(df_twomethods, key='lab', val='savable_fraction_mlmodel')
-        print savable_fractions_simple, savable_fractions_mlmodel
     else:
 
         labs = all_labs
@@ -576,7 +585,17 @@ def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
         '''
         savable_fractions_baseline2 = {}
         for lab in labs:
-            metric_good = stats_utils.check_baseline2(lab, mlByLab_folder, source="train")
+            train_prevalence, train_thres = stats_utils.check_baseline2(lab, mlByLab_folder, source="train")
+
+            if train_thres == -1: #
+                savable_fractions_baseline2[lab] = 0
+            else:
+                savable_fractions_baseline2[lab] = stats_utils.check_baseline2(lab, mlByLab_folder, source="test",
+                                                                               picked_prevalence=train_prevalence,
+                                                                               picked_thres=train_thres)
+            print lab, savable_fractions_baseline2[lab]
+        df_baseline2 = stats_utils.dict2pandas(savable_fractions_baseline2, key='lab', val='savable_fraction_baseline2')
+
 
         '''
         Machine learning model
@@ -590,12 +609,14 @@ def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
 
         savable_fractions_mlmodel = stats_utils.pandas2dict(df_mlmodel, key='lab', val='savable_fraction_mlmodel')
 
-        df_twomethods = df_baseline1.merge(df_mlmodel, on='lab', how='left')
-        df_twomethods.to_csv(result_tablepath, index=False)
+        df_3methods = df_baseline1.merge(df_baseline2, on='lab', how='left')
+        df_3methods = df_3methods.merge(df_mlmodel, on='lab', how='left')
+        df_3methods.to_csv(result_tablepath, index=False)
 
-    stats_utils.plot_subfigs(savable_fractions_simple,
-                 savable_fractions_mlmodel,
-                 plot_type='bar',
+    stats_utils.plot_subfigs([savable_fractions_baseline1,
+                              savable_fractions_baseline2,
+                 savable_fractions_mlmodel],
+                             colors=('blue', 'green', 'orange'),
                  result_figpath=result_figpath)
 
 

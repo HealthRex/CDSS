@@ -158,38 +158,80 @@ def get_prevday2normalities(lab, mlByLab_folder, time_limit=DEFAULT_TIMELIMIT, s
 
     return day2norms.keys(), day2norms.values()
 
-def check_baseline2(lab, mlByLab_folder, source="train"):
-    df = pd.read_csv(os.path.join(mlByLab_folder, lab, 'baseline_comparisons_train.csv'))
-    print df
-    # print os.path.join(mlByLab_folder, lab)
-    # data_processed_filename = '%s-normality-%s-matrix-processed.tab' % (lab, source)
-    # data_processed_pathname = os.path.join(mlByLab_folder, lab, data_processed_filename)
-    #
-    # fm_io = FeatureMatrixIO()
-    # processed_matrix_test = fm_io.read_file_to_data_frame(data_processed_pathname)
-    # pat_ids_test = set(processed_matrix_test['pat_id'].values.tolist())
-    #
-    # data_raw_filename = '%s-normality-matrix-raw.tab' % lab
-    # data_raw_pathname = os.path.join(mlByLab_folder, lab, data_raw_filename) # TODO: create template
-    # raw_matrix = fm_io.read_file_to_data_frame(data_raw_pathname)
-    # df_lab = raw_matrix[raw_matrix['pat_id'].isin(pat_ids_test)]['pat_id', 'order_time']
-    #
-    # df_lab = df_lab.sort_values(['pat_id', 'order_time'])
-    # print df_lab.head()
-    quit()
+def check_baseline2(lab, mlByLab_folder, source="train", target_PPV=0.95, picked_prevalence=None, picked_thres=None):
+    '''
+    Pick a threshold
 
-def plot_subfigs(dict1, dict2, plot_type, result_figpath="subfigs.png"):
-    print dict1
-    print dict2
-    assert len(dict1) == len(dict2)
+    Args:
+        lab:
+        mlByLab_folder:
+        source:
+        target_PPV:
+
+    Returns:
+
+    '''
+    data_processed_filename = '%s-normality-%s-matrix-processed.tab' % (lab, source)
+    data_processed_pathname = os.path.join(mlByLab_folder, lab, data_processed_filename)
+
+    fm_io = FeatureMatrixIO()
+    processed_matrix = fm_io.read_file_to_data_frame(data_processed_pathname)
+    pat_ids = set(processed_matrix['pat_id'].values.tolist())
+
+    data_raw_filename = '%s-normality-matrix-raw.tab' % lab
+    data_raw_pathname = os.path.join(mlByLab_folder, lab, data_raw_filename) # TODO: create template
+    raw_matrix = fm_io.read_file_to_data_frame(data_raw_pathname)
 
 
-    num_labs = len(dict1)
+    df_lab = raw_matrix[raw_matrix['pat_id'].isin(pat_ids)].reset_index()[['pat_id', 'order_time', 'all_components_normal']]
+
+    df_lab = df_lab.sort_values(['pat_id', 'order_time'])
+
+
+
+    if not picked_prevalence:
+        normal_prevalence = df_lab['all_components_normal'].values.sum()/float(df_lab.shape[0])
+
+    else:
+        df_lab['predict_proba'] = df_lab['all_components_normal'].apply(lambda x: picked_prevalence)
+
+    for i in range(1, df_lab.shape[0]):
+        if df_lab.ix[i-1, 'pat_id'] == df_lab.ix[i, 'pat_id']:
+            df_lab.ix[i, 'predict_proba'] = df_lab.ix[i-1, 'all_components_normal']
+
+    if not picked_thres:
+
+        thres_possibles = [0, normal_prevalence, 1]
+
+        thres = -1
+        for thres_one in thres_possibles:
+            df_lab['predict_label'] = df_lab['predict_proba'].apply(lambda x: 1 if x>=thres_one else 0)
+
+            predicted_normals = df_lab[df_lab['predict_label']==1].shape[0]
+            true_normals = df_lab[(df_lab['predict_label']==1) & (df_lab['all_components_normal']==1)].shape[0]
+            PPV = float(true_normals)/float(predicted_normals)
+            if PPV >= target_PPV:
+                thres = thres_one
+
+        return normal_prevalence, thres
+
+
+    else:
+
+        df_lab['predict_label'] = df_lab['predict_proba'].apply(lambda x: 1 if x >= picked_thres else 0)
+        predicted_normals = df_lab[df_lab['predict_label'] == 1].shape[0]
+        saved_fraction = float(predicted_normals)/float(df_lab.shape[0])
+        return saved_fraction
+
+
+def plot_subfigs(dicts, colors=('blue','orange'), result_figpath="subfigs.png"):
+
+    num_labs = len(dicts[0])
 
     row, col, i_s, j_s = prepare_subfigs(num_labs, col=6)
 
 
-    keys = dict1.keys()
+    keys = dicts[0].keys()
 
     def do_one_plot(x, y, color):
         plt.bar(x, y, color=color)
@@ -206,9 +248,8 @@ def plot_subfigs(dict1, dict2, plot_type, result_figpath="subfigs.png"):
         i, j = i_s[ind], j_s[ind]
         plt.subplot2grid((row, col), (i, j))
 
-
-        do_one_plot(1, dict1[key], color='blue')
-        do_one_plot(2, dict2[key], color='orange')
+        for k in range(len(dicts)):
+            do_one_plot(k, dicts[k][key], color=colors[k])
 
         plt.xlabel(lab_descriptions[key])
 
