@@ -220,9 +220,6 @@ class FeatureMatrixFactory:
         return TabDictReader(open(self._patientEpisodeTempFileName, "r"))
 
     def obtain_baseline_results(self, raw_matrix_path, random_state, isLabPanel=True, isHoldOut=False):
-        # for episode_dict in self.getPatientEpisodeIterator():
-        #     episode_dict
-
         # Step1: group by pat_id
         # Step2: For each group, obtain predicts
         #   Step 2.1: order by order_time
@@ -235,11 +232,6 @@ class FeatureMatrixFactory:
         from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
         fm_io = FeatureMatrixIO()
         raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
-        #
-        # print raw_matrix
-        # quit()
-
-        # print 'inside FMF, cwd=', os.getcwd()
 
         episode_cnt = raw_matrix.shape[0]
 
@@ -248,23 +240,16 @@ class FeatureMatrixFactory:
         else:
             ylabel = 'component_normal'
 
-        # raw_matrix = raw_matrix.rename(columns={'component_normal':'all_components_normal'})
-
         raw_matrix_dict = raw_matrix[['pat_id', 'order_time', ylabel]].to_dict('records')
 
-        # for _ in self.getPatientEpisodeIterator(): # less stupid way to do this
-        #     episode_cnt += 1
-
-        # Separate train and test
         X = range(episode_cnt)
-        y = X # just dummy
-        from sklearn.cross_validation import train_test_split
-        X_train, X_test, _, _= train_test_split(X, y, random_state=random_state) #
+        from sklearn.model_selection import train_test_split
+        X_train, X_test = train_test_split(X, random_state=random_state) #
 
         actual_cnt_1 = 0
         actual_cnt_0 = 0
 
-        episode_groups_dict = {}  # pat_id: [episode_dicts]
+        episode_groups_dict = {}
         episode_ind = 0
         for episode_dict in raw_matrix_dict:
             if episode_ind in X_test:
