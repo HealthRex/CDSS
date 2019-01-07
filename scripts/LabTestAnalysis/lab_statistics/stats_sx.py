@@ -490,63 +490,6 @@ def draw__stats_Curves(statsByLab_folderpath, curve_type="roc", algs=['random-fo
 
 
 
-def get_prevday2normalities(lab, mlByLab_folder, time_limit=DEFAULT_TIMELIMIT, source='full'):
-    '''
-    Why: Plot figure
-
-    What: How consecutive normality indicates the next normality?
-
-    How:
-
-    Args:
-        lab:
-        time_limit:
-
-    Returns:
-
-    '''
-
-    if source == 'full':
-        df_lab = stats_utils.query_to_dataframe(lab, time_limit=time_limit)
-        df_lab = df_lab[df_lab['order_status']=='Completed'].reset_index(drop=True)
-
-    else:
-        import LocalEnv
-        from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
-
-        print "processing %s..."%lab
-        # data_folder = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/data-panels/%s/' % lab
-        '''
-        First, obtain test patients
-        '''
-        data_processed_filename = '%s-normality-%s-matrix-processed.tab' % (lab, source)
-        data_processed_pathname = os.path.join(mlByLab_folder, lab, data_processed_filename)
-
-        fm_io = FeatureMatrixIO()
-        df_processed_test_lab = fm_io.read_file_to_data_frame(data_processed_pathname)
-        # print df_processed_test_lab.head()
-        # quit()
-        pat_ids_test = set(df_processed_test_lab['pat_id'].values.tolist())
-
-
-        '''
-        Then, obtain
-        '''
-
-        data_raw_filename = '%s-normality-matrix-raw.tab' % lab
-        data_raw_pathname = os.path.join(mlByLab_folder, lab, data_raw_filename)
-
-        df_raw = fm_io.read_file_to_data_frame(data_raw_pathname)
-        df_lab = df_raw[df_raw['pat_id'].isin(pat_ids_test)]
-        df_lab['abnormal_yn'] = df_lab['abnormal_panel'].apply(lambda x: 'Y' if x==1 else 'N')
-        df_lab = df_lab[['pat_id', 'order_time', 'abnormal_yn']]
-
-    day2norms = stats_utils.get_prevweek_normal__dict(df_lab, also_get_cnt=True)
-
-    return day2norms.keys(), day2norms.values()
-
-
-
 def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
                          target_PPV=0.95,
                          use_cache=True):
@@ -560,7 +503,7 @@ def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
     if not os.path.exists(result_folderpath):
         os.mkdir(result_folderpath)
 
-    result_tablename = 'Comparing_Savable_Fractions_PPV_%.csv'
+    result_tablename = 'Comparing_Savable_Fractions_PPV_%.2f.csv'%target_PPV
     result_tablepath = os.path.join(result_folderpath, result_tablename)
 
     result_figname = 'Comparing_Savable_Fractions_PPV_%.2f.png'%target_PPV
@@ -569,16 +512,14 @@ def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
     if use_cache and os.path.exists(result_tablepath):
         df_twomethods = pd.read_csv(result_tablepath, keep_default_na=False)
         print df_twomethods
-        savable_fractions_simple = pandas2dict(df_twomethods, key='lab', val='savable_fraction_simple')
-        savable_fractions_mlmodel = pandas2dict(df_twomethods, key='lab', val='savable_fraction_mlmodel')
+        savable_fractions_simple = stats_utils.pandas2dict(df_twomethods, key='lab', val='savable_fraction_simple')
+        savable_fractions_mlmodel = stats_utils.pandas2dict(df_twomethods, key='lab', val='savable_fraction_mlmodel')
         print savable_fractions_simple, savable_fractions_mlmodel
     else:
 
-
-        # labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=76)
-        # labs = [x[0] for x in labs_and_cnts]
         labs = all_labs
-        # labs = ['LABA1C', 'LABLAC']
+
+        mlByLab_folder = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
 
         '''
         Baseline 1: consecutive normalites in the last week
@@ -588,63 +529,54 @@ def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
         Advantage: Provides a way to assign conservativeness
         Disadvantage: Too stringent, very few patients will qualify; in most cases have to order. 
         '''
-        if True:
-            savable_fractions_simple = {}
-            mlByLab_folder = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
-            for lab in labs:
-                processed_matrix_filename = '%s-normality-test-matrix-processed.tab' % lab
-                processed_matrix_filepath = os.path.join(mlByLab_folder, processed_matrix_filename)
+        savable_fractions_baseline1 = {}
+        for lab in labs:
+            days, normality_lists = stats_utils.get_prevday2normalities(lab, mlByLab_folder, source="train")
+            normality_fractions = [float(sum(x)) / float(len(x)) for x in normality_lists]
 
-                days, normality_lists = get_prevday2normalities(lab, mlByLab_folder, source="train")
-                normality_fractions = [float(sum(x)) / float(len(x)) for x in normality_lists]
-                normality_cnts = [len(x) for x in normality_lists]
-
-                '''
-                Pick a threshold
-                '''
-                day_thres = float('inf')
-                savable_cnt = 0
-                for i, normality_fraction in enumerate(normality_fractions):
-                    if normality_fraction > target_PPV:
-                        day_thres = days[i]
-                        break
+            '''
+            Pick a threshold
+            '''
+            day_thres = float('inf')
+            for i, normality_fraction in enumerate(normality_fractions):
+                if normality_fraction > target_PPV:
+                    day_thres = days[i]
+                    break
 
 
-                days, normality_lists = get_prevday2normalities(lab, mlByLab_folder, source="test")
-                normality_fractions = [float(sum(x))/float(len(x)) for x in normality_lists]
-                normality_cnts = [len(x) for x in normality_lists]
+            days, normality_lists = stats_utils.get_prevday2normalities(lab, mlByLab_folder, source="test")
+            normality_fractions = [float(sum(x))/float(len(x)) for x in normality_lists]
+            normality_cnts = [len(x) for x in normality_lists]
 
-                '''
-                Count fraction above this thres
-                '''
-                savable_cnt = 0
-                for i, normality_fraction in enumerate(normality_fractions):
-                    if days[i] >= day_thres:
-                        savable_cnt += normality_cnts[i]
-                savable_fraction = float(savable_cnt) / float(sum(normality_cnts))
-                savable_fractions_simple[lab] = savable_fraction
+            '''
+            Count fraction above this thres
+            '''
+            savable_cnt = 0
+            for i, normality_fraction in enumerate(normality_fractions):
+                if days[i] >= day_thres:
+                    savable_cnt += normality_cnts[i]
+            savable_fraction = float(savable_cnt) / float(sum(normality_cnts))
+            savable_fractions_baseline1[lab] = savable_fraction
 
-                '''
-                For the rule of "passing a number of days, then all set 'normal',
-                the normal rate is equals to the PPV. "
-                '''
-                # import sys
-                # day_thres = sys.maxint
-                # savable_cnt = 0
-                # for i, normality_fraction in enumerate(normality_fractions):
-                #     if normality_fraction > target_PPV:
-                #         day_thres = days[i]
-                #
-                #         '''
-                #         Assumption: noramlity rate monotonically increases
-                #         '''
-                #         savable_cnt += normality_cnts[i]
-                # savable_fraction = float(savable_cnt)/float(sum(normality_cnts))
-                # savable_fractions_simple[lab] = savable_fraction
+            '''
+            For the rule of "passing a number of days, then all set 'normal',
+            the normal rate is equals to the PPV. "
+            '''
 
-                # except Exception as e:
-                #     print e
-            df_simple = stats_utils.dict2pandas(savable_fractions_simple, key='lab', val='savable_fraction_simple')
+        df_baseline1 = stats_utils.dict2pandas(savable_fractions_baseline1, key='lab', val='savable_fraction_baseline1')
+
+        '''
+        Baseline 2: last order + prevalence
+        
+        Since there is no threshold to choose, the rule is to see whether the metric 
+            gives a > 0.95 PPV for each lab in the train set. 
+        
+        If yes, then do not order (save!) when test prediction says 'Normal'.
+        If no, then always order (never save). 
+        '''
+        savable_fractions_baseline2 = {}
+        for lab in labs:
+            metric_good = stats_utils.check_baseline2(lab, mlByLab_folder, source="train")
 
         '''
         Machine learning model
@@ -658,10 +590,10 @@ def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
 
         savable_fractions_mlmodel = stats_utils.pandas2dict(df_mlmodel, key='lab', val='savable_fraction_mlmodel')
 
-        df_twomethods = df_simple.merge(df_mlmodel, on='lab', how='left')
+        df_twomethods = df_baseline1.merge(df_mlmodel, on='lab', how='left')
         df_twomethods.to_csv(result_tablepath, index=False)
 
-    plot_subfigs(savable_fractions_simple,
+    stats_utils.plot_subfigs(savable_fractions_simple,
                  savable_fractions_mlmodel,
                  plot_type='bar',
                  result_figpath=result_figpath)
@@ -937,7 +869,7 @@ def draw__Comparing_PPVs(statsByLab_folderpath, include_labnames=False):
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['Comparing_PPVs']
+    figs_to_plot = ['Savable_Fractions']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
@@ -962,7 +894,7 @@ if __name__ == '__main__':
         get_best_calibrated_labs(statsByLab_folderpath)
 
     if 'Savable_Fractions' in figs_to_plot:
-        draw__Comparing_Savable_Fractions(statsByLab_folderpath, target_PPV=0.95, use_cache=False)
+        draw__Comparing_Savable_Fractions(statsByLab_folderpath, target_PPV=0.95, use_cache=True)
 
     if 'Comparing_PPVs' in figs_to_plot:
         draw__Comparing_PPVs(statsByLab_folderpath)
