@@ -81,11 +81,12 @@ def pd_process_demogdiagn(df):
         df_pt_info['Birth'] = df_pt_info['Admission Datetime'].apply(
             lambda x: datetime.datetime(year=1900, month=1, day=1))
     else:
-        # df_pt_info['Age'] = df_pt_info['Age'].apply(lambda x: 23)
-        if 'Birth' not in df_pt_info.columns:
-            df_pt_info['Birth'] = (
-                    df_pt_info['Admission Datetime'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)) \
-                    - df_pt_info['Age'].apply(lambda x: datetime.timedelta(days=int(x) * 365))).values
+        # TODO: sxu, this column was redacted.
+        df_pt_info['Birth'] = df_pt_info['Age'].apply(lambda x: '1900-01-01T00:00:00Z')
+        # if 'Birth' not in df_pt_info.columns:
+        #     df_pt_info['Birth'] = (
+        #             df_pt_info['Admission Datetime'].apply(lambda x: datetime.datetime.strptime(x, datetime_format)) \
+        #             - df_pt_info['Age'].apply(lambda x: datetime.timedelta(days=int(x) * 365))).values
     df_pt_info = df_pt_info.drop_duplicates()
     tab2df_dict['pt_info'] = df_pt_info[['pat_id', 'Birth']]
 
@@ -119,7 +120,7 @@ def pd_process_labs(df): # labs and teams
 
     labs_df['proc_code'] = labs_df['proc_code'].apply(lambda x: x.replace('/', '-'))
     labs_df['result_time'] = labs_df['order_time'].copy()
-    labs_df['result_in_range_yn'] = labs_df['result_flag'].apply(lambda x: 'Y' if x == '' else 'N')
+    labs_df['result_in_range_yn'] = labs_df['result_flag'].apply(lambda x: 'Y' if x == 'NA' else 'N')
 
     labs_df['ord_num_value'] = labs_df['ord_num_value'].apply(lambda x: utils_general.filter_nondigits(x))
 
@@ -154,7 +155,7 @@ def pd_process_vitals(vitals_df):
     # print pd.wide_to_long
     vitals_df_long = pd.wide_to_long(vitals_df, stubnames='flowsheet_value',
                           i=['pat_id', 'flo_meas_id', 'shifted_record_dt_tm'],
-                          j='flowsheet_name', sep='_', suffix='\w')
+                          j='flowsheet_name', sep='_', suffix='\w+')
     vitals_df_long = vitals_df_long.reset_index()
     vitals_df_long = vitals_df_long.drop(vitals_df_long[vitals_df_long.flowsheet_value=='NA'].index)
 
