@@ -281,6 +281,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
     if os.path.exists(cached_tablepath) and use_cached_fig_data:
         # lab2stats = pickle.load(open(cached_result_path, 'r'))
         df_toplots = pd.read_csv(cached_tablepath, keep_default_na=False)
+        print df_toplots
 
     else:
 
@@ -293,15 +294,19 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
 
         if lab_type == 'panel' or lab_type == 'component':
             # Stanford data, scaled by vol
-            df['total_count'] =                            df['2014 2stHalf count'] + \
+            df['total_vol'] =                            df['2014 2stHalf count'] + \
                                 df['2015 1stHalf count'] + df['2015 2stHalf count'] + \
                                 df['2016 1stHalf count'] + df['2016 2stHalf count'] + \
                                 df['2017 1stHalf count']
         else:
-            df['total_count'] = 1
+            df['total_vol'] = 1
 
         # TODO: use fractions in the original file!
         df['all_instance'] = df['true_positive'] + df['false_positive'] + df['true_negative'] + df['false_negative']
+
+        for cnt_type in ['true_positive', 'false_positive', 'true_negative', 'false_negative']:
+            df[cnt_type] = df[cnt_type]/df['all_instance']
+
 
         df['all_positive'] = df['true_positive'] + df['false_positive']
         df['all_negative'] = df['true_negative'] + df['false_negative']
@@ -317,17 +322,31 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
         # print df[['true_positive', 'all_positive',
         #           'true_negative', 'all_negative']].head(5).plot(kind='barh')
 
+        df_toshow = df.copy()
+        df_toshow['lab'] = df_toshow['lab'].apply(lambda x:lab_descriptions[x])
+        df_toshow['true_negative'] = -df_toshow['true_negative']
+        df_toshow = df_toshow.rename(columns={'true_positive':'TP',
+                                              'false_positive':'FP',
+                                              'true_negative':'TN',
+                                              'false_negative':'FN',
+                                              'sensitivity':'sens',
+                                              'specificity':'spec',
+                                              'LR_p':'LR+', 'LR_n':'LR-'})
+        df_toshow.sort_values('total_vol', ascending=False)[['lab', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec', 'LR+', 'LR-']]\
+            .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False, float_format='%.2f')
+
         df_toplots = df
 
-        df['all_positive'] *= df['total_count']/df['all_instance']
-        df['true_positive'] *= df['total_count']/df['all_instance']
-        df['all_negative'] *= df['total_count']/df['all_instance']
-        df['true_negative'] *= df['total_count']/df['all_instance']
+        df['all_positive_vol'] = df['all_positive'] * df['total_vol']
+        df['true_positive_vol'] = df['true_positive'] * df['total_vol']
+        df['all_negative_vol'] = df['all_negative'] * df['total_vol']
+        df['true_negative_vol'] = df['true_negative'] * df['total_vol']
 
-        df_toplots[['lab', 'total_count',
-                   'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
-                   'all_positive', 'true_positive', 'all_negative', 'true_negative']]\
-                    .sort_values('total_count', ascending=False)\
+        df_toplots[['lab',
+                    'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
+                    'total_vol',
+                   'all_positive_vol', 'true_positive_vol', 'all_negative_vol', 'true_negative_vol']]\
+                    .sort_values('total_vol', ascending=False)\
                     .to_csv(cached_tablepath, index=False, float_format='%.2f')
 
 
@@ -338,18 +357,18 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
     elif scale_by == 'enc':
         scale = float(stats_utils.NUM_DISTINCT_ENCS)
 
-    df_toplots = df_toplots.sort_values(['total_count'], ascending=True)
+    df_toplots = df_toplots.sort_values(['total_vol'], ascending=True)
 
     for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
         fig, ax = plt.subplots(figsize=(12, 8))
-        ax.barh(df_toplot['lab'], df_toplot['all_positive']/scale, color='orange', alpha=0.5, label='False Positive')
-        ax.barh(df_toplot['lab'], df_toplot['true_positive']/scale, color='blue', alpha=1, label='True Positive')
+        ax.barh(df_toplot['lab'], df_toplot['all_positive_vol']/scale, color='orange', alpha=0.5, label='False Positive')
+        ax.barh(df_toplot['lab'], df_toplot['true_positive_vol']/scale, color='blue', alpha=1, label='True Positive')
 
-        ax.barh(df_toplot['lab'], df_toplot['all_negative']/scale, color='blue', alpha=0.5, label='False Negative')
-        ax.barh(df_toplot['lab'], df_toplot['true_negative']/scale, color='orange', alpha=1, label='True Negative')
+        ax.barh(df_toplot['lab'], df_toplot['all_negative_vol']/scale, color='blue', alpha=0.5, label='False Negative')
+        ax.barh(df_toplot['lab'], df_toplot['true_negative_vol']/scale, color='orange', alpha=1, label='True Negative')
 
-        for i, v in enumerate(df_toplot['all_positive']/scale):
+        for i, v in enumerate(df_toplot['all_positive_vol']/scale):
             ax.text(v, i, lab_descriptions[df_toplot['lab'].values[i]], color='k')
 
         plt.yticks([])
@@ -906,7 +925,7 @@ def draw__Comparing_PPVs(statsByLab_folderpath, include_labnames=False):
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['PRC']
+    figs_to_plot = ['Confusion_Metrics']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
