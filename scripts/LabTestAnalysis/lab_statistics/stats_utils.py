@@ -45,6 +45,10 @@ DEFAULT_TIMEWINDOWS = ['2014 1stHalf', '2014 2stHalf',
                        '2015 1stHalf', '2015 2stHalf',
                        '2016 1stHalf', '2016 2stHalf',
                        '2017 1stHalf']
+
+NUM_DISTINCT_PATS = 44709
+NUM_DISTINCT_ENCS = 66439
+
 DEFAULT_TIMELIMITS = []
 for time_window in DEFAULT_TIMEWINDOWS:
     year_str, section_str = time_window.split(' ')
@@ -276,19 +280,28 @@ def check_similar_components():
     (df_combined[['lab'] + columns_UMich_only]).to_csv("UMich_feature_importance_to_compare.csv", index=False)
     (df_combined[['lab'] + columns_component_only]).to_csv("component_feature_importance_to_compare.csv", index=False)
 
+def get_guideline_maxorderfreq():
+    maxorderfreq = {}
+    maxorderfreq['once'] = ['LABCBCD', 'LABALB', 'LABA1C', 'LABPHOS', 'LABTSH']
+    maxorderfreq['three_days'] = ['LABESRP']
+    maxorderfreq['one_day'] = ['LABMETB']
+
+    return maxorderfreq
 
 def get_important_labs(lab_type='panel', order_by=None):
     # TODO: order_by
 
     if lab_type == 'panel':
-        labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=10)
-        print labs_and_cnts
-
-        '''
-        Adding other important labs
-        '''
-        labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
-                                            time_limit=['2014-01-01','2016-12-31'])])
+        # labs_and_cnts = get_top_labs_and_cnts('panel', top_k=10)
+        # print labs_and_cnts
+        #
+        # '''
+        # Adding other important labs
+        # '''
+        # labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
+        #                                     time_limit=['2014-01-01','2016-12-31'])])
+        # TODO: ISTAT TROPONIN?
+        return ['LABMGN', 'LABALB', 'LABPHOS', 'LABLAC', 'LABBLC', 'LABLDH', 'LABURIC', 'LABTNI', 'LABNA', 'LABK']
 
         #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
     elif lab_type == 'component':
@@ -297,6 +310,27 @@ def get_important_labs(lab_type='panel', order_by=None):
 
     labs_and_cnts = sorted(labs_and_cnts, key=lambda x: x[1])
     return [x[0] for x in labs_and_cnts]
+
+def query_num_instances(instance_type='pat_id', time_limit=DEFAULT_TIMELIMIT):
+    # pat_enc_csn_id in ('2014-07-01', '2017-06-30') is 66439
+    # pat_id in ('2014-07-01', '2017-06-30') is 44709
+
+    if time_limit:
+        time_start, time_end = time_limit[0], time_limit[1]
+
+    query = SQLQuery()
+    query.addSelect('COUNT(DISTINCT %s)'%instance_type)
+    query.addFrom('stride_order_proc')
+
+    if time_start:
+        query.addWhere("order_time > '%s'" % time_start)
+    if time_end:
+        query.addWhere("order_time < '%s'" % time_end)
+
+    results = DBUtil.execute(query)
+
+    return results
+
 
 def query_lab_usage__df(lab, lab_type='panel', time_limit=None):
     if time_limit:
@@ -906,6 +940,7 @@ def get_lab_descriptions():
 
     df = pd.read_csv(descriptions_filepath, keep_default_na=False)
     descriptions = pandas2dict(df[['name', 'description']], key='name', val='description')
+
     return descriptions
 
 def get_safe(func, *args):
@@ -1313,10 +1348,10 @@ if __name__ == '__main__':
 
     # main_queryAllLabsToDF(lab_type='component')
 
-    check_baseline2(lab='LABA1C',
-                    mlByLab_folder=os.path.join(main_folder,
-                                                'machine_learning/',
-                                                'data-panel-10000-episodes/'),
-                    source="train")
+    # check_baseline2(lab='LABA1C',
+    #                 mlByLab_folder=os.path.join(main_folder,
+    #                                             'machine_learning/',
+    #                                             'data-panel-10000-episodes/'),
+    #                 source="train")
 
-
+    print query_num_instances(instance_type='pat_enc_csn_id')
