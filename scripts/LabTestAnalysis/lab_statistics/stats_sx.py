@@ -28,14 +28,12 @@ lab_descriptions = stats_utils.get_lab_descriptions()
 
 
 
-def draw__Normality_Saturations(stats_folderpath, max_repeat = 5, use_cached_fig_data=True):
+def draw__Normality_Saturations(stats_folderpath, labs=['LABMETB', 'LABCBCD'] + all_labs, max_repeat = 5, use_cached_fig_data=True):
     '''
     Drawing Figure 1 in the main text.
 
     :return:
     '''
-
-    labs = ['LABMETB', 'LABCBCD'] + all_labs #
 
     print "Labs to be plot:", labs
 
@@ -102,8 +100,11 @@ def draw__Normality_Saturations(stats_folderpath, max_repeat = 5, use_cached_fig
 
     labs_to_plots = [labs[:20], labs[20:40], labs[40:60], labs[60:]]
 
+    #, '<', '>'
+    marker_types = ('o', 'v', '^', '8', 's', 'P', '*', 'X', 'D', 'd')
+
     for ind, labs_to_plot in enumerate(labs_to_plots):
-        for lab in labs_to_plot:  # :
+        for k, lab in enumerate(labs_to_plot):  # :
 
             non_empty_inds = []
             for i in range(0,max_repeat+1):
@@ -112,13 +113,13 @@ def draw__Normality_Saturations(stats_folderpath, max_repeat = 5, use_cached_fig
                 non_empty_inds.append(i)
             y_s = [float(lab2frac[lab][i]) for i in non_empty_inds]
             print lab, y_s
-            plt.plot(non_empty_inds, y_s, label=lab_descriptions[lab])
-            plt.scatter(non_empty_inds, y_s)
-
+            plt.plot(non_empty_inds, y_s, '-'+marker_types[k], label=lab_descriptions[lab])
+            # l2, = plt.scatter(non_empty_inds, y_s, marker=marker_types[k])
+            # plt.plot(y_s[0], '-'+marker_types[k], color=l2.get_color(), markerfacecolor=l1.get_color(), label='My plots')
 
         plt.xticks(range(0, max_repeat + 1))
-        plt.xlabel('Number of Consecutive Normalities in a Week')
-        plt.ylabel('Normal Rate')
+        plt.xlabel('Number of Consecutive Normalities in a Week', fontsize=12)
+        plt.ylabel('Normal Rate', fontsize=12)
         # plt.ylim([0, 1])
         plt.legend()
         plt.tight_layout()
@@ -895,7 +896,7 @@ def draw__Comparing_PPVs(statsByLab_folderpath, include_labnames=False):
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['Order_Intensities']
+    figs_to_plot = ['Normality_Saturations']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
@@ -905,17 +906,22 @@ if __name__ == '__main__':
     statsByDataSet_foldername = 'data-%s-10000-episodes'%lab_type #'results-from-panels-10000-to-panels-5000-part-1_medicare/'
     statsByDataSet_folderpath = os.path.join(stats_folderpath, statsByDataSet_foldername)
 
+    labs_guideline_nested = stats_utils.get_guideline_maxorderfreq().values()
+    labs_guideline = [lab for sublist in labs_guideline_nested for lab in sublist]
+
+    labs_common_panels = ['LABMETB', 'LABCBCD']
 
     if 'Order_Intensities' in figs_to_plot:
-        #labs_nested = stats_utils.get_guideline_maxorderfreq().values()
-        #labs = [lab for sublist in labs_nested for lab in sublist]
 
-        labs = ['LABMETB', 'LABCBCD', 'LABTSH', 'LABA1C', 'LABESRP'] + stats_utils.get_important_labs()
+
+        labs = list(set(labs_common_panels + labs_guideline + stats_utils.get_important_labs()))
 
         draw__Order_Intensities(statsByDataSet_folderpath, labs=labs, scale_by='enc', use_cached_fig_data=True)
 
     if 'Normality_Saturations' in figs_to_plot:
-        draw__Normality_Saturations(stats_folderpath, use_cached_fig_data=True)
+        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels) - set(['LABTSH', 'LABLDH']))
+
+        draw__Normality_Saturations(statsByDataSet_folderpath, labs=labs, use_cached_fig_data=True)
 
     if 'PPV_distribution' in figs_to_plot:
         PPV_guideline(statsByDataSet_folderpath) #TODO
