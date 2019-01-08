@@ -127,7 +127,7 @@ def draw__Normality_Saturations(stats_folderpath, labs=['LABMETB', 'LABCBCD'] + 
         plt.clf()
 
 
-def draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_fig_data=False):
+def draw__Potential_Savings(statsByLab_folderpath, targeted_PPV=0.95, use_cached_fig_data=False):
     '''
     Drawing Figure 4 in the main text.
 
@@ -137,7 +137,7 @@ def draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
     df = pd.read_csv(os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv'),
                      keep_default_na=False)
     print df.head()
-    df = df[df['targeted_PPV_fixTrainPPV'] == wanted_PPV]
+    df = df[df['targeted_PPV_fixTrainPPV'] == targeted_PPV]
 
     # labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=50)
     df = df[df['lab'].isin(all_labs)] #[x[0] for x in labs_and_cnts]
@@ -152,9 +152,9 @@ def draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
     
     '''
 
-    fig_filename = 'Potential_Savings_PPV_%.2f.png'%wanted_PPV
+    fig_filename = 'Potential_Savings_PPV_%.2f.png'%targeted_PPV
     fig_path = os.path.join(result_folderpath, fig_filename)
-    data_filename = 'Potential_Savings_%.2f.csv'%wanted_PPV
+    data_filename = 'Potential_Savings_%.2f.csv'%targeted_PPV
     data_path = os.path.join(result_folderpath, data_filename)
 
     if os.path.exists(data_path) and use_cached_fig_data:
@@ -231,7 +231,7 @@ def draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
         tick.label.set_fontsize(14)
 
     plt.legend()
-    plt.xlabel('Total Amount (in %s) in 2014.07-2017.06, targeting PPV=%.2f'%(unit, wanted_PPV)) # (in millions)
+    plt.xlabel('Total Amount (in %s) in 2014.07-2017.06, targeting PPV=%.2f'%(unit, targeted_PPV)) # (in millions)
     plt.xticks([0,0.5,1,1.5])
 
     plt.tight_layout()
@@ -250,7 +250,8 @@ def draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
 refactoring
 '''
 
-def draw__Confusion_Metrics(statsByLab_folderpath, wanted_PPV=0.95, use_cached_fig_data=False):
+def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
+                            targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False):
     '''
     Drawing Figure 3 in the main text.
 
@@ -262,16 +263,16 @@ def draw__Confusion_Metrics(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
 
     df = pd.read_csv(labs_stats_filepath)
 
-    df = df[df['targeted_PPV_fixTrainPPV'] == wanted_PPV]
+    df = df[df['targeted_PPV_fixTrainPPV'] == targeted_PPV]
 
 
     cached_foldername = 'Fig3_Confusion_Metrics/'
     cached_folderpath = os.path.join(os.path.join(statsByLab_folderpath, cached_foldername))
 
-    cached_tablename = 'Confusion_Metrics_%ss_PPV_%.2f.csv'%(lab_type, wanted_PPV)
+    cached_tablename = 'Confusion_Metrics_%ss_PPV_%.2f.csv'%(lab_type, targeted_PPV)
     cached_tablepath = os.path.join(cached_folderpath, cached_tablename)
 
-    cached_figurename = 'Confusion_Metrics_%ss_PPV_%.2f_ind.png'%(lab_type, wanted_PPV)
+    cached_figurename = 'Confusion_Metrics_%ss_PPV_%.2f_ind.png'%(lab_type, targeted_PPV)
     cached_figurepath = os.path.join(cached_folderpath, cached_figurename)
 
     if not os.path.exists(cached_folderpath):
@@ -287,8 +288,6 @@ def draw__Confusion_Metrics(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
 
         # labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
         #                                                            time_limit=['2014-01-01', '2016-12-31'])])
-
-        labs = all_labs
 
         df = df[df['lab'].isin(labs)]
 
@@ -331,27 +330,35 @@ def draw__Confusion_Metrics(statsByLab_folderpath, wanted_PPV=0.95, use_cached_f
                     .sort_values('total_count', ascending=False)\
                     .to_csv(cached_tablepath, index=False, float_format='%.2f')
 
+
+    if not scale_by:
+        scale = 1.
+    elif scale_by=='pat':
+        scale = float(stats_utils.NUM_DISTINCT_PATS)
+    elif scale_by == 'enc':
+        scale = float(stats_utils.NUM_DISTINCT_ENCS)
+
     df_toplots = df_toplots.sort_values(['total_count'], ascending=True)
 
     for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
-        fig, ax = plt.subplots(figsize=(10, 10))
-        ax.barh(df_toplot['lab'], df_toplot['all_positive'], color='orange', alpha=0.5, label='False Positive')
-        ax.barh(df_toplot['lab'], df_toplot['true_positive'], color='blue', alpha=1, label='True Positive')
+        fig, ax = plt.subplots(figsize=(12, 8))
+        ax.barh(df_toplot['lab'], df_toplot['all_positive']/scale, color='orange', alpha=0.5, label='False Positive')
+        ax.barh(df_toplot['lab'], df_toplot['true_positive']/scale, color='blue', alpha=1, label='True Positive')
 
-        ax.barh(df_toplot['lab'], df_toplot['all_negative'], color='blue', alpha=0.5, label='False Negative')
-        ax.barh(df_toplot['lab'], df_toplot['true_negative'], color='orange', alpha=1, label='True Negative')
+        ax.barh(df_toplot['lab'], df_toplot['all_negative']/scale, color='blue', alpha=0.5, label='False Negative')
+        ax.barh(df_toplot['lab'], df_toplot['true_negative']/scale, color='orange', alpha=1, label='True Negative')
 
-        for i, v in enumerate(df_toplot['all_positive']):
+        for i, v in enumerate(df_toplot['all_positive']/scale):
             ax.text(v, i, lab_descriptions[df_toplot['lab'].values[i]], color='k')
 
         plt.yticks([])
 
-        # plt.xlim([-6*10**9, 2*10**9])
+        plt.xlim([-2.5, 3])
 
         plt.legend(loc=[0.1,0.1])
-        plt.xlabel('total lab cnt in 2014-2017 when fixing train PPV=%.2f'%wanted_PPV)
-        plt.ylabel('labs')
+        plt.xlabel('Number of orders per encounter, targeting at PPV=%.2f'%targeted_PPV, fontsize=14)
+        #plt.ylabel('Labs', fontsize=14)
 
         plt.tight_layout()
 
@@ -471,13 +478,15 @@ def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_la
         plt.savefig(cached_result_foldername + 'Order_Intensities_%s_%i.png'%(lab_type,ind_toplot))
         plt.clf()
 
-def draw__stats_Curves(statsByLab_folderpath, curve_type="roc", algs=['random-forest']):
-    num_labs = len(all_labs)
-    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=6)
+def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", algs=['random-forest']):
+    num_labs = len(labs)
+    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=4)
 
     scores_base = []
     scores_best = []
-    for ind, lab in enumerate(all_labs):
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    for ind, lab in enumerate(labs):
 
         xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best \
             = stats_utils.get_curve_onelab(lab,
@@ -496,6 +505,7 @@ def draw__stats_Curves(statsByLab_folderpath, curve_type="roc", algs=['random-fo
         plt.yticks([])
         plt.xlabel(lab_descriptions[lab])
         plt.legend()
+    plt.tight_layout()
     plt.savefig(os.path.join(statsByLab_folderpath, '%s_%s.png'%(lab_type, curve_type)))
 
     avg_base, avg_best = np.mean(scores_base), np.mean(scores_best)
@@ -813,10 +823,10 @@ def PPV_guideline(statsByLab_folderpath):
         columns += ['[%.2f, %.2f)' % (range_bins[i + 1], range_bins[i])]
 
     rows = []
-    for wanted_PPV in [0.8, 0.90, 0.95, 0.99][::-1]: # TODO: what is the problem with 0.9? LABHIVWBL
-        cur_row = [wanted_PPV]
+    for targeted_PPV in [0.8, 0.90, 0.95, 0.99][::-1]: # TODO: what is the problem with 0.9? LABHIVWBL
+        cur_row = [targeted_PPV]
 
-        PPVs_from_train = df_fix_train.ix[df_fix_train['targeted_PPV_fixTrainPPV']==wanted_PPV, ['PPV']]
+        PPVs_from_train = df_fix_train.ix[df_fix_train['targeted_PPV_fixTrainPPV']==targeted_PPV, ['PPV']]
         cur_row.append(PPVs_from_train.shape[0]) # "Total number of labs:"
 
         PPVs_from_train = PPVs_from_train.dropna()['PPV'].values
@@ -825,7 +835,7 @@ def PPV_guideline(statsByLab_folderpath):
         cur_row.append(vaild_PPV_num) # "Valid number of labs:"
 
         print "When target at PPV %.2f, the mean PPV among %i labs is %.3f, std is %.3f"\
-              %(wanted_PPV, vaild_PPV_num, np.mean(PPVs_from_train), np.std(PPVs_from_train))
+              %(targeted_PPV, vaild_PPV_num, np.mean(PPVs_from_train), np.std(PPVs_from_train))
 
         cur_cnt = sum(PPVs_from_train >= 0.99)
         cur_row.append(cur_cnt)
@@ -896,7 +906,7 @@ def draw__Comparing_PPVs(statsByLab_folderpath, include_labnames=False):
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['Normality_Saturations']
+    figs_to_plot = ['PRC']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
@@ -933,17 +943,19 @@ if __name__ == '__main__':
     if 'Comparing_PPVs' in figs_to_plot:
         draw__Comparing_PPVs(statsByDataSet_folderpath)
 
-    if 'roc' in figs_to_plot:
-        draw__stats_Curves(statsByDataSet_folderpath, curve_type="roc", algs=['random-forest'])
+    if 'ROC' in figs_to_plot:
+        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
+        draw__stats_Curves(statsByDataSet_folderpath, labs, curve_type="ROC", algs=['random-forest'])
 
-    if 'prc' in figs_to_plot:
-        draw__stats_Curves(statsByDataSet_folderpath, curve_type="prc", algs=['random-forest'])
+    if 'PRC' in figs_to_plot:
+        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
+        draw__stats_Curves(statsByDataSet_folderpath, all_labs, curve_type="PRC", algs=['random-forest'])
 
     if 'Confusion_Metrics' in figs_to_plot:
-
-        draw__Confusion_Metrics(statsByLab_folderpath,
-            wanted_PPV=0.95, use_cached_fig_data=False)
+        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
+        draw__Confusion_Metrics(statsByDataSet_folderpath, labs=labs,
+            targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
 
     if 'Potential_Savings' in figs_to_plot:
-        draw__Potential_Savings(statsByDataSet_folderpath, wanted_PPV=0.95, use_cached_fig_data=False)
+        draw__Potential_Savings(statsByDataSet_folderpath, targeted_PPV=0.95, use_cached_fig_data=False)
 

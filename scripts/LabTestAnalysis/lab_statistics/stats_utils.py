@@ -498,13 +498,13 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
     base_actual = df['actual'].values
     base_predict = df['predict'].values
 
-    if curve_type == 'roc':
+    if curve_type == 'ROC':
         fpr_base, tpr_base, _ = roc_curve(base_actual, base_predict)
         xVal_base, yVal_base = fpr_base, tpr_base
 
         base_auc = roc_auc_score(base_actual, base_predict)
         base_score = base_auc
-    elif curve_type == 'prc':
+    elif curve_type == 'PRC':
         precision, recall, _ = precision_recall_curve(base_actual, base_predict)
         xVal_base, yVal_base = recall, precision
 
@@ -524,10 +524,10 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
                          'direct_comparisons.csv')
         actual_list = df['actual'].values
         try:
-            if curve_type == 'roc':
+            if curve_type == 'ROC':
                 cur_auc = roc_auc_score(actual_list, df['predict'].values)
                 cur_score = cur_auc
-            elif curve_type == 'prc':
+            elif curve_type == 'PRC':
                 cur_aps = average_precision_score(actual_list, df['predict'].values)
                 cur_score = cur_aps
 
@@ -539,11 +539,11 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
             best_actual = actual_list
             best_predict = df['predict'].values
 
-    if curve_type == 'roc':
+    if curve_type == 'ROC':
         fpr, tpr, _ = roc_curve(best_actual, best_predict)
         xVal_best, yVal_best = fpr, tpr
 
-    elif curve_type == 'prc':
+    elif curve_type == 'PRC':
         precision, recall, _ = precision_recall_curve(best_actual, best_predict)
         xVal_best, yVal_best = recall, precision
 
