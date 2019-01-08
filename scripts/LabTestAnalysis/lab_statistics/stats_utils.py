@@ -301,7 +301,7 @@ def get_important_labs(lab_type='panel', order_by=None):
         # labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
         #                                     time_limit=['2014-01-01','2016-12-31'])])
         # TODO: ISTAT TROPONIN?
-        return ['LABMGN', 'LABALB', 'LABPHOS', 'LABLAC', 'LABBLC', 'LABLDH', 'LABURIC', 'LABTNI', 'LABNA', 'LABK']
+        return ['LABMGN', 'LABALB', 'LABPHOS', 'LABLAC', 'LABBLC', 'LABBLC2', 'LABLDH', 'LABURIC', 'LABTNI'] #, 'LABNA', 'LABK'
 
         #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
     elif lab_type == 'component':
