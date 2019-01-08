@@ -127,7 +127,7 @@ def draw__Normality_Saturations(stats_folderpath, labs=['LABMETB', 'LABCBCD'] + 
         plt.clf()
 
 
-def draw__Potential_Savings(statsByLab_folderpath, targeted_PPV=0.95, use_cached_fig_data=False):
+def draw__Potential_Savings(statsByLab_folderpath, scale_by=None, targeted_PPV=0.95, use_cached_fig_data=False):
     '''
     Drawing Figure 4 in the main text.
 
@@ -182,7 +182,6 @@ def draw__Potential_Savings(statsByLab_folderpath, targeted_PPV=0.95, use_cached
                       + df['2015 2stHalf count'] + df['2016 1stHalf count'] \
                       + df['2016 2stHalf count'] + df['2017 1stHalf count']
 
-
         df['total_cost'] = df['count'] * df['median_price'].apply(lambda x:float(x) if x!='' else 0)  # /1000000., cost
         # volumn_label = 'Total cost in 2014-2016'
         print df.shape
@@ -207,21 +206,30 @@ def draw__Potential_Savings(statsByLab_folderpath, targeted_PPV=0.95, use_cached
         df_sorted_by_normal_cost.to_csv(data_path, index=False)
 
 
-    unit, scale = 'million', 10.**6
+    # unit, scale = 'million', 10.**6
+
+
+    if not scale_by:
+        scale = 1.
+    elif scale_by == 'pat':
+        scale = float(stats_utils.NUM_DISTINCT_PATS)
+    elif scale_by == 'enc':
+        scale = float(stats_utils.NUM_DISTINCT_ENCS)
+
     df_sorted_by_normal_cost['normal_cost'] = df_sorted_by_normal_cost['normal_cost']/scale
     df_sorted_by_normal_cost['truepo_cost'] = df_sorted_by_normal_cost['truepo_cost']/scale
-    df_sorted_by_normal_cost['lab_description'] = df_sorted_by_normal_cost['lab'].apply(lambda x:lab_descriptions[x])
-
+    df_sorted_by_normal_cost['lab_description'] = df_sorted_by_normal_cost['lab'].apply(
+        lambda x: lab_descriptions[x])
 
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.barh(df_sorted_by_normal_cost['lab_description'], df_sorted_by_normal_cost['normal_cost'],
-            color='blue', alpha=0.5, label='Normal lab cost')
+            color='blue', alpha=0.5, label='Low yield lab cost')
     # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
     #     ax.text(v + 2, i, str("{0:.0%}".format(df_sorted_by_cnts['normal_rate'].values[i])), color='k', fontweight='bold')
 
     # if add_predictable:
     ax.barh(df_sorted_by_normal_cost['lab_description'], df_sorted_by_normal_cost['truepo_cost'],
-            color='blue', alpha=1, label='True positive saving')  # 'True Positive@0.95 train_PPV'
+            color='blue', alpha=1, label='Avoidable cost')  # 'True Positive@0.95 train_PPV'
     for i, v in enumerate(df_sorted_by_normal_cost['truepo_cost']):
         ax.text(v, i, str("{0:.1%}".format((df_sorted_by_normal_cost['true_positive_fraction']/df_sorted_by_normal_cost['normal_rate']).values[i])), color='k',
                 fontweight='bold')
@@ -231,8 +239,8 @@ def draw__Potential_Savings(statsByLab_folderpath, targeted_PPV=0.95, use_cached
         tick.label.set_fontsize(14)
 
     plt.legend()
-    plt.xlabel('Total Amount (in %s) in 2014.07-2017.06, targeting PPV=%.2f'%(unit, targeted_PPV)) # (in millions)
-    plt.xticks([0,0.5,1,1.5])
+    plt.xlabel('Cost per patient encounter', fontsize=14) # 'Total Amount (in %s) in 2014.07-2017.06, targeting PPV=%.2f'%(unit, targeted_PPV)
+    # plt.xticks([0,0.5,1,1.5])
 
     plt.tight_layout()
     plt.savefig(fig_path)
@@ -1035,7 +1043,7 @@ def comparing_components(stats_folderpath, target_PPV=0.95):
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['Comparing_Components']
+    figs_to_plot = ['Potential_Savings']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
@@ -1088,5 +1096,5 @@ if __name__ == '__main__':
             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
 
     if 'Potential_Savings' in figs_to_plot:
-        draw__Potential_Savings(statsByDataSet_folderpath, targeted_PPV=0.95, use_cached_fig_data=False)
+        draw__Potential_Savings(statsByDataSet_folderpath, scale_by='enc', targeted_PPV=0.95, use_cached_fig_data=False)
 
