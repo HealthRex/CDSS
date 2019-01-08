@@ -368,7 +368,7 @@ refactoring
 refactored
 '''
 
-def draw__Order_Intensities(stats_folderpath, use_cached_fig_data=True):
+def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_labs, scale_by=None,  use_cached_fig_data=True):
     '''
     Drawing Figure 2 in the main text.
 
@@ -379,7 +379,6 @@ def draw__Order_Intensities(stats_folderpath, use_cached_fig_data=True):
     '''
     Get labs
     '''
-    labs = ['LABCBCD', 'LABMETB'] + all_labs #get_important_labs()
     print "Labs to be plot:", labs
 
     cached_result_foldername = os.path.join(stats_folderpath, 'Fig2_Order_Intensities/')
@@ -434,19 +433,25 @@ def draw__Order_Intensities(stats_folderpath, use_cached_fig_data=True):
         for i, key in enumerate(columns):
 
             pre_sum += time_since_last_order_binned[key]
+            if not scale_by:
+                cur_cnt = pre_sum
+            elif scale_by == 'pat':
+                cur_cnt = float(pre_sum)/stats_utils.NUM_DISTINCT_PATS
+            elif scale_by == 'enc':
+                cur_cnt = float(pre_sum)/stats_utils.NUM_DISTINCT_ENCS
 
             lab_desciption = lab_descriptions[lab]
 
             if labeling:
-                plt.barh([lab_desciption], pre_sum, color='b', alpha=alphas[i], label=key)
+                plt.barh([lab_desciption], cur_cnt, color='b', alpha=alphas[i], label=key)
             else:
-                plt.barh([lab_desciption], pre_sum, color='b', alpha=alphas[i])
+                plt.barh([lab_desciption], cur_cnt, color='b', alpha=alphas[i])
 
+    labs_ordered = sorted(labs, key=lambda x: sum(lab2stats[x].values()), reverse=True)
+    fig = plt.figure(figsize=(12, 8)) # figsize=(20, 12)
 
-    lab_ordered = sorted(labs, key=lambda x:lab2stats[x]['< 1 day'], reverse=True)
-    fig = plt.figure(figsize=(20, 12)) #
-
-    labs_toplots = [lab_ordered[:39], lab_ordered[39:]]
+    labs_toplots = [labs_ordered]
+    # labs_toplots = [lab_ordered[:39], lab_ordered[39:]]
 
     for ind_toplot, labs_toplot in enumerate(labs_toplots):
         for i, lab in enumerate(labs_toplot[::-1]):
@@ -458,8 +463,8 @@ def draw__Order_Intensities(stats_folderpath, use_cached_fig_data=True):
             else:
                 plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=False)
 
-        plt.legend(loc=(.9,.1))
-        plt.xlabel('Order number between 2014/07-2017/06')
+        plt.legend()
+        plt.xlabel('Number of orders per patient encounter', fontsize=14) #'Order number between 2014/07-2017/06'
 
         plt.tight_layout()
         plt.savefig(cached_result_foldername + 'Order_Intensities_%s_%i.png'%(lab_type,ind_toplot))
@@ -890,41 +895,43 @@ def draw__Comparing_PPVs(statsByLab_folderpath, include_labnames=False):
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['Savable_Fractions']
+    figs_to_plot = ['Order_Intensities']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
     stats_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/')
 
     import LocalEnv
-    statsByLab_foldername = 'data-%s-10000-episodes'%lab_type #'results-from-panels-10000-to-panels-5000-part-1_medicare/'
-    statsByLab_folderpath = os.path.join(stats_folderpath, statsByLab_foldername)
+    statsByDataSet_foldername = 'data-%s-10000-episodes'%lab_type #'results-from-panels-10000-to-panels-5000-part-1_medicare/'
+    statsByDataSet_folderpath = os.path.join(stats_folderpath, statsByDataSet_foldername)
 
-    for lab_type in possible_labtypes:
-        if lab_type in statsByLab_foldername:
-            break
 
     if 'Order_Intensities' in figs_to_plot:
-        draw__Order_Intensities(stats_folderpath, use_cached_fig_data=True)
+        #labs_nested = stats_utils.get_guideline_maxorderfreq().values()
+        #labs = [lab for sublist in labs_nested for lab in sublist]
+
+        labs = ['LABMETB', 'LABCBCD', 'LABTSH', 'LABA1C', 'LABESRP'] + stats_utils.get_important_labs()
+
+        draw__Order_Intensities(statsByDataSet_folderpath, labs=labs, scale_by='enc', use_cached_fig_data=True)
 
     if 'Normality_Saturations' in figs_to_plot:
         draw__Normality_Saturations(stats_folderpath, use_cached_fig_data=True)
 
     if 'PPV_distribution' in figs_to_plot:
-        PPV_guideline(statsByLab_folderpath) #TODO
-        get_best_calibrated_labs(statsByLab_folderpath)
+        PPV_guideline(statsByDataSet_folderpath) #TODO
+        get_best_calibrated_labs(statsByDataSet_folderpath)
 
     if 'Savable_Fractions' in figs_to_plot:
-        draw__Comparing_Savable_Fractions(statsByLab_folderpath, target_PPV=0.95, use_cache=True)
+        draw__Comparing_Savable_Fractions(statsByDataSet_folderpath, target_PPV=0.95, use_cache=True)
 
     if 'Comparing_PPVs' in figs_to_plot:
-        draw__Comparing_PPVs(statsByLab_folderpath)
+        draw__Comparing_PPVs(statsByDataSet_folderpath)
 
     if 'roc' in figs_to_plot:
-        draw__stats_Curves(statsByLab_folderpath, curve_type="roc", algs=['random-forest'])
+        draw__stats_Curves(statsByDataSet_folderpath, curve_type="roc", algs=['random-forest'])
 
     if 'prc' in figs_to_plot:
-        draw__stats_Curves(statsByLab_folderpath, curve_type="prc", algs=['random-forest'])
+        draw__stats_Curves(statsByDataSet_folderpath, curve_type="prc", algs=['random-forest'])
 
     if 'Confusion_Metrics' in figs_to_plot:
 
@@ -932,5 +939,5 @@ if __name__ == '__main__':
             wanted_PPV=0.95, use_cached_fig_data=False)
 
     if 'Potential_Savings' in figs_to_plot:
-        draw__Potential_Savings(statsByLab_folderpath, wanted_PPV=0.95, use_cached_fig_data=False)
+        draw__Potential_Savings(statsByDataSet_folderpath, wanted_PPV=0.95, use_cached_fig_data=False)
 
