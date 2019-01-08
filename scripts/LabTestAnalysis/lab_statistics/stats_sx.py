@@ -948,10 +948,94 @@ def draw__Comparing_PPVs(statsByLab_folderpath, include_labnames=False):
 
     plt.savefig(result_figurepath)
 
+def comparing_components(stats_folderpath, target_PPV=0.95):
+    stats_filename = 'summary-stats-bestalg-fixTrainPPV.csv'
+
+    labs_important = stats_utils.get_important_labs(lab_type='component')
+
+    stanford_filepath = os.path.join(stats_folderpath, 'data-component-10000-episodes', stats_filename)
+    umich_filepath = os.path.join(stats_folderpath, 'data-UMich-10000-episodes', stats_filename)
+    ucsf_filepath = os.path.join(stats_folderpath, 'data-UCSF-10000-episodes', stats_filename)
+
+    df_stanford = pd.read_csv(stanford_filepath, keep_default_na=False)
+    labs_stanford = set(df_stanford['lab'].values.tolist())
+    df_stanford = df_stanford[df_stanford['targeted_PPV_fixTrainPPV']==target_PPV]
+
+    df_umich = pd.read_csv(umich_filepath, keep_default_na=False)
+    labs_umich = set(df_umich['lab'].values.tolist())
+    df_umich = df_umich[df_umich['targeted_PPV_fixTrainPPV'] == target_PPV]
+
+    df_ucsf = pd.read_csv(ucsf_filepath, keep_default_na=False)
+    labs_ucsf = set(df_ucsf['lab'].values.tolist())
+    df_ucsf = df_ucsf[df_ucsf['targeted_PPV_fixTrainPPV'] == target_PPV]
+
+    print labs_stanford
+    print labs_umich
+    print labs_ucsf
+
+    for df in [df_stanford, df_umich, df_ucsf]:
+        df['total_cnt'] = df['true_positive'] + df['false_positive'] + df['true_negative'] + df['false_negative']
+        df['true_positive'] = df['true_positive'] / df['total_cnt']
+        df['false_positive'] = df['false_positive'] / df['total_cnt']
+        df['true_negative'] = df['true_negative'] / df['total_cnt']
+        df['false_negative'] = df['false_negative'] / df['total_cnt']
+
+
+    df_stanford = df_stanford[df_stanford['lab'].isin(labs_important)]
+    df_stanford['predicted_normal_Stanford'] = df_stanford['true_positive']+df_stanford['false_positive']
+
+    df_stanford = df_stanford.rename(columns={'AUROC':'AUC_Stanford',
+                                              #'baseline2_ROC':'B_ROC_Stanford',
+                                              'PPV':'PPV_Stanford',
+                                              'true_positive': 'TP_Stanford',
+                                              'false_positive': 'FP_Stanford',
+                                              'true_negative': 'TN_Stanford',
+                                              'false_negative': 'FN_Stanford'
+                                              })
+
+
+    umich_replace = {'SOD':'NA', 'POT':'K', 'CREAT': 'CR'}
+    df_umich['lab'] = df_umich['lab'].apply(lambda x: umich_replace[x] if x in umich_replace else x)
+    df_umich['predicted_normal_UMich'] = df_umich['true_positive'] + df_umich['false_positive']
+    df_umich = df_umich.rename(columns={'AUROC': 'AUC_UMich',
+                                        #'baseline2_ROC': 'B_ROC_UMich',
+                                              'PPV':'PPV_UMich',
+                                              'true_positive': 'TP_UMich',
+                                              'false_positive': 'FP_UMich',
+                                              'true_negative': 'TN_UMich',
+                                              'false_negative': 'FN_UMich'
+                                              })
+
+    ucsf_replace = {'NAWB': 'NA', 'CREAT': 'CR'}
+    df_ucsf['lab'] = df_ucsf['lab'].apply(lambda x: ucsf_replace[x] if x in ucsf_replace else x)
+    df_ucsf['predicted_normal_UCSF'] = df_ucsf['true_positive'] + df_ucsf['false_positive']
+    df_ucsf = df_ucsf.rename(columns={'AUROC': 'AUC_UCSF',
+                                      #'baseline2_ROC': 'B_ROC_UCSF',
+                                              'PPV':'PPV_UCSF',
+                                        'true_positive': 'TP_UCSF',
+                                        'false_positive': 'FP_UCSF',
+                                        'true_negative': 'TN_UCSF',
+                                        'false_negative': 'FN_UCSF'
+                                        })
+
+    columns = ['lab', 'AUC', 'PPV', 'predicted_normal']#, 'true_positive', 'false_positive', 'true_negative', 'false_negative']
+    columns_stanford = [x+'_Stanford' if x !='lab' else x for x in columns]
+    columns_umich = [x+'_UMich' if x !='lab' else x for x in columns]
+    columns_ucsf = [x+'_UCSF' if x !='lab' else x for x in columns]
+
+    merged_df = pd.merge(df_stanford[columns_stanford], df_umich[columns_umich], how='left', on='lab')
+    merged_df = pd.merge(merged_df, df_ucsf[columns_ucsf], how='left', on='lab')
+
+    columns_show = [x.replace('_',' ') for x in merged_df.columns]
+
+    merged_df = merged_df.rename(columns=dict(zip(merged_df.columns, columns_show)))
+    merged_df.to_csv(os.path.join(stats_folderpath, 'components_comparisons.csv'), index=False)
+
+
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['PPV_distribution']
+    figs_to_plot = ['Comparing_Components']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
@@ -966,8 +1050,10 @@ if __name__ == '__main__':
 
     labs_common_panels = ['LABMETB', 'LABCBCD']
 
-    if 'Order_Intensities' in figs_to_plot:
+    if 'Comparing_Components' in figs_to_plot:
+        comparing_components(stats_folderpath)
 
+    if 'Order_Intensities' in figs_to_plot:
 
         labs = list(set(labs_common_panels + labs_guideline + stats_utils.get_important_labs()))
 

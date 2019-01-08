@@ -30,7 +30,7 @@ For plotting guideline,
 a lab, has n prev consecutive normal. 
 '''
 
-lab_type = 'panel'
+lab_type = 'component'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
@@ -306,7 +306,7 @@ def get_important_labs(lab_type='panel', order_by=None):
         #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
     elif lab_type == 'component':
         # TODO
-        all_labs = all_components
+        return ['WBC', 'HGB', 'NA', 'K', 'CO2', 'CR', 'ALB']
 
     labs_and_cnts = sorted(labs_and_cnts, key=lambda x: x[1])
     return [x[0] for x in labs_and_cnts]
