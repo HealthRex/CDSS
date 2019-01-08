@@ -842,6 +842,8 @@ def PPV_guideline(statsByLab_folderpath):
         columns += ['[%.2f, %.2f)' % (range_bins[i + 1], range_bins[i])]
 
     rows = []
+    actual_PPVs = {}
+    actual_median_PPV = {}
     for targeted_PPV in [0.8, 0.90, 0.95, 0.99][::-1]: # TODO: what is the problem with 0.9? LABHIVWBL
         cur_row = [targeted_PPV]
 
@@ -850,11 +852,14 @@ def PPV_guideline(statsByLab_folderpath):
 
         PPVs_from_train = PPVs_from_train.dropna()['PPV'].values
         PPVs_from_train = np.array([float(x) for x in PPVs_from_train if x!='']) #TODO: why?
+        actual_PPVs[targeted_PPV] = PPVs_from_train.tolist()
+
         vaild_PPV_num = PPVs_from_train.shape[0]
         cur_row.append(vaild_PPV_num) # "Valid number of labs:"
 
-        print "When target at PPV %.2f, the mean PPV among %i labs is %.3f, std is %.3f"\
-              %(targeted_PPV, vaild_PPV_num, np.mean(PPVs_from_train), np.std(PPVs_from_train))
+        print "When target at PPV %.2f, the mean/median PPV among %i labs is %.3f/%.3f, std is %.3f"\
+              %(targeted_PPV, vaild_PPV_num, np.mean(PPVs_from_train), np.median(PPVs_from_train), np.std(PPVs_from_train))
+        actual_median_PPV[targeted_PPV] = np.median(PPVs_from_train)
 
         cur_cnt = sum(PPVs_from_train >= 0.99)
         cur_row.append(cur_cnt)
@@ -864,6 +869,27 @@ def PPV_guideline(statsByLab_folderpath):
             cur_row.append(cur_cnt)
 
         rows.append(cur_row)
+
+    actual_PPVs_df = pd.DataFrame.from_dict(actual_PPVs, orient='index').transpose()
+    actual_PPVs_df = actual_PPVs_df.melt(var_name='Targeted PPV', value_name='Actual PPVs')
+    import seaborn
+    # seaborn.set(style="ticks", palette="colorblind")
+    actual_PPVs_df['side'] = actual_PPVs_df['Targeted PPV'].apply(lambda x:0)
+    actual_PPVs_df['side'].iloc[-1]=-999
+
+    fig, ax = plt.subplots(figsize=(8,6))
+    seaborn.violinplot(x='Targeted PPV', y='Actual PPVs', data=actual_PPVs_df, hue='side', split=True,
+                       #palette = ['o']
+                       )
+
+    for i, v in enumerate([0.8, 0.90, 0.95, 0.99]):
+        print actual_median_PPV
+        ax.text(i, actual_median_PPV[v], '%.3f'%actual_median_PPV[v], color='k')
+
+    leg = plt.gca().legend()
+    leg.remove()
+    plt.ylim([0.35,1.15])
+    plt.savefig(os.path.join(statsByLab_folderpath, 'violinplot.png'))
 
     df = pd.DataFrame(rows, columns=columns)
     df.to_csv(statsByLab_folderpath + "/predict_power_%ss.csv"%lab_type, index=False)
@@ -925,7 +951,7 @@ def draw__Comparing_PPVs(statsByLab_folderpath, include_labnames=False):
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['Confusion_Metrics']
+    figs_to_plot = ['PPV_distribution']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
