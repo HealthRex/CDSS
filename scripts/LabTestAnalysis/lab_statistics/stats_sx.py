@@ -375,7 +375,10 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
     elif scale_by == 'enc':
         scale = float(stats_utils.NUM_DISTINCT_ENCS)
 
-    df_toplots = df_toplots.sort_values(['total_vol'], ascending=True)
+    if lab_type == 'panel':
+        df_toplots = df_toplots.sort_values(['total_vol'], ascending=True)
+    else:
+        df_toplots = df_toplots.iloc[::-1]
 
     for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
@@ -391,9 +394,12 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
 
         plt.yticks([])
 
-        plt.xlim([-2.5, 3])
+        if lab_type == 'panel':
+            plt.xlim([-2.5, 3])
+        elif lab_type == 'component':
+            plt.xlim([-8.5, 8])
 
-        plt.legend(loc=[0.1,0.1])
+        # plt.legend(loc=[0.1,0.1])
         plt.xlabel('Number of orders per encounter, targeting at PPV=%.2f'%targeted_PPV, fontsize=14)
         #plt.ylabel('Labs', fontsize=14)
 
@@ -1051,13 +1057,18 @@ def comparing_components(stats_folderpath, target_PPV=0.95):
     columns_show = [x.replace('_',' ') for x in merged_df.columns]
 
     merged_df = merged_df.rename(columns=dict(zip(merged_df.columns, columns_show)))
-    merged_df.to_csv(os.path.join(stats_folderpath, 'components_comparisons.csv'), index=False)
+
+    columns_merged = merged_df.columns.tolist()
+    columns_merged.remove('lab')
+    columns_merged = ['lab'] + sorted(columns_merged)
+    merged_df['lab'] = merged_df['lab'].apply(lambda x: lab_descriptions[x])
+    merged_df[columns_merged].to_csv(os.path.join(stats_folderpath, 'components_comparisons.csv'), index=False)
 
 
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['Potential_Savings']
+    figs_to_plot = ['Comparing_Components']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
@@ -1105,8 +1116,11 @@ if __name__ == '__main__':
         draw__stats_Curves(statsByDataSet_folderpath, all_labs, curve_type="PRC", algs=['random-forest'])
 
     if 'Confusion_Metrics' in figs_to_plot:
-        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
-        draw__Confusion_Metrics(statsByDataSet_folderpath, labs=labs,
+        panels = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
+        print all_labs
+        components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA',\
+    'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
+        draw__Confusion_Metrics(statsByDataSet_folderpath, labs=components,
             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
 
     if 'Potential_Savings' in figs_to_plot:
