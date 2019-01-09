@@ -221,6 +221,14 @@ def draw__Potential_Savings(statsByLab_folderpath, scale_by=None, targeted_PPV=0
     df_sorted_by_normal_cost['lab_description'] = df_sorted_by_normal_cost['lab'].apply(
         lambda x: lab_descriptions[x])
 
+    print df_sorted_by_normal_cost['lab']
+    labs_to_show = ['LABMGN', 'LABLIDOL', 'LABK', 'LABPHOS', 'LABTNI',
+                    'LABPROCT', 'LABURIC', 'LABLAC', 'LABUSPG', 'LABHBSAG',
+                    'LABLIPS', 'LABUOSM', 'LABANER', 'LABCK', 'LABPLTS',
+                    'LABUPREG', 'LABB12', 'LABMB', 'LABURNC', 'LABTRIG',
+                    'LABUOSM', 'LABA1C']
+    df_sorted_by_normal_cost = df_sorted_by_normal_cost[df_sorted_by_normal_cost['lab'].isin(labs_to_show)]
+
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.barh(df_sorted_by_normal_cost['lab_description'], df_sorted_by_normal_cost['normal_cost'],
             color='blue', alpha=0.5, label='Low yield lab cost')
@@ -229,7 +237,7 @@ def draw__Potential_Savings(statsByLab_folderpath, scale_by=None, targeted_PPV=0
 
     # if add_predictable:
     ax.barh(df_sorted_by_normal_cost['lab_description'], df_sorted_by_normal_cost['truepo_cost'],
-            color='blue', alpha=1, label='Avoidable cost')  # 'True Positive@0.95 train_PPV'
+            color='green', alpha=1, label='Avoidable cost')  # 'True Positive@0.95 train_PPV'
     for i, v in enumerate(df_sorted_by_normal_cost['truepo_cost']):
         ax.text(v, i, str("{0:.1%}".format((df_sorted_by_normal_cost['true_positive_fraction']/df_sorted_by_normal_cost['normal_rate']).values[i])), color='k',
                 fontweight='bold')
@@ -333,15 +341,17 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
         df_toshow = df.copy()
         df_toshow['lab'] = df_toshow['lab'].apply(lambda x:lab_descriptions[x])
         df_toshow['true_negative'] = -df_toshow['true_negative']
-        df_toshow = df_toshow.rename(columns={'true_positive':'TP',
+        df_toshow = df_toshow.rename(columns={
+            'AUROC':'AUC',
+                                            'true_positive':'TP',
                                               'false_positive':'FP',
                                               'true_negative':'TN',
                                               'false_negative':'FN',
                                               'sensitivity':'sens',
                                               'specificity':'spec',
                                               'LR_p':'LR+', 'LR_n':'LR-'})
-        df_toshow.sort_values('total_vol', ascending=False)[['lab', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec', 'LR+', 'LR-']]\
-            .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False, float_format='%.2f')
+        df_toshow.sort_values('total_vol', ascending=False)[['lab', 'AUC', 'PPV', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec', 'LR+', 'LR-']]\
+            .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False, float_format='%.3f')
 
         df_toplots = df
 
@@ -355,7 +365,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
                     'total_vol',
                    'all_positive_vol', 'true_positive_vol', 'all_negative_vol', 'true_negative_vol']]\
                     .sort_values('total_vol', ascending=False)\
-                    .to_csv(cached_tablepath, index=False, float_format='%.2f')
+                    .to_csv(cached_tablepath, index=False, float_format='%.3f')
 
 
     if not scale_by:
@@ -816,7 +826,7 @@ def print_HosmerLemeshowTest():
 
 
 
-def get_best_calibrated_labs(statsByLab_folderpath, top_k=20):
+def get_best_calibrated_labs(statsByLab_folderpath, top_k=20, worst=False):
     df_fix_train = pd.read_csv(statsByLab_folderpath + "/summary-stats-bestalg-fixTrainPPV.csv",
                                keep_default_na=False)
     df_fix_train['abs_PPV_diff'] = (df_fix_train['targeted_PPV_fixTrainPPV'] - df_fix_train['PPV'].apply(
@@ -827,7 +837,10 @@ def get_best_calibrated_labs(statsByLab_folderpath, top_k=20):
         cur_tot_diff = df_fix_train[df_fix_train['lab']==lab]['abs_PPV_diff'].values.sum()
         lab_diff[lab] = cur_tot_diff
 
-    best_labs = [x[0] for x in sorted(lab_diff.iteritems(), key=lambda (k,v):v)[:top_k]]
+    if not worst:
+        best_labs = [x[0] for x in sorted(lab_diff.iteritems(), key=lambda (k,v):v)[:top_k]]
+    else:
+        best_labs = [x[0] for x in sorted(lab_diff.iteritems(), key=lambda (k, v): v)[-top_k:]]
     print best_labs
     # for lab in best_labs:
     #     print df_fix_train[df_fix_train['lab']==lab][['lab', 'targeted_PPV_fixTrainPPV', 'PPV']].to_string(index=False)
@@ -836,7 +849,8 @@ def get_best_calibrated_labs(statsByLab_folderpath, top_k=20):
     # print df_res_long
     df_res_long['abs_PPV_diff'] = df_res_long['lab'].map(lab_diff)
     df_res_long = df_res_long.rename(columns={0.80:'target 0.80', 0.90:'target 0.90', 0.95:'target 0.95', 0.99:'target 0.99'})
-    df_res_long.sort_values('abs_PPV_diff').drop(columns=['abs_PPV_diff']).to_csv(statsByLab_folderpath+'/best_calibrated.csv', index=False)
+    df_res_long['lab'] = df_res_long['lab'].apply(lambda x:lab_descriptions[x])
+    df_res_long.sort_values('abs_PPV_diff').drop(columns=['abs_PPV_diff']).to_csv(statsByLab_folderpath+'/best_calibrated_is_worst_%s.csv'%worst, index=False)
 
 def PPV_guideline(statsByLab_folderpath):
 
@@ -1073,8 +1087,8 @@ if __name__ == '__main__':
         draw__Normality_Saturations(statsByDataSet_folderpath, labs=labs, use_cached_fig_data=True)
 
     if 'PPV_distribution' in figs_to_plot:
-        PPV_guideline(statsByDataSet_folderpath) #TODO
-        get_best_calibrated_labs(statsByDataSet_folderpath)
+        # PPV_guideline(statsByDataSet_folderpath) #TODO
+        get_best_calibrated_labs(statsByDataSet_folderpath, worst=False)
 
     if 'Savable_Fractions' in figs_to_plot:
         draw__Comparing_Savable_Fractions(statsByDataSet_folderpath, target_PPV=0.95, use_cache=True)
