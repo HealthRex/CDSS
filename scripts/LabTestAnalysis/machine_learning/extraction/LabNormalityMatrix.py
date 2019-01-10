@@ -185,7 +185,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addSelect('COUNT(order_proc_id) AS num_orders')
             query.addFrom('labs')
             if self._isLabPanel:
-                query.addWhereIn("proc_id", [self._lab_var]) # TODO
+                query.addWhereIn("proc_code", [self._lab_var])
                 query.addWhereIn("base_name", self._lab_components)
             else:
                 query.addWhereIn("base_name", [self._lab_var])
@@ -358,7 +358,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query_str = "SELECT CAST(pat_id AS BIGINT) AS pat_id, order_proc_id, base_name, order_time, "
             query_str += "CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END AS component_normal "
             query_str += "FROM labs "
-            query_str += "WHERE base_name = '%s' " % self._lab_var
+            query_str += "WHERE %s = '%s' " % (self._varTypeInTable, self._lab_var)
             query_str += "AND pat_id IN "
             pat_list_str = "("
             for pat_id in random_patient_list:
