@@ -474,23 +474,34 @@ UMICH_TOP_COMPONENTS = [
 ]
 
 UCSF_TOP_COMPONENTS = [
-            'WBC', 'HGB', 'PLT', 'NAWB', 'K',
-            'CREAT', 'TBILI',
-            'CL', 'CO2', 'DBILI', 'AST', 'ALT',
-            'ALB', 'CA', 'PCO2', 'PO2', 'PH37',
-            'TP',
-            'ALKP',
-            'BUN',
+            'WBC', 'HGB', 'PLT', 'NAWB', 'K', 'CREAT', 'TBILI',
+            'CL', 'CO2', 'DBILI', 'AST', 'ALT', 'ALB', 'CA',
+            'PCO2', 'PO2', 'PH37', 'TP', 'ALKP', 'BUN', 'HCO3',
             # No IBIL
-            'HCO3',
-            'MG',
-            'PO4', #PHOSPHORUS, SERUM / PLASMA
-            'INR',
-            'P060', # PERIPHERAL BLOOD CULTURE
-            'CAI',
-            'CAIB',
-            'LACTWB'
-                               ]
+            'MG', 'PO4', 'INR', 'P060', 'CAI', 'CAIB', 'LACTWB'
+            #PHOSPHORUS, SERUM / PLASMA
+            # PERIPHERAL BLOOD CULTURE
+            ]
+
+UCSF_TOP_PANELS = [
+    'Magnesium, Serum / Plasma', # 68558
+    'Phosphorus, Serum / Plasma', # 51520
+    'Prothrombin Time', # 46170
+    'Activated Partial Thromboplastin Time', # 20891
+    'Peripheral Blood Culture', # 10406
+    'Bilirubin, Total', #12740
+    'Creatinine, Serum / Plasma', #11958
+    'Alkaline Phosphatase', #11943
+    'Sodium, Serum / Plasma', # 9500
+    'Potassium, Serum / Plasma', # 6725
+    'Troponin I', # 7075
+    'Carbon Dioxide, Total (includes Anion Gap)', 	#9236
+    'Lactate Dehydrogenase, Serum / Plasma', 	#8856
+    'Calcium, Ionized, serum/plasma', 	#8742
+    'Uric Acid, Serum / Plasma', # 4472
+    'Albumin, Serum / Plasma',  # 4120
+    'Thyroid Stimulating Hormone', # 2030
+]
 
 if __name__ == '__main__':
     log.level = logging.DEBUG
@@ -507,70 +518,54 @@ if __name__ == '__main__':
             # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
             # LabNormalityPredictionPipeline(panel, 2000, use_cache=True, random_state=123456789, isLabPanel=True,
             #                                timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
-            pass
 
-            # try:
-            #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
-            # except ValueError:
-            #     import shutil
-            #     shutil.rmtree('data/%s'%panel)
-            #     print 'data/%s removed!'%panel
-            #     LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
-
-        for component in ['WBC']: #STRIDE_COMPONENT_TESTS: #['CR' #'HGB', 'WBC', 'K', 'NA', 'CR', 'GLU' #'PLT',]:
-                           #STRIDE_COMPONENT_TESTS:
-            # print 'start %s...'%component
-            # LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
-            # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
-            # LabNormalityPredictionPipeline(component, 2000, use_cache=True, random_state=123456789, isLabPanel=False,
-            #                            timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
+        for component in STRIDE_COMPONENT_TESTS:
+            print 'start %s...'%component
+            LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+            used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
+            LabNormalityPredictionPipeline(component, 2000, use_cache=True, random_state=123456789, isLabPanel=False,
+                                       timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
             pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-        print "here!"
 
+        test_mode = True
 
-        if False:
-            test_mode = True
+        if test_mode:
+            raw_data_files = ['labs.sample.txt',
+                              'pt.info.sample.txt',
+                              'encounters.sample.txt',
+                              'demographics.sample.txt',
+                              'diagnoses.sample.txt']
+        else:
+            raw_data_files = ['labs.txt',
+                              'pt.info.txt',
+                              'encounters.txt',
+                              'demographics.txt',
+                              'diagnoses.txt']
 
-            if test_mode:
-                raw_data_files = ['labs.sample.txt',
-                                  'pt.info.sample.txt',
-                                  'encounters.sample.txt',
-                                  'demographics.sample.txt',
-                                  'diagnoses.sample.txt']
-            else:
-                raw_data_files = ['labs.txt',
-                                  'pt.info.txt',
-                                  'encounters.txt',
-                                  'demographics.txt',
-                                  'diagnoses.txt']
+        raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
+        db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
+        fold_enlarge_data = 1000
+        USE_CACHED_DB = True # TODO: take care of USE_CACHED_LARGEFILE in the future
 
-            raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
-            db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
-            fold_enlarge_data = 1000
-            USE_CACHED_DB = True # TODO: take care of USE_CACHED_LARGEFILE in the future
+        db_preparor = DB_Preparor(raw_data_files, raw_data_folderpath,
+                                               db_name=db_name,
+                                               fold_enlarge_data=fold_enlarge_data,
+                                               USE_CACHED_DB=USE_CACHED_DB,
+                                               data_source = 'UMich',
+                                               time_min=None,#'2015-01-01',
+                                               test_mode=test_mode)
 
-            db_preparor = DB_Preparor(raw_data_files, raw_data_folderpath,
-                                                   db_name=db_name,
-                                                   fold_enlarge_data=fold_enlarge_data,
-                                                   USE_CACHED_DB=USE_CACHED_DB,
-                                                   data_source = 'UMich',
-                                                   time_min=None,#'2015-01-01',
-                                                   test_mode=test_mode)
-        # prepare_database
-
-        # for panel in UMICH_TOP_LABPANELS:
-        #     LabNormalityPredictionPipeline(panel, 1000, use_cache=True, random_state=123456789, isLabPanel=True)
         for component in UMICH_TOP_COMPONENTS:
-            # try:
-                LabNormalityPredictionPipeline(component, 3000, use_cache=True, random_state=123456789, isLabPanel=False)
+            try:
+                LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
                 # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
                 # LabNormalityPredictionPipeline(component, 1000, use_cache=True, random_state=123456789, isLabPanel=False,
                 #                                timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
-            # except Exception as e:
-            #     log.info(e)
-            #     pass
+            except Exception as e:
+                log.info(e)
+                pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
 
@@ -586,21 +581,24 @@ if __name__ == '__main__':
 
 
         fold_enlarge_data = 1
-        USE_CACHED_DB = False  # TODO: take care of USE_CACHED_LARGEFILE in the future
+        USE_CACHED_DB = True  # TODO: take care of USE_CACHED_LARGEFILE in the future
 
         db_preparor = DB_Preparor(raw_data_files, raw_data_folderpath,
                                                db_name=db_name,
                                                fold_enlarge_data=fold_enlarge_data,
                                                USE_CACHED_DB=USE_CACHED_DB,
-                                  test_mode=True) #TODO
+                                  test_mode=False) #TODO
+
+        for panel in UCSF_TOP_PANELS:
+            LabNormalityPredictionPipeline(panel, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
 
         for component in UCSF_TOP_COMPONENTS:
-            # try:
-                LabNormalityPredictionPipeline(component, 3000, use_cache=False, random_state=123456789, isLabPanel=False)
-            # except SystemExit as se:
-            #     log.info(se)
-            # except Exception as e:
-            #     log.info(e)
+            try:
+                LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
+            except SystemExit as se:
+                log.info(se)
+            except Exception as e:
+                log.info(e)
 
     log.info("\n"
              "Congratz, pipelining completed! \n"
