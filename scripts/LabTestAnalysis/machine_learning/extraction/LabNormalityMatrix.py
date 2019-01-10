@@ -355,8 +355,11 @@ class LabNormalityMatrix(FeatureMatrix):
             default (convenient) routine in DBUtil.  
             '''
 
-            query_str = "SELECT CAST(pat_id AS BIGINT) AS pat_id, order_proc_id, base_name, order_time, "
-            query_str += "CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END AS component_normal "
+            query_str = "SELECT CAST(pat_id AS BIGINT) AS pat_id, order_proc_id, %s, order_time, " % self._varTypeInTable
+            if not self._isLabPanel:
+                query_str += "CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END AS component_normal "
+            else:
+                query_str += "CAST(SUM(CASE WHEN result_in_range_yn != 'Y' THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal "
             query_str += "FROM labs "
             query_str += "WHERE %s = '%s' " % (self._varTypeInTable, self._lab_var)
             query_str += "AND pat_id IN "
@@ -365,8 +368,8 @@ class LabNormalityMatrix(FeatureMatrix):
                 pat_list_str += str(pat_id) + ","
             pat_list_str = pat_list_str[:-1] + ") "
             query_str += pat_list_str
-            query_str += "GROUP BY pat_id, order_proc_id, base_name, order_time "
-            query_str += "ORDER BY pat_id, order_proc_id, base_name, order_time "
+            query_str += "GROUP BY pat_id, order_proc_id, %s, order_time " % self._varTypeInTable
+            query_str += "ORDER BY pat_id, order_proc_id, %s, order_time " % self._varTypeInTable
             query_str += "LIMIT %d" % self._num_requested_episodes
 
             self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query_str, index_time_col='order_time')
