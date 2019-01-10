@@ -23,7 +23,7 @@ all_algs = stats_utils.all_algs
 #
 DEFAULT_TIMELIMIT = stats_utils.DEFAULT_TIMELIMIT
 #
-lab_descriptions = stats_utils.get_lab_descriptions()
+lab_descriptions = stats_utils.get_lab_descriptions(line_break_at=22)
 
 
 
@@ -521,13 +521,25 @@ def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_la
         plt.savefig(cached_result_foldername + 'Order_Intensities_%s_%i.png'%(lab_type,ind_toplot))
         plt.clf()
 
-def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", algs=['random-forest']):
+def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", algs=['random-forest'], result_label=None):
+    result_foldername = 'Fig_stats_Curves'
+    if result_label:
+        result_foldername += '_' + result_label
+    result_folderpath = os.path.join(statsByLab_folderpath, result_foldername)
+    if not os.path.exists(result_folderpath):
+        os.mkdir(result_folderpath)
+
+    result_figname = '%s_%s.png'%(lab_type, curve_type)
+    result_figpath = os.path.join(result_folderpath, result_figname)
+
     num_labs = len(labs)
-    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=4)
+    # fig, ax = plt.subplots(figsize=(12, 6))
+
+    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=7)
 
     scores_base = []
     scores_best = []
-    fig, ax = plt.subplots(figsize=(12, 6))
+
 
     for ind, lab in enumerate(labs):
 
@@ -549,7 +561,7 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
         plt.xlabel(lab_descriptions[lab])
         plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join(statsByLab_folderpath, '%s_%s.png'%(lab_type, curve_type)))
+    plt.savefig(result_figpath)
 
     avg_base, avg_best = np.mean(scores_base), np.mean(scores_best)
     print "Average %s among %i labs: %.3f baseline, %.3f bestalg (an improvement of %.3f)."\
@@ -1068,7 +1080,7 @@ def comparing_components(stats_folderpath, target_PPV=0.95):
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['Comparing_Components']
+    figs_to_plot = ['ROC', 'PRC']
 
     possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
 
@@ -1107,13 +1119,20 @@ if __name__ == '__main__':
     if 'Comparing_PPVs' in figs_to_plot:
         draw__Comparing_PPVs(statsByDataSet_folderpath)
 
-    if 'ROC' in figs_to_plot:
-        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
-        draw__stats_Curves(statsByDataSet_folderpath, labs, curve_type="ROC", algs=['random-forest'])
+    if 'ROC' in figs_to_plot or 'PRC' in figs_to_plot:
+        '''
+        1. typical labs are for show in the main text
+        
+        2. all labs for putting in the Appendix
+        '''
+        typical_labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
 
-    if 'PRC' in figs_to_plot:
-        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
-        draw__stats_Curves(statsByDataSet_folderpath, all_labs, curve_type="PRC", algs=['random-forest'])
+        lab_set, set_label = all_labs, 'all_labs'
+
+        if 'ROC' in figs_to_plot:
+            draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=['random-forest'], result_label=set_label)
+        if 'PRC' in figs_to_plot:
+            draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=['random-forest'], result_label=set_label)
 
     if 'Confusion_Metrics' in figs_to_plot:
         panels = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))

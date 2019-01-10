@@ -30,7 +30,7 @@ For plotting guideline,
 a lab, has n prev consecutive normal. 
 '''
 
-lab_type = 'component'
+lab_type = 'UCSF'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
@@ -93,7 +93,7 @@ def prepare_subfigs(num_figs, col = 5):
     if cols_left > 0:
         row = row + 1
 
-    fig_width, fig_heights = col * 3., 8. / col * row
+    fig_width, fig_heights = 2.5 * col, 2 * row #8. / col * row
 
     plt.figure(figsize=(fig_width, fig_heights))
 
@@ -928,7 +928,22 @@ def pick_threshold(y_pick, y_pick_pred, target_PPV=0.95):
 
     return thres_last
 
-def get_lab_descriptions():
+def add_line_breaker(astring, seg_len):
+    str_len = len(astring)
+    num_lines = str_len/seg_len
+
+    new_str = ''
+    for i in range(num_lines):
+        new_str += astring[i*seg_len:(i+1)*seg_len] + '\n'
+    if str_len%seg_len != 0:
+        new_str += astring[num_lines*seg_len:]
+
+    if new_str[-1] == '\n':
+        new_str = new_str[:-1]
+    return new_str
+
+
+def get_lab_descriptions(line_break_at=None):
     if lab_type=='panel':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'labs.csv')
     elif lab_type=='component':
@@ -939,6 +954,9 @@ def get_lab_descriptions():
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich.csv')
 
     df = pd.read_csv(descriptions_filepath, keep_default_na=False)
+    if line_break_at:
+        df['description'] = df['description'].apply(lambda x: add_line_breaker(x, line_break_at))
+
     descriptions = pandas2dict(df[['name', 'description']], key='name', val='description')
 
     return descriptions
