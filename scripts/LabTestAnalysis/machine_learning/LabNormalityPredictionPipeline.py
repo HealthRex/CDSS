@@ -502,6 +502,7 @@ UCSF_TOP_PANELS = [
     'Albumin, Serum / Plasma',  # 4120
     'Thyroid Stimulating Hormone', # 2030
 ]
+UCSF_TOP_PANELS = [x.replace('/', '-') for x in UCSF_TOP_PANELS] # TODO: avoid path confusion; consistent to utils_UCSF
 
 if __name__ == '__main__':
     log.level = logging.DEBUG
@@ -590,7 +591,7 @@ if __name__ == '__main__':
                                   test_mode=False) #TODO
 
         for panel in UCSF_TOP_PANELS:
-            LabNormalityPredictionPipeline(panel, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
+            LabNormalityPredictionPipeline(panel, 10000, use_cache=False, random_state=123456789, isLabPanel=True)
 
         for component in UCSF_TOP_COMPONENTS:
             try:
