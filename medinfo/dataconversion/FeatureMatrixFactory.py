@@ -223,7 +223,6 @@ class FeatureMatrixFactory:
     New version, adapt to the new split_by_patient pipeline
     '''
     def obtain_baseline_results(self, raw_matrix_path, random_state, isLabPanel=True, isHoldOut=False):
-        print raw_matrix_path
         from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
         fm_io = FeatureMatrixIO()
 
@@ -233,7 +232,12 @@ class FeatureMatrixFactory:
         get prevalence from the train set
         '''
         processed_matrix_train = fm_io.read_file_to_data_frame(processed_matrix_path.replace('-matrix', '-train-matrix'))
-        prevalence = float(processed_matrix_train['all_components_normal'].values.sum())/float(processed_matrix_train.shape[0])
+        if isLabPanel:
+            y_label = 'all_components_normal'
+        else:
+            y_label = 'component_normal'
+
+        prevalence = float(processed_matrix_train[y_label].values.sum())/float(processed_matrix_train.shape[0])
 
         '''
         '''
@@ -242,14 +246,14 @@ class FeatureMatrixFactory:
         raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
         raw_matrix_test = raw_matrix[raw_matrix['pat_id'].isin(pats_test)]
         raw_matrix_test = raw_matrix_test.sort_values(['pat_id', 'order_time']).reset_index()
-        raw_matrix_test['predict_proba'] = raw_matrix_test['all_components_normal'].apply(lambda x: prevalence)
+        raw_matrix_test['predict_proba'] = raw_matrix_test[y_label].apply(lambda x: prevalence)
 
         for i in range(1, raw_matrix_test.shape[0]):
             if raw_matrix_test.ix[i - 1, 'pat_id'] == raw_matrix_test.ix[i, 'pat_id']:
-                raw_matrix_test.ix[i, 'predict_proba'] = raw_matrix_test.ix[i - 1, 'all_components_normal']
+                raw_matrix_test.ix[i, 'predict_proba'] = raw_matrix_test.ix[i - 1, y_label]
 
-        baseline_comparisons = raw_matrix_test[['predict_proba', 'all_components_normal']]
-        baseline_comparisons = baseline_comparisons.rename({'actual':'all_components_normal',
+        baseline_comparisons = raw_matrix_test[['predict_proba', y_label]]
+        baseline_comparisons = baseline_comparisons.rename(columns={y_label:'actual',
                                                             'predict_proba':'predict'})
 
         baseline_folder = '/'.join(raw_matrix_path.split('/')[:-1])

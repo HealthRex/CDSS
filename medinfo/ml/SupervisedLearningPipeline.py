@@ -99,7 +99,7 @@ class SupervisedLearningPipeline:
     def _build_matrix_path(self, file_name_template, pipeline_module_path):
         # Build matrix file name.
         slugified_var = '-'.join(self._var.split())
-        matrix_name = file_name_template % (slugified_var, self._num_rows)
+        matrix_name = file_name_template % (slugified_var) #, self._num_rows
 
         # Build path.
         data_dir = self._fetch_data_dir_path(pipeline_module_path)
@@ -587,10 +587,10 @@ class SupervisedLearningPipeline:
 
         # Write output.
         analyzer.output_direct_comparisons(direct_comparisons_path)
-        analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
-        analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
-        analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
-        analyzer.write_report(report_path, ci=0.95)
+        # analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
+        # analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
+        # analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
+        # analyzer.write_report(report_path, ci=0.95)
 
 
     # sx
@@ -624,10 +624,10 @@ class SupervisedLearningPipeline:
 
         # Write output.
         analyzer.output_direct_comparisons(direct_comparisons_path)
-        analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
-        analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
-        analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
-        analyzer.write_report(report_path, ci=0.95)
+        # analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
+        # analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
+        # analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
+        # analyzer.write_report(report_path, ci=0.95)
 
 
     def _analyze_predictor_holdoutset(self, dest_dir, pipeline_prefix):

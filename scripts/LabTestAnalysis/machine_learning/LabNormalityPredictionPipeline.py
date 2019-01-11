@@ -37,6 +37,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
         self._build_baseline_results() #TODO: prototype in SLPP
+        return
 
         data_lab_folder = self._fetch_data_dir_path(inspect.getfile(inspect.currentframe()))
         feat2imputed_dict_path = data_lab_folder + '/feat2imputed_dict.pkl'
@@ -68,7 +69,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
     def _build_raw_matrix_path(self):
         if not self._holdOut:
-            template = '%s-normality-matrix-%d-episodes-raw.tab'
+            template = '%s-normality-matrix-raw.tab'
         else:
             template = '%s-normality-matrix-%d-episodes-raw-holdout.tab'
         pipeline_file_name = inspect.getfile(inspect.currentframe())
@@ -88,7 +89,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
     def _build_baseline_results(self):
         if not self._holdOut:
-            template = '%s-normality-matrix-%d-episodes-raw.tab'
+            template = '%s-normality-matrix-raw.tab'
         else:
             template = '%s-normality-matrix-%d-episodes-raw-holdout.tab'
         pipeline_file_name = inspect.getfile(inspect.currentframe())
@@ -102,7 +103,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
     def _build_processed_matrix_path(self):
         if not self._holdOut:
-            template = '%s-normality-matrix-%d-episodes-processed.tab'
+            template = '%s-normality-matrix-processed.tab'
         else:
             template = '%s-normality-matrix-%d-episodes-processed-holdout.tab'
         pipeline_file_path = inspect.getfile(inspect.currentframe())
@@ -513,19 +514,20 @@ if __name__ == '__main__':
 
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
-        for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS:#['LABMGN', 'LABK', 'LABLAC']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
-            LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
-                                           timeLimit=(None, None), notUsePatIds=None, holdOut=False)
-            # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
-            # LabNormalityPredictionPipeline(panel, 2000, use_cache=True, random_state=123456789, isLabPanel=True,
-            #                                timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
-
-        for component in STRIDE_COMPONENT_TESTS:
-            print 'start %s...'%component
-            LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
-            used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
-            LabNormalityPredictionPipeline(component, 2000, use_cache=True, random_state=123456789, isLabPanel=False,
-                                       timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
+        if LocalEnv.LAB_TYPE == 'panel':
+            for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS:#['LABMGN', 'LABK', 'LABLAC']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
+                                               timeLimit=(None, None), notUsePatIds=None, holdOut=False)
+                # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
+                # LabNormalityPredictionPipeline(panel, 2000, use_cache=True, random_state=123456789, isLabPanel=True,
+                #                                timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
+        else:
+            for component in STRIDE_COMPONENT_TESTS:
+                print 'start %s...'%component
+                LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+                # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
+                # LabNormalityPredictionPipeline(component, 2000, use_cache=True, random_state=123456789, isLabPanel=False,
+                #                            timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
             pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
@@ -590,16 +592,18 @@ if __name__ == '__main__':
                                                USE_CACHED_DB=USE_CACHED_DB,
                                   test_mode=False) #TODO
 
-        for panel in UCSF_TOP_PANELS:
-            LabNormalityPredictionPipeline(panel, 10000, use_cache=False, random_state=123456789, isLabPanel=True)
+        if LocalEnv.LAB_TYPE == 'panel':
+            for panel in UCSF_TOP_PANELS:
+                LabNormalityPredictionPipeline(panel, 10000, use_cache=False, random_state=123456789, isLabPanel=True)
 
-        for component in UCSF_TOP_COMPONENTS:
-            try:
-                LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
-            except SystemExit as se:
-                log.info(se)
-            except Exception as e:
-                log.info(e)
+        else:
+            for component in UCSF_TOP_COMPONENTS:
+                try:
+                    LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+                except SystemExit as se:
+                    log.info(se)
+                except Exception as e:
+                    log.info(e)
 
     log.info("\n"
              "Congratz, pipelining completed! \n"
