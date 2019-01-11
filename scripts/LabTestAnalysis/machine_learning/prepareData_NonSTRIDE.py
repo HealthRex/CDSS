@@ -34,6 +34,14 @@ def filter_nonascii(any_str):
 def filter_nondigits(any_str):
     return ''.join([x for x in str(any_str) if x in '-.0123456789'])
 
+def preprocess_files(raw_data_folderpath, data_files=None):
+    if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+        import utils_UCSF as utils_specs
+        utils_specs.separate_demog_diagn_encnt(raw_data_folderpath)
+        utils_specs.separate_labs_team(raw_data_folderpath)
+    else:
+        import utils_UMich
+        utils_UMich.preprocess_files(raw_data_folderpath, data_files)
 
 class DB_Preparor:
     def __init__(self, raw_data_files, raw_data_folderpath,
@@ -88,9 +96,6 @@ class DB_Preparor:
         for data_file in data_files:
             self.raw2db(data_file, data_folderpath, db_path=raw_data_folderpath,
                    db_name=db_name, build_index_patid=True)
-
-
-
 
 
     # def perturb_str(any_str, seed=None):
@@ -216,8 +221,8 @@ class DB_Preparor:
 
         all_rows = []
         for line_str in lines_str:
-            curr_row = utils_NonSTRIDE.line_str2list(line_str, skip_first_col=True,
-                                                     test_mode=self.test_mode)
+            curr_row = utils_NonSTRIDE.line_str2list(line_str, #skip_first_col=True,
+                                                     test_mode=False)
                                                      # params_str2list=params_str2list)
             if len(curr_row) < normal_num_cols/2: #
                 # log.info('severely missing data when processing')
@@ -264,14 +269,6 @@ class DB_Preparor:
 
         return tab2df_dict.keys()
 
-    def preprocess_files(self, raw_data_folderpath):
-        if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-            import utils_UCSF as utils_specs
-            utils_specs.separate_demog_diagn_encnt(raw_data_folderpath)
-            utils_specs.separate_labs_team(raw_data_folderpath)
-        else:
-            pass
-
     # Chunk mechanism, should be general for any outside data
     def raw2db(self, data_file, data_folderpath, db_path, db_name,
            build_index_patid=True):
@@ -289,19 +286,9 @@ class DB_Preparor:
                 if not next_n_lines_str:
                     break
 
-                # params_str2list = {}
-                # if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-                #     params_str2list['sep'] = '|'
-                #     params_str2list['has_extra_quotes'] = True
-                #     params_str2list['skip_first_col'] = True
-                # elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-                #     params_str2list['sep'] = '\t'
-                #     params_str2list['has_extra_quotes'] = False
-                #     params_str2list['skip_first_col'] = False
-
                 if is_first_chunk:
                     colnames = utils_NonSTRIDE.line_str2list(next_n_lines_str[0],
-                                                             test_mode=self.test_mode)
+                                                             test_mode=False)
                     data_df = self.lines2pd(next_n_lines_str[1:], colnames)
                                        #, params_str2list)
                     is_first_chunk = False

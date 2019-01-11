@@ -23,13 +23,15 @@ from extraction.LabNormalityMatrix import LabNormalityMatrix
 # Import FMF in order to retrieve all races name dynamically upon accessing the UMich data
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 import LocalEnv
-from prepareData_NonSTRIDE import DB_Preparor
+import prepareData_NonSTRIDE
 import pickle
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True,
-                 timeLimit=None, notUsePatIds=None, holdOut=False):
+                 timeLimit=None, notUsePatIds=None, holdOut=False, pat_batch_ind=None):
         self.notUsePatIds = notUsePatIds
+        self.pat_batch_ind = pat_batch_ind
+        self.usedPatIds = []
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state,
                                             isLabPanel, timeLimit, holdOut,
                                             isLabNormalityPredictionPipeline=True)
@@ -55,7 +57,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             For training/validation data, record the pat_ids, 
             selected features and their imputed value correspondingly. 
             '''
-            pickle.dump(self.used_patient_set, open('data/used_patient_set_%s.pkl'%self._var, 'w'), pickle.HIGHEST_PROTOCOL)
+            pickle.dump(self.usedPatIds, open('data/used_patient_set_%s.pkl'%self._var, 'w'), pickle.HIGHEST_PROTOCOL)
             self._build_processed_feature_matrix()
             # TODO: find better place to put the dict.pkl
             pickle.dump(self.feat2imputed_dict, open(feat2imputed_dict_path, 'w'), pickle.HIGHEST_PROTOCOL)
@@ -85,7 +87,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         if not self._holdOut:
             fm_io = FeatureMatrixIO()
             matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
-            self.used_patient_set = set(matrix['pat_id'].values)
+            self.usedPatIds = set(matrix['pat_id'].values)
 
     def _build_baseline_results(self):
         if not self._holdOut:
@@ -531,41 +533,52 @@ if __name__ == '__main__':
             pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
 
         test_mode = True
+        pat_batch_mode = False
 
         if test_mode:
-            raw_data_files = ['labs.sample.txt',
+            sample_data_files = ['labs.sample.txt',
                               'pt.info.sample.txt',
                               'encounters.sample.txt',
                               'demographics.sample.txt',
                               'diagnoses.sample.txt']
-        else:
-            raw_data_files = ['labs.txt',
-                              'pt.info.txt',
-                              'encounters.txt',
-                              'demographics.txt',
-                              'diagnoses.txt']
+            prepareData_NonSTRIDE.preprocess_files(raw_data_folderpath, sample_data_files)
 
-        raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
+        raw_data_files = ['labs.txt',
+                          'pt.info.txt',
+                          'encounters.txt',
+                          'demographics.txt',
+                          'diagnoses.txt']
+
         db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
-        fold_enlarge_data = 1000
+        fold_enlarge_data = 1
         USE_CACHED_DB = True # TODO: take care of USE_CACHED_LARGEFILE in the future
 
-        db_preparor = DB_Preparor(raw_data_files, raw_data_folderpath,
+        db_preparor = prepareData_NonSTRIDE.DB_Preparor(raw_data_files, raw_data_folderpath,
                                                db_name=db_name,
                                                fold_enlarge_data=fold_enlarge_data,
                                                USE_CACHED_DB=USE_CACHED_DB,
-                                               data_source = 'UMich',
                                                time_min=None,#'2015-01-01',
                                                test_mode=test_mode)
 
         for component in UMICH_TOP_COMPONENTS:
+            print "processing %s..." % component
+
             try:
-                LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
-                # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
-                # LabNormalityPredictionPipeline(component, 1000, use_cache=True, random_state=123456789, isLabPanel=False,
-                #                                timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
+                if not pat_batch_mode:
+                    LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789,
+                                                   isLabPanel=False)
+                else:
+                    pat_batch_size = 500
+                    notUsePatIds = []
+                    for pat_batch_ind in range(10000 / pat_batch_size):  # 10000
+                        cur_pipe = LabNormalityPredictionPipeline(component, pat_batch_size, use_cache=False,
+                                                                  random_state=123456789,
+                                                                  isLabPanel=False, notUsePatIds=notUsePatIds,
+                                                                  pat_batch_ind=pat_batch_ind)
+                        notUsePatIds += cur_pipe.usedPatIds
             except Exception as e:
                 log.info(e)
                 pass
@@ -586,7 +599,7 @@ if __name__ == '__main__':
         fold_enlarge_data = 1
         USE_CACHED_DB = True  # TODO: take care of USE_CACHED_LARGEFILE in the future
 
-        db_preparor = DB_Preparor(raw_data_files, raw_data_folderpath,
+        db_preparor = prepareData_NonSTRIDE.DB_Preparor(raw_data_files, raw_data_folderpath,
                                                db_name=db_name,
                                                fold_enlarge_data=fold_enlarge_data,
                                                USE_CACHED_DB=USE_CACHED_DB,
