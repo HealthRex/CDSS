@@ -30,7 +30,7 @@ For plotting guideline,
 a lab, has n prev consecutive normal. 
 '''
 
-lab_type = 'UCSF'
+lab_type = 'component'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
@@ -495,8 +495,8 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
     '''
 
     df = pd.read_csv(data_folder + '/' + lab + '/' + 'baseline_comparisons.csv')
-    base_actual = df['actual'].values
-    base_predict = df['predict'].values
+    base_actual = df['actual'].values #df['actual'].values
+    base_predict = df['predict'].values # TODO
 
     if curve_type == 'ROC':
         fpr_base, tpr_base, _ = roc_curve(base_actual, base_predict)
@@ -539,6 +539,8 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
             best_actual = actual_list
             best_predict = df['predict'].values
 
+    p_val = random_permutation_test(base_actual, base_predict, best_actual, best_predict, curve_type)
+
     if curve_type == 'ROC':
         fpr, tpr, _ = roc_curve(best_actual, best_predict)
         xVal_best, yVal_best = fpr, tpr
@@ -548,7 +550,65 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
         xVal_best, yVal_best = recall, precision
 
 
-    return xVal_base, yVal_base, base_score, xVal_best, yVal_best, best_score
+    return xVal_base, yVal_base, base_score, xVal_best, yVal_best, best_score, p_val
+
+def random_permutation_test(base_actual, base_predict, best_actual, best_predict, curve_type):
+    '''
+    Why: Check statistical significance of our model's AUC compared to baseline AUC.
+
+    How:
+    https://stats.stackexchange.com/questions/214687/what-statistical-tests-to-compare-two-aucs-from-two-models-on-the-same-dataset
+
+    Args:
+        base_actual:
+        base_predict:
+        best_actual:
+        best_predict:
+        curve_type:
+
+    Returns:
+
+    '''
+
+    # 1.
+    # auc_base = roc_auc_score(base_actual, base_predict)
+    if curve_type == 'ROC':
+        auc_best = roc_auc_score(best_actual, best_predict)
+    elif curve_type == 'PRC':
+        auc_best = average_precision_score(best_actual, best_predict)
+
+    # 2.
+    num_episodes = base_actual.shape[0] #, base_predict.shape, best_actual.shape, best_predict.shape
+    all_actual =np.hstack((base_actual, best_actual))
+    all_predict = np.hstack((base_predict, best_predict))
+
+    import random
+
+    num_permute = 1000
+    damn = 0
+    for i in range(num_permute):
+        all_actual_i = all_actual
+        all_predict_i = all_predict
+
+
+        random.seed(i)
+        random.shuffle(all_actual_i)
+        actual_i = all_actual_i[:num_episodes]
+
+        random.seed(i)
+        random.shuffle(all_predict_i)
+        predict_i = all_predict_i[:num_episodes]
+
+        if curve_type == 'ROC':
+            auc_i = roc_auc_score(actual_i, predict_i)
+        elif curve_type == 'PRC':
+            auc_i = average_precision_score(actual_i, predict_i)
+
+        if auc_i > auc_best:
+            damn += 1
+    p = float(damn)/float(num_permute)
+    return p
+
 
 def split_features(feature):
     divind = feature.find('(')

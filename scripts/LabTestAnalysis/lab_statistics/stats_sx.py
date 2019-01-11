@@ -535,7 +535,11 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
     num_labs = len(labs)
     # fig, ax = plt.subplots(figsize=(12, 6))
 
-    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=7)
+    if result_label == 'typical_labs':
+        col = 4
+    elif result_label == 'all_labs':
+        col = 7
+    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=col)
 
     scores_base = []
     scores_best = []
@@ -543,11 +547,12 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
 
     for ind, lab in enumerate(labs):
 
-        xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best \
+        xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
             = stats_utils.get_curve_onelab(lab,
                                            all_algs=algs,
                                            data_folder=statsByLab_folderpath.replace("lab_statistics", "machine_learning"),
                                            curve_type=curve_type)
+        print lab, p_val
         scores_base.append(score_base)
         scores_best.append(score_best)
 
@@ -556,6 +561,8 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
 
         plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
         plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best))
+        plt.xlim([0,1])
+        plt.ylim([0,1])
         plt.xticks([])
         plt.yticks([])
         plt.xlabel(lab_descriptions[lab])
@@ -563,9 +570,10 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
     plt.tight_layout()
     plt.savefig(result_figpath)
 
+    measures = {'ROC':'AUC (Area Under Curve)', 'PRC':'APS (Average Precision Score)'}
     avg_base, avg_best = np.mean(scores_base), np.mean(scores_best)
     print "Average %s among %i labs: %.3f baseline, %.3f bestalg (an improvement of %.3f)."\
-          %(curve_type, len(scores_base), avg_base, avg_best, avg_best-avg_base)
+          %(measures[curve_type], len(scores_base), avg_base, avg_best, avg_best-avg_base)
 
 
 
@@ -1127,7 +1135,7 @@ if __name__ == '__main__':
         '''
         typical_labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
 
-        lab_set, set_label = all_labs, 'all_labs'
+        lab_set, set_label = all_labs, 'all_labs' #typical_labs, 'typical_labs'
 
         if 'ROC' in figs_to_plot:
             draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=['random-forest'], result_label=set_label)
