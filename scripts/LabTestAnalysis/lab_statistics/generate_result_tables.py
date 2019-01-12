@@ -182,11 +182,11 @@ def main_attachBaseline(targeted_PPVs, columns, thres_mode):
 if __name__ == '__main__':
     project_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
     train_data_folderpath = os.path.join(project_folder, 'machine_learning/',
-                                         'data-%s-10000-episodes'%stats_utils.lab_type
+                                         'data-%s-%s-10000-episodes'%(stats_utils.data_source, stats_utils.lab_type)
                                          )
     ml_results_folderpath = os.path.join(project_folder, 'machine_learning/',
                                    #'results-from-panels-10000-to-panels-5000-part-1'
-                                         'data-%s-10000-episodes'%stats_utils.lab_type
+                                         'data-%s-%s-10000-episodes'%(stats_utils.data_source, stats_utils.lab_type)
                                          )
     stats_results_folderpath = ml_results_folderpath.replace('machine_learning/', 'lab_statistics/')
 
