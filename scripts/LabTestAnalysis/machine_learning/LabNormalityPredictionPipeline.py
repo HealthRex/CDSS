@@ -70,6 +70,9 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             pipeline_file_name)
 
     def _build_raw_matrix_path(self):
+        raw_matrix_filename = '%s-normality-matrix-raw.tab' % self._var  #
+        raw_matrix_filepath = os.path.join('data', self._var, raw_matrix_filename)  # TODO
+        return raw_matrix_filepath
         if not self._holdOut:
             template = '%s-normality-matrix-raw.tab'
         else:
@@ -95,8 +98,9 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         else:
             template = '%s-normality-matrix-%d-episodes-raw-holdout.tab'
         pipeline_file_name = inspect.getfile(inspect.currentframe())
-        raw_matrix_path = SupervisedLearningPipeline._build_matrix_path(self, template, \
-                                                             pipeline_file_name)
+        # raw_matrix_path = SupervisedLearningPipeline._build_matrix_path(self, template, \
+        #                                                      pipeline_file_name)
+        raw_matrix_path = self._build_raw_matrix_path()
         # Another direct call to the _factory instance
         self._factory.obtain_baseline_results(raw_matrix_path=raw_matrix_path,
                                               random_state=self._random_state,
@@ -104,6 +108,9 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                                               isHoldOut=self._holdOut) #TODO: file name
 
     def _build_processed_matrix_path(self):
+        processed_matrix_filename = '%s-normality-matrix-processed.tab' % self._var  #
+        processed_matrix_path = os.path.join('data', self._var, processed_matrix_filename)  # TODO
+        return processed_matrix_path
         if not self._holdOut:
             template = '%s-normality-matrix-processed.tab'
         else:
@@ -607,7 +614,8 @@ if __name__ == '__main__':
 
         if LocalEnv.LAB_TYPE == 'panel':
             for panel in UCSF_TOP_PANELS:
-                LabNormalityPredictionPipeline(panel, 10000, use_cache=False, random_state=123456789, isLabPanel=True)
+                print 'Now processing %s'%panel
+                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
 
         else:
             for component in UCSF_TOP_COMPONENTS:
