@@ -501,8 +501,10 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
     '''
 
     df = pd.read_csv(data_folder + '/' + lab + '/' + 'baseline_comparisons.csv')
-    base_actual = df['all_components_normal'].values #df['actual'].values
-    base_predict = df['predict_proba'].values # predict
+    baseline_shape = df.shape
+
+    base_actual = df['actual'].values #df['actual'].values #all_components_normal
+    base_predict = df['predict'].values # predict
 
     if curve_type == 'ROC':
         fpr_base, tpr_base, _ = roc_curve(base_actual, base_predict)
@@ -528,6 +530,11 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
     for alg in all_algs:
         df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
                          'direct_comparisons.csv')
+        alg_shape = df.shape
+
+        # print baseline_shape, alg_shape
+        assert baseline_shape == alg_shape # Make sure the same test set!
+
         actual_list = df['actual'].values
         try:
             if curve_type == 'ROC':
@@ -1010,12 +1017,16 @@ def add_line_breaker(astring, seg_len):
 
 
 def get_lab_descriptions(line_break_at=None):
-    if lab_type=='panel':
+    if data_source == 'Stanford' and lab_type=='panel':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'labs.csv')
     elif lab_type=='component':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'components.csv')
-    elif lab_type=='UCSF':
+    elif data_source == 'UCSF' and lab_type=='component':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
+    elif data_source == 'UCSF' and lab_type=='panel':
+        descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
+        descriptions = dict(zip(UCSF_TOP_PANELS, UCSF_TOP_PANELS))
+        return descriptions
     elif lab_type=='UMich':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich.csv')
 

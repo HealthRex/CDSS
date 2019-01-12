@@ -14,7 +14,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
-
+data_source = stats_utils.data_source
 lab_type = stats_utils.lab_type
 all_labs = stats_utils.all_labs
 # # labs_ml_folder = stats_utils.labs_ml_folder
@@ -535,11 +535,7 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
     num_labs = len(labs)
     # fig, ax = plt.subplots(figsize=(12, 6))
 
-    if result_label == 'typical_labs':
-        col = 4
-    elif result_label == 'all_labs':
-        col = 7
-    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=col)
+    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=4) #7
 
     scores_base = []
     scores_best = []
@@ -1090,12 +1086,10 @@ if __name__ == '__main__':
 
     figs_to_plot = ['ROC', 'PRC']
 
-    possible_labtypes = ['panel', 'component', 'UMich', 'UCSF']
-
     stats_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/')
 
     import LocalEnv
-    statsByDataSet_foldername = 'data-%s-10000-episodes'%lab_type #'results-from-panels-10000-to-panels-5000-part-1_medicare/'
+    statsByDataSet_foldername = 'data-%s-%s-10000-episodes'%(data_source, lab_type) #'results-from-panels-10000-to-panels-5000-part-1_medicare/'
     statsByDataSet_folderpath = os.path.join(stats_folderpath, statsByDataSet_foldername)
 
     labs_guideline_nested = stats_utils.get_guideline_maxorderfreq().values()
