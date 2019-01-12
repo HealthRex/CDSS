@@ -13,7 +13,11 @@ import os, sys
 import LocalEnv
 
 from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
-        import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS, UMICH_TOP_COMPONENTS, UCSF_TOP_COMPONENTS
+        import NON_PANEL_TESTS_WITH_GT_500_ORDERS, \
+    STRIDE_COMPONENT_TESTS, \
+    UMICH_TOP_COMPONENTS, \
+    UCSF_TOP_COMPONENTS, \
+    UCSF_TOP_PANELS
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
@@ -29,8 +33,8 @@ For plotting guideline,
 
 a lab, has n prev consecutive normal. 
 '''
-
-lab_type = 'component'
+data_source = 'UCSF'
+lab_type = 'panel'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
@@ -65,14 +69,16 @@ for time_window in DEFAULT_TIMEWINDOWS:
 main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 
 curr_version = '10000-episodes'
-if lab_type == 'panel':
+if data_source == 'Stanford' and lab_type == 'panel':
     all_labs = all_panels #[x[0] for x in labs_and_cnts]
 elif lab_type == 'component':
     all_labs = all_components
 elif lab_type == 'UMich':
     all_labs = all_UMichs
-elif lab_type == 'UCSF':
+elif data_source == 'UCSF' and lab_type == 'component':
     all_labs = all_UCSF
+elif data_source == 'UCSF' and lab_type == 'panel':
+    all_labs = UCSF_TOP_PANELS
 
 
 # labs_ml_folder = os.path.join(main_folder, 'machine_learning/data-%ss-%s/'%(lab_type, curr_version))
@@ -495,8 +501,8 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
     '''
 
     df = pd.read_csv(data_folder + '/' + lab + '/' + 'baseline_comparisons.csv')
-    base_actual = df['actual'].values #df['actual'].values
-    base_predict = df['predict'].values # TODO
+    base_actual = df['all_components_normal'].values #df['actual'].values
+    base_predict = df['predict_proba'].values # predict
 
     if curve_type == 'ROC':
         fpr_base, tpr_base, _ = roc_curve(base_actual, base_predict)
@@ -1102,7 +1108,7 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
     baseline_roc_auc = get_baseline2_auroc(train_data_labfolderpath)
 
     # For STRIDE, also do cnts and costs
-    if lab_type == 'panel' or lab_type == 'component':
+    if data_source == 'Stanford':#lab_type == 'panel' or lab_type == 'component':
         lab_vols = []
         for time_limit in DEFAULT_TIMELIMITS:
             print time_limit
@@ -1204,7 +1210,7 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
             'NPV': NPV
                    })
 
-        if lab_type == 'panel' or lab_type == 'component':
+        if data_source == 'Stanford':
             for i_tw, time_window in enumerate(DEFAULT_TIMEWINDOWS):
                 one_row['%s count'%time_window] = lab_vols[i_tw]
 
