@@ -483,6 +483,22 @@ UMICH_TOP_COMPONENTS = [
     'CO2',  'AST', 'ALT', 'ALB', 'CAL', 'PCOAA2', 'PO2AA'
 ]
 
+UMICH_TOP_PANELS = [
+    'MAG', 'PHOS', 'PROTHROMBIN TIME',
+    'A1C',
+    'BLD', #ADULT BLOOD CULTURE
+    'BLDAN',#'BLOOD CULTURE (ANA)'
+    'URIC',
+    'LACT',
+    'ESRA', #Erythrocyte Sedimentation Rate, iSED
+    'ALB',
+    'TSH',
+    'TROP',
+    'POT',
+    'SOD',
+    'CAL'
+]
+
 UCSF_TOP_COMPONENTS = [
             'WBC', 'HGB', 'PLT', 'NAWB', 'K', 'CREAT', 'TBILI',
             'CL', 'CO2', 'DBILI', 'AST', 'ALT', 'ALB', 'CA',

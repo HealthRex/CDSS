@@ -114,43 +114,40 @@ def main_pipelining_5000holdout(random_state=123456789):
 # 4.The ones that do important business logic, thats where the testing is important. Test the requirements.
 # 5.Keep your tests small: one test per requirement.
 
-def main_pipelining():
+def main_pipelining(labs,
+                    data_source = 'Stanford',
+                    lab_type = 'panel',
+                    num_episodes = 10000,
+                    random_state=123456789):
     '''
     Fresh new pipeline.
     :return:
     '''
+
     from LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS
 
-    random_state = 123456789
 
-    main_folder = os.path.join(LocalEnv.PATH_TO_CDSS,
-                              'scripts/LabTestAnalysis/machine_learning')
-    data_subfolder= 'data_new_learner_testing'
-    data_folder = os.path.join(main_folder, data_subfolder)
+    '''
+    Folder organization
+    '''
+    project_folderpath = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
+    project_ml_folderpath = os.path.join(project_folderpath, 'machine_learning')
 
-    data_filename_template = '%s-normality-matrix'
-    lab_type = 'panel'
+    data_set_foldername = 'data-%s-%s-%s-episodes'%(data_source, lab_type, num_episodes) # TODO: template shared by stats module
+    data_set_folderpath = os.path.join(project_ml_folderpath, data_set_foldername)
 
-    for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
-        '''
-        Feature extraction
-        
-        Things to test:
-        More than 50 non-empty columns
-        More than 50 non-empty rows
-        
-        '''
-        raw_matrix_filename = data_filename_template%lab + '-raw' + '.tab'
-        raw_matrix_path = os.path.join(data_folder, lab, raw_matrix_filename)
+    # data_subfolder= 'data_new_learner_testing'
+    # data_folder = os.path.join(main_folder, data_subfolder)
 
-        raw_matrix = SL.SQL_to_raw_matrix(lab=lab,
-                                          lab_type=lab_type,
-                                          num_episodes=10000,
-                                          min_pat_num=1000,
-                                          excluted_pats=[],
-                                          data_path=raw_matrix_path,
-                                          random_state=random_state,
-                                          use_cached=True)
+    matrix_filename_template = '%s-normality-matrix.tab' # Load
+
+    algs = SL.get_algs()
+
+
+    for lab in labs:
+
+        data_lab_folderpath = os.path.join(data_set_folderpath, lab)  # TODO: if not exists, mkdir
+
         #
         '''
         Things to test:
@@ -158,10 +155,28 @@ def main_pipelining():
         Split not too imbalanced. 
         
         '''
-        raw_matrix_train, raw_matrix_eval = SL.split_rows(raw_matrix,
-                                                          fraction=0.75,
-                                                          columnToSplitOn='pat_id',
-                                                          random_state=random_state)
+
+        # raw_matrix_filename = (matrix_filename_template.replace('-matrix', '-matrix-raw')) % lab
+        # raw_matrix_filepath = os.path.join(data_lab_folderpath, raw_matrix_filename)
+
+        raw_matrix_train, raw_matrix_evalu = SL.get_train_and_eval_raw_matrices(
+            lab = lab,
+            data_lab_folderpath=data_lab_folderpath,
+            random_state=random_state,
+        )
+
+        '''
+        Baseline results on train and eval set
+        Requires raw matrix info
+        '''
+        baseline_train_filepath = os.path.join(data_lab_folderpath, 'baseline_comparisons_train.csv')
+        SL.predict_baseline(raw_matrix_train, output_filepath=baseline_train_filepath)
+        baseline_evalu_filepath = os.path.join(data_lab_folderpath, 'baseline_comparisons.csv')
+        SL.predict_baseline(raw_matrix_evalu, output_filepath=baseline_evalu_filepath)
+
+        get_baseline()
+
+        # TODO: check baseline and ml alg come from the same dataset!
 
         '''
         Feature selection
@@ -172,20 +187,19 @@ def main_pipelining():
         No missing values. 
         Number of episodes for each patient does not change. 
         '''
-        # TODO: also write this to file;
-        processed_matrix_filename = data_filename_template % lab + '-processed' + '.tab'
-        processed_matrix_path = os.path.join(data_folder, lab, processed_matrix_filename)
-        processed_matrix_full_train, process_template = SL.process_matrix(lab=lab,
-                                                         raw_matrix=raw_matrix_train,
-                                                         features_dict=features_dict,
-                                                         data_path=processed_matrix_path,
-                                                         impute_template=None) # TODO: random_state?
+        processed_matrix_filename = (matrix_filename_template.replace('-matrix', '-matrix-processed')) % lab
+        processed_matrix_filepath = os.path.join(data_lab_folderpath, processed_matrix_filename)
+
+        processed_matrix_train, processed_matrix_evalu = SL.get_train_and_evalu_processed_matrices(
+            processed_matrix_filepath=processed_matrix_filepath,
+            random_state=random_state,
+            use_cached=use_cached
+        )
+
 
         '''
         Things to test: numeric only
         '''
-        processed_matrix_train = processed_matrix_full_train.drop(info_features+leak_features,
-                                                                  axis=1)
 
         '''
         Things to test:
@@ -196,13 +210,9 @@ def main_pipelining():
                                        outcome_label=outcome_label,
                                        random_state=random_state)
 
-        '''
-        Baseline results
-        '''
-        SL.predict_baseline(lab=lab,
-                            X_train=X_train,
-                            y_train=y_train,
-                            data_folder = data_folder)
+        X_evalu, y_evalu = SL.split_Xy(data_matrix=processed_matrix_evalu,
+                                       outcome_label=outcome_label,
+                                       random_state=random_state)
 
         '''
         Training
@@ -211,52 +221,53 @@ def main_pipelining():
         Before and after training, the model is different
         '''
         ml_classifiers = []
-        algs = SL.get_algs()
         for alg in algs:
+            '''
+            Training
+            '''
+            data_alg_folderpath = os.path.join(data_lab_folderpath, alg)
+
             # TODO: in the future, even the CV step requires splitByPatId, so carry forward this column?
-            ml_classifier = SL.train_ml_model(lab=lab,
+            # TODO: or load from disk
+            ml_classifier = SL.train_ml_model(X_train=X_train,
+                                              y_train=y_train,
                                               alg=alg,
-                                              X_train=X_train,
-                                              y_train=y_train
+                                              output_folderpath=data_alg_folderpath
                                               ) #random_state?
-            ml_classifiers.append(ml_classifier)
+            # ml_classifiers.append(ml_classifier)
 
 
-        '''
-        Training set results
-        '''
-        for ml_classifier in ml_classifiers:
-            SL.predict(lab,
-                       ml_classifier=ml_classifier,
-                       X=X_train,
+
+            '''
+            Predicting train set results (overfit)
+            '''
+            SL.predict(X=X_train,
                        y=y_train,
-                       data_folder=data_folder)
+                       ml_classifier=ml_classifier,
+                        output_folderpath=data_alg_folderpath)
 
-        '''
-        Evaluation set feature selection
-        '''
+            '''
+            Predicting evalu set feature selection
+            '''
+            SL.predict(X=X_eval,
+                       y=y_eval,
+                        ml_classifier = ml_classifier,
+                       output_folderpath=data_alg_folderpath)
+
 
         # TODO here: make sure process_matrix works right
-        processed_matrix_full_eval, _ = SL.process_matrix(lab=lab,
-                                             raw_matrix=raw_matrix_eval,
-                                             features_dict=features_dict,
-                                             data_folder=data_folder,
-                                            process_template=process_template)
-        processed_matrix_eval = processed_matrix_full_eval.drop(info_features+leak_features, axis=1)
-        X_eval, y_eval = SL.split_Xy(data_matrix=processed_matrix_eval,
-                                       outcome_label=outcome_label,
-                                     random_state=random_state)
+        # processed_matrix_full_eval, _ = SL.process_matrix(lab=lab,
+        #                                      raw_matrix=raw_matrix_eval,
+        #                                      features_dict=features_dict,
+        #                                      data_folder=data_folder,
+        #                                     process_template=process_template)
+        # processed_matrix_eval = processed_matrix_full_eval.drop(info_features+leak_features, axis=1)
+        # X_eval, y_eval = SL.split_Xy(data_matrix=processed_matrix_eval,
+        #                                outcome_label=outcome_label,
+        #                              random_state=random_state)
 
-        '''
-        Evaluation results
-        '''
-        for ml_classifier in ml_classifiers:
-            SL.predict(lab=lab,
-                       ml_classifier=ml_classifier,
-                       X=X_eval,
-                       y=y_eval)
 
 
 
 if __name__ == '__main__':
-    main_pipelining()
+    main_pipelining(labs=['LABA1C'], data_source = 'testingSupervisedLearner')
