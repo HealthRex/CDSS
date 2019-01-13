@@ -2,6 +2,32 @@
 Besides the regular pipelining, this new file allows starting from any
 intermediate step.
 
+Procedure for writing this module:
+1. Make it usable for Lab Normality test (so assume the old naming organization)
+2. More flexible for template naming
+
+
+Assumption 1: Input is raw matrix
+This module assumes generated raw matrix (TODO: use luigi).
+Do not call function to Extract from SQL and Feature Engineering
+
+Assumption 2: Naming rules
+
+- project_folder (e.g. LabTestAnalysis/)
+--- project_ml_folder (machine_learning/)
+----- data set folder (e.g. data-Stanford-panel-10000-episodes/)
+------- raw matrices (e.g. LABA1C-normality-matrix-raw.tab,
+                           LABA1C-normality-train-matrix-raw.tab,
+                           LABA1C-normality-test-matrix-raw.tab,)
+------- processed matrices
+------- saved ml classifiers (LABA1C-normality-random-forest-model.pkl)
+------- baseline_comparisons.csv, baseline_comparisons_train.csv
+------- data alg folder (e.g. random-forest/)
+--------- direct_comparisons.csv, direct_comparisons_train.csv
+
+--- project_stats_folder
+
+
 Trying to piecing together different function parts (reliably),
 instead of realizing any specific functions.
 
@@ -39,6 +65,21 @@ from sklearn.calibration import CalibratedClassifierCV
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
+
+
+'''
+Templates
+'''
+raw_matrix_template = '%s-normality-matrix-raw.tab'
+raw_train_matrix_template = raw_matrix_template.replace('-matrix', '-train-matrix')
+raw_test_matrix_template = raw_matrix_template.replace('-matrix', '-test-matrix')
+
+processed_matrix_template = '%s-normality-matrix-raw.tab'
+processed_train_matrix_template = processed_matrix_template.replace('-matrix', '-train-matrix')
+processed_test_matrix_template = processed_matrix_template.replace('-matrix', '-test-matrix')
+
+baseline_train_filename = 'baseline_comparisons_train.csv'
+baseline_evalu_filename = 'baseline_comparisons_evalu.csv'
 
 ############# Util functions #############
 '''
@@ -78,25 +119,76 @@ def get_algs():
 
 
 
-############# Main functions #############
-'''
-Pipelining functions for more specific tasks
-'''
-def SQL_to_raw_matrix(lab, data_path, use_cached=True):
-    # TODO: Things to test: All 0's columns,
+############# Procedure functions #############
 
-    if use_cached and os.path.exists(data_path):
-        raw_matrix = pd.read_csv(data_path, keep_default_na=False)
+'''
+If do not want to use cached, just delete the file!
+'''
+def get_train_and_eval_raw_matrices(lab, data_lab_folderpath, random_state,
+                                    fraction=0.75, columnToSplitOn='pat_id'):
+    '''
+    If train and eval exist, direct get from disk
+
+    elif raw matrix exists, get from dist and split
+
+    else, get from SQL
+
+    Args:
+        raw_matrix_filepath:
+        random_state:
+        use_cached:
+
+    Returns:
+
+    '''
+    raw_train_matrix_filepath = os.path.join(data_lab_folderpath, raw_train_matrix_template % lab)
+    raw_test_matrix_filepath = os.path.join(data_lab_folderpath, raw_test_matrix_template % lab)
+    raw_matrix_filepath = os.path.join(data_lab_folderpath, raw_matrix_template % lab)
+
+    '''
+    Old pipeline style
+    '''
+    fm_io = FeatureMatrixIO()
+
+    if os.path.exists(raw_train_matrix_filepath) \
+        and os.path.exists(raw_test_matrix_filepath):
+
+        raw_train_matrix = fm_io.read_file_to_data_frame(raw_train_matrix_filepath)
+        raw_test_matrix = fm_io.read_file_to_data_frame(raw_test_matrix_filepath)
+        return raw_train_matrix, raw_test_matrix
 
     else:
-        raw_matrix = pd.DataFrame()
+        raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_filepath)
 
-        '''
-        TODO: call the Feature Engineering functions
-        '''
+        raw_train_matrix, raw_test_matrix = split_rows(data_matrix=raw_matrix,
+                                                       fraction=fraction,
+                                                       columnToSplitOn=columnToSplitOn,
+                                                       random_state=random_state)
+        fm_io.write_data_frame_to_file(raw_train_matrix, out_file_path=raw_train_matrix_filepath)
+        fm_io.write_data_frame_to_file(raw_test_matrix, out_file_path=raw_test_matrix_filepath)
+        return raw_train_matrix, raw_test_matrix
 
-        raw_matrix.to_csv(data_path, index=False)
-    return raw_matrix
+
+'''
+
+'''
+def get_train_and_eval_processed_matrices(processed_matrix_filepath, random_state, use_cached):
+
+    raw_matrix_train, raw_matrix_eval = get_train_and_eval_raw_matrices(
+        data_lab_folderpath=data_lab_folderpath,
+        random_state=random_state,
+        use_cached=use_cached
+    )
+
+    processed_matrix_full_train, process_template = SL.process_matrix(
+        lab=lab,
+        raw_matrix=raw_matrix_train,
+        features_dict=features_dict,
+        data_path=processed_matrix_path,
+        impute_template=None)  # TODO: random_state?
+    return None
+
+
 
 def impute_features(matrix, strategy):
 
