@@ -166,6 +166,7 @@ def main_pipelining(labs,
             data_lab_folderpath=data_lab_folderpath,
             random_state=random_state,
         )
+        quit()
 
         '''
         Baseline results on train and eval set

@@ -87,25 +87,40 @@ classifier_filename_template = '%s-normality-%s-model.pkl'
 '''
 General functions for smaller tasks
 '''
-def split_rows(data_matrix, fraction=0.75, columnToSplitOn='pat_id', random_state=0):
-    all_possible_ids = sorted(set(data_matrix[columnToSplitOn].values.tolist()))
+def split_rows(data_matrix, train_size=0.75, columnToSplitOn='pat_id', random_state=0):
+    from sklearn.model_selection import GroupShuffleSplit
+    print data_matrix.shape
+    train_inds, evalu_inds = next(
+        GroupShuffleSplit(n_splits=2, test_size=1-train_size, random_state=random_state)
+            .split(data_matrix, groups=data_matrix[columnToSplitOn])
+    )
+    print len(train_inds) + len(evalu_inds)
 
-    train_ids, test_ids = sklearn_train_test_split(all_possible_ids, train_size=fraction, random_state=random_state)
+    data_matrix_train, data_matrix_evalu = data_matrix.iloc[train_inds], data_matrix.iloc[evalu_inds]
 
-    train_matrix = data_matrix[data_matrix[columnToSplitOn].isin(train_ids)].copy()
-    # y_train = pd.DataFrame(train_matrix.pop(outcome_label))
-    # X_train = train_matrix
+    pat_ids_train = data_matrix_train['pat_id'].values.tolist()
+    pat_ids_evalu = data_matrix_evalu['pat_id'].values.tolist()
 
-    test_matrix = data_matrix[data_matrix[columnToSplitOn].isin(test_ids)].copy()
-    # y_test = pd.DataFrame(test_matrix.pop(outcome_label))
-    # X_test = test_matrix
+    # all_possible_ids = sorted(set(data_matrix[columnToSplitOn].values.tolist()))
+    #
+    # train_ids, test_ids = sklearn_train_test_split(all_possible_ids, train_size=fraction, random_state=random_state)
+    #
+    # train_matrix = data_matrix[data_matrix[columnToSplitOn].isin(train_ids)].copy()
+    # # y_train = pd.DataFrame(train_matrix.pop(outcome_label))
+    # # X_train = train_matrix
+    #
+    # test_matrix = data_matrix[data_matrix[columnToSplitOn].isin(test_ids)].copy()
+    # # y_test = pd.DataFrame(test_matrix.pop(outcome_label))
+    # # X_test = test_matrix
+    #
+    # patIds_train = train_matrix['pat_id'].values.tolist()
+    # patIds_test = test_matrix['pat_id'].values.tolist()
+    assert (set(pat_ids_train) & set(pat_ids_evalu)) == set([])
 
-    patIds_train = train_matrix['pat_id'].values.tolist()
-    patIds_test = test_matrix['pat_id'].values.tolist()
-    assert (set(patIds_train) & set(patIds_test)) == set([])
-    assert train_matrix.shape[0] + test_matrix.shape[0] == data_matrix.shape[0]
+    print data_matrix_train.shape[0], data_matrix_evalu.shape[0], data_matrix.shape[0]
+    assert data_matrix_train.shape[0] + data_matrix_evalu.shape[0] == data_matrix.shape[0]
 
-    return train_matrix, test_matrix
+    return data_matrix_train, pat_ids_evalu
 
 
 def split_Xy(data_matrix, outcome_label):
@@ -127,10 +142,10 @@ def get_algs():
 If do not want to use cached, just delete the file!
 '''
 def get_train_and_eval_raw_matrices(lab, data_lab_folderpath, random_state,
-                                    fraction=0.75, columnToSplitOn='pat_id'):
+                                    train_size=0.75, columnToSplitOn='pat_id'):
     '''
     If train and eval exist, direct get from disk
-    # TODO: Avoiding saving as 2 raw matrices, too much space!
+    Avoided saving as 2 raw matrices, too much space!
 
     elif raw matrix exists, get from dist and split
 
@@ -153,27 +168,26 @@ def get_train_and_eval_raw_matrices(lab, data_lab_folderpath, random_state,
     '''
     Old pipeline style
     '''
-
-
     if os.path.exists(pat_split_filepath):
         pat_split_df = pd.read_csv(pat_split_filepath)
-
-        pat_ids_train = pat_split_df[pat_split_df['in_train']==1, 'pat_id'].values.tolist()
+        pat_ids_train = pat_split_df[pat_split_df['in_train']==1]['pat_id'].values.tolist()
         raw_matrix_train = raw_matrix[raw_matrix['pat_id'].isin(pat_ids_train)]
 
-        pat_ids_evalu = pat_split_df[pat_split_df['in_train']==0, 'pat_id'].values.tolist()
+        pat_ids_evalu = pat_split_df[pat_split_df['in_train']==0]['pat_id'].values.tolist()
         raw_matrix_evalu = raw_matrix[raw_matrix['pat_id'].isin(pat_ids_evalu)]
 
-        return raw_matrix_train, raw_matrix_evalu
-
     else:
-        raw_train_matrix, raw_test_matrix = split_rows(range(raw_matrix.shape[0]),
-                                                       fraction=fraction,
-                                                       columnToSplitOn=columnToSplitOn,
-                                                       random_state=random_state)
-        fm_io.write_data_frame_to_file(raw_train_matrix, out_file_path=raw_train_matrix_filepath)
-        fm_io.write_data_frame_to_file(raw_test_matrix, out_file_path=raw_test_matrix_filepath)
-        return raw_train_matrix, raw_test_matrix
+        raw_matrix_train, raw_matrix_evalu = split_rows(raw_matrix,
+                                                        train_size=train_size,
+                                                        columnToSplitOn=columnToSplitOn,
+                                                        random_state=random_state
+                                                        )
+        pat_ids_train = set(raw_matrix_train['pat_id'].values.tolist())
+
+        pat_split_df = raw_matrix[['pat_id']].copy()
+        pat_split_df['in_train'] = pat_split_df['pat_id'].apply(lambda x: 1 if x in pat_ids_train else 0)
+        pat_split_df.to_csv(pat_split_filepath, index=False)
+    return raw_matrix_train, raw_matrix_evalu
 
 
 '''
