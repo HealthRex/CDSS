@@ -16,10 +16,11 @@ Assumption 2: Naming rules
 - project_folder (e.g. LabTestAnalysis/)
 --- project_ml_folder (machine_learning/)
 ----- data set folder (e.g. data-Stanford-panel-10000-episodes/)
-------- raw matrices (e.g. LABA1C-normality-matrix-raw.tab,
-                           LABA1C-normality-train-matrix-raw.tab,
-                           LABA1C-normality-test-matrix-raw.tab,)
-------- processed matrices
+------- raw matrix (e.g. LABA1C-normality-matrix-raw.tab)
+------- pat_split.csv
+------- processed matrices (e.g. LABA1C-normality-matrix-processed.tab,
+                                LABA1C-normality-train-matrix-processed.tab,
+                                LABA1C-normality-evalu-matrix-processed.tab)
 ------- saved ml classifiers (LABA1C-normality-random-forest-model.pkl)
 ------- baseline_comparisons.csv, baseline_comparisons_train.csv
 ------- data alg folder (e.g. random-forest/)
@@ -71,15 +72,16 @@ from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 Templates
 '''
 raw_matrix_template = '%s-normality-matrix-raw.tab'
-raw_train_matrix_template = raw_matrix_template.replace('-matrix', '-train-matrix')
-raw_test_matrix_template = raw_matrix_template.replace('-matrix', '-test-matrix')
+pat_split_filename = 'pat_split.csv'
 
-processed_matrix_template = '%s-normality-matrix-raw.tab'
-processed_train_matrix_template = processed_matrix_template.replace('-matrix', '-train-matrix')
-processed_test_matrix_template = processed_matrix_template.replace('-matrix', '-test-matrix')
+processed_matrix_template = '%s-normality-matrix-processed.tab'
+processed_train_matrix_template = '%s-normality-train-matrix-processed.tab'
+processed_evalu_matrix_template = '%s-normality-evalu-matrix-processed.tab'
 
-baseline_train_filename = 'baseline_comparisons_train.csv'
-baseline_evalu_filename = 'baseline_comparisons_evalu.csv'
+direct_comparisons_train_filename = 'direct_comparisons_train.csv'
+direct_comparisons_evalu_filename = 'direct_comparisons.csv'
+
+classifier_filename_template = '%s-normality-%s-model.pkl'
 
 ############# Util functions #############
 '''
@@ -128,6 +130,7 @@ def get_train_and_eval_raw_matrices(lab, data_lab_folderpath, random_state,
                                     fraction=0.75, columnToSplitOn='pat_id'):
     '''
     If train and eval exist, direct get from disk
+    # TODO: Avoiding saving as 2 raw matrices, too much space!
 
     elif raw matrix exists, get from dist and split
 
@@ -141,26 +144,30 @@ def get_train_and_eval_raw_matrices(lab, data_lab_folderpath, random_state,
     Returns:
 
     '''
-    raw_train_matrix_filepath = os.path.join(data_lab_folderpath, raw_train_matrix_template % lab)
-    raw_test_matrix_filepath = os.path.join(data_lab_folderpath, raw_test_matrix_template % lab)
     raw_matrix_filepath = os.path.join(data_lab_folderpath, raw_matrix_template % lab)
+    fm_io = FeatureMatrixIO()
+    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_filepath)
+
+    pat_split_filepath = os.path.join(data_lab_folderpath, pat_split_filename)
 
     '''
     Old pipeline style
     '''
-    fm_io = FeatureMatrixIO()
 
-    if os.path.exists(raw_train_matrix_filepath) \
-        and os.path.exists(raw_test_matrix_filepath):
 
-        raw_train_matrix = fm_io.read_file_to_data_frame(raw_train_matrix_filepath)
-        raw_test_matrix = fm_io.read_file_to_data_frame(raw_test_matrix_filepath)
-        return raw_train_matrix, raw_test_matrix
+    if os.path.exists(pat_split_filepath):
+        pat_split_df = pd.read_csv(pat_split_filepath)
+
+        pat_ids_train = pat_split_df[pat_split_df['in_train']==1, 'pat_id'].values.tolist()
+        raw_matrix_train = raw_matrix[raw_matrix['pat_id'].isin(pat_ids_train)]
+
+        pat_ids_evalu = pat_split_df[pat_split_df['in_train']==0, 'pat_id'].values.tolist()
+        raw_matrix_evalu = raw_matrix[raw_matrix['pat_id'].isin(pat_ids_evalu)]
+
+        return raw_matrix_train, raw_matrix_evalu
 
     else:
-        raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_filepath)
-
-        raw_train_matrix, raw_test_matrix = split_rows(data_matrix=raw_matrix,
+        raw_train_matrix, raw_test_matrix = split_rows(range(raw_matrix.shape[0]),
                                                        fraction=fraction,
                                                        columnToSplitOn=columnToSplitOn,
                                                        random_state=random_state)
@@ -290,10 +297,6 @@ def process_matrix(lab, raw_matrix, features_dict, data_path='', impute_template
 
     return processed_matrix_full, impute_template
 
-
-
-def predict_baseline():
-    pass
 
 
 
@@ -460,34 +463,137 @@ def pipelining(source_set_folder, labs, source_type, source_ids):
     return status
 
 
-def main_pipelining():
+def standard_pipeline(lab, algs, data_lab_folderpath, random_state):
     '''
     This pipelining procedure is consistent to the previous SupervisedLearningPipeline.py
+
+    Args:
+        lab:
+        data_lab_folderpath:
+        random_state:
+
+    Returns:
+        None, just write direct comparisons between y_true and y_pred_proba
     '''
 
-    lab = "LABA1C"
-    lab_type = 'panel'
-    outcome_label = 'all_components_normal'
-    algs = get_algs()
+    # lab = "LABA1C"
+    # lab_type = 'panel'
+    # outcome_label = 'all_components_normal'
+    # algs = get_algs()
+    #
+    #
+    # raw_matrix = get_raw_matrix(lab, "")
+    # raw_matrix_train, raw_matrix_test = train_test_split(raw_matrix)
+    #
+    #
+    # processed_matrix_train, process_template = process_matrix(raw_matrix_train)
+    #
+    # X_train, y_train = split_rows(processed_matrix_train) # TODO
+    #
+    # ml_models = train_ml_models(X_train, y_train, lab, algs)  # key: (lab,alg), value: model
+    #
+    #
+    #
+    #
+    # processed_matrix_test, _ = process_matrix(raw_matrix_train, process_template)
+    # X_test, y_test = processed_matrix_test # TODO
+    #
+    # evaluate_ml_models(X_test, y_test, ml_models)
 
 
-    raw_matrix = get_raw_matrix(lab, "")
-    raw_matrix_train, raw_matrix_test = train_test_split(raw_matrix)
+
+    '''
+    Feature selection
+    Here process_template is a dictionary w/ {feature: (ind, imputed value)}
+
+    Things to test:
+    Number of columns left.
+    No missing values. 
+    Number of episodes for each patient does not change. 
+    '''
+    processed_matrix_filename = processed_matrix_template % lab
+    processed_matrix_filepath = os.path.join(data_lab_folderpath, processed_matrix_filename)
+
+    processed_matrix_train, processed_matrix_evalu = get_train_and_evalu_processed_matrices(
+        processed_matrix_filepath=processed_matrix_filepath,
+        random_state=random_state,
+        use_cached=use_cached
+    )
+
+    '''
+    Things to test: numeric only
+    '''
+
+    '''
+    Things to test:
+    No missing features
+    No overlapping features
+    '''
+    X_train, y_train = split_Xy(data_matrix=processed_matrix_train,
+                                   outcome_label=outcome_label,
+                                   random_state=random_state)
+
+    X_evalu, y_evalu = split_Xy(data_matrix=processed_matrix_evalu,
+                                   outcome_label=outcome_label,
+                                   random_state=random_state)
+
+    '''
+    Training
+
+    Things to test: numeric only:
+    Before and after training, the model is different
+    '''
+    ml_classifiers = []
+    for alg in algs:
+        '''
+        Training
+        '''
+        data_alg_folderpath = os.path.join(data_lab_folderpath, alg)
+        direct_comparisons_evalu_filepath = os.path.join(data_alg_folderpath, direct_comparisons_train_filename)
+        if os.path.exists(direct_comparisons_evalu_filepath):
+            continue
 
 
-    processed_matrix_train, process_template = process_matrix(raw_matrix_train)
+        # TODO: in the future, even the CV step requires splitByPatId, so carry forward this column?
+        # TODO: or load from disk
+        ml_classifier_filepath = classifier_filename_template % (lab, alg)
+        if os.path.exists(ml_classifier_filepath):
+            ml_classifier = load_ml_model(ml_classifier)
+        else:
 
-    X_train, y_train = split_rows(processed_matrix_train) # TODO
+            ml_classifier = train_ml_model(X_train=X_train,
+                                              y_train=y_train,
+                                              alg=alg,
+                                              output_folderpath=data_alg_folderpath
+                                              )  # random_state?
+            save_ml_model(ml_classifier)
 
-    ml_models = train_ml_models(X_train, y_train, lab, algs)  # key: (lab,alg), value: model
+        '''
+        Predicting train set results (overfit)
+        '''
+        # predict(X=X_train,
+        #            y=y_train,
+        #            ml_classifier=ml_classifier,
+        #            output_folderpath=data_alg_folderpath)
 
+        '''
+        Predicting evalu set feature selection
+        '''
+        predict(X=X_eval,
+                   y=y_eval,
+                   ml_classifier=ml_classifier,
+                   output_folderpath=data_alg_folderpath)
 
-
-
-    processed_matrix_test, _ = process_matrix(raw_matrix_train, process_template)
-    X_test, y_test = processed_matrix_test # TODO
-
-    evaluate_ml_models(X_test, y_test, ml_models)
+    # TODO here: make sure process_matrix works right
+    # processed_matrix_full_eval, _ = SL.process_matrix(lab=lab,
+    #                                      raw_matrix=raw_matrix_eval,
+    #                                      features_dict=features_dict,
+    #                                      data_folder=data_folder,
+    #                                     process_template=process_template)
+    # processed_matrix_eval = processed_matrix_full_eval.drop(info_features+leak_features, axis=1)
+    # X_eval, y_eval = SL.split_Xy(data_matrix=processed_matrix_eval,
+    #                                outcome_label=outcome_label,
+    #                              random_state=random_state)
 
 
 def output_result(X_test, y_test, model_src, res_folderpath):

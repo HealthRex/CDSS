@@ -9,6 +9,8 @@ pd.set_option('display.width', 500)
 pd.set_option('display.max_columns', 500)
 import inspect
 
+import ml_utils
+
 
 outcome_label = 'all_components_normal'
 
@@ -139,7 +141,7 @@ def main_pipelining(labs,
     # data_subfolder= 'data_new_learner_testing'
     # data_folder = os.path.join(main_folder, data_subfolder)
 
-    matrix_filename_template = '%s-normality-matrix.tab' # Load
+     # Load
 
     algs = SL.get_algs()
 
@@ -158,7 +160,7 @@ def main_pipelining(labs,
 
         # raw_matrix_filename = (matrix_filename_template.replace('-matrix', '-matrix-raw')) % lab
         # raw_matrix_filepath = os.path.join(data_lab_folderpath, raw_matrix_filename)
-
+        #
         raw_matrix_train, raw_matrix_evalu = SL.get_train_and_eval_raw_matrices(
             lab = lab,
             data_lab_folderpath=data_lab_folderpath,
@@ -168,103 +170,32 @@ def main_pipelining(labs,
         '''
         Baseline results on train and eval set
         Requires raw matrix info
+        
+        Baseline calculation is not a necessary part of a supervised learning pipeline.
+        So if want to add this result, have to figure out the file system organization yourself!
+        
         '''
         baseline_train_filepath = os.path.join(data_lab_folderpath, 'baseline_comparisons_train.csv')
-        SL.predict_baseline(raw_matrix_train, output_filepath=baseline_train_filepath)
-        baseline_evalu_filepath = os.path.join(data_lab_folderpath, 'baseline_comparisons.csv')
-        SL.predict_baseline(raw_matrix_evalu, output_filepath=baseline_evalu_filepath)
+        if not os.path.exists(baseline_train_filepath):
+            baseline_train = ml_utils.get_baseline(raw_matrix_train)
+            baseline_train.to_csv('')
 
-        get_baseline()
+        baseline_evalu_filepath = os.path.join(data_lab_folderpath, 'baseline_comparisons.csv')
+        if not os.path.exists(baseline_evalu_filepath):
+            baseline_evalu = ml_utils.get_baseline(raw_matrix_evalu)
+            baseline_evalu.to_csv('')
+
+        '''
+            Standard pipeline
+            '''
+        SL.standard_pipeline(lab=lab,
+                             algs=algs,
+                             data_lab_folderpath=data_lab_folderpath,
+                             random_state=random_state
+                                 )
+
 
         # TODO: check baseline and ml alg come from the same dataset!
-
-        '''
-        Feature selection
-        Here process_template is a dictionary w/ {feature: (ind, imputed value)}
-        
-        Things to test:
-        Number of columns left.
-        No missing values. 
-        Number of episodes for each patient does not change. 
-        '''
-        processed_matrix_filename = (matrix_filename_template.replace('-matrix', '-matrix-processed')) % lab
-        processed_matrix_filepath = os.path.join(data_lab_folderpath, processed_matrix_filename)
-
-        processed_matrix_train, processed_matrix_evalu = SL.get_train_and_evalu_processed_matrices(
-            processed_matrix_filepath=processed_matrix_filepath,
-            random_state=random_state,
-            use_cached=use_cached
-        )
-
-
-        '''
-        Things to test: numeric only
-        '''
-
-        '''
-        Things to test:
-        No missing features
-        No overlapping features
-        '''
-        X_train, y_train = SL.split_Xy(data_matrix=processed_matrix_train,
-                                       outcome_label=outcome_label,
-                                       random_state=random_state)
-
-        X_evalu, y_evalu = SL.split_Xy(data_matrix=processed_matrix_evalu,
-                                       outcome_label=outcome_label,
-                                       random_state=random_state)
-
-        '''
-        Training
-        
-        Things to test: numeric only:
-        Before and after training, the model is different
-        '''
-        ml_classifiers = []
-        for alg in algs:
-            '''
-            Training
-            '''
-            data_alg_folderpath = os.path.join(data_lab_folderpath, alg)
-
-            # TODO: in the future, even the CV step requires splitByPatId, so carry forward this column?
-            # TODO: or load from disk
-            ml_classifier = SL.train_ml_model(X_train=X_train,
-                                              y_train=y_train,
-                                              alg=alg,
-                                              output_folderpath=data_alg_folderpath
-                                              ) #random_state?
-            # ml_classifiers.append(ml_classifier)
-
-
-
-            '''
-            Predicting train set results (overfit)
-            '''
-            SL.predict(X=X_train,
-                       y=y_train,
-                       ml_classifier=ml_classifier,
-                        output_folderpath=data_alg_folderpath)
-
-            '''
-            Predicting evalu set feature selection
-            '''
-            SL.predict(X=X_eval,
-                       y=y_eval,
-                        ml_classifier = ml_classifier,
-                       output_folderpath=data_alg_folderpath)
-
-
-        # TODO here: make sure process_matrix works right
-        # processed_matrix_full_eval, _ = SL.process_matrix(lab=lab,
-        #                                      raw_matrix=raw_matrix_eval,
-        #                                      features_dict=features_dict,
-        #                                      data_folder=data_folder,
-        #                                     process_template=process_template)
-        # processed_matrix_eval = processed_matrix_full_eval.drop(info_features+leak_features, axis=1)
-        # X_eval, y_eval = SL.split_Xy(data_matrix=processed_matrix_eval,
-        #                                outcome_label=outcome_label,
-        #                              random_state=random_state)
 
 
 
