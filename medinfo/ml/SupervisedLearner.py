@@ -192,7 +192,7 @@ def get_train_and_evalu_raw_matrices(lab, data_lab_folderpath, random_state,
     return raw_matrix_train, raw_matrix_evalu
 
 
-def get_train_and_evalu_processed_matrices(lab, data_lab_folderpath, random_state):
+def get_train_and_evalu_processed_matrices(lab, data_lab_folderpath, features, random_state):
     '''
 
 
@@ -218,8 +218,9 @@ def get_train_and_evalu_processed_matrices(lab, data_lab_folderpath, random_stat
     
     '''
 
-    processed_matrix_train, process_template  = process_matrix(lab, raw_matrix_train)
+    processed_matrix_train, process_template  = process_matrix(lab, raw_matrix_train, features=features)
     processed_matrix_evalu = process_matrix(raw_matrix_evalu, process_template)
+    return processed_matrix_train, processed_matrix_evalu
 
 
 
@@ -264,9 +265,29 @@ def select_features(matrix, strategy):\
     # TODO: fill in
     return matrix
 
-def process_matrix(lab, raw_matrix, features_dict, data_path='', impute_template=None):
-    # General philosophy: do not change the input data
-    # TODO: Things to test:
+def process_matrix(lab, raw_matrix, features, data_path='', impute_template=None):
+    '''
+    From raw matrix to processed matrix
+
+    If process_template (key: feature, val: imputed val) is provided:
+        TODO
+
+    else:
+        (1) Remove specified feature (e.g. 'abnormal', 'num_components')
+        (2) Select numeric features from the raw matrices
+        (exclude y label and info features (to be removed before training),
+        e.g. 'pat_id', 'order_time', )
+
+    Args:
+        lab:
+        raw_matrix:
+        features_dict:
+        data_path:
+        impute_template:
+
+    Returns:
+
+    '''
 
     if impute_template is not None:
         '''
@@ -283,45 +304,55 @@ def process_matrix(lab, raw_matrix, features_dict, data_path='', impute_template
         if 'abnormal_panel' not in processed_matrix_full.columns.values.tolist(): #TODO: delete in the future
             processed_matrix_full['abnormal_panel'] = processed_matrix_full['all_components_normal'].apply(lambda x:1.-x)
 
-        processed_matrix_full = pd.concat([processed_matrix_full[features_dict['non_impute_features']],
+        processed_matrix_full = pd.concat([processed_matrix_full[features['non_impute_features']],
                                            processed_matrix_full[columns_ordered]],
                                           axis=1)
 
         # TODO: header info like done by fm_io?
-        processed_matrix_full.to_csv(data_path, index=False)
 
     else:
-
         '''
-        Procedure 1 (no impute template):
-        raw_matrix_train -> outcome_label (all_components_normal)
-                         -> info_matrix (pat_id, order_proc_id, proc_code, order_time)
-                         -> leak_matrix (abnormal_panel, num_components, num_normal_components)
-                         -> numeric_matrix (all others) -> imputed_matrix -> impute_template
-                                                                          -> selected_matrix (5% left)
-
-        selected_matrix + outcome_label + info_matrix + leak_matrix -> processed_matrix_full -> to_csv
-        selected_matrix + outcome_label -> processed_matrix
-
+        Process matrix from scratch
         '''
 
-        numeric_matrix = raw_matrix[features_dict['numeric_features']]
+        processing_matrix = raw_matrix.copy() #
 
         '''
-        impute
+        Remove features
         '''
-        numeric_matrix, impute_template = impute_features(numeric_matrix, strategy="mean")
+        processing_matrix = processing_matrix.drop(features['remove'], axis=1)
 
         '''
-        selection
+        Set aside info features and ylabel
         '''
-        numeric_matrix = select_features(numeric_matrix, strategy="")
+        features_setaside = features['info'] + [features['ylabel']]
+        processed_matrix = processing_matrix[features_setaside].copy()
+        processing_matrix = processing_matrix.drop(features_setaside, axis=1)
 
-        processed_matrix_full = pd.concat([raw_matrix[features_dict['non_impute_features']], numeric_matrix], axis=1) # TODO: on?!
-        processed_matrix_full.to_csv(data_path, index=False) #.sort_values(by=['pat_id','order_proc_id','order_time'])
+        # TODO: test: only numeric features left
+
+        '''
+        Impute
+        '''
+        processing_matrix, impute_template = impute_features(processing_matrix, strategy="mean")
+
+        # TODO: keep order?
+
+        '''
+        Keep features
+        '''
+        processed_matrix = pd.concat([processed_matrix, processing_matrix[features['keep']].copy()], axis=1) # or concat?
+        processing_matrix = processing_matrix.drop(features['keep'], axis=1)
 
 
-    return processed_matrix_full, impute_template
+        '''
+        Select features
+        '''
+        processing_matrix = select_features(processing_matrix)
+        processed_matrix = pd.merge(processed_matrix, processing_matrix)
+
+
+    return processed_matrix, impute_template
 
 
 
@@ -489,7 +520,7 @@ def pipelining(source_set_folder, labs, source_type, source_ids):
     return status
 
 
-def standard_pipeline(lab, algs, data_lab_folderpath, random_state):
+def standard_pipeline(lab, algs, learner_params, data_lab_folderpath, random_state):
     '''
     This pipelining procedure is consistent to the previous SupervisedLearningPipeline.py
 
@@ -513,7 +544,10 @@ def standard_pipeline(lab, algs, data_lab_folderpath, random_state):
     '''
 
     processed_matrix_train, processed_matrix_evalu = \
-        get_train_and_evalu_processed_matrices(lab=lab, data_lab_folderpath=data_lab_folderpath, random_state=random_state)
+        get_train_and_evalu_processed_matrices(lab=lab,
+                                               features=learner_params['features'],
+                                               data_lab_folderpath=data_lab_folderpath,
+                                               random_state=random_state)
 
     '''
     Things to test: numeric only
