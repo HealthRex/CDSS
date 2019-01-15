@@ -75,8 +75,8 @@ raw_matrix_template = '%s-normality-matrix-raw.tab'
 pat_split_filename = 'pat_split.csv'
 
 processed_matrix_template = '%s-normality-matrix-processed.tab'
-processed_train_matrix_template = '%s-normality-train-matrix-processed.tab'
-processed_evalu_matrix_template = '%s-normality-evalu-matrix-processed.tab'
+processed_matrix_train_template = '%s-normality-train-matrix-processed.tab'
+processed_matrix_evalu_template = '%s-normality-evalu-matrix-processed.tab'
 
 direct_comparisons_train_filename = 'direct_comparisons_train.csv'
 direct_comparisons_evalu_filename = 'direct_comparisons.csv'
@@ -141,7 +141,7 @@ def get_algs():
 '''
 If do not want to use cached, just delete the file!
 '''
-def get_train_and_eval_raw_matrices(lab, data_lab_folderpath, random_state,
+def get_train_and_evalu_raw_matrices(lab, data_lab_folderpath, random_state,
                                     train_size=0.75, columnToSplitOn='pat_id'):
     '''
     If train and eval exist, direct get from disk
@@ -161,6 +161,8 @@ def get_train_and_eval_raw_matrices(lab, data_lab_folderpath, random_state,
     '''
     raw_matrix_filepath = os.path.join(data_lab_folderpath, raw_matrix_template % lab)
     fm_io = FeatureMatrixIO()
+
+    # TODO: check if raw matrix exists
     raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_filepath)
 
     pat_split_filepath = os.path.join(data_lab_folderpath, pat_split_filename)
@@ -190,24 +192,34 @@ def get_train_and_eval_raw_matrices(lab, data_lab_folderpath, random_state,
     return raw_matrix_train, raw_matrix_evalu
 
 
-'''
+def get_train_and_evalu_processed_matrices(lab, data_lab_folderpath, random_state):
+    '''
 
-'''
-def get_train_and_eval_processed_matrices(processed_matrix_filepath, random_state, use_cached):
 
-    raw_matrix_train, raw_matrix_eval = get_train_and_eval_raw_matrices(
-        data_lab_folderpath=data_lab_folderpath,
-        random_state=random_state,
-        use_cached=use_cached
-    )
 
-    processed_matrix_full_train, process_template = SL.process_matrix(
-        lab=lab,
-        raw_matrix=raw_matrix_train,
-        features_dict=features_dict,
-        data_path=processed_matrix_path,
-        impute_template=None)  # TODO: random_state?
-    return None
+    Args:
+        lab:
+        data_lab_folderpath:
+        random_state:
+
+    Returns:
+
+    '''
+
+    processed_matrix_train_filepath = os.path.join(data_lab_folderpath, processed_matrix_train_template % lab)
+    processed_matrix_evalu_filepath = os.path.join(data_lab_folderpath, processed_matrix_evalu_template % lab)
+
+    if os.path.exists(processed_matrix_train_filepath) and os.path.exists(processed_matrix_evalu_filepath):
+        pass
+
+    raw_matrix_train, raw_matrix_evalu = get_train_and_evalu_raw_matrices(lab, data_lab_folderpath, random_state)
+
+    '''
+    
+    '''
+
+    processed_matrix_train, process_template  = process_matrix(lab, raw_matrix_train)
+    processed_matrix_evalu = process_matrix(raw_matrix_evalu, process_template)
 
 
 
@@ -490,32 +502,6 @@ def standard_pipeline(lab, algs, data_lab_folderpath, random_state):
         None, just write direct comparisons between y_true and y_pred_proba
     '''
 
-    # lab = "LABA1C"
-    # lab_type = 'panel'
-    # outcome_label = 'all_components_normal'
-    # algs = get_algs()
-    #
-    #
-    # raw_matrix = get_raw_matrix(lab, "")
-    # raw_matrix_train, raw_matrix_test = train_test_split(raw_matrix)
-    #
-    #
-    # processed_matrix_train, process_template = process_matrix(raw_matrix_train)
-    #
-    # X_train, y_train = split_rows(processed_matrix_train) # TODO
-    #
-    # ml_models = train_ml_models(X_train, y_train, lab, algs)  # key: (lab,alg), value: model
-    #
-    #
-    #
-    #
-    # processed_matrix_test, _ = process_matrix(raw_matrix_train, process_template)
-    # X_test, y_test = processed_matrix_test # TODO
-    #
-    # evaluate_ml_models(X_test, y_test, ml_models)
-
-
-
     '''
     Feature selection
     Here process_template is a dictionary w/ {feature: (ind, imputed value)}
@@ -525,14 +511,9 @@ def standard_pipeline(lab, algs, data_lab_folderpath, random_state):
     No missing values. 
     Number of episodes for each patient does not change. 
     '''
-    processed_matrix_filename = processed_matrix_template % lab
-    processed_matrix_filepath = os.path.join(data_lab_folderpath, processed_matrix_filename)
 
-    processed_matrix_train, processed_matrix_evalu = get_train_and_evalu_processed_matrices(
-        processed_matrix_filepath=processed_matrix_filepath,
-        random_state=random_state,
-        use_cached=use_cached
-    )
+    processed_matrix_train, processed_matrix_evalu = \
+        get_train_and_evalu_processed_matrices(lab=lab, data_lab_folderpath=data_lab_folderpath, random_state=random_state)
 
     '''
     Things to test: numeric only
