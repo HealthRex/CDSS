@@ -7,7 +7,8 @@ from LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS
 import pandas as pd
 pd.set_option('display.width', 500)
 pd.set_option('display.max_columns', 500)
-import inspect
+
+from medinfo.ml.FeatureSelector import FeatureSelector
 
 import ml_utils
 
@@ -186,8 +187,43 @@ def main_pipelining(labs,
         '''
         Standard pipeline
         '''
+        # print raw_matrix_train.head()
+        features = {}
+        features['remove'] = ['order_time', 'order_proc_id', # TODO: consistency w/ prev system
+                'Birth.pre',
+                'Male.preTimeDays', 'Female.preTimeDays',
+                'RaceWhiteHispanicLatino.preTimeDays',
+                'RaceWhiteNonHispanicLatino.preTimeDays',
+                'RaceHispanicLatino.preTimeDays',
+                'RaceAsian.preTimeDays',
+                'RaceBlack.preTimeDays',
+                'RacePacificIslander.preTimeDays',
+                'RaceNativeAmerican.preTimeDays',
+                'RaceOther.preTimeDays',
+                'RaceUnknown.preTimeDays',
+                'Death.post',
+                'Death.postTimeDays'] # TODO: order_proc_id as info?!
+
+
+        if lab_type == 'panel':
+            features['remove'] += ['proc_code', 'num_components', 'num_normal_components', 'abnormal_panel']
+            features['ylabel'] = 'all_components_normal'
+        else:
+            features['remove'] += ['base_name']
+            features['ylabel'] = 'component_normal'
+        features['keep'] = []
+
+        features['info'] = ['pat_id']
+        # features['id'] =
+
+        features['select_params'] = {'selection_problem': FeatureSelector.CLASSIFICATION,
+                                     'selection_algorithm': FeatureSelector.RECURSIVE_ELIMINATION,
+                                     'percent_features_to_select': 0.05}
+
+        learner_params = {'features':features}
         SL.standard_pipeline(lab=lab,
                              algs=algs,
+                             learner_params=learner_params,
                              data_lab_folderpath=data_lab_folderpath,
                              random_state=random_state
                             )
