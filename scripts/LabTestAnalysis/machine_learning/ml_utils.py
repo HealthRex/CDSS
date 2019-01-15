@@ -15,19 +15,19 @@ def test_get_baseline():
     # assert df's not changed
 
 
-def get_baseline(df_train, df_test, y_true_label='actual', y_pred_label='predict'):
-    df_res = df_test[['pat_id', 'order_time', y_true_label]].copy() # Not change the input
+def get_baseline(df_train, df_test, y_label):
+    df_res = df_test[['pat_id', 'order_time', y_label]].copy().rename(columns={y_label:'actual'}) # Not change the input
 
-    prevalence = float(df_train[y_true_label].values.sum()) / float(df_train.shape[0])
+    prevalence = float(df_train[y_label].values.sum()) / float(df_train.shape[0])
 
-    df_res[y_pred_label] = df_res[y_true_label].apply(lambda x: prevalence) # use any column to create an extra column
+    df_res['predict'] = df_res['actual'].apply(lambda x: prevalence) # use any column to create an extra column
 
-    df_res = df_res.sort_values(['pat_id', 'order_time'])
+    df_res = df_res.sort_values(['pat_id', 'order_time']).reset_index()
     for i in range(1, df_res.shape[0]):
         if df_res.ix[i-1, 'pat_id'] == df_res.ix[i, 'pat_id']:
-            df_res.ix[i, y_pred_label] = df_res.ix[i-1, y_true_label]
+            df_res.ix[i, 'predict'] = df_res.ix[i-1, 'actual']
 
-    return df_res[[y_true_label, y_pred_label]]
+    return df_res[['actual', 'predict']]
 
 if __name__ == '__main__':
     test_get_baseline()

@@ -161,12 +161,11 @@ def main_pipelining(labs,
         # raw_matrix_filename = (matrix_filename_template.replace('-matrix', '-matrix-raw')) % lab
         # raw_matrix_filepath = os.path.join(data_lab_folderpath, raw_matrix_filename)
         #
-        raw_matrix_train, raw_matrix_evalu = SL.get_train_and_eval_raw_matrices(
+        raw_matrix_train, raw_matrix_evalu = SL.get_train_and_evalu_raw_matrices(
             lab = lab,
             data_lab_folderpath=data_lab_folderpath,
             random_state=random_state,
         )
-        quit()
 
         '''
         Baseline results on train and eval set
@@ -176,24 +175,22 @@ def main_pipelining(labs,
         So if want to add this result, have to figure out the file system organization yourself!
         
         '''
-        baseline_train_filepath = os.path.join(data_lab_folderpath, 'baseline_comparisons_train.csv')
-        if not os.path.exists(baseline_train_filepath):
-            baseline_train = ml_utils.get_baseline(raw_matrix_train)
-            baseline_train.to_csv('')
 
-        baseline_evalu_filepath = os.path.join(data_lab_folderpath, 'baseline_comparisons.csv')
-        if not os.path.exists(baseline_evalu_filepath):
-            baseline_evalu = ml_utils.get_baseline(raw_matrix_evalu)
-            baseline_evalu.to_csv('')
+        baseline_filepath = os.path.join(data_lab_folderpath, 'baseline_comparisons.csv')
+        if not os.path.exists(baseline_filepath):
+            baseline_evalu = ml_utils.get_baseline(df_train=raw_matrix_train,
+                                                   df_test=raw_matrix_evalu,
+                                                   y_label='all_components_normal')
+            baseline_evalu.to_csv(baseline_filepath)
 
         '''
-            Standard pipeline
-            '''
+        Standard pipeline
+        '''
         SL.standard_pipeline(lab=lab,
                              algs=algs,
                              data_lab_folderpath=data_lab_folderpath,
                              random_state=random_state
-                                 )
+                            )
 
 
         # TODO: check baseline and ml alg come from the same dataset!
