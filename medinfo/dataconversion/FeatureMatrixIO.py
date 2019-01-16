@@ -17,7 +17,7 @@ class FeatureMatrixIO:
             datetime_col_index = 1
         data_frame = read_csv(in_file_path, sep='\t', comment='#', \
             parse_dates=[datetime_col_index], na_values=['None'], 
-            dtype={'death_date': str, 'pat_id': int})
+            dtype={'death_date': str})
 
         return data_frame
 

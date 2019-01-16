@@ -38,8 +38,6 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         # TODO: naming of lab_panel
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
-        self._build_baseline_results() #TODO: prototype in SLPP
-        return
 
         data_lab_folder = self._fetch_data_dir_path(inspect.getfile(inspect.currentframe()))
         feat2imputed_dict_path = data_lab_folder + '/feat2imputed_dict.pkl'
@@ -59,6 +57,9 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             '''
             pickle.dump(self.usedPatIds, open('data/used_patient_set_%s.pkl'%self._var, 'w'), pickle.HIGHEST_PROTOCOL)
             self._build_processed_feature_matrix()
+            self._build_baseline_results()  # TODO: prototype in SLPP
+            return
+
             # TODO: find better place to put the dict.pkl
             pickle.dump(self.feat2imputed_dict, open(feat2imputed_dict_path, 'w'), pickle.HIGHEST_PROTOCOL)
             self._train_and_analyze_predictors()
@@ -395,6 +396,8 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 SupervisedLearningPipeline._analyze_predictor(self, report_dir, pipeline_prefix)
                 SupervisedLearningPipeline._analyze_predictor_traindata(self, report_dir, pipeline_prefix)
 
+                continue # Do not generate stats results here...
+
                 if meta_report is None:
                     meta_report = fm_io.read_file_to_data_frame('/'.join([report_dir, '%s-report.tab' % pipeline_prefix]))
                 else:
@@ -473,14 +476,14 @@ STRIDE_COMPONENT_TESTS = [
 # Bilirubin, Indirect
 # # good, from 'LABMETB'
 
-'''
-'DBIL', 'pHA', 'T PROTEIN', 'ALK', 'UN', 'IBIL',
+''',
 'HCO3-A', 'MAG', 'PHOS', 'INR', "BLD", "ICAL", "LACA"
 '''
 #
 UMICH_TOP_COMPONENTS = [
     'WBC', 'HGB', 'PLT', 'SOD', 'POT', 'CREAT', 'TBIL', 'CHLOR',
-    'CO2',  'AST', 'ALT', 'ALB', 'CAL', 'PCOAA2', 'PO2AA'
+    'CO2',  'AST', 'ALT', 'ALB', 'CAL', 'PCOAA2', 'PO2AA',
+    'DBIL', 'pHA', 'T PROTEIN', 'ALK', 'UN', 'IBIL'
 ]
 
 UMICH_TOP_PANELS = [
@@ -559,37 +562,39 @@ if __name__ == '__main__':
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
 
         test_mode = True
+        raw_matrix_exists = True
         pat_batch_mode = False
 
-        if test_mode:
-            sample_data_files = ['labs.sample.txt',
-                              'pt.info.sample.txt',
-                              'encounters.sample.txt',
-                              'demographics.sample.txt',
-                              'diagnoses.sample.txt']
-            prepareData_NonSTRIDE.preprocess_files(raw_data_folderpath, sample_data_files)
+        if not raw_matrix_exists:
+            if test_mode:
+                sample_data_files = ['labs.sample.txt',
+                                  'pt.info.sample.txt',
+                                  'encounters.sample.txt',
+                                  'demographics.sample.txt',
+                                  'diagnoses.sample.txt']
+                prepareData_NonSTRIDE.preprocess_files(raw_data_folderpath, sample_data_files)
 
-        raw_data_files = ['labs.txt',
-                          'pt.info.txt',
-                          'encounters.txt',
-                          'demographics.txt',
-                          'diagnoses.txt']
+            raw_data_files = ['labs.txt',
+                              'pt.info.txt',
+                              'encounters.txt',
+                              'demographics.txt',
+                              'diagnoses.txt']
 
-        db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
-        fold_enlarge_data = 1
-        USE_CACHED_DB = True # TODO: take care of USE_CACHED_LARGEFILE in the future
+            db_name = LocalEnv.LOCAL_PROD_DB_PARAM["DSN"]
+            fold_enlarge_data = 1
+            USE_CACHED_DB = True # TODO: take care of USE_CACHED_LARGEFILE in the future
 
-        db_preparor = prepareData_NonSTRIDE.DB_Preparor(raw_data_files, raw_data_folderpath,
-                                               db_name=db_name,
-                                               fold_enlarge_data=fold_enlarge_data,
-                                               USE_CACHED_DB=USE_CACHED_DB,
-                                               time_min=None,#'2015-01-01',
-                                               test_mode=test_mode)
+            db_preparor = prepareData_NonSTRIDE.DB_Preparor(raw_data_files, raw_data_folderpath,
+                                                   db_name=db_name,
+                                                   fold_enlarge_data=fold_enlarge_data,
+                                                   USE_CACHED_DB=USE_CACHED_DB,
+                                                   time_min=None,#'2015-01-01',
+                                                   test_mode=test_mode)
 
-        for component in UMICH_TOP_COMPONENTS:
-            print "processing %s..." % component
+        for component in UMICH_TOP_COMPONENTS: #['UN', 'IBIL', 'ALK', 'T PROTEIN', 'pHA', 'DBIL']: # UMICH_TOP_COMPONENTS:
+            # print "processing %s..." % component
 
-            try:
+            # try:
                 if not pat_batch_mode:
                     LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789,
                                                    isLabPanel=False)
@@ -602,9 +607,9 @@ if __name__ == '__main__':
                                                                   isLabPanel=False, notUsePatIds=notUsePatIds,
                                                                   pat_batch_ind=pat_batch_ind)
                         notUsePatIds += cur_pipe.usedPatIds
-            except Exception as e:
-                log.info(e)
-                pass
+            # except Exception as e:
+            #     log.info(e)
+            #     pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
 
