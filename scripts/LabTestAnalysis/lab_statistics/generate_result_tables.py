@@ -129,10 +129,11 @@ def main(train_data_folderpath, ml_results_folderpath, stats_results_folderpath,
 
     columns_UMichs = columns[:]
 
-    if lab_type == 'panel':
-        columns = columns_panels
-    elif lab_type == 'component':
-        columns = columns_components
+    if stats_utils.data_source == 'Stanford':
+        if lab_type == 'panel':
+            columns = columns_panels
+        elif lab_type == 'component':
+            columns = columns_components
     elif lab_type == 'UMich':
         columns = columns_UMichs
 

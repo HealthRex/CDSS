@@ -33,8 +33,8 @@ For plotting guideline,
 
 a lab, has n prev consecutive normal. 
 '''
-data_source = 'UCSF'
-lab_type = 'panel'
+data_source = 'UMich'
+lab_type = 'component'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
@@ -71,9 +71,9 @@ main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 curr_version = '10000-episodes'
 if data_source == 'Stanford' and lab_type == 'panel':
     all_labs = all_panels #[x[0] for x in labs_and_cnts]
-elif lab_type == 'component':
+elif data_source == 'Stanford' and lab_type == 'component':
     all_labs = all_components
-elif lab_type == 'UMich':
+elif data_source == 'UMich':
     all_labs = all_UMichs
 elif data_source == 'UCSF' and lab_type == 'component':
     all_labs = all_UCSF
@@ -533,7 +533,8 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
         alg_shape = df.shape
 
         # print baseline_shape, alg_shape
-        assert baseline_shape == alg_shape # Make sure the same test set!
+        print baseline_shape[0], alg_shape[0]
+        assert baseline_shape[0] == alg_shape[0] # Make sure the same test set!
 
         actual_list = df['actual'].values
         try:
