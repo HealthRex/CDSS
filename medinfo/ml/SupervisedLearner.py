@@ -218,8 +218,8 @@ def get_train_and_evalu_processed_matrices(lab, data_lab_folderpath, features, r
     
     '''
 
-    processed_matrix_train, process_template  = process_matrix(lab, raw_matrix_train, features=features)
-    processed_matrix_evalu = process_matrix(raw_matrix_evalu, process_template)
+    processed_matrix_train, process_template  = process_matrix(raw_matrix_train, features=features)
+    processed_matrix_evalu = process_matrix(raw_matrix_evalu, features=features, process_template=process_template)
     return processed_matrix_train, processed_matrix_evalu
 
 
@@ -265,7 +265,7 @@ def select_features(matrix, strategy):\
     # TODO: fill in
     return matrix
 
-def process_matrix(lab, raw_matrix, features, data_path='', impute_template=None):
+def process_matrix(raw_matrix, features, data_path='', impute_template=None):
     '''
     From raw matrix to processed matrix
 
@@ -289,51 +289,55 @@ def process_matrix(lab, raw_matrix, features, data_path='', impute_template=None
 
     '''
 
+    '''
+    Process matrix from scratch
+
+    Column order: ylabel, info, numeric
+    '''
+    processing_matrix = raw_matrix.copy()
+
+
+    '''
+    Set aside ylabel and info features 
+    '''
+
+    features_setaside = [features['ylabel']] + features['info']
+    processed_matrix = processing_matrix[features_setaside].copy()
+    processing_matrix = processing_matrix.drop(features_setaside, axis=1)
+
+
     if impute_template is not None:
         '''
         Select and impute feature based on previous template
         '''
-        processed_matrix_full = raw_matrix.copy()
-        columns_ordered = [""] * len(impute_template.keys())
+        columns_impute_ordered = [""] * len(impute_template.keys())
 
         for feature, ind_value_pair in impute_template.items():
             column_ind, impute_value = ind_value_pair
-            processed_matrix_full[feature] = processed_matrix_full[feature].fillna(impute_value)
-            columns_ordered[column_ind] = feature
+            processing_matrix[feature] = processing_matrix[feature].fillna(impute_value)
+            columns_impute_ordered[column_ind] = feature
 
-        if 'abnormal_panel' not in processed_matrix_full.columns.values.tolist(): #TODO: delete in the future
-            processed_matrix_full['abnormal_panel'] = processed_matrix_full['all_components_normal'].apply(lambda x:1.-x)
+        # if 'abnormal_panel' not in processing_matrix.columns.values.tolist(): #TODO: delete in the future
+        #     processing_matrix['abnormal_panel'] = processing_matrix['all_components_normal'].apply(lambda x:1.-x)
 
-        processed_matrix_full = pd.concat([processed_matrix_full[features['non_impute_features']],
-                                           processed_matrix_full[columns_ordered]],
-                                          axis=1)
-
+        processing_matrix = processing_matrix[columns_impute_ordered]
         # TODO: header info like done by fm_io?
 
     else:
-        '''
-        Process matrix from scratch
-        '''
-
-        processing_matrix = raw_matrix.copy() #
 
         '''
         Remove features
         '''
         processing_matrix = processing_matrix.drop(features['remove'], axis=1)
 
-        '''
-        Set aside info features and ylabel
-        '''
-        features_setaside = features['info'] + [features['ylabel']]
-        processed_matrix = processing_matrix[features_setaside].copy()
-        processing_matrix = processing_matrix.drop(features_setaside, axis=1)
 
         # TODO: test: only numeric features left
 
         '''
         Impute
         '''
+
+        
         processing_matrix, impute_template = impute_features(processing_matrix, strategy="mean")
 
         # TODO: keep order?
@@ -349,8 +353,9 @@ def process_matrix(lab, raw_matrix, features, data_path='', impute_template=None
         Select features
         '''
         processing_matrix = select_features(processing_matrix)
-        processed_matrix = pd.merge(processed_matrix, processing_matrix)
+        # processed_matrix = pd.merge(processed_matrix, processing_matrix)
 
+    processed_matrix = pd.concat([processed_matrix, processing_matrix[columns_impute_ordered]], axis=1)
 
     return processed_matrix, impute_template
 
