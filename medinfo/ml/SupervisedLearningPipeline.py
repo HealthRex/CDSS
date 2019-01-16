@@ -174,16 +174,19 @@ class SupervisedLearningPipeline:
             # Assume feature selection already happened, but we still need
             # to split the data into training and test data.
             processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
+
+            # processed_matrix['pat_id'] = processed_matrix['pat_id'].apply(lambda x: str(x))
+
             self._train_test_split(processed_matrix, params['outcome_label'])
             '''
             Pandas dataframe may automatically convert bigint to float (and round the last
             few digits), which may damage the uniqueness of pat_ids. 
             '''
-            processed_matrix['pat_id'] = processed_matrix['pat_id'].apply(lambda x: str(x))
+            # processed_matrix['pat_id'] = processed_matrix['pat_id'].apply(lambda x: str(x))
         else:
             # Read raw matrix.
             raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
-            raw_matrix['pat_id'] = raw_matrix['pat_id'].apply(lambda x: str(x))
+            # raw_matrix['pat_id'] = raw_matrix['pat_id'].apply(lambda x: str(x))
             # Initialize FMT.
 
             # Divide processed_matrix into training and test data.
@@ -267,9 +270,9 @@ class SupervisedLearningPipeline:
             test = self._y_test.join(self._X_test)
 
             processed_trainMatrix_path = processed_matrix_path.replace("matrix", "train-matrix")
-            fm_io.write_data_frame_to_file(train, processed_trainMatrix_path)
+            train.to_csv(processed_trainMatrix_path, sep='\t', index=False)
             processed_testMatrix_path = processed_matrix_path.replace("matrix", "test-matrix")
-            fm_io.write_data_frame_to_file(test, processed_testMatrix_path)
+            test.to_csv(processed_testMatrix_path, sep='\t', index=False)
 
             processed_matrix = train.append(test)
             '''
