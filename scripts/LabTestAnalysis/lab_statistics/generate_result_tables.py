@@ -6,414 +6,197 @@ pd.set_option("display.max_columns", 10)
 import numpy as np
 import os
 from sklearn.metrics import roc_auc_score, roc_curve
+import stats_utils
 
 import matplotlib
 matplotlib.rcParams['backend'] = 'TkAgg'
+
+import LocalEnv
 import matplotlib.pyplot as plt
-from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
-from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import \
-        NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
+train_PPVs = (0.99, 0.95, 0.9, 0.8) #[0.5, 0.75, 0.90, 0.95, 0.975, 0.99]
 
-train_PPVs = [0.99, 0.95, 0.9, 0.8] #[0.5, 0.75, 0.90, 0.95, 0.975, 0.99]
+lab_type = stats_utils.lab_type
+all_labs = stats_utils.all_labs
+# labs_folder = stats_utils.labs_ml_folder
+all_algs = stats_utils.all_algs
 
-def get_thres_by_fixing_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, thres_mode="from_test"):
-    if thres_mode == "from_train":
-        df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
-                     '%s-normality-prediction-%s-direct-compare-results-traindata.csv'%(lab,alg))
-    else:
-        df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
-                         '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg))
-
-    # TODO: calibration?
-    row, col = df.shape
-    thres_last, PPV_last = 1., 1.
-    actual_list = df['actual'].values.tolist()
-
-    for thres in np.linspace(1,0,num=1001):
-
-        df['predict_class'] = df['predict'].apply(lambda x: 1 if x>thres else 0)
-        predict_class_list = df['predict_class'].values.tolist()
-
-        true_positive = 0
-        false_positive = 0
-        true_negative = 0
-        false_negative = 0
-        for i in range(row):
-            if actual_list[i] == 1 and predict_class_list[i] == 1:
-                true_positive += 1
-            elif actual_list[i] == 0 and predict_class_list[i] == 1:
-                false_positive += 1
-            elif actual_list[i] == 1 and predict_class_list[i] == 0:
-                false_negative += 1
-            elif actual_list[i] == 0 and predict_class_list[i] == 0:
-                true_negative += 1
-            else:
-                print "what?!"
-
-        try:
-            PPV = float(true_positive) / float(true_positive + false_positive)
-        except ZeroDivisionError:
-            # PPV = float('nan')
-            continue
-
-        if PPV < PPV_wanted:
-            thres = thres_last
-            PPV = PPV_last
-            break
-        else:
-            thres_last = thres
-            PPV_last = PPV
-
-    return thres_last
-
-def bootstrap_CI(actual_list, predict_list, num_repeats=1000, stat = 'roc_auc',
-                 confident_lvl=0.95, side='two', random_state=0):
-    assert len(actual_list) == len(predict_list)
-
-    from sklearn.utils import resample
-
-    all_stats = []
-    for i in range(num_repeats):
-        actual_list_resampled, predict_list_resampled = resample(actual_list, predict_list)
-        if stat == 'roc_auc':
-            cur_roc_auc = roc_auc_score(actual_list_resampled, predict_list_resampled)
-            all_stats.append(cur_roc_auc)
-
-    roc_auc_left = np.percentile(all_stats, (1-confident_lvl)/2.*100)
-    roc_auc_right = np.percentile(all_stats, (1+confident_lvl)/2.*100)
-
-    return roc_auc_left, roc_auc_right
-
-def fill_df_fix_PPV(lab, alg, data_folder = '', PPV_wanted = 0.9, lab_type=None, thres_mode="from_test"):
-
-    df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
-                     '%s-normality-prediction-%s-direct-compare-results.csv'%(lab,alg))
-    row, col = df.shape
+DEFAULT_TIMEWINDOWS = stats_utils.DEFAULT_TIMEWINDOWS
 
 
-    '''
-    roc_auc, and its confidence interval (CI)
-    Independent of any threshold
-    '''
-    actual_list = df['actual'].values.tolist()
+results_subfoldername = 'stats_by_lab_alg'
+# results_subfolderpath = os.path.join(stats_utils.labs_stats_folder, results_subfoldername)
+# if not os.path.exists(results_subfolderpath):
+#     os.mkdir(results_subfolderpath)
+results_filename_template = '%s-stats-target-%s-%s.csv'
+# results_filepath_template = os.path.join(results_subfolderpath, results_filename_template)
 
-    try:
-        roc_auc = roc_auc_score(actual_list, df['predict'].values)
-        roc_auc_left, roc_auc_right = bootstrap_CI(actual_list, df['predict'], confident_lvl=0.95)
-    except ValueError:
-        roc_auc, roc_auc_left, roc_auc_right = float('nan'), float('nan'), float('nan')
+summary_filename_template = 'summary-stats-%s-%s.csv'
+# summary_filepath_template = os.path.join(stats_utils.labs_stats_folder, summary_filename_template)
 
-
-    '''
-    Score threshold is used for "predict_proba --> predict_label"
-    Learning score threshold by fixing training PPV at desired lvl
-    This way, learned test (evaluation) PPV is "unbiased". 
-    '''
-    if thres_mode == "quick_test":
-        thres = 0.5
-    else:
-        thres = get_thres_by_fixing_PPV(lab, alg, data_folder=data_folder, PPV_wanted=PPV_wanted, thres_mode=thres_mode)
-
-    df['predict_class'] = df['predict'].apply(lambda x: 1 if x > thres else 0)
-    predict_class_list = df['predict_class'].values.tolist()
-
-    '''
-    Based on threshold, counting:
-    'true_positive', 'false_positive', 'true_negative', 'false_negative'
-    
-    Calculating:
-    'sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV'
-    '''
-    true_positive = 0
-    false_positive = 0
-    true_negative = 0
-    false_negative = 0
-    total_cnt = 0
-    for i in range(row):
-        if actual_list[i] == 1 and predict_class_list[i] == 1:
-            true_positive += 1
-        elif actual_list[i] == 0 and predict_class_list[i] == 1:
-            false_positive += 1
-        elif actual_list[i] == 1 and predict_class_list[i] == 0:
-            false_negative += 1
-        elif actual_list[i] == 0 and predict_class_list[i] == 0:
-            true_negative += 1
-        else:
-            print "what?!"
-        total_cnt += 1
-
-    res_dict = {'lab':lab, 'alg':alg, 'threshold': thres,
-           'true_positive':true_positive/float(total_cnt), 'false_positive': false_positive/float(total_cnt),
-           'true_negative':true_negative/float(total_cnt), 'false_negative':false_negative/float(total_cnt),
-           'total_cnt':total_cnt, 'roc_auc': roc_auc,
-           '95%_CI': '[%f, %f]'%(roc_auc_left,roc_auc_right)}
-    res_dict['sensitivity'] = float(true_positive)/float(true_positive + false_negative)
-    res_dict['specificity'] = float(true_negative)/float(true_negative + false_positive)
-    try:
-        res_dict['LR_p'] = res_dict['sensitivity']/(1-res_dict['specificity'])
-    except ZeroDivisionError:
-        if res_dict['sensitivity'] == 0:
-            res_dict['LR_p'] = float('nan')
-        else:
-            res_dict['LR_p'] = float('inf')
-
-    try:
-        res_dict['LR_n'] = (1-res_dict['sensitivity'])/res_dict['specificity']
-    except ZeroDivisionError:
-        if res_dict['sensitivity'] == 1:
-            res_dict['LR_n'] = float('nan')
-        else:
-            res_dict['LR_n'] = float('inf')
-
-    try:
-        res_dict['PPV'] = float(true_positive)/float(true_positive + false_positive)
-    except ZeroDivisionError:
-        res_dict['PPV'] = float('nan')
-
-    try:
-        res_dict['NPV'] = float(true_negative)/float(true_negative + false_negative)
-    except ZeroDivisionError:
-        res_dict['PPV'] = float('nan')
-
-
-    return res_dict
-
-
-def add_panel_cnts_fees(one_lab_alg_dict):
-    panel =  one_lab_alg_dict['lab']
-    df_cnts_fees = pd.read_csv('data_summary_stats/labs_charges_volumes.csv')
-    cnts_fees_dict = df_cnts_fees.ix[df_cnts_fees['name']==panel, ['count',
-                                                        'min_price',
-                                                        'max_price',
-                                                        'mean_price',
-                                                        'median_price',
-                                                        'min_volume_charge',
-                                                        'max_volume_charge',
-                                                        'mean_volume_charge',
-                                                        'median_volume_charge']].to_dict(orient='list')
-    # print cnts_fees_dict
-    for key in cnts_fees_dict.keys():
-        try:
-            cnts_fees_dict[key] = cnts_fees_dict[key][0]
-        except IndexError:
-            cnts_fees_dict[key] = float('nan')
-
-    one_lab_alg_dict.update(cnts_fees_dict)
-    return one_lab_alg_dict
-
-
-'''
-For individual component, there is no well-defined "fee".
-'''
-def add_component_cnts(one_lab_dict, years):
-    component = one_lab_dict['lab']
-    df_cnts = pd.read_csv('data_summary_stats/component_cnts.txt', sep='\t', keep_default_na=False)
-    # df = df.rename(columns={'Base':'lab'})
-
-    for year in years:
-        one_lab_dict[str(year)+'_Vol'] = df_cnts.ix[df_cnts['Base']==component, str(year)].values[0]
-        # TODO: rename total_cnt to avoid confusion between total STRIDE cnt & testing cnt!
-
-    return one_lab_dict
-
-
-def get_baseline(file_path):
-    # try:
-    df = pd.read_csv(file_path + 'baseline_comparisons.csv') # TODO: baseline file should not have index!
-    # except IOError:
-    #     from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
-    #     f = FeatureMatrixFactory()
-    #     f.obtain_baseline_results(raw_matrix_path=file_path, random_state=123456789, isLabPanel=True)
-    #     df = pd.read_csv(file_path + 'baseline_comparisons.csv')
-
-    try:
-        res = roc_auc_score(df['actual'], df['predict'])
-    except ValueError:
-        res = float('nan')
-
-    return res
-
-
-'''
-For each lab at each (train_PPV, vital_day), 
-write all stats (e.g. roc_auc, PPV, total cnts) into csv file. 
-'''
-def lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted, vital_day,
-                  folder_path, data_folder, result_folder, columns,
-                  thres_mode="from_test"):
-    if thres_mode == "from_train":
-        curr_res_file = '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
-    elif thres_mode == "from_test":
-        curr_res_file = '%s-alg-summary-testPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
-
-    if os.path.exists(result_folder + curr_res_file):
-        return
-
-    df = pd.DataFrame(columns=columns)
-
-    baseline_roc_auc = get_baseline(file_path=folder_path + '/' + data_folder + '/' + lab + '/')
-
-    for alg in all_algs:
-        print 'Processing lab %s with alg %s' % (lab, alg)
-        # try:
-        one_lab_alg_dict = fill_df_fix_PPV(lab, alg, data_folder=folder_path + '/' + data_folder,
-                                           PPV_wanted=PPV_wanted, lab_type=lab_type, thres_mode=thres_mode)
-
-        if lab_type == 'component':
-            one_lab_alg_dict = add_component_cnts(one_lab_alg_dict, years=years)
-        elif lab_type == 'panel':
-            one_lab_alg_dict = add_panel_cnts_fees(one_lab_alg_dict)
-
-        one_lab_alg_dict['baseline_roc'] = baseline_roc_auc
-
-        df = df.append(one_lab_alg_dict, ignore_index=True)
-        # except Exception as e:
-        #     print e
-        #     pass
-
-    # print 'PPV_wanted=%.2f finished!' % PPV_wanted #TODO
-
-    df[columns].to_csv(result_folder + curr_res_file, index=False)
-
-
-all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-all_components = STRIDE_COMPONENT_TESTS #['WBC', 'HGB', 'K', 'NA', 'CR', 'GLU'] #STRIDE_COMPONENT_TESTS
-all_UMich = [
-                'WBC', 'HGB',
-                'PLT', 'SOD', 'POT', 'CREAT', 'TBIL', 'CHLOR', 'CO2',
-                'AST', 'ALT',
-            'ALB', 'CAL',
-            'PO2AA', 'PCOAA2']
 '''
 For each (train-)PPV wanted, each vital-day dataset
 Create a summary of all algs' performances on all labs
 '''
-def main_files_to_separate_stats(lab_type = 'component', years=[2016], vital_days = [3],
-                                 PPVs_wanted = train_PPVs,
-                                columns = None, thres_mode="from_test"):
+def main_labs2stats(train_data_folderpath, ml_results_folderpath, stats_results_folderpath, targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
-    folder_path = '../machine_learning/'
+    for targeted_PPV in targeted_PPVs:
+        for lab in all_labs:
+            '''
+            For each lab at each (train_PPV), 
+            write all stats (e.g. AUROC, PPV, total cnts) into csv file. 
+            '''
+            stats_results_filename = results_filename_template%(lab, thres_mode, str(targeted_PPV))
+            stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg', stats_results_filename)
+            if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
+                os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
 
+            if not os.path.exists(stats_results_filepath):
+                stats_utils.lab2stats(lab=lab,
+                                      targeted_PPV=targeted_PPV,
+                                      columns=columns,
+                                      thres_mode=thres_mode,
+                                      train_data_labfolderpath=os.path.join(train_data_folderpath, lab),
+                                      ml_results_labfolderpath=os.path.join(ml_results_folderpath, lab),
+                                      stats_results_filepath=stats_results_filepath
+                                      )
 
-    for vital_day in vital_days:
-        if lab_type == 'panel':
-            data_folder = 'data-panels' #'data-panels-%ddaysVitals'%vital_day
-            all_labs = all_panels
-        elif lab_type == 'component':
-            all_labs = all_components
-            data_folder = 'data-components'#'data-components-3daysVitals' #'data-components-%ddaysVitals'%vital_day
-        elif lab_type == 'UMich':
-            all_labs = all_UMich
-            data_folder = 'data-UMich'
-
-
-        result_folder = 'data_performance_stats/all_%ss/'%lab_type
-
-
-        if not os.path.exists(result_folder):
-            os.mkdir(result_folder)
-
-
-        all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
-
-        for PPV_wanted in PPVs_wanted:
-
-            for lab in all_labs:
-
-                '''
-                For each lab at each (train_PPV, vital_day), 
-                write all stats (e.g. roc_auc, PPV, total cnts) into csv file. 
-                '''
-                try:
-                    lab2stats_csv(lab_type, lab, years, all_algs, PPV_wanted,
-                                  vital_day, folder_path, data_folder, result_folder, columns,
-                                  thres_mode=thres_mode)
-                except Exception as e:
-                    print e
-                    pass
-
-
-
-def main_agg_stats(lab_type = 'component', vital_days = [3], PPVs_wanted = train_PPVs,
-                   columns=None, thres_mode="from_test"):
+def main_stats2summary(targeted_PPVs = train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
     df_long = pd.DataFrame(columns=columns)
 
     columns_best_alg = [x if x!='alg' else 'best_alg' for x in columns]
     df_best_alg = pd.DataFrame(columns=columns_best_alg)
 
-    result_folder = 'data_performance_stats/all_%ss/' % lab_type
+    for targeted_PPV in targeted_PPVs:
+        for lab in all_labs:
+            stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
+            stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg', stats_results_filename)
+            # results_filepath = results_filepath_template % (lab, thres_mode, str(targeted_PPV))
+            df_lab = pd.read_csv(stats_results_filepath, keep_default_na=False)
+            df_lab['targeted_PPV_%s'%thres_mode] = targeted_PPV
 
-    if lab_type == 'panel':
-        all_labs = all_panels
-    elif lab_type == 'component':
-        all_labs = all_components
+            df_long = df_long.append(df_lab, ignore_index=True)
+
+            df_cur_best_alg = df_lab.groupby(['lab'], as_index=False).agg({'AUROC': 'max'})
+            df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
+
+            df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
+            df_best_alg = df_best_alg.append(df_cur_best_alg)
+
+    summary_long_filename = 'summary-stats-%s-%s.csv'%('allalgs', thres_mode)
+    summary_long_filepath = os.path.join(stats_results_folderpath, summary_long_filename)
+    df_long[columns].to_csv(summary_long_filepath, index=False)
+
+    summary_best_filename = 'summary-stats-%s-%s.csv'%('bestalg', thres_mode)
+    summary_best_filepath = os.path.join(stats_results_folderpath, summary_best_filename)
+    df_best_alg[columns_best_alg].to_csv(summary_best_filepath, index=False)
+
+    # df_long[columns].to_csv(summary_filepath_template%('allalgs', thres_mode), index=False)
+    # df_best_alg[columns_best_alg].to_csv(summary_filepath_template%('bestalg', thres_mode), index=False)
+
+def main(train_data_folderpath, ml_results_folderpath, stats_results_folderpath, thres_mode="fixTrainPPV"):
+    '''
+    Performance on test set, by choosing a threshold whether from train or test.
+
+    Args:
+        lab_type:
+        thres_mode:
+
+    Returns:
+
+    '''
+
+    '''
+    Shared columns
+    '''
+    columns = ['lab', 'num_train_episodes', 'num_train_patient', 'num_test_episodes', 'num_test_patient']
+    columns += ['alg', 'AUROC', '95%_CI', 'baseline2_ROC']
+    columns += ['targeted_PPV_%s' % thres_mode]
+
+    columns_statsMetrics = []
+    columns_statsMetrics += ['score_thres', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
+    columns_statsMetrics += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
+
+    columns += columns_statsMetrics
+
+    columns_STRIDE = columns[:]
+    columns_STRIDE += ['%s count'%x for x in DEFAULT_TIMEWINDOWS]
+
+    columns_panels = columns_STRIDE[:] + ['min_price', 'max_price', 'mean_price', 'median_price']
+    # 'min_volume_charge', 'max_volume_charge', 'mean_volume_charge', 'median_volume_charge'
+    columns_components = columns_STRIDE[:]
+
+    columns_UMichs = columns[:]
+
+    if stats_utils.data_source == 'Stanford':
+        if lab_type == 'panel':
+            columns = columns_panels
+        elif lab_type == 'component':
+            columns = columns_components
     elif lab_type == 'UMich':
-        all_labs = all_UMich
+        columns = columns_UMichs
 
-    for PPV_wanted in PPVs_wanted:
-        for vital_day in vital_days: #TODO: create the column of vitals
-            for lab in all_labs:
-                if thres_mode == "from_train":
-                    df_cur = pd.read_csv(result_folder + '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv'%(lab, str(PPV_wanted), vital_day), keep_default_na=False)
-                    df_cur['train_PPV'] = PPV_wanted
-                elif thres_mode == "from_test":
-                    df_cur = pd.read_csv(result_folder + '%s-alg-summary-testPPV-%s-vitalDays-%d.csv' % (
-                    lab, str(PPV_wanted), vital_day), keep_default_na=False)
-                    df_cur['test_PPV'] = PPV_wanted
+    main_labs2stats(train_data_folderpath=train_data_folderpath,
+                    ml_results_folderpath=ml_results_folderpath,
+                    stats_results_folderpath=stats_results_folderpath,
+                    targeted_PPVs=train_PPVs,
+                                 columns=columns,
+                                 thres_mode=thres_mode)
 
-                df_cur['vital_day'] = vital_day
-
-
-                df_long = df_long.append(df_cur, ignore_index=True)
-
-                df_cur_best_alg = df_cur.groupby(['lab'], as_index=False).agg({'roc_auc': 'max'})
-                df_cur_best_alg = pd.merge(df_cur_best_alg, df_cur, on=['lab', 'roc_auc'], how='left')
-
-                df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
-                df_best_alg = df_best_alg.append(df_cur_best_alg)
-
-    df_long[columns].to_csv('data_performance_stats/'+'long-%s-summary.csv'% lab_type, index=False)
-    df_best_alg[columns_best_alg].to_csv('data_performance_stats/'+'best-alg-%s-summary.csv'% lab_type, index=False)
-
-def main(lab_type='panel', thres_mode="from_test"):
-
-
-    columns_panels = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline_roc', 'total_cnt']
-    columns_panels += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
-    columns_panels += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
-    columns_panels += ['count', 'min_price', 'max_price', 'mean_price', 'median_price',
-                       'min_volume_charge', 'max_volume_charge', 'mean_volume_charge', 'median_volume_charge']
-
-    if thres_mode == "from_train":
-        wanted_PPV_col = 'train_PPV'
-    elif thres_mode == "from_test":
-        wanted_PPV_col = 'test_PPV'
-    # TODO: Finish the panel routine, but first deal with the NA 2015 issue?
-    columns_panels_agg = columns_panels[:6] + ['vital_day', wanted_PPV_col] + columns_panels[6:]
-
-    years = [2016]  # which years' cnt to look at
-    columns_components = ['lab', 'alg', 'roc_auc', '95%_CI', 'baseline_roc', 'total_cnt']  # basic info
-    columns_components += ['threshold', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
-    columns_components += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
-    columns_components += [str(year) + '_Vol' for year in years]
-
-    columns_components_agg = columns_components[:6] + ['vital_day', wanted_PPV_col] + columns_components[6:]
-
-    if lab_type == 'panel':
-        columns = columns_panels
-        columns_agg = columns_panels_agg
-    else:
-        columns = columns_components
-        columns_agg = columns_components_agg
-
-    main_files_to_separate_stats(lab_type=lab_type, years=[2016], vital_days=[3], PPVs_wanted=train_PPVs,
-                                 columns=columns, thres_mode=thres_mode)
-
-    main_agg_stats(lab_type=lab_type, vital_days=[3], PPVs_wanted=train_PPVs, columns=columns_agg,
+    main_stats2summary(targeted_PPVs=train_PPVs,
+                   columns=columns,
                    thres_mode=thres_mode)
 
-if __name__ == '__main__':
-    main(lab_type='component', thres_mode="from_test")
+    main_attachBaseline(targeted_PPVs=train_PPVs,
+                   columns=[x+'_baseline' for x in columns_statsMetrics],
+                   thres_mode=thres_mode)
 
+def main_attachBaseline(targeted_PPVs, columns, thres_mode):
+    '''
+
+    Args:
+        targeted_PPVs:
+        columns:
+        thres_mode:
+
+    Returns:
+
+    '''
+
+    '''
+    Load summary-stats-bestalg-fixTrainPPV.csv
+    '''
+    summary_best_filename = 'summary-stats-%s-%s.csv' % ('bestalg', thres_mode)
+    summary_best_filepath = os.path.join(stats_results_folderpath, summary_best_filename)
+    df_best_alg = pd.read_csv(summary_best_filepath, keep_default_na=False)
+    print df_best_alg.head()
+
+    '''
+    Get Baseline results for each lab
+    '''
+
+    print columns
+
+
+
+if __name__ == '__main__':
+    project_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
+    train_data_folderpath = os.path.join(project_folder, 'machine_learning/',
+                                         'data-%s-%s-10000-episodes'%(stats_utils.data_source, stats_utils.lab_type)
+                                         )
+    ml_results_folderpath = os.path.join(project_folder, 'machine_learning/',
+                                   #'results-from-panels-10000-to-panels-5000-part-1'
+                                         'data-%s-%s-10000-episodes'%(stats_utils.data_source, stats_utils.lab_type)
+                                         )
+    stats_results_folderpath = ml_results_folderpath.replace('machine_learning/', 'lab_statistics/')
+
+    if not os.path.exists(stats_results_folderpath):
+        os.mkdir(stats_results_folderpath)
+
+    main(train_data_folderpath=train_data_folderpath,
+         ml_results_folderpath=ml_results_folderpath,
+         stats_results_folderpath=stats_results_folderpath,
+         thres_mode="fixTrainPPV")
+    # fill_df_fix_PPV('LABAFBD', alg='random-forest', data_folder='../machine_learning/data-panels/',
+    #                 PPV_wanted=0.99, lab_type="panel", thres_mode="from_train")

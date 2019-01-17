@@ -142,7 +142,8 @@ class LabNormalityMatrix(FeatureMatrix):
         if len(order_counts) == 0:
             error_msg = '0 orders for lab "%s."' % self._lab_var
             log.critical(error_msg)
-            sys.exit('[ERROR] %s' % error_msg)
+            raise Exception(error_msg)
+            # sys.exit('[ERROR] %s' % error_msg) # sxu: sys.exit cannot be caught by Exception
         else:
             return numpy.median(order_counts)
 
@@ -185,7 +186,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addSelect('COUNT(order_proc_id) AS num_orders')
             query.addFrom('labs')
             if self._isLabPanel:
-                query.addWhereIn("proc_id", [self._lab_var]) # TODO
+                query.addWhereIn("proc_code", [self._lab_var])
                 query.addWhereIn("base_name", self._lab_components)
             else:
                 query.addWhereIn("base_name", [self._lab_var])
@@ -207,7 +208,8 @@ class LabNormalityMatrix(FeatureMatrix):
         if len(results) == 0:
             error_msg = '0 orders for component "%s."' % self._lab_var  # sx
             log.critical(error_msg)
-            sys.exit('[ERROR] %s' % error_msg)
+            raise Exception(error_msg)
+            # sys.exit('[ERROR] %s' % error_msg) # sxu: sys.exit cannot be caught by Exception
         else:
             avg_orders_per_patient = numpy.median(order_counts)
             log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
@@ -295,7 +297,7 @@ class LabNormalityMatrix(FeatureMatrix):
             y-labels related columns, choose one to predict (for now, use all_components_normal to predict). 
             '''
             if self._isLabPanel:
-                # query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")  #
+                query.addSelect("CASE WHEN abnormal_yn = 'Y' THEN 1 ELSE 0 END AS abnormal_panel")  #
                 query.addSelect(
                     "SUM(CASE WHEN result_flag IN ('High', 'Low', 'High Panic', 'Low Panic', '*', 'Abnormal') OR result_flag IS NULL THEN 1 ELSE 0 END) AS num_components")  # sx
                 query.addSelect("SUM(CASE WHEN result_flag IS NULL THEN 1 ELSE 0 END) AS num_normal_components")  # sx
@@ -333,8 +335,7 @@ class LabNormalityMatrix(FeatureMatrix):
             query.addGroupBy('order_time')
             if not self._isLabPanel:
                 query.addGroupBy('result_flag')
-
-            # query.addGroupBy('abnormal_yn')  #
+            query.addGroupBy('abnormal_yn')  #
 
             query.addOrderBy('pat_id')
             query.addOrderBy('sop.order_proc_id')
@@ -356,18 +357,21 @@ class LabNormalityMatrix(FeatureMatrix):
             default (convenient) routine in DBUtil.  
             '''
 
-            query_str = "SELECT CAST(pat_id AS BIGINT) AS pat_id, order_proc_id, base_name, order_time, "
-            query_str += "CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END AS component_normal "
+            query_str = "SELECT CAST(pat_id AS BIGINT) AS pat_id, order_proc_id, %s, order_time, " % self._varTypeInTable
+            if not self._isLabPanel:
+                query_str += "CASE WHEN result_in_range_yn = 'Y' THEN 1 ELSE 0 END AS component_normal "
+            else:
+                query_str += "CAST(SUM(CASE WHEN result_in_range_yn != 'Y' THEN 1 ELSE 0 END) = 0 AS INT) AS all_components_normal "
             query_str += "FROM labs "
-            query_str += "WHERE base_name = '%s' " % self._lab_var
+            query_str += "WHERE %s = '%s' " % (self._varTypeInTable, self._lab_var)
             query_str += "AND pat_id IN "
             pat_list_str = "("
             for pat_id in random_patient_list:
                 pat_list_str += str(pat_id) + ","
             pat_list_str = pat_list_str[:-1] + ") "
             query_str += pat_list_str
-            query_str += "GROUP BY pat_id, order_proc_id, base_name, order_time "
-            query_str += "ORDER BY pat_id, order_proc_id, base_name, order_time "
+            query_str += "GROUP BY pat_id, order_proc_id, %s, order_time " % self._varTypeInTable
+            query_str += "ORDER BY pat_id, order_proc_id, %s, order_time " % self._varTypeInTable
             query_str += "LIMIT %d" % self._num_requested_episodes
 
             self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query_str, index_time_col='order_time')
