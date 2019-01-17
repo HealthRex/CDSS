@@ -219,10 +219,53 @@ class FeatureMatrixFactory:
         """
         return TabDictReader(open(self._patientEpisodeTempFileName, "r"))
 
+    '''
+    New version, adapt to the new split_by_patient pipeline
+    '''
     def obtain_baseline_results(self, raw_matrix_path, random_state, isLabPanel=True, isHoldOut=False):
-        # for episode_dict in self.getPatientEpisodeIterator():
-        #     episode_dict
+        from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
+        fm_io = FeatureMatrixIO()
 
+        processed_matrix_path = raw_matrix_path.replace('-raw','-processed')
+
+        '''
+        get prevalence from the train set
+        '''
+        processed_matrix_train = fm_io.read_file_to_data_frame(processed_matrix_path.replace('-matrix', '-train-matrix'))
+        if isLabPanel:
+            y_label = 'all_components_normal'
+        else:
+            y_label = 'component_normal'
+
+        prevalence = float(processed_matrix_train[y_label].values.sum())/float(processed_matrix_train.shape[0])
+
+        '''
+        '''
+        processed_matrix_test = fm_io.read_file_to_data_frame(processed_matrix_path.replace('-matrix', '-test-matrix'))
+        pats_test = set(processed_matrix_test['pat_id'].values.tolist())
+        raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
+        raw_matrix_test = raw_matrix[raw_matrix['pat_id'].isin(pats_test)]
+        raw_matrix_test = raw_matrix_test.sort_values(['pat_id', 'order_time']).reset_index()
+        raw_matrix_test['predict_proba'] = raw_matrix_test[y_label].apply(lambda x: prevalence)
+
+        for i in range(1, raw_matrix_test.shape[0]):
+            if raw_matrix_test.ix[i - 1, 'pat_id'] == raw_matrix_test.ix[i, 'pat_id']:
+                raw_matrix_test.ix[i, 'predict_proba'] = raw_matrix_test.ix[i - 1, y_label]
+
+        baseline_comparisons = raw_matrix_test[['predict_proba', y_label]]
+        baseline_comparisons = baseline_comparisons.rename(columns={y_label:'actual',
+                                                            'predict_proba':'predict'})
+
+        baseline_folder = '/'.join(raw_matrix_path.split('/')[:-1])
+        baseline_filepath = os.path.join(baseline_folder, 'baseline_comparisons.csv')
+        os.rename(baseline_filepath, baseline_filepath.replace('baseline_comparisons', 'baseline_comparisons_prev')) # existing ones
+        baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons.csv'))
+
+
+    '''
+    Old version, compatible to the previous split_by_episode pipeline
+    '''
+    def obtain_baseline_results_(self, raw_matrix_path, random_state, isLabPanel=True, isHoldOut=False):
         # Step1: group by pat_id
         # Step2: For each group, obtain predicts
         #   Step 2.1: order by order_time
@@ -235,11 +278,6 @@ class FeatureMatrixFactory:
         from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
         fm_io = FeatureMatrixIO()
         raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
-        #
-        # print raw_matrix
-        # quit()
-
-        # print 'inside FMF, cwd=', os.getcwd()
 
         episode_cnt = raw_matrix.shape[0]
 
@@ -248,23 +286,16 @@ class FeatureMatrixFactory:
         else:
             ylabel = 'component_normal'
 
-        # raw_matrix = raw_matrix.rename(columns={'component_normal':'all_components_normal'})
-
         raw_matrix_dict = raw_matrix[['pat_id', 'order_time', ylabel]].to_dict('records')
 
-        # for _ in self.getPatientEpisodeIterator(): # less stupid way to do this
-        #     episode_cnt += 1
-
-        # Separate train and test
         X = range(episode_cnt)
-        y = X # just dummy
-        from sklearn.cross_validation import train_test_split
-        X_train, X_test, _, _= train_test_split(X, y, random_state=random_state) #
+        from sklearn.model_selection import train_test_split
+        X_train, X_test = train_test_split(X, random_state=random_state) #
 
         actual_cnt_1 = 0
         actual_cnt_0 = 0
 
-        episode_groups_dict = {}  # pat_id: [episode_dicts]
+        episode_groups_dict = {}
         episode_ind = 0
         for episode_dict in raw_matrix_dict:
             if episode_ind in X_test:
@@ -1122,7 +1153,6 @@ class FeatureMatrixFactory:
         patientEpisodes = self.getPatientEpisodeIterator()
         for episode in patientEpisodes:
             patientIds.add(episode[self.patientEpisodeIdColumn])
-
         # Construct query to pull from stride_order_results, stride_order_proc
 
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
@@ -1171,7 +1201,7 @@ class FeatureMatrixFactory:
             query_str += "ORDER BY pat_id"
             if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
                 query_str += ", sor.result_time"
-            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich' or LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
                 query_str += ", result_time"
 
             cur = DBUtil.connection().cursor()
@@ -1180,12 +1210,11 @@ class FeatureMatrixFactory:
             results = []
             colNames = DBUtil.columnNamesFromCursor(cur)
             results.append(colNames)
-            # DBUtil.execute(query_str, includeColumnNames=True)
 
             dataTable = list(cur.fetchall())
             for i, row in enumerate(dataTable):
                 dataTable[i] = list(row);
-                results.extend(dataTable);
+            results.extend(dataTable);
 
             return modelListFromTable(results)
 
@@ -1557,14 +1586,19 @@ class FeatureMatrixFactory:
             return RACE_FEATURES
         else:
         #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            RACE_FEATURES = ['Caucasian', 'Unknown', 'African American',
+                             'American Indian or Alaska Native', 'Patient Refused',
+                             'Native Hawaiian and Other Pacific Islander',
+                             'Other', 'Middle Eastern', 'Hispanic', 'Multi Racial',
+                             'Asian - Pacific Islander', 'Asian']
 
-            query = SQLQuery()
-            query.addSelect("DISTINCT RaceName")
-            query.addFrom("demographics")
-            results = DBUtil.execute(query)
-            results = [x[0] for x in results]
+            # query = SQLQuery()
+            # query.addSelect("DISTINCT RaceName")
+            # query.addFrom("demographics")
+            # results = DBUtil.execute(query)
+            # results = [x[0] for x in results]
             # results = [x if x else 'Unknown' for x in results]
-            return results
+            return RACE_FEATURES
 
     # def queryAllTeams(self):
     #     if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':

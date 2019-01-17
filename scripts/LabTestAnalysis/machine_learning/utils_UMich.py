@@ -13,22 +13,6 @@ import prepareData_NonSTRIDE as utils_general
 
 def line_str2list(line_str, skip_first_col=False, test_mode=False):
 
-
-# params_str2list=None, is_column=False):
-# if not params_str2list:
-#     params_str2list = {'skip_first_col':False,
-#                        'sep':'\t',
-#                        'has_extra_quotes':False
-#                        }
-#
-# line_list = line_str.split(params_str2list['sep'])
-# if params_str2list['skip_first_col'] and not is_column:
-#     line_list = line_list[1:]
-# line_list = [x.strip() for x in line_list]
-# if params_str2list['has_extra_quotes']:
-#     line_list = [x[1:-1] for x in line_list]
-# return line_list
-
     if test_mode:
         '''
         In the sample data, there is extra quotes, redundant indices,
@@ -41,6 +25,31 @@ def line_str2list(line_str, skip_first_col=False, test_mode=False):
             return [x.strip()[1:-1] for x in line_str.split('|')]
     else:
         return [x.strip() for x in line_str.split('\t')]
+
+def preprocess_files(raw_data_folderpath, data_files):
+    '''
+    Sample files are in a non-ideal format with separator | and extra quotes
+    Preprocess to be in consistent form as raw data on the UMich site.
+
+    Args:
+        raw_data_folderpath:
+        data_files:
+
+    Returns:
+
+    '''
+    print raw_data_folderpath, data_files
+    for data_file in data_files:
+        data_filepath = raw_data_folderpath + '/' + data_file
+        with open(data_filepath, 'r') as lines_read:
+            with open(data_filepath.replace('.sample', ''), 'w') as out_file:
+                for i, linestr in enumerate(lines_read):
+                    if i == 0:
+                        line = line_str2list(linestr, skip_first_col=False, test_mode=True)
+                    else:
+                        line = line_str2list(linestr, skip_first_col=True, test_mode=True)
+
+                    out_file.write('\t'.join(line) + '\n')
 
 def construct_result_in_range_yn(df):
     # baseline
