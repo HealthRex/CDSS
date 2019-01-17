@@ -36,8 +36,8 @@ class DBTestCase(MedInfoTestCase):
         """
         MedInfoTestCase.setUp(self)
 
-        if medinfo.db.Env.DB_PARAM["DSN"] == medinfo.db.Env.TEST_DB_PARAM["DSN"]:
-            quit("Please use different names for production and test databases!")
+        # if medinfo.db.Env.DB_PARAM["DSN"] == medinfo.db.Env.TEST_DB_PARAM["DSN"]:
+        #     quit("Please use different names for production and test databases!")
 
         # Override default DB connection params to test DB, but retain links to original
         self.orig_DB_PARAM = dict(medinfo.db.Env.DB_PARAM);
