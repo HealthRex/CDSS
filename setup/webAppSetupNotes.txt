@@ -1,0 +1,77 @@
+#  Setup Web Server (Apache HTTP, mod_wsgi, psycopg2 DB access).  
+# Install mod_wsgi using an install or Copy the version appropriate mod_wsgi.so file to the 
+#	apache modules directory and rename to simply mod_wsgi.so
+# 	This has a high probability of being very painful, because it requires 
+#	perfectly synced binaries / compiler versions for each component.
+#	Best if you have a package installer (e.g., yum) that does it automatically, otherwise
+#	you'll have to hunt down the right combination of pre-compiled components that are compatible.
+# Setup the Apache webserver as per standard instructions, then add the extra configuration below to add the custom Python app
+# Sample Apache Config:
+sudo vi /etc/httpd/conf/httpd.conf
+
+	LoadModule wsgi_module modules/mod_wsgi.so
+	DocumentRoot "/home/jonc101/CDSS/medinfo/web"
+
+	# Medical Informatics web application configuration
+	WSGIPythonPath /home/jonc101/CDSS
+	Alias /medinfo/web/ "/home/jonc101/CDSS/medinfo/web/"
+	<Directory "/home/jonc101/CDSS/medinfo/web">
+		DirectoryIndex index.html index.htm
+
+		AllowOverride None
+		Allow from all
+
+		Order allow,deny
+	</Directory>
+	<Directory "/home/jonc101/CDSS/medinfo/web/cgibin">
+		# Handler setup for Python CGI scripts (works on files ending in .py)
+		Options +ExecCGI
+
+		# Basic CGI support
+		#AddHandler cgi-script py
+		#SetEnv PYTHONPATH /home/jonc101/CDSS
+
+		# mod_wsgi support.  # Need to define PythonPAth and other environment variables at level of user starting Apache process, or PythonPath in above WSGIPythonPath
+		AddHandler wsgi-script py
+		WSGIApplicationGroup %{GLOBAL}
+
+		AllowOverride None
+		Allow from all
+
+		Order allow,deny
+	</Directory>
+
+
+# Update medinfo/web/cgibin/Env.py, CGI_TEXT_RESPONSE depending on if using CGI or WSGI setup
+# Windows: May need to add Apache directive, so CGI knows how to run .py files
+	ScriptInterpreterResoruce Registry
+
+# Link with tips on setting up apache environment variable configuration if needed
+# Basically adding values to a configuration file like below, though CGI and WSGI should accept PYTHONPATH specification as above
+sudo vi /etc/sysconfig/httpd 
+	TEST_ENV_VAR=TestValue
+	export TEXT_ENV_VAR
+# If use "apachectl" rather than "service httpd" for control, can use starting user's environment as well
+# For Windows environment, add via My Computer > Advanced Settings > Environment Variables
+http://www.centos.org/docs/5/html/Deployment_Guide-en-US/s1-apache-startstop.html
+
+# Need read/execute permission on directory tree up to web files, so may need to
+chmod 755 /home/jonc101
+
+# Linux server may also need to change SELinux enforcement if running into "AH00132: file permissions deny server access"
+sudo setenforce 0
+https://wiki.apache.org/httpd/13PermissionDenied
+
+# General Tips
+- Review Apache error logs if running into server side issues: sudo tail /etc/httpd/logs/error_
+
+# Web server start / control
+sudo service httpd restart
+
+
+#  Test Pages. If these load properly, then your web setup should be in good shape
+#  	If failing with Internal Server Errors, then check the Apache /etc/httpd/logs/error.log for stderr messages
+http://localhost/medinfo/web/cgibin/admin/DebugWeb.py
+http://localhost/medinfo/web/cgibin/admin/DBUtilWeb.py
+http://localhost/medinfo/web/cgibin/cpoe/ItemRecommenderWeb.py
+
