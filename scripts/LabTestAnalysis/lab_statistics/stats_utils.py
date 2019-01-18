@@ -493,7 +493,7 @@ def get_time_since_last_order_cnts(lab, df):
 
     return prevday_cnts_dict
 
-def get_curve_onelab(lab, all_algs, data_folder, curve_type):
+def get_curve_onelab(lab, all_algs, data_folder, curve_type, get_pval=False):
     # curr_res_file = '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
 
     '''
@@ -533,7 +533,7 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
         alg_shape = df.shape
 
         # print baseline_shape, alg_shape
-        print baseline_shape[0], alg_shape[0]
+        print lab, baseline_shape[0], alg_shape[0]
         assert baseline_shape[0] == alg_shape[0] # Make sure the same test set!
 
         actual_list = df['actual'].values
@@ -553,7 +553,10 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type):
             best_actual = actual_list
             best_predict = df['predict'].values
 
-    p_val = random_permutation_test(base_actual, base_predict, best_actual, best_predict, curve_type)
+    if get_pval:
+        p_val = random_permutation_test(base_actual, base_predict, best_actual, best_predict, curve_type)
+    else:
+        p_val = -1
 
     if curve_type == 'ROC':
         fpr, tpr, _ = roc_curve(best_actual, best_predict)

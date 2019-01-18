@@ -420,7 +420,8 @@ refactoring
 refactored
 '''
 
-def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_labs, scale_by=None,  use_cached_fig_data=True):
+def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_labs, scale_by=None,
+                            use_cached_fig_data=True, to_annotate_percentages=False):
     '''
     Drawing Figure 2 in the main text.
 
@@ -506,6 +507,7 @@ def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_la
     # labs_toplots = [lab_ordered[:39], lab_ordered[39:]]
 
     for ind_toplot, labs_toplot in enumerate(labs_toplots):
+        fig, ax = plt.subplots(figsize=(8,6))
         for i, lab in enumerate(labs_toplot[::-1]):
 
             time_since_last_order_binned = lab2stats[lab]
@@ -515,11 +517,25 @@ def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_la
             else:
                 plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=False)
 
+            if to_annotate_percentages:
+                # print time_since_last_order_binned
+                # print time_since_last_order_binned.values()
+                tot_cnt = sum(time_since_last_order_binned.values())
+                tot_cnt_scaled = tot_cnt / float(stats_utils.NUM_DISTINCT_ENCS)# TODO
+                percentages = ', '.join('%.2f'%(x/float(tot_cnt)) for x in time_since_last_order_binned.values())
+                ax.text(tot_cnt_scaled, i, percentages, color='k')
+
         plt.legend()
         plt.xlabel('Number of orders per patient encounter', fontsize=14) #'Order number between 2014/07-2017/06'
 
         plt.tight_layout()
-        plt.savefig(cached_result_foldername + 'Order_Intensities_%s_%i.png'%(lab_type,ind_toplot))
+        cached_result_folderpath = cached_result_foldername + 'Order_Intensities_%s_%i.png'%(lab_type,ind_toplot)
+
+        if to_annotate_percentages:
+            cached_result_folderpath.replace('.png', '_annotated.png')
+            plt.xlim([0,10])
+
+        plt.savefig(cached_result_folderpath)
         plt.clf()
 
 def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", algs=['random-forest'], result_label=None):
@@ -544,14 +560,20 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
 
     for ind, lab in enumerate(labs):
 
+        '''
+        Getting p-values is slow
+        '''
         xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
             = stats_utils.get_curve_onelab(lab,
                                            all_algs=algs,
                                            data_folder=statsByLab_folderpath.replace("lab_statistics", "machine_learning"),
-                                           curve_type=curve_type)
-        print lab, p_val
+                                           curve_type=curve_type,
+                                           get_pval=False)
+        # print lab, p_val
         scores_base.append(score_base)
         scores_best.append(score_best)
+
+        print scores_best - scores_base
 
         i, j = i_s[ind], j_s[ind]
         plt.subplot2grid((row, col), (i, j))
@@ -1125,7 +1147,7 @@ def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['Predicted_Normal']
+    figs_to_plot = ['ROC']
 
     stats_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/')
 
@@ -1147,7 +1169,8 @@ if __name__ == '__main__':
 
         labs = list(set(labs_common_panels + labs_guideline + stats_utils.get_important_labs()))
 
-        draw__Order_Intensities(statsByDataSet_folderpath, labs=labs, scale_by='enc', use_cached_fig_data=True)
+        draw__Order_Intensities(statsByDataSet_folderpath, labs=labs, scale_by='enc', use_cached_fig_data=True,
+                                to_annotate_percentages=True)
 
     if 'Normality_Saturations' in figs_to_plot:
         labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels) - set(['LABTSH', 'LABLDH']))
