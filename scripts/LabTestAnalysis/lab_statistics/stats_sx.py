@@ -266,7 +266,7 @@ def draw__Potential_Savings(statsByLab_folderpath, scale_by=None, targeted_PPV=0
 refactoring
 '''
 
-def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
+def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='all_labs',
                             targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False):
     '''
     Drawing Figure 3 in the main text.
@@ -285,10 +285,10 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
     cached_foldername = 'Fig3_Confusion_Metrics/'
     cached_folderpath = os.path.join(os.path.join(statsByLab_folderpath, cached_foldername))
 
-    cached_tablename = 'Confusion_Metrics_%ss_PPV_%.2f.csv'%(lab_type, targeted_PPV)
+    cached_tablename = 'Confusion_Metrics_%ss_PPV_%.2f__%s.csv'%(lab_type, targeted_PPV, result_label)
     cached_tablepath = os.path.join(cached_folderpath, cached_tablename)
 
-    cached_figurename = 'Confusion_Metrics_%ss_PPV_%.2f_ind.png'%(lab_type, targeted_PPV)
+    cached_figurename = 'Confusion_Metrics_%ss_PPV_%.2f_ind__%s.png'%(lab_type, targeted_PPV, result_label)
     cached_figurepath = os.path.join(cached_folderpath, cached_figurename)
 
     if not os.path.exists(cached_folderpath):
@@ -308,7 +308,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
 
         df = df[df['lab'].isin(labs)]
 
-        if lab_type == 'panel' or lab_type == 'component':
+        if data_source == 'Stanford':
             # Stanford data, scaled by vol
             df['total_vol'] =                            df['2014 2stHalf count'] + \
                                 df['2015 1stHalf count'] + df['2015 2stHalf count'] + \
@@ -339,7 +339,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
         #           'true_negative', 'all_negative']].head(5).plot(kind='barh')
 
         df_toshow = df.copy()
-        df_toshow['lab'] = df_toshow['lab'].apply(lambda x:lab_descriptions[x])
+        df_toshow['lab'] = df_toshow['lab'].apply(lambda x:lab_descriptions.get(x,x))
         df_toshow['true_negative'] = -df_toshow['true_negative']
         df_toshow = df_toshow.rename(columns={
             'AUROC':'AUC',
@@ -390,13 +390,14 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs,
         ax.barh(df_toplot['lab'], df_toplot['true_negative_vol']/scale, color='orange', alpha=1, label='True Negative')
 
         for i, v in enumerate(df_toplot['all_positive_vol']/scale):
-            ax.text(v, i, lab_descriptions[df_toplot['lab'].values[i]], color='k')
+            cur_lab = df_toplot['lab'].values[i]
+            ax.text(v, i, lab_descriptions.get(cur_lab,cur_lab), color='k')
 
         plt.yticks([])
 
-        if lab_type == 'panel':
+        if data_source == 'Stanford' and lab_type == 'panel':
             plt.xlim([-2.5, 3])
-        elif lab_type == 'component':
+        elif data_source == 'Stanford' and lab_type == 'component':
             plt.xlim([-8.5, 8])
 
         # plt.legend(loc=[0.1,0.1])
@@ -561,7 +562,7 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
         plt.ylim([0,1])
         plt.xticks([])
         plt.yticks([])
-        plt.xlabel(lab_descriptions[lab])
+        plt.xlabel(lab_descriptions.get(lab, lab))
         plt.legend()
     plt.tight_layout()
     plt.savefig(result_figpath)
@@ -1081,16 +1082,58 @@ def comparing_components(stats_folderpath, target_PPV=0.95):
     merged_df[columns_merged].to_csv(os.path.join(stats_folderpath, 'components_comparisons.csv'), index=False)
 
 
+def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
+    labs_stats_filepath = os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
+
+    df = pd.read_csv(labs_stats_filepath)
+
+    df = df[df['targeted_PPV_fixTrainPPV'] == targeted_PPV]
+
+    result_foldername = 'Predicted_Normal_Fractions'
+    result_folderpath = os.path.join(statsByLab_folderpath, result_foldername)
+    if not os.path.exists(result_folderpath):
+        os.mkdir(result_folderpath)
+    result_figname = 'Predicted_Normal_Fractions_%.2f.png'%targeted_PPV
+    result_figpath = os.path.join(result_folderpath, result_figname)
+
+    df['predicted_normal'] = (df['true_positive'] + df['false_positive']) / df['num_test_episodes']
+
+    df['description'] = df['lab'].apply(lambda x: lab_descriptions.get(x, x))
+    print df[['description', 'predicted_normal']].sort_values(['predicted_normal'], ascending=False).to_string(index=False)
+    quit()
+
+    predicted_normal_fractions = np.linspace(0, 1, num=11)
+    nums_labs = []
+    for predicted_normal_fraction in predicted_normal_fractions:
+        df_predicted_normal = df[df['predicted_normal'] > predicted_normal_fraction]#[['lab', 'predicted_normal']]
+        num_labs = df_predicted_normal.shape[0]
+        nums_labs.append(num_labs)
+
+        if predicted_normal_fraction == 0.5:
+            print 'over-utilized labs:', df_predicted_normal['lab'].values.tolist()
+
+        if predicted_normal_fraction == 0.9:
+            these_labs = df_predicted_normal['lab'].values.tolist()
+            print 'highly over-utilized labs:', [lab_descriptions[x] for x in these_labs]
+    print zip(predicted_normal_fractions, nums_labs)
+    plt.scatter(predicted_normal_fractions, nums_labs)
+    plt.xlabel('Predicted normal fraction, targeting at PPV=%.2f' % targeted_PPV)
+    plt.ylabel('Number of labs')
+    plt.savefig(result_figpath)
+    quit()
+
 
 if __name__ == '__main__':
 
-    figs_to_plot = ['ROC', 'PRC']
+    figs_to_plot = ['Predicted_Normal']
 
     stats_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/')
 
     import LocalEnv
     statsByDataSet_foldername = 'data-%s-%s-10000-episodes'%(data_source, lab_type) #'results-from-panels-10000-to-panels-5000-part-1_medicare/'
     statsByDataSet_folderpath = os.path.join(stats_folderpath, statsByDataSet_foldername)
+    if not os.path.exists(statsByDataSet_folderpath):
+        os.mkdir(statsByDataSet_folderpath)
 
     labs_guideline_nested = stats_utils.get_guideline_maxorderfreq().values()
     labs_guideline = [lab for sublist in labs_guideline_nested for lab in sublist]
@@ -1141,8 +1184,11 @@ if __name__ == '__main__':
         print all_labs
         components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA',\
     'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
-        draw__Confusion_Metrics(statsByDataSet_folderpath, labs=components,
+        draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='all_labs',
             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
+
+    if 'Predicted_Normal' in figs_to_plot:
+        draw__predicted_normal_fractions(statsByLab_folderpath=statsByDataSet_folderpath, targeted_PPV=0.95)
 
     if 'Potential_Savings' in figs_to_plot:
         draw__Potential_Savings(statsByDataSet_folderpath, scale_by='enc', targeted_PPV=0.95, use_cached_fig_data=False)
