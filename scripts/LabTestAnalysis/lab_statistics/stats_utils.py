@@ -33,8 +33,8 @@ For plotting guideline,
 
 a lab, has n prev consecutive normal. 
 '''
-data_source = 'UMich'
-lab_type = 'component'
+data_source = 'Stanford'
+lab_type = 'panel'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
 all_components = STRIDE_COMPONENT_TESTS
@@ -1020,7 +1020,7 @@ def add_line_breaker(astring, seg_len):
 def get_lab_descriptions(line_break_at=None):
     if data_source == 'Stanford' and lab_type=='panel':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'labs.csv')
-    elif lab_type=='component':
+    elif data_source == 'Stanford' and lab_type=='component':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'components.csv')
     elif data_source == 'UCSF' and lab_type=='component':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
@@ -1028,8 +1028,10 @@ def get_lab_descriptions(line_break_at=None):
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
         descriptions = dict(zip(UCSF_TOP_PANELS, UCSF_TOP_PANELS))
         return descriptions
-    elif lab_type=='UMich':
-        descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich.csv')
+    elif data_source == 'UMich' and lab_type=='component':
+        descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_component.csv')
+    elif data_source == 'UMich' and lab_type=='panel':
+        descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_panel.csv')
 
     df = pd.read_csv(descriptions_filepath, keep_default_na=False)
     if line_break_at:
