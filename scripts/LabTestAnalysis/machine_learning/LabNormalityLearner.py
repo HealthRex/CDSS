@@ -5,8 +5,8 @@ import os
 from medinfo.ml import SupervisedLearner as SL
 from LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS
 import pandas as pd
-pd.set_option('display.width', 500)
-pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 3000)
+pd.set_option('display.max_columns', 3000)
 
 from medinfo.ml.FeatureSelector import FeatureSelector
 
@@ -26,88 +26,6 @@ features_dict = {
     'info_features':info_features,
     'leak_features':leak_features
 }
-
-
-def main_pipelining_5000holdout(random_state=123456789):
-    '''
-    Goal:
-    The purpose of this pipeline is to generate results from 5000 holdout episodes
-
-    Procedure:
-    Load processed_matrix_test, process_template, ml_models from existing results (Doing)
-    Process and predict AWS holdout 5000 matrix for picking thresholds (TODO)
-    Use picked thresholds to  (TODO)
-
-
-    :return:
-    '''
-
-    main_folder = os.path.join(LocalEnv.PATH_TO_CDSS,
-                               'scripts/LabTestAnalysis/machine_learning/')
-    lab = 'LABA1C'
-
-
-    src_folder = "data-panels-10000-episodes/"
-
-    process_template = SL.load_process_template(lab, non_impute_features, src_folder)
-
-
-    algs = ['random-forest'] #SL.get_algs()
-
-    dst_folder = "data-panels-5000-episodes-holdout/"
-
-    raw_matrix_holdout = SL.load_raw_matrix(lab, dst_folder)
-    processed_matrix_full_holdout = SL.process_matrix(lab, raw_matrix_holdout, features_dict,
-                                                 dst_folder, process_template)
-    processed_matrix_holdout = processed_matrix_full_holdout.drop(info_features+leak_features, axis=1)
-
-    processed_matrix_full_cali, processed_matrix_full_pick = SL.split_rows(processed_matrix_full_holdout,
-                                                                         fraction=0.5,
-                                                                         columnToSplitOn='pat_id')
-    processed_matrix_cali = processed_matrix_full_cali.drop(info_features+leak_features, axis=1)
-    processed_matrix_pick = processed_matrix_full_pick.drop(info_features+leak_features, axis=1)
-
-
-    X_holdout, y_holdout = SL.split_Xy(processed_matrix_holdout, outcome_label=outcome_label)
-    X_cali, y_cali = SL.split_Xy(processed_matrix_cali, outcome_label=outcome_label)
-    X_pick, y_pick = SL.split_Xy(processed_matrix_pick, outcome_label=outcome_label)
-
-    ml_classifiers = [] # Supervised Classifiers
-    for alg in algs:
-        ml_classifier = SL.load_ml_model(lab, alg, src_folder)
-
-        '''
-        calibration
-        '''
-        # ml_model._model = SL.calibrate_ml_model(ml_model._model, X_cali, y_cali, cali_method='isotonic')
-
-        ml_classifiers.append(ml_classifier)
-
-
-    processed_matrix_eval = SL.load_processed_matrix(lab, features_dict, src_folder, tag='test') # TODO:tag
-    X_eval, y_eval = SL.split_Xy(processed_matrix_eval, outcome_label=outcome_label)
-
-    '''
-    
-    '''
-    for ml_classifier in ml_classifiers:
-        y_pick_pred = ml_classifier.predict_probability(X_pick)[:,1]
-        y_holdout_pred = ml_classifier.predict_probability(X_holdout)[:,1] #predict "Normal"
-
-        results_pick = pd.DataFrame({'y_true':y_pick.values.flatten(), 'y_pred':y_pick_pred})
-        results_filename = "results-pick.csv"
-        results_path = os.path.join(src_folder, lab, ml_classifier.algorithm(), results_filename)
-        results_pick.to_csv(results_path, index=False)
-
-
-
-        # TODO: remove later
-        y_pick_pred = ml_classifier.predict_probability(X_pick)[:,1]
-        y_eval_pred = ml_classifier.predict_probability(X_eval)[:,1]
-
-        threshold = SL.pick_threshold(y_holdout.values.flatten(), y_holdout_pred, target_PPV=0.95)
-        confusion_metrics = SL.get_confusion_metrics(y_eval.values, y_eval_pred, threshold=threshold)
-        print confusion_metrics
 
 
 # TODO: Write test to make sure:
@@ -211,7 +129,7 @@ def main_pipelining(labs,
         else:
             features['remove'] += ['base_name']
             features['ylabel'] = 'component_normal'
-        features['keep'] = []
+        features['keep'] = ['%s.pre'%lab]
 
         features['info'] = ['pat_id']
         # features['id'] =
