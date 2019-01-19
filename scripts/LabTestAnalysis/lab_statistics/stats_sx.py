@@ -552,11 +552,12 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
     num_labs = len(labs)
     # fig, ax = plt.subplots(figsize=(12, 6))
 
-    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=4) #7
+    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_labs, col=7) #7
 
     scores_base = []
     scores_best = []
 
+    scores_diffs = {}
 
     for ind, lab in enumerate(labs):
 
@@ -573,7 +574,7 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
         scores_base.append(score_base)
         scores_best.append(score_best)
 
-        print scores_best - scores_base
+        scores_diffs[lab] = score_best - score_base
 
         i, j = i_s[ind], j_s[ind]
         plt.subplot2grid((row, col), (i, j))
@@ -586,6 +587,11 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
         plt.yticks([])
         plt.xlabel(lab_descriptions.get(lab, lab))
         plt.legend()
+
+    # scores_diffs_sorted = sorted(scores_diffs.items(), key=lambda x:x[1])[::-1]
+    # top_labs = [x[0] for x in scores_diffs_sorted[:35]]
+    # print top_labs
+
     plt.tight_layout()
     plt.savefig(result_figpath)
 
@@ -1198,6 +1204,12 @@ if __name__ == '__main__':
         lab_set, set_label = all_labs, 'all_labs' #typical_labs, 'typical_labs'
 
         if 'ROC' in figs_to_plot:
+            top_improved_labs = ['LABBUN', 'LABUOSM', 'LABSTOBGD', 'LABPCCR', 'LABFE', 'LABCRP', 'LABPCTNI',
+                                 'LABK', 'LABPLTS', 'LABPT', 'LABCDTPCR', 'LABALB', 'LABHIVWBL', 'LABPTEG',
+                                 'LABESRP', 'LABUPREG', 'LABPROCT', 'LABPALB', 'LABCORT', 'LABPCCG4O', 'LABTRFS',
+                                 'LABCSFTP', 'LABDIGL', 'LABNTBNP', 'LABURIC', 'LABHEPAR', 'LABMGN', 'LABLAC',
+                                 'LABLIDOL', 'LABHCTX', 'LABPTT', 'LABCA', 'LABRETIC', 'LABSPLAC', 'LABTRIG']
+            lab_set, set_label = top_improved_labs, 'top_improved_labs'
             draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=['random-forest'], result_label=set_label)
         if 'PRC' in figs_to_plot:
             draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=['random-forest'], result_label=set_label)
