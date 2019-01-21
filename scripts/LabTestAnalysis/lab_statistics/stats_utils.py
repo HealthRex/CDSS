@@ -42,29 +42,30 @@ all_UMichs = UMICH_TOP_COMPONENTS
 all_UCSF = UCSF_TOP_COMPONENTS
 all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
 
-DEFAULT_TIMELIMIT = ('2014-07-01', '2017-06-30')
+DEFAULT_TIMELIMIT = ('2014-07-01', '2017-07-01') # TODO: extremely confusing!
+# DEFAULT_TIMESPAN = ('2014-01-01', '2017-06-30') # TODO: extremely confusing!
 
-DEFAULT_TIMESPAN = ('2014-01-01', '2017-06-30')
-DEFAULT_TIMEWINDOWS = ['2014 1stHalf', '2014 2stHalf',
-                       '2015 1stHalf', '2015 2stHalf',
-                       '2016 1stHalf', '2016 2stHalf',
-                       '2017 1stHalf']
+# DEFAULT_TIMEWINDOWS = [#'2014 1stHalf',
+#                        '2014 2stHalf',
+#                        '2015 1stHalf', '2015 2stHalf',
+#                        '2016 1stHalf', '2016 2stHalf',
+#                        '2017 1stHalf']
 
 NUM_DISTINCT_PATS = 44709
 NUM_DISTINCT_ENCS = 66439
 
-DEFAULT_TIMELIMITS = []
-for time_window in DEFAULT_TIMEWINDOWS:
-    year_str, section_str = time_window.split(' ')
-
-    if section_str == '1stHalf':
-        section_timestamps = ('01-01', '06-30')
-    else:
-        section_timestamps = ('07-01', '12-31')
-
-    time_limit = ['-'.join([year_str, x]) for x in section_timestamps]
-
-    DEFAULT_TIMELIMITS.append(time_limit)
+# DEFAULT_TIMELIMITS = []
+# for time_window in DEFAULT_TIMEWINDOWS:
+#     year_str, section_str = time_window.split(' ')
+#
+#     if section_str == '1stHalf':
+#         section_timestamps = ('01-01', '06-30')
+#     else:
+#         section_timestamps = ('07-01', '12-31')
+#
+#     time_limit = ['-'.join([year_str, x]) for x in section_timestamps]
+#
+#     DEFAULT_TIMELIMITS.append(time_limit)
 
 main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 
@@ -465,16 +466,16 @@ def get_time_since_last_order_cnts(lab, df):
     df['order_in_1day'] = df['order_time'].apply(lambda x: 'No')
     order_in_1day__inds = []
 
-    prev_days = []
+    prev_days = [sys.maxint] # The first record
     row, col = df.shape
     for i in range(1, row):
-
         if df.ix[i, 'pat_id'] == df.ix[i - 1, 'pat_id']:
             time_diff_df = df.ix[i, 'order_time'] - df.ix[i - 1, 'order_time']
-
             if time_diff_df.days < 1:
                 #
                 order_in_1day__inds.append(i)
+
+                # print df.ix[i, 'order_status'], df.ix[i - 1, 'order_time'], df.ix[i, 'order_time']
 
             #     pass
                 #print df.ix[i - 1, ['pat_id', 'order_time']].values, df.ix[i, ['pat_id', 'order_time']].values
@@ -533,7 +534,7 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type, get_pval=False):
         alg_shape = df.shape
 
         # print baseline_shape, alg_shape
-        print lab, baseline_shape[0], alg_shape[0]
+        # print lab, baseline_shape[0], alg_shape[0]
         assert baseline_shape[0] == alg_shape[0] # Make sure the same test set!
 
         actual_list = df['actual'].values
@@ -1060,6 +1061,7 @@ def pandas2dict(df, key='lab', val='val'):
 
 def get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT):
     lab_query_filepath = os.path.join(labs_query_folder, lab + '.csv')
+    print lab, 'os.path.exists(lab_query_filepath)', os.path.exists(lab_query_filepath)
     if not os.path.exists(lab_query_filepath):
         df = query_to_dataframe(lab, lab_query_filepath=lab_query_filepath)
     else:
@@ -1071,6 +1073,7 @@ def get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT):
     elif lab_type == 'panel':
         df = df[df['order_status'] == 'Completed']
         df = df[(df['order_time'] >= time_limit[0]) & (df['order_time'] <= time_limit[1])]
+
     df.drop_duplicates(inplace=True)
     return df
 
@@ -1126,10 +1129,11 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
 
     # For STRIDE, also do cnts and costs
     if data_source == 'Stanford':#lab_type == 'panel' or lab_type == 'component':
-        lab_vols = []
-        for time_limit in DEFAULT_TIMELIMITS:
-            print time_limit
-            lab_vols.append(get_labvol(lab, time_limit=time_limit))
+        # lab_vols = []
+        # for time_limit in DEFAULT_TIMELIMITS:
+        #     cur_vol = get_labvol(lab, time_limit=time_limit)
+        #     lab_vols.append(cur_vol)
+        lab_vol = get_labvol(lab, time_limit=DEFAULT_TIMELIMIT)
 
     # For panels, also include price info
     # TODO: this operation was repeated for each lab?!
@@ -1215,10 +1219,10 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
                                                                                threshold=score_thres,
                                                                                also_return_cnts=True)
         one_row.update({
-            'true_positive':true_positive,
-            'false_positive':false_positive,
-            'true_negative':true_negative,
-            'false_negative':false_negative,
+            'true_positive':true_positive/float(num_test_episodes),
+            'false_positive':false_positive/float(num_test_episodes),
+            'true_negative':true_negative/float(num_test_episodes),
+            'false_negative':false_negative/float(num_test_episodes),
             'sensitivity': sensitivity,
             'specificity': specificity,
             'LR_p': LR_p,
@@ -1228,8 +1232,9 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
                    })
 
         if data_source == 'Stanford':
-            for i_tw, time_window in enumerate(DEFAULT_TIMEWINDOWS):
-                one_row['%s count'%time_window] = lab_vols[i_tw]
+            # for i_tw, time_window in enumerate(DEFAULT_TIMEWINDOWS):
+            #     one_row['%s count'%time_window] = lab_vols[i_tw]
+            one_row['total_cnt'] = lab_vol
 
         if lab_type == 'panel':
             one_row.update(df_prices_dict)
