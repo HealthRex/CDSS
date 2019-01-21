@@ -23,7 +23,7 @@ all_algs = stats_utils.all_algs
 #
 DEFAULT_TIMELIMIT = stats_utils.DEFAULT_TIMELIMIT
 #
-lab_descriptions = stats_utils.get_lab_descriptions(line_break_at=22)
+lab_descriptions = stats_utils.get_lab_descriptions(line_break_at=100)
 
 
 
@@ -93,8 +93,8 @@ def draw__Normality_Saturations(stats_folderpath, labs=['LABMETB', 'LABCBCD'] + 
         df_cnts.to_csv(cached_result_foldername + 'lab2cnt.csv', index=False)
         df_fracs.to_csv(cached_result_foldername + 'lab2frac.csv', index=False)
 
-    print lab2cnt
-    print lab2frac
+    print 'lab2cnt', lab2cnt
+    print 'lab2frac', lab2frac
 
     fig = plt.figure(figsize=(8, 6))
 
@@ -112,7 +112,7 @@ def draw__Normality_Saturations(stats_folderpath, labs=['LABMETB', 'LABCBCD'] + 
                     break
                 non_empty_inds.append(i)
             y_s = [float(lab2frac[lab][i]) for i in non_empty_inds]
-            print lab, y_s
+            print 'lab, y_s', lab, y_s
             plt.plot(non_empty_inds, y_s, '-'+marker_types[k], label=lab_descriptions[lab])
             # l2, = plt.scatter(non_empty_inds, y_s, marker=marker_types[k])
             # plt.plot(y_s[0], '-'+marker_types[k], color=l2.get_color(), markerfacecolor=l1.get_color(), label='My plots')
@@ -420,7 +420,8 @@ refactoring
 refactored
 '''
 
-def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_labs, scale_by=None,
+def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_labs,
+                            scale=1., result_label=None,
                             use_cached_fig_data=True, to_annotate_percentages=False):
     '''
     Drawing Figure 2 in the main text.
@@ -437,7 +438,7 @@ def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_la
     cached_result_foldername = os.path.join(stats_folderpath, 'Fig2_Order_Intensities/')
     if not os.path.exists(cached_result_foldername):
         os.mkdir(cached_result_foldername)
-    cached_result_filename = 'Order_Intensities_%s.csv'%lab_type
+    cached_result_filename = 'Order_Intensities_%s_%s.csv'%(lab_type, result_label)
     cached_result_path = os.path.join(cached_result_foldername, cached_result_filename)
 
     '''
@@ -448,7 +449,8 @@ def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_la
         -> barh
     '''
     lab2stats = {}
-    columns = ['< 1 day', '1-3 days', '3-7 days', '> 7 days']
+    #columns = ['< 1 day', '1-3 days', '3-7 days', '> 7 days']
+    columns = ['< 24 hrs', '[24, 72) hrs', '>= 72 hrs']
 
     if os.path.exists(cached_result_path) and use_cached_fig_data:
         # lab2stats = pickle.load(open(cached_result_path, 'r'))
@@ -479,28 +481,39 @@ def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_la
 
         df_res.to_csv(cached_result_path, index=False)
 
-
-    def plot_order_intensities_barh(lab, time_since_last_order_binned, columns, labeling=True):
+    def plot_order_intensities_barh(lab, time_since_last_order_binned, columns, labeling=True, lab_ind=None):
         pre_sum = 0
-        alphas = [1, 0.5, 0.3, 0.2]
+        alphas = [1, 0.5, 0.2]
+        colors = ['blue', 'blue', 'blue', 'blue']
         for i, key in enumerate(columns):
 
             pre_sum += time_since_last_order_binned[key]
-            if not scale_by:
-                cur_cnt = pre_sum
-            elif scale_by == 'pat':
-                cur_cnt = float(pre_sum)/stats_utils.NUM_DISTINCT_PATS
-            elif scale_by == 'enc':
-                cur_cnt = float(pre_sum)/stats_utils.NUM_DISTINCT_ENCS
+            # if not scale_by:
+            #     cur_cnt = pre_sum
+            # elif scale_by == 'pat':
+            #     cur_cnt = float(pre_sum)/stats_utils.NUM_DISTINCT_PATS
+            # elif scale_by == 'enc':
+            #     cur_cnt = float(pre_sum)/stats_utils.NUM_DISTINCT_ENCS
+            cur_cnt = pre_sum * scale
 
             lab_desciption = lab_descriptions[lab]
 
             if labeling:
-                plt.barh([lab_desciption], cur_cnt, color='b', alpha=alphas[i], label=key)
+                plt.barh([lab_desciption], cur_cnt, color=colors[i], alpha=alphas[i], label=key)
             else:
-                plt.barh([lab_desciption], cur_cnt, color='b', alpha=alphas[i])
+                plt.barh([lab_desciption], cur_cnt, color=colors[i], alpha=alphas[i])
 
-    labs_ordered = sorted(labs, key=lambda x: sum(lab2stats[x].values()), reverse=True)
+        if to_annotate_percentages:
+            tot_cnt = sum(time_since_last_order_binned.values())
+            cur_cnt = time_since_last_order_binned['< 24 hrs'] * scale
+            if cur_cnt < 400:
+                return
+            # percentages = ', '.join('%.0f'%(x / float(tot_cnt)*100) + '%' for x in time_since_last_order_binned.values())
+            percentage = '%.0f'%(time_since_last_order_binned['< 24 hrs']/float(tot_cnt)*100) + '%'
+            print 'lab', lab, 'lab_ind', lab_ind
+            ax.text(cur_cnt/2.-100, lab_ind-0.15, percentage, color='white')
+
+    labs_ordered = sorted(labs, key=lambda x: lab2stats[x].values()[0], reverse=True)
     fig = plt.figure(figsize=(12, 8)) # figsize=(20, 12)
 
     labs_toplots = [labs_ordered]
@@ -511,29 +524,38 @@ def draw__Order_Intensities(stats_folderpath, labs=['LABCBCD', 'LABMETB']+all_la
         for i, lab in enumerate(labs_toplot[::-1]):
 
             time_since_last_order_binned = lab2stats[lab]
+            use_new_scheme = True
+            if use_new_scheme:
+                time_since_last_order_binned[columns[0]] = time_since_last_order_binned['< 1 day']
+                time_since_last_order_binned[columns[1]] = time_since_last_order_binned['1-3 days']
+                time_since_last_order_binned[columns[2]] = time_since_last_order_binned['3-7 days'] + time_since_last_order_binned['> 7 days']
+
+                del time_since_last_order_binned['< 1 day']
+                del time_since_last_order_binned['1-3 days']
+                del time_since_last_order_binned['3-7 days']
+                del time_since_last_order_binned['> 7 days']
 
             if i == 0:
-                plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=True)
+                plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=True, lab_ind=i)
             else:
-                plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=False)
+                plot_order_intensities_barh(lab, time_since_last_order_binned, columns=columns, labeling=False, lab_ind=i)
 
-            if to_annotate_percentages:
-                # print time_since_last_order_binned
-                # print time_since_last_order_binned.values()
-                tot_cnt = sum(time_since_last_order_binned.values())
-                tot_cnt_scaled = tot_cnt / float(stats_utils.NUM_DISTINCT_ENCS)# TODO
-                percentages = ', '.join('%.2f'%(x/float(tot_cnt)) for x in time_since_last_order_binned.values())
-                ax.text(tot_cnt_scaled, i, percentages, color='k')
+            # if to_annotate_percentages:
+            #     tot_cnt = sum(time_since_last_order_binned.values())
+            #     tot_cnt_scaled = tot_cnt / float(stats_utils.NUM_DISTINCT_ENCS)# TODO
+            #     percentages = ', '.join('%.2f'%(x/float(tot_cnt)) for x in time_since_last_order_binned.values())
+            #     ax.text(tot_cnt_scaled, i, percentages, color='k')
 
         plt.legend()
-        plt.xlabel('Number of orders per patient encounter', fontsize=14) #'Order number between 2014/07-2017/06'
+        plt.xlabel('Number of orders per 1000 patient encounter', fontsize=14) #'Order number between 2014/07-2017/06'
+        # plt.xscale('log')
 
         plt.tight_layout()
-        cached_result_folderpath = cached_result_foldername + 'Order_Intensities_%s_%i.png'%(lab_type,ind_toplot)
+        cached_result_folderpath = cached_result_foldername + 'Order_Intensities_%s_%i_%s.png'%(lab_type,ind_toplot,result_label)
 
         if to_annotate_percentages:
-            cached_result_folderpath.replace('.png', '_annotated.png')
-            plt.xlim([0,10])
+            cached_result_folderpath.replace('.png', '_formal_1.png')
+            plt.xlim([0,5000])
 
         plt.savefig(cached_result_folderpath)
         plt.clf()
@@ -1148,12 +1170,12 @@ def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
     plt.xlabel('Predicted normal fraction, targeting at PPV=%.2f' % targeted_PPV)
     plt.ylabel('Number of labs')
     plt.savefig(result_figpath)
-    quit()
 
 
 if __name__ == '__main__':
+    print 'stats_sx running...'
 
-    figs_to_plot = ['ROC']
+    figs_to_plot = ['Order_Intensities']
 
     stats_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/')
 
@@ -1173,9 +1195,22 @@ if __name__ == '__main__':
 
     if 'Order_Intensities' in figs_to_plot:
 
-        labs = list(set(labs_common_panels + labs_guideline + stats_utils.get_important_labs()))
+        classic_labs = list(set(labs_common_panels + labs_guideline + stats_utils.get_important_labs()))
 
-        draw__Order_Intensities(statsByDataSet_folderpath, labs=labs, scale_by='enc', use_cached_fig_data=True,
+        import stats_database
+        '''
+        Choose 20 labs
+        '''
+        labs_cnts_order_1day = stats_database.TOP_PANELS_AND_COUNTS_IN_1DAY[:20]
+        labs_order_1day = [x[0] for x in labs_cnts_order_1day]
+
+        '''
+        scale by each 1000 patient encounter
+        '''
+        scale = 1./stats_utils.NUM_DISTINCT_ENCS * 1000
+
+        draw__Order_Intensities(statsByDataSet_folderpath, labs=labs_order_1day, result_label='labs_order_1day',
+                                scale=scale, use_cached_fig_data=True,
                                 to_annotate_percentages=True)
 
     if 'Normality_Saturations' in figs_to_plot:

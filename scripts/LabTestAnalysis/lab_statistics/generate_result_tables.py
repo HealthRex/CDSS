@@ -21,7 +21,7 @@ all_labs = stats_utils.all_labs
 # labs_folder = stats_utils.labs_ml_folder
 all_algs = stats_utils.all_algs
 
-DEFAULT_TIMEWINDOWS = stats_utils.DEFAULT_TIMEWINDOWS
+# DEFAULT_TIMEWINDOWS = stats_utils.DEFAULT_TIMEWINDOWS
 
 
 results_subfoldername = 'stats_by_lab_alg'
@@ -41,7 +41,7 @@ Create a summary of all algs' performances on all labs
 def main_labs2stats(train_data_folderpath, ml_results_folderpath, stats_results_folderpath, targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
     for targeted_PPV in targeted_PPVs:
-        for lab in all_labs:
+        for lab in ['LABA1C']:
             '''
             For each lab at each (train_PPV), 
             write all stats (e.g. AUROC, PPV, total cnts) into csv file. 
@@ -121,9 +121,10 @@ def main(train_data_folderpath, ml_results_folderpath, stats_results_folderpath,
     columns += columns_statsMetrics
 
     columns_STRIDE = columns[:]
-    columns_STRIDE += ['%s count'%x for x in DEFAULT_TIMEWINDOWS]
+    # columns_STRIDE += ['%s count'%x for x in DEFAULT_TIMEWINDOWS]
+    columns_STRIDE += ['total_cnt'] # 201407-201706
 
-    columns_panels = columns_STRIDE[:] + ['min_price', 'max_price', 'mean_price', 'median_price']
+    columns_panels = columns_STRIDE[:] + ['medicare'] #['min_price', 'max_price', 'mean_price', 'median_price']
     # 'min_volume_charge', 'max_volume_charge', 'mean_volume_charge', 'median_volume_charge'
     columns_components = columns_STRIDE[:]
 
@@ -181,6 +182,8 @@ def main_attachBaseline(targeted_PPVs, columns, thres_mode):
 
 
 if __name__ == '__main__':
+    print 'generate_result_tables running...'
+
     project_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
     train_data_folderpath = os.path.join(project_folder, 'machine_learning/',
                                          'data-%s-%s-10000-episodes'%(stats_utils.data_source, stats_utils.lab_type)
