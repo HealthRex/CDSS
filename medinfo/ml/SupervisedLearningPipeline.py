@@ -285,7 +285,6 @@ class SupervisedLearningPipeline:
             header = self._build_processed_matrix_header(params)
             fm_io.write_data_frame_to_file(processed_matrix, \
                 processed_matrix_path, header)
-            print processed_matrix.head()['pat_id']
 
         '''
         Pop out pat_id from the feature matrices. 
@@ -565,7 +564,7 @@ class SupervisedLearningPipeline:
         analyzer = ClassifierAnalyzer(self._predictor, self._X_test, self._y_test)
 
         # Build names for output plots and report.
-        direct_comparisons_name = '%s-direct-compare-results.csv' % pipeline_prefix
+        direct_comparisons_name = 'direct_comparisons.csv' #'%s-direct-compare-results.csv' % pipeline_prefix
         precision_at_k_plot_name = '%s-precision-at-k-plot.png' % pipeline_prefix
         precision_recall_plot_name = '%s-precision-recall-plot.png' % pipeline_prefix
         roc_plot_name = '%s-roc-plot.png' % pipeline_prefix
@@ -602,7 +601,7 @@ class SupervisedLearningPipeline:
         train_label = 'traindata'
 
         # Build names for output plots and report.
-        direct_comparisons_name = '%s-direct-compare-results-%s.csv' % (pipeline_prefix, train_label)
+        direct_comparisons_name = 'direct_comparisons_train.csv' #'%s-direct-compare-results-%s.csv' % (pipeline_prefix, train_label)
         precision_at_k_plot_name = '%s-precision-at-k-plot-%s.png' % (pipeline_prefix, train_label)
         precision_recall_plot_name = '%s-precision-recall-plot-%s.png' % (pipeline_prefix, train_label)
         roc_plot_name = '%s-roc-plot-%s.png' % (pipeline_prefix, train_label)
