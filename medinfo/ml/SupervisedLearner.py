@@ -118,10 +118,9 @@ def split_rows(data_matrix, train_size=0.75, columnToSplitOn='pat_id', random_st
     # patIds_test = test_matrix['pat_id'].values.tolist()
     assert (set(pat_ids_train) & set(pat_ids_evalu)) == set([])
 
-    print data_matrix_train.shape[0], data_matrix_evalu.shape[0], data_matrix.shape[0]
     assert data_matrix_train.shape[0] + data_matrix_evalu.shape[0] == data_matrix.shape[0]
 
-    return data_matrix_train, pat_ids_evalu
+    return data_matrix_train, data_matrix_evalu
 
 
 def split_Xy(data_matrix, outcome_label):
@@ -189,7 +188,11 @@ def get_train_and_evalu_raw_matrices(lab, data_lab_folderpath, random_state,
 
         pat_split_df = raw_matrix[['pat_id']].copy()
         pat_split_df['in_train'] = pat_split_df['pat_id'].apply(lambda x: 1 if x in pat_ids_train else 0)
-        pat_split_df.to_csv(pat_split_filepath, index=False)
+        # pat_split_df.to_csv(pat_split_filepath, index=False)
+
+    assert set(raw_matrix_train['pat_id'].values.tolist()) & set(raw_matrix_evalu['pat_id'].values.tolist()) == set([])
+    assert raw_matrix_train.shape[0] + raw_matrix_evalu.shape[0] == raw_matrix.shape[0]
+
     return raw_matrix_train, raw_matrix_evalu
 
 
@@ -211,8 +214,8 @@ def get_train_and_evalu_processed_matrices(lab, data_lab_folderpath, features, r
     processed_matrix_evalu_filepath = os.path.join(data_lab_folderpath, processed_matrix_evalu_template % lab)
 
     if os.path.exists(processed_matrix_train_filepath) and os.path.exists(processed_matrix_evalu_filepath):
-        processed_matrix_train = pd.read_csv(processed_matrix_train_filepath, keep_default_na=False)
-        processed_matrix_evalu = pd.read_csv(processed_matrix_evalu_filepath, keep_default_na=False)
+        processed_matrix_train = pd.read_csv(processed_matrix_train_filepath, keep_default_na=False, sep='\t')
+        processed_matrix_evalu = pd.read_csv(processed_matrix_evalu_filepath, keep_default_na=False, sep='\t')
         pass
 
     else:
@@ -228,6 +231,11 @@ def get_train_and_evalu_processed_matrices(lab, data_lab_folderpath, features, r
 
         processed_matrix_train.to_csv(processed_matrix_train_filepath, sep='\t', index=False)
         processed_matrix_evalu.to_csv(processed_matrix_evalu_filepath, sep='\t', index=False)
+
+    for feature in features['keep']:
+        assert feature in processed_matrix_train.columns.values
+
+        assert feature in processed_matrix_evalu.columns.values
 
     return processed_matrix_train, processed_matrix_evalu
 
@@ -297,6 +305,9 @@ def process_matrix(raw_matrix, features, data_path='', impute_template=None):
     '''
     From raw matrix to processed matrix
 
+    Processed matrix, column order:
+        ylabel, numeric features, info columns
+
     If process_template (key: feature, val: imputed val) is provided:
         TODO
 
@@ -326,13 +337,18 @@ def process_matrix(raw_matrix, features, data_path='', impute_template=None):
 
 
     '''
-    Set aside ylabel and info features 
+    Set aside info features 
     '''
 
     features_setaside = features['info']
     processed_matrix = processing_matrix[features_setaside].copy()
     processing_matrix = processing_matrix.drop(features_setaside, axis=1)
 
+    '''
+    Set aside ylabel
+    '''
+    ylabel_matrix = processing_matrix[[features['ylabel']]].copy()
+    processing_matrix = processing_matrix.drop(features['ylabel'], axis=1)
 
     if impute_template is not None:
         '''
@@ -348,12 +364,16 @@ def process_matrix(raw_matrix, features, data_path='', impute_template=None):
         # if 'abnormal_panel' not in processing_matrix.columns.values.tolist(): #TODO: delete in the future
         #     processing_matrix['abnormal_panel'] = processing_matrix['all_components_normal'].apply(lambda x:1.-x)
 
-        print 'processing_matrix.shape:', processing_matrix.shape
         processing_matrix = processing_matrix[columns_impute_ordered]
-        print 'processing_matrix.shape:', processing_matrix.shape
         # TODO: header info like done by fm_io?
 
+        # processing_matrix = pd.concat([ylabel_matrix, processing_matrix], axis=1)
+
     else:
+        '''
+        Now processing_matrix only contains numeric features
+        '''
+
 
         '''
         Remove features
@@ -365,9 +385,13 @@ def process_matrix(raw_matrix, features, data_path='', impute_template=None):
 
         '''
         Impute
+        
+        TODO: alert if 'keep' are all NaN..
+        
+        TODO: if y-label has missing value?
         '''
-
         processing_matrix, impute_template = impute_features(processing_matrix, strategy="mean")
+
 
         # TODO: keep order?
 
@@ -381,23 +405,38 @@ def process_matrix(raw_matrix, features, data_path='', impute_template=None):
 
         '''
         Select features
+        
+        Needs y-label when selecting.
+        However, y-label will not be returned from select_features()
         '''
+        processing_matrix = pd.concat([ylabel_matrix, processing_matrix], axis=1)
+
         processing_matrix = select_features(processing_matrix,
-                                            features = features)
+                                            features=features)
+
         '''
         Record the order of the feature in the numeric matrix, 
         as the dictionary impute_template does not keep order
         '''
 
         for key, val in impute_template.items():
-            if key not in processing_matrix.columns:
+            if key not in processing_matrix.columns and key not in features['keep']:
                 impute_template.pop(key)
+            elif key in features['keep']:
+                '''
+                features['keep'] is not in "pro"-selected features, since it is "pre"-selected
+                '''
+                feature_ind = len(processing_matrix.columns.tolist())
+                impute_template[key] = (feature_ind, impute_template[key])
             else:
                 feature_ind = processing_matrix.columns.tolist().index(key)
                 impute_template[key] = (feature_ind, impute_template[key])
         # processed_matrix = pd.merge(processed_matrix, processing_matrix)
 
-    processed_matrix = pd.concat([processing_matrix, processed_matrix], axis=1)
+        # TODO: save impute_template to disk
+
+
+    processed_matrix = pd.concat([ylabel_matrix, processing_matrix, processed_matrix], axis=1)
 
     return processed_matrix, impute_template
 
