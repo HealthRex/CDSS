@@ -291,7 +291,7 @@ def get_guideline_maxorderfreq():
     maxorderfreq = {}
     maxorderfreq['once'] = ['LABCBCD', 'LABALB', 'LABA1C', 'LABPHOS', 'LABTSH']
     maxorderfreq['three_days'] = ['LABESRP']
-    maxorderfreq['one_day'] = ['LABMETB']
+    # maxorderfreq['one_day'] = ['LABMETB']
 
     return maxorderfreq
 
@@ -451,7 +451,7 @@ def get_prevweek_normal__dict(df, also_get_cnt=False):
             # a day has 86400 secs
             # prev_days.append(time_diff_df.seconds/86400.)
 
-def get_time_since_last_order_cnts(lab, df):
+def get_floored_day_to_number_orders_cnts(lab, df):
     datetime_format = "%Y-%m-%d %H:%M:%S"
     # print df.head()
     '''
@@ -1460,4 +1460,23 @@ if __name__ == '__main__':
     #                                             'data-panel-10000-episodes/'),
     #                 source="train")
 
-    print query_num_instances(instance_type='pat_enc_csn_id')
+    # print query_num_instances(instance_type='pat_enc_csn_id')
+    # descriptions = get_lab_descriptions()
+    # for lab in ['LABA1C', 'LABALB','LABCBCD','LABESRP','LABPHOS','LABTSH']:
+    #     print descriptions[lab]
+    # print get_labvol('LABA1C', time_limit=['2014-01-01', '2014-06-30'])
+    # print get_labvol('LABA1C', time_limit=['2014-07-01', '2014-12-31'])
+    # print get_labvol('LABA1C', time_limit=['2015-01-01', '2015-06-30'])
+    # print get_labvol('LABA1C', time_limit=['2015-07-01', '2015-12-31'])
+    # print get_labvol('LABA1C', time_limit=['2016-01-01', '2016-06-30'])
+    # print get_labvol('LABA1C', time_limit=['2016-07-01', '2016-12-31'])
+    # print get_labvol('LABA1C', time_limit=['2017-01-01', '2017-06-30'])
+
+    print sum([
+2819,
+2779,
+2762,
+2901,
+2979,
+3170,
+272])
