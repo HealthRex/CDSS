@@ -183,17 +183,21 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
         #               + df['2015 2stHalf count'] + df['2016 1stHalf count'] \
         #               + df['2016 2stHalf count'] + df['2017 1stHalf count']
         df = df[df['medicare'] != '']
+        df['medicare'] = df['medicare'].astype(float)
 
-        df['total_cost'] = df['total_cnt'] * df['medicare'].apply(lambda x:float(x))  # /1000000., cost
+        # df['total_cost'] = df['total_cnt'] * df['medicare'].apply(lambda x:float(x))  # /1000000., cost
 
-        df['predicted_normal_cost'] = (df['true_positive']+df['false_positive']) * df['total_cost']
+        # df['predicted_normal_cost'] = (df['true_positive']+df['false_positive']) * df['total_cost']
 
-        df = df[['lab', 'predicted_normal_cost', 'total_cost']]
+        df['TP_cost'] = df['true_positive'] * df['total_cnt'] * df['medicare']
+        df['FP_cost'] = df['false_positive'] * df['total_cnt'] * df['medicare']
+
+        df = df[['lab', 'TP_cost', 'FP_cost']]
 
         # df['normal_cost'] = df['normal_rate'] * df['total_cost']
         # df['truepo_cost'] = df['true_positive_fraction'] * df['total_cost']
 
-        df = df.sort_values('total_cost')
+        df = df.sort_values('TP_cost')
         # df_sorted_by_normal_cost = df.sort_values('truepo_cost', ascending=True)#.tail(10)
         df.to_csv(data_path, index=False)
 
@@ -208,8 +212,9 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
     # elif scale_by == 'enc':
     #     scale = float(stats_utils.NUM_DISTINCT_ENCS)
 
-    df['predicted_normal_cost'] = df['predicted_normal_cost'] * scale
-    df['total_cost'] = df['total_cost'] * scale
+    df['TP_cost'] = df['TP_cost'] * scale
+    df['FP_cost'] = df['FP_cost'] * scale
+    df['total_cost'] = df['TP_cost'] + df['FP_cost']
     df['lab_description'] = df['lab'].apply(
         lambda x: lab_descriptions[x])
 
@@ -222,28 +227,37 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
 
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.barh(df['lab_description'], df['total_cost'],
-            color='green', alpha=0.5, label='Total cost')
+            color='red', alpha=1, label='Abnormal, predicted normal')  # 'True Positive@0.95 train_PPV'
+
+    ax.barh(df['lab_description'], df['TP_cost'],
+            color='green', alpha=1, label='Normal, predicted normal')
     # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
     #     ax.text(v + 2, i, str("{0:.0%}".format(df_sorted_by_cnts['normal_rate'].values[i])), color='k', fontweight='bold')
 
     # if add_predictable:
-    ax.barh(df['lab_description'], df['predicted_normal_cost'],
-            color='green', alpha=1, label='Avoided cost')  # 'True Positive@0.95 train_PPV'
-    for i, v in enumerate(df['predicted_normal_cost']):
-        if v < 2500:
-            continue
-        df['avoidable_fraction'] = df['predicted_normal_cost'] / df['total_cost']
-        ax.text(v/2.-1200, i-0.15, "%.0f"%(100*df['avoidable_fraction'].values[i]) + '%', color='white',
-                fontsize=10, fontweight='bold')
+
+
+    #
+    # for i, v in enumerate(df['predicted_normal_cost']):
+    #     if v < 2500:
+    #         continue
+    #     df['avoidable_fraction'] = df['predicted_normal_cost'] / df['total_cost']
+    #     ax.text(v/2.-1200, i-0.15, "%.0f"%(100*df['avoidable_fraction'].values[i]) + '%', color='white',
+    #             fontsize=10, fontweight='bold')
 
     # plt.xlim([0,1])
     for tick in ax.xaxis.get_major_ticks():
         tick.label.set_fontsize(14)
 
-    plt.legend()
+    handles, labels = ax.get_legend_handles_labels()
+
+    handles = [handles[1], handles[0]]
+    labels = [labels[1], labels[0]]
+
+    plt.legend(handles,labels, prop={'size': 11}, loc=(.4,.05))
     plt.xlabel('Cost per 1000 patient encounters', fontsize=14) # 'Total Amount (in %s) in 2014.07-2017.06, targeting PPV=%.2f'%(unit, targeted_PPV)
-    plt.xticks(range(0, 40001, 10000))
-    plt.xlim([0,36000])
+    plt.xticks(range(0, 15001, 5000))
+    # plt.xlim([0,20000])
 
 
     plt.tight_layout()
@@ -820,12 +834,18 @@ def plot_cartoons(ml_folderpath):
 
 
     labs = ['LABPTT', 'LABLDH', 'LABTNI']
+    print lab_descriptions['LABPTT']
+    print lab_descriptions['LABLDH']
+    print lab_descriptions['LABTNI']
+    local_lab_descriptions = {'LABPTT':"PTT PARTIAL\nTHROMBOPLASTIN TIME\n",
+                              'LABLDH':"LDH TOTAL\nSERUM / PLASMA\n",
+                              'LABTNI':"TROPONIN I\n"}
 
     col = 3
     row = len(labs)/col
     has_left_labs = (len(labs)%col!=0)
 
-    fig_width, fig_heights = col * 3., 8. / col
+    fig_width, fig_heights = col * 3., 12. / col
     plt.figure(figsize=(fig_width, fig_heights))
 
     for i in range(row):
@@ -852,7 +872,7 @@ def plot_cartoons(ml_folderpath):
             plt.ylim([0, 500])
             plt.xticks([])
             plt.yticks([])
-            plt.xlabel(lab + ', auroc=%.2f'%auc)
+            plt.xlabel(local_lab_descriptions[lab] + 'auroc=%.2f'%auc)
             # plt.legend(lab)
 
     # plt.xlabel("%s score for %s"%(alg,lab))
@@ -883,8 +903,9 @@ def plot_cartoons(ml_folderpath):
             plt.ylim([0, 500])
             plt.xticks([])
             plt.yticks([])
-            plt.xlabel(lab)
-    plt.show()
+            plt.xlabel(lab_descriptions[lab])
+
+    plt.tight_layout()
 
     plt.savefig('cartoons_%ss.png'%lab_type)
 
@@ -1228,7 +1249,7 @@ def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
 if __name__ == '__main__':
     print 'stats_sx running...'
 
-    figs_to_plot = ['Order_Intensities']
+    figs_to_plot = ['Potential_Savings']
 
     '''
     scale by each 1000 patient encounter
