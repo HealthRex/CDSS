@@ -41,7 +41,7 @@ component_map <- read.csv("../LabResultMap.tab", sep = "\t") %>%
 # rename to lower case
 component_map$description <- c("Creatinine kinase", "C-reactive protein", "Ferritin", "Heparin Activity",
                                "Lactate, whole blood", "Lipase", "Magnesium, serum/plasma", "NT-PROBNP",
-                               "Phospherous serum/plasma", "Platelet count", "Partial Throboplastin Time",
+                               "Phosphate in serum/plasma", "Platelet count", "Partial Thromboplastin Time",
                                "Troponin I", "Thyroid Stimulating Hormone")
 
 params <- 1:5*10
@@ -93,7 +93,7 @@ preprocess_data <- function(report, lab, params = 1:5*10, n_models = 6, comp_map
 # run load and preprocessing and return processed result data
 load_and_process <- function(lab, params = 1:5*10, n_models = 6, change_def = "percent"){
   raw <- load_data(lab, params, n_models, change_def)
-  return(preprocess_data(raw, lab, params, n_models))
+  return(preprocess_data(raw, lab, params, n_models) %>% filter(!grepl("L1_REGRESS_AND_ROUND",model)))
 }
 ```
 
@@ -112,6 +112,7 @@ summarize_group_report <- function(full_data){
   result <- full_data %>%
   group_by(change_param, LAB) %>%
   summarize(max_roc = max(roc_auc),
+            model = nth(model, which.max(percent_predictably_positive)),
             max_roc_lowCI = nth(roc_auc_0.95_lower_ci, which.max(roc_auc)),
             max_roc_highCI = nth(roc_auc_0.95_upper_ci, which.max(roc_auc)),
             max_percent_predictability = max(percent_predictably_positive),
@@ -321,15 +322,18 @@ vol_charge_table_sd <- left_join(report_summary_sd, volume_charge_map, by = "nam
 
 ```{r, fig.height = 4.5in, fig.width = 7.25}
 predictable_vol_bar_plot <- function(report_summary, fill_label = "Change Threshold", mypalette = "Reds"){
-  myplot <- ggplot(report_summary, aes(description, max_percent_predictability*num_repeated, fill = as.factor(change_param))) +
+  plotdata <- mutate(report_summary, 
+                     volume = max_percent_predictability*num_repeated)
+  
+  myplot <- ggplot(plotdata, aes(description, ifelse(volume>1, volume, 1), fill = as.factor(change_param))) +
     geom_bar(position = "dodge", stat = "identity") +
     labs(fill = fill_label, y = "Predictable volume (log scale)", x = NULL) +
-    geom_text(aes(label=comma(round(signif(max_percent_predictability*num_repeated,2)))),
+    geom_text(aes(label=comma(round(signif(volume,2)))),
               hjust = -0.05, position=position_dodge(width=0.9), size = 3) +
     coord_flip() +
     scale_fill_brewer(palette = mypalette, direction= -1) +
     theme_bw() +
-    scale_y_log10(labels = comma, limits = c(1, 200000)) +
+    scale_y_log10(labels = comma, limits = c(1, 2000000)) +
     theme(legend.key.size = unit(0.3, "cm"),
           legend.title=element_text(size=9),
           legend.text=element_text(size=9),
@@ -349,12 +353,16 @@ ggarrange(F4A, F4B, ncol = 2, common.legend = FALSE, legend = "top", labels = "A
 ```{r}
 options(scipen = 1000000)
 predictable_charge_bar_plot <- function(report_summary, fill_label = "Change Threshold", mypalette = "Reds"){
-  myplot <- ggplot(report_summary, aes(description, max_percent_predictability*num_repeated*median_price, fill = as.factor(change_param))) +
+  plotdata <- mutate(report_summary, 
+                     volume = max_percent_predictability*num_repeated*median_price)
+  myplot <- ggplot(plotdata, aes(description, 
+                                       ifelse(volume >1, volume, 1),
+                                       fill = as.factor(change_param))) +
     geom_col(position = "dodge") +
     labs(fill = fill_label, y = "Predictable charge (log scale)", x = NULL) +
     coord_flip() +
     scale_fill_brewer(palette = mypalette, direction= -1) +
-    geom_text(aes(label=paste("$", comma(round(signif(max_percent_predictability*num_repeated*median_price,2))), sep = "")),
+    geom_text(aes(label=paste("$", comma(round(signif(volume,2))), sep = "")),
               hjust = -0.05, position=position_dodge(width=0.9), size = 2.75) +
     theme_bw() +
 
