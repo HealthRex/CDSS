@@ -54,6 +54,8 @@ DEFAULT_TIMELIMIT = ('2014-07-01', '2017-07-01') # TODO: extremely confusing!
 NUM_DISTINCT_PATS = 44709
 NUM_DISTINCT_ENCS = 66439
 
+NUM_DISTINCT_ENCS_UCSF = 15989
+
 # DEFAULT_TIMELIMITS = []
 # for time_window in DEFAULT_TIMEWINDOWS:
 #     year_str, section_str = time_window.split(' ')

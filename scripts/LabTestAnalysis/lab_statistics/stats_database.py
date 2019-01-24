@@ -28,6 +28,8 @@ TOP_PANELS_AND_COUNTS_IN_1TO3DAYS = [['LABMETB', 105169], ['LABMGN', 104168], ['
 
 data_folderpath = 'data-Stanford-panel-10000-episodes'
 
+UCSF_PANELS_AND_COUNTS = [['Magnesium, Serum - Plasma', 68558], ['Phosphorus, Serum - Plasma', 51520], ['Prothrombin Time', 46170], ['Activated Partial Thromboplastin Time', 20891], ['Peripheral Blood Culture', 10406], ['Bilirubin, Total', 12740], ['Creatinine, Serum - Plasma', 11958], ['Alkaline Phosphatase', 11943], ['Sodium, Serum - Plasma', 9500], ['Potassium, Serum - Plasma', 6725], ['Troponin I', 7075], ['Carbon Dioxide, Total (includes Anion Gap)', 9236], ['Lactate Dehydrogenase, Serum - Plasma', 8856], ['Calcium, Ionized, serum-plasma', 8742], ['Uric Acid, Serum - Plasma', 4472], ['Albumin, Serum - Plasma', 4120], ['Thyroid Stimulating Hormone', 2030]]
+
 def show_top_volume_panels():
     data_filepath = os.path.join(data_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
     df = pd.read_csv(data_filepath, keep_default_na=False)
