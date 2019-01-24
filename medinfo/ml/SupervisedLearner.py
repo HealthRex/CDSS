@@ -89,33 +89,34 @@ classifier_filename_template = '%s-normality-%s-model.pkl'
 General functions for smaller tasks
 '''
 def split_rows(data_matrix, train_size=0.75, columnToSplitOn='pat_id', random_state=0):
-    from sklearn.model_selection import GroupShuffleSplit
-    print data_matrix.shape
-    train_inds, evalu_inds = next(
-        GroupShuffleSplit(n_splits=2, test_size=1-train_size, random_state=random_state)
-            .split(data_matrix, groups=data_matrix[columnToSplitOn])
-    )
-    print len(train_inds) + len(evalu_inds)
 
-    data_matrix_train, data_matrix_evalu = data_matrix.iloc[train_inds], data_matrix.iloc[evalu_inds]
+    # from sklearn.model_selection import GroupShuffleSplit
+    # print data_matrix.shape
+    # train_inds, evalu_inds = next(
+    #     GroupShuffleSplit(n_splits=2, test_size=1-train_size, random_state=random_state)
+    #         .split(data_matrix, groups=data_matrix[columnToSplitOn])
+    # )
+    # print len(train_inds) + len(evalu_inds)
+    #
+    # data_matrix_train, data_matrix_evalu = data_matrix.iloc[train_inds], data_matrix.iloc[evalu_inds]
+    #
+    # pat_ids_train = data_matrix_train['pat_id'].values.tolist()
+    # pat_ids_evalu = data_matrix_evalu['pat_id'].values.tolist()
+
+    all_possible_ids = sorted(set(data_matrix[columnToSplitOn].values.tolist()))
+
+    train_ids, test_ids = sklearn_train_test_split(all_possible_ids, test_size=1.-train_size, random_state=random_state)
+
+    data_matrix_train = data_matrix[data_matrix[columnToSplitOn].isin(train_ids)].copy()
+    # y_train = pd.DataFrame(train_matrix.pop(outcome_label))
+    # X_train = train_matrix
+
+    data_matrix_evalu = data_matrix[data_matrix[columnToSplitOn].isin(test_ids)].copy()
+    # y_test = pd.DataFrame(test_matrix.pop(outcome_label))
+    # X_test = test_matrix
 
     pat_ids_train = data_matrix_train['pat_id'].values.tolist()
     pat_ids_evalu = data_matrix_evalu['pat_id'].values.tolist()
-
-    # all_possible_ids = sorted(set(data_matrix[columnToSplitOn].values.tolist()))
-    #
-    # train_ids, test_ids = sklearn_train_test_split(all_possible_ids, train_size=fraction, random_state=random_state)
-    #
-    # train_matrix = data_matrix[data_matrix[columnToSplitOn].isin(train_ids)].copy()
-    # # y_train = pd.DataFrame(train_matrix.pop(outcome_label))
-    # # X_train = train_matrix
-    #
-    # test_matrix = data_matrix[data_matrix[columnToSplitOn].isin(test_ids)].copy()
-    # # y_test = pd.DataFrame(test_matrix.pop(outcome_label))
-    # # X_test = test_matrix
-    #
-    # patIds_train = train_matrix['pat_id'].values.tolist()
-    # patIds_test = test_matrix['pat_id'].values.tolist()
     assert (set(pat_ids_train) & set(pat_ids_evalu)) == set([])
 
     assert data_matrix_train.shape[0] + data_matrix_evalu.shape[0] == data_matrix.shape[0]
@@ -179,6 +180,9 @@ def get_train_and_evalu_raw_matrices(lab, data_lab_folderpath, random_state,
         raw_matrix_evalu = raw_matrix[raw_matrix['pat_id'].isin(pat_ids_evalu)]
 
     else:
+        # TODO: to be consistent to previous implementation
+        raw_matrix['pat_id'] = raw_matrix['pat_id'].apply(lambda x: str(x))
+
         raw_matrix_train, raw_matrix_evalu = split_rows(raw_matrix,
                                                         train_size=train_size,
                                                         columnToSplitOn=columnToSplitOn,
@@ -390,6 +394,7 @@ def process_matrix(raw_matrix, features, data_path='', impute_template=None):
         
         TODO: if y-label has missing value?
         '''
+
         processing_matrix, impute_template = impute_features(processing_matrix, strategy="mean")
 
 
@@ -413,6 +418,7 @@ def process_matrix(raw_matrix, features, data_path='', impute_template=None):
 
         processing_matrix = select_features(processing_matrix,
                                             features=features)
+
 
         '''
         Record the order of the feature in the numeric matrix, 
@@ -440,7 +446,27 @@ def process_matrix(raw_matrix, features, data_path='', impute_template=None):
 
     return processed_matrix, impute_template
 
+def train_ml_model(X_train, y_train, alg, groups, output_folderpath, random_state):
+    hyperparams = {}
+    hyperparams['algorithm'] = alg
 
+    ml_classifier = SupervisedClassifier(classes=[0,1], hyperparams=hyperparams)
+
+
+    status = ml_classifier.train(X_train, y_train, groups=groups)
+    return ml_classifier
+
+def predict(X, y, ml_classifier, output_filepath):
+    ''
+    y_pred_proba = ml_classifier.predict_probability(X)[:,1]
+    y_true = y.values
+
+    # actual_reindex = y.reset_index(drop=True)
+    # predict_reindex = y_pred_proba.reset_index(drop=True)
+    direct_comparisons = pd.DataFrame({'actual':y_true, 'predict':y_pred_proba})
+        # actual_reindex.join(predict_reindex)
+    # direct_comparisons.columns = ['actual', 'predict']
+    direct_comparisons.to_csv(output_filepath, index=False)
 
 def standard_pipeline(lab, algs, learner_params, data_lab_folderpath, random_state):
     '''
@@ -481,12 +507,9 @@ def standard_pipeline(lab, algs, learner_params, data_lab_folderpath, random_sta
     No overlapping features
     '''
     X_train, y_train = split_Xy(data_matrix=processed_matrix_train,
-                                   outcome_label=outcome_label,
-                                   random_state=random_state)
-
+                                   outcome_label=learner_params['features']['ylabel'])
     X_evalu, y_evalu = split_Xy(data_matrix=processed_matrix_evalu,
-                                   outcome_label=outcome_label,
-                                   random_state=random_state)
+                                   outcome_label=learner_params['features']['ylabel'])
 
     '''
     Training
@@ -500,6 +523,9 @@ def standard_pipeline(lab, algs, learner_params, data_lab_folderpath, random_sta
         Training
         '''
         data_alg_folderpath = os.path.join(data_lab_folderpath, alg)
+        if not os.path.exists(data_alg_folderpath):
+            os.mkdir(data_alg_folderpath)
+
         direct_comparisons_evalu_filepath = os.path.join(data_alg_folderpath, direct_comparisons_train_filename)
         if os.path.exists(direct_comparisons_evalu_filepath):
             continue
@@ -507,17 +533,23 @@ def standard_pipeline(lab, algs, learner_params, data_lab_folderpath, random_sta
 
         # TODO: in the future, even the CV step requires splitByPatId, so carry forward this column?
         # TODO: or load from disk
-        ml_classifier_filepath = classifier_filename_template % (lab, alg)
+        ml_classifier_filename = classifier_filename_template % (lab, alg)
+        ml_classifier_filepath = os.path.join(data_lab_folderpath, ml_classifier_filename)
+
         if os.path.exists(ml_classifier_filepath):
-            ml_classifier = load_ml_model(ml_classifier)
+            ml_classifier = joblib.load(ml_classifier_filepath)
         else:
 
+            patIds_train = X_train.pop('pat_id').values.tolist()
             ml_classifier = train_ml_model(X_train=X_train,
                                               y_train=y_train,
                                               alg=alg,
-                                              output_folderpath=data_alg_folderpath
-                                              )  # random_state?
-            save_ml_model(ml_classifier)
+                                           groups=patIds_train,
+                                              output_folderpath=data_alg_folderpath,
+                                           random_state=random_state
+                                            )  # ?
+
+            joblib.dump(ml_classifier, ml_classifier_filepath)
 
         '''
         Predicting train set results (overfit)
@@ -530,10 +562,11 @@ def standard_pipeline(lab, algs, learner_params, data_lab_folderpath, random_sta
         '''
         Predicting evalu set feature selection
         '''
-        predict(X=X_eval,
-                   y=y_eval,
-                   ml_classifier=ml_classifier,
-                   output_folderpath=data_alg_folderpath)
+        X_evalu.pop('pat_id')
+        predict(X=X_evalu,
+                y=y_evalu,
+                ml_classifier=ml_classifier,
+                output_filepath=direct_comparisons_evalu_filepath)
 
     # TODO here: make sure process_matrix works right
     # processed_matrix_full_eval, _ = SL.process_matrix(lab=lab,
