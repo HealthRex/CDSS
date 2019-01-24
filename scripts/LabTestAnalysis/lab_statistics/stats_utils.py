@@ -693,6 +693,16 @@ def Hosmer_Lemeshow_Test(predict_probas, actual_labels, num_bins=10):
 
     return 1 - stats.chi2.cdf(H_stat, dof)
 
+def map_pval_significance(p_val):
+    significance = ''
+    if p_val < 0.001:
+        significance = '***'
+    elif p_val < 0.01:
+        significance = '**'
+    elif p_val < 0.05:
+        significance = '*'
+
+    return significance
 
 def get_thres_by_fixing_PPV(lab, alg, data_folder='', PPV_wanted=0.9, thres_mode="from_test"):
     if thres_mode == "from_train":
@@ -1040,6 +1050,10 @@ def get_lab_descriptions(line_break_at=None):
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_panel.csv')
 
     df = pd.read_csv(descriptions_filepath, keep_default_na=False)
+
+    if data_source == 'UMich' and lab_type=='component':
+        df = df.rename(columns={'RESULT_CODE':'name', 'RESULT_NAME':'description'})
+
     if line_break_at:
         df['description'] = df['description'].apply(lambda x: add_line_breaker(x, line_break_at))
 

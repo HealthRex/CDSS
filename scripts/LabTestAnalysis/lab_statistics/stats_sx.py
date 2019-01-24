@@ -656,8 +656,11 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
     if not os.path.exists(result_folderpath):
         os.mkdir(result_folderpath)
 
-    result_figname = '%s_%s.png'%(lab_type, curve_type)
+    result_figname = '%s_%s_%s.png'%(data_source, lab_type, curve_type)
     result_figpath = os.path.join(result_folderpath, result_figname)
+
+    result_tablename = '%s_%s_%s.csv'%(data_source, lab_type, curve_type)
+    result_tablepath = os.path.join(result_folderpath, result_tablename)
 
     num_labs = len(labs)
     # fig, ax = plt.subplots(figsize=(12, 6))
@@ -666,6 +669,7 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
 
     scores_base = []
     scores_best = []
+    p_vals = []
 
     scores_diffs = {}
 
@@ -679,10 +683,11 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
                                            all_algs=algs,
                                            data_folder=statsByLab_folderpath.replace("lab_statistics", "machine_learning"),
                                            curve_type=curve_type,
-                                           get_pval=False)
-        # print lab, p_val
+                                           get_pval=True)
+        print lab, p_val
         scores_base.append(score_base)
         scores_best.append(score_best)
+        p_vals.append(p_val)
 
         scores_diffs[lab] = score_best - score_base
 
@@ -704,6 +709,16 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
 
     plt.tight_layout()
     plt.savefig(result_figpath)
+
+    df_output_table = pd.DataFrame({'lab':labs,
+                                    curve_type+' benchmark':scores_base,
+                                    curve_type + ' ML model':scores_best,
+                                    curve_type + ' p value':p_vals
+                       })
+    df_output_table['lab'] = df_output_table['lab'].apply(lambda x: lab_descriptions.get(x,x))
+    df_output_table[curve_type + ' significance'] = df_output_table[curve_type + ' p value'].apply(lambda x: stats_utils.map_pval_significance(x))
+    df_output_table[['lab',curve_type+' benchmark',curve_type + ' ML model',curve_type + ' p value',curve_type + ' significance']]\
+        .to_csv(result_tablepath, index=False, float_format="%.2f")
 
     measures = {'ROC':'AUC (Area Under Curve)', 'PRC':'APS (Average Precision Score)'}
     avg_base, avg_best = np.mean(scores_base), np.mean(scores_best)
@@ -1270,7 +1285,7 @@ def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
 if __name__ == '__main__':
     print 'stats_sx running...'
 
-    figs_to_plot = ['Confusion_Metrics']
+    figs_to_plot = ['ROC', 'PRC']
 
     '''
     scale by each 1000 patient encounter
@@ -1340,10 +1355,21 @@ if __name__ == '__main__':
                                  'LABESRP', 'LABUPREG', 'LABPROCT', 'LABPALB', 'LABCORT', 'LABPCCG4O', 'LABTRFS',
                                  'LABCSFTP', 'LABDIGL', 'LABNTBNP', 'LABURIC', 'LABHEPAR', 'LABMGN', 'LABLAC',
                                  'LABLIDOL', 'LABHCTX', 'LABPTT', 'LABCA', 'LABRETIC', 'LABSPLAC', 'LABTRIG']
-            lab_set, set_label = top_improved_labs, 'top_improved_labs'
+            # lab_set, set_label = top_improved_labs, 'top_improved_labs'
             draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=['random-forest'], result_label=set_label)
         if 'PRC' in figs_to_plot:
             draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=['random-forest'], result_label=set_label)
+
+        merge_ROC_PRC = True
+        if merge_ROC_PRC:
+            df_ROC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs', '%s_%s_ROC.csv'%(data_source,lab_type)), keep_default_na=False)
+            df_PRC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs', '%s_%s_PRC.csv'%(data_source,lab_type)), keep_default_na=False)
+
+            df_combined = pd.merge(df_ROC, df_PRC, on='lab', how='left')
+            df_combined.pop('ROC p value')
+            df_combined.pop('PRC p value')
+            df_combined.to_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs', '%s_%s_ROC_PRC.csv'%(data_source,lab_type)),
+                               index=False)
 
     if 'plot_cartoons' in figs_to_plot:
         plot_cartoons(os.path.join(ml_folderpath, statsByDataSet_foldername))
