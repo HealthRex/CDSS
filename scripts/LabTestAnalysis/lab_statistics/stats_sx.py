@@ -319,11 +319,18 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
         df = df[df['lab'].isin(labs)]
 
         if data_source == 'Stanford':
+            # if 'total_vol' not in df.columns.values.tolist():
             # Stanford data, scaled by vol
-            df['total_vol'] =                            df['2014 2stHalf count'] + \
-                                df['2015 1stHalf count'] + df['2015 2stHalf count'] + \
-                                df['2016 1stHalf count'] + df['2016 2stHalf count'] + \
-                                df['2017 1stHalf count']
+            df['total_vol'] = df['total_cnt']
+            #     df['total_vol'] =                            df['2014 2stHalf count'] + \
+            #                         df['2015 1stHalf count'] + df['2015 2stHalf count'] + \
+            #                         df['2016 1stHalf count'] + df['2016 2stHalf count'] + \
+            #                         df['2017 1stHalf count']
+        elif data_source == 'UCSF':
+            import stats_database
+            if stats_utils.lab_type == 'panel':
+                ucsf_lab_cnt = dict(stats_database.UCSF_PANELS_AND_COUNTS)
+                df['total_vol'] = df['lab'].apply(lambda x: ucsf_lab_cnt[x])
         else:
             df['total_vol'] = 1
 
@@ -381,9 +388,11 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
     if not scale_by:
         scale = 1.
     elif scale_by=='pat':
-        scale = float(stats_utils.NUM_DISTINCT_PATS)
+        scale = float(stats_utils.NUM_DISTINCT_PATS/1000.)
     elif scale_by == 'enc':
-        scale = float(stats_utils.NUM_DISTINCT_ENCS)
+        scale = float(stats_utils.NUM_DISTINCT_ENCS/1000.)
+    elif scale_by == 'enc_ucsf':
+        scale = float(stats_utils.NUM_DISTINCT_ENCS_UCSF/1000.)
 
     if lab_type == 'panel':
         df_toplots = df_toplots.sort_values(['total_vol'], ascending=True)
@@ -393,11 +402,14 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
     for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
         fig, ax = plt.subplots(figsize=(12, 8))
-        ax.barh(df_toplot['lab'], df_toplot['all_positive_vol']/scale, color='orange', alpha=0.5, label='False Positive')
-        ax.barh(df_toplot['lab'], df_toplot['true_positive_vol']/scale, color='blue', alpha=1, label='True Positive')
+        ax.barh(df_toplot['lab'], df_toplot['all_positive_vol'] / scale, color='orange', alpha=0.5,
+                label='False Positive')
+        ax.barh(df_toplot['lab'], df_toplot['true_positive_vol'] / scale, color='blue', alpha=1, label='True Positive')
 
-        ax.barh(df_toplot['lab'], df_toplot['all_negative_vol']/scale, color='blue', alpha=0.5, label='False Negative')
-        ax.barh(df_toplot['lab'], df_toplot['true_negative_vol']/scale, color='orange', alpha=1, label='True Negative')
+        ax.barh(df_toplot['lab'], df_toplot['all_negative_vol'] / scale, color='blue', alpha=0.5,
+                label='False Negative')
+        ax.barh(df_toplot['lab'], df_toplot['true_negative_vol'] / scale, color='orange', alpha=1,
+                label='True Negative')
 
         for i, v in enumerate(df_toplot['all_positive_vol']/scale):
             cur_lab = df_toplot['lab'].values[i]
@@ -406,13 +418,22 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
         plt.yticks([])
 
         if data_source == 'Stanford' and lab_type == 'panel':
-            plt.xlim([-2.5, 3])
+            plt.xlim([-2500, 3000])
         elif data_source == 'Stanford' and lab_type == 'component':
             plt.xlim([-8.5, 8])
+        elif data_source == 'UCSF' and lab_type == 'panel':
+            plt.xlim([-3000, 3000])
 
-        # plt.legend(loc=[0.1,0.1])
-        plt.xlabel('Number of orders per encounter, targeting at PPV=%.2f'%targeted_PPV, fontsize=14)
+        handles, labels = plt.gca().get_legend_handles_labels()
+        order = [1, 0, 3, 2]
+
+        plt.legend([handles[idx] for idx in order], [labels[idx] for idx in order],
+                   loc=[0.05,0.1], ncol=2, prop={'size': 12})
+        plt.xlabel('Number of orders per 1000 patient encounters, targeting at %.0f'%(targeted_PPV*100)+'% PPV', fontsize=14)
         #plt.ylabel('Labs', fontsize=14)
+
+        plt.tick_params('x', labelsize=12)
+
 
         plt.tight_layout()
 
@@ -1249,7 +1270,7 @@ def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
 if __name__ == '__main__':
     print 'stats_sx running...'
 
-    figs_to_plot = ['Potential_Savings']
+    figs_to_plot = ['Confusion_Metrics']
 
     '''
     scale by each 1000 patient encounter
@@ -1332,7 +1353,7 @@ if __name__ == '__main__':
         print all_labs
         components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA',\
     'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
-        draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='all_labs',
+        draw__Confusion_Metrics(statsByDataSet_folderpath, labs=panels, result_label='panels',
             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
 
     if 'Predicted_Normal' in figs_to_plot:
