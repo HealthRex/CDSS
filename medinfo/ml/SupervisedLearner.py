@@ -305,7 +305,7 @@ def select_features(matrix, features, random_state=0):
 
     return matrix[features_to_keep].copy()
 
-def process_matrix(raw_matrix, features, data_path='', impute_template=None):
+def process_matrix(raw_matrix, features, impute_template=None):
     '''
     From raw matrix to processed matrix
 
@@ -510,7 +510,7 @@ def standard_pipeline(lab, algs, learner_params, data_lab_folderpath, random_sta
                                    outcome_label=learner_params['features']['ylabel'])
     X_evalu, y_evalu = split_Xy(data_matrix=processed_matrix_evalu,
                                    outcome_label=learner_params['features']['ylabel'])
-
+    X_evalu.pop('pat_id')
     '''
     Training
 
@@ -562,7 +562,6 @@ def standard_pipeline(lab, algs, learner_params, data_lab_folderpath, random_sta
         '''
         Predicting evalu set feature selection
         '''
-        X_evalu.pop('pat_id')
         predict(X=X_evalu,
                 y=y_evalu,
                 ml_classifier=ml_classifier,
