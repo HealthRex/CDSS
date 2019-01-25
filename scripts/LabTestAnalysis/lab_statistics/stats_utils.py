@@ -33,7 +33,7 @@ For plotting guideline,
 
 a lab, has n prev consecutive normal. 
 '''
-data_source = 'Stanford'
+data_source = 'UCSF'
 lab_type = 'panel'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
@@ -1042,7 +1042,12 @@ def get_lab_descriptions(line_break_at=None):
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
     elif data_source == 'UCSF' and lab_type=='panel':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
-        descriptions = dict(zip(UCSF_TOP_PANELS, UCSF_TOP_PANELS))
+
+        if not line_break_at:
+            descriptions = dict(zip(UCSF_TOP_PANELS, UCSF_TOP_PANELS))
+        else:
+            descriptions = dict(zip(UCSF_TOP_PANELS, [add_line_breaker(x, line_break_at) for x in UCSF_TOP_PANELS]))
+
         return descriptions
     elif data_source == 'UMich' and lab_type=='component':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_component.csv')
