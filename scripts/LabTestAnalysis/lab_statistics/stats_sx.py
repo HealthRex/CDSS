@@ -168,7 +168,7 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
 
         df['TP_cost'] = df['true_positive'] * df['total_cnt'] * df['medicare']
         df['FP_cost'] = df['false_positive'] * df['total_cnt'] * df['medicare']
-        df['FN_cost'] = df['false_positive'] * df['total_cnt'] * df['medicare']
+        df['FN_cost'] = df['false_negative'] * df['total_cnt'] * df['medicare']
         df['subtotal_cost'] = df['TP_cost'] + df['FP_cost'] + df['FN_cost']
 
         df = df[['lab', 'TP_cost', 'FP_cost', 'FN_cost', 'subtotal_cost']]
@@ -214,13 +214,13 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
 
     fig, ax = plt.subplots(figsize=(8, 6))
     ax.barh(df['lab_description'], df['subtotal_cost'],
-            color='red', alpha=1, label='Abnormal, predicted normal')  # 'True Positive@0.95 train_PPV'
+            color='yellow', alpha=1, label='Abnormal, predicted normal')  # 'True Positive@0.95 train_PPV'
 
     ax.barh(df['lab_description'], df['TP_cost']+df['FN_cost'],
-            color='blue', alpha=1, label='Normal, predicted abnormal')
+            color='green', alpha=1, label='Normal, predicted abnormal')
 
     ax.barh(df['lab_description'], df['TP_cost'],
-            color='green', alpha=1, label='Normal, predicted normal')
+            color='blue', alpha=1, label='Normal, predicted normal')
     # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
     #     ax.text(v + 2, i, str("{0:.0%}".format(df_sorted_by_cnts['normal_rate'].values[i])), color='k', fontweight='bold')
 
@@ -251,7 +251,7 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
         plt.legend(prop={'size': 11}, loc=(.4, .05))
 
     plt.xlabel('Cost ($) per 1000 patient encounters', fontsize=14) # 'Total Amount (in %s) in 2014.07-2017.06, targeting PPV=%.2f'%(unit, targeted_PPV)
-    plt.xticks(range(0, 15001, 5000))
+    # plt.xticks(range(0, 15001, 5000))
     # plt.xlim([0,20000])
 
 
@@ -414,7 +414,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
 
         for i, v in enumerate(df_toplot['all_positive_vol']/scale):
             cur_lab = df_toplot['lab'].values[i]
-            cur_description = lab_descriptions.get(cur_lab,cur_lab)
+            cur_description = lab_descriptions.get(cur_lab,cur_lab).replace(' - ', '/')
             if '\n' in cur_description:
                 ax.text(v+50, i-0.3, cur_description, color='k', fontsize=14)
             else:
@@ -427,7 +427,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
         elif data_source == 'Stanford' and lab_type == 'component':
             plt.xlim([-8.5, 8])
         elif data_source == 'UCSF' and lab_type == 'panel':
-            plt.xlim([-3000, 3000])
+            plt.xlim([-2900, 3200])
 
         handles, labels = plt.gca().get_legend_handles_labels()
         order = [1, 0, 3, 2]
@@ -1386,8 +1386,13 @@ if __name__ == '__main__':
         print all_labs
         components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA',\
     'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
-        draw__Confusion_Metrics(statsByDataSet_folderpath, labs=panels, result_label='change_colors',
-            targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
+
+        if data_source == 'Stanford':
+            draw__Confusion_Metrics(statsByDataSet_folderpath, labs=panels, result_label='change_colors',
+                                    targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
+        elif data_source == 'UCSF':
+            draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='change_colors',
+                targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
 
     if 'Predicted_Normal' in figs_to_plot:
         draw__predicted_normal_fractions(statsByLab_folderpath=statsByDataSet_folderpath, targeted_PPV=0.95)
