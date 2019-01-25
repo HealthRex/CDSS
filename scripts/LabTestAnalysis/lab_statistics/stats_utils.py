@@ -33,7 +33,7 @@ For plotting guideline,
 
 a lab, has n prev consecutive normal. 
 '''
-data_source = 'UCSF'
+data_source = 'Stanford'
 lab_type = 'panel'
 
 all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
@@ -51,10 +51,26 @@ DEFAULT_TIMELIMIT = ('2014-07-01', '2017-07-01') # TODO: extremely confusing!
 #                        '2016 1stHalf', '2016 2stHalf',
 #                        '2017 1stHalf']
 
-NUM_DISTINCT_PATS = 44709
-NUM_DISTINCT_ENCS = 66439
+'''
+Meta-data in the last 3 years
+'''
+
+'''
+select count(distinct pat_id) from stride_order_proc where order_time >= '2014-07-01' and order_time < '2017-07-01';
+'''
+NUM_DISTINCT_PATS = 44710
+
+'''
+select count(distinct pat_enc_csn_id) from stride_order_proc where order_time >= '2014-07-01' and order_time < '2017-07-01';
+'''
+NUM_DISTINCT_ENCS = 66440
 
 NUM_DISTINCT_ENCS_UCSF = 15989
+
+'''
+select count(distinct order_proc_id) from stride_order_proc where proc_code='LABMGN' and order_status='Completed' and order_time >= '2014-07-01' and order_time < '2017-07-01';
+'''
+NUM_MAGNESIUM_COMPLETED_ORDERS = 282414
 
 # DEFAULT_TIMELIMITS = []
 # for time_window in DEFAULT_TIMEWINDOWS:
