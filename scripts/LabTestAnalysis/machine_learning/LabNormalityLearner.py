@@ -151,23 +151,82 @@ def main_pipelining(labs,
 
         # TODO: check baseline and ml alg come from the same dataset!
 
+map_lab_Stanford_to_UCSF = {'LABMGN':'Magnesium, Serum - Plasma',
+               'LABCAI':'Calcium, Ionized, serum-plasma',
+                            'LABURIC':'Uric Acid, Serum - Plasma',
+                            'LABALB':'Albumin, Serum - Plasma',
+                            'LABTSH':'Thyroid Stimulating Hormone',
+                            'LABTNI':'Troponin I',
+                            'LABK':'Potassium, Serum - Plasma',
+                            'LABNA':'Sodium, Serum - Plasma'
+                            }
+
 def map_col_Stanford_to_UCSF(col):
+
+    '''
+
+    Args:
+        col:
+
+    Returns:
+
+    '''
+
+    '''
+    vitals mapping
+    '''
+
     col = col.replace('BP_Low_Diastolic', 'DBP')
     col = col.replace('BP_High_Systolic', 'SBP')
-    col = col.replace('LABMGN', 'Magnesium, Serum - Plasma')
+
+
+    '''
+    component mapping
+    '''
     col = col.replace('CR', 'CREAT')
+    col = col.replace('PO2A', 'PO2')
+    col = col.replace('PO2V', 'PO2')
+    col = col.replace('PCO2A', 'PCO2')
+
+    col = col.replace('CAION', 'CAI')
+    if col[:3] == 'TNI':
+        col = col.replace('TNI', 'TRPI')
+
+    if col[:2] == 'NA':
+        col = col.replace('NA', 'NAWB') # TODO: make clear!
+    col = col.replace('LAC', 'LACTWB')
+
+    col = col.replace('TBIL', 'TBILI')
+
+    '''
+    cormobidity mapping
+    '''
+    col = col.replace('Malignancy', 'Cancer')
+    col = col.replace('CHF', 'CongestiveHeartFailure')
+    col = col.replace('MI', 'MyocardialInfarction')
+    col = col.replace('Cerebrovascular', 'Cerebrovascular Disease')
+
+    '''
+    team mapping
+    '''
+    col = col.replace('CVICU', 'ICU')
+
+    for lab_stanford, lab_ucsf in map_lab_Stanford_to_UCSF.items():
+        col = col.replace(lab_stanford, lab_ucsf)
+
+
 
     return col
 
 
-def apply_Stanford_to_UCSF():
+def apply_Stanford_to_UCSF(lab='LABMGN'):
     from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
     import pickle
 
     '''
     Data folder
     '''
-    dataset_folder = "data-apply-Stanford-to-UCSF-10000-episodes/LABMGN/"
+    dataset_folder = "data-apply-Stanford-to-UCSF-10000-episodes/%s/"%lab
 
     '''
     Helper function
@@ -177,7 +236,7 @@ def apply_Stanford_to_UCSF():
     '''
     Load raw data from UCSF
     '''
-    df_ucsf_raw = fm_io.read_file_to_data_frame(dataset_folder + "Magnesium, Serum - Plasma-normality-matrix-raw.tab")
+    df_ucsf_raw = fm_io.read_file_to_data_frame(dataset_folder + "%s-normality-matrix-raw.tab"%map_lab_Stanford_to_UCSF[lab])
     raw_columns_ucsf = df_ucsf_raw.columns.values.tolist()
 
     '''
@@ -191,7 +250,7 @@ def apply_Stanford_to_UCSF():
     '''
     Use processed_matrix to select columns
     '''
-    df_stanford_processed = fm_io.read_file_to_data_frame(dataset_folder + 'LABMGN-normality-matrix-processed.tab')
+    df_stanford_processed = fm_io.read_file_to_data_frame(dataset_folder + '%s-normality-matrix-processed.tab'%lab)
     df_stanford_processed.pop('pat_id')
     df_stanford_processed.pop('all_components_normal') # TODO?!
     processed_columns_stanford = df_stanford_processed.columns.values.tolist()
@@ -208,13 +267,15 @@ def apply_Stanford_to_UCSF():
         if col_mapped in raw_columns_ucsf:
             impute_dict_new[col_mapped] = (i, impute_dict_old[col_selected])
         else:
+            print "Unknown:", col_mapped
+
             '''
             Features Unknown to Stanford
             '''
             df_ucsf_raw[col_mapped] = df_ucsf_raw['pat_id'].apply(lambda x: 0)
             impute_dict_new[col_mapped] = (i, 0) # TODO: better strategy later?
+    quit()
 
-            print "Unknown:", col_mapped
 
 
     '''
@@ -235,7 +296,7 @@ def apply_Stanford_to_UCSF():
     '''
     Load model
     '''
-    classifier = joblib.load(dataset_folder + 'LABMGN-normality-random-forest-model.pkl')
+    classifier = joblib.load(dataset_folder + '%s-normality-random-forest-model.pkl'%lab)
 
     print "Finished Loading!"
 
@@ -261,7 +322,7 @@ def statistic_analysis():
 
 if __name__ == '__main__':
     # main_pipelining(labs=['LABA1C'], data_source='testingSupervisedLearner')
-    # apply_Stanford_to_UCSF()
-    statistic_analysis()
+    apply_Stanford_to_UCSF(lab='LABNA')
+    # statistic_analysis()
 
 
