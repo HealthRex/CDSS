@@ -169,9 +169,10 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
         df['TP_cost'] = df['true_positive'] * df['total_cnt'] * df['medicare']
         df['FP_cost'] = df['false_positive'] * df['total_cnt'] * df['medicare']
         df['FN_cost'] = df['false_negative'] * df['total_cnt'] * df['medicare']
-        df['subtotal_cost'] = df['TP_cost'] + df['FP_cost'] + df['FN_cost']
+        df['TN_cost'] = df['true_negative'] * df['total_cnt'] * df['medicare']
+        df['total_cost'] = df['TP_cost'] + df['FP_cost'] + df['FN_cost'] + df['TN_cost']
 
-        df = df[['lab', 'TP_cost', 'FP_cost', 'FN_cost', 'subtotal_cost']]
+        df = df[['lab', 'TP_cost', 'FP_cost', 'FN_cost', 'TN_cost', 'total_cost']]
 
         df = df.sort_values('TP_cost')
         df.to_csv(data_path, index=False)
@@ -190,20 +191,26 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
     df['TP_cost'] = df['TP_cost'] * scale
     df['FP_cost'] = df['FP_cost'] * scale
     df['FN_cost'] = df['FN_cost'] * scale
-    df['subtotal_cost'] = df['subtotal_cost'] * scale
+    df['TN_cost'] = df['TN_cost'] * scale
+    df['total_cost'] = df['total_cost'] * scale
 
     # df['total_cost'] = df['TP_cost'] + df['FP_cost']
+    lab_descriptions['LABBLC'] = 'BLOOD CULTURE (AEROBIC & ANAEROBIC)'
+    lab_descriptions['LABBLC2'] = 'BLOOD CULTURE (2 AEROBIC)'
+
     df['lab_description'] = df['lab'].apply(
         lambda x: lab_descriptions[x])
 
     '''
     Top cost volume labs (with a medicare price)
     '''
-    labs_to_show = ['LABMGN', 'LABLIDOL', 'LABK', 'LABPHOS', 'LABTNI',
+    labs_to_show = ['LABMGN', 'LABBLC', 'LABBLC2', 'LABLIDOL', 'LABK', 'LABPHOS', 'LABTNI',
                     'LABPROCT', 'LABURIC', 'LABLAC', 'LABUSPG', 'LABHBSAG',
                     'LABLIPS', 'LABUOSM', 'LABANER', 'LABCK', 'LABPLTS',
-                    'LABUPREG', 'LABB12', 'LABMB', 'LABURNC', 'LABTRIG',
-                    'LABUOSM', 'LABA1C']
+                    'LABUPREG', 'LABB12',
+                    #'LABMB', 'LABURNC', 'LABTRIG'
+                    # 'LABUOSM', 'LABA1C'
+                    ]
     df = df[df['lab'].isin(labs_to_show)]
 
     '''
@@ -212,15 +219,19 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
     df['Annual TP cost'] = df['TP_cost'] * stats_utils.NUM_DISTINCT_ENCS /3. /1000.
     df[['lab_description', 'Annual TP cost']].sort_values('Annual TP cost', ascending=False).to_csv(os.path.join(result_folderpath, 'info_column.csv'), index=False, float_format='%.0f')
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax.barh(df['lab_description'], df['subtotal_cost'],
-            color='yellow', alpha=1, label='Abnormal, predicted normal')  # 'True Positive@0.95 train_PPV'
+    # fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(10, 6)) # LABBLC has too long name!
+    ax.barh(df['lab_description'], df['total_cost'],
+            color='blue', alpha=1, label='true negative')  # 'True Positive@0.95 train_PPV'
 
-    ax.barh(df['lab_description'], df['TP_cost']+df['FN_cost'],
-            color='green', alpha=1, label='Normal, predicted abnormal')
+    ax.barh(df['lab_description'], df['TP_cost']+df['FN_cost']+df['FP_cost'],
+            color='red', alpha=1, label='false positive')
+
+    ax.barh(df['lab_description'], df['TP_cost'] + df['FN_cost'],
+            color='yellow', alpha=1, label='false negative')
 
     ax.barh(df['lab_description'], df['TP_cost'],
-            color='blue', alpha=1, label='Normal, predicted normal')
+            color='green', alpha=1, label='true positive')
     # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
     #     ax.text(v + 2, i, str("{0:.0%}".format(df_sorted_by_cnts['normal_rate'].values[i])), color='k', fontweight='bold')
 
@@ -239,16 +250,16 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
     for tick in ax.xaxis.get_major_ticks():
         tick.label.set_fontsize(14)
 
-    change_legend_order = False
-    if change_legend_order:
-
-        handles, labels = ax.get_legend_handles_labels()
-        handles = [handles[1], handles[0]]
-        labels = [labels[1], labels[0]]
-
-        plt.legend(handles,labels, prop={'size': 11}, loc=(.4,.05))
-    else:
-        plt.legend(prop={'size': 11}, loc=(.4, .05))
+    # change_legend_order = False
+    # if change_legend_order:
+    #
+    #     handles, labels = ax.get_legend_handles_labels()
+    #     handles = [handles[1], handles[0]]
+    #     labels = [labels[1], labels[0]]
+    #
+    #     plt.legend(handles,labels, prop={'size': 11}, loc=(.4,.05))
+    # else:
+    #     plt.legend(prop={'size': 11}, loc=(.4, .05))
 
     plt.xlabel('Cost ($) per 1000 patient encounters', fontsize=14) # 'Total Amount (in %s) in 2014.07-2017.06, targeting PPV=%.2f'%(unit, targeted_PPV)
     # plt.xticks(range(0, 15001, 5000))
@@ -397,19 +408,19 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
     '''
     temp
     '''
-    lab_descriptions['LABMGN'] = ' \nMAGNESIUM\nSERUM/PLASMA'
-    lab_descriptions['LABBLC'] = ' \nBLOOD CULTURE\n(AEROBIC & ANAEROBIC BOTTLES)'
+    lab_descriptions['LABMGN'] = 'MAGNESIUM\nSERUM/PLASMA'
+    lab_descriptions['LABBLC'] = 'BLOOD CULTURE\n(AEROBIC & ANAEROBIC BOTTLES)'
 
     for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
         fig, ax = plt.subplots(figsize=(12, 8))
-        ax.barh(df_toplot['lab'], df_toplot['all_positive_vol'] / scale, color='yellow', alpha=1,
+        ax.barh(df_toplot['lab'], df_toplot['all_positive_vol'] / scale, color='red', alpha=1,
                 label='False Positive')
-        ax.barh(df_toplot['lab'], df_toplot['true_positive_vol'] / scale, color='blue', alpha=1, label='True Positive')
-
-        ax.barh(df_toplot['lab'], df_toplot['all_negative_vol'] / scale, color='green', alpha=1,
+        ax.barh(df_toplot['lab'], df_toplot['true_positive_vol'] / scale, color='green', alpha=1,
+                label='True Positive')
+        ax.barh(df_toplot['lab'], df_toplot['all_negative_vol'] / scale, color='yellow', alpha=1,
                 label='False Negative')
-        ax.barh(df_toplot['lab'], df_toplot['true_negative_vol'] / scale, color='orange', alpha=1,
+        ax.barh(df_toplot['lab'], df_toplot['true_negative_vol'] / scale, color='blue', alpha=1,
                 label='True Negative')
 
         for i, v in enumerate(df_toplot['all_positive_vol']/scale):
@@ -427,7 +438,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
         elif data_source == 'Stanford' and lab_type == 'component':
             plt.xlim([-8.5, 8])
         elif data_source == 'UCSF' and lab_type == 'panel':
-            plt.xlim([-2900, 3200])
+            plt.xlim([-3200, 3200])
 
         handles, labels = plt.gca().get_legend_handles_labels()
         order = [1, 0, 3, 2]
@@ -1292,7 +1303,7 @@ def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
 if __name__ == '__main__':
     print 'stats_sx running...'
 
-    figs_to_plot = ['Confusion_Metrics']
+    figs_to_plot = ['Potential_Savings']
 
     '''
     scale by each 1000 patient encounter
@@ -1398,6 +1409,6 @@ if __name__ == '__main__':
         draw__predicted_normal_fractions(statsByLab_folderpath=statsByDataSet_folderpath, targeted_PPV=0.95)
 
     if 'Potential_Savings' in figs_to_plot:
-        draw__Potential_Savings(statsByDataSet_folderpath, scale=scale, result_label='with_bluebar',
+        draw__Potential_Savings(statsByDataSet_folderpath, scale=scale, result_label='all_four',
                                 targeted_PPV=0.95, use_cached_fig_data=False)
 
