@@ -54,6 +54,7 @@ TODO: Specific pipelines do not "override" this singleton class, but calls its f
 
 import LocalEnv
 import os
+import pickle
 
 from medinfo.ml.FeatureSelector import FeatureSelector
 import pandas as pd
@@ -139,10 +140,75 @@ def get_algs():
 
 ############# Procedure functions #############
 
+def load_raw_matrix(lab, dataset_folderpath):
+    data_lab_folderpath = os.path.join(dataset_folderpath, lab)
+    raw_matrix_filepath = os.path.join(data_lab_folderpath, raw_matrix_template % lab)
+    fm_io = FeatureMatrixIO()
+
+    # TODO: check if raw matrix exists
+    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_filepath)
+    return raw_matrix
+
+def load_processed_matrix(lab, dataset_folderpath, type='full'):
+    data_lab_folderpath = os.path.join(dataset_folderpath, lab)
+
+    if type=='train':
+        matrix_filepath = os.path.join(data_lab_folderpath, processed_matrix_train_template % lab)
+    elif type=='evalu':
+        matrix_filepath = os.path.join(data_lab_folderpath, processed_matrix_evalu_template % lab)
+    else:
+        matrix_filepath = os.path.join(data_lab_folderpath, processed_matrix_template % lab)
+
+    fm_io = FeatureMatrixIO()
+
+    # TODO: check if raw matrix exists
+    matrix = fm_io.read_file_to_data_frame(matrix_filepath)
+    return matrix
+
+def load_imputation_template(lab, dataset_folderpath, lab_type='panel'):
+    data_lab_folderpath = os.path.join(dataset_folderpath, lab)
+    imputations = pickle.load(open(data_lab_folderpath + '/' + "feat2imputed_dict.pkl"))
+
+    if len(imputations) < 200: #
+        '''
+        only includes selected features
+        '''
+        return imputations
+
+    if lab_type == 'panel':
+        ylabel = 'all_components_normal'
+    else:
+        ylabel = 'component_normal'
+
+    '''
+    All raw matrix's columns are included. Have to extract final features from processed matrix
+    '''
+    fm_io = FeatureMatrixIO()
+    df_processed = fm_io.read_file_to_data_frame(
+        data_lab_folderpath + '/' + '%s-normality-matrix-processed.tab' % lab)
+    df_processed.pop('pat_id')
+    df_processed.pop(ylabel)  # TODO?!
+
+    processed_columns_stanford = df_processed.columns.values.tolist()
+
+    imputations_new = {}
+    for i, col_selected in enumerate(processed_columns_stanford):
+        imputations_new[col_selected] = (i, imputations[col_selected])
+    return imputations_new
+
+def load_ML_model(lab, alg, dataset_folderpath):
+    data_lab_folderpath = os.path.join(dataset_folderpath, lab)
+    return joblib.load(data_lab_folderpath + '/' + '%s-normality-%s-model.pkl' % (lab,alg))
+
+
+
+
+
+
 '''
 If do not want to use cached, just delete the file!
 '''
-def get_train_and_evalu_raw_matrices(lab, data_lab_folderpath, random_state,
+def get_train_and_evalu_raw_matrices(lab, dataset_folderpath, random_state,
                                     train_size=0.75, columnToSplitOn='pat_id'):
     '''
     If train and eval exist, direct get from disk
@@ -160,12 +226,16 @@ def get_train_and_evalu_raw_matrices(lab, data_lab_folderpath, random_state,
     Returns:
 
     '''
-    raw_matrix_filepath = os.path.join(data_lab_folderpath, raw_matrix_template % lab)
-    fm_io = FeatureMatrixIO()
+    # raw_matrix_filepath = os.path.join(data_lab_folderpath, raw_matrix_template % lab)
+    # fm_io = FeatureMatrixIO()
+    #
+    # # TODO: check if raw matrix exists
+    # raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_filepath)
 
-    # TODO: check if raw matrix exists
-    raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_filepath)
+    raw_matrix = get_raw_matrix(lab, dataset_folderpath)
 
+
+    data_lab_folderpath = os.path.join(dataset_folderpath, lab)
     pat_split_filepath = os.path.join(data_lab_folderpath, pat_split_filename)
 
     '''
@@ -200,7 +270,7 @@ def get_train_and_evalu_raw_matrices(lab, data_lab_folderpath, random_state,
     return raw_matrix_train, raw_matrix_evalu
 
 
-def get_train_and_evalu_processed_matrices(lab, data_lab_folderpath, features, random_state):
+def get_train_and_evalu_processed_matrices(lab, dataset_folderpath, features, random_state):
     '''
 
 
@@ -213,6 +283,7 @@ def get_train_and_evalu_processed_matrices(lab, data_lab_folderpath, features, r
     Returns:
 
     '''
+    data_lab_folderpath = os.path.join(dataset_folderpath, lab)
 
     processed_matrix_train_filepath = os.path.join(data_lab_folderpath, processed_matrix_train_template % lab)
     processed_matrix_evalu_filepath = os.path.join(data_lab_folderpath, processed_matrix_evalu_template % lab)
@@ -223,7 +294,7 @@ def get_train_and_evalu_processed_matrices(lab, data_lab_folderpath, features, r
         pass
 
     else:
-        raw_matrix_train, raw_matrix_evalu = get_train_and_evalu_raw_matrices(lab, data_lab_folderpath, random_state)
+        raw_matrix_train, raw_matrix_evalu = get_train_and_evalu_raw_matrices(lab, dataset_folderpath, random_state)
         assert raw_matrix_train.shape[0] > raw_matrix_evalu.shape[0]
         assert raw_matrix_train.shape[1] == raw_matrix_evalu.shape[1]
         '''
@@ -363,6 +434,7 @@ def process_matrix(raw_matrix, features, impute_template=None):
         for feature, ind_value_pair in impute_template.items():
             column_ind, impute_value = ind_value_pair
             processing_matrix[feature] = processing_matrix[feature].fillna(impute_value)
+
             columns_impute_ordered[column_ind] = feature
 
         # if 'abnormal_panel' not in processing_matrix.columns.values.tolist(): #TODO: delete in the future
@@ -468,7 +540,7 @@ def predict(X, y, ml_classifier, output_filepath):
     # direct_comparisons.columns = ['actual', 'predict']
     direct_comparisons.to_csv(output_filepath, index=False)
 
-def standard_pipeline(lab, algs, learner_params, data_lab_folderpath, random_state):
+def standard_pipeline(lab, algs, learner_params, dataset_folderpath, random_state):
     '''
     This pipelining procedure is consistent to the previous SupervisedLearningPipeline.py
 
@@ -494,7 +566,7 @@ def standard_pipeline(lab, algs, learner_params, data_lab_folderpath, random_sta
     processed_matrix_train, processed_matrix_evalu = \
         get_train_and_evalu_processed_matrices(lab=lab,
                                                features=learner_params['features'],
-                                               data_lab_folderpath=data_lab_folderpath,
+                                               dataset_folderpath=dataset_folderpath,
                                                random_state=random_state)
 
     '''

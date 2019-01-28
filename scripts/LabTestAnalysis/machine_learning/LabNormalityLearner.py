@@ -15,19 +15,53 @@ from sklearn.externals import joblib
 import ml_utils
 
 
-outcome_label = 'all_components_normal'
+# outcome_label = 'all_components_normal'
+#
+# info_features = ['pat_id', 'order_proc_id', 'proc_code', 'order_time']
+# leak_features = ['abnormal_panel', 'num_components', 'num_normal_components']
+#
+# non_impute_features = info_features + leak_features + [outcome_label]
+#
+# features_dict = {
+#     'non_impute_features':non_impute_features,
+#     'outcome_label':outcome_label,
+#     'info_features':info_features,
+#     'leak_features':leak_features
+# }
 
-info_features = ['pat_id', 'order_proc_id', 'proc_code', 'order_time']
-leak_features = ['abnormal_panel', 'num_components', 'num_normal_components']
 
-non_impute_features = info_features + leak_features + [outcome_label]
+def get_feature_dict():
+    features = {}
+    features['remove'] = ['order_time', 'order_proc_id',  # TODO: consistency w/ prev system
+                          'Birth.pre',
+                          'Male.preTimeDays', 'Female.preTimeDays',
+                          'RaceWhiteHispanicLatino.preTimeDays',
+                          'RaceWhiteNonHispanicLatino.preTimeDays',
+                          'RaceHispanicLatino.preTimeDays',
+                          'RaceAsian.preTimeDays',
+                          'RaceBlack.preTimeDays',
+                          'RacePacificIslander.preTimeDays',
+                          'RaceNativeAmerican.preTimeDays',
+                          'RaceOther.preTimeDays',
+                          'RaceUnknown.preTimeDays',
+                          'Death.post',
+                          'Death.postTimeDays']  # TODO: order_proc_id as info?!
 
-features_dict = {
-    'non_impute_features':non_impute_features,
-    'outcome_label':outcome_label,
-    'info_features':info_features,
-    'leak_features':leak_features
-}
+    if lab_type == 'panel':
+        features['remove'] += ['proc_code', 'num_components', 'num_normal_components', 'abnormal_panel']
+        features['ylabel'] = 'all_components_normal'
+    else:
+        features['remove'] += ['base_name']
+        features['ylabel'] = 'component_normal'
+    features['keep'] = ['%s.pre' % lab]
+
+    features['info'] = ['pat_id']
+    # features['id'] =
+
+    features['select_params'] = {'selection_problem': FeatureSelector.CLASSIFICATION,
+                                 'selection_algorithm': FeatureSelector.RECURSIVE_ELIMINATION,
+                                 'percent_features_to_select': 0.05}
+    return features
 
 
 # TODO: Write test to make sure:
@@ -108,37 +142,7 @@ def main_pipelining(labs,
         Standard pipeline
         '''
         # print raw_matrix_train.head()
-        features = {}
-        features['remove'] = ['order_time', 'order_proc_id', # TODO: consistency w/ prev system
-                'Birth.pre',
-                'Male.preTimeDays', 'Female.preTimeDays',
-                'RaceWhiteHispanicLatino.preTimeDays',
-                'RaceWhiteNonHispanicLatino.preTimeDays',
-                'RaceHispanicLatino.preTimeDays',
-                'RaceAsian.preTimeDays',
-                'RaceBlack.preTimeDays',
-                'RacePacificIslander.preTimeDays',
-                'RaceNativeAmerican.preTimeDays',
-                'RaceOther.preTimeDays',
-                'RaceUnknown.preTimeDays',
-                'Death.post',
-                'Death.postTimeDays'] # TODO: order_proc_id as info?!
-
-
-        if lab_type == 'panel':
-            features['remove'] += ['proc_code', 'num_components', 'num_normal_components', 'abnormal_panel']
-            features['ylabel'] = 'all_components_normal'
-        else:
-            features['remove'] += ['base_name']
-            features['ylabel'] = 'component_normal'
-        features['keep'] = ['%s.pre'%lab]
-
-        features['info'] = ['pat_id']
-        # features['id'] =
-
-        features['select_params'] = {'selection_problem': FeatureSelector.CLASSIFICATION,
-                                     'selection_algorithm': FeatureSelector.RECURSIVE_ELIMINATION,
-                                     'percent_features_to_select': 0.05}
+        features = get_feature_dict()
 
         learner_params = {'features':features}
         SL.standard_pipeline(lab=lab,
@@ -151,15 +155,9 @@ def main_pipelining(labs,
 
         # TODO: check baseline and ml alg come from the same dataset!
 
-map_lab_Stanford_to_UCSF = {'LABMGN':'Magnesium, Serum - Plasma',
-               'LABCAI':'Calcium, Ionized, serum-plasma',
-                            'LABURIC':'Uric Acid, Serum - Plasma',
-                            'LABALB':'Albumin, Serum - Plasma',
-                            'LABTSH':'Thyroid Stimulating Hormone',
-                            'LABTNI':'Troponin I',
-                            'LABK':'Potassium, Serum - Plasma',
-                            'LABNA':'Sodium, Serum - Plasma'
-                            }
+
+
+
 
 def map_col_Stanford_to_UCSF(col):
 
@@ -176,127 +174,188 @@ def map_col_Stanford_to_UCSF(col):
     vitals mapping
     '''
 
-    col = col.replace('BP_Low_Diastolic', 'DBP')
-    col = col.replace('BP_High_Systolic', 'SBP')
-
+    for key, val in ml_utils.map_vitals_from_Stanford_to_UCSF.items():
+        if col[:len(key)+1] == key+'.':
+            col = col.replace(key, val)
 
     '''
-    component mapping
+    component mapping, only replace if it is a pre-fix
     '''
-    col = col.replace('CR', 'CREAT')
-    col = col.replace('PO2A', 'PO2')
-    col = col.replace('PO2V', 'PO2')
-    col = col.replace('PCO2A', 'PCO2')
-
-    col = col.replace('CAION', 'CAI')
-    if col[:3] == 'TNI':
-        col = col.replace('TNI', 'TRPI')
-
-    if col[:2] == 'NA':
-        col = col.replace('NA', 'NAWB') # TODO: make clear!
-    col = col.replace('LAC', 'LACTWB')
-
-    col = col.replace('TBIL', 'TBILI')
+    for key, val in ml_utils.map_component_from_Stanford_to_UCSF.items():
+        if col[:len(key)+1] == key+'.':
+            col = col.replace(key, val)
 
     '''
     cormobidity mapping
     '''
-    col = col.replace('Malignancy', 'Cancer')
-    col = col.replace('CHF', 'CongestiveHeartFailure')
-    col = col.replace('MI', 'MyocardialInfarction')
-    col = col.replace('Cerebrovascular', 'Cerebrovascular Disease')
+    for key, val in ml_utils.map_cormobidity_from_Stanford_to_UCSF.items():
+        if col[:len(key)+1] == key+'.':
+            col = col.replace(key, val)
 
     '''
     team mapping
     '''
-    col = col.replace('CVICU', 'ICU')
+    for key, val in ml_utils.map_team_from_Stanford_to_UCSF.items():
+        if col[:len(key)+1] == key+'.':
+            col = col.replace(key, val)
 
-    for lab_stanford, lab_ucsf in map_lab_Stanford_to_UCSF.items():
-        col = col.replace(lab_stanford, lab_ucsf)
-
-
+    '''
+    The lab of interest
+    '''
+    for lab_stanford, lab_ucsf in ml_utils.map_lab_Stanford_to_UCSF.items():
+        col = col.replace(lab_stanford, lab_ucsf) # TODO: very dangerous for pre-fix, BLC2!
 
     return col
 
 
-def apply_Stanford_to_UCSF(lab='LABMGN'):
+def apply_Stanford_to_UCSF(lab, lab_type,
+                           src_dataset_folderpath,
+                           dst_dataset_folderpath,
+                           output_folderpath):
+    '''
+    What: Use case that transfers model from one institute (src) to another (dst)
+
+    Why:
+    TODO: automatically recognize lab_type
+
+    How:
+    Load inputs:
+    (1) Read dst raw matrix from dst dataset_folder/lab
+    (2) Read src imputation template (only includes final features) from src dataset_folder/lab
+    (3) Read src trained model from src dataset_folder/lab
+
+    Process:
+    (1)
+    Create a dst imputation template
+    For each src feature in the src imputation template
+        map the feature to dst column
+        if not exists such dst column:
+            create a new column in the dst raw matrix, fill with the src imputing value
+
+    (2)
+    Feed into process_matrix, pop pat_id and info features, split Xy
+
+    (3)
+    Feed X into classifier, get y_pred, write to direct_comparisons with y_true
+
+    Args:
+        lab:
+        lab_type:
+        dataset_folder:
+
+    Returns:
+
+    '''
     from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
     import pickle
+    '''
+        Helper function
+        '''
+    fm_io = FeatureMatrixIO()
+
+    if lab_type == 'panel':
+        ylabel = 'all_components_normal'
+    else:
+        ylabel = 'component_normal'
+
+
+
 
     '''
     Data folder
     '''
-    dataset_folder = "data-apply-Stanford-to-UCSF-10000-episodes/%s/"%lab
+    lab_folder = os.path.join(dataset_folder, lab)
 
-    '''
-    Helper function
-    '''
-    fm_io = FeatureMatrixIO()
 
     '''
     Load raw data from UCSF
     '''
-    df_ucsf_raw = fm_io.read_file_to_data_frame(dataset_folder + "%s-normality-matrix-raw.tab"%map_lab_Stanford_to_UCSF[lab])
+    df_ucsf_raw = SL.get_raw_matrix(lab=lab, dataset_folderpath=dst_dataset_folderpath)
+
+    imputations_stanford = SL.get_imputation_template(lab=lab, dataset_folderpath=dst_dataset_folderpath)
+
+    classifier = SL.get_ML_model(lab=lab, alg='random-forest', dataset_folderpath=dst_dataset_folderpath)
+
+
+
+
+
+    # df_ucsf_raw = fm_io.read_file_to_data_frame(lab_folder + '/' + "%s-normality-matrix-raw.tab"%map_lab_Stanford_to_UCSF[lab])
     raw_columns_ucsf = df_ucsf_raw.columns.values.tolist()
+
+    '''
+    From test processed, get the patient evalu set  
+    '''
+
+    df_ucsf_processed_evalu = SL.load_processed_matrix(lab, dst_dataset_folderpath, type='evalu') #fm_io.read_file_to_data_frame(lab_folder + '/'  + "%s-normality-test-matrix-processed.tab" % map_lab_Stanford_to_UCSF[lab])
+    patIds_ucsf_evalu = ml_utils.get_patIds(df_ucsf_processed_evalu) #set(df_ucsf_processed_evalu['pat_id'].values.tolist())
+
+    df_ucsf_raw_evalu = df_ucsf_raw[df_ucsf_raw['pat_id'].isin(patIds_ucsf_evalu)]
+
+
+    assert df_ucsf_raw.shape[0] > df_ucsf_raw_evalu.shape[0]
 
     '''
     Load imputation template from Stanford 
     
     TODO: this is old-versioned template, (1) without column order and (2) a lot of unnecessary columns. 
     '''
-    impute_dict_old = pickle.load(open(dataset_folder + "feat2imputed_dict.pkl"))
-    del impute_dict_old['all_components_normal'] # TODO?!
 
-    '''
-    Use processed_matrix to select columns
-    '''
-    df_stanford_processed = fm_io.read_file_to_data_frame(dataset_folder + '%s-normality-matrix-processed.tab'%lab)
-    df_stanford_processed.pop('pat_id')
-    df_stanford_processed.pop('all_components_normal') # TODO?!
-    processed_columns_stanford = df_stanford_processed.columns.values.tolist()
+    # del impute_dict_old[ylabel] #
+
+
 
     '''
     Finding the corresponding UCSF column of each Stanford's processed feature
     If this feature exists in UCSF, then good
     If not, create dummy feature for UCSF raw matrix!
     '''
-    impute_dict_new = {}
-    for i, col_selected in enumerate(processed_columns_stanford):
-        col_mapped = map_col_Stanford_to_UCSF(col_selected)
+    imputations_ucsf = {}
 
-        if col_mapped in raw_columns_ucsf:
-            impute_dict_new[col_mapped] = (i, impute_dict_old[col_selected])
-        else:
-            print "Unknown:", col_mapped
+    for feature, ind_val_pair in imputations_stanford:
+        feature_ucsf = map_col_Stanford_to_UCSF(feature)
+        if feature_ucsf not in raw_columns_ucsf:
 
-            '''
-            Features Unknown to Stanford
-            '''
-            df_ucsf_raw[col_mapped] = df_ucsf_raw['pat_id'].apply(lambda x: 0)
-            impute_dict_new[col_mapped] = (i, 0) # TODO: better strategy later?
-    quit()
+        imputations_ucsf[]
 
-
-
+    # for i, col_selected in enumerate(processed_columns_stanford):
+    #     col_mapped = map_col_Stanford_to_UCSF(col_selected)
+    #
+    #     if col_mapped not in raw_columns_ucsf:
+    #         print "Unknown:", col_mapped
+    #         '''
+    #         Stanford feature that has not corresponding UCSF one; create dummy UCSF column
+    #         '''
+    #
+    #         df_ucsf_raw_evalu[col_mapped] = df_ucsf_raw_evalu['pat_id'].apply(lambda x: 0)
+    #
+    #     '''
+    #     Use Stanford mean to impute
+    #     '''
+    #     if col_mapped in df_ucsf_raw_evalu:
+    #         # print col_mapped # TODO: XPPT and PPT are the same thing?
+    #         pass
+    #
+    #     impute_dict_new[col_mapped] = (i, impute_dict_old[col_selected]) #
     '''
     Feature auxillary
     '''
-    features = {'ylabel': 'all_components_normal',
+    features = {'ylabel': ylabel,
                 'info': ['pat_id']}
 
-    df_ucsf_processed, _ = SL.process_matrix(df_ucsf_raw, features, impute_template=impute_dict_new)
+    df_ucsf_processed_evalu, _ = SL.process_matrix(df_ucsf_raw_evalu, features, impute_template=impute_dict_new)
 
     print "Finished processing!"
 
 
     # df_ucsf_processed.pop('all_components_normal')
-    df_ucsf_processed.pop('pat_id')
+    df_ucsf_processed_evalu.pop('pat_id')
 
 
     '''
     Load model
     '''
-    classifier = joblib.load(dataset_folder + '%s-normality-random-forest-model.pkl'%lab)
+
 
     print "Finished Loading!"
 
@@ -306,23 +365,27 @@ def apply_Stanford_to_UCSF(lab='LABMGN'):
     print classifier._params_random_forest()['decision_features']
 
 
-    X_evalu, y_evalu = SL.split_Xy(data_matrix=df_ucsf_processed,
+    X_evalu, y_evalu = SL.split_Xy(data_matrix=df_ucsf_processed_evalu,
                                 outcome_label='all_components_normal')
-    SL.predict(X_evalu, y_evalu, classifier, output_filepath=dataset_folder+'direct_comparisons.csv')
+    SL.predict(X_evalu, y_evalu, classifier, output_filepath=lab_folder + '/' +'direct_comparisons.csv')
 
 
-def statistic_analysis():
+def statistic_analysis(lab, dataset_folder):
     from sklearn.metrics import roc_auc_score, roc_curve, precision_recall_curve, average_precision_score
 
-    dataset_folder = "data-apply-Stanford-to-UCSF-10000-episodes/LABMGN/"
-    direct_comparisons = pd.read_csv(dataset_folder + 'direct_comparisons.csv')
+    direct_comparisons = pd.read_csv(os.path.join(dataset_folder, lab, 'direct_comparisons.csv'))
     # print direct_comparisons
     print roc_auc_score(direct_comparisons['actual'].values, direct_comparisons['predict'].values)
 
 
 if __name__ == '__main__':
     # main_pipelining(labs=['LABA1C'], data_source='testingSupervisedLearner')
-    apply_Stanford_to_UCSF(lab='LABNA')
-    # statistic_analysis()
+    dataset_folder = "data-apply-Stanford-to-UCSF-10000-episodes"
+    lab = 'LABURIC'
+    lab_type = 'panel'
+
+
+    # apply_Stanford_to_UCSF(lab=lab, lab_type=lab_type, dataset_folder=dataset_folder)
+    statistic_analysis(lab=lab, dataset_folder=dataset_folder)
 
 

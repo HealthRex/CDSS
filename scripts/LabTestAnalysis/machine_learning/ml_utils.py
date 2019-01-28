@@ -7,6 +7,81 @@ Not aware of file system organization
 
 '''
 import pandas as pd
+import os
+
+
+BASIC_LAB_COMPONENTS = [
+                'WBC',  # White Blood Cell
+                'HCT',  # Hematocrit
+                'PLT',  # Platelet Count
+                'NA',  # Sodium, Whole Blood
+                'K',  # Potassium, Whole Blood
+                'CO2',  # CO2, Serum/Plasma
+                'BUN',  # Blood Urea Nitrogen
+                'CR',  # Creatinine
+                'TBIL',  # Total Bilirubin
+                'ALB',  # Albumin
+                'CA',  # Calcium
+                'LAC',  # Lactic Acid
+                'ESR',  # Erythrocyte Sedimentation Rate
+                'CRP',  # C-Reactive Protein
+                'TNI',  # Troponin I
+                'PHA',  # Arterial pH
+                'PO2A',  # Arterial pO2
+                'PCO2A',  # Arterial pCO2
+                'PHV',  # Venous pH
+                'PO2V',  # Venous pO2
+                'PCO2V'  # Venous pCO2
+            ]
+
+map_component_from_Stanford_to_UCSF = {
+'CR': 'CREAT',
+'PO2A': 'PO2',
+'PO2V': 'PO2',
+'PCO2A': 'PCO2',
+'PCO2V': 'PCO2',
+'PHOS': 'PO4',
+'CAION': 'CAI',
+'TNI': 'TRPI',
+'NA': 'NAWB',
+'LAC': 'LACTWB',
+'TBIL': 'TBILI'
+}
+
+map_cormobidity_from_Stanford_to_UCSF = {
+'Malignancy': 'Cancer',
+'CHF': 'CongestiveHeartFailure',
+'MI': 'MyocardialInfarction',
+'Cerebrovascular': 'CerebrovascularDisease',
+'Diabetes': 'Diabeteswithoutcomplications'
+}
+
+map_team_from_Stanford_to_UCSF = {
+'CVICU': 'ICU'
+}
+
+map_vitals_from_Stanford_to_UCSF = {
+'BP_Low_Diastolic': 'DBP',
+'BP_High_Systolic': 'SBP'
+}
+
+map_lab_from_Stanford_to_UCSF = {'LABMGN':'Magnesium, Serum - Plasma',
+               'LABCAI':'Calcium, Ionized, serum-plasma',
+                            'LABURIC':'Uric Acid, Serum - Plasma',
+                            'LABALB':'Albumin, Serum - Plasma',
+                            'LABTSH':'Thyroid Stimulating Hormone',
+                            'LABTNI':'Troponin I',
+                            'LABK':'Potassium, Serum - Plasma',
+                            'LABNA':'Sodium, Serum - Plasma',
+                            # 'LABBLC':'Peripheral Blood Culture', # TODO
+                            'LABBLC2':'Peripheral Blood Culture',
+                            'LABPHOS':'Phosphorus, Serum - Plasma',
+                            # 'LABPT':'Prothrombin Time', # TODO
+                            'LABPTT':'Activated Partial Thromboplastin Time'
+                            }
+
+def get_patIds(data_matrix):
+    return set(data_matrix['pat_id'].values.tolist())
 
 def test_get_baseline():
     df_1 = pd.DataFrame([[123, '2014-01-01', 1, 2]], columns=['pat_id', 'order_time', 'actual', 'predict'])
@@ -16,6 +91,7 @@ def test_get_baseline():
 
 
 def get_baseline(df_train, df_test, y_label):
+    print df_test[['pat_id', 'order_time', y_label]].copy().head()
     df_res = df_test[['pat_id', 'order_time', y_label]].copy().rename(columns={y_label:'actual'}) # Not change the input
 
     prevalence = float(df_train[y_label].values.sum()) / float(df_train.shape[0])
@@ -28,6 +104,8 @@ def get_baseline(df_train, df_test, y_label):
             df_res.ix[i, 'predict'] = df_res.ix[i-1, 'actual']
 
     return df_res[['actual', 'predict']]
+
+
 
 if __name__ == '__main__':
     test_get_baseline()
