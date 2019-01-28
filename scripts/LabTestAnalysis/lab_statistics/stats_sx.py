@@ -23,7 +23,7 @@ all_algs = stats_utils.all_algs
 #
 DEFAULT_TIMELIMIT = stats_utils.DEFAULT_TIMELIMIT
 #
-lab_descriptions = stats_utils.get_lab_descriptions(line_break_at=None)
+lab_descriptions = stats_utils.get_lab_descriptions(line_break_at=16)
 
 
 
@@ -204,10 +204,11 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
     '''
     Top cost volume labs (with a medicare price)
     '''
-    labs_to_show = ['LABMGN', 'LABBLC', 'LABBLC2', 'LABLIDOL', 'LABK', 'LABPHOS', 'LABTNI',
+    labs_to_show = ['LABMGN', 'LABBLC', 'LABBLC2', 'LABLIDOL', 'LABK', 'LABNA', 'LABPHOS', 'LABTNI',
                     'LABPROCT', 'LABURIC', 'LABLAC', 'LABUSPG', 'LABHBSAG',
                     'LABLIPS', 'LABUOSM', 'LABANER', 'LABCK', 'LABPLTS',
-                    'LABUPREG', 'LABB12',
+                    'LABB12', 'LABTNI',
+                    #'LABUPREG','LABALB',
                     #'LABMB', 'LABURNC', 'LABTRIG'
                     # 'LABUOSM', 'LABA1C'
                     ]
@@ -222,16 +223,16 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
     # fig, ax = plt.subplots(figsize=(8, 6))
     fig, ax = plt.subplots(figsize=(10, 6)) # LABBLC has too long name!
     ax.barh(df['lab_description'], df['total_cost'],
-            color='blue', alpha=1, label='true negative')  # 'True Positive@0.95 train_PPV'
+            color='royalblue', alpha=1, label='true negative')  # 'True Positive@0.95 train_PPV'
 
     ax.barh(df['lab_description'], df['TP_cost']+df['FN_cost']+df['FP_cost'],
-            color='red', alpha=1, label='false positive')
+            color='orangered', alpha=1, label='false positive')
 
     ax.barh(df['lab_description'], df['TP_cost'] + df['FN_cost'],
-            color='yellow', alpha=1, label='false negative')
+            color='gold', alpha=1, label='false negative')
 
     ax.barh(df['lab_description'], df['TP_cost'],
-            color='green', alpha=1, label='true positive')
+            color='forestgreen', alpha=1, label='true positive')
     # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
     #     ax.text(v + 2, i, str("{0:.0%}".format(df_sorted_by_cnts['normal_rate'].values[i])), color='k', fontweight='bold')
 
@@ -414,13 +415,13 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
     for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
         fig, ax = plt.subplots(figsize=(12, 8))
-        ax.barh(df_toplot['lab'], df_toplot['all_positive_vol'] / scale, color='red', alpha=1,
+        ax.barh(df_toplot['lab'], df_toplot['all_positive_vol'] / scale, color='orangered', alpha=1,
                 label='False Positive')
-        ax.barh(df_toplot['lab'], df_toplot['true_positive_vol'] / scale, color='green', alpha=1,
+        ax.barh(df_toplot['lab'], df_toplot['true_positive_vol'] / scale, color='forestgreen', alpha=1,
                 label='True Positive')
-        ax.barh(df_toplot['lab'], df_toplot['all_negative_vol'] / scale, color='yellow', alpha=1,
+        ax.barh(df_toplot['lab'], df_toplot['all_negative_vol'] / scale, color='gold', alpha=1,
                 label='False Negative')
-        ax.barh(df_toplot['lab'], df_toplot['true_negative_vol'] / scale, color='blue', alpha=1,
+        ax.barh(df_toplot['lab'], df_toplot['true_negative_vol'] / scale, color='royalblue', alpha=1,
                 label='True Negative')
 
         for i, v in enumerate(df_toplot['all_positive_vol']/scale):
@@ -1300,10 +1301,8 @@ def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
     plt.savefig(result_figpath)
 
 
-if __name__ == '__main__':
+def main(figs_to_plot):
     print 'stats_sx running...'
-
-    figs_to_plot = ['Potential_Savings']
 
     '''
     scale by each 1000 patient encounter
@@ -1314,7 +1313,8 @@ if __name__ == '__main__':
     ml_folderpath = os.path.join(stats_utils.main_folder, 'machine_learning')
 
     import LocalEnv
-    statsByDataSet_foldername = 'data-%s-%s-10000-episodes'%(data_source, lab_type) #'results-from-panels-10000-to-panels-5000-part-1_medicare/'
+    statsByDataSet_foldername = 'data-%s-%s-10000-episodes' % (
+    data_source, lab_type)  # 'results-from-panels-10000-to-panels-5000-part-1_medicare/'
     statsByDataSet_folderpath = os.path.join(stats_folderpath, statsByDataSet_foldername)
     if not os.path.exists(statsByDataSet_folderpath):
         os.mkdir(statsByDataSet_folderpath)
@@ -1328,7 +1328,6 @@ if __name__ == '__main__':
         comparing_components(stats_folderpath)
 
     if 'Order_Intensities' in figs_to_plot:
-
         classic_labs = list(set(labs_common_panels + labs_guideline + stats_utils.get_important_labs()))
 
         import stats_database
@@ -1343,7 +1342,8 @@ if __name__ == '__main__':
                                 to_annotate_percentages=True)
 
     if 'Normality_Saturations' in figs_to_plot:
-        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels) - set(['LABTSH', 'LABLDH']))
+        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels) - set(
+            ['LABTSH', 'LABLDH']))
 
         draw__Normality_Saturations(statsByDataSet_folderpath, labs=labs, use_cached_fig_data=True)
 
@@ -1360,12 +1360,12 @@ if __name__ == '__main__':
     if 'ROC' in figs_to_plot or 'PRC' in figs_to_plot:
         '''
         1. typical labs are for show in the main text
-        
+
         2. all labs for putting in the Appendix
         '''
         typical_labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
 
-        lab_set, set_label = all_labs, 'all_labs' #typical_labs, 'typical_labs'
+        lab_set, set_label = all_labs, 'all_labs'  # typical_labs, 'typical_labs'
 
         if 'ROC' in figs_to_plot:
             top_improved_labs = ['LABBUN', 'LABUOSM', 'LABSTOBGD', 'LABPCCR', 'LABFE', 'LABCRP', 'LABPCTNI',
@@ -1374,19 +1374,24 @@ if __name__ == '__main__':
                                  'LABCSFTP', 'LABDIGL', 'LABNTBNP', 'LABURIC', 'LABHEPAR', 'LABMGN', 'LABLAC',
                                  'LABLIDOL', 'LABHCTX', 'LABPTT', 'LABCA', 'LABRETIC', 'LABSPLAC', 'LABTRIG']
             # lab_set, set_label = top_improved_labs, 'top_improved_labs'
-            draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=['random-forest'], result_label=set_label)
+            draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=['random-forest'],
+                               result_label=set_label)
         if 'PRC' in figs_to_plot:
-            draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=['random-forest'], result_label=set_label)
+            draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=['random-forest'],
+                               result_label=set_label)
 
         merge_ROC_PRC = True
         if merge_ROC_PRC:
-            df_ROC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs', '%s_%s_ROC.csv'%(data_source,lab_type)), keep_default_na=False)
-            df_PRC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs', '%s_%s_PRC.csv'%(data_source,lab_type)), keep_default_na=False)
+            df_ROC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs',
+                                              '%s_%s_ROC.csv' % (data_source, lab_type)), keep_default_na=False)
+            df_PRC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs',
+                                              '%s_%s_PRC.csv' % (data_source, lab_type)), keep_default_na=False)
 
             df_combined = pd.merge(df_ROC, df_PRC, on='lab', how='left')
             df_combined.pop('ROC p value')
             df_combined.pop('PRC p value')
-            df_combined.to_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs', '%s_%s_ROC_PRC.csv'%(data_source,lab_type)),
+            df_combined.to_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs',
+                                            '%s_%s_ROC_PRC.csv' % (data_source, lab_type)),
                                index=False)
 
     if 'plot_cartoons' in figs_to_plot:
@@ -1395,15 +1400,15 @@ if __name__ == '__main__':
     if 'Confusion_Metrics' in figs_to_plot:
         panels = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
         print all_labs
-        components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA',\
-    'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
+        components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA', \
+                      'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
 
         if data_source == 'Stanford':
             draw__Confusion_Metrics(statsByDataSet_folderpath, labs=panels, result_label='change_colors',
                                     targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
         elif data_source == 'UCSF':
             draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='change_colors',
-                targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
+                                    targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
 
     if 'Predicted_Normal' in figs_to_plot:
         draw__predicted_normal_fractions(statsByLab_folderpath=statsByDataSet_folderpath, targeted_PPV=0.95)
@@ -1411,4 +1416,61 @@ if __name__ == '__main__':
     if 'Potential_Savings' in figs_to_plot:
         draw__Potential_Savings(statsByDataSet_folderpath, scale=scale, result_label='all_four',
                                 targeted_PPV=0.95, use_cached_fig_data=False)
+
+def draw_histogram_transfer_modeling():
+    print "Running draw_histogram_transfer_modeling..."
+    base_S, ml_S = 0.64, 0.62
+    base_UC, ml_UC = 0.57, 0.59
+    transfer = 0.591
+
+    labs = ['LABCAI', 'LABURIC', 'LABALB', 'LABTSH', 'LABMGN',
+            'LABPHOS', 'LABPT', 'LABPTT', #'LABNA',
+            'LABK', 'LABTNI']
+    bases_UC = [0.78, 0.86, 0.77, 0.57, 0.72, 0.74, 0.87, 0.85, #0.81,
+                0.68, 0.83]
+    ml_UC = [0.84, 0.91, 0.90, 0.59, 0.80, 0.81, 0.93, 0.92, #0.90,
+             0.75, 0.90]
+    transfers = [0.74, 0.25, 0.87, 0.591, 0.793, 0.772, 0.881, 0.791, #0.587,
+                 0.705, 0.77]
+
+    lab_descriptions['LABURIC'] = 'URIC ACID,\n SERUM/PLASMA'
+    lab_descriptions['LABMGN'] = 'MAGNESIUM,\n SERUM/PLASMA'
+    lab_descriptions['LABK'] = 'POTASSIUM,\n SERUM/PLASMA'
+
+    lab_descriptions['LABALB'] = 'ALBUMIN,\n SERUM/PLASMA'
+    lab_descriptions['LABTSH'] = 'THYROID STIMULATING\n HORMONE'
+    lab_descriptions['LABPHOS'] = 'PHOSPHORUS,\n SERUM/PLASMA'
+    lab_descriptions['LABPTT'] = 'PTT PARTIAL\n THROMBOPLASTIN TIME'
+
+    row, col, i_s, j_s = stats_utils.prepare_subfigs(num_figs=len(labs), col=5)
+    for ind, lab in enumerate(labs):
+        i, j = i_s[ind], j_s[ind]
+        plt.subplot2grid((row, col), (i, j))
+
+        barlist = plt.bar(range(3), [bases_UC[ind], transfers[ind], ml_UC[ind]],
+                          width=0.25)
+        barlist[0].set_color('b')
+        barlist[1].set_color('g')
+        barlist[2].set_color('r')
+        # plt.bar([x+0.25 for x in range(len(labs))], transfers, width=0.25, label='Model transfering')
+
+        # plt.xticks(range(3), ['BL', 'TR', 'ML'])
+        plt.xticks([])
+        plt.xlabel(lab_descriptions[lab])
+
+        if ind == 0:
+            plt.legend()
+
+        plt.ylim([0.5,1])
+        plt.yticks([0.5,1])
+
+        # plt.legend()
+        plt.tight_layout()
+        plt.savefig('histogram_model_transfering.png')
+
+
+
+if __name__ == '__main__':
+    # main(figs_to_plot=['Potential_Savings']) # 'Confusion_Metrics' 'Potential_Savings'
+    draw_histogram_transfer_modeling()
 

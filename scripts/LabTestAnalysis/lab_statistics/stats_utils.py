@@ -326,7 +326,7 @@ def get_important_labs(lab_type='panel', order_by=None):
         # labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
         #                                     time_limit=['2014-01-01','2016-12-31'])])
         # TODO: ISTAT TROPONIN?
-        return ['LABMGN', 'LABALB', 'LABPHOS', 'LABLAC', 'LABBLC', 'LABBLC2', 'LABLDH', 'LABURIC', 'LABTNI'] #, 'LABNA', 'LABK'
+        return ['LABMGN', 'LABALB', 'LABPHOS', 'LABLAC', 'LABBLC', 'LABBLC2', 'LABLDH', 'LABURIC', 'LABTNI', 'LABNA', 'LABK'] #,
 
         #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
     elif lab_type == 'component':
@@ -1188,8 +1188,9 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
         elif price_source == 'medicare':
             medicare_price_dict = get_medicare_price_dict()
             cur_price = medicare_price_dict.get(lab, float('nan'))
-            df_prices_dict = {'min_price':cur_price, 'max_price':cur_price,
-                              'mean_price':cur_price, 'median_price':cur_price}
+            # df_prices_dict = {'min_price':cur_price, 'max_price':cur_price,
+            #                   'mean_price':cur_price, 'median_price':cur_price}
+            df_prices_dict = {'medicare':cur_price}
 
 
 
@@ -1508,12 +1509,5 @@ if __name__ == '__main__':
     # print get_labvol('LABA1C', time_limit=['2016-01-01', '2016-06-30'])
     # print get_labvol('LABA1C', time_limit=['2016-07-01', '2016-12-31'])
     # print get_labvol('LABA1C', time_limit=['2017-01-01', '2017-06-30'])
-
-    print sum([
-2819,
-2779,
-2762,
-2901,
-2979,
-3170,
-272])
+    print get_labvol('LABALB')
+    # print get_medicare_price_dict()
