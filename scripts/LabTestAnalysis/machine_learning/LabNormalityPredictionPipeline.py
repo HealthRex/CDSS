@@ -547,7 +547,7 @@ if __name__ == '__main__':
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
         if LocalEnv.LAB_TYPE == 'panel':
-            for panel in ['LABNA']:#NON_PANEL_TESTS_WITH_GT_500_ORDERS:#['LABMGN', 'LABK', 'LABLAC']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+            for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS:#['LABMGN', 'LABK', 'LABLAC']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
                 LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
                                                timeLimit=(None, None), notUsePatIds=None, holdOut=False)
                 # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
