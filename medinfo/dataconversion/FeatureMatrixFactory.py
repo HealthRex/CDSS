@@ -258,8 +258,8 @@ class FeatureMatrixFactory:
 
         baseline_folder = '/'.join(raw_matrix_path.split('/')[:-1])
         baseline_filepath = os.path.join(baseline_folder, 'baseline_comparisons.csv')
-        os.rename(baseline_filepath, baseline_filepath.replace('baseline_comparisons', 'baseline_comparisons_prev')) # existing ones
-        baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons.csv'))
+        # os.rename(baseline_filepath, baseline_filepath.replace('baseline_comparisons', 'baseline_comparisons_prev')) # existing ones
+        baseline_comparisons.to_csv(baseline_filepath)
 
 
     '''
