@@ -512,32 +512,33 @@ def get_floored_day_to_number_orders_cnts(lab, df):
 
     return prevday_cnts_dict
 
-def get_curve_onelab(lab, all_algs, data_folder, curve_type, get_pval=False):
+def get_curve_onelab(lab, all_algs, data_folder, curve_type, get_pval=False, get_baseline=True):
     # curr_res_file = '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
 
     '''
     Baseline curve
     '''
+    if get_baseline:
+        df = pd.read_csv(data_folder + '/' + lab + '/' + 'baseline_comparisons.csv')
+        baseline_shape = df.shape
 
-    df = pd.read_csv(data_folder + '/' + lab + '/' + 'baseline_comparisons.csv')
-    baseline_shape = df.shape
+        base_actual = df['actual'].values #df['actual'].values #all_components_normal
+        base_predict = df['predict'].values # predict
 
-    base_actual = df['actual'].values #df['actual'].values #all_components_normal
-    base_predict = df['predict'].values # predict
+        if curve_type == 'ROC':
+            fpr_base, tpr_base, _ = roc_curve(base_actual, base_predict)
+            xVal_base, yVal_base = fpr_base, tpr_base
 
-    if curve_type == 'ROC':
-        fpr_base, tpr_base, _ = roc_curve(base_actual, base_predict)
-        xVal_base, yVal_base = fpr_base, tpr_base
+            base_auc = roc_auc_score(base_actual, base_predict)
+            base_score = base_auc
+        elif curve_type == 'PRC':
+            precision, recall, _ = precision_recall_curve(base_actual, base_predict)
+            xVal_base, yVal_base = recall, precision
 
-        base_auc = roc_auc_score(base_actual, base_predict)
-        base_score = base_auc
-    elif curve_type == 'PRC':
-        precision, recall, _ = precision_recall_curve(base_actual, base_predict)
-        xVal_base, yVal_base = recall, precision
-
-        base_aps = average_precision_score(base_actual, base_predict)
-        base_score = base_aps
-
+            base_aps = average_precision_score(base_actual, base_predict)
+            base_score = base_aps
+    else:
+        xVal_base, yVal_base, base_score = None, None, None
 
     '''
     best alg
@@ -547,13 +548,14 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type, get_pval=False):
     best_actual = None
     best_predict = None
     for alg in all_algs:
-        df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
+        df = pd.read_csv(data_folder + '/' + lab +  '/' + alg + '/' +
                          'direct_comparisons.csv')
         alg_shape = df.shape
 
         # print baseline_shape, alg_shape
         # print lab, baseline_shape[0], alg_shape[0]
-        assert baseline_shape[0] == alg_shape[0] # Make sure the same test set!
+        if get_baseline:
+            assert baseline_shape[0] == alg_shape[0] # Make sure the same test set!
 
         actual_list = df['actual'].values
         try:
@@ -1509,5 +1511,12 @@ if __name__ == '__main__':
     # print get_labvol('LABA1C', time_limit=['2016-01-01', '2016-06-30'])
     # print get_labvol('LABA1C', time_limit=['2016-07-01', '2016-12-31'])
     # print get_labvol('LABA1C', time_limit=['2017-01-01', '2017-06-30'])
-    print get_labvol('LABALB')
+    medicare_prices = get_medicare_price_dict()
+
+    lab = 'LABBLC'
+    predicted_normal = 0.715+0.073
+    annual_vol = get_labvol(lab) / 3. * predicted_normal
+    annual_cost = annual_vol * medicare_prices[lab]
+    print predicted_normal, annual_vol, annual_cost
+    # print get_labvol('LABMGN',time_limit=('2014-01-01', '2015-01-01'))
     # print get_medicare_price_dict()
