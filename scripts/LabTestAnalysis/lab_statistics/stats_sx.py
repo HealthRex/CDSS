@@ -1423,50 +1423,116 @@ def draw_histogram_transfer_modeling():
     base_UC, ml_UC = 0.57, 0.59
     transfer = 0.591
 
+    ml_folder = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/machine_learning/'
+
     labs = ['LABCAI', 'LABURIC', 'LABALB', 'LABTSH', 'LABMGN',
             'LABPHOS', 'LABPT', 'LABPTT', #'LABNA',
             'LABK', 'LABTNI']
-    bases_UC = [0.78, 0.86, 0.77, 0.57, 0.72, 0.74, 0.87, 0.85, #0.81,
-                0.68, 0.83]
-    ml_UC = [0.84, 0.91, 0.90, 0.59, 0.80, 0.81, 0.93, 0.92, #0.90,
-             0.75, 0.90]
-    transfers = [0.74, 0.25, 0.87, 0.591, 0.793, 0.772, 0.881, 0.791, #0.587,
-                 0.705, 0.77]
 
-    lab_descriptions['LABURIC'] = 'URIC ACID,\n SERUM/PLASMA'
-    lab_descriptions['LABMGN'] = 'MAGNESIUM,\n SERUM/PLASMA'
-    lab_descriptions['LABK'] = 'POTASSIUM,\n SERUM/PLASMA'
-
-    lab_descriptions['LABALB'] = 'ALBUMIN,\n SERUM/PLASMA'
-    lab_descriptions['LABTSH'] = 'THYROID STIMULATING\n HORMONE'
-    lab_descriptions['LABPHOS'] = 'PHOSPHORUS,\n SERUM/PLASMA'
-    lab_descriptions['LABPTT'] = 'PTT PARTIAL\n THROMBOPLASTIN TIME'
-
+    labs2curves = {}
     row, col, i_s, j_s = stats_utils.prepare_subfigs(num_figs=len(labs), col=5)
+
     for ind, lab in enumerate(labs):
+        '''
+        Model transfering
+        '''
+        xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val\
+                = stats_utils.get_curve_onelab(lab,
+                                               all_algs=['random-forest'],
+                                               data_folder=os.path.join(ml_folder, 'data-apply-Stanford-to-UCSF-10000-episodes'),
+                                               curve_type='ROC',
+                                               get_pval=False,
+                                               get_baseline=False
+                                               )
+        score_transfer = score_best
+        xVal_transfer = xVal_best
+        yVal_transfer = yVal_best
+
+        '''
+        UCSF
+        '''
+        from scripts.LabTestAnalysis.machine_learning.ml_utils import map_lab_from_Stanford_to_UCSF
+        lab_UCSF = map_lab_from_Stanford_to_UCSF[lab]
+        xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
+            = stats_utils.get_curve_onelab(lab_UCSF,
+                                           all_algs=['random-forest'],
+                                           data_folder=os.path.join(ml_folder,
+                                                                    'data-UCSF-panel-10000-episodes'),
+                                           curve_type='ROC',
+                                           get_pval=False,
+                                           get_baseline=True
+                                           )
+        labs2curves['xVal_bese_UCSF'] = xVal_base
+        labs2curves['yVal_bese_UCSF'] = yVal_base
+
+        labs2curves['xVal_best_UCSF'] = xVal_best
+        labs2curves['yVal_best_UCSF'] = yVal_best
+
         i, j = i_s[ind], j_s[ind]
         plt.subplot2grid((row, col), (i, j))
 
-        barlist = plt.bar(range(3), [bases_UC[ind], transfers[ind], ml_UC[ind]],
-                          width=0.25)
-        barlist[0].set_color('b')
-        barlist[1].set_color('g')
-        barlist[2].set_color('r')
-        # plt.bar([x+0.25 for x in range(len(labs))], transfers, width=0.25, label='Model transfering')
+        i, j = i_s[ind], j_s[ind]
+        plt.subplot2grid((row, col), (i, j))
 
-        # plt.xticks(range(3), ['BL', 'TR', 'ML'])
+        plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base), color='blue')
+        plt.plot(xVal_transfer, yVal_transfer, label='%0.2f' % (score_transfer), color='green')
+        plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best), color='orange')
+        plt.xlim([0, 1])
+        plt.ylim([0, 1])
         plt.xticks([])
-        plt.xlabel(lab_descriptions[lab])
+        plt.yticks([])
+        plt.xlabel(lab_descriptions.get(lab, lab))
+        plt.legend()
 
-        if ind == 0:
-            plt.legend()
+        # scores_diffs_sorted = sorted(scores_diffs.items(), key=lambda x:x[1])[::-1]
+        # top_labs = [x[0] for x in scores_diffs_sorted[:35]]
+        # print top_labs
 
-        plt.ylim([0.5,1])
-        plt.yticks([0.5,1])
+    plt.tight_layout()
+    plt.savefig('curves_model_transfering.png')
 
-        # plt.legend()
-        plt.tight_layout()
-        plt.savefig('histogram_model_transfering.png')
+
+    # bases_UC = [0.78, 0.86, 0.77, 0.57, 0.72, 0.74, 0.87, 0.85, #0.81,
+    #             0.68, 0.83]
+    # ml_UC = [0.84, 0.91, 0.90, 0.59, 0.80, 0.81, 0.93, 0.92, #0.90,
+    #          0.75, 0.90]
+    # transfers = [0.74, 0.25, 0.87, 0.591, 0.793, 0.772, 0.881, 0.791, #0.587,
+    #              0.705, 0.77]
+    #
+    # lab_descriptions['LABURIC'] = 'URIC ACID,\n SERUM/PLASMA'
+    # lab_descriptions['LABMGN'] = 'MAGNESIUM,\n SERUM/PLASMA'
+    # lab_descriptions['LABK'] = 'POTASSIUM,\n SERUM/PLASMA'
+    #
+    # lab_descriptions['LABALB'] = 'ALBUMIN,\n SERUM/PLASMA'
+    # lab_descriptions['LABTSH'] = 'THYROID STIMULATING\n HORMONE'
+    # lab_descriptions['LABPHOS'] = 'PHOSPHORUS,\n SERUM/PLASMA'
+    # lab_descriptions['LABPTT'] = 'PTT PARTIAL\n THROMBOPLASTIN TIME'
+    #
+    # row, col, i_s, j_s = stats_utils.prepare_subfigs(num_figs=len(labs), col=5)
+    # for ind, lab in enumerate(labs):
+    #     i, j = i_s[ind], j_s[ind]
+    #     plt.subplot2grid((row, col), (i, j))
+    #
+    #     barlist = plt.bar(range(3), [bases_UC[ind], transfers[ind], ml_UC[ind]],
+    #                       width=0.25)
+    #     barlist[0].set_color('b')
+    #     barlist[1].set_color('g')
+    #     barlist[2].set_color('r')
+    #     # plt.bar([x+0.25 for x in range(len(labs))], transfers, width=0.25, label='Model transfering')
+    #
+    #     # plt.xticks(range(3), ['BL', 'TR', 'ML'])
+    #     plt.xticks([])
+    #     plt.xlabel(lab_descriptions[lab])
+    #
+    #     if ind == 0:
+    #         plt.legend()
+    #
+    #     plt.ylim([0.5,1])
+    #     plt.yticks([0.5,1])
+    #
+    #     # plt.legend()
+    #     plt.tight_layout()
+    #     plt.savefig('histogram_model_transfering.png')
 
 
 
