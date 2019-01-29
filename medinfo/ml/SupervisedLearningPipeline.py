@@ -348,7 +348,17 @@ class SupervisedLearningPipeline:
 
         log.debug('self._added_features: %s' % self._added_features)
 
-    def _impute_data(self, fmt, raw_matrix, imputation_strategies):
+    def _impute_data(self, fmt, raw_matrix, imputation_strategies, sxu_impute_method=False):
+        if sxu_impute_method:
+            '''
+            In order to impute value according to the last episode..
+            '''
+            raw_matrix = raw_matrix.sort_values(['pat_id', 'order_time']).reset_index().drop('index', axis=1)
+            count_time_suffixs = ['preTimeDays']
+            stats_numeric_suffixs = ['min', 'max', 'median', 'mean', 'std', 'first', 'last', 'diff', 'slope', 'proximate']
+            stats_time_suffixs = ['firstTimeDays', 'lastTimeDays', 'proximateTimeDays']
+
+
         for feature in raw_matrix.columns.values:
             if feature in self._removed_features:
                 continue
@@ -365,9 +375,53 @@ class SupervisedLearningPipeline:
                     strategy = imputation_strategies.get(feature)
                     fmt.impute(feature, strategy)
                 else:
-                    # TODO(sbala): Impute all time features with non-mean value.
-                    imputed_value = fmt.impute(feature)
-                    self.feat2imputed_dict[feature] = imputed_value
+                    if sxu_impute_method:
+                        '''
+                        The imputation strategy now requires knowledge of other episode 
+                        (last episode of the same patient), so have to do it here.
+                        '''
+
+                        num_time_imputed = 0
+                        for count_time_suffix in count_time_suffixs:
+                            if feature.endswith(count_time_suffix):
+                                '''
+                                -infinite
+                                '''
+                                raw_matrix[feature].fillna(-sys.maxint)
+                                num_time_imputed += 1
+                                break
+
+                        for stats_numeric_suffix in stats_numeric_suffixs:
+                            if feature.endswith(stats_numeric_suffix):
+                                #TODO: impute with the previous episode if available; otherwise population mean
+                                fmt.impute_sx(raw_matrix, feature, 'stats_numeric')
+                                num_time_imputed += 1
+                                break
+
+                        for stats_time_suffix in stats_time_suffixs:
+                            if feature.endswith(stats_time_suffix):
+                                #TODO: use the previous + time difference if available; otherwise -infinite
+
+                                num_time_imputed += 1
+                                break
+
+                        if num_time_imputed == 1:
+                            '''
+                            Successfully imputed
+                            '''
+                            continue
+                        elif num_time_imputed == 0:
+                            # TODO: impute with mean
+                            pass
+                        else:
+                            log.info('More than one ways of imputations!')
+                            raise Exception
+
+                        quit()
+                    else:
+                        # TODO(sbala): Impute all time features with non-mean value.
+                        imputed_value = fmt.impute(feature)
+                        self.feat2imputed_dict[feature] = imputed_value
             else:
                 '''
                 If there is no need to impute, still keep the mean value, in case test data 
@@ -376,6 +430,7 @@ class SupervisedLearningPipeline:
                 '''
                 imputed_value = fmt.impute(feature)
                 self.feat2imputed_dict[feature] = imputed_value
+        quit()
 
     def _remove_features(self, fmt, features_to_remove):
         # Prune manually identified features (meant for obviously unhelpful).

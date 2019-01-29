@@ -35,6 +35,26 @@ class FeatureMatrixTransform:
     def fetch_matrix(self):
         return self._matrix
 
+    def impute_sx(self, matrix, feature, strategy):
+        log.info("Imputing %s with strategy %s..."%(feature, strategy))
+
+        row, col = matrix.shape
+
+        popu_mean = matrix[feature].mean()
+
+        print matrix
+
+        if strategy == 'stats_numeric':
+        # TODO: impute with the previous episode if available; otherwise population mean
+            for i in range(0, row):
+                # if matrix.ix[i, feature].isna():
+                print 'isna!', matrix.ix[i, feature]
+                # if i==0 or (matrix.ix[i,'pat_id'] != matrix.ix[i-1,'pat_id']):
+
+
+        quit()
+
+
     def impute(self, feature=None, strategy=None, distribution=None):
         if self._matrix is None:
             raise ValueError('Must call set_input_matrix() before impute().')
