@@ -252,6 +252,8 @@ class SupervisedLearningPipeline:
             Impute data according to the same strategy when training
             '''
             for feat in self._X_test.columns:
+                print feat, self.feat2imputed_dict[feat]
+                # TODO: implement impute_sx for test as well
                 self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
 
             self._select_features(params['selection_problem'],
@@ -368,6 +370,7 @@ class SupervisedLearningPipeline:
             if raw_matrix[feature].isnull().all():
                 fmt.remove_feature(feature)
                 self._removed_features.append(feature)
+                continue
             # Only try to impute if some of the values are null.
             elif raw_matrix[feature].isnull().any():
                 # If an imputation strategy is specified, follow it.
@@ -375,6 +378,9 @@ class SupervisedLearningPipeline:
                     strategy = imputation_strategies.get(feature)
                     fmt.impute(feature, strategy)
                 else:
+                    '''
+                    <sxu_impute_method
+                    '''
                     if sxu_impute_method:
                         '''
                         The imputation strategy now requires knowledge of other episode 
@@ -387,21 +393,22 @@ class SupervisedLearningPipeline:
                                 '''
                                 -infinite
                                 '''
-                                raw_matrix[feature].fillna(-sys.maxint)
+                                imputed_value = -sys.maxint
+                                raw_matrix[feature] = raw_matrix[feature].fillna(imputed_value)
                                 num_time_imputed += 1
                                 break
 
                         for stats_numeric_suffix in stats_numeric_suffixs:
                             if feature.endswith(stats_numeric_suffix):
                                 # impute with the previous episode if available; otherwise population mean
-                                fmt.impute_sx(raw_matrix, feature, 'stats_numeric')
+                                imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_numeric')
                                 num_time_imputed += 1
                                 break
 
                         for stats_time_suffix in stats_time_suffixs:
                             if feature.endswith(stats_time_suffix):
                                 # use the previous + time difference if available; otherwise -infinite
-                                fmt.impute_sx(raw_matrix, feature, 'stats_time')
+                                imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_time')
                                 num_time_imputed += 1
                                 break
 
@@ -409,22 +416,24 @@ class SupervisedLearningPipeline:
                             '''
                             Successfully imputed
                             '''
-                            continue
+                            pass
                         elif num_time_imputed == 0:
                             # print feature
                             # impute with mean
-                            raw_matrix[feature] = raw_matrix[feature].fillna(raw_matrix[feature].mean())
+                            imputed_value = raw_matrix[feature].mean()
+                            raw_matrix[feature] = raw_matrix[feature].fillna(imputed_value)
                             pass
                         else:
                             log.info('More than one ways of imputations!')
                             raise Exception
+                        '''
+                        sxu_impute_method>
+                        '''
 
                     else:
                         # TODO(sbala): Impute all time features with non-mean value.
                         imputed_value = fmt.impute(feature)
 
-                    assert raw_matrix[feature].isna().any() == False
-                    self.feat2imputed_dict[feature] = imputed_value
             else:
                 '''
                 If there is no need to impute, still keep the mean value, in case test data 
@@ -432,7 +441,9 @@ class SupervisedLearningPipeline:
                 TODO sxu: take care of the case of non-mean imputation strategy
                 '''
                 imputed_value = fmt.impute(feature)
-                self.feat2imputed_dict[feature] = imputed_value
+
+            assert raw_matrix[feature].isna().any() == False
+            self.feat2imputed_dict[feature] = imputed_value
 
     def _remove_features(self, fmt, features_to_remove):
         # Prune manually identified features (meant for obviously unhelpful).
