@@ -35,24 +35,55 @@ class FeatureMatrixTransform:
     def fetch_matrix(self):
         return self._matrix
 
-    def impute_sx(self, matrix, feature, strategy):
-        log.info("Imputing %s with strategy %s..."%(feature, strategy))
+    def impute_sx(self, matrix, feature, target):
+        import sys
+        from datetime import datetime
+        datetime_format = "%Y-%m-%d %H:%M:%S"
+        log.info("Imputing %s with target %s..."%(feature, target))
 
         row, col = matrix.shape
 
         popu_mean = matrix[feature].mean()
 
-        print matrix
-
-        if strategy == 'stats_numeric':
+        if target == 'stats_numeric':
         # TODO: impute with the previous episode if available; otherwise population mean
             for i in range(0, row):
                 # if matrix.ix[i, feature].isna():
-                print 'isna!', matrix.ix[i, feature]
-                # if i==0 or (matrix.ix[i,'pat_id'] != matrix.ix[i-1,'pat_id']):
+                if matrix.ix[i, feature] == matrix.ix[i, feature]:
+                    '''
+                    is not "nan"
+                    '''
+                    pass
 
+                elif i==0 or (matrix.ix[i,'pat_id'] != matrix.ix[i-1,'pat_id']):
 
-        quit()
+                    matrix.ix[i, feature] = popu_mean
+
+                else:
+                    matrix.ix[i, feature] = matrix.ix[i-1, feature]
+
+            # assert matrix.ix[i, feature] == matrix.ix[i, feature]
+
+        elif target == 'stats_time':
+            '''
+            use the previous + time difference if available; otherwise -infinite
+            '''
+            for i in range(0, row):
+                # if matrix.ix[i, feature].isna():
+                if matrix.ix[i, feature] == matrix.ix[i, feature]:
+                    '''
+                    is not "nan"
+                    '''
+                    pass
+                elif i == 0 or (matrix.ix[i, 'pat_id'] != matrix.ix[i - 1, 'pat_id']) or (matrix.ix[i-1, feature]==-sys.maxint):
+                    matrix.ix[i, feature] = -sys.maxint
+                else:
+                    day_diff = (datetime.strptime(matrix.ix[i, 'order_time'], datetime_format) - datetime.strptime(matrix.ix[i-1, 'order_time'], datetime_format)).days
+                    matrix.ix[i, feature] = matrix.ix[i-1, feature] - day_diff
+
+        else:
+            log.info('Target type %s not implemented!'%target)
+
 
 
     def impute(self, feature=None, strategy=None, distribution=None):
