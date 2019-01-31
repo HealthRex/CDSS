@@ -1484,39 +1484,71 @@ def main_queryAllLabsToDF(lab_type='panel'):
 
 
 
+def output_feature_importances(data_set_folder='data-Stanford-panel-10000-episodes'):
+    def split_features(feature):
+        divind = feature.find('(')
+        featu = feature[:divind - 1]
+        score = feature[divind + 1:-1]
+        return featu, float(score)
+
+    num_rf_best = 0
+
+    lab_descriptions = get_lab_descriptions()
+
+    ml_folderpath = '../machine_learning/'
+
+    result_filepath = os.path.join(data_set_folder, 'RF_important_features.csv')
+
+    '''
+    Rules:
+    merge proximate to last
+    '''
+
+    def grouped(feature):
+        # Features that needs the first two element to identify
+        complex_feature_types = ['Comorbidity', 'Team']
+        for complex_feature_type in complex_feature_types:
+            if complex_feature_type in feature:
+                return '.'.join(feature.split('.')[:2])
+
+        return feature.split('.')[0]
+
+    result_df = pd.DataFrame(columns=['lab', 'feature 1', 'score 1', 'feature 2', 'score 2', 'feature 3', 'score 3'])
+    for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+        report_folderpath = os.path.join(ml_folderpath, data_set_folder, lab, 'random-forest')
+        report_filepath = os.path.join(report_folderpath, '%s-normality-prediction-random-forest-report.tab' % lab)
+
+        df = pd.read_csv(report_filepath, sep='\t', skiprows=0)
+        rf_description = df['model'].values.tolist()[0]
+        features_start = rf_description.index('features=[')
+        features_str = rf_description[features_start + len('features=['):-2]
+
+        feature_tuples = [x.strip() for x in features_str.split(',')]
+        # print feature_tuples
+
+        one_lab_dict = {}
+        for feature_tuple in feature_tuples:
+            feature, score = split_features(feature_tuple)
+            grouped_feature = grouped(feature)
+            one_lab_dict[grouped_feature] = one_lab_dict.get(grouped_feature, 0) + score
+        sorted_tuples = sorted(one_lab_dict.items(), key=lambda x: x[1])[::-1]
+
+        one_df_dict = {'lab': lab,
+                       'feature 1': sorted_tuples[0][0],
+                       'score 1': sorted_tuples[0][1],
+                       'feature 2': sorted_tuples[1][0],
+                       'score 2': sorted_tuples[1][1],
+                       'feature 3': sorted_tuples[2][0],
+                       'score 3': sorted_tuples[2][1],
+                       }
+        # result_df.append(one_df_dict)
+
+        result_df.loc[len(result_df)] = [lab_descriptions[lab],
+                                         sorted_tuples[0][0], sorted_tuples[0][1],
+                                         sorted_tuples[1][0], sorted_tuples[1][1],
+                                         sorted_tuples[2][0], sorted_tuples[2][1]]
+
+    result_df.to_csv(result_filepath, index=False)
 
 if __name__ == '__main__':
-    # print get_top_labs(lab_type='component', top_k=20, lab_name_only=False)
-    # print get_top_labs(lab_type='panel', top_k=20, criterion='count*price')
-
-    # print query_lab_cnt('LABMGN')
-    # print query_lab_cnt('LABCBCD')
-
-    # main_queryAllLabsToDF(lab_type='component')
-
-    # check_baseline2(lab='LABA1C',
-    #                 mlByLab_folder=os.path.join(main_folder,
-    #                                             'machine_learning/',
-    #                                             'data-panel-10000-episodes/'),
-    #                 source="train")
-
-    # print query_num_instances(instance_type='pat_enc_csn_id')
-    # descriptions = get_lab_descriptions()
-    # for lab in ['LABA1C', 'LABALB','LABCBCD','LABESRP','LABPHOS','LABTSH']:
-    #     print descriptions[lab]
-    # print get_labvol('LABA1C', time_limit=['2014-01-01', '2014-06-30'])
-    # print get_labvol('LABA1C', time_limit=['2014-07-01', '2014-12-31'])
-    # print get_labvol('LABA1C', time_limit=['2015-01-01', '2015-06-30'])
-    # print get_labvol('LABA1C', time_limit=['2015-07-01', '2015-12-31'])
-    # print get_labvol('LABA1C', time_limit=['2016-01-01', '2016-06-30'])
-    # print get_labvol('LABA1C', time_limit=['2016-07-01', '2016-12-31'])
-    # print get_labvol('LABA1C', time_limit=['2017-01-01', '2017-06-30'])
-    medicare_prices = get_medicare_price_dict()
-
-    lab = 'LABBLC'
-    predicted_normal = 0.715+0.073
-    annual_vol = get_labvol(lab) / 3. * predicted_normal
-    annual_cost = annual_vol * medicare_prices[lab]
-    print predicted_normal, annual_vol, annual_cost
-    # print get_labvol('LABMGN',time_limit=('2014-01-01', '2015-01-01'))
-    # print get_medicare_price_dict()
+    output_feature_importances()
