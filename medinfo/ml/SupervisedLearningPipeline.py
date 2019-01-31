@@ -245,16 +245,23 @@ class SupervisedLearningPipeline:
             self._X_train = train_df
 
             '''
-            Select X_test columns according to processed X_train
-            '''
-            self._X_test = self._X_test[self._X_train.columns]
-            '''
             Impute data according to the same strategy when training
             '''
             for feat in self._X_test.columns:
-                print feat, self.feat2imputed_dict[feat]
-                # TODO: implement impute_sx for test as well
-                self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
+                if feat not in self.feat2imputed_dict:
+                    print "Feature %s not in feat2imputed_dict" % feat
+                    continue
+                else:
+                    # TODO: implement impute_sx for test as well
+                    # self._X_test[feat] = fmt.impute_sx(matrix, feature, target, preset_val=None)
+                    self._impute_data(fmt, self._X_test, params['imputation_strategies'], label='test')
+
+                #self._X_test[feat].fillna(self.feat2imputed_dict[feat])
+
+            '''
+            Select X_test columns according to processed X_train
+            '''
+            self._X_test = self._X_test[self._X_train.columns]
 
             self._select_features(params['selection_problem'],
                 params['percent_features_to_select'],
@@ -350,7 +357,7 @@ class SupervisedLearningPipeline:
 
         log.debug('self._added_features: %s' % self._added_features)
 
-    def _impute_data(self, fmt, raw_matrix, imputation_strategies, sxu_impute_method=True):
+    def _impute_data(self, fmt, raw_matrix, imputation_strategies, sxu_impute_method=True, label='train'):
         if sxu_impute_method:
             '''
             In order to impute value according to the last episode..
@@ -393,7 +400,10 @@ class SupervisedLearningPipeline:
                                 '''
                                 -infinite
                                 '''
-                                imputed_value = -sys.maxint
+                                if label=='train':
+                                    imputed_value = -sys.maxint
+                                else:
+                                    imputed_value = self.feat2imputed_dict[feature]
                                 raw_matrix[feature] = raw_matrix[feature].fillna(imputed_value)
                                 num_time_imputed += 1
                                 break
@@ -401,14 +411,20 @@ class SupervisedLearningPipeline:
                         for stats_numeric_suffix in stats_numeric_suffixs:
                             if feature.endswith(stats_numeric_suffix):
                                 # impute with the previous episode if available; otherwise population mean
-                                imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_numeric')
+                                if label=='train':
+                                    imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_numeric')
+                                else:
+                                    imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_numeric', preset_val=self.feat2imputed_dict[feature])
                                 num_time_imputed += 1
                                 break
 
                         for stats_time_suffix in stats_time_suffixs:
                             if feature.endswith(stats_time_suffix):
                                 # use the previous + time difference if available; otherwise -infinite
-                                imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_time')
+                                if label=='train':
+                                    imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_time')
+                                else:
+                                    imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_time', preset_val=self.feat2imputed_dict[feature])
                                 num_time_imputed += 1
                                 break
 
@@ -420,7 +436,10 @@ class SupervisedLearningPipeline:
                         elif num_time_imputed == 0:
                             # print feature
                             # impute with mean
-                            imputed_value = raw_matrix[feature].mean()
+                            if label=='train':
+                                imputed_value = raw_matrix[feature].mean()
+                            else:
+                                imputed_value = self.feat2imputed_dict[feature]
                             raw_matrix[feature] = raw_matrix[feature].fillna(imputed_value)
                             pass
                         else:
