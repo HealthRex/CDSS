@@ -35,66 +35,6 @@ class FeatureMatrixTransform:
     def fetch_matrix(self):
         return self._matrix
 
-    def impute_sx(self, matrix, feature, target, preset_val=None):
-        import sys
-        from datetime import datetime
-        datetime_format = "%Y-%m-%d %H:%M:%S"
-        # log.info("Imputing %s with target %s..."%(feature, target))
-
-        row, col = matrix.shape
-
-        popu_mean = matrix[feature].mean()
-
-        if target == 'stats_numeric':
-            if preset_val == None:
-                preset_val = popu_mean
-
-        # TODO: impute with the previous episode if available; otherwise population mean
-            for i in range(0, row):
-                # if matrix.ix[i, feature].isna():
-                if matrix.ix[i, feature] == matrix.ix[i, feature]:
-                    '''
-                    is not "nan"
-                    '''
-                    pass
-
-                elif i==0 or (matrix.ix[i,'pat_id'] != matrix.ix[i-1,'pat_id']):
-
-                    matrix.ix[i, feature] = preset_val
-
-                else:
-                    matrix.ix[i, feature] = matrix.ix[i-1, feature]
-
-            # assert matrix.ix[i, feature] == matrix.ix[i, feature]
-
-        elif target == 'stats_time':
-            '''
-            use the previous + time difference if available; otherwise -infinite
-            '''
-            if preset_val == None:
-                preset_val = -sys.maxint
-
-            for i in range(0, row):
-                # if matrix.ix[i, feature].isna():
-                if matrix.ix[i, feature] == matrix.ix[i, feature]:
-                    '''
-                    is not "nan"
-                    '''
-                    pass
-                elif i == 0 or (matrix.ix[i, 'pat_id'] != matrix.ix[i - 1, 'pat_id']) or (matrix.ix[i-1, feature]==preset_val):
-                    matrix.ix[i, feature] = preset_val
-                else:
-                    day_diff = (datetime.strptime(matrix.ix[i, 'order_time'], datetime_format) - datetime.strptime(matrix.ix[i-1, 'order_time'], datetime_format)).days
-                    matrix.ix[i, feature] = matrix.ix[i-1, feature] - day_diff
-
-        else:
-            preset_val = None
-            log.info('Target type %s not implemented!'%target)
-
-        #TODO: return stuff
-        return preset_val
-
-
     def impute(self, feature=None, strategy=None, distribution=None):
         if self._matrix is None:
             raise ValueError('Must call set_input_matrix() before impute().')

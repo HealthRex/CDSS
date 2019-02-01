@@ -193,8 +193,13 @@ class SupervisedLearningPipeline:
             # This must happen before feature selection so that we don't
             # accidentally learn information from the test data.
 
-            patIds_df = raw_matrix['pat_id'].copy()
+            # pd.set_option('display.width', 3000)
+            # pd.set_option('display.max_columns', 3000)
 
+            if False:
+                raw_matrix = raw_matrix.sort_values(['pat_id', 'order_time']).reset_index(drop=True)
+
+            patIds_df = raw_matrix['pat_id'].copy()
 
             self._train_test_split(raw_matrix, params['outcome_label'])
 
@@ -216,8 +221,6 @@ class SupervisedLearningPipeline:
             # Add features.
             self._add_features(fmt, params['features_to_add'])
 
-            # Remove features.
-            self._remove_features(fmt, params['features_to_remove'])
             # Filter on features
             if 'features_to_filter_on' in params:
                 self._filter_on_features(fmt, params['features_to_filter_on'])
@@ -232,7 +235,131 @@ class SupervisedLearningPipeline:
                     self._removed_features.append(feature)
 
             # Impute data.
-            self._impute_data(fmt, train_df, params['imputation_strategies'])
+            import pickle
+
+
+            '''
+            sxu new implementation
+            
+            Input: train_df, but does not change it
+            Output: dictionary {order_proc_id: {feature: imputation value}}
+            '''
+            train_df = fmt.fetch_matrix()
+            means = {}
+            for column in train_df.columns.values.tolist():
+                # column_tail = column.split('.')[-1].strip()
+                if train_df[column].dtype == 'float64':
+                    means[column] = train_df[column].mean()
+
+            def do_impute_sx(matrix, means):
+                # TODO: alert: changes row order and indices of matrix!
+
+                datetime_format = "%Y-%m-%d %H:%M:%S"
+
+                matrix_sorted = matrix.sort_values(['pat_id', 'order_time']).reset_index()
+                count_time_suffixs = ['preTimeDays', 'postTimeDays'] # TODO: postTimeDays should really not appear!
+                stats_numeric_suffixs = ['min', 'max', 'median', 'mean', 'std', 'first', 'last', 'diff', 'slope',
+                                         'proximate']
+                stats_time_suffixs = ['firstTimeDays', 'lastTimeDays', 'proximateTimeDays']
+
+                impute_train = {}
+
+                nega_inf_days = -1000000
+                for i in range(0, matrix_sorted.shape[0]):
+                    cur_episode_id = matrix_sorted.ix[i, 'order_proc_id']
+                    impute_train[cur_episode_id] = {}
+                    for column in matrix_sorted.columns.values.tolist():
+                        '''
+                        Value not missing
+                        '''
+                        if matrix_sorted.ix[i, column] == matrix_sorted.ix[i, column]:
+                            continue
+
+                        '''
+                        Value missing
+                        '''
+                        column_tail = column.split('.')[-1].strip()
+
+                        if column in means:
+                            popu_mean = means[column] # TODO: pre-compute with dict
+
+
+                        if column_tail in stats_numeric_suffixs:
+                            '''
+                            impute with the previous episode if available; otherwise population mean
+                            '''
+                            if i==0 or (matrix_sorted.ix[i,'pat_id'] != matrix_sorted.ix[i-1,'pat_id']) or (matrix_sorted.ix[i-1,column]!=matrix_sorted.ix[i-1,column]):
+                                matrix_sorted.ix[i,column] = popu_mean #impute_train[cur_episode_id][column] = popu_mean
+                            else:
+                                matrix_sorted.ix[i, column] = matrix_sorted.ix[i-1, column]  #impute_train[cur_episode_id][column] = train_df_sorted.ix[i-1, column]
+
+                        elif column_tail in stats_time_suffixs:
+                            '''
+                            use the previous + time difference if available; otherwise -infinite
+                            '''
+                            if i == 0 or (matrix_sorted.ix[i, 'pat_id'] != matrix_sorted.ix[i - 1, 'pat_id']) or (matrix_sorted.ix[i-1,column]!=matrix_sorted.ix[i-1,column]):
+                                # impute_train[cur_episode_id][column] = nega_inf_days
+                                matrix_sorted.ix[i, column] = nega_inf_days
+                            else:
+                                day_diff = (datetime.datetime.strptime(matrix_sorted.ix[i, 'order_time'], datetime_format) -
+                                            datetime.datetime.strptime(matrix_sorted.ix[i - 1, 'order_time'], datetime_format)).days
+                                # impute_train[cur_episode_id][column] = train_df_sorted.ix[i-1, column] - day_diff # TODO!
+
+                                matrix_sorted.ix[i, column] = matrix_sorted.ix[i-1, column] - day_diff
+
+                        elif column_tail in count_time_suffixs:
+                            '''
+                            -infinite
+                            '''
+                            # impute_train[cur_episode_id][column] = nega_inf_days
+                            matrix_sorted.ix[i, column] = nega_inf_days
+
+                        else:
+                            '''
+                            In all other cases, just use mean to impute
+                            '''
+                            matrix_sorted.ix[i, column] = popu_mean
+                            pass
+                    # print i, matrix_sorted.iloc[i].isnull().values.any()
+
+
+                # pickle.dump(impute_train, open('impute_train.pkl', 'w'), pickle.HIGHEST_PROTOCOL)
+
+                # else:
+                #     impute_train = pickle.load(open('impute_train.pkl', 'r'))
+
+                # print len(impute_train)
+                return matrix_sorted.set_index('index')
+
+            '''
+            sxu new implementation
+            '''
+            # self._impute_data(fmt, train_df, params['imputation_strategies'])
+
+            if not os.path.exists('train_df.csv'):
+                train_df = do_impute_sx(train_df, means)
+                train_df.to_csv('train_df.csv')
+            else:
+                train_df = pd.read_csv('train_df.csv')
+            fmt.set_input_matrix(train_df)
+
+            '''
+            Impute data according to the same strategy when training
+            '''
+            # for feat in self._X_test.columns:
+            #     self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
+            if not os.path.exists('_X_test_after.csv'):
+                self._X_test = do_impute_sx(self._X_test, means)
+                self._X_test.to_csv('_X_test_after.csv')
+            else:
+                self._X_test = pd.read_csv('_X_test_after.csv')
+
+
+            # Remove features.
+            '''
+            Moved here, since still need pat_id for imputation!
+            '''
+            self._remove_features(fmt, params['features_to_remove'])
 
             # In case any all-null features were created in preprocessing,
             # drop them now so feature selection will work
@@ -245,23 +372,10 @@ class SupervisedLearningPipeline:
             self._X_train = train_df
 
             '''
-            Impute data according to the same strategy when training
-            '''
-            for feat in self._X_test.columns:
-                if feat not in self.feat2imputed_dict:
-                    print "Feature %s not in feat2imputed_dict" % feat
-                    continue
-                else:
-                    # TODO: implement impute_sx for test as well
-                    # self._X_test[feat] = fmt.impute_sx(matrix, feature, target, preset_val=None)
-                    self._impute_data(fmt, self._X_test, params['imputation_strategies'], label='test')
-
-                #self._X_test[feat].fillna(self.feat2imputed_dict[feat])
-
-            '''
             Select X_test columns according to processed X_train
             '''
             self._X_test = self._X_test[self._X_train.columns]
+
 
             self._select_features(params['selection_problem'],
                 params['percent_features_to_select'],
@@ -273,7 +387,10 @@ class SupervisedLearningPipeline:
             Will remove 'pat_id' (TODO sxu: more general in the future) later in train().
             '''
             self._X_train = self._X_train.join(patIds_df, how='left')
+
             self._X_test = self._X_test.join(patIds_df, how='left')
+
+            # print set(self._X_train['pat_id'].values.tolist()) & set(self._X_test['pat_id'].values.tolist())
 
             train = self._y_train.join(self._X_train)
             test = self._y_test.join(self._X_test)
@@ -357,17 +474,7 @@ class SupervisedLearningPipeline:
 
         log.debug('self._added_features: %s' % self._added_features)
 
-    def _impute_data(self, fmt, raw_matrix, imputation_strategies, sxu_impute_method=True, label='train'):
-        if sxu_impute_method:
-            '''
-            In order to impute value according to the last episode..
-            '''
-            raw_matrix = raw_matrix.sort_values(['pat_id', 'order_time']).reset_index().drop('index', axis=1)
-            count_time_suffixs = ['preTimeDays']
-            stats_numeric_suffixs = ['min', 'max', 'median', 'mean', 'std', 'first', 'last', 'diff', 'slope', 'proximate']
-            stats_time_suffixs = ['firstTimeDays', 'lastTimeDays', 'proximateTimeDays']
-
-
+    def _impute_data(self, fmt, raw_matrix, imputation_strategies):
         for feature in raw_matrix.columns.values:
             if feature in self._removed_features:
                 continue
@@ -377,7 +484,6 @@ class SupervisedLearningPipeline:
             if raw_matrix[feature].isnull().all():
                 fmt.remove_feature(feature)
                 self._removed_features.append(feature)
-                continue
             # Only try to impute if some of the values are null.
             elif raw_matrix[feature].isnull().any():
                 # If an imputation strategy is specified, follow it.
@@ -385,74 +491,9 @@ class SupervisedLearningPipeline:
                     strategy = imputation_strategies.get(feature)
                     fmt.impute(feature, strategy)
                 else:
-                    '''
-                    <sxu_impute_method
-                    '''
-                    if sxu_impute_method:
-                        '''
-                        The imputation strategy now requires knowledge of other episode 
-                        (last episode of the same patient), so have to do it here.
-                        '''
-
-                        num_time_imputed = 0
-                        for count_time_suffix in count_time_suffixs:
-                            if feature.endswith(count_time_suffix):
-                                '''
-                                -infinite
-                                '''
-                                if label=='train':
-                                    imputed_value = -sys.maxint
-                                else:
-                                    imputed_value = self.feat2imputed_dict[feature]
-                                raw_matrix[feature] = raw_matrix[feature].fillna(imputed_value)
-                                num_time_imputed += 1
-                                break
-
-                        for stats_numeric_suffix in stats_numeric_suffixs:
-                            if feature.endswith(stats_numeric_suffix):
-                                # impute with the previous episode if available; otherwise population mean
-                                if label=='train':
-                                    imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_numeric')
-                                else:
-                                    imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_numeric', preset_val=self.feat2imputed_dict[feature])
-                                num_time_imputed += 1
-                                break
-
-                        for stats_time_suffix in stats_time_suffixs:
-                            if feature.endswith(stats_time_suffix):
-                                # use the previous + time difference if available; otherwise -infinite
-                                if label=='train':
-                                    imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_time')
-                                else:
-                                    imputed_value = fmt.impute_sx(raw_matrix, feature, 'stats_time', preset_val=self.feat2imputed_dict[feature])
-                                num_time_imputed += 1
-                                break
-
-                        if num_time_imputed == 1:
-                            '''
-                            Successfully imputed
-                            '''
-                            pass
-                        elif num_time_imputed == 0:
-                            # print feature
-                            # impute with mean
-                            if label=='train':
-                                imputed_value = raw_matrix[feature].mean()
-                            else:
-                                imputed_value = self.feat2imputed_dict[feature]
-                            raw_matrix[feature] = raw_matrix[feature].fillna(imputed_value)
-                            pass
-                        else:
-                            log.info('More than one ways of imputations!')
-                            raise Exception
-                        '''
-                        sxu_impute_method>
-                        '''
-
-                    else:
-                        # TODO(sbala): Impute all time features with non-mean value.
-                        imputed_value = fmt.impute(feature)
-
+                    # TODO(sbala): Impute all time features with non-mean value.
+                    imputed_value = fmt.impute(feature)
+                    self.feat2imputed_dict[feature] = imputed_value
             else:
                 '''
                 If there is no need to impute, still keep the mean value, in case test data 
@@ -460,9 +501,7 @@ class SupervisedLearningPipeline:
                 TODO sxu: take care of the case of non-mean imputation strategy
                 '''
                 imputed_value = fmt.impute(feature)
-
-            assert raw_matrix[feature].isna().any() == False
-            self.feat2imputed_dict[feature] = imputed_value
+                self.feat2imputed_dict[feature] = imputed_value
 
     def _remove_features(self, fmt, features_to_remove):
         # Prune manually identified features (meant for obviously unhelpful).
