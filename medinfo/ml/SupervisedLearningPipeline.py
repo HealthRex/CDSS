@@ -336,11 +336,7 @@ class SupervisedLearningPipeline:
             '''
             # self._impute_data(fmt, train_df, params['imputation_strategies'])
 
-            if not os.path.exists('train_df.csv'):
-                train_df = do_impute_sx(train_df, means)
-                train_df.to_csv('train_df.csv')
-            else:
-                train_df = pd.read_csv('train_df.csv')
+            train_df = do_impute_sx(train_df, means)
             fmt.set_input_matrix(train_df)
 
             '''
@@ -348,12 +344,8 @@ class SupervisedLearningPipeline:
             '''
             # for feat in self._X_test.columns:
             #     self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
-            if not os.path.exists('_X_test_after.csv'):
-                self._X_test = do_impute_sx(self._X_test, means)
-                self._X_test.to_csv('_X_test_after.csv')
-            else:
-                self._X_test = pd.read_csv('_X_test_after.csv')
 
+            self._X_test = do_impute_sx(self._X_test, means)
 
             # Remove features.
             '''
