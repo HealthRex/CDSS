@@ -65,7 +65,7 @@ map_vitals_from_Stanford_to_UCSF = {
 'BP_High_Systolic': 'SBP'
 }
 
-map_lab_from_Stanford_to_UCSF = {'LABMGN':'Magnesium, Serum - Plasma',
+map_panel_from_Stanford_to_UCSF = {'LABMGN':'Magnesium, Serum - Plasma',
                'LABCAI':'Calcium, Ionized, serum-plasma',
                             'LABURIC':'Uric Acid, Serum - Plasma',
                             'LABALB':'Albumin, Serum - Plasma',
@@ -76,7 +76,7 @@ map_lab_from_Stanford_to_UCSF = {'LABMGN':'Magnesium, Serum - Plasma',
                             # 'LABBLC':'Peripheral Blood Culture', # TODO
                             'LABBLC2':'Peripheral Blood Culture',
                             'LABPHOS':'Phosphorus, Serum - Plasma',
-                            # 'LABPT':'Prothrombin Time', # TODO
+                            'LABPT':'Prothrombin Time', # TODO
                             'LABPTT':'Activated Partial Thromboplastin Time'
                             }
 
