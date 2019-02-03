@@ -128,7 +128,7 @@ def draw__Normality_Saturations(stats_folderpath, labs=['LABMETB', 'LABCBCD'] + 
 
 
 def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95,
-                            result_label='',use_cached_fig_data=False):
+                            result_label='',use_cached_fig_data=False,price_source='medicare'):
     '''
     Drawing Figure 4 in the main text.
 
@@ -152,9 +152,9 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
     
     '''
 
-    fig_filename = 'Potential_Savings_PPV_%.2f_%s.png'%(targeted_PPV, result_label)
+    fig_filename = 'Potential_Savings_PPV_%.2f_%s_%s.png'%(targeted_PPV, result_label, price_source)
     fig_path = os.path.join(result_folderpath, fig_filename)
-    data_filename = 'Potential_Savings_%.2f_%s.csv'%(targeted_PPV, result_label)
+    data_filename = 'Potential_Savings_%.2f_%s_%s.csv'%(targeted_PPV, result_label, price_source)
     data_path = os.path.join(result_folderpath, data_filename)
 
     if os.path.exists(data_path) and use_cached_fig_data:
@@ -163,13 +163,13 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
     else:
         # df = df[df['lab'] != 'LABNA']  # TODO: fix LABNA's price here
 
-        df = df[df['medicare'] != '']
-        df['medicare'] = df['medicare'].astype(float)
+        df = df[df[price_source] != '']
+        df[price_source] = df[price_source].astype(float)
 
-        df['TP_cost'] = df['true_positive'] * df['total_cnt'] * df['medicare']
-        df['FP_cost'] = df['false_positive'] * df['total_cnt'] * df['medicare']
-        df['FN_cost'] = df['false_negative'] * df['total_cnt'] * df['medicare']
-        df['TN_cost'] = df['true_negative'] * df['total_cnt'] * df['medicare']
+        df['TP_cost'] = df['true_positive'] * df['total_cnt'] * df[price_source]
+        df['FP_cost'] = df['false_positive'] * df['total_cnt'] * df[price_source]
+        df['FN_cost'] = df['false_negative'] * df['total_cnt'] * df[price_source]
+        df['TN_cost'] = df['true_negative'] * df['total_cnt'] * df[price_source]
         df['total_cost'] = df['TP_cost'] + df['FP_cost'] + df['FN_cost'] + df['TN_cost']
 
         df = df[['lab', 'TP_cost', 'FP_cost', 'FN_cost', 'TN_cost', 'total_cost']]
@@ -233,34 +233,9 @@ def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95
 
     ax.barh(df['lab_description'], df['TP_cost'],
             color='forestgreen', alpha=1, label='true positive')
-    # for i, v in enumerate(df_sorted_by_cnts['normal_volumn']):
-    #     ax.text(v + 2, i, str("{0:.0%}".format(df_sorted_by_cnts['normal_rate'].values[i])), color='k', fontweight='bold')
 
-    # if add_predictable:
-
-
-    #
-    # for i, v in enumerate(df['predicted_normal_cost']):
-    #     if v < 2500:
-    #         continue
-    #     df['avoidable_fraction'] = df['predicted_normal_cost'] / df['total_cost']
-    #     ax.text(v/2.-1200, i-0.15, "%.0f"%(100*df['avoidable_fraction'].values[i]) + '%', color='white',
-    #             fontsize=10, fontweight='bold')
-
-    # plt.xlim([0,1])
     for tick in ax.xaxis.get_major_ticks():
         tick.label.set_fontsize(14)
-
-    # change_legend_order = False
-    # if change_legend_order:
-    #
-    #     handles, labels = ax.get_legend_handles_labels()
-    #     handles = [handles[1], handles[0]]
-    #     labels = [labels[1], labels[0]]
-    #
-    #     plt.legend(handles,labels, prop={'size': 11}, loc=(.4,.05))
-    # else:
-    #     plt.legend(prop={'size': 11}, loc=(.4, .05))
 
     plt.xlabel('Cost ($) per 1000 patient encounters', fontsize=14) # 'Total Amount (in %s) in 2014.07-2017.06, targeting PPV=%.2f'%(unit, targeted_PPV)
     # plt.xticks(range(0, 15001, 5000))
@@ -1416,7 +1391,7 @@ def main(figs_to_plot):
 
     if 'Potential_Savings' in figs_to_plot:
         draw__Potential_Savings(statsByDataSet_folderpath, scale=scale, result_label='all_four',
-                                targeted_PPV=0.95, use_cached_fig_data=False)
+                                targeted_PPV=0.95, use_cached_fig_data=False, price_source='chargemaster')
 
 def draw_histogram_transfer_modeling(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel'):
     print "Running draw_histogram_transfer_modeling..."
@@ -1512,6 +1487,6 @@ def draw_histogram_transfer_modeling(src_dataset='Stanford', dst_dataset='UCSF',
 
 
 if __name__ == '__main__':
-    # main(figs_to_plot=['Potential_Savings']) # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons
-    draw_histogram_transfer_modeling(lab_type='component')
+    main(figs_to_plot=['Potential_Savings']) # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons
+    # draw_histogram_transfer_modeling(lab_type='component')
 
