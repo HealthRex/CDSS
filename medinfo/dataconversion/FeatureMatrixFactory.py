@@ -258,8 +258,8 @@ class FeatureMatrixFactory:
 
         baseline_folder = '/'.join(raw_matrix_path.split('/')[:-1])
         baseline_filepath = os.path.join(baseline_folder, 'baseline_comparisons.csv')
-        os.rename(baseline_filepath, baseline_filepath.replace('baseline_comparisons', 'baseline_comparisons_prev')) # existing ones
-        baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons.csv'))
+        # os.rename(baseline_filepath, baseline_filepath.replace('baseline_comparisons', 'baseline_comparisons_prev')) # existing ones
+        baseline_comparisons.to_csv(baseline_filepath)
 
 
     '''
@@ -965,21 +965,60 @@ class FeatureMatrixFactory:
 
         colNames = ["%s AS pat_id"%pat_col, "flo_meas_id", "flowsheet_name", \
             "flowsheet_value", "shifted_record_dt_tm"]
-        query = SQLQuery()
-        for col in colNames:
-            query.addSelect(col)
+        # query = SQLQuery()
+        # for col in colNames:
+        #     query.addSelect(col)
+        # if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+        #     query.addFrom("stride_flowsheet")
+        # elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+        #     query.addFrom("vitals")
+        # query.addWhereIn("flowsheet_name", flowsheetBaseNames)
+        # query.addWhereIn(pat_col, patientIds)
+        # query.addOrderBy(pat_col)
+        # query.addOrderBy("shifted_record_dt_tm")
+
+        query_str = "SELECT "
+        for colName in colNames:
+            query_str += colName + ','
+        query_str = query_str[:-1]
+
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            query.addFrom("stride_flowsheet")
+            query_str += " FROM stride_flowsheet "
         elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-            query.addFrom("vitals")
-        query.addWhereIn("flowsheet_name", flowsheetBaseNames)
-        query.addWhereIn(pat_col, patientIds)
-        query.addOrderBy(pat_col)
-        query.addOrderBy("shifted_record_dt_tm")
-        log.debug(query)
+            query_str += " FROM vitals "
+        query_str += " WHERE flowsheet_name IN ("
+        for flowsheetBaseName in flowsheetBaseNames:
+            query_str += "'" + flowsheetBaseName + "',"
+        query_str = query_str[:-1] + ')'
+
+        query_str += " AND %s IN (" % pat_col
+
+        for patientId in patientIds:
+            query_str += patientId + ','
+        query_str = query_str[:-1] + ')'
+
+        query_str += " ORDER BY %s, shifted_record_dt_tm" % pat_col
+
+        # print query_str
+        log.debug(query_str)
+
+        # results = DBUtil.connection().cursor().execute(query_str).fetchall()
+        # print results
+        cur = DBUtil.connection().cursor()
+        cur.execute(query_str)
+
+        results = []
+        colNames = DBUtil.columnNamesFromCursor(cur)
+        results.append(colNames)
+
+        dataTable = list(cur.fetchall())
+        for i, row in enumerate(dataTable):
+            dataTable[i] = list(row);
+        results.extend(dataTable);
 
         # Execute query.
-        return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
+        # return modelListFromTable(DBUtil.execute(query, includeColumnNames=True))
+        return modelListFromTable(results)
 
     def colsFromBaseNames(self, baseNames, preTimeDays, postTimeDays):
         """Enumerate derived column/feature names given a set of (lab) result base names"""
