@@ -195,7 +195,6 @@ class SupervisedLearningPipeline:
 
             patIds_df = raw_matrix['pat_id'].copy()
 
-
             self._train_test_split(raw_matrix, params['outcome_label'])
 
             # ##
@@ -216,8 +215,6 @@ class SupervisedLearningPipeline:
             # Add features.
             self._add_features(fmt, params['features_to_add'])
 
-            # Remove features.
-            self._remove_features(fmt, params['features_to_remove'])
             # Filter on features
             if 'features_to_filter_on' in params:
                 self._filter_on_features(fmt, params['features_to_filter_on'])
@@ -232,7 +229,30 @@ class SupervisedLearningPipeline:
                     self._removed_features.append(feature)
 
             # Impute data.
-            self._impute_data(fmt, train_df, params['imputation_strategies'])
+            if params['imputation_strategies'] == {'sxu_new_imputation'}:
+                train_df = fmt.fetch_matrix()
+                means = {}
+                for column in train_df.columns.values.tolist():
+                    # column_tail = column.split('.')[-1].strip()
+                    if train_df[column].dtype == 'float64':
+                        means[column] = train_df[column].mean()
+
+                train_df = fmt.do_impute_sx(train_df, means)
+                fmt.set_input_matrix(train_df)
+                self._X_test = fmt.do_impute_sx(self._X_test, means)
+
+                self._remove_features(fmt, params['features_to_remove'])
+
+            else:
+                self._remove_features(fmt, params['features_to_remove'])
+                self._impute_data(fmt, train_df, params['imputation_strategies'])
+
+
+            # Remove features.
+            '''
+            Moved here, since still need pat_id for imputation!
+            '''
+            # self._remove_features(fmt, params['features_to_remove'])
 
             # In case any all-null features were created in preprocessing,
             # drop them now so feature selection will work
@@ -248,11 +268,11 @@ class SupervisedLearningPipeline:
             Select X_test columns according to processed X_train
             '''
             self._X_test = self._X_test[self._X_train.columns]
-            '''
-            Impute data according to the same strategy when training
-            '''
-            for feat in self._X_test.columns:
-                self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
+
+            if not params['imputation_strategies'] == {'sxu_new_imputation'}:
+                for feat in self._X_test.columns:
+                    self._X_test[feat] = self._X_test[feat].fillna(self.feat2imputed_dict[feat])
+
 
             self._select_features(params['selection_problem'],
                 params['percent_features_to_select'],
@@ -264,7 +284,10 @@ class SupervisedLearningPipeline:
             Will remove 'pat_id' (TODO sxu: more general in the future) later in train().
             '''
             self._X_train = self._X_train.join(patIds_df, how='left')
+
             self._X_test = self._X_test.join(patIds_df, how='left')
+
+            # print set(self._X_train['pat_id'].values.tolist()) & set(self._X_test['pat_id'].values.tolist())
 
             train = self._y_train.join(self._X_train)
             test = self._y_test.join(self._X_test)
@@ -589,10 +612,10 @@ class SupervisedLearningPipeline:
 
         # Write output.
         analyzer.output_direct_comparisons(direct_comparisons_path)
-        # analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
-        # analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
-        # analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
-        # analyzer.write_report(report_path, ci=0.95)
+        analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
+        analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
+        analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
+        analyzer.write_report(report_path, ci=0.95)
 
 
     # sx

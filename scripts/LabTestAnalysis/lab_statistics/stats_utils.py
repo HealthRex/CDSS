@@ -51,8 +51,26 @@ DEFAULT_TIMELIMIT = ('2014-07-01', '2017-07-01') # TODO: extremely confusing!
 #                        '2016 1stHalf', '2016 2stHalf',
 #                        '2017 1stHalf']
 
-NUM_DISTINCT_PATS = 44709
-NUM_DISTINCT_ENCS = 66439
+'''
+Meta-data in the last 3 years
+'''
+
+'''
+select count(distinct pat_id) from stride_order_proc where order_time >= '2014-07-01' and order_time < '2017-07-01';
+'''
+NUM_DISTINCT_PATS = 44710
+
+'''
+select count(distinct pat_enc_csn_id) from stride_order_proc where order_time >= '2014-07-01' and order_time < '2017-07-01';
+'''
+NUM_DISTINCT_ENCS = 66440
+
+NUM_DISTINCT_ENCS_UCSF = 15989
+
+'''
+select count(distinct order_proc_id) from stride_order_proc where proc_code='LABMGN' and order_status='Completed' and order_time >= '2014-07-01' and order_time < '2017-07-01';
+'''
+NUM_MAGNESIUM_COMPLETED_ORDERS = 282414
 
 # DEFAULT_TIMELIMITS = []
 # for time_window in DEFAULT_TIMEWINDOWS:
@@ -291,7 +309,7 @@ def get_guideline_maxorderfreq():
     maxorderfreq = {}
     maxorderfreq['once'] = ['LABCBCD', 'LABALB', 'LABA1C', 'LABPHOS', 'LABTSH']
     maxorderfreq['three_days'] = ['LABESRP']
-    maxorderfreq['one_day'] = ['LABMETB']
+    # maxorderfreq['one_day'] = ['LABMETB']
 
     return maxorderfreq
 
@@ -308,7 +326,7 @@ def get_important_labs(lab_type='panel', order_by=None):
         # labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
         #                                     time_limit=['2014-01-01','2016-12-31'])])
         # TODO: ISTAT TROPONIN?
-        return ['LABMGN', 'LABALB', 'LABPHOS', 'LABLAC', 'LABBLC', 'LABBLC2', 'LABLDH', 'LABURIC', 'LABTNI'] #, 'LABNA', 'LABK'
+        return ['LABMGN', 'LABALB', 'LABPHOS', 'LABLAC', 'LABBLC', 'LABBLC2', 'LABLDH', 'LABURIC', 'LABTNI', 'LABNA', 'LABK'] #,
 
         #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
     elif lab_type == 'component':
@@ -451,7 +469,7 @@ def get_prevweek_normal__dict(df, also_get_cnt=False):
             # a day has 86400 secs
             # prev_days.append(time_diff_df.seconds/86400.)
 
-def get_time_since_last_order_cnts(lab, df):
+def get_floored_day_to_number_orders_cnts(lab, df):
     datetime_format = "%Y-%m-%d %H:%M:%S"
     # print df.head()
     '''
@@ -494,32 +512,33 @@ def get_time_since_last_order_cnts(lab, df):
 
     return prevday_cnts_dict
 
-def get_curve_onelab(lab, all_algs, data_folder, curve_type, get_pval=False):
+def get_curve_onelab(lab, all_algs, data_folder, curve_type, get_pval=False, get_baseline=True):
     # curr_res_file = '%s-alg-summary-trainPPV-%s-vitalDays-%d.csv' % (lab, str(PPV_wanted), vital_day)
 
     '''
     Baseline curve
     '''
+    if get_baseline:
+        df = pd.read_csv(data_folder + '/' + lab + '/' + 'baseline_comparisons.csv')
+        baseline_shape = df.shape
 
-    df = pd.read_csv(data_folder + '/' + lab + '/' + 'baseline_comparisons.csv')
-    baseline_shape = df.shape
+        base_actual = df['actual'].values #df['actual'].values #all_components_normal
+        base_predict = df['predict'].values # predict
 
-    base_actual = df['actual'].values #df['actual'].values #all_components_normal
-    base_predict = df['predict'].values # predict
+        if curve_type == 'ROC':
+            fpr_base, tpr_base, _ = roc_curve(base_actual, base_predict)
+            xVal_base, yVal_base = fpr_base, tpr_base
 
-    if curve_type == 'ROC':
-        fpr_base, tpr_base, _ = roc_curve(base_actual, base_predict)
-        xVal_base, yVal_base = fpr_base, tpr_base
+            base_auc = roc_auc_score(base_actual, base_predict)
+            base_score = base_auc
+        elif curve_type == 'PRC':
+            precision, recall, _ = precision_recall_curve(base_actual, base_predict)
+            xVal_base, yVal_base = recall, precision
 
-        base_auc = roc_auc_score(base_actual, base_predict)
-        base_score = base_auc
-    elif curve_type == 'PRC':
-        precision, recall, _ = precision_recall_curve(base_actual, base_predict)
-        xVal_base, yVal_base = recall, precision
-
-        base_aps = average_precision_score(base_actual, base_predict)
-        base_score = base_aps
-
+            base_aps = average_precision_score(base_actual, base_predict)
+            base_score = base_aps
+    else:
+        xVal_base, yVal_base, base_score = None, None, None
 
     '''
     best alg
@@ -529,13 +548,14 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type, get_pval=False):
     best_actual = None
     best_predict = None
     for alg in all_algs:
-        df = pd.read_csv(data_folder + '/' + lab + '/' + alg + '/' +
+        df = pd.read_csv(data_folder + '/' + lab +  '/' + alg + '/' +
                          'direct_comparisons.csv')
         alg_shape = df.shape
 
         # print baseline_shape, alg_shape
         # print lab, baseline_shape[0], alg_shape[0]
-        assert baseline_shape[0] == alg_shape[0] # Make sure the same test set!
+        if get_baseline:
+            assert baseline_shape[0] == alg_shape[0] # Make sure the same test set!
 
         actual_list = df['actual'].values
         try:
@@ -691,6 +711,16 @@ def Hosmer_Lemeshow_Test(predict_probas, actual_labels, num_bins=10):
 
     return 1 - stats.chi2.cdf(H_stat, dof)
 
+def map_pval_significance(p_val):
+    significance = ''
+    if p_val < 0.001:
+        significance = '***'
+    elif p_val < 0.01:
+        significance = '**'
+    elif p_val < 0.05:
+        significance = '*'
+
+    return significance
 
 def get_thres_by_fixing_PPV(lab, alg, data_folder='', PPV_wanted=0.9, thres_mode="from_test"):
     if thres_mode == "from_train":
@@ -1030,7 +1060,12 @@ def get_lab_descriptions(line_break_at=None):
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
     elif data_source == 'UCSF' and lab_type=='panel':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
-        descriptions = dict(zip(UCSF_TOP_PANELS, UCSF_TOP_PANELS))
+
+        if not line_break_at:
+            descriptions = dict(zip(UCSF_TOP_PANELS, UCSF_TOP_PANELS))
+        else:
+            descriptions = dict(zip(UCSF_TOP_PANELS, [add_line_breaker(x, line_break_at) for x in UCSF_TOP_PANELS]))
+
         return descriptions
     elif data_source == 'UMich' and lab_type=='component':
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_component.csv')
@@ -1038,6 +1073,10 @@ def get_lab_descriptions(line_break_at=None):
         descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_panel.csv')
 
     df = pd.read_csv(descriptions_filepath, keep_default_na=False)
+
+    if data_source == 'UMich' and lab_type=='component':
+        df = df.rename(columns={'RESULT_CODE':'name', 'RESULT_NAME':'description'})
+
     if line_break_at:
         df['description'] = df['description'].apply(lambda x: add_line_breaker(x, line_break_at))
 
@@ -1151,8 +1190,9 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, 
         elif price_source == 'medicare':
             medicare_price_dict = get_medicare_price_dict()
             cur_price = medicare_price_dict.get(lab, float('nan'))
-            df_prices_dict = {'min_price':cur_price, 'max_price':cur_price,
-                              'mean_price':cur_price, 'median_price':cur_price}
+            # df_prices_dict = {'min_price':cur_price, 'max_price':cur_price,
+            #                   'mean_price':cur_price, 'median_price':cur_price}
+            df_prices_dict = {'medicare':cur_price}
 
 
 
@@ -1444,20 +1484,71 @@ def main_queryAllLabsToDF(lab_type='panel'):
 
 
 
+def output_feature_importances(data_set_folder='data-Stanford-panel-10000-episodes'):
+    def split_features(feature):
+        divind = feature.find('(')
+        featu = feature[:divind - 1]
+        score = feature[divind + 1:-1]
+        return featu, float(score)
+
+    num_rf_best = 0
+
+    lab_descriptions = get_lab_descriptions()
+
+    ml_folderpath = '../machine_learning/'
+
+    result_filepath = os.path.join(data_set_folder, 'RF_important_features.csv')
+
+    '''
+    Rules:
+    merge proximate to last
+    '''
+
+    def grouped(feature):
+        # Features that needs the first two element to identify
+        complex_feature_types = ['Comorbidity', 'Team']
+        for complex_feature_type in complex_feature_types:
+            if complex_feature_type in feature:
+                return '.'.join(feature.split('.')[:2])
+
+        return feature.split('.')[0]
+
+    result_df = pd.DataFrame(columns=['lab', 'feature 1', 'score 1', 'feature 2', 'score 2', 'feature 3', 'score 3'])
+    for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+        report_folderpath = os.path.join(ml_folderpath, data_set_folder, lab, 'random-forest')
+        report_filepath = os.path.join(report_folderpath, '%s-normality-prediction-random-forest-report.tab' % lab)
+
+        df = pd.read_csv(report_filepath, sep='\t', skiprows=0)
+        rf_description = df['model'].values.tolist()[0]
+        features_start = rf_description.index('features=[')
+        features_str = rf_description[features_start + len('features=['):-2]
+
+        feature_tuples = [x.strip() for x in features_str.split(',')]
+        # print feature_tuples
+
+        one_lab_dict = {}
+        for feature_tuple in feature_tuples:
+            feature, score = split_features(feature_tuple)
+            grouped_feature = grouped(feature)
+            one_lab_dict[grouped_feature] = one_lab_dict.get(grouped_feature, 0) + score
+        sorted_tuples = sorted(one_lab_dict.items(), key=lambda x: x[1])[::-1]
+
+        one_df_dict = {'lab': lab,
+                       'feature 1': sorted_tuples[0][0],
+                       'score 1': sorted_tuples[0][1],
+                       'feature 2': sorted_tuples[1][0],
+                       'score 2': sorted_tuples[1][1],
+                       'feature 3': sorted_tuples[2][0],
+                       'score 3': sorted_tuples[2][1],
+                       }
+        # result_df.append(one_df_dict)
+
+        result_df.loc[len(result_df)] = [lab_descriptions[lab],
+                                         sorted_tuples[0][0], sorted_tuples[0][1],
+                                         sorted_tuples[1][0], sorted_tuples[1][1],
+                                         sorted_tuples[2][0], sorted_tuples[2][1]]
+
+    result_df.to_csv(result_filepath, index=False)
 
 if __name__ == '__main__':
-    # print get_top_labs(lab_type='component', top_k=20, lab_name_only=False)
-    # print get_top_labs(lab_type='panel', top_k=20, criterion='count*price')
-
-    # print query_lab_cnt('LABMGN')
-    # print query_lab_cnt('LABCBCD')
-
-    # main_queryAllLabsToDF(lab_type='component')
-
-    # check_baseline2(lab='LABA1C',
-    #                 mlByLab_folder=os.path.join(main_folder,
-    #                                             'machine_learning/',
-    #                                             'data-panel-10000-episodes/'),
-    #                 source="train")
-
-    print query_num_instances(instance_type='pat_enc_csn_id')
+    output_feature_importances()

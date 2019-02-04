@@ -58,7 +58,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
             pickle.dump(self.usedPatIds, open('data/used_patient_set_%s.pkl'%self._var, 'w'), pickle.HIGHEST_PROTOCOL)
             self._build_processed_feature_matrix()
             self._build_baseline_results()  # TODO: prototype in SLPP
-            return
+            # return
 
             # TODO: find better place to put the dict.pkl
             pickle.dump(self.feat2imputed_dict, open(feat2imputed_dict_path, 'w'), pickle.HIGHEST_PROTOCOL)
@@ -73,6 +73,10 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
     def _build_raw_matrix_path(self):
         raw_matrix_filename = '%s-normality-matrix-raw.tab' % self._var  #
         raw_matrix_filepath = os.path.join('data', self._var, raw_matrix_filename)  # TODO
+        if not os.path.exists('data'):
+            os.mkdir('data')
+        if not os.path.exists(os.path.join('data', self._var)):
+            os.mkdir(os.path.join('data', self._var))
         return raw_matrix_filepath
         if not self._holdOut:
             template = '%s-normality-matrix-raw.tab'
@@ -396,7 +400,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 SupervisedLearningPipeline._analyze_predictor(self, report_dir, pipeline_prefix)
                 SupervisedLearningPipeline._analyze_predictor_traindata(self, report_dir, pipeline_prefix)
 
-                continue # Do not generate stats results here...
+                # continue # Do not generate stats results here...
 
                 if meta_report is None:
                     meta_report = fm_io.read_file_to_data_frame('/'.join([report_dir, '%s-report.tab' % pipeline_prefix]))
