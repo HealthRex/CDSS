@@ -29,6 +29,12 @@ TOP_PANELS_AND_COUNTS_IN_1TO3DAYS = [['LABMETB', 105169], ['LABMGN', 104168], ['
 data_folderpath = 'data-Stanford-panel-10000-episodes'
 
 UCSF_PANELS_AND_COUNTS = [['Magnesium, Serum - Plasma', 68558], ['Phosphorus, Serum - Plasma', 51520], ['Prothrombin Time', 46170], ['Activated Partial Thromboplastin Time', 20891], ['Peripheral Blood Culture', 10406], ['Bilirubin, Total', 12740], ['Creatinine, Serum - Plasma', 11958], ['Alkaline Phosphatase', 11943], ['Sodium, Serum - Plasma', 9500], ['Potassium, Serum - Plasma', 6725], ['Troponin I', 7075], ['Carbon Dioxide, Total (includes Anion Gap)', 9236], ['Lactate Dehydrogenase, Serum - Plasma', 8856], ['Calcium, Ionized, serum-plasma', 8742], ['Uric Acid, Serum - Plasma', 4472], ['Albumin, Serum - Plasma', 4120], ['Thyroid Stimulating Hormone', 2030]]
+# UCSF_COMPONENTSS_AND_COUNTS = {'SODIUM, SERUM / PLASMA':103425, 'POTASSIUM, SERUM / PLASMA':100652, 'CHLORIDE, SERUM / PLASMA': 98564,
+#                                'CARBON DIOXIDE, TOTAL': 98546, 'CREATININE': 97832, 'CALCIUM, TOTAL, SERUM / PLASMA': 96041,
+#                                'UREA NITROGEN, SERUM / PLASMA': 96024, 'HEMATOCRIT': 95504, 'PLATELET COUNT': 95425,
+#                                'GLUCOSE, NON-FASTING': 94859, 'HEMOGLOBIN': 94268, 'WBC COUNT': 94073, 'MAGNESIUM, SERUM / PLASMA': 68610,
+#                                'PHOSPHORUS, SERUM / PLASMA': 51572, 'BILIRUBIN, TOTAL': 30230, }
+UCSF_COMPONENTSS_AND_COUNTS = [['WBC', 94073], ['HGB', 94268], ['PLT', 95425], ['NAWB', 27514], ['K', 100652], ['CREAT', 97832], ['TBILI', 30230], ['CL', 98564], ['CO2', 98546], ['DBILI', 3783], ['AST', 30750], ['ALT', 30765], ['ALB', 21571], ['CA', 96041], ['PCO2', 40986], ['PO2', 40986], ['PH37', 40986], ['TP', 18291], ['ALKP', 29433], ['BUN', 96024], ['HCO3', 40984], ['MG', 68610], ['PO4', 51572], ['INR', 34043], ['P060', 12553], ['CAI', 8742], ['CAIB', 27514], ['LACTWB', 27706]]
 
 def show_top_volume_panels():
     data_filepath = os.path.join(data_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
