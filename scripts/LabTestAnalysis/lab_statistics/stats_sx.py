@@ -269,7 +269,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
     #                  keep_default_na=False)
     labs_stats_filepath = os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
 
-    df = pd.read_csv(labs_stats_filepath)
+    df = pd.read_csv(labs_stats_filepath, keep_default_na=False)
 
     df = df[df['targeted_PPV_fixTrainPPV'] == targeted_PPV]
 
@@ -312,7 +312,10 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
             import stats_database
             if stats_utils.lab_type == 'panel':
                 ucsf_lab_cnt = dict(stats_database.UCSF_PANELS_AND_COUNTS)
-                df['total_vol'] = df['lab'].apply(lambda x: ucsf_lab_cnt[x])
+
+            elif stats_utils.lab_type == 'component':
+                ucsf_lab_cnt = dict(stats_database.UCSF_COMPONENTSS_AND_COUNTS)
+            df['total_vol'] = df['lab'].apply(lambda x: ucsf_lab_cnt[x])
         else:
             df['total_vol'] = 1
 
@@ -376,7 +379,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
     elif scale_by == 'enc_ucsf':
         scale = float(stats_utils.NUM_DISTINCT_ENCS_UCSF/1000.)
 
-    if lab_type == 'panel':
+    if data_source == 'Stanford' or data_source == 'UCSF': #True: #lab_type == 'panel':
         df_toplots = df_toplots.sort_values(['total_vol'], ascending=True)
     else:
         df_toplots = df_toplots.iloc[::-1]
@@ -402,26 +405,39 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
         for i, v in enumerate(df_toplot['all_positive_vol']/scale):
             cur_lab = df_toplot['lab'].values[i]
             cur_description = lab_descriptions.get(cur_lab,cur_lab).replace(' - ', '/')
-            if '\n' in cur_description:
-                ax.text(v+50, i-0.3, cur_description, color='k', fontsize=14)
+
+            if data_source == 'UMich':
+                ax.text(v+0.05, i - 0.2, cur_description, color='k', fontsize=14)
             else:
-                ax.text(v + 50, i - 0.1, cur_description, color='k', fontsize=14)
+                if '\n' in cur_description:
+                    ax.text(v+50, i-0.3, cur_description, color='k', fontsize=14)
+                else:
+                    ax.text(v+50, i - 0.1, cur_description, color='k', fontsize=14)
 
         plt.yticks([])
 
         if data_source == 'Stanford' and lab_type == 'panel':
             plt.xlim([-3000, 3000])
         elif data_source == 'Stanford' and lab_type == 'component':
-            plt.xlim([-8.5, 8])
+            plt.xlim([-9000, 9000])
+            pass
         elif data_source == 'UCSF' and lab_type == 'panel':
             plt.xlim([-3200, 3200])
+        elif data_source == 'UCSF' and lab_type == 'component':
+            plt.xlim([-6000, 6000])
+        elif data_source == 'UMich' and lab_type == 'component':
+            plt.xlim([-1.5, 1.5])
 
         handles, labels = plt.gca().get_legend_handles_labels()
         order = [1, 0, 3, 2]
 
         # plt.legend([handles[idx] for idx in order], [labels[idx] for idx in order],
         #            loc=[0.05,0.1], ncol=2, prop={'size': 12})
-        plt.xlabel('Number of orders per 1000 patient encounters, targeting at %.0f'%(targeted_PPV*100)+'% PPV', fontsize=18)
+        if data_source == 'UCSF' or data_source == 'Stanford':
+            plt.xlabel('Number of orders per 1000 patient encounters, targeting at %.0f'%(targeted_PPV*100)+'% PPV', fontsize=18)
+        else:
+            plt.xlabel('Fraction of orders, targeting at %.0f' % (targeted_PPV * 100) + '% PPV',
+                fontsize=18)
         #plt.ylabel('Labs', fontsize=14)
 
         plt.tick_params('x', labelsize=16)
@@ -665,6 +681,8 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
 
     scores_diffs = {}
 
+    lab_descriptions = stats_utils.get_lab_descriptions(line_break_at=22)
+
     for ind, lab in enumerate(labs):
 
         '''
@@ -675,7 +693,7 @@ def draw__stats_Curves(statsByLab_folderpath, labs=all_labs, curve_type="ROC", a
                                            all_algs=algs,
                                            data_folder=statsByLab_folderpath.replace("lab_statistics", "machine_learning"),
                                            curve_type=curve_type,
-                                           get_pval=True)
+                                           get_pval=False)
         print lab, p_val
         scores_base.append(score_base)
         scores_best.append(score_best)
@@ -1276,123 +1294,6 @@ def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
     plt.ylabel('Number of labs')
     plt.savefig(result_figpath)
 
-
-def main(figs_to_plot):
-    print 'stats_sx running...'
-
-    '''
-    scale by each 1000 patient encounter
-    '''
-    scale = 1. / stats_utils.NUM_DISTINCT_ENCS * 1000
-
-    stats_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/')
-    ml_folderpath = os.path.join(stats_utils.main_folder, 'machine_learning')
-
-    import LocalEnv
-    statsByDataSet_foldername = 'data-%s-%s-10000-episodes' % (
-    data_source, lab_type)  # 'results-from-panels-10000-to-panels-5000-part-1_medicare/'
-    statsByDataSet_folderpath = os.path.join(stats_folderpath, statsByDataSet_foldername)
-    if not os.path.exists(statsByDataSet_folderpath):
-        os.mkdir(statsByDataSet_folderpath)
-
-    labs_guideline_nested = stats_utils.get_guideline_maxorderfreq().values()
-    labs_guideline = [lab for sublist in labs_guideline_nested for lab in sublist]
-
-    labs_common_panels = ['LABMETB', 'LABCBCD']
-
-    if 'Comparing_Components' in figs_to_plot:
-        comparing_components(stats_folderpath)
-
-    if 'Order_Intensities' in figs_to_plot:
-        classic_labs = list(set(labs_common_panels + labs_guideline + stats_utils.get_important_labs()))
-
-        import stats_database
-        '''
-        Choose 20 labs
-        '''
-        labs_cnts_order_1day = stats_database.TOP_PANELS_AND_COUNTS_IN_1DAY[:20]
-        labs_order_1day = [x[0] for x in labs_cnts_order_1day]
-
-        draw__Order_Intensities(statsByDataSet_folderpath, labs=labs_guideline, result_label='labs_guideline',
-                                scale=scale, use_cached_fig_data=True,
-                                to_annotate_percentages=True)
-
-    if 'Normality_Saturations' in figs_to_plot:
-        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels) - set(
-            ['LABTSH', 'LABLDH']))
-
-        draw__Normality_Saturations(statsByDataSet_folderpath, labs=labs, use_cached_fig_data=True)
-
-    if 'PPV_distribution' in figs_to_plot:
-        # PPV_guideline(statsByDataSet_folderpath) #TODO
-        get_best_calibrated_labs(statsByDataSet_folderpath, worst=False)
-
-    if 'Savable_Fractions' in figs_to_plot:
-        draw__Comparing_Savable_Fractions(statsByDataSet_folderpath, target_PPV=0.95, use_cache=True)
-
-    if 'Comparing_PPVs' in figs_to_plot:
-        draw__Comparing_PPVs(statsByDataSet_folderpath)
-
-    if 'ROC' in figs_to_plot or 'PRC' in figs_to_plot:
-        '''
-        1. typical labs are for show in the main text
-
-        2. all labs for putting in the Appendix
-        '''
-        typical_labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
-
-        lab_set, set_label = all_labs, 'all_labs'  # typical_labs, 'typical_labs'
-
-        if 'ROC' in figs_to_plot:
-            top_improved_labs = ['LABBUN', 'LABUOSM', 'LABSTOBGD', 'LABPCCR', 'LABFE', 'LABCRP', 'LABPCTNI',
-                                 'LABK', 'LABPLTS', 'LABPT', 'LABCDTPCR', 'LABALB', 'LABHIVWBL', 'LABPTEG',
-                                 'LABESRP', 'LABUPREG', 'LABPROCT', 'LABPALB', 'LABCORT', 'LABPCCG4O', 'LABTRFS',
-                                 'LABCSFTP', 'LABDIGL', 'LABNTBNP', 'LABURIC', 'LABHEPAR', 'LABMGN', 'LABLAC',
-                                 'LABLIDOL', 'LABHCTX', 'LABPTT', 'LABCA', 'LABRETIC', 'LABSPLAC', 'LABTRIG']
-            # lab_set, set_label = top_improved_labs, 'top_improved_labs'
-            draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=['random-forest'],
-                               result_label=set_label)
-        if 'PRC' in figs_to_plot:
-            draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=['random-forest'],
-                               result_label=set_label)
-
-        merge_ROC_PRC = True
-        if merge_ROC_PRC:
-            df_ROC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs',
-                                              '%s_%s_ROC.csv' % (data_source, lab_type)), keep_default_na=False)
-            df_PRC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs',
-                                              '%s_%s_PRC.csv' % (data_source, lab_type)), keep_default_na=False)
-
-            df_combined = pd.merge(df_ROC, df_PRC, on='lab', how='left')
-            df_combined.pop('ROC p value')
-            df_combined.pop('PRC p value')
-            df_combined.to_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs',
-                                            '%s_%s_ROC_PRC.csv' % (data_source, lab_type)),
-                               index=False)
-
-    if 'plot_cartoons' in figs_to_plot:
-        plot_cartoons(os.path.join(ml_folderpath, statsByDataSet_foldername))
-
-    if 'Confusion_Metrics' in figs_to_plot:
-        panels = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
-        print all_labs
-        components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA', \
-                      'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
-
-        if data_source == 'Stanford':
-            draw__Confusion_Metrics(statsByDataSet_folderpath, labs=panels, result_label='change_colors',
-                                    targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
-        elif data_source == 'UCSF':
-            draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='change_colors',
-                                    targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
-
-    if 'Predicted_Normal' in figs_to_plot:
-        draw__predicted_normal_fractions(statsByLab_folderpath=statsByDataSet_folderpath, targeted_PPV=0.95)
-
-    if 'Potential_Savings' in figs_to_plot:
-        draw__Potential_Savings(statsByDataSet_folderpath, scale=scale, result_label='all_four',
-                                targeted_PPV=0.95, use_cached_fig_data=False, price_source='chargemaster')
-
 def draw_histogram_transfer_modeling(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel'):
     print "Running draw_histogram_transfer_modeling..."
 
@@ -1482,11 +1383,135 @@ def draw_histogram_transfer_modeling(src_dataset='Stanford', dst_dataset='UCSF',
     plt.tight_layout()
     plt.savefig(result_figpath)
 
+def main(figs_to_plot):
+    print 'stats_sx running...'
+
+    '''
+    scale by each 1000 patient encounter
+    '''
+    scale = 1. / stats_utils.NUM_DISTINCT_ENCS * 1000
+
+    stats_folderpath = os.path.join(stats_utils.main_folder, 'lab_statistics/')
+    ml_folderpath = os.path.join(stats_utils.main_folder, 'machine_learning')
+
+    import LocalEnv
+    statsByDataSet_foldername = 'data-%s-%s-10000-episodes' % (data_source, lab_type)
+    statsByDataSet_folderpath = os.path.join(stats_folderpath, statsByDataSet_foldername)
+    if not os.path.exists(statsByDataSet_folderpath):
+        os.mkdir(statsByDataSet_folderpath)
+
+    labs_guideline_nested = stats_utils.get_guideline_maxorderfreq().values()
+    labs_guideline = [lab for sublist in labs_guideline_nested for lab in sublist]
+
+    labs_common_panels = ['LABMETB', 'LABCBCD']
+
+    if 'Comparing_Components' in figs_to_plot:
+        comparing_components(stats_folderpath)
+
+    if 'Order_Intensities' in figs_to_plot:
+        classic_labs = list(set(labs_common_panels + labs_guideline + stats_utils.get_important_labs()))
+
+        import stats_database
+        '''
+        Choose 20 labs
+        '''
+        labs_cnts_order_1day = stats_database.TOP_PANELS_AND_COUNTS_IN_1DAY[:20]
+        labs_order_1day = [x[0] for x in labs_cnts_order_1day]
+
+        draw__Order_Intensities(statsByDataSet_folderpath, labs=labs_guideline, result_label='labs_guideline',
+                                scale=scale, use_cached_fig_data=True,
+                                to_annotate_percentages=True)
+
+    if 'Normality_Saturations' in figs_to_plot:
+        labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels) - set(
+            ['LABTSH', 'LABLDH']))
+
+        draw__Normality_Saturations(statsByDataSet_folderpath, labs=labs, use_cached_fig_data=True)
+
+    if 'PPV_distribution' in figs_to_plot:
+        # PPV_guideline(statsByDataSet_folderpath) #TODO
+        get_best_calibrated_labs(statsByDataSet_folderpath, worst=False)
+
+    if 'Savable_Fractions' in figs_to_plot:
+        draw__Comparing_Savable_Fractions(statsByDataSet_folderpath, target_PPV=0.95, use_cache=True)
+
+    if 'Comparing_PPVs' in figs_to_plot:
+        draw__Comparing_PPVs(statsByDataSet_folderpath)
+
+    if 'ROC' in figs_to_plot or 'PRC' in figs_to_plot:
+        '''
+        1. typical labs are for show in the main text
+
+        2. all labs for putting in the Appendix
+        '''
+        typical_labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
+
+        lab_set, set_label = all_labs, 'all_labs'  # typical_labs, 'typical_labs'
+
+        if 'ROC' in figs_to_plot:
+            top_improved_labs = ['LABBUN', 'LABUOSM', 'LABSTOBGD', 'LABPCCR', 'LABFE', 'LABCRP', 'LABPCTNI',
+                                 'LABK', 'LABPLTS', 'LABPT', 'LABCDTPCR', 'LABALB', 'LABHIVWBL', 'LABPTEG',
+                                 'LABESRP', 'LABUPREG', 'LABPROCT', 'LABPALB', 'LABCORT', 'LABPCCG4O', 'LABTRFS',
+                                 'LABCSFTP', 'LABDIGL', 'LABNTBNP', 'LABURIC', 'LABHEPAR', 'LABMGN', 'LABLAC',
+                                 'LABLIDOL', 'LABHCTX', 'LABPTT', 'LABCA', 'LABRETIC', 'LABSPLAC', 'LABTRIG']
+            # lab_set, set_label = top_improved_labs, 'top_improved_labs'
+            draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=['random-forest'],
+                               result_label=set_label)
+        if 'PRC' in figs_to_plot:
+            draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=['random-forest'],
+                               result_label=set_label)
+
+        merge_ROC_PRC = True
+        if merge_ROC_PRC:
+            df_ROC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs',
+                                              '%s_%s_ROC.csv' % (data_source, lab_type)), keep_default_na=False)
+            df_PRC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs',
+                                              '%s_%s_PRC.csv' % (data_source, lab_type)), keep_default_na=False)
+
+            df_combined = pd.merge(df_ROC, df_PRC, on='lab', how='left')
+            df_combined.pop('ROC p value')
+            df_combined.pop('PRC p value')
+            df_combined.to_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs',
+                                            '%s_%s_ROC_PRC.csv' % (data_source, lab_type)),
+                               index=False)
+
+    if 'plot_cartoons' in figs_to_plot:
+        plot_cartoons(os.path.join(ml_folderpath, statsByDataSet_foldername))
+
+    if 'Confusion_Metrics' in figs_to_plot:
+        panels = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
+        print all_labs
+        components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA', \
+                      'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
+
+        if data_source == 'Stanford':
+            if lab_type == 'panel':
+                draw__Confusion_Metrics(statsByDataSet_folderpath, labs=panels, result_label='change_colors',
+                                        targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
+            else:
+                draw__Confusion_Metrics(statsByDataSet_folderpath, labs=components, result_label='change_colors',
+                                        targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
+        elif data_source == 'UCSF':
+            draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='change_colors',
+                                    targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
+
+        elif data_source == 'UMich':
+            draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='change_colors',
+                                    targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False)
+
+    if 'Predicted_Normal' in figs_to_plot:
+        draw__predicted_normal_fractions(statsByLab_folderpath=statsByDataSet_folderpath, targeted_PPV=0.95)
+
+    if 'Potential_Savings' in figs_to_plot:
+        draw__Potential_Savings(statsByDataSet_folderpath, scale=scale, result_label='all_four',
+                                targeted_PPV=0.95, use_cached_fig_data=False, price_source='chargemaster')
+
+
 
 
 
 
 if __name__ == '__main__':
-    main(figs_to_plot=['Potential_Savings']) # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons
+    main(figs_to_plot=['Confusion_Metrics']) # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons
     # draw_histogram_transfer_modeling(lab_type='component')
 
