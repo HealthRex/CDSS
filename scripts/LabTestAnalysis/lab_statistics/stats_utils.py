@@ -1484,7 +1484,8 @@ def main_queryAllLabsToDF(lab_type='panel'):
 
 
 
-def output_feature_importances(data_set_folder='data-Stanford-panel-10000-episodes'):
+def output_feature_importances(data_source='Stanford', lab_type='panel'):
+    data_set_folder = 'data-%s-%s-10000-episodes'%(data_source, lab_type)
     def split_features(feature):
         divind = feature.find('(')
         featu = feature[:divind - 1]
@@ -1492,6 +1493,13 @@ def output_feature_importances(data_set_folder='data-Stanford-panel-10000-episod
         return featu, float(score)
 
     num_rf_best = 0
+
+    if data_source=='Stanford' and lab_type=='panel':
+        labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+    elif data_source=='Stanford' and lab_type=='component':
+        labs = STRIDE_COMPONENT_TESTS
+    elif data_source=='UCSF' and lab_type=='panel':
+        labs = UCSF_TOP_PANELS
 
     lab_descriptions = get_lab_descriptions()
 
@@ -1514,7 +1522,7 @@ def output_feature_importances(data_set_folder='data-Stanford-panel-10000-episod
         return feature.split('.')[0]
 
     result_df = pd.DataFrame(columns=['lab', 'feature 1', 'score 1', 'feature 2', 'score 2', 'feature 3', 'score 3'])
-    for lab in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+    for lab in labs:
         report_folderpath = os.path.join(ml_folderpath, data_set_folder, lab, 'random-forest')
         report_filepath = os.path.join(report_folderpath, '%s-normality-prediction-random-forest-report.tab' % lab)
 
@@ -1551,4 +1559,9 @@ def output_feature_importances(data_set_folder='data-Stanford-panel-10000-episod
     result_df.to_csv(result_filepath, index=False)
 
 if __name__ == '__main__':
-    output_feature_importances()
+    output_feature_importances(data_source='UCSF', lab_type='panel') # TODO: do this for UCSF...
+    # lab_type='panel'
+    # print get_labvol('LABPCCR')
+    #
+    # lab_type = 'component'
+    # print get_labvol('CR')

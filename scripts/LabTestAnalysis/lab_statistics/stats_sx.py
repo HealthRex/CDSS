@@ -868,10 +868,11 @@ refactored
 
 
 def plot_cartoons(ml_folderpath):
-    try:
-        df = pd.read_csv('RF_important_features_%ss.csv'%lab_type, keep_default_na=False)
-    except:
-        write_importantFeatures(lab_type)
+    # try:
+    #     df = pd.read_csv('RF_important_features_%ss.csv'%lab_type, keep_default_na=False)
+    # except:
+    #     write_importantFeatures(lab_type)
+
     # labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
     # print labs
 
@@ -1171,9 +1172,9 @@ def comparing_components(stats_folderpath, target_PPV=0.95):
 
     labs_important = stats_utils.get_important_labs(lab_type='component')
 
-    stanford_filepath = os.path.join(stats_folderpath, 'data-component-10000-episodes', stats_filename)
-    umich_filepath = os.path.join(stats_folderpath, 'data-UMich-10000-episodes', stats_filename)
-    ucsf_filepath = os.path.join(stats_folderpath, 'data-UCSF-10000-episodes', stats_filename)
+    stanford_filepath = os.path.join(stats_folderpath, 'data-Stanford-component-10000-episodes', stats_filename)
+    umich_filepath = os.path.join(stats_folderpath, 'data-UMich-component-10000-episodes', stats_filename)
+    ucsf_filepath = os.path.join(stats_folderpath, 'data-UCSF-component-10000-episodes', stats_filename)
 
     df_stanford = pd.read_csv(stanford_filepath, keep_default_na=False)
     labs_stanford = set(df_stanford['lab'].values.tolist())
@@ -1224,7 +1225,7 @@ def comparing_components(stats_folderpath, target_PPV=0.95):
                                               'false_negative': 'FN_UMich'
                                               })
 
-    ucsf_replace = {'NAWB': 'NA', 'CREAT': 'CR'}
+    ucsf_replace = {'CREAT': 'CR'}
     df_ucsf['lab'] = df_ucsf['lab'].apply(lambda x: ucsf_replace[x] if x in ucsf_replace else x)
     df_ucsf['predicted_normal_UCSF'] = df_ucsf['true_positive'] + df_ucsf['false_positive']
     df_ucsf = df_ucsf.rename(columns={'AUROC': 'AUC_UCSF',
@@ -1251,8 +1252,12 @@ def comparing_components(stats_folderpath, target_PPV=0.95):
     columns_merged = merged_df.columns.tolist()
     columns_merged.remove('lab')
     columns_merged = ['lab'] + sorted(columns_merged)
-    merged_df['lab'] = merged_df['lab'].apply(lambda x: lab_descriptions[x])
-    merged_df[columns_merged].to_csv(os.path.join(stats_folderpath, 'components_comparisons.csv'), index=False)
+    merged_df['lab'] = merged_df['lab'].apply(lambda x: lab_descriptions.get(x,x))
+
+    merged_df['PPV Stanford'] = pd.to_numeric(merged_df['PPV Stanford'])
+    merged_df['PPV UCSF'] = pd.to_numeric(merged_df['PPV UCSF'])
+    merged_df['PPV UMich'] = pd.to_numeric(merged_df['PPV UMich'])
+    merged_df[columns_merged].to_csv(os.path.join(stats_folderpath, 'components_comparisons.csv'), index=False, float_format='%.2f')
 
 
 def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
@@ -1446,7 +1451,7 @@ def main(figs_to_plot):
         '''
         typical_labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels))
 
-        lab_set, set_label = all_labs, 'all_labs'  # typical_labs, 'typical_labs'
+        lab_set, set_label = typical_labs, 'typical_labs'  # typical_labs, 'typical_labs'
 
         if 'ROC' in figs_to_plot:
             top_improved_labs = ['LABBUN', 'LABUOSM', 'LABSTOBGD', 'LABPCCR', 'LABFE', 'LABCRP', 'LABPCTNI',
@@ -1461,7 +1466,7 @@ def main(figs_to_plot):
             draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=['random-forest'],
                                result_label=set_label)
 
-        merge_ROC_PRC = True
+        merge_ROC_PRC = False
         if merge_ROC_PRC:
             df_ROC = pd.read_csv(os.path.join(statsByDataSet_folderpath, 'Fig_stats_Curves_all_labs',
                                               '%s_%s_ROC.csv' % (data_source, lab_type)), keep_default_na=False)
@@ -1506,12 +1511,73 @@ def main(figs_to_plot):
         draw__Potential_Savings(statsByDataSet_folderpath, scale=scale, result_label='all_four',
                                 targeted_PPV=0.95, use_cached_fig_data=False, price_source='chargemaster')
 
+def plot_one_curve(lab='LABLDH'):
+    statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
+    xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
+        = stats_utils.get_curve_onelab(lab,
+                                       all_algs=['random-forest'],
+                                       data_folder=statsByLab_folderpath.replace("lab_statistics", "machine_learning"),
+                                       curve_type='ROC',
+                                       get_pval=False)
+    print lab, p_val
 
+    plt.figure(figsize=(5, 4))
+    plt.scatter(xVal_base, yVal_base, label='baseline model, %0.2f' % (score_base))
+    plt.scatter(xVal_best, yVal_best, label='random forest, %0.2f' % (score_best))
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.xticks([])
+    plt.yticks([])
+    plt.ylabel('sensitivity', fontsize=14) #lab_descriptions.get(lab, lab)
+    plt.xlabel('1-specificity', fontsize=14)
+    plt.legend(fontsize=12)
+    plt.savefig(os.path.join(statsByLab_folderpath, 'ROC_%s.png'%lab))
 
+    plt.clf()
 
+    ml_folderpath = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
 
+    plt.figure(figsize=(5, 4))
+    df = pd.read_csv(ml_folderpath + "/%s/baseline_comparisons.csv"
+                     % (lab), keep_default_na=False)
+    scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
+    scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
+
+    plt.hist(scores_actual_0, bins=30, alpha=0.8, color='r', label="abnormal")
+    plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
+    plt.xlim([0, 1])
+    plt.ylim([0, 500])
+    plt.xticks([])
+    plt.yticks([])
+    # plt.xlabel(lab_descriptions[lab] + 'auroc=%.2f' % auc)
+    plt.xlabel('baseline', fontsize=16)
+    plt.legend(fontsize=12)
+    plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_baseline_%s.png'%lab))
+    plt.clf()
+
+    plt.figure(figsize=(5, 4))
+    alg = 'random-forest'
+    df = pd.read_csv(ml_folderpath + "/%s/%s/direct_comparisons.csv"
+                     % (lab, alg), keep_default_na=False)
+    scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
+    scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
+
+    df1 = pd.read_csv(ml_folderpath + "/%s/%s/%s-normality-prediction-%s-report.tab"
+                      % (lab, alg, lab, alg), sep='\t', keep_default_na=False)
+    auc = df1['roc_auc'].values[0]
+
+    plt.hist(scores_actual_0, bins=30, alpha=0.8, color='r', label="abnormal")
+    plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
+    plt.xlim([0, 1])
+    plt.ylim([0, 500])
+    plt.xticks([])
+    plt.yticks([])
+    # plt.xlabel(lab_descriptions[lab])
+    plt.xlabel('random forest', fontsize=16)
+    plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s.png' % lab))
 
 if __name__ == '__main__':
-    main(figs_to_plot=['Confusion_Metrics']) # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons
+    # main(figs_to_plot=['plot_cartoons']) # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons'
     # draw_histogram_transfer_modeling(lab_type='component')
 
+    plot_one_curve()
