@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Logo Control</title>
+	<script>
+	function periodicFrameRefresh(frameToRefresh)
+	{
+		var interval = 240000;	// Milliseconds
+	    setInterval(function(){ frameToRefresh.location.reload(); frameToRefresh.scrollTo(0,0); }, interval);
+	}
+	</script>
+</head>
+<body onLoad="periodicFrameRefresh(window.parent.feed);">
+	<div align="center">
+		<img src="image.img.full.high.jpg" width="100%" onClick="periodicFrameRefresh()">
+	</div>
+</body>
+</html>
+
