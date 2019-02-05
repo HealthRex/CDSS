@@ -316,6 +316,30 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
             elif stats_utils.lab_type == 'component':
                 ucsf_lab_cnt = dict(stats_database.UCSF_COMPONENTSS_AND_COUNTS)
             df['total_vol'] = df['lab'].apply(lambda x: ucsf_lab_cnt[x])
+        elif data_source == 'UMich' and lab_type=='component':
+            umich_lab_cnt = {'WBC':5280.99347210938,
+            'HGB':5281.00748045835,
+            'PLT':5274.22743955397,
+            'SOD':5784.07530888409,
+            'POT':5784.06130053512,
+            'CR':5784.04729218614,
+            'TBIL':1662.90309024178,
+            'CHLOR':5784.07530888409,
+            'CO2':5784.04729218614,
+            'AST':1667.87605412826,
+            'ALB':2239.66884263021,
+            'CAL':5791.51374219035,
+            # 'PCO2AA':,
+            # 'PO2AA':,
+            # 'DBIL':,
+            # 'pHA':,
+            'T PROTEIN':1667.87605412826,
+            'ALK':1667.87605412826,
+            'UN':5784.04729218614
+            # 'IBIL':
+            }
+            df = df[df['lab'].isin(umich_lab_cnt)]
+            df['total_vol'] = df['lab'].apply(lambda x: umich_lab_cnt[x])
         else:
             df['total_vol'] = 1
 
@@ -379,7 +403,7 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
     elif scale_by == 'enc_ucsf':
         scale = float(stats_utils.NUM_DISTINCT_ENCS_UCSF/1000.)
 
-    if data_source == 'Stanford' or data_source == 'UCSF': #True: #lab_type == 'panel':
+    if data_source == 'Stanford' or data_source == 'UCSF' or data_source == 'UMich': #True: #lab_type == 'panel':
         df_toplots = df_toplots.sort_values(['total_vol'], ascending=True)
     else:
         df_toplots = df_toplots.iloc[::-1]
@@ -426,14 +450,15 @@ def draw__Confusion_Metrics(statsByLab_folderpath, labs=all_labs, result_label='
         elif data_source == 'UCSF' and lab_type == 'component':
             plt.xlim([-6000, 6000])
         elif data_source == 'UMich' and lab_type == 'component':
-            plt.xlim([-1.5, 1.5])
+            # plt.xlim([-1.5, 1.5])
+            plt.xlim([-8000, 8000])
 
         handles, labels = plt.gca().get_legend_handles_labels()
         order = [1, 0, 3, 2]
 
         # plt.legend([handles[idx] for idx in order], [labels[idx] for idx in order],
         #            loc=[0.05,0.1], ncol=2, prop={'size': 12})
-        if data_source == 'UCSF' or data_source == 'Stanford':
+        if data_source == 'UCSF' or data_source == 'Stanford' or data_source == 'UMich':
             plt.xlabel('Number of orders per 1000 patient encounters, targeting at %.0f'%(targeted_PPV*100)+'% PPV', fontsize=18)
         else:
             plt.xlabel('Fraction of orders, targeting at %.0f' % (targeted_PPV * 100) + '% PPV',
@@ -1522,8 +1547,8 @@ def plot_one_curve(lab='LABLDH'):
     print lab, p_val
 
     plt.figure(figsize=(5, 4))
-    plt.scatter(xVal_base, yVal_base, label='baseline model, %0.2f' % (score_base))
-    plt.scatter(xVal_best, yVal_best, label='random forest, %0.2f' % (score_best))
+    # plt.plot(xVal_base, yVal_base, label='baseline model, %0.2f' % (score_base), linewidth=2)
+    plt.plot(xVal_best, yVal_best, color='k', label='AUROC=%0.2f' % (score_best), linewidth=2) #random forest,
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.xticks([])
@@ -1543,14 +1568,16 @@ def plot_one_curve(lab='LABLDH'):
     scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
     scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
 
-    plt.hist(scores_actual_0, bins=30, alpha=0.8, color='r', label="abnormal")
+    plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="abnormal")
     plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
     plt.xlim([0, 1])
     plt.ylim([0, 500])
     plt.xticks([])
     plt.yticks([])
     # plt.xlabel(lab_descriptions[lab] + 'auroc=%.2f' % auc)
-    plt.xlabel('baseline', fontsize=16)
+    # plt.xlabel('baseline', fontsize=16)
+    plt.xlabel('score, baseline', fontsize=16)
+    plt.ylabel('num of orders', fontsize=16)
     plt.legend(fontsize=12)
     plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_baseline_%s.png'%lab))
     plt.clf()
@@ -1559,25 +1586,48 @@ def plot_one_curve(lab='LABLDH'):
     alg = 'random-forest'
     df = pd.read_csv(ml_folderpath + "/%s/%s/direct_comparisons.csv"
                      % (lab, alg), keep_default_na=False)
-    scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
-    scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
+
 
     df1 = pd.read_csv(ml_folderpath + "/%s/%s/%s-normality-prediction-%s-report.tab"
                       % (lab, alg, lab, alg), sep='\t', keep_default_na=False)
     auc = df1['roc_auc'].values[0]
 
-    plt.hist(scores_actual_0, bins=30, alpha=0.8, color='r', label="abnormal")
-    plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
+    include_threshold_colors = True
+    if include_threshold_colors:
+        score_thres = 0.756
+
+        scores_actual_trueNega = df.ix[(df['actual']==0) & (df['predict']<score_thres), 'predict'].values
+        scores_actual_falsPosi = df.ix[(df['actual'] == 0) & (df['predict'] >= score_thres), 'predict'].values
+
+        scores_actual_falsNega = df.ix[(df['actual'] == 1) & (df['predict'] < score_thres), 'predict'].values
+        scores_actual_truePosi = df.ix[(df['actual'] == 1) & (df['predict'] >= score_thres), 'predict'].values
+
+        plt.hist(scores_actual_trueNega, bins=22, alpha=0.8, color='royalblue', label="trueNega")
+        plt.hist(scores_actual_falsNega, bins=22, alpha=0.8, color='gold', label="falsNega")
+        plt.hist(scores_actual_truePosi, bins=7, alpha=0.8, color='forestgreen', label="truePosi")
+        plt.hist(scores_actual_falsPosi, bins=7, alpha=0.8, color='orangered', label="falsPosi")
+
+    else:
+
+        scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
+        scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
+
+        plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="abnormal")
+        plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
+
     plt.xlim([0, 1])
     plt.ylim([0, 500])
     plt.xticks([])
     plt.yticks([])
     # plt.xlabel(lab_descriptions[lab])
-    plt.xlabel('random forest', fontsize=16)
+    # plt.xlabel('random forest', fontsize=16)
+    plt.xlabel('score, random forest', fontsize=16)
+    plt.ylabel('num of orders', fontsize=16)
+
     plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s.png' % lab))
 
 if __name__ == '__main__':
-    # main(figs_to_plot=['plot_cartoons']) # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons'
+    main(figs_to_plot=['Confusion_Metrics']) # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons'
     # draw_histogram_transfer_modeling(lab_type='component')
 
-    plot_one_curve()
+    # plot_one_curve()
