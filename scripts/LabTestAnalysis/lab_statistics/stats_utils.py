@@ -12,17 +12,11 @@ import os, sys
 
 import LocalEnv
 
-from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
-        import NON_PANEL_TESTS_WITH_GT_500_ORDERS, \
-    STRIDE_COMPONENT_TESTS, \
-    UMICH_TOP_COMPONENTS, \
-    UCSF_TOP_COMPONENTS, \
-    UCSF_TOP_PANELS
-from medinfo.ml.SupervisedClassifier import SupervisedClassifier
+
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
-import matplotlib.pyplot as plt
+
 
 '''
 For each lab, get a bunch of stuff
@@ -33,14 +27,7 @@ For plotting guideline,
 
 a lab, has n prev consecutive normal. 
 '''
-data_source = 'Stanford'
-lab_type = 'panel'
 
-all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-all_components = STRIDE_COMPONENT_TESTS
-all_UMichs = UMICH_TOP_COMPONENTS
-all_UCSF = UCSF_TOP_COMPONENTS
-all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
 
 DEFAULT_TIMELIMIT = ('2014-07-01', '2017-07-01') # TODO: extremely confusing!
 # DEFAULT_TIMESPAN = ('2014-01-01', '2017-06-30') # TODO: extremely confusing!
@@ -85,25 +72,13 @@ NUM_MAGNESIUM_COMPLETED_ORDERS = 282414
 #
 #     DEFAULT_TIMELIMITS.append(time_limit)
 
-main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 
-curr_version = '10000-episodes'
-if data_source == 'Stanford' and lab_type == 'panel':
-    all_labs = all_panels #[x[0] for x in labs_and_cnts]
-elif data_source == 'Stanford' and lab_type == 'component':
-    all_labs = all_components
-elif data_source == 'UMich':
-    all_labs = all_UMichs
-elif data_source == 'UCSF' and lab_type == 'component':
-    all_labs = all_UCSF
-elif data_source == 'UCSF' and lab_type == 'panel':
-    all_labs = UCSF_TOP_PANELS
+
 
 
 # labs_ml_folder = os.path.join(main_folder, 'machine_learning/data-%ss-%s/'%(lab_type, curr_version))
 # labs_stats_folder = os.path.join(main_folder, 'lab_statistics/stats-%ss-%s/'%(lab_type, curr_version))
-labs_old_stats_folder = os.path.join(main_folder, 'lab_statistics/data_summary_stats/')
-labs_query_folder = os.path.join(main_folder, 'lab_statistics/query_lab_results/')
+
 
 
 # if not os.path.exists(labs_folder):
@@ -1050,37 +1025,44 @@ def add_line_breaker(astring, seg_len):
         new_str = new_str[:-1]
     return new_str
 
+main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 
-def get_lab_descriptions(line_break_at=None):
-    if data_source == 'Stanford' and lab_type=='panel':
-        descriptions_filepath = os.path.join(labs_old_stats_folder, 'labs.csv')
-    elif data_source == 'Stanford' and lab_type=='component':
-        descriptions_filepath = os.path.join(labs_old_stats_folder, 'components.csv')
-    elif data_source == 'UCSF' and lab_type=='component':
-        descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
-    elif data_source == 'UCSF' and lab_type=='panel':
-        descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
+def get_lab_descriptions(lab_type, line_break_at=None):
+    code2description_filepath = os.path.join(main_folder, 'machine_learning/data_conversion',
+                                             'map_%s_code2description.csv' % lab_type)
+    df = pd.read_csv(code2description_filepath)
+    return dict(zip(df['lab'].values.tolist(), df['description'].values.tolist()))
 
-        if not line_break_at:
-            descriptions = dict(zip(UCSF_TOP_PANELS, UCSF_TOP_PANELS))
-        else:
-            descriptions = dict(zip(UCSF_TOP_PANELS, [add_line_breaker(x, line_break_at) for x in UCSF_TOP_PANELS]))
 
-        return descriptions
-    elif data_source == 'UMich' and lab_type=='component':
-        descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_component.csv')
-    elif data_source == 'UMich' and lab_type=='panel':
-        descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_panel.csv')
-
-    df = pd.read_csv(descriptions_filepath, keep_default_na=False)
-
-    if data_source == 'UMich' and lab_type=='component':
-        df = df.rename(columns={'RESULT_CODE':'name', 'RESULT_NAME':'description'})
-
-    if line_break_at:
-        df['description'] = df['description'].apply(lambda x: add_line_breaker(x, line_break_at))
-
-    descriptions = pandas2dict(df[['name', 'description']], key='name', val='description')
+    # if data_source == 'Stanford' and lab_type=='panel':
+    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'labs.csv')
+    # elif data_source == 'Stanford' and lab_type=='component':
+    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'components.csv')
+    # elif data_source == 'UCSF' and lab_type=='component':
+    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
+    # elif data_source == 'UCSF' and lab_type=='panel':
+    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
+    #
+    #     if not line_break_at:
+    #         descriptions = dict(zip(UCSF_TOP_PANELS, UCSF_TOP_PANELS))
+    #     else:
+    #         descriptions = dict(zip(UCSF_TOP_PANELS, [add_line_breaker(x, line_break_at) for x in UCSF_TOP_PANELS]))
+    #
+    #     return descriptions
+    # elif data_source == 'UMich' and lab_type=='component':
+    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_component.csv')
+    # elif data_source == 'UMich' and lab_type=='panel':
+    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_panel.csv')
+    #
+    # df = pd.read_csv(descriptions_filepath, keep_default_na=False)
+    #
+    # if data_source == 'UMich' and lab_type=='component':
+    #     df = df.rename(columns={'RESULT_CODE':'name', 'RESULT_NAME':'description'})
+    #
+    # if line_break_at:
+    #     df['description'] = df['description'].apply(lambda x: add_line_breaker(x, line_break_at))
+    #
+    # descriptions = pandas2dict(df[['name', 'description']], key='name', val='description')
 
     return descriptions
 
