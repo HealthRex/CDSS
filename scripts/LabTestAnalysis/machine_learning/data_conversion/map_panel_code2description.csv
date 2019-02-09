@@ -1,0 +1,81 @@
+lab,description
+LABUA,Urinalysis With Microscopic
+LABBLC,Blood Culture (aerobic & Anaerobic Bottles)
+LABPT,Prothrombin Time
+LABPTT,Ptt Partial Thromboplastin Time
+LABTSH,Thyroid Stimulating Hormone
+LABPHOS,"Phosphorus, Serum/plasma"
+LABURNC,Urine Culture
+LABA1C,Hemoglobin A1c
+LABMGN,"Magnesium, Serum/plasma"
+LABHAP,Haptoglobin
+LABANER,Anaerobic Culture
+LABPCTNI,Istat Troponin I
+LABNTBNP,Nt - Probnp
+LABK,"Potassium, Serum/plasma"
+LABTNI,Troponin I
+LABUAPRN,"Urinalysis, Screen For Culture"
+LABCAI,"Calcium Ionized, Serum/plasma"
+LABHCTX,Hematocrit
+LABMB,"Ck, Mb (mass)"
+LABLIPS,Lipase
+LABCK,"Creatine Kinase, Total"
+LABBLC2,Blood Culture (2 Aerobic Bottles)
+LABLDH,"Ldh Total, Serum / Plasma"
+LABTRFS,Transferrin Saturation
+LABLAC,Lactic Acid
+LABFER,Ferritin
+LABFT4,"T4, Free"
+LABCORT,"Cortisol, Serum"
+LABURIC,"Uric Acid, Serum / Plasma"
+LABGRAM,Gram Stain
+LABFE,"Iron, Total"
+LABB12,Vitamin B12
+LABFIB,Fibrinogen
+LABCRP,C - Reactive Protein
+LABRETIC,Reticulocyte Count Automated
+LABBXTG,Biopsy / Tissue Culture And Gram Stain
+LABPLTS,Platelet Count
+LABPCCR,Istat Creatinine
+LABFCUL,Fungal Culture
+LABFLDC,Fluid Culture And Gram Stain
+LABTRIG,"Triglycerides, Serum / Plasma"
+LABNH3,"Ammonia, Plasma"
+LABBLCTIP,Blood Cult - 2nd Set Via Catheter
+LABRESP,Respiratory Culture
+LABHEPAR,Heparin Activity Level
+LABFOL,Folic Acid
+LABCA,"Calcium, Serum/plasma"
+LABBLCSTK,"Blood Cult - First Set, Via Phlebotomy"
+LABUOSM,"Osmolality, Urine"
+LABUSPG,"Specific Gravity, Urine"
+LABRESPG,Respiratory Culture And Gram Stain
+LABCSFGL,"Glucose, Csf"
+LABHBSAG,Hbsag
+LABALB,"Albumin, Serum/plasma"
+LABAFBD,"Afb Culture, Non - Respiratory"
+LABESRP,Sedimentation Rate (esr)
+LABDIGL,"Digoxin, Serum"
+LABSTOBGD,"Occult Bld, Guaiac, Stool, Diag Test"
+LABBUN,"Urea Nitrogen, Serum/plasma"
+LABNA,"Sodium, Serum / Plasma"
+LABLIDOL,Lidocaine
+LABCSFTP,"Protein Total, Csf"
+LABCSFC,Csf Culture And Gram Stain
+LABUPREG,"Pregnancy Test, Urine"
+LABOSM,"Osmolality, Serum"
+LABAFBC,"Afb Culture, Respiratory"
+LABPCCG4O,"Istat Cg4, Other"
+LABCDTPCR,"C.diff Toxin B Gene, Qual. Real-time Pcr"
+LABHIVWBL,Anti-hiv
+LABPROCT,Procalcitonin
+LABLACWB,"Lactate, Whole Blood"
+LABHEPAR,"Heparin, Unfractionated, Anti Xa"
+LABSPLAC,Sepsis Protocol Lactate
+LABSTLCX,Stool Culture
+LABPTEG,"Teg, Perioperative"
+LABSTLCX,Stool Culture
+LABPALB,Prealbumin
+LABCMVQT,"Cmv Dna Pcr Quant, Plasma"
+LABBXTG,Biopsy/tissue With Gram Stain
+LABBLCTIP,Blood Cult Central Line Catheter By Nurse
