@@ -62,8 +62,7 @@ class Stats_Plotter():
         elif data_source == 'UCSF' and lab_type == 'panel':
             self.all_labs = UCSF_TOP_PANELS
 
-        self.lab_descriptions = stats_utils.get_lab_descriptions(lab_type=lab_type,
-                                                            line_break_at=None)
+        self.lab_descriptions = stats_utils.get_lab_descriptions(lab_type=lab_type)
 
 
     def draw__Normality_Saturations(self, stats_folderpath, labs, max_repeat = 5, use_cached_fig_data=True):
@@ -165,7 +164,7 @@ class Stats_Plotter():
             plt.clf()
 
 
-    def draw__Potential_Savings(statsByLab_folderpath, scale=None, targeted_PPV=0.95,
+    def draw__Potential_Savings(self, statsByLab_folderpath, scale=None, targeted_PPV=0.95,
                                 result_label='',use_cached_fig_data=False,price_source='medicare'):
         '''
         Drawing Figure 4 in the main text.
@@ -176,9 +175,10 @@ class Stats_Plotter():
         df = pd.read_csv(os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv'),
                          keep_default_na=False)
         df = df[df['targeted_PPV_fixTrainPPV'] == targeted_PPV]
+        df = df.drop_duplicates()
 
         # labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=50)
-        df = df[df['lab'].isin(all_labs)] #[x[0] for x in labs_and_cnts]
+        # df = df[df['lab'].isin(all_labs)] #[x[0] for x in labs_and_cnts]
 
         result_foldername = 'Fig4_Potential_Savings/'
         result_folderpath = os.path.join(statsByLab_folderpath, result_foldername)
@@ -215,6 +215,10 @@ class Stats_Plotter():
             df = df.sort_values('TP_cost')
             df.to_csv(data_path, index=False)
 
+        # print df.shape
+        df = df.iloc[-20:]
+        # print df.shape
+        # quit()
 
         # unit, scale = 'million', 10.**6
 
@@ -233,24 +237,24 @@ class Stats_Plotter():
         df['total_cost'] = df['total_cost'] * scale
 
         # df['total_cost'] = df['TP_cost'] + df['FP_cost']
-        lab_descriptions['LABBLC'] = 'BLOOD CULTURE (AEROBIC & ANAEROBIC)'
-        lab_descriptions['LABBLC2'] = 'BLOOD CULTURE (2 AEROBIC)'
+        # lab_descriptions['LABBLC'] = 'BLOOD CULTURE (AEROBIC & ANAEROBIC)'
+        # lab_descriptions['LABBLC2'] = 'BLOOD CULTURE (2 AEROBIC)'
 
         df['lab_description'] = df['lab'].apply(
-            lambda x: lab_descriptions[x])
+            lambda x: self.lab_descriptions[x])
 
-        '''
-        Top cost volume labs (with a medicare price)
-        '''
-        labs_to_show = ['LABMGN', 'LABBLC', 'LABBLC2', 'LABLIDOL', 'LABK', 'LABNA', 'LABPHOS', 'LABTNI',
-                        'LABPROCT', 'LABURIC', 'LABLAC', 'LABUSPG', 'LABHBSAG',
-                        'LABLIPS', 'LABUOSM', 'LABANER', 'LABCK', 'LABPLTS',
-                        'LABB12', 'LABTNI',
-                        #'LABUPREG','LABALB',
-                        #'LABMB', 'LABURNC', 'LABTRIG'
-                        # 'LABUOSM', 'LABA1C'
-                        ]
-        df = df[df['lab'].isin(labs_to_show)]
+        # '''
+        # Top cost volume labs (with a medicare price)
+        # '''
+        # labs_to_show = ['LABMGN', 'LABBLC', 'LABBLC2', 'LABLIDOL', 'LABK', 'LABNA', 'LABPHOS', 'LABTNI',
+        #                 'LABPROCT', 'LABURIC', 'LABLAC', 'LABUSPG', 'LABHBSAG',
+        #                 'LABLIPS', 'LABUOSM', 'LABANER', 'LABCK', 'LABPLTS',
+        #                 'LABB12', 'LABTNI',
+        #                 #'LABUPREG','LABALB',
+        #                 #'LABMB', 'LABURNC', 'LABTRIG'
+        #                 # 'LABUOSM', 'LABA1C'
+        #                 ]
+        # df = df[df['lab'].isin(labs_to_show)]
 
         '''
         Cost per 1000 pat enc, translate to annual cost
@@ -338,7 +342,7 @@ class Stats_Plotter():
             # labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
             #                                                            time_limit=['2014-01-01', '2016-12-31'])])
 
-            df = df[df['lab'].isin(labs)]
+            # df = df[df['lab'].isin(labs)]
 
             if self.data_source == 'Stanford':
                 # if 'total_vol' not in df.columns.values.tolist():
@@ -391,25 +395,23 @@ class Stats_Plotter():
 
 
             df['all_positive'] = df['true_positive'] + df['false_positive']
+
+            df['predicted_normal_vol'] = df['all_positive'] * df['total_vol']
+            df = df.sort_values('predicted_normal_vol', ascending=False)
+            df = df.iloc[:20]
+
             df['all_negative'] = df['true_negative'] + df['false_negative']
 
             df['true_negative'] = -df['true_negative']
             df['all_negative'] = -df['all_negative']
 
-            # df['count'] = df['count'].apply(lambda x: float(x) if x != '' else 0)
-
-            # if self.lab_type == 'component':
-            #     df['count'] = df['count'].apply(lambda x: x / 1000000)
-
-            # print df[['true_positive', 'all_positive',
-            #           'true_negative', 'all_negative']].head(5).plot(kind='barh')
 
             df_toshow = df.copy()
 
             df_toshow['lab'] = df_toshow['lab'].apply(lambda x:self.lab_descriptions.get(x,x))
             df_toshow['true_negative'] = -df_toshow['true_negative']
 
-            df_toshow['Prev'] = df_toshow['true_positive'] + df_toshow['false_positive']
+            df_toshow['Prev'] = df_toshow['true_positive'] + df_toshow['false_negative']
             df_toshow = df_toshow.rename(columns={
                'lab':'Lab Test',
                 'num_test_episodes':'Count',
@@ -451,8 +453,8 @@ class Stats_Plotter():
             df_toshow['LR+'] = df_toshow['LR+'].apply(lambda x: convert_floatstr2num(x))
             df_toshow['LR-'] = df_toshow['LR-'].apply(lambda x: convert_floatstr2num(x))
 
-            df_toshow.sort_values('total_vol', ascending=False)[['Lab Test', 'Count', 'AUROC'] + numeric_cols + ['LR+', 'LR-']]\
-                .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False)
+            df_toshow[['Lab Test', 'Count', 'AUROC'] + numeric_cols + ['LR+', 'LR-']]\
+                .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
 
             df_toplots = df
 
@@ -465,8 +467,7 @@ class Stats_Plotter():
                         'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
                         'total_vol',
                        'all_positive_vol', 'true_positive_vol', 'all_negative_vol', 'true_negative_vol']]\
-                        .sort_values('total_vol', ascending=False)\
-                        .to_csv(cached_tablepath, index=False, float_format='%.3f')
+                        .to_csv(cached_tablepath, index=False, float_format='%.3f') # .sort_values('total_vol', ascending=False)\
 
 
         if not scale_by:
@@ -479,15 +480,11 @@ class Stats_Plotter():
             scale = float(stats_utils.NUM_DISTINCT_ENCS_UCSF/1000.)
 
         if self.data_source == 'Stanford' or self.data_source == 'UCSF' or self.data_source == 'UMich': #True: #self.lab_type == 'panel':
-            df_toplots = df_toplots.sort_values(['total_vol'], ascending=True)
+            # df_toplots = df_toplots.sort_values(['total_vol'], ascending=True)
+            df_toplots = df_toplots.iloc[::-1]
+            # pass
         else:
             df_toplots = df_toplots.iloc[::-1]
-
-        '''
-        temp
-        '''
-        self.lab_descriptions['LABMGN'] = 'MAGNESIUM\nSERUM/PLASMA'
-        self.lab_descriptions['LABBLC'] = 'BLOOD CULTURE\n(AEROBIC & ANAEROBIC BOTTLES)'
 
         for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
@@ -1642,11 +1639,11 @@ class Stats_Plotter():
                                         targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False)
 
         if 'Predicted_Normal' in figs_to_plot:
-            draw__predicted_normal_fractions(statsByLab_folderpath=statsByDataSet_folderpath, targeted_PPV=0.95)
+            self.draw__predicted_normal_fractions(statsByLab_folderpath=statsByDataSet_folderpath, targeted_PPV=0.95)
 
         if 'Potential_Savings' in figs_to_plot:
-            draw__Potential_Savings(statsByDataSet_folderpath, scale=scale, result_label='all_four',
-                                    targeted_PPV=0.95, use_cached_fig_data=False, price_source='chargemaster')
+            self.draw__Potential_Savings(statsByDataSet_folderpath, scale=scale, result_label='all_four',
+                                    targeted_PPV=0.95, use_cached_fig_data=False, price_source='medicare')
 
     def logistic_regression(lab='LABLDH'):
         statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
