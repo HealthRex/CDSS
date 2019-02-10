@@ -21,7 +21,7 @@ LABMB,"Ck, Mb (mass)"
 LABLIPS,Lipase
 LABCK,"Creatine Kinase, Total"
 LABBLC2,Blood Culture (2 Aerobic Bottles)
-LABLDH,"Ldh Total, Serum / Plasma"
+LABLDH,"LDH Total, Serum / Plasma"
 LABTRFS,Transferrin Saturation
 LABLAC,Lactic Acid
 LABFER,Ferritin
@@ -54,17 +54,17 @@ LABCSFGL,"Glucose, Csf"
 LABHBSAG,Hbsag
 LABALB,"Albumin, Serum/plasma"
 LABAFBD,"Afb Culture, Non - Respiratory"
-LABESRP,Sedimentation Rate (esr)
+LABESRP,Sedimentation Rate (ESR)
 LABDIGL,"Digoxin, Serum"
 LABSTOBGD,"Occult Bld, Guaiac, Stool, Diag Test"
 LABBUN,"Urea Nitrogen, Serum/plasma"
 LABNA,"Sodium, Serum / Plasma"
 LABLIDOL,Lidocaine
 LABCSFTP,"Protein Total, Csf"
-LABCSFC,Csf Culture And Gram Stain
+LABCSFC,CSF Culture And Gram Stain
 LABUPREG,"Pregnancy Test, Urine"
 LABOSM,"Osmolality, Serum"
-LABAFBC,"Afb Culture, Respiratory"
+LABAFBC,"AFB Culture, Respiratory"
 LABPCCG4O,"Istat Cg4, Other"
 LABCDTPCR,"C.diff Toxin B Gene, Qual. Real-time Pcr"
 LABHIVWBL,Anti-hiv
@@ -79,3 +79,4 @@ LABPALB,Prealbumin
 LABCMVQT,"Cmv Dna Pcr Quant, Plasma"
 LABBXTG,Biopsy/tissue With Gram Stain
 LABBLCTIP,Blood Cult Central Line Catheter By Nurse
+LABCBCD,CBC WITH DIFF
