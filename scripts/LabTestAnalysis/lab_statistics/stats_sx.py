@@ -405,10 +405,14 @@ class Stats_Plotter():
             #           'true_negative', 'all_negative']].head(5).plot(kind='barh')
 
             df_toshow = df.copy()
-            df_toshow['lab'] = df_toshow['lab'].apply(lambda x:lab_descriptions.get(x,x))
+
+            df_toshow['lab'] = df_toshow['lab'].apply(lambda x:self.lab_descriptions.get(x,x))
             df_toshow['true_negative'] = -df_toshow['true_negative']
+
+            df_toshow['Prev'] = df_toshow['true_positive'] + df_toshow['false_positive']
             df_toshow = df_toshow.rename(columns={
-                'AUROC':'AUC',
+               'lab':'Lab Test',
+                'num_test_episodes':'Count',
                                                 'true_positive':'TP',
                                                   'false_positive':'FP',
                                                   'true_negative':'TN',
@@ -416,8 +420,39 @@ class Stats_Plotter():
                                                   'sensitivity':'sens',
                                                   'specificity':'spec',
                                                   'LR_p':'LR+', 'LR_n':'LR-'})
-            df_toshow.sort_values('total_vol', ascending=False)[['lab', 'AUC', 'PPV', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec', 'LR+', 'LR-']]\
-                .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False, float_format='%.3f')
+            df_toshow['AUROC'] = df_toshow['AUROC'].apply(lambda x: '%.2f'%(x))
+
+            def convert_floatstr2percentage(astr):
+                if astr == '':
+                    return 'NaN'
+                elif astr == '1':
+                    return '100%'
+                elif astr == '0':
+                    return '0'
+                else:
+                    return str('%.0f'%(float(astr)*100))+'%'
+
+            def convert_floatstr2num(astr):
+                if astr == '':
+                    return 'NaN'
+                elif astr == '1' or astr == '0':
+                    return astr
+                else:
+                    return str('%.2f' % float(astr))
+
+
+            numeric_cols = ['PPV', 'Prev', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec']
+            for numeric_col in numeric_cols:
+                if df_toshow[numeric_col].dtype != type(0.1):
+                    df_toshow[numeric_col] = df_toshow[numeric_col].apply(lambda x: convert_floatstr2percentage(x))
+                else:
+                    df_toshow[numeric_col] = df_toshow[numeric_col].apply(lambda x: '%.0f'%(x*100) + '%')
+
+            df_toshow['LR+'] = df_toshow['LR+'].apply(lambda x: convert_floatstr2num(x))
+            df_toshow['LR-'] = df_toshow['LR-'].apply(lambda x: convert_floatstr2num(x))
+
+            df_toshow.sort_values('total_vol', ascending=False)[['Lab Test', 'Count', 'AUROC'] + numeric_cols + ['LR+', 'LR-']]\
+                .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False)
 
             df_toplots = df
 
@@ -451,8 +486,8 @@ class Stats_Plotter():
         '''
         temp
         '''
-        lab_descriptions['LABMGN'] = 'MAGNESIUM\nSERUM/PLASMA'
-        lab_descriptions['LABBLC'] = 'BLOOD CULTURE\n(AEROBIC & ANAEROBIC BOTTLES)'
+        self.lab_descriptions['LABMGN'] = 'MAGNESIUM\nSERUM/PLASMA'
+        self.lab_descriptions['LABBLC'] = 'BLOOD CULTURE\n(AEROBIC & ANAEROBIC BOTTLES)'
 
         for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
@@ -468,7 +503,7 @@ class Stats_Plotter():
 
             for i, v in enumerate(df_toplot['all_positive_vol']/scale):
                 cur_lab = df_toplot['lab'].values[i]
-                cur_description = lab_descriptions.get(cur_lab,cur_lab).replace(' - ', '/')
+                cur_description = self.lab_descriptions.get(cur_lab,cur_lab).replace(' - ', '/')
 
                 if self.data_source == 'UMich':
                     ax.text(v+0.05, i - 0.2, cur_description, color='k', fontsize=14)
@@ -512,7 +547,6 @@ class Stats_Plotter():
 
             plt.savefig(cached_figurepath.replace('ind', 'ind_%i'%ind))
 
-            plt.show()
 
     '''
     refactoring
@@ -963,7 +997,7 @@ class Stats_Plotter():
     ######################################
 
 
-    def plot_cartoons(ml_folderpath):
+    def plot_cartoons(self, ml_folderpath):
         # try:
         #     df = pd.read_csv('RF_important_features_%ss.csv'%self.lab_type, keep_default_na=False)
         # except:
@@ -979,9 +1013,6 @@ class Stats_Plotter():
 
 
         labs = ['LABPTT', 'LABLDH', 'LABTNI']
-        print lab_descriptions['LABPTT']
-        print lab_descriptions['LABLDH']
-        print lab_descriptions['LABTNI']
         local_lab_descriptions = {'LABPTT':"PTT PARTIAL\nTHROMBOPLASTIN TIME\n",
                                   'LABLDH':"LDH TOTAL\nSERUM / PLASMA\n",
                                   'LABTNI':"TROPONIN I\n"}
@@ -1585,29 +1616,29 @@ class Stats_Plotter():
                                    index=False)
 
         if 'plot_cartoons' in figs_to_plot:
-            plot_cartoons(os.path.join(ml_folderpath, statsByDataSet_foldername))
+            self.plot_cartoons(os.path.join(ml_folderpath, statsByDataSet_foldername))
 
         if 'Confusion_Metrics' in figs_to_plot:
             top_panels_cnts = stats_utils.get_top_labs_and_cnts(top_k=20)
             top_panels = [x[0] for x in top_panels_cnts]
             panels = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels)) + ['LABK', 'LABNA', 'LABLIDOL'] #, 'LABCR', 'LABPTT', 'LABCAI'
-            print all_labs
+            print self.all_labs
             components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA', \
                           'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
 
             if self.data_source == 'Stanford':
                 if self.lab_type == 'panel':
-                    draw__Confusion_Metrics(statsByDataSet_folderpath, labs=panels, result_label='panels',
+                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=panels, result_label='panels',
                                             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
                 else:
-                    draw__Confusion_Metrics(statsByDataSet_folderpath, labs=components, result_label='change_colors',
+                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=components, result_label='change_colors',
                                             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
             elif self.data_source == 'UCSF':
-                draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='change_colors',
+                self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='change_colors',
                                         targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
 
             elif self.data_source == 'UMich':
-                draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='change_colors',
+                self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='change_colors',
                                         targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False)
 
         if 'Predicted_Normal' in figs_to_plot:
@@ -1671,7 +1702,7 @@ class Stats_Plotter():
         return accuracy_baseline, accuracy_rf
 
 
-    def plot_one_curve(self, lab='LABLDH'):
+    def plot_one_curve(self, lab='LABLDH', include_threshold_colors = True):
         statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
         xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
             = stats_utils.get_curve_onelab(lab,
@@ -1727,7 +1758,7 @@ class Stats_Plotter():
                           % (lab, alg, lab, alg), sep='\t', keep_default_na=False)
         auc = df1['roc_auc'].values[0]
 
-        include_threshold_colors = False
+
         if include_threshold_colors:
             score_thres = 0.756
 
@@ -1737,10 +1768,10 @@ class Stats_Plotter():
             scores_actual_falsNega = df.ix[(df['actual'] == 1) & (df['predict'] < score_thres), 'predict'].values
             scores_actual_truePosi = df.ix[(df['actual'] == 1) & (df['predict'] >= score_thres), 'predict'].values
 
-            plt.hist(scores_actual_trueNega, bins=22, alpha=0.8, color='royalblue', label="trueNega")
-            plt.hist(scores_actual_falsNega, bins=22, alpha=0.8, color='gold', label="falsNega")
-            plt.hist(scores_actual_truePosi, bins=7, alpha=0.8, color='forestgreen', label="truePosi")
-            plt.hist(scores_actual_falsPosi, bins=7, alpha=0.8, color='orangered', label="falsPosi")
+            plt.hist(scores_actual_trueNega, bins=22, alpha=0.8, color='royalblue', label="True Negatives")
+            plt.hist(scores_actual_falsNega, bins=22, alpha=0.8, color='gold', label="False Negatives")
+            plt.hist(scores_actual_truePosi, bins=7, alpha=0.8, color='forestgreen', label="True Positives")
+            plt.hist(scores_actual_falsPosi, bins=7, alpha=0.8, color='orangered', label="False Positives")
 
         else:
 
@@ -1765,7 +1796,7 @@ class Stats_Plotter():
 if __name__ == '__main__':
 
     plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
-    plotter.main(figs_to_plot=['Order_Intensities'])
+    plotter.main(figs_to_plot=['Confusion_Metrics'])
 
     # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons'
     # draw_histogram_transfer_modeling(self.lab_type='panel')
@@ -1776,6 +1807,6 @@ if __name__ == '__main__':
     # plt.scatter(pairs)
     # plt.savefig('accuracies.png')
 
-    # plot_one_curve()
+    # plotter.plot_one_curve(include_threshold_colors=False)
 
     # logistic_regression()
