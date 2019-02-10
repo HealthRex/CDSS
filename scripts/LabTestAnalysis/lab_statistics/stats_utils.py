@@ -1027,10 +1027,12 @@ def add_line_breaker(astring, seg_len):
 
 main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 
-def get_lab_descriptions(lab_type, line_break_at=None):
+def get_lab_descriptions(lab_type, succinct=True):
     code2description_filepath = os.path.join(main_folder, 'machine_learning/data_conversion',
                                              'map_%s_code2description.csv' % lab_type)
     df = pd.read_csv(code2description_filepath)
+    if succinct:
+        df['description'] = df['description'].apply(lambda x: x.split(',')[0].strip())
     return dict(zip(df['lab'].values.tolist(), df['description'].values.tolist()))
 
 
