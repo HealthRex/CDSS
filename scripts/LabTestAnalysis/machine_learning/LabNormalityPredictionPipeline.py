@@ -161,7 +161,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         raw_matrix_path = self._build_raw_matrix_path()
         processed_matrix_path = self._build_processed_matrix_path()
         features_to_add = {}
-        imputation_strategies = {
+        imputation_strategies = {#'sxu_new_imputation'
         }
 
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
@@ -209,7 +209,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
-            '%s.pre' % self._var
+            '%s.pre' % self._var, 'last_normality'
         ]
 
         selection_problem = FeatureSelector.CLASSIFICATION
@@ -507,7 +507,7 @@ UMICH_TOP_PANELS = [
 ]
 
 UCSF_TOP_COMPONENTS = [
-            'WBC', 'HGB', 'PLT', 'NAWB', 'K', 'CREAT', 'TBILI',
+            'WBC', 'HGB', 'PLT', 'NA', 'K', 'CREAT', 'TBILI',
             'CL', 'CO2', 'DBILI', 'AST', 'ALT', 'ALB', 'CA',
             'PCO2', 'PO2', 'PH37', 'TP', 'ALKP', 'BUN', 'HCO3',
             # No IBIL

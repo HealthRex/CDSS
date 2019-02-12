@@ -53,20 +53,20 @@ class FeatureMatrixFactory:
         self.patientsProcessed = None
 
         if not PID: # Allow checking existing tmp files
-            PID = str(os.getpid())
+            self.PID = str(os.getpid())
         else:
-            PID = str(PID)
+            self.PID = str(PID)
 
         # When debugging, do not create so many Tempfiles in the working folder.
         self._folderTempFiles = "fmfTempFolder"
         if not os.path.exists(self._folderTempFiles):
             os.mkdir(self._folderTempFiles)
 
-        self._patientListTempFileName = self._folderTempFiles + '/' + "fmf.patient_list_" + PID + ".tsv"
-        self._patientEpisodeTempFileName = self._folderTempFiles + '/' + "fmf.patient_episodes_" + PID + ".tsv"
-        self._patientItemTempFileNameFormat = self._folderTempFiles + '/' + "fmf.patient_%s_" + PID + ".tsv"
-        self._patientTimeCycleTempFileNameFormat = self._folderTempFiles + '/' + "fmf.patient_%s_%s_" + PID + ".tsv"
-        self._patientResultTempFileNameFormat = self._folderTempFiles + '/' + "fmf.patient_%s_%s_%s_" + PID + ".tsv"
+        self._patientListTempFileName = self._folderTempFiles + '/' + "fmf.patient_list_" + self.PID + ".tsv"
+        self._patientEpisodeTempFileName = self._folderTempFiles + '/' + "fmf.patient_episodes_" + self.PID + ".tsv"
+        self._patientItemTempFileNameFormat = self._folderTempFiles + '/' + "fmf.patient_%s_" + self.PID + ".tsv"
+        self._patientTimeCycleTempFileNameFormat = self._folderTempFiles + '/' + "fmf.patient_%s_%s_" + self.PID + ".tsv"
+        self._patientResultTempFileNameFormat = self._folderTempFiles + '/' + "fmf.patient_%s_%s_%s_" + self.PID + ".tsv"
         self._matrixFileName = None
 
         # Look at lab results from the previous days
