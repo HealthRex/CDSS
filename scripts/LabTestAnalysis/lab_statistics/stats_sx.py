@@ -1517,6 +1517,177 @@ class Stats_Plotter():
         plt.tight_layout()
         plt.savefig(result_figpath)
 
+    def plot_full_cartoon(self, lab='LABLDH', include_threshold_colors = True):
+        print 'Running plot_full_cartoon...'
+
+        statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
+        ml_folderpath = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
+
+        xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
+            = stats_utils.get_curve_onelab(lab,
+                                           all_algs=['random-forest'],
+                                           data_folder=ml_folderpath,
+                                           curve_type='ROC',
+                                           get_pval=False)
+
+        score_thres = 0.756
+
+        plt.figure(figsize=(5, 4))
+        # plt.plot(xVal_base, yVal_base, label='baseline model, %0.2f' % (score_base), linewidth=2)
+        plt.plot(xVal_best, yVal_best, color='k', label='AUROC=%0.2f' % (score_best), linewidth=2) #random forest,
+
+        if include_threshold_colors:
+            df_directcompare_rf = pd.read_csv(os.path.join(ml_folderpath, lab, 'random-forest', 'direct_comparisons.csv'))
+            actual_labels = df_directcompare_rf['actual'].values
+            predict_probas = df_directcompare_rf['predict'].values
+
+            sensitivity, specificity, LR_p, LR_n, PPV, NPV = stats_utils.get_confusion_metrics(actual_labels, predict_probas, score_thres, also_return_cnts=False)
+            print "sensitivity", sensitivity
+            print "specificity", specificity
+            print "score_thres", score_thres
+
+            plt.scatter(1-specificity, sensitivity, s=30, color='k')
+
+            dash_num = 20
+            plt.plot([1-specificity]*dash_num, np.linspace(0,1,num=dash_num), 'k--')
+
+        plt.xlim([0, 1])
+        plt.ylim([0, 1])
+        plt.xticks([])
+        plt.yticks([])
+        plt.ylabel('sensitivity', fontsize=14) #lab_descriptions.get(lab, lab)
+        plt.xlabel('1-specificity', fontsize=14)
+        plt.legend(fontsize=12)
+        plt.savefig(os.path.join(statsByLab_folderpath, 'ROC_%s.png'%lab))
+
+        plt.clf()
+
+
+
+        df = pd.read_csv(ml_folderpath + "/%s/baseline_comparisons.csv"
+                         % (lab), keep_default_na=False)
+        scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
+        scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
+
+
+
+        plt.figure(figsize=(5, 4))
+
+
+        plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="abnormal")
+        plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
+        plt.xlim([0, 1])
+        plt.ylim([0, 500])
+        plt.xticks([])
+        plt.yticks([])
+        # plt.xlabel(lab_descriptions[lab] + 'auroc=%.2f' % auc)
+        # plt.xlabel('baseline', fontsize=16)
+        plt.xlabel('score, baseline', fontsize=16)
+        plt.ylabel('num of orders', fontsize=16)
+        plt.legend(fontsize=12)
+        plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_baseline_%s.png'%lab))
+        plt.clf()
+
+        plt.figure(figsize=(5, 4))
+        alg = 'random-forest'
+        df = pd.read_csv(ml_folderpath + "/%s/%s/direct_comparisons.csv"
+                         % (lab, alg), keep_default_na=False)
+
+
+        df1 = pd.read_csv(ml_folderpath + "/%s/%s/%s-normality-prediction-%s-report.tab"
+                          % (lab, alg, lab, alg), sep='\t', keep_default_na=False)
+        auc = df1['roc_auc'].values[0]
+
+
+        if include_threshold_colors:
+
+
+            scores_actual_trueNega = df.ix[(df['actual']==0) & (df['predict']<score_thres), 'predict'].values
+            scores_actual_falsPosi = df.ix[(df['actual'] == 0) & (df['predict'] >= score_thres), 'predict'].values
+
+            scores_actual_falsNega = df.ix[(df['actual'] == 1) & (df['predict'] < score_thres), 'predict'].values
+            scores_actual_truePosi = df.ix[(df['actual'] == 1) & (df['predict'] >= score_thres), 'predict'].values
+
+            plt.hist(scores_actual_trueNega, bins=22, alpha=0.8, color='royalblue', label="True Negatives")
+            plt.hist(scores_actual_falsNega, bins=22, alpha=0.8, color='gold', label="False Negatives")
+            plt.hist(scores_actual_truePosi, bins=7, alpha=0.8, color='forestgreen', label="True Positives")
+            plt.hist(scores_actual_falsPosi, bins=7, alpha=0.8, color='orangered', label="False Positives")
+
+            plt.plot([score_thres] * dash_num, np.linspace(0, 800, num=dash_num), 'k--')
+
+        else:
+
+            scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
+            scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
+
+            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="abnormal")
+            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
+
+        plt.xlim([0, 1])
+        plt.ylim([0, 800])
+        plt.xticks([])
+        plt.yticks([])
+        # plt.xlabel(lab_descriptions[lab])
+        # plt.xlabel('random forest', fontsize=16)
+        plt.xlabel('score, random forest', fontsize=16)
+        plt.ylabel('num of orders', fontsize=16)
+        plt.legend(fontsize=12)
+
+        plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s.png' % lab))
+
+    def logistic_regression(self, lab='LABLDH'):
+        statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
+
+        ml_folderpath = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
+
+        from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
+        fm_io = FeatureMatrixIO()
+        df_train = fm_io.read_file_to_data_frame(ml_folderpath + "/%s/%s-normality-train-matrix-processed.tab" % (lab,lab))
+        df_train = df_train[['all_components_normal', 'order_time', 'pat_id']]
+        print df_train.head()
+
+    def compare_accuracy(self, lab='LABBUN'):
+        statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
+
+        ml_folderpath = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
+
+        plt.figure(figsize=(5, 4))
+        df = pd.read_csv(ml_folderpath + "/%s/baseline_comparisons.csv"
+                         % (lab), keep_default_na=False)
+        df['predict_label'] = df['predict'].apply(lambda x: 1 if x>=0.5 else 0)
+        # accuracy_baseline = df['']
+        accuracy_baseline = (df['predict_label']==df['actual']).sum()/float(df.shape[0])
+        # print accuracy_baseline
+
+        thres = 0.44
+        alg = 'random-forest'
+        df = pd.read_csv(ml_folderpath + "/%s/%s/direct_comparisons.csv"
+                         % (lab, alg), keep_default_na=False)
+
+
+
+        df_train = pd.read_csv(ml_folderpath + "/%s/%s/direct_comparisons_train.csv"
+                         % (lab, alg), keep_default_na=False)
+        best_thres = 0
+        max_accuracy = 0
+        for thres in np.linspace(0,1,num=101):
+            df_train['predict_label'] = df_train['predict'].apply(lambda x: 1 if x >= thres else 0)
+            # accuracy_baseline = df['']
+            accuracy_train = (df_train['predict_label'] == df_train['actual']).sum() / float(df_train.shape[0])
+            if accuracy_train > max_accuracy:
+                max_accuracy = accuracy_train
+                best_thres = thres
+
+        # print lab, best_thres, max_accuracy
+        df['predict_label'] = df['predict'].apply(lambda x: 1 if x >= best_thres else 0)
+        # accuracy_baseline = df['']
+        accuracy_rf = (df['predict_label'] == df['actual']).sum() / float(df.shape[0])
+        # print accuracy_rf
+
+        print lab, accuracy_baseline, accuracy_rf
+
+        return accuracy_baseline, accuracy_rf
+
     def main(self, figs_to_plot):
         print 'stats_sx running...'
 
@@ -1654,155 +1825,13 @@ class Stats_Plotter():
         if 'Model_Transfering' in figs_to_plot:
             self.draw_histogram_transfer_modeling()
 
-    def logistic_regression(lab='LABLDH'):
-        statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
-
-        ml_folderpath = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
-
-        from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
-        fm_io = FeatureMatrixIO()
-        df_train = fm_io.read_file_to_data_frame(ml_folderpath + "/%s/%s-normality-train-matrix-processed.tab" % (lab,lab))
-        df_train = df_train[['all_components_normal', 'order_time', 'pat_id']]
-        print df_train.head()
-
-    def compare_accuracy(lab='LABBUN'):
-        statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
-
-        ml_folderpath = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
-
-        plt.figure(figsize=(5, 4))
-        df = pd.read_csv(ml_folderpath + "/%s/baseline_comparisons.csv"
-                         % (lab), keep_default_na=False)
-        df['predict_label'] = df['predict'].apply(lambda x: 1 if x>=0.5 else 0)
-        # accuracy_baseline = df['']
-        accuracy_baseline = (df['predict_label']==df['actual']).sum()/float(df.shape[0])
-        # print accuracy_baseline
-
-        thres = 0.44
-        alg = 'random-forest'
-        df = pd.read_csv(ml_folderpath + "/%s/%s/direct_comparisons.csv"
-                         % (lab, alg), keep_default_na=False)
-
-
-
-        df_train = pd.read_csv(ml_folderpath + "/%s/%s/direct_comparisons_train.csv"
-                         % (lab, alg), keep_default_na=False)
-        best_thres = 0
-        max_accuracy = 0
-        for thres in np.linspace(0,1,num=101):
-            df_train['predict_label'] = df_train['predict'].apply(lambda x: 1 if x >= thres else 0)
-            # accuracy_baseline = df['']
-            accuracy_train = (df_train['predict_label'] == df_train['actual']).sum() / float(df_train.shape[0])
-            if accuracy_train > max_accuracy:
-                max_accuracy = accuracy_train
-                best_thres = thres
-
-        # print lab, best_thres, max_accuracy
-        df['predict_label'] = df['predict'].apply(lambda x: 1 if x >= best_thres else 0)
-        # accuracy_baseline = df['']
-        accuracy_rf = (df['predict_label'] == df['actual']).sum() / float(df.shape[0])
-        # print accuracy_rf
-
-        print lab, accuracy_baseline, accuracy_rf
-
-        return accuracy_baseline, accuracy_rf
-
-
-    def plot_one_curve(self, lab='LABLDH', include_threshold_colors = True):
-        statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
-        xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
-            = stats_utils.get_curve_onelab(lab,
-                                           all_algs=['random-forest'],
-                                           data_folder=statsByLab_folderpath.replace("lab_statistics", "machine_learning"),
-                                           curve_type='ROC',
-                                           get_pval=False)
-        print lab, p_val
-
-        plt.figure(figsize=(5, 4))
-        # plt.plot(xVal_base, yVal_base, label='baseline model, %0.2f' % (score_base), linewidth=2)
-        plt.plot(xVal_best, yVal_best, color='k', label='AUROC=%0.2f' % (score_best), linewidth=2) #random forest,
-        plt.xlim([0, 1])
-        plt.ylim([0, 1])
-        plt.xticks([])
-        plt.yticks([])
-        plt.ylabel('sensitivity', fontsize=14) #lab_descriptions.get(lab, lab)
-        plt.xlabel('1-specificity', fontsize=14)
-        plt.legend(fontsize=12)
-        plt.savefig(os.path.join(statsByLab_folderpath, 'ROC_%s.png'%lab))
-
-        plt.clf()
-
-        ml_folderpath = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
-
-        plt.figure(figsize=(5, 4))
-        df = pd.read_csv(ml_folderpath + "/%s/baseline_comparisons.csv"
-                         % (lab), keep_default_na=False)
-        scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
-        scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
-
-        plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="abnormal")
-        plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
-        plt.xlim([0, 1])
-        plt.ylim([0, 500])
-        plt.xticks([])
-        plt.yticks([])
-        # plt.xlabel(lab_descriptions[lab] + 'auroc=%.2f' % auc)
-        # plt.xlabel('baseline', fontsize=16)
-        plt.xlabel('score, baseline', fontsize=16)
-        plt.ylabel('num of orders', fontsize=16)
-        plt.legend(fontsize=12)
-        plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_baseline_%s.png'%lab))
-        plt.clf()
-
-        plt.figure(figsize=(5, 4))
-        alg = 'random-forest'
-        df = pd.read_csv(ml_folderpath + "/%s/%s/direct_comparisons.csv"
-                         % (lab, alg), keep_default_na=False)
-
-
-        df1 = pd.read_csv(ml_folderpath + "/%s/%s/%s-normality-prediction-%s-report.tab"
-                          % (lab, alg, lab, alg), sep='\t', keep_default_na=False)
-        auc = df1['roc_auc'].values[0]
-
-
-        if include_threshold_colors:
-            score_thres = 0.756
-
-            scores_actual_trueNega = df.ix[(df['actual']==0) & (df['predict']<score_thres), 'predict'].values
-            scores_actual_falsPosi = df.ix[(df['actual'] == 0) & (df['predict'] >= score_thres), 'predict'].values
-
-            scores_actual_falsNega = df.ix[(df['actual'] == 1) & (df['predict'] < score_thres), 'predict'].values
-            scores_actual_truePosi = df.ix[(df['actual'] == 1) & (df['predict'] >= score_thres), 'predict'].values
-
-            plt.hist(scores_actual_trueNega, bins=22, alpha=0.8, color='royalblue', label="True Negatives")
-            plt.hist(scores_actual_falsNega, bins=22, alpha=0.8, color='gold', label="False Negatives")
-            plt.hist(scores_actual_truePosi, bins=7, alpha=0.8, color='forestgreen', label="True Positives")
-            plt.hist(scores_actual_falsPosi, bins=7, alpha=0.8, color='orangered', label="False Positives")
-
-        else:
-
-            scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
-            scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
-
-            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="abnormal")
-            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
-
-        plt.xlim([0, 1])
-        plt.ylim([0, 500])
-        plt.xticks([])
-        plt.yticks([])
-        # plt.xlabel(lab_descriptions[lab])
-        # plt.xlabel('random forest', fontsize=16)
-        plt.xlabel('score, random forest', fontsize=16)
-        plt.ylabel('num of orders', fontsize=16)
-        plt.legend(fontsize=12)
-
-        plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s.png' % lab))
+        if 'Full_Cartoon' in figs_to_plot:
+            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=True)
 
 if __name__ == '__main__':
 
     plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
-    plotter.main(figs_to_plot=['Potential_Savings'])
+    plotter.main(figs_to_plot=['Full_Cartoon'])
 
     # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons' 'Model_Transfering
     #
