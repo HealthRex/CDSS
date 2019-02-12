@@ -85,7 +85,9 @@ NUM_MAGNESIUM_COMPLETED_ORDERS = 282414
 #     os.mkdir(labs_folder)
 # if not os.path.exists(labs_stats_folder):
 #     os.mkdir(labs_stats_folder)
-
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 def prepare_subfigs(num_figs, col = 5):
 
     row = num_figs / col
@@ -306,7 +308,7 @@ def get_important_labs(lab_type='panel', order_by=None):
         #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
     elif lab_type == 'component':
         # TODO
-        return ['WBC', 'HGB', 'NA', 'K', 'CO2', 'CR', 'ALB']
+        return ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CO2', 'BUN', 'CR', 'GLUC', 'CA', 'ALB', 'TP', 'ALKP', 'TBIL', 'AST', 'ALT']
 
     labs_and_cnts = sorted(labs_and_cnts, key=lambda x: x[1])
     return [x[0] for x in labs_and_cnts]
@@ -1027,46 +1029,57 @@ def add_line_breaker(astring, seg_len):
 
 main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 
+def convert_floatnum2percentage(anum):
+    if anum != anum:
+        return 'NaN'
+    elif anum == 0:
+        return '0'
+    elif anum < 0.01:
+        return '%.2f' % (anum * 100) + '%'
+    elif anum < 0.1:
+        return '%.1f' % (anum * 100) + '%'
+    else:
+        return '%.0f' % (anum * 100) + '%'
+
+def convert_floatstr2percentage(astr):
+    if astr == '':
+        return 'NaN'
+    else:
+        return convert_floatnum2percentage(float(astr))
+    # elif astr == '1':
+    #     return '100%'
+    # elif astr == '0':
+    #     return '0'
+    # else:
+    #     return str('%.0f' % (float(astr) * 100)) + '%'
+
+def convert_floatstr2num(astr):
+    if astr == '':
+        return 'NaN'
+    elif astr == '1' or astr == '0':
+        return astr
+    else:
+        anum = float(astr)
+        if anum >= 10:
+            return str('%.0f'%anum)
+        elif 10 > anum >= 1:
+            return str('%.1f' %anum)
+        else:
+            return str('%.2f' % anum)
+
 def get_lab_descriptions(lab_type, succinct=True):
     code2description_filepath = os.path.join(main_folder, 'machine_learning/data_conversion',
                                              'map_%s_code2description.csv' % lab_type)
-    df = pd.read_csv(code2description_filepath)
+    df = pd.read_csv(code2description_filepath, keep_default_na=False)
     if succinct:
         df['description'] = df['description'].apply(lambda x: x.split(',')[0].strip())
-    return dict(zip(df['lab'].values.tolist(), df['description'].values.tolist()))
+    lab_descriptions = dict(zip(df['lab'].values.tolist(), df['description'].values.tolist()))
 
+    if lab_type == 'panel':
+        lab_descriptions['LABCBCD'] = 'Complete Blood Count w/ Differential'
+        lab_descriptions['LABMETB'] = 'Basic Metabolic Panel'
 
-    # if data_source == 'Stanford' and lab_type=='panel':
-    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'labs.csv')
-    # elif data_source == 'Stanford' and lab_type=='component':
-    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'components.csv')
-    # elif data_source == 'UCSF' and lab_type=='component':
-    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
-    # elif data_source == 'UCSF' and lab_type=='panel':
-    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'UCSF.csv')
-    #
-    #     if not line_break_at:
-    #         descriptions = dict(zip(UCSF_TOP_PANELS, UCSF_TOP_PANELS))
-    #     else:
-    #         descriptions = dict(zip(UCSF_TOP_PANELS, [add_line_breaker(x, line_break_at) for x in UCSF_TOP_PANELS]))
-    #
-    #     return descriptions
-    # elif data_source == 'UMich' and lab_type=='component':
-    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_component.csv')
-    # elif data_source == 'UMich' and lab_type=='panel':
-    #     descriptions_filepath = os.path.join(labs_old_stats_folder, 'UMich_panel.csv')
-    #
-    # df = pd.read_csv(descriptions_filepath, keep_default_na=False)
-    #
-    # if data_source == 'UMich' and lab_type=='component':
-    #     df = df.rename(columns={'RESULT_CODE':'name', 'RESULT_NAME':'description'})
-    #
-    # if line_break_at:
-    #     df['description'] = df['description'].apply(lambda x: add_line_breaker(x, line_break_at))
-    #
-    # descriptions = pandas2dict(df[['name', 'description']], key='name', val='description')
-
-    return descriptions
+    return lab_descriptions
 
 def get_safe(func, *args):
     try:
@@ -1426,12 +1439,33 @@ def query_to_dataframe(lab, lab_type='panel',
                 query.addWhere("sop.order_time <= '%s'" % time_limit[1])
         query.addWhere("base_name = '%s'" % lab)
 
+    elif lab_type == 'mixed':
+        if not columns:
+            columns = ["sor.base_name", "sor.order_proc_id", "sor.result_time",
+                       "sor.result_in_range_yn", 'sor.ord_num_value', 'sor.reference_unit', 'sor.result_flag',
+                       "sor.lab_status",
+                       "sop.proc_code", "sop.order_proc_id", "sop.pat_id", "sop.order_time",
+                       "sop.abnormal_yn", "sop.lab_status", "sop.order_status"]
+
+        for column in columns:
+            query.addSelect(column)
+
+        query.addFrom('stride_order_results as sor')
+        query.addFrom('stride_order_proc as sop')
+        query.addWhere('sor.order_proc_id = sop.order_proc_id')
+        if time_limit:
+            if time_limit[0]:
+                query.addWhere("sop.order_time >= '%s'" % time_limit[0])
+            if time_limit[1]:
+                query.addWhere("sop.order_time <= '%s'" % time_limit[1])
+        query.addWhere("proc_code = '%s'" % lab)
+
     results = DBUtil.execute(query)
 
     df = pd.DataFrame(results, columns=columns)
     # if not os.path.exists(output_foldername):
     #     os.mkdir(output_foldername)
-    df.to_csv(lab_query_filepath, index=False)
+    # df.to_csv(lab_query_filepath, index=False)
 
     return df
 
@@ -1543,7 +1577,10 @@ def output_feature_importances(data_source='Stanford', lab_type='panel'):
     result_df.to_csv(result_filepath, index=False)
 
 if __name__ == '__main__':
-    output_feature_importances(data_source='UCSF', lab_type='panel') # TODO: do this for UCSF...
+    # output_feature_importances(data_source='UCSF', lab_type='panel') # TODO: do this for UCSF...
+
+    df = query_to_dataframe(lab='LABNA')
+    df.to_csv('LABNA_query_look_numerics.csv',index=False)
     # lab_type='panel'
     # print get_labvol('LABPCCR')
     #

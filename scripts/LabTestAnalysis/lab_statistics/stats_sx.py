@@ -216,6 +216,7 @@ class Stats_Plotter():
             df.to_csv(data_path, index=False)
 
         # print df.shape
+        print 'Total saved money:', (df['TP_cost']).sum() * 66440./1000/3
         df = df.iloc[-20:]
         # print df.shape
         # quit()
@@ -316,6 +317,7 @@ class Stats_Plotter():
         df = pd.read_csv(labs_stats_filepath, keep_default_na=False)
 
         df = df[df['targeted_PPV_fixTrainPPV'] == targeted_PPV]
+        df = df[df['lab'].isin(labs)]
 
 
         cached_foldername = 'Fig3_Confusion_Metrics/'
@@ -397,7 +399,18 @@ class Stats_Plotter():
             df['all_positive'] = df['true_positive'] + df['false_positive']
 
             df['predicted_normal_vol'] = df['all_positive'] * df['total_vol']
-            df = df.sort_values('predicted_normal_vol', ascending=False)
+
+            if result_label == 'important_components':
+                # df = df.sort_values('predicted_normal_vol', ascending=False)
+                df['lab'] = pd.Categorical(
+                    df['lab'],
+                    categories=stats_utils.get_important_labs('component'),
+                    ordered=True
+                )
+                df = df.sort_values('lab')
+                pass
+            else:
+                df = df.sort_values('predicted_normal_vol', ascending=False)
             df = df.iloc[:20]
 
             df['all_negative'] = df['true_negative'] + df['false_negative']
@@ -424,34 +437,15 @@ class Stats_Plotter():
                                                   'LR_p':'LR+', 'LR_n':'LR-'})
             df_toshow['AUROC'] = df_toshow['AUROC'].apply(lambda x: '%.2f'%(x))
 
-            def convert_floatstr2percentage(astr):
-                if astr == '':
-                    return 'NaN'
-                elif astr == '1':
-                    return '100%'
-                elif astr == '0':
-                    return '0'
-                else:
-                    return str('%.0f'%(float(astr)*100))+'%'
-
-            def convert_floatstr2num(astr):
-                if astr == '':
-                    return 'NaN'
-                elif astr == '1' or astr == '0':
-                    return astr
-                else:
-                    return str('%.2f' % float(astr))
-
-
             numeric_cols = ['PPV', 'Prev', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec']
             for numeric_col in numeric_cols:
                 if df_toshow[numeric_col].dtype != type(0.1):
-                    df_toshow[numeric_col] = df_toshow[numeric_col].apply(lambda x: convert_floatstr2percentage(x))
+                    df_toshow[numeric_col] = df_toshow[numeric_col].apply(lambda x: stats_utils.convert_floatstr2percentage(x))
                 else:
-                    df_toshow[numeric_col] = df_toshow[numeric_col].apply(lambda x: '%.0f'%(x*100) + '%')
+                    df_toshow[numeric_col] = df_toshow[numeric_col].apply(lambda x: stats_utils.convert_floatnum2percentage(x))
 
-            df_toshow['LR+'] = df_toshow['LR+'].apply(lambda x: convert_floatstr2num(x))
-            df_toshow['LR-'] = df_toshow['LR-'].apply(lambda x: convert_floatstr2num(x))
+            df_toshow['LR+'] = df_toshow['LR+'].apply(lambda x: stats_utils.convert_floatstr2num(x))
+            df_toshow['LR-'] = df_toshow['LR-'].apply(lambda x: stats_utils.convert_floatstr2num(x))
 
             df_toshow[['Lab Test', 'Count', 'AUROC'] + numeric_cols + ['LR+', 'LR-']]\
                 .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
@@ -1337,7 +1331,9 @@ class Stats_Plotter():
                                                   })
 
 
-        umich_replace = {'SOD':'NA', 'POT':'K', 'CREAT': 'CR'}
+        #umich_replace = {'SOD':'NA', 'POT':'K', 'CREAT': 'CR'}
+        df_convert_table_UMich = pd.read_csv('../machine_learning/data_conversion/map_UMich_component_raw2code.csv', keep_default_na=False)
+        umich_replace = dict(zip(df_convert_table_UMich['raw'].values.tolist(), df_convert_table_UMich['lab'].values.tolist()))
         df_umich['lab'] = df_umich['lab'].apply(lambda x: umich_replace[x] if x in umich_replace else x)
         df_umich['predicted_normal_UMich'] = df_umich['true_positive'] + df_umich['false_positive']
         df_umich = df_umich.rename(columns={'AUROC': 'AUC_UMich',
@@ -1349,7 +1345,11 @@ class Stats_Plotter():
                                                   'false_negative': 'FN_UMich'
                                                   })
 
-        ucsf_replace = {'CREAT': 'CR'}
+        # ucsf_replace = {'CREAT': 'CR'}
+        df_convert_table_UCSF = pd.read_csv('../machine_learning/data_conversion/map_UCSF_component_raw2code.csv',
+                                             keep_default_na=False)
+        ucsf_replace = dict(
+            zip(df_convert_table_UCSF['raw'].values.tolist(), df_convert_table_UCSF['lab'].values.tolist()))
         df_ucsf['lab'] = df_ucsf['lab'].apply(lambda x: ucsf_replace[x] if x in ucsf_replace else x)
         df_ucsf['predicted_normal_UCSF'] = df_ucsf['true_positive'] + df_ucsf['false_positive']
         df_ucsf = df_ucsf.rename(columns={'AUROC': 'AUC_UCSF',
@@ -1376,12 +1376,18 @@ class Stats_Plotter():
         columns_merged = merged_df.columns.tolist()
         columns_merged.remove('lab')
         columns_merged = ['lab'] + sorted(columns_merged)
-        merged_df['lab'] = merged_df['lab'].apply(lambda x: lab_descriptions.get(x,x))
+        merged_df['lab'] = merged_df['lab'].apply(lambda x: self.lab_descriptions.get(x,x))
 
         merged_df['PPV Stanford'] = pd.to_numeric(merged_df['PPV Stanford'])
         merged_df['PPV UCSF'] = pd.to_numeric(merged_df['PPV UCSF'])
         merged_df['PPV UMich'] = pd.to_numeric(merged_df['PPV UMich'])
-        merged_df[columns_merged].to_csv(os.path.join(stats_folderpath, 'components_comparisons.csv'), index=False, float_format='%.2f')
+
+        for col_merged in merged_df.columns.values.tolist():
+            if col_merged != 'lab' and 'AUC' not in col_merged:
+                merged_df[col_merged] = merged_df[col_merged].apply(lambda x: stats_utils.convert_floatnum2percentage(x))
+            elif 'AUC' in col_merged:
+                merged_df[col_merged] = merged_df[col_merged].apply(lambda x: '%.2f'%x)
+        merged_df[columns_merged].to_csv(os.path.join(stats_folderpath, 'components_comparisons.csv'), index=False)
 
 
     def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
@@ -1430,9 +1436,14 @@ class Stats_Plotter():
 
         ml_folder = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/machine_learning/'
 
-        panels_stanford = ['LABCAI', 'LABURIC', 'LABALB', 'LABTSH', 'LABMGN',
-                'LABPHOS', 'LABPT', 'LABPTT', #'LABNA',
-                'LABK', 'LABTNI']
+        '''
+        
+        '''
+        panels_stanford = ['LABMGN', 'LABK', 'LABNA', 'LABPHOS', 'LABURIC', 'LABTNI',
+                           'LABPT', 'LABPTT', 'LABCAI', 'LABALB', 'LABTSH'
+                ]
+        # lab_map_df = pd.read_csv(os.path.join(ml_folder, 'data_conversion/map_UCSF_panel_raw2code.csv'), keep_default_na=False)
+        # panels_stanford = lab_map_df['lab'].values.tolist()
 
         if self.lab_type == 'panel':
             labs = panels_stanford
@@ -1453,13 +1464,9 @@ class Stats_Plotter():
         dst_folderpath = os.path.join(ml_folder, dst_foldername)
 
         # labs2curves = {}
-        row, col, i_s, j_s = stats_utils.prepare_subfigs(num_figs=len(labs), col=5)
+        row, col, i_s, j_s = stats_utils.prepare_subfigs(num_figs=len(labs), col=6)
 
         for ind, lab in enumerate(labs):
-            try:
-                lab_dst = map_lab[lab]
-            except:
-                continue
 
             '''
             Model transfering
@@ -1480,7 +1487,7 @@ class Stats_Plotter():
             Locally trained
             '''
             xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
-                = stats_utils.get_curve_onelab(lab_dst,
+                = stats_utils.get_curve_onelab(lab,
                                                all_algs=['random-forest'],
                                                data_folder=dst_folderpath,
                                                curve_type='ROC',
@@ -1494,9 +1501,7 @@ class Stats_Plotter():
             # labs2curves['yVal_best_local'] = yVal_best
 
             i, j = i_s[ind], j_s[ind]
-            plt.subplot2grid((row, col), (i, j))
-
-            i, j = i_s[ind], j_s[ind]
+            print i,j
             plt.subplot2grid((row, col), (i, j))
 
             # plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base), color='blue')
@@ -1506,7 +1511,7 @@ class Stats_Plotter():
             plt.ylim([0, 1])
             plt.xticks([])
             plt.yticks([])
-            plt.xlabel(lab_descriptions.get(lab, lab))
+            plt.xlabel(self.lab_descriptions.get(lab, lab))
             plt.legend()
 
         plt.tight_layout()
@@ -1535,7 +1540,7 @@ class Stats_Plotter():
         labs_common_panels = ['LABMETB', 'LABCBCD']
 
         if 'Comparing_Components' in figs_to_plot:
-            comparing_components(stats_folderpath)
+            self.comparing_components(stats_folderpath)
 
         if 'Order_Intensities' in figs_to_plot:
             classic_labs = list(set(labs_common_panels + labs_guideline + stats_utils.get_important_labs()))
@@ -1622,13 +1627,14 @@ class Stats_Plotter():
             print self.all_labs
             components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA', \
                           'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
+            important_components = stats_utils.get_important_labs('component')
 
             if self.data_source == 'Stanford':
                 if self.lab_type == 'panel':
-                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=panels, result_label='panels',
+                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label='panels',
                                             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
                 else:
-                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=components, result_label='change_colors',
+                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=important_components, result_label='important_components',
                                             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
             elif self.data_source == 'UCSF':
                 self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=all_labs, result_label='change_colors',
@@ -1644,6 +1650,9 @@ class Stats_Plotter():
         if 'Potential_Savings' in figs_to_plot:
             self.draw__Potential_Savings(statsByDataSet_folderpath, scale=scale, result_label='all_four',
                                     targeted_PPV=0.95, use_cached_fig_data=False, price_source='medicare')
+
+        if 'Model_Transfering' in figs_to_plot:
+            self.draw_histogram_transfer_modeling()
 
     def logistic_regression(lab='LABLDH'):
         statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
@@ -1793,10 +1802,10 @@ class Stats_Plotter():
 if __name__ == '__main__':
 
     plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
-    plotter.main(figs_to_plot=['Confusion_Metrics'])
+    plotter.main(figs_to_plot=['Potential_Savings'])
 
-    # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons'
-    # draw_histogram_transfer_modeling(self.lab_type='panel')
+    # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons' 'Model_Transfering
+    #
 
     # pairs = []
     # for lab in stats_utils.NON_PANEL_TESTS_WITH_GT_500_ORDERS:
