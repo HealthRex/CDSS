@@ -133,7 +133,7 @@ class Stats_Plotter():
         print 'lab2cnt', lab2cnt
         print 'lab2frac', lab2frac
 
-        fig = plt.figure(figsize=(6, 4.5))
+        fig, ax = plt.subplots(figsize=(6.5, 3.75)) #6, 4.5
 
         labs_to_plots = [labs[:20], labs[20:40], labs[40:60], labs[60:]]
 
@@ -150,7 +150,7 @@ class Stats_Plotter():
                     non_empty_inds.append(i)
                 y_s = [float(lab2frac[lab][i]) for i in non_empty_inds]
                 print 'lab, y_s', lab, y_s
-                plt.plot(non_empty_inds, y_s, '-'+marker_types[k], label=lab_descriptions[lab])
+                plt.plot(non_empty_inds, y_s, '-'+marker_types[k], label=self.lab_descriptions[lab])
                 # l2, = plt.scatter(non_empty_inds, y_s, marker=marker_types[k])
                 # plt.plot(y_s[0], '-'+marker_types[k], color=l2.get_color(), markerfacecolor=l1.get_color(), label='My plots')
 
@@ -159,6 +159,8 @@ class Stats_Plotter():
             plt.ylabel("Next Test's Normal Rate", fontsize=12)
             plt.ylim([-0.05, 1.05])
             plt.legend()
+            ax.yaxis.tick_right()
+            ax.yaxis.set_label_position("right")
             plt.tight_layout()
             plt.savefig(cached_result_foldername + 'Normality_Saturations_%s_%i'%(self.lab_type, ind))
             plt.clf()
@@ -482,7 +484,7 @@ class Stats_Plotter():
 
         for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
-            fig, ax = plt.subplots(figsize=(12, 8))
+            fig, ax = plt.subplots(figsize=(10, 8))
             ax.barh(df_toplot['lab'], df_toplot['all_positive_vol'] / scale, color='orangered', alpha=1,
                     label='False Positive')
             ax.barh(df_toplot['lab'], df_toplot['true_positive_vol'] / scale, color='forestgreen', alpha=1,
@@ -507,7 +509,7 @@ class Stats_Plotter():
             plt.yticks([])
 
             if self.data_source == 'Stanford' and self.lab_type == 'panel':
-                plt.xlim([-3000, 3000])
+                plt.xlim([-2300, 2700])
             elif self.data_source == 'Stanford' and self.lab_type == 'component':
                 plt.xlim([-9000, 9000])
                 pass
@@ -615,7 +617,8 @@ class Stats_Plotter():
 
     def draw__Order_Intensities(self, stats_folderpath, labs,
                                 scale=1., result_label=None, scale_method = 'normalize',
-                                use_cached_fig_data=True, to_annotate_percentages=False):
+                                use_cached_fig_data=True, to_annotate_percentages=False,
+                                include_legend=True):
 
 
         '''
@@ -700,13 +703,14 @@ class Stats_Plotter():
         # quit()
         labs_ordered = sorted(labs, key=lambda x: lab2stats[x]['< 24 hrs'], reverse=True) #< 24 hrs
 
-        fig = plt.figure(figsize=(12, 6)) # figsize=(20, 12) figsize=(12, 8)
+        # fig = plt.figure(figsize=(12, 6/20.*len(labs) )) # figsize=(20, 12) figsize=(12, 8)
 
         labs_toplots = [labs_ordered]
         # labs_toplots = [lab_ordered[:39], lab_ordered[39:]]
 
         for ind_toplot, labs_toplot in enumerate(labs_toplots):
-            fig, ax = plt.subplots(figsize=(8,6))
+            print 'Fig Size:', 6 + 2./20.*len(labs), 1 + 5./20.*len(labs)
+            fig, ax = plt.subplots(figsize=(5+ 3./20.*len(labs), 1 + 5./20.*len(labs)))
             for i, lab in enumerate(labs_toplot[::-1]):
 
                 time_since_last_order_binned = lab2stats[lab]
@@ -743,18 +747,6 @@ class Stats_Plotter():
                                                      lab_ind=i,
                                                      scale=scale)
 
-                # if to_annotate_percentages:
-                #     tot_cnt = sum(time_since_last_order_binned.values())
-                #     tot_cnt_scaled = tot_cnt / float(stats_utils.NUM_DISTINCT_ENCS)# TODO
-                #     percentages = ', '.join('%.2f'%(x/float(tot_cnt)) for x in time_since_last_order_binned.values())
-                #     ax.text(tot_cnt_scaled, i, percentages, color='k')
-
-            plt.legend(prop={'size': 12})
-            # plt.rc('xtick', labelsize=24)
-            # plt.rc('ytick', labelsize=24)
-
-
-
             if scale_method == 'normalize':
                 ax.set_xticklabels(['{:,.0%}'.format(x) for x in np.linspace(0,1,num=6)])
                 plt.tick_params('x', labelsize=14)
@@ -762,8 +754,15 @@ class Stats_Plotter():
             else:
                 plt.tick_params('x', labelsize=12)
                 plt.tick_params('y', labelsize=10)
+
+            if result_label != 'labs_guideline':
                 plt.xlabel('Number of orders per 1000 patient encounters', fontsize=14) #'Order number between 2014/07-2017/06'
 
+            if include_legend:
+                plt.legend(prop={'size': 12})
+            else:
+                ax.yaxis.tick_right()
+                ax.yaxis.set_label_position("right")
             # plt.xscale('log')
 
             plt.tight_layout()
@@ -1555,8 +1554,8 @@ class Stats_Plotter():
         plt.ylim([0, 1])
         plt.xticks([])
         plt.yticks([])
-        plt.ylabel('sensitivity', fontsize=14) #lab_descriptions.get(lab, lab)
-        plt.xlabel('1-specificity', fontsize=14)
+        plt.ylabel('sensitivity', fontsize=16) #lab_descriptions.get(lab, lab)
+        plt.xlabel('1-specificity', fontsize=16)
         plt.legend(fontsize=12)
         plt.savefig(os.path.join(statsByLab_folderpath, 'ROC_%s.png'%lab))
 
@@ -1574,8 +1573,8 @@ class Stats_Plotter():
         plt.figure(figsize=(5, 4))
 
 
-        plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="abnormal")
-        plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
+        plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="Abnormal")
+        plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="Normal")
         plt.xlim([0, 1])
         plt.ylim([0, 500])
         plt.xticks([])
@@ -1615,13 +1614,17 @@ class Stats_Plotter():
 
             plt.plot([score_thres] * dash_num, np.linspace(0, 800, num=dash_num), 'k--')
 
+            plt.legend(loc=(0.1,0.6), fontsize=12)
+
         else:
 
             scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
             scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
 
-            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="abnormal")
-            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="normal")
+            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="Abnormal")
+            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="Normal")
+
+            plt.legend(fontsize=12)
 
         plt.xlim([0, 1])
         plt.ylim([0, 800])
@@ -1631,9 +1634,11 @@ class Stats_Plotter():
         # plt.xlabel('random forest', fontsize=16)
         plt.xlabel('score, random forest', fontsize=16)
         plt.ylabel('num of orders', fontsize=16)
-        plt.legend(fontsize=12)
 
-        plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s.png' % lab))
+        if include_threshold_colors:
+            plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s_thres.png' % lab))
+        else:
+            plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s.png' % lab))
 
     def logistic_regression(self, lab='LABLDH'):
         statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
@@ -1707,6 +1712,7 @@ class Stats_Plotter():
 
         labs_guideline_nested = stats_utils.get_guideline_maxorderfreq().values()
         labs_guideline = [lab for sublist in labs_guideline_nested for lab in sublist]
+        labs_guideline = [x for x in labs_guideline if x!='LABCBCD' and x!='LABPHOS']
 
         labs_common_panels = ['LABMETB', 'LABCBCD']
 
@@ -1726,20 +1732,20 @@ class Stats_Plotter():
             # lab_set, lab_label = labs_guideline, 'labs_guideline' # labs_guideline, 'labs_guideline'    labs_order_1day, 'labs_order_1day'
 
             self.draw__Order_Intensities(statsByDataSet_folderpath, labs=labs_guideline, result_label='labs_guideline',
-                                    scale=scale, use_cached_fig_data=True, scale_method = 'normalize',
-                                    to_annotate_percentages=False)
+                                    scale=scale, use_cached_fig_data=True, scale_method = 'by_scale', #normalize
+                                    to_annotate_percentages=False, include_legend=False)
 
             self.draw__Order_Intensities(statsByDataSet_folderpath, labs=labs_order_1day, result_label='labs_order_1day',
                                          scale=scale, use_cached_fig_data=True, scale_method = 'by_scale',
-                                         to_annotate_percentages=False)
+                                         to_annotate_percentages=False, include_legend=True)
 
         if 'Normality_Saturations' in figs_to_plot:
             labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels) - set(
                 ['LABTSH', 'LABLDH']))
 
-            labs = ['LABA1C', 'LABK', 'LABMGN', 'LABPHOS', 'LABALB'] #'LABCBCD',
+            labs = ['LABPHOS', 'LABA1C', 'LABALB', 'LABTSH', 'LABESRP'] #'LABCBCD',
 
-            draw__Normality_Saturations(statsByDataSet_folderpath, labs=labs, use_cached_fig_data=True)
+            self.draw__Normality_Saturations(statsByDataSet_folderpath, labs=labs, use_cached_fig_data=True)
 
         if 'PPV_distribution' in figs_to_plot:
             # PPV_guideline(statsByDataSet_folderpath) #TODO
@@ -1826,15 +1832,15 @@ class Stats_Plotter():
             self.draw_histogram_transfer_modeling()
 
         if 'Full_Cartoon' in figs_to_plot:
-            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=True)
+            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False)
 
 if __name__ == '__main__':
 
     plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
-    plotter.main(figs_to_plot=['Full_Cartoon'])
+    plotter.main(figs_to_plot=['Order_Intensities'])
 
     # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons' 'Model_Transfering
-    #
+    # Normality_Saturations Order_Intensities
 
     # pairs = []
     # for lab in stats_utils.NON_PANEL_TESTS_WITH_GT_500_ORDERS:
