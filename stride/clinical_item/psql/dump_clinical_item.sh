@@ -9,6 +9,9 @@ export DB_HOST=host
 export DB_DSN=database
 export DB_USER=user
 
+# Alternatively, if just want to dump data as CSV file without schema, meta-data, etc.
+# psql -U <user> -d <database> -c "\copy clinical_item TO 'clinical_item.csv' with (format csv,header true, delimiter ',');"
+
 # pg_dump automatically dumps the contents of a database to standard output.
 # Pipe these results to gzip, which writes to a compressed file.
 pg_dump -h $DB_HOST -U $DB_USER -t  clinical_item_category $DB_DSN | gzip -c > clinical_item_category.dump.sql.gz
