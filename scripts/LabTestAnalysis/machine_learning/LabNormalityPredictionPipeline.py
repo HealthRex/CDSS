@@ -28,7 +28,7 @@ import pickle
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True,
-                 timeLimit=None, notUsePatIds=None, holdOut=False, pat_batch_ind=None):
+                 timeLimit=None, notUsePatIds=None, holdOut=False, pat_batch_ind=None, includeLastNormality=False):
         self.notUsePatIds = notUsePatIds
         self.pat_batch_ind = pat_batch_ind
         self.usedPatIds = []
@@ -38,6 +38,23 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         # TODO: naming of lab_panel
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
+
+        if self._isLabPanel:
+            self.ylabel = 'all_components_normal'
+        else:
+            self.ylabel = 'component_normal'
+
+        self.includeLastNormality = includeLastNormality
+
+        if self.includeLastNormality:
+            fm_io = FeatureMatrixIO()
+            df = fm_io.read_file_to_data_frame('data/'+lab_panel+'/%s-normality-matrix-raw.tab'%lab_panel)
+            df = df.sort_values(['pat_id', 'order_time']).reset_index(drop=True)
+            df['last_normality'] = df['order_proc_id'].apply(lambda x:float('nan'))
+            for i in range(1,df.shape[0]):
+                if df.ix[i, 'pat_id'] == df.ix[i-1, 'pat_id']:
+                    df.ix[i, 'last_normality'] = df.ix[i-1, self.ylabel]
+            df.to_csv('data/'+lab_panel+'/%s-normality-matrix-raw.tab'%lab_panel, index=False, sep='\t')
 
         data_lab_folder = self._fetch_data_dir_path(inspect.getfile(inspect.currentframe()))
         feat2imputed_dict_path = data_lab_folder + '/feat2imputed_dict.pkl'
@@ -128,11 +145,6 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         fm_io = FeatureMatrixIO()
         raw_matrix = fm_io.read_file_to_data_frame(self._build_raw_matrix_path())
 
-        if self._isLabPanel:
-            outcome_label = 'all_components_normal'
-        else:
-            outcome_label = 'component_normal'
-
         # if outcome_label in self.feat2imputed_dict:
         #     self.feat2imputed_dict.pop(outcome_label)
         #
@@ -209,8 +221,10 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
 
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
-            '%s.pre' % self._var, 'last_normality'
+            '%s.pre' % self._var
         ]
+        if self.includeLastNormality:
+            features_to_keep.append('last_normality')
 
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
@@ -547,7 +561,7 @@ if __name__ == '__main__':
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
         if LocalEnv.LAB_TYPE == 'panel':
-            for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS:#['LABMGN', 'LABK', 'LABLAC']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS: #['LABLAC', 'LABA1C']: #NON_PANEL_TESTS_WITH_GT_500_ORDERS:
+            for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
                 LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
                                                timeLimit=(None, None), notUsePatIds=None, holdOut=False)
                 # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))

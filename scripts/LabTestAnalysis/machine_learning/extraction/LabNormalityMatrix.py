@@ -54,16 +54,6 @@ class LabNormalityMatrix(FeatureMatrix):
 
         # Query patient episodes.
         self._query_patient_episodes()
-
-        import pandas as pd
-        df = pd.read_csv('fmfTempFolder/fmf.patient_episodes_%s.tsv'%self._factory.PID, keep_default_na=False, sep='\t')
-        df = df.sort_values(['pat_id', 'order_time']).reset_index(drop=True)
-        df['last_normality'] = df['order_proc_id'].apply(lambda x:float('nan'))
-        for i in range(1,df.shape[0]):
-            if df.ix[i, 'pat_id'] == df.ix[i-1, 'pat_id']:
-                df.ix[i, 'last_normality'] = df.ix[i-1, self._ylabel]
-        df.to_csv('fmfTempFolder/fmf.patient_episodes_%s.tsv'%self._factory.PID, index=False, sep='\t')
-
         episodes = self._factory.getPatientEpisodeIterator()
         patients = set()
         for episode in episodes:
