@@ -494,15 +494,20 @@ STRIDE_COMPONENT_TESTS = [
 # Bilirubin, Indirect
 # # good, from 'LABMETB'
 
-''',
-'HCO3-A', 'MAG', 'PHOS', 'INR', "BLD", "ICAL", "LACA"
-'''
-#
-UMICH_TOP_COMPONENTS = [
-    'WBC', 'HGB', 'PLT', 'SOD', 'POT', 'CREAT', 'TBIL', 'CHLOR',
-    'CO2',  'AST', 'ALT', 'ALB', 'CAL', 'PCOAA2', 'PO2AA',
-    'DBIL', 'pHA', 'T PROTEIN', 'ALK', 'UN', 'IBIL'
-]
+UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',  # TODO: confirm again
+                                    'CREAT', 'TBIL',
+                                    'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT',
+                                    'ALB', 'CAL', 'PCOAA2', 'PO2AA', 'pHA',
+                                    'T PROTEIN',
+                                    'ALK',  # ALKALINE PHOSPHATASE
+                                    'UN',  # Blood, Urine, 'BUN'
+                                    'IBIL',  # Bilirubin, Indirect
+                                    'HCO3-A',  # # good, from 'LABMETB'
+                                    'MAG',
+                                    'PHOS',
+                                    'INR',
+                                    "BLD", "ICAL", "LACA"
+                                    ]
 
 UMICH_TOP_PANELS = [
     'MAG', 'PHOS', 'PROTHROMBIN TIME',
@@ -612,7 +617,7 @@ if __name__ == '__main__':
         for component in UMICH_TOP_COMPONENTS: #['UN', 'IBIL', 'ALK', 'T PROTEIN', 'pHA', 'DBIL']: # UMICH_TOP_COMPONENTS:
             # print "processing %s..." % component
 
-            # try:
+            try:
                 if not pat_batch_mode:
                     LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789,
                                                    isLabPanel=False)
@@ -625,9 +630,9 @@ if __name__ == '__main__':
                                                                   isLabPanel=False, notUsePatIds=notUsePatIds,
                                                                   pat_batch_ind=pat_batch_ind)
                         notUsePatIds += cur_pipe.usedPatIds
-            # except Exception as e:
-            #     log.info(e)
-            #     pass
+            except Exception as e:
+                log.info(e)
+                pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
 
