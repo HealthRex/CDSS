@@ -1293,21 +1293,16 @@ class Stats_Plotter():
         umich_filepath = os.path.join(stats_folderpath, 'data-UMich-component-10000-episodes', stats_filename)
         ucsf_filepath = os.path.join(stats_folderpath, 'data-UCSF-component-10000-episodes', stats_filename)
 
+
+
         df_stanford = pd.read_csv(stanford_filepath, keep_default_na=False)
-        labs_stanford = set(df_stanford['lab'].values.tolist())
         df_stanford = df_stanford[df_stanford['targeted_PPV_fixTrainPPV']==target_PPV]
 
         df_umich = pd.read_csv(umich_filepath, keep_default_na=False)
-        labs_umich = set(df_umich['lab'].values.tolist())
         df_umich = df_umich[df_umich['targeted_PPV_fixTrainPPV'] == target_PPV]
 
         df_ucsf = pd.read_csv(ucsf_filepath, keep_default_na=False)
-        labs_ucsf = set(df_ucsf['lab'].values.tolist())
         df_ucsf = df_ucsf[df_ucsf['targeted_PPV_fixTrainPPV'] == target_PPV]
-
-        print labs_stanford
-        print labs_umich
-        print labs_ucsf
 
         for df in [df_stanford, df_umich, df_ucsf]:
             df['total_cnt'] = df['true_positive'] + df['false_positive'] + df['true_negative'] + df['false_negative']
@@ -1533,7 +1528,7 @@ class Stats_Plotter():
 
         plt.figure(figsize=(5, 4))
         # plt.plot(xVal_base, yVal_base, label='baseline model, %0.2f' % (score_base), linewidth=2)
-        plt.plot(xVal_best, yVal_best, color='k', label='AUROC=%0.2f' % (score_best), linewidth=2) #random forest,
+        plt.plot(xVal_best, yVal_best, color='orange', linewidth=2) #, label='random forest', AUROC=%0.2f  % (score_best)
 
         if include_threshold_colors:
             df_directcompare_rf = pd.read_csv(os.path.join(ml_folderpath, lab, 'random-forest', 'direct_comparisons.csv'))
@@ -1545,17 +1540,19 @@ class Stats_Plotter():
             print "specificity", specificity
             print "score_thres", score_thres
 
-            plt.scatter(1-specificity, sensitivity, s=30, color='k')
+            plt.scatter(1-specificity, sensitivity, s=50, color='orange')
 
             dash_num = 20
-            plt.plot([1-specificity]*dash_num, np.linspace(0,1,num=dash_num), 'k--')
+            # plt.plot([1-specificity]*dash_num, np.linspace(0,1,num=dash_num), 'k--')
+            plt.plot(np.linspace(0,1,num=dash_num),np.linspace(0,1,num=dash_num), color='lightblue', linestyle='--')
+
 
         plt.xlim([0, 1])
         plt.ylim([0, 1])
         plt.xticks([])
         plt.yticks([])
-        plt.ylabel('sensitivity', fontsize=16) #lab_descriptions.get(lab, lab)
-        plt.xlabel('1-specificity', fontsize=16)
+        plt.ylabel('Sensitivity', fontsize=16) #lab_descriptions.get(lab, lab)
+        plt.xlabel('1-Specificity', fontsize=16)
         plt.legend(fontsize=12)
         plt.savefig(os.path.join(statsByLab_folderpath, 'ROC_%s.png'%lab))
 
@@ -1568,24 +1565,24 @@ class Stats_Plotter():
         scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
         scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
 
+        plot_baseline = False
+        if plot_baseline:
+            plt.figure(figsize=(5, 4))
 
 
-        plt.figure(figsize=(5, 4))
-
-
-        plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="Abnormal")
-        plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="Normal")
-        plt.xlim([0, 1])
-        plt.ylim([0, 500])
-        plt.xticks([])
-        plt.yticks([])
-        # plt.xlabel(lab_descriptions[lab] + 'auroc=%.2f' % auc)
-        # plt.xlabel('baseline', fontsize=16)
-        plt.xlabel('score, baseline', fontsize=16)
-        plt.ylabel('num of orders', fontsize=16)
-        plt.legend(fontsize=12)
-        plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_baseline_%s.png'%lab))
-        plt.clf()
+            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="Abnormal")
+            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="Normal")
+            plt.xlim([0, 1])
+            plt.ylim([0, 500])
+            plt.xticks([])
+            plt.yticks([])
+            # plt.xlabel(lab_descriptions[lab] + 'auroc=%.2f' % auc)
+            # plt.xlabel('baseline', fontsize=16)
+            plt.xlabel('Score, baseline', fontsize=16)
+            plt.ylabel('num of orders', fontsize=16)
+            plt.legend(fontsize=12)
+            plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_baseline_%s.png'%lab))
+            plt.clf()
 
         plt.figure(figsize=(5, 4))
         alg = 'random-forest'
@@ -1607,10 +1604,10 @@ class Stats_Plotter():
             scores_actual_falsNega = df.ix[(df['actual'] == 1) & (df['predict'] < score_thres), 'predict'].values
             scores_actual_truePosi = df.ix[(df['actual'] == 1) & (df['predict'] >= score_thres), 'predict'].values
 
-            plt.hist(scores_actual_trueNega, bins=22, alpha=0.8, color='royalblue', label="True Negatives")
-            plt.hist(scores_actual_falsNega, bins=22, alpha=0.8, color='gold', label="False Negatives")
-            plt.hist(scores_actual_truePosi, bins=7, alpha=0.8, color='forestgreen', label="True Positives")
-            plt.hist(scores_actual_falsPosi, bins=7, alpha=0.8, color='orangered', label="False Positives")
+            plt.hist(scores_actual_trueNega, bins=22, alpha=0.8, color='royalblue', label="true negatives")
+            plt.hist(scores_actual_falsNega, bins=22, alpha=0.8, color='gold', label="false negatives")
+            plt.hist(scores_actual_truePosi, bins=7, alpha=0.8, color='forestgreen', label="true positives")
+            plt.hist(scores_actual_falsPosi, bins=7, alpha=0.8, color='orangered', label="false positives")
 
             plt.plot([score_thres] * dash_num, np.linspace(0, 800, num=dash_num), 'k--')
 
@@ -1621,8 +1618,8 @@ class Stats_Plotter():
             scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
             scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
 
-            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='b', label="Abnormal")
-            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='g', label="Normal")
+            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='gray', label="Abnormal")
+            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='black', label="Normal")
 
             plt.legend(fontsize=12)
 
@@ -1632,8 +1629,8 @@ class Stats_Plotter():
         plt.yticks([])
         # plt.xlabel(lab_descriptions[lab])
         # plt.xlabel('random forest', fontsize=16)
-        plt.xlabel('score, random forest', fontsize=16)
-        plt.ylabel('num of orders', fontsize=16)
+        plt.xlabel('Score', fontsize=16)
+        plt.ylabel('Number of orders', fontsize=16)
 
         if include_threshold_colors:
             plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s_thres.png' % lab))
@@ -1832,15 +1829,15 @@ class Stats_Plotter():
             self.draw_histogram_transfer_modeling()
 
         if 'Full_Cartoon' in figs_to_plot:
-            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False)
+            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=True)
 
 if __name__ == '__main__':
 
     plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
-    plotter.main(figs_to_plot=['Order_Intensities'])
+    plotter.main(figs_to_plot=['Full_Cartoon'])
 
     # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons' 'Model_Transfering
-    # Normality_Saturations Order_Intensities
+    # Normality_Saturations Order_Intensities Full_Cartoon
 
     # pairs = []
     # for lab in stats_utils.NON_PANEL_TESTS_WITH_GT_500_ORDERS:
