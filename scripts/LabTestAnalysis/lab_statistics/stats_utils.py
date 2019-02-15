@@ -308,7 +308,8 @@ def get_important_labs(lab_type='panel', order_by=None):
         #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
     elif lab_type == 'component':
         # TODO
-        return ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CO2', 'BUN', 'CR', 'GLUC', 'CA', 'ALB', 'TP', 'ALKP', 'TBIL', 'AST', 'ALT']
+        return ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CO2', 'BUN', 'CR', 'GLUC', 'CA', 'ALB', #'TP',
+                'ALKP', 'TBIL', 'AST', 'ALT']
 
     labs_and_cnts = sorted(labs_and_cnts, key=lambda x: x[1])
     return [x[0] for x in labs_and_cnts]
@@ -506,7 +507,10 @@ def get_curve_onelab(lab, all_algs, data_folder, curve_type, get_pval=False, get
             fpr_base, tpr_base, _ = roc_curve(base_actual, base_predict)
             xVal_base, yVal_base = fpr_base, tpr_base
 
-            base_auc = roc_auc_score(base_actual, base_predict)
+            try:
+                base_auc = roc_auc_score(base_actual, base_predict)
+            except:
+                base_auc = float('nan')
             base_score = base_auc
         elif curve_type == 'PRC':
             precision, recall, _ = precision_recall_curve(base_actual, base_predict)
@@ -1147,7 +1151,9 @@ def get_medicare_price_dict():
             lab_price[lab] = dict_price[cur_new_description]['RATE2018']
     return lab_price
 
-def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath, ml_results_labfolderpath, stats_results_filepath, price_source='medicare'):
+def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath,
+              ml_results_labfolderpath, stats_results_filepath, price_source='medicare',
+              data_source='Stanford', lab_type='panel', all_algs=['random-forest']):
     '''
     For each lab at each train_PPV,
     write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
