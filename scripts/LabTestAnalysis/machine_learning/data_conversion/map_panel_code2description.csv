@@ -32,7 +32,7 @@ LABGRAM,Gram Stain
 LABFE,"Iron, Total"
 LABB12,Vitamin B12
 LABFIB,Fibrinogen
-LABCRP,C - Reactive Protein
+LABCRP,C-Reactive Protein
 LABRETIC,Reticulocyte Count Automated
 LABBXTG,Biopsy / Tissue Culture And Gram Stain
 LABPLTS,Platelet Count
@@ -80,3 +80,10 @@ LABCMVQT,"Cmv Dna Pcr Quant, Plasma"
 LABBXTG,Biopsy/tissue With Gram Stain
 LABBLCTIP,Blood Cult Central Line Catheter By Nurse
 LABCBCD,CBC WITH DIFF
+LABAFP,Alpha Fetoprotein
+LABYCP,C-Peptide
+LABEP1,Electrolyte Panel
+LABAGALA,Aspegillus Galactomannan
+LABYHISTS,Histoplasma Ag
+LABSPIE,Serum Protein Electrophoresis
+LABUPIE,Urine Protein Electrophoresis

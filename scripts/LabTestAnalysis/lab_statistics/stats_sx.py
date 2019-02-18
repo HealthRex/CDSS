@@ -110,10 +110,15 @@ class Stats_Plotter():
             lab2cnt, lab2frac = {}, {}
             for lab in labs:
                 print 'Getting Normality Saturations for %s..' % lab
-                df_lab = stats_utils.get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT)
-                df_lab = df_lab[df_lab['order_status'] == 'Completed']
+                df_lab = stats_utils.get_queried_lab(lab, self.lab_type, time_limit=DEFAULT_TIMELIMIT)
 
-                cur_dict = stats_utils.get_prevweek_normal__dict(df_lab)
+                if self.lab_type=='panel':
+                    df_lab = df_lab[df_lab['order_status'] == 'Completed']
+                else:
+                    # df_lab = df_lab[df_lab['order_status'] == 'Completed']
+                    pass
+
+                cur_dict = stats_utils.get_prevweek_normal__dict(df_lab, self.lab_type)
                 # lab2stats[lab] = cur_dict
 
                 # cur_dict = lab2stats[lab]
@@ -624,7 +629,16 @@ class Stats_Plotter():
             lab_descriptions['LABESRP'] = 'Sedimentation Rate'
             lab_descriptions['LABCBCD'] = 'CBC w/ Diff'
             lab_descriptions['LABPTT'] = 'PTT'
-            lab_desciption = lab_descriptions[lab]
+            # lab_descriptions['LABAGALA'] =
+            # lab_descriptions['LABEP1'] =
+            # lab_descriptions['LABYCP'] = 'C - PEPTIDE, SERUM'
+            # lab_descriptions['LABAFP'] =
+            # lab_descriptions['LABSPIE'] =
+            # lab_descriptions['LABUPIE'] =
+            # lab_descriptions['LABYHISTS'] =
+            lab_desciption = lab_descriptions.get(lab, lab)
+
+
 
 
 
@@ -702,7 +716,7 @@ class Stats_Plotter():
             for lab in labs: #all_labs[:10][::-1]:
                 print 'Getting Order Intensities of lab %s..'%lab
 
-                df_lab = stats_utils.get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT)
+                df_lab = stats_utils.get_queried_lab(lab, self.lab_type, time_limit=DEFAULT_TIMELIMIT)
 
                 dict_lab = stats_utils.get_floored_day_to_number_orders_cnts(lab, df_lab)
 
@@ -738,6 +752,7 @@ class Stats_Plotter():
             df_res.to_csv(cached_result_path, index=False)
 
         # quit()
+        print lab2stats
         labs_ordered = sorted(labs, key=lambda x: lab2stats[x]['< 24 hrs'], reverse=True) #< 24 hrs
 
         # fig = plt.figure(figsize=(12, 6/20.*len(labs) )) # figsize=(20, 12) figsize=(12, 8)
@@ -1935,6 +1950,18 @@ class Stats_Plotter():
         labs_guideline_nested = stats_utils.get_guideline_maxorderfreq().values()
         labs_guideline = [lab for sublist in labs_guideline_nested for lab in sublist]
         labs_guideline = [x for x in labs_guideline if x!='LABCBCD' and x!='LABPHOS']
+        labs_guideline += ['LABCRP', # C - REACTIVE PROTEIN
+                           #'LABAFP', # ALPHA FETOPROTEIN, SERUM
+                           'LABYCP', # C - PEPTIDE, SERUM
+                           'LABLIPS', # LIPASE
+                           'LABEP1', # ELECTROLYTE PANEL
+                           'LABAGALA', # ASPERGILLUS GALACTOMANNAN
+                           'LABNTBNP',
+                           'LABPROCT'
+                           #'LABYHISTS', # HISTOPLASMA AG, SERUM
+                           #'LABSPIE', # PROTEIN IMMUNOFIX ELECTROPHORESIS, SERUM
+                           #'LABUPIE' # URINE PROTEIN IMMUNOFIXATION ELECTROPHORESIS
+                           ]
 
         labs_common_panels = ['LABMETB', 'LABCBCD']
 
@@ -1965,7 +1992,15 @@ class Stats_Plotter():
             labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels) - set(
                 ['LABTSH', 'LABLDH']))
 
-            labs = ['LABPHOS', 'LABA1C', 'LABALB', 'LABTSH', 'LABESRP'] #'LABCBCD',
+            panels_saturations = ['LABPHOS', 'LABA1C', 'LABALB', 'LABTSH', 'LABESRP'] #'LABCBCD',
+
+            components_saturations = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CR']
+
+            if self.lab_type=='panel':
+                labs = panels_saturations
+            else:
+                labs = components_saturations
+            print statsByDataSet_folderpath
 
             self.draw__Normality_Saturations(statsByDataSet_folderpath, labs=labs, use_cached_fig_data=True)
 
@@ -2058,11 +2093,11 @@ class Stats_Plotter():
 
 if __name__ == '__main__':
 
-    plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
+    plotter = Stats_Plotter(data_source="Stanford", lab_type='component')
     # plotter.main(figs_to_plot=['Order_Intensities'])
     # plotter.main_of_main()
 
-    plotter.main(figs_to_plot=['Confusion_Metrics']) #'ROC', 'PRC',
+    plotter.main(figs_to_plot=['Normality_Saturations']) #'ROC', 'PRC',
 
 
     # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons' 'Model_Transfering
