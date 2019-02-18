@@ -367,11 +367,11 @@ class Stats_Plotter():
                 #                         df['2017 1stHalf count']
             elif self.data_source == 'UCSF':
                 import stats_database
-                if stats_utils.self.lab_type == 'panel':
+                if self.lab_type == 'panel':
                     ucsf_lab_cnt = dict(stats_database.UCSF_PANELS_AND_COUNTS)
 
-                elif stats_utils.self.lab_type == 'component':
-                    ucsf_lab_cnt = dict(stats_database.UCSF_COMPONENTSS_AND_COUNTS)
+                elif self.lab_type == 'component':
+                    ucsf_lab_cnt = stats_database.UCSF_COMPONENT_TO_COUNT #dict(stats_database.UCSF_COMPONENTSS_AND_COUNTS)
                 df['total_vol'] = df['lab'].apply(lambda x: ucsf_lab_cnt[x])
             elif self.data_source == 'UMich' and self.lab_type=='component':
                 umich_lab_cnt = {'WBC':5280.99347210938,
@@ -418,10 +418,11 @@ class Stats_Plotter():
             if result_label == 'important_components':
                 from scripts.LabTestAnalysis.machine_learning.ml_utils import map_lab
 
-                if self.data_source == 'UMich':
+                if self.data_source == 'UMich' or self.data_source == 'UCSF':
                     df['lab'] = df['lab'].apply(lambda x: map_lab(x, self.data_source, self.lab_type))
                 # df = df.sort_values('predicted_normal_vol', ascending=False)
                 #     print df['lab'].values
+
 
                     df = df[df['lab'].isin(stats_utils.get_important_labs('component'))]
                 df['lab'] = pd.Categorical(
@@ -459,7 +460,7 @@ class Stats_Plotter():
                                                   'LR_p':'LR+', 'LR_n':'LR-'})
             df_toshow['AUROC'] = df_toshow['AUROC'].apply(lambda x: '%.2f'%(x))
 
-            numeric_cols = ['PPV', 'Prev', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec']
+            numeric_cols = ['Prev', 'PPV', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec']
             for numeric_col in numeric_cols:
                 if df_toshow[numeric_col].dtype != type(0.1):
                     df_toshow[numeric_col] = df_toshow[numeric_col].apply(lambda x: stats_utils.convert_floatstr2percentage(x))
@@ -469,7 +470,15 @@ class Stats_Plotter():
             df_toshow['LR+'] = df_toshow['LR+'].apply(lambda x: stats_utils.convert_floatstr2num(x))
             df_toshow['LR-'] = df_toshow['LR-'].apply(lambda x: stats_utils.convert_floatstr2num(x))
 
-            df_toshow[['Lab Test', 'Count', 'AUROC'] + numeric_cols + ['LR+', 'LR-']]\
+            df_toshow.loc[df_toshow['Lab Test']=='Sodium', 'chargemaster'] = 219
+            df_toshow.loc[df_toshow['Lab Test'] == 'Specific Gravity', 'medicare'] = 3.28
+            df_toshow.loc[df_toshow['Lab Test'] == 'Sepsis Protocol Lactate', 'medicare'] = '-'
+            df_toshow.loc[df_toshow['Lab Test'] == 'LDH Total', 'medicare'] = '-'
+            df_toshow.loc[df_toshow['Lab Test'] == 'Lactate', 'medicare'] = '-'
+
+            df_toshow['Vol'] = (df_toshow['total_cnt']/float(stats_utils.NUM_DISTINCT_ENCS/1000.)).apply(lambda x: int(round(x)))
+            df_toshow = df_toshow.rename(columns={'medicare':'Medicare', 'chargemaster':'Chargemaster'})
+            df_toshow[['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-'] + ['Medicare', 'Chargemaster']]\
                 .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
 
             df_toplots = df
@@ -2027,7 +2036,7 @@ class Stats_Plotter():
                     self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=important_components, result_label='important_components',
                                             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
             elif self.data_source == 'UCSF':
-                self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label='change_colors',
+                self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label='important_components',
                                         targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
 
             elif self.data_source == 'UMich':
@@ -2049,7 +2058,7 @@ class Stats_Plotter():
 
 if __name__ == '__main__':
 
-    plotter = Stats_Plotter(data_source="Stanford", lab_type='component')
+    plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
     # plotter.main(figs_to_plot=['Order_Intensities'])
     # plotter.main_of_main()
 

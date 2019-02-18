@@ -1035,7 +1035,7 @@ main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 
 def convert_floatnum2percentage(anum):
     if anum != anum:
-        return 'NaN'
+        return '-'
     elif anum == 0:
         return '0'
     elif anum < 0.01:
@@ -1047,7 +1047,7 @@ def convert_floatnum2percentage(anum):
 
 def convert_floatstr2percentage(astr):
     if astr == '':
-        return 'NaN'
+        return '-'
     else:
         return convert_floatnum2percentage(float(astr))
     # elif astr == '1':
@@ -1059,7 +1059,7 @@ def convert_floatstr2percentage(astr):
 
 def convert_floatstr2num(astr):
     if astr == '':
-        return 'NaN'
+        return '-'
     elif astr == '1' or astr == '0':
         return astr
     else:
