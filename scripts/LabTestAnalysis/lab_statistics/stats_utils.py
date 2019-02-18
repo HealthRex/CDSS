@@ -405,7 +405,7 @@ def query_lab_usage__df(lab, lab_type='panel', time_limit=None):
 
     return results
 
-def get_prevweek_normal__dict(df, also_get_cnt=False):
+def get_prevweek_normal__dict(df, lab_type, also_get_cnt=False):
     datetime_format = "%Y-%m-%d %H:%M:%S"
     '''
     Cnt of ordering w/i one day
@@ -419,19 +419,30 @@ def get_prevweek_normal__dict(df, also_get_cnt=False):
 
     row, col = df.shape
     day2norms = {}
+
     '''
     key: num of CONSECUTIVE normal in past week. val: [normal, normal, abnormal...]
     '''
     for i in range(1, row):
-        curr_normal = 0 if df.ix[i, 'abnormal_yn'] == 'Y' else 1
+        j = i - 1
 
-        j = i-1
-        while j >= 0 \
-            and df.ix[i,'pat_id'] == df.ix[j,'pat_id'] \
-            and (df.ix[i,'order_time'] - df.ix[j,'order_time']).days < 7 \
-            and df.ix[j,'abnormal_yn'] != 'Y':
+        if lab_type=='panel':
+            curr_normal = 0 if df.ix[i, 'abnormal_yn'] == 'Y' else 1 # TODO: update the criterion
 
-            j -= 1
+            while j >= 0 \
+                and df.ix[i,'pat_id'] == df.ix[j,'pat_id'] \
+                and (df.ix[i,'order_time'] - df.ix[j,'order_time']).days < 7 \
+                and df.ix[j,'abnormal_yn'] != 'Y':
+
+                j -= 1
+        else:
+            curr_normal = 0 if df.ix[i, 'result_flag'] != '' else 1
+
+            while j >= 0 \
+                    and df.ix[i, 'pat_id'] == df.ix[j, 'pat_id'] \
+                    and (df.ix[i, 'order_time'] - df.ix[j, 'order_time']).days < 7 \
+                    and df.ix[j, 'result_flag'] == '':
+                j -= 1
 
         prev_cnt = i-1-j
         if prev_cnt in day2norms:
@@ -1099,17 +1110,29 @@ def dict2pandas(a_dict, key='lab', val='val'):
 def pandas2dict(df, key='lab', val='val'):
     return df.set_index(key).to_dict()[val]
 
-def get_queried_lab(lab, time_limit=DEFAULT_TIMELIMIT):
+main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
+stats_results_folderpath = os.path.join(main_folder, 'lab_statistics')
+labs_old_stats_folder = os.path.join(stats_results_folderpath, 'data_summary_stats/')
+labs_query_folder = os.path.join(stats_results_folderpath, 'query_lab_results/')
+
+def get_queried_lab(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
+
+
     lab_query_filepath = os.path.join(labs_query_folder, lab + '.csv')
     print lab, 'os.path.exists(lab_query_filepath)', os.path.exists(lab_query_filepath)
     if not os.path.exists(lab_query_filepath):
-        df = query_to_dataframe(lab, lab_query_filepath=lab_query_filepath)
+        df = query_to_dataframe(lab, lab_type, lab_query_filepath=lab_query_filepath)
     else:
         df = pd.read_csv(lab_query_filepath, keep_default_na=False)
 
     if lab_type == 'component':
         df = df[df['sop.order_status'] == 'Completed']
         df = df[(df['sop.order_time'] >= time_limit[0]) & (df['sop.order_time'] <= time_limit[1])]
+
+        df = df.rename(columns={'sop.pat_id': 'pat_id',
+                                'sop.order_time':'order_time',
+                                'sor.result_in_range_yn':'result_in_range_yn',
+                                'sor.result_flag':'result_flag'})
     elif lab_type == 'panel':
         df = df[df['order_status'] == 'Completed']
         df = df[(df['order_time'] >= time_limit[0]) & (df['order_time'] <= time_limit[1])]
