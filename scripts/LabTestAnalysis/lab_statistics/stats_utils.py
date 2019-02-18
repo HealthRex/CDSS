@@ -308,7 +308,8 @@ def get_important_labs(lab_type='panel', order_by=None):
         #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
     elif lab_type == 'component':
         # TODO
-        return ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CO2', 'BUN', 'CR', 'GLUC', 'CA', 'ALB', #'TP',
+        return ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CO2', 'BUN', 'CR', #'GLUC',
+                'CA', 'ALB', #'TP',
                 'ALKP', 'TBIL', 'AST', 'ALT']
 
     labs_and_cnts = sorted(labs_and_cnts, key=lambda x: x[1])
