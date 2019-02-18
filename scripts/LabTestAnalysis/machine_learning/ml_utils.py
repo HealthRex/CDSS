@@ -43,7 +43,7 @@ map_component_from_Stanford_to_UCSF = {
 'PHOS': 'PO4',
 'CAION': 'CAI',
 'TNI': 'TRPI',
-'NA': 'NAWB',
+'NA': 'NA',
 'LAC': 'LACTWB',
 'TBIL': 'TBILI'
 }
@@ -79,6 +79,19 @@ map_panel_from_Stanford_to_UCSF = {'LABMGN':'Magnesium, Serum - Plasma',
                             'LABPT':'Prothrombin Time', # TODO
                             'LABPTT':'Activated Partial Thromboplastin Time'
                             }
+
+def map_lab(lab, data_source, lab_type):
+    import LocalEnv
+    ml_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/machine_learning')
+    df = pd.read_csv(os.path.join(ml_folder, 'data_conversion/map_%s_%s_raw2code.csv'%(data_source,lab_type)),
+                     keep_default_na=False)
+    keys = df['raw'].values.tolist()
+    vals = df['lab'].values.tolist()
+    my_dict = dict(zip(keys, vals))
+
+    # print lab, my_dict[lab]
+
+    return my_dict.get(lab, lab)
 
 def get_patIds(data_matrix):
     return set(data_matrix['pat_id'].values.tolist())
