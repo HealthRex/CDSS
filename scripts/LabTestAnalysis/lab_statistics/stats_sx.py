@@ -147,7 +147,7 @@ class Stats_Plotter():
         print 'lab2cnt', lab2cnt
         print 'lab2frac', lab2frac
 
-        fig, ax = plt.subplots(figsize=(6.5, 3.75)) #6, 4.5
+        fig, ax = plt.subplots(figsize=(6.5, 2.565)) #6, 4.5 # 7, 2.565 #6.5, 3.75
 
         labs_to_plots = [labs[:20], labs[20:40], labs[40:60], labs[60:]]
 
@@ -169,8 +169,10 @@ class Stats_Plotter():
                 # plt.plot(y_s[0], '-'+marker_types[k], color=l2.get_color(), markerfacecolor=l1.get_color(), label='My plots')
 
             plt.xticks(range(0, max_repeat + 1))
-            plt.xlabel('Prior Consecutive Normal Tests', fontsize=12)
-            plt.ylabel("Next Test's Normal Rate", fontsize=12)
+            plt.xlabel('Consecutive normal tests in the past 7 days', fontsize=14)
+            plt.tick_params('x', labelsize=15)  # 12
+            plt.tick_params('y', labelsize=13)  # 10
+            plt.ylabel("Normal rate", fontsize=14)
             plt.ylim([-0.05, 1.05])
             plt.legend()
             ax.yaxis.tick_right()
@@ -481,7 +483,7 @@ class Stats_Plotter():
             df_toshow.loc[df_toshow['Lab Test'] == 'LDH Total', 'medicare'] = '-'
             df_toshow.loc[df_toshow['Lab Test'] == 'Lactate', 'medicare'] = '-'
 
-            df_toshow['Vol'] = (df_toshow['total_cnt']/float(stats_utils.NUM_DISTINCT_ENCS/1000.)).apply(lambda x: int(round(x)))
+            df_toshow['Vol'] = (df_toshow['total_vol']/float(stats_utils.NUM_DISTINCT_ENCS/1000.)).apply(lambda x: int(round(x)))
             df_toshow = df_toshow.rename(columns={'medicare':'Medicare', 'chargemaster':'Chargemaster'})
             df_toshow[['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-'] + ['Medicare', 'Chargemaster']]\
                 .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
@@ -761,8 +763,13 @@ class Stats_Plotter():
         # labs_toplots = [lab_ordered[:39], lab_ordered[39:]]
 
         for ind_toplot, labs_toplot in enumerate(labs_toplots):
-            print 'Fig Size:', 6 + 2./20.*len(labs), 1 + 5./20.*len(labs)
-            fig, ax = plt.subplots(figsize=(8, 0.5 + 5.5/20.*len(labs))) #5+ 3./20.*len(labs)
+            # print 'Fig Size:', 6 + 2./20.*len(labs), 1 + 5./20.*len(labs)
+            fig, ax = plt.subplots(figsize=(8, .3 + 5.7/20.*len(labs))) #5+ 3./20.*len(labs)
+            # 8, 3.435 for guideline
+            # 8, 6 for freq labs
+            # 6 - 3.435 = 2.565
+            # Size for saturation is 7, 2.565 ?
+            print .3 + 5.7/20.*len(labs)
             for i, lab in enumerate(labs_toplot[::-1]):
 
                 time_since_last_order_binned = lab2stats[lab]
@@ -801,12 +808,12 @@ class Stats_Plotter():
 
             if scale_method == 'normalize':
                 ax.set_xticklabels(['{:,.0%}'.format(x) for x in np.linspace(0,1,num=6)])
-                plt.tick_params('x', labelsize=14)
-                plt.tick_params('y', labelsize=12)
+                plt.tick_params('x', labelsize=13)
+                plt.tick_params('y', labelsize=11)
                 plt.xlim([0,1])
             else:
-                plt.tick_params('x', labelsize=14) #12
-                plt.tick_params('y', labelsize=12) #10
+                plt.tick_params('x', labelsize=15) #12
+                plt.tick_params('y', labelsize=13) #10
 
             if result_label != 'labs_guideline':
                 plt.xlabel('Number of orders per 1000 patient encounters', fontsize=14) #'Order number between 2014/07-2017/06'
@@ -814,8 +821,8 @@ class Stats_Plotter():
             if include_legend:
                 plt.legend(prop={'size': 12})
             else:
-                # ax.yaxis.tick_right()
-                # ax.yaxis.set_label_position("right")
+                ax.yaxis.tick_right()
+                ax.yaxis.set_label_position("right")
                 pass
             # plt.xscale('log')
 
@@ -1994,7 +2001,7 @@ class Stats_Plotter():
 
             panels_saturations = ['LABPHOS', 'LABA1C', 'LABALB', 'LABTSH', 'LABESRP'] #'LABCBCD',
 
-            components_saturations = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CR']
+            components_saturations = ['WBC', 'HGB', 'NA', 'K', 'CR'] #, 'PLT'
 
             if self.lab_type=='panel':
                 labs = panels_saturations
