@@ -1,0 +1,23 @@
+lab,Stanford,UMich,UCSF,description
+WBC,WBC,WBC,WBC,White Blood Cells
+HGB,HGB,HGB,HGB,"Hemoglobin, ISTAT"
+PLT,PLT,PLT,PLT,Platelet Count
+NA,NA,SOD,NA,"Sodium, Serum/plasma"
+K,K,POT,K,"Potassium, ISTAT"
+CL,CL,CHLOR,CL,"Chloride, Serum/plasma"
+CR,CR,CREAT,CREAT,"Creatinine, ISTAT"
+BUN,BUN,UN,BUN,"Urea Nitrogen, Serum/plasma"
+GLU,GLU,,,"Glucose, ISTAT"
+CO2,CO2,CO2,CO2,"CO2, Serum/plasma"
+CA,CA,CAL,CA,"Calcium, Serum/plasma"
+TP,TP,T PROTEIN,TP,"Protein, Total, Serum/plasma"
+ALB,ALB,ALB,ALB,"Albumin, Serum/plasma"
+ALKP,ALKP,ALK,ALKP,"Alk Phos, Total, Serum/plasma"
+TBIL,TBIL,TBIL,TBILI,Total Bilirubin
+AST,AST,AST,AST,"AST (SGOT), Serum/plasma"
+ALT,ALT,ALT,ALT,"ALT (SGPT), Serum/plasma"
+DBIL,DBIL,DBIL,DBILI,Conjugated Bili
+IBIL,IBIL,IBIL,,"Bilirubin, Indirect, Serum/plasma"
+PHA,PHA,pHA,PH37,PH (A)
+PCO2A,PCO2A,PCOAA2,PCO2,"PCO2, ISTAT"
+PO2A,PO2A,PO2AA,PO2,"PO2, ISTAT"
