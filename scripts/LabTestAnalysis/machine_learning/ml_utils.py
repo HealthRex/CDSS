@@ -83,10 +83,10 @@ map_panel_from_Stanford_to_UCSF = {'LABMGN':'Magnesium, Serum - Plasma',
 def map_lab(lab, data_source, lab_type):
     import LocalEnv
     ml_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/machine_learning')
-    df = pd.read_csv(os.path.join(ml_folder, 'data_conversion/map_%s_%s_raw2code.csv'%(data_source,lab_type)),
+    df = pd.read_csv(os.path.join(ml_folder, 'data_conversion/map_%s.csv'%(lab_type)),
                      keep_default_na=False)
-    keys = df['raw'].values.tolist()
-    vals = df['lab'].values.tolist()
+    keys = df['lab'].values.tolist()
+    vals = df[data_source].values.tolist()
     my_dict = dict(zip(keys, vals))
 
     # print lab, my_dict[lab]

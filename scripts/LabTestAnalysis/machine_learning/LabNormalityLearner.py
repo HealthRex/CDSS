@@ -209,6 +209,7 @@ def map_col_Stanford_to_UCSF(col):
 
 
 def apply_src_to_dst(lab, lab_type,
+            src_datasource,dst_datasource,
                            src_dataset_folderpath,
                            dst_dataset_folderpath,
                            output_folderpath,
@@ -255,19 +256,21 @@ def apply_src_to_dst(lab, lab_type,
         os.mkdir(output_folderpath)
     output_filepath = os.path.join(output_folderpath, 'direct_comparisons.csv')
     if use_cached_results and os.path.exists(output_filepath):
-        print output_filepath + ' exists!'
+        # print output_filepath + ' exists!'
         return
 
     # TODO: UMich?
     if lab_type == 'panel':
-        from scripts.LabTestAnalysis.machine_learning.ml_utils import map_panel_from_Stanford_to_UCSF as map_lab
+        # from scripts.LabTestAnalysis.machine_learning.ml_utils import map_panel_from_Stanford_to_UCSF as map_lab
         ylabel = 'all_components_normal'
     else:
-        from scripts.LabTestAnalysis.machine_learning.ml_utils import map_component_from_Stanford_to_UCSF as map_lab
+        # from scripts.LabTestAnalysis.machine_learning.ml_utils import map_component_from_Stanford_to_UCSF as map_lab
         ylabel = 'component_normal'
 
-    lab_mapped = map_lab.get(lab,lab)
-    print lab_mapped
+
+    lab_src = ml_utils.map_lab(lab=lab, data_source=src_datasource, lab_type=lab_type)
+    lab_dst = ml_utils.map_lab(lab=lab, data_source=dst_datasource, lab_type=lab_type)
+
 
     '''
         Helper function
@@ -284,7 +287,7 @@ def apply_src_to_dst(lab, lab_type,
     '''
     Load raw data from UCSF
     '''
-    df_raw_dst = SL.load_raw_matrix(lab=lab_mapped, dataset_folderpath=dst_dataset_folderpath)
+    df_raw_dst = SL.load_raw_matrix(lab=lab_dst, dataset_folderpath=dst_dataset_folderpath)
 
     # imputations_stanford = SL.load_imputation_template(lab=lab_mapped, dataset_folderpath=dst_dataset_folderpath, lab_type=lab_type)
 
@@ -297,7 +300,7 @@ def apply_src_to_dst(lab, lab_type,
     From test processed, get the patient evalu set  
     '''
 
-    df_processed_evalu_dst = SL.load_processed_matrix(lab_mapped, dst_dataset_folderpath, type='evalu') #fm_io.read_file_to_data_frame(lab_folder + '/'  + "%s-normality-test-matrix-processed.tab" % map_lab_Stanford_to_UCSF[lab])
+    df_processed_evalu_dst = SL.load_processed_matrix(lab_dst, dst_dataset_folderpath, type='evalu') #fm_io.read_file_to_data_frame(lab_folder + '/'  + "%s-normality-test-matrix-processed.tab" % map_lab_Stanford_to_UCSF[lab])
     patIds_evalu_dst = ml_utils.get_patIds(df_processed_evalu_dst) #set(df_ucsf_processed_evalu['pat_id'].values.tolist())
 
     df_raw_evalu_dst = df_raw_dst[df_raw_dst['pat_id'].isin(patIds_evalu_dst)]
@@ -316,12 +319,12 @@ def apply_src_to_dst(lab, lab_type,
     '''
     Use processed_matrix to select columns
     '''
-    df_processed_src = fm_io.read_file_to_data_frame(src_dataset_folderpath + '/' + lab + '/%s-normality-matrix-processed.tab'%lab)
+    df_processed_src = fm_io.read_file_to_data_frame(src_dataset_folderpath + '/' + lab_src + '/%s-normality-matrix-processed.tab'%lab_src)
     df_processed_src.pop('pat_id')
     df_processed_src.pop(ylabel) # TODO?!
     processed_columns_stanford = df_processed_src.columns.values.tolist()
 
-    classifier_src = SL.load_ML_model(lab=lab, alg='random-forest', dataset_folderpath=src_dataset_folderpath)
+    classifier_src = SL.load_ML_model(lab=lab_src, alg='random-forest', dataset_folderpath=src_dataset_folderpath)
 
 
     '''
@@ -338,8 +341,14 @@ def apply_src_to_dst(lab, lab_type,
     #         pass
         # imputations_ucsf[]
 
-    impute_dict_old = pickle.load(open(src_dataset_folderpath + '/' + lab + '/' + "feat2imputed_dict.pkl"))
-    del impute_dict_old[ylabel]
+    imputations_filepath = src_dataset_folderpath + '/' + lab_src + '/' + "feat2imputed_dict.pkl"
+
+    impute_dict_old = pickle.load(open(imputations_filepath))
+
+    if ylabel in impute_dict_old:
+        del impute_dict_old[ylabel]
+
+
 
     impute_dict_new = {}
     i = 0
@@ -388,7 +397,7 @@ def apply_src_to_dst(lab, lab_type,
 
     df_ucsf_processed_evalu, _ = SL.process_matrix(df_raw_evalu_dst, features, impute_template=impute_dict_new)
 
-    print "Finished processing!"
+    # print "Finished processing!"
 
 
     # df_ucsf_processed.pop('all_components_normal')
@@ -400,12 +409,12 @@ def apply_src_to_dst(lab, lab_type,
     '''
 
 
-    print "Finished Loading!"
+    # print "Finished Loading!"
 
     # print classifier.description() # TODO: why is this step so slow?!
     # print classifier.predict_probability(df_ucsf_processed)
 
-    print classifier_src._params_random_forest()['decision_features']
+    # print classifier_src._params_random_forest()['decision_features']
 
 
     X_evalu, y_evalu = SL.split_Xy(data_matrix=df_ucsf_processed_evalu,
@@ -437,16 +446,22 @@ def transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel'):
         labs = stats_utils.get_important_labs(lab_type=lab_type) #STRIDE_COMPONENT_TESTS
         # from scripts.LabTestAnalysis.machine_learning.ml_utils import map_component_from_Stanford_to_UCSF as map_lab
 
+    transfer_result_folderpath = 'data-%s-src-%s-dst-%s-10000-episodes/'%(lab_type,src_dataset,dst_dataset)
+    if not os.path.exists(transfer_result_folderpath):
+        os.mkdir(transfer_result_folderpath)
+
     for lab in labs:
-        direct_comparisons_folderpath = 'data-%s-%s-%s-10000-episodes/'%(lab_type,src_dataset,dst_dataset)+lab
+        direct_comparisons_folderpath = os.path.join(transfer_result_folderpath, lab)
         apply_src_to_dst(lab=lab, lab_type=lab_type,
+                         src_datasource=src_dataset,
+                         dst_datasource=dst_dataset,
                                src_dataset_folderpath='data-%s-%s-10000-episodes'%(src_dataset, lab_type),#'data-Stanford-%s-10000-episodes'%lab_type,
                                dst_dataset_folderpath='data-%s-%s-10000-episodes'%(dst_dataset, lab_type),
                                output_folderpath=direct_comparisons_folderpath)
         statistic_analysis(lab=lab, dataset_folder=direct_comparisons_folderpath)
 
 if __name__ == '__main__':
-    transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='component')
+    transfer_labs(src_dataset='Stanford', dst_dataset='UMich', lab_type='component')
     # statistic_analysis(lab='LABURIC', dataset_folder=os.path.join('data', 'LABURIC', 'transfer_Stanford_to_UCSF')) #'data-panel-Stanford-UCSF-10000-episodes'
     # apply_Stanford_to_UCSF(lab='LABURIC', lab_type='panel',
     #                        src_dataset_folderpath=os.path.join('data', 'LABURIC', 'wi last normality - Stanford'),
