@@ -478,32 +478,59 @@ def transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel'):
 def main():
     all_sites = ['Stanford', 'UMich', 'UCSF']
 
-    from scripts.LabTestAnalysis.lab_statistics import stats_utils
-    labs = stats_utils.get_important_labs(lab_type='component')
+    res_filepath = 'all_transfers.csv'
+
+    if os.path.exists(res_filepath):
+        df_res = pd.read_csv(res_filepath, keep_default_na=False)
+
+    else:
+
+        from scripts.LabTestAnalysis.lab_statistics import stats_utils
+        labs = stats_utils.get_important_labs(lab_type='component')
 
 
-    all_res_dicts = {}
-    all_res_dicts['lab'] = labs
+        all_res_dicts = {}
+        all_res_dicts['lab'] = labs
 
-    columns = ['lab']
-    for i in range(3):
-        for j in range(3):
-            if False:#i==j:
-                continue
-            else:
-                src = all_sites[i]
-                dst = all_sites[j]
+        columns = ['lab']
+        for i in range(3):
+            for j in range(3):
+                if False:#i==j:
+                    continue
+                else:
+                    src = all_sites[i]
+                    dst = all_sites[j]
 
-                cur_res_dict = transfer_labs(src_dataset=src, dst_dataset=dst, lab_type='component')
-                col = '%s -> %s' % (src, dst)
-                all_res_dicts[col] = cur_res_dict
+                    cur_res_dict = transfer_labs(src_dataset=src, dst_dataset=dst, lab_type='component')
+                    col = '%s -> %s' % (src, dst)
+                    all_res_dicts[col] = cur_res_dict
 
-                columns.append(col)
-    df_res = pd.DataFrame.from_dict(all_res_dicts)
+                    columns.append(col)
+        df_res = pd.DataFrame.from_dict(all_res_dicts)
 
-    descriptions = stats_utils.get_lab_descriptions(lab_type='component')
-    df_res['lab'] = df_res['lab'].apply(lambda x:descriptions[x])
-    df_res[columns].to_csv('all_transfers.csv', index=False, float_format='%.2f')
+        descriptions = stats_utils.get_lab_descriptions(lab_type='component')
+        df_res['lab'] = df_res['lab'].apply(lambda x:descriptions[x])
+        df_res[columns].to_csv(res_filepath, index=False, float_format='%.2f')
+
+    # TODO: move this stats part away
+    import seaborn as sns; sns.set()
+    import numpy as np
+    import matplotlib.pyplot as plt
+    plt.figure(figsize=(16, 12))
+    col = 5
+    for ind in range(df_res.shape[0]):
+        cur_row = df_res.iloc[ind].values
+        cur_lab = cur_row[0]
+        cur_aucs = cur_row[1:].astype(float).reshape(3,3)
+
+        i, j = ind/col, ind%col
+        plt.subplot2grid((3, col), (i, j))
+        ax = sns.heatmap(cur_aucs, vmin=0, vmax=1, cbar=False, annot=True, xticklabels=['S', 'UM', 'UC'], yticklabels=['S', 'UM', 'UC'])
+        plt.xlabel(cur_lab)
+
+    plt.savefig('transfer_heatmap.png')
+
+
     # statistic_analysis(lab='LABURIC', dataset_folder=os.path.join('data', 'LABURIC', 'transfer_Stanford_to_UCSF')) #'data-panel-Stanford-UCSF-10000-episodes'
     # apply_Stanford_to_UCSF(lab='LABURIC', lab_type='panel',
     #                        src_dataset_folderpath=os.path.join('data', 'LABURIC', 'wi last normality - Stanford'),
