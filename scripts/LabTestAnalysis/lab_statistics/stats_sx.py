@@ -426,10 +426,9 @@ class Stats_Plotter():
                 from scripts.LabTestAnalysis.machine_learning.ml_utils import map_lab
 
                 if self.data_source == 'UMich' or self.data_source == 'UCSF':
-                    df['lab'] = df['lab'].apply(lambda x: map_lab(x, self.data_source, self.lab_type))
+                    df['lab'] = df['lab'].apply(lambda x: map_lab(x, self.data_source, self.lab_type, map_type='from_src'))
                 # df = df.sort_values('predicted_normal_vol', ascending=False)
                 #     print df['lab'].values
-
 
                     df = df[df['lab'].isin(stats_utils.get_important_labs('component'))]
                 df['lab'] = pd.Categorical(
@@ -520,7 +519,10 @@ class Stats_Plotter():
 
         for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
-            fig, ax = plt.subplots(figsize=(10, 8))
+            if result_label == 'important_components':
+                fig, ax = plt.subplots(figsize=(8, 8))
+            else:
+                fig, ax = plt.subplots(figsize=(10, 8))
             ax.barh(df_toplot['lab'], df_toplot['all_positive_vol'] / scale, color='orangered', alpha=1,
                     label='False Positive')
             ax.barh(df_toplot['lab'], df_toplot['true_positive_vol'] / scale, color='forestgreen', alpha=1,
@@ -547,7 +549,11 @@ class Stats_Plotter():
             if self.data_source == 'Stanford' and self.lab_type == 'panel':
                 plt.xlim([-2300, 2700])
             elif self.data_source == 'Stanford' and self.lab_type == 'component':
-                plt.xlim([-9000, 9000])
+                if result_label == 'important_components':
+                    plt.xlim([-10000, 10000])
+                    plt.xticks([-10000, -5000, 0, 5000, 10000])
+                else:
+                    plt.xlim([-9000, 9000])
                 pass
             elif self.data_source == 'UCSF' and self.lab_type == 'panel':
                 plt.xlim([-3200, 3200])
@@ -563,7 +569,7 @@ class Stats_Plotter():
             # plt.legend([handles[idx] for idx in order], [labels[idx] for idx in order],
             #            loc=[0.05,0.1], ncol=2, prop={'size': 12})
             if self.data_source == 'UCSF' or self.data_source == 'Stanford' or self.data_source == 'UMich':
-                plt.xlabel('Number of orders per 1000 patient encounters, targeting at %.0f'%(targeted_PPV*100)+'% PPV', fontsize=18)
+                plt.xlabel('Number of orders per 1000 patient encounters', fontsize=18) #, targeting at %.0f'%(targeted_PPV*100)+'% PPV'
             else:
                 plt.xlabel('Fraction of orders, targeting at %.0f' % (targeted_PPV * 100) + '% PPV',
                     fontsize=18)
@@ -2100,11 +2106,11 @@ class Stats_Plotter():
 
 if __name__ == '__main__':
 
-    plotter = Stats_Plotter(data_source="Stanford", lab_type='component')
+    plotter = Stats_Plotter(data_source="UMich", lab_type='component')
     # plotter.main(figs_to_plot=['Order_Intensities'])
     # plotter.main_of_main()
 
-    plotter.main(figs_to_plot=['Normality_Saturations']) #'ROC', 'PRC',
+    plotter.main(figs_to_plot=['Confusion_Metrics']) #'ROC', 'PRC',
 
 
     # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons' 'Model_Transfering
