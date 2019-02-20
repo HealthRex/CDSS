@@ -80,13 +80,18 @@ map_panel_from_Stanford_to_UCSF = {'LABMGN':'Magnesium, Serum - Plasma',
                             'LABPTT':'Activated Partial Thromboplastin Time'
                             }
 
-def map_lab(lab, data_source, lab_type):
+def map_lab(lab, data_source, lab_type, map_type='to_src'):
     import LocalEnv
     ml_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/machine_learning')
     df = pd.read_csv(os.path.join(ml_folder, 'data_conversion/map_%s.csv'%(lab_type)),
                      keep_default_na=False)
-    keys = df['lab'].values.tolist()
-    vals = df[data_source].values.tolist()
+    if map_type=='to_src':
+        keys = df['lab'].values.tolist()
+        vals = df[data_source].values.tolist()
+    else:
+        vals = df['lab'].values.tolist()
+        keys = df[data_source].values.tolist()
+
     my_dict = dict(zip(keys, vals))
 
     # print lab, my_dict[lab]
