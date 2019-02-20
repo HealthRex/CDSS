@@ -159,7 +159,7 @@ def main_pipelining(labs,
 
 
 
-def map_col_Stanford_to_UCSF(col):
+def map_col(col, src, dst):
 
     '''
 
@@ -173,37 +173,44 @@ def map_col_Stanford_to_UCSF(col):
     '''
     vitals mapping
     '''
+    for mapfile in ['map_vitals.csv', 'map_team.csv', 'map_cormobidity.csv', 'map_component.csv']:
 
-    for key, val in ml_utils.map_vitals_from_Stanford_to_UCSF.items():
-        if col[:len(key)+1] == key+'.':
-            col = col.replace(key, val)
+        df_map = pd.read_csv('data_conversion/%s'%mapfile, keep_default_na=False)
+        dict_map = dict(zip(df_map[src].values.tolist(),
+                              df_map[dst].values.tolist()))
+        for key, val in dict_map.items():
+            if col[:len(key)+1] == key+'.':
+                col = col.replace(key, val)
 
-    '''
-    component mapping, only replace if it is a pre-fix
-    '''
-    for key, val in ml_utils.map_component_from_Stanford_to_UCSF.items():
-        if col[:len(key)+1] == key+'.':
-            col = col.replace(key, val)
-
-    '''
-    cormobidity mapping
-    '''
-    for key, val in ml_utils.map_cormobidity_from_Stanford_to_UCSF.items():
-        if col[:len(key)+1] == key+'.':
-            col = col.replace(key, val)
-
-    '''
-    team mapping
-    '''
-    for key, val in ml_utils.map_team_from_Stanford_to_UCSF.items():
-        if col[:len(key)+1] == key+'.':
-            col = col.replace(key, val)
+    # '''
+    # component mapping, only replace if it is a pre-fix
+    # '''
+    # for key, val in ml_utils.map_component_from_Stanford_to_UCSF.items():
+    #     if col[:len(key)+1] == key+'.':
+    #         col = col.replace(key, val)
+    #
+    # '''
+    # cormobidity mapping
+    # '''
+    # for key, val in ml_utils.map_cormobidity_from_Stanford_to_UCSF.items():
+    #     if col[:len(key)+1] == key+'.':
+    #         col = col.replace(key, val)
+    #
+    # '''
+    # team mapping
+    # '''
+    # for key, val in ml_utils.map_team_from_Stanford_to_UCSF.items():
+    #     if col[:len(key)+1] == key+'.':
+    #         col = col.replace(key, val)
 
     '''
     The lab of interest
     '''
-    for lab_stanford, lab_ucsf in ml_utils.map_panel_from_Stanford_to_UCSF.items():
-        col = col.replace(lab_stanford, lab_ucsf) # TODO: very dangerous for pre-fix, BLC2!
+    # df_map = pd.read_csv('data_conversion/map_panel.csv', keep_default_na=False)
+    # dict_map = dict(zip(df_map[src].values.tolist(),
+    #                       df_map[dst].values.tolist()))
+    # for lab_stanford, lab_ucsf in dict_map.items():
+    #     col = col.replace(lab_stanford, lab_ucsf) # TODO: very dangerous for pre-fix, BLC2!
 
     return col
 
@@ -322,7 +329,7 @@ def apply_src_to_dst(lab, lab_type,
     df_processed_src = fm_io.read_file_to_data_frame(src_dataset_folderpath + '/' + lab_src + '/%s-normality-matrix-processed.tab'%lab_src)
     df_processed_src.pop('pat_id')
     df_processed_src.pop(ylabel) # TODO?!
-    processed_columns_stanford = df_processed_src.columns.values.tolist()
+    processed_columns_src = df_processed_src.columns.values.tolist()
 
     classifier_src = SL.load_ML_model(lab=lab_src, alg='random-forest', dataset_folderpath=src_dataset_folderpath)
 
@@ -352,31 +359,35 @@ def apply_src_to_dst(lab, lab_type,
 
     impute_dict_new = {}
     i = 0
-    for col_selected in processed_columns_stanford:
-        col_mapped = map_col_Stanford_to_UCSF(col_selected)
+    for col_src in processed_columns_src:
+        col_dst = map_col(col_src, src=src_datasource, dst=dst_datasource)
 
-        if col_selected in raw_columns_dst:
-            col_mapped = col_selected
+        if col_src in raw_columns_dst:
+            col_dst = col_src
 
-        elif col_mapped not in raw_columns_dst:
-            print "Unknown:", col_mapped
+        elif col_dst not in raw_columns_dst:
+            print "Unknown:", col_src, col_dst
             '''
             Stanford feature that has not corresponding UCSF one; create dummy UCSF column
             '''
 
-            df_raw_evalu_dst[col_mapped] = df_raw_evalu_dst['pat_id'].apply(lambda x: 0)
-        elif col_mapped in impute_dict_new:
-            '''
-            Different src features map into the same dst feature
-            '''
-            col_mapped = col_selected
-            df_raw_evalu_dst[col_mapped] = df_raw_evalu_dst['pat_id'].apply(lambda x: 0)
-            pass
+            df_raw_evalu_dst[col_dst] = df_raw_evalu_dst['pat_id'].apply(lambda x: 0)
+
+        # if col_dst in impute_dict_new:
+        #     '''
+        #     Different src features map into the same dst feature
+        #     '''
+        #     df_raw_evalu_dst['dummy_%s'%i] = df_raw_evalu_dst['pat_id'].apply(lambda x: 0)
+        #     pass
+
+        if col_dst in impute_dict_new:
+            col_dst = 'dummy_%s'%i
+            df_raw_evalu_dst[col_dst] = df_raw_evalu_dst['pat_id'].apply(lambda x: 0)
 
         '''
         Use Stanford mean to impute
         '''
-        if col_mapped in df_raw_evalu_dst:
+        if col_dst in df_raw_evalu_dst:
             # print col_mapped # TODO: XPPT and PPT are the same thing?
             pass
 
@@ -386,12 +397,13 @@ def apply_src_to_dst(lab, lab_type,
         41 PCO2V.-14_0.proximate PCO2.-14_0.proximate
         '''
 
-        impute_dict_new[col_mapped] = (i, impute_dict_old[col_selected]) #
+        impute_dict_new[col_dst] = (i, impute_dict_old[col_src]) #
 
         i += 1
     '''
     Feature auxillary
     '''
+    print
     features = {'ylabel': ylabel,
                 'info': ['pat_id']}
 
@@ -461,7 +473,7 @@ def transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel'):
         statistic_analysis(lab=lab, dataset_folder=direct_comparisons_folderpath)
 
 if __name__ == '__main__':
-    transfer_labs(src_dataset='Stanford', dst_dataset='UMich', lab_type='component')
+    transfer_labs(src_dataset='UCSF', dst_dataset='UMich', lab_type='component')
     # statistic_analysis(lab='LABURIC', dataset_folder=os.path.join('data', 'LABURIC', 'transfer_Stanford_to_UCSF')) #'data-panel-Stanford-UCSF-10000-episodes'
     # apply_Stanford_to_UCSF(lab='LABURIC', lab_type='panel',
     #                        src_dataset_folderpath=os.path.join('data', 'LABURIC', 'wi last normality - Stanford'),
