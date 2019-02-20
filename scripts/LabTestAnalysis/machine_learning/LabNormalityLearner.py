@@ -403,7 +403,6 @@ def apply_src_to_dst(lab, lab_type,
     '''
     Feature auxillary
     '''
-    print
     features = {'ylabel': ylabel,
                 'info': ['pat_id']}
 
@@ -441,7 +440,7 @@ def statistic_analysis(lab, dataset_folder):
 
     direct_comparisons = pd.read_csv(os.path.join(dataset_folder, 'direct_comparisons.csv'))
     # print direct_comparisons
-    print lab, roc_auc_score(direct_comparisons['actual'].values, direct_comparisons['predict'].values)
+    return roc_auc_score(direct_comparisons['actual'].values, direct_comparisons['predict'].values)
 
 
 def transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel'):
@@ -462,6 +461,7 @@ def transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel'):
     if not os.path.exists(transfer_result_folderpath):
         os.mkdir(transfer_result_folderpath)
 
+    res = []
     for lab in labs:
         direct_comparisons_folderpath = os.path.join(transfer_result_folderpath, lab)
         apply_src_to_dst(lab=lab, lab_type=lab_type,
@@ -470,12 +470,46 @@ def transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel'):
                                src_dataset_folderpath='data-%s-%s-10000-episodes'%(src_dataset, lab_type),#'data-Stanford-%s-10000-episodes'%lab_type,
                                dst_dataset_folderpath='data-%s-%s-10000-episodes'%(dst_dataset, lab_type),
                                output_folderpath=direct_comparisons_folderpath)
-        statistic_analysis(lab=lab, dataset_folder=direct_comparisons_folderpath)
+        cur_AUC = statistic_analysis(lab=lab, dataset_folder=direct_comparisons_folderpath)
 
-if __name__ == '__main__':
-    transfer_labs(src_dataset='UCSF', dst_dataset='UMich', lab_type='component')
+        res.append(cur_AUC)
+    return res
+
+def main():
+    all_sites = ['Stanford', 'UMich', 'UCSF']
+
+    from scripts.LabTestAnalysis.lab_statistics import stats_utils
+    labs = stats_utils.get_important_labs(lab_type='component')
+
+
+    all_res_dicts = {}
+    all_res_dicts['lab'] = labs
+
+    columns = ['lab']
+    for i in range(3):
+        for j in range(3):
+            if False:#i==j:
+                continue
+            else:
+                src = all_sites[i]
+                dst = all_sites[j]
+
+                cur_res_dict = transfer_labs(src_dataset=src, dst_dataset=dst, lab_type='component')
+                col = '%s -> %s' % (src, dst)
+                all_res_dicts[col] = cur_res_dict
+
+                columns.append(col)
+    df_res = pd.DataFrame.from_dict(all_res_dicts)
+
+    descriptions = stats_utils.get_lab_descriptions(lab_type='component')
+    df_res['lab'] = df_res['lab'].apply(lambda x:descriptions[x])
+    df_res[columns].to_csv('all_transfers.csv', index=False, float_format='%.2f')
     # statistic_analysis(lab='LABURIC', dataset_folder=os.path.join('data', 'LABURIC', 'transfer_Stanford_to_UCSF')) #'data-panel-Stanford-UCSF-10000-episodes'
     # apply_Stanford_to_UCSF(lab='LABURIC', lab_type='panel',
     #                        src_dataset_folderpath=os.path.join('data', 'LABURIC', 'wi last normality - Stanford'),
     #                        dst_dataset_folderpath=os.path.join('data', 'LABURIC', 'wi last normality - UCSF'),
     #                        output_folderpath=os.path.join('data', 'LABURIC', 'transfer_Stanford_to_UCSF'))
+
+
+if __name__ == '__main__':
+    main()
