@@ -516,7 +516,7 @@ def main():
     import seaborn as sns; sns.set()
     import numpy as np
     import matplotlib.pyplot as plt
-    plt.figure(figsize=(16, 12))
+    fig, ax = plt.subplots(figsize=(16, 12))
     col = 5
     for ind in range(df_res.shape[0]):
         cur_row = df_res.iloc[ind].values
@@ -525,8 +525,17 @@ def main():
 
         i, j = ind/col, ind%col
         plt.subplot2grid((3, col), (i, j))
-        ax = sns.heatmap(cur_aucs, vmin=0, vmax=1, cbar=False, annot=True, xticklabels=['S', 'UM', 'UC'], yticklabels=['S', 'UM', 'UC'])
-        plt.xlabel(cur_lab)
+        ax = sns.heatmap(cur_aucs, vmin=0, vmax=1, cbar=False, annot=True, cmap='ocean',
+                         annot_kws={"size": 18},
+                         xticklabels=['S', 'UM', 'UC'], yticklabels=['S', 'UM', 'UC'])
+        plt.xlabel(cur_lab, fontsize=20)
+        ax.xaxis.set_label_position('top')
+        ax.xaxis.set_tick_params(labelsize=18)
+        ax.yaxis.set_tick_params(labelsize=18)
+
+
+    plt.tight_layout()
+    fig.subplots_adjust(hspace=.5)
 
     plt.savefig('transfer_heatmap.png')
 
