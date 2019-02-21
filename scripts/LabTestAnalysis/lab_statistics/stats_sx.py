@@ -46,12 +46,13 @@ from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
     STRIDE_COMPONENT_TESTS, \
     UMICH_TOP_COMPONENTS, \
     UCSF_TOP_COMPONENTS, \
-    UCSF_TOP_PANELS
-all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-all_components = STRIDE_COMPONENT_TESTS
-all_UMichs = UMICH_TOP_COMPONENTS
-all_UCSF = UCSF_TOP_COMPONENTS
-all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
+    UCSF_TOP_PANELS, UMICH_TOP_PANELS
+
+# all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+# all_components = STRIDE_COMPONENT_TESTS
+# all_UMichs = UMICH_TOP_COMPONENTS
+# all_UCSF = UCSF_TOP_COMPONENTS
+# all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
 
 class Stats_Plotter():
     def __init__(self, data_source='Stanford', lab_type='panel'):
@@ -59,13 +60,15 @@ class Stats_Plotter():
         self.lab_type = lab_type
 
         if data_source == 'Stanford' and lab_type == 'panel':
-            self.all_labs = all_panels  # [x[0] for x in labs_and_cnts]
+            self.all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS  # [x[0] for x in labs_and_cnts]
         elif data_source == 'Stanford' and lab_type == 'component':
-            self.all_labs = all_components
-        elif data_source == 'UMich':
-            self.all_labs = all_UMichs
+            self.all_labs = STRIDE_COMPONENT_TESTS
+        elif data_source == 'UMich' and lab_type == 'panel':
+            self.all_labs = UMICH_TOP_PANELS
+        elif data_source == 'UMich' and lab_type == 'component':
+            self.all_labs = UMICH_TOP_COMPONENTS
         elif data_source == 'UCSF' and lab_type == 'component':
-            self.all_labs = all_UCSF
+            self.all_labs = UCSF_TOP_COMPONENTS
         elif data_source == 'UCSF' and lab_type == 'panel':
             self.all_labs = UCSF_TOP_PANELS
 
@@ -427,6 +430,7 @@ class Stats_Plotter():
 
                 if self.data_source == 'UMich' or self.data_source == 'UCSF':
                     df['lab'] = df['lab'].apply(lambda x: map_lab(x, self.data_source, self.lab_type, map_type='from_src'))
+
                 # df = df.sort_values('predicted_normal_vol', ascending=False)
                 #     print df['lab'].values
 
@@ -438,8 +442,8 @@ class Stats_Plotter():
                 )
                 df = df.sort_values('lab')
             else:
-                df = df.sort_values('predicted_normal_vol', ascending=False)
-            df = df.iloc[:20]
+                df = df.sort_values('total_vol', ascending=False)
+
 
 
             df['all_negative'] = df['true_negative'] + df['false_negative']
@@ -448,7 +452,7 @@ class Stats_Plotter():
             df['all_negative'] = -df['all_negative']
 
 
-            df_toshow = df.copy()
+            df_toshow = df.copy().drop_duplicates()
 
             df_toshow['lab'] = df_toshow['lab'].apply(lambda x:self.lab_descriptions.get(x,x))
             df_toshow['true_negative'] = -df_toshow['true_negative']
@@ -476,23 +480,38 @@ class Stats_Plotter():
             df_toshow['LR+'] = df_toshow['LR+'].apply(lambda x: stats_utils.convert_floatstr2num(x))
             df_toshow['LR-'] = df_toshow['LR-'].apply(lambda x: stats_utils.convert_floatstr2num(x))
 
-            df_toshow.loc[df_toshow['Lab Test']=='Sodium', 'chargemaster'] = 219
-            df_toshow.loc[df_toshow['Lab Test'] == 'Specific Gravity', 'medicare'] = 3.28
-            df_toshow.loc[df_toshow['Lab Test'] == 'Sepsis Protocol Lactate', 'medicare'] = '-'
-            df_toshow.loc[df_toshow['Lab Test'] == 'LDH Total', 'medicare'] = '-'
-            df_toshow.loc[df_toshow['Lab Test'] == 'Lactate', 'medicare'] = '-'
+            df_toshow['Vol'] = (df_toshow['total_vol'] / float(stats_utils.NUM_DISTINCT_ENCS / 1000.)).apply(
+                lambda x: int(round(x)))
 
-            df_toshow['Vol'] = (df_toshow['total_vol']/float(stats_utils.NUM_DISTINCT_ENCS/1000.)).apply(lambda x: int(round(x)))
-            df_toshow = df_toshow.rename(columns={'medicare':'Medicare', 'chargemaster':'Chargemaster'})
-            df_toshow[['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-'] + ['Medicare', 'Chargemaster']]\
-                .to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
+            if self.data_source == 'Stanford':
+                df_toshow = df_toshow.rename(columns={'medicare': 'Medicare', 'chargemaster': 'Chargemaster'})
+                df_toshow.loc[df_toshow['Lab Test']=='Sodium', 'chargemaster'] = 219
+                df_toshow.loc[df_toshow['Lab Test'] == 'Specific Gravity', 'medicare'] = 3.28
+                df_toshow.loc[df_toshow['Lab Test'] == 'Sepsis Protocol Lactate', 'medicare'] = 11.87
+                df_toshow.loc[df_toshow['Lab Test'] == 'LDH Total', 'medicare'] = 6.71
+                df_toshow.loc[df_toshow['Lab Test'] == 'Lactate', 'medicare'] = 11.87
+                df_toshow.loc[df_toshow['Lab Test'] == 'Urinalysis', 'medicare'] = 2.67
+                df_toshow.loc[df_toshow['Lab Test'] == 'Calcium Ionized', 'medicare'] = 13.73
+                df_toshow.loc[df_toshow['Lab Test'] == 'Heparin', 'medicare'] = 16.16
 
-            df_toplots = df
+                df_toshow['Medicare'] = df_toshow['Medicare'].apply(lambda x: '$%s' % x if x != '-' else x)
+                df_toshow['Chargemaster'] = df_toshow['Chargemaster'].apply(lambda x: '$%s' % str(x) if x != '-' else x)
+
+
+
+                cols_to_show = ['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-'] + ['Medicare', 'Chargemaster']
+            else:
+                cols_to_show = ['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-']
+
+            df_toshow[cols_to_show].to_csv(cached_tablepath.replace('.csv', '_full.csv'), index=False)
+            df_toshow[cols_to_show].iloc[:20].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
 
             df['all_positive_vol'] = df['all_positive'] * df['total_vol']
             df['true_positive_vol'] = df['true_positive'] * df['total_vol']
             df['all_negative_vol'] = df['all_negative'] * df['total_vol']
             df['true_negative_vol'] = df['true_negative'] * df['total_vol']
+
+            df_toplots = df.iloc[:20]
 
             df_toplots[['lab',
                         'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
@@ -1915,9 +1934,9 @@ class Stats_Plotter():
                            columns=columns,
                            thres_mode=thres_mode)
 
-        self.main_attachBaseline(targeted_PPVs=train_PPVs,
-                            columns=[x + '_baseline' for x in columns_statsMetrics],
-                            thres_mode=thres_mode)
+        # self.main_attachBaseline(targeted_PPVs=train_PPVs,
+        #                     columns=[x + '_baseline' for x in columns_statsMetrics],
+        #                     thres_mode=thres_mode)
 
     def main_of_main(self):
         print 'generate_result_tables running...'
@@ -2088,8 +2107,13 @@ class Stats_Plotter():
                                         targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
 
             elif self.data_source == 'UMich':
-                self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label='important_components',
-                                        targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False)
+                if self.lab_type == 'component':
+                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label='important_components',
+                                            targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False)
+                else:
+                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs,
+                                                 result_label='all_labs',
+                                                 targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False)
 
         if 'Predicted_Normal' in figs_to_plot:
             self.draw__predicted_normal_fractions(statsByLab_folderpath=statsByDataSet_folderpath, targeted_PPV=0.95)
@@ -2106,7 +2130,7 @@ class Stats_Plotter():
 
 if __name__ == '__main__':
 
-    plotter = Stats_Plotter(data_source="UMich", lab_type='component')
+    plotter = Stats_Plotter(data_source="UMich", lab_type='panel')
     # plotter.main(figs_to_plot=['Order_Intensities'])
     # plotter.main_of_main()
 
