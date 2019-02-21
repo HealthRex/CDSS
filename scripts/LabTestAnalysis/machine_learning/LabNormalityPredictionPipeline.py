@@ -28,7 +28,7 @@ import pickle
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True,
-                 timeLimit=None, notUsePatIds=None, holdOut=False, pat_batch_ind=None, includeLastNormality=False):
+                 timeLimit=None, notUsePatIds=None, holdOut=False, pat_batch_ind=None, includeLastNormality=True):
         self.notUsePatIds = notUsePatIds
         self.pat_batch_ind = pat_batch_ind
         self.usedPatIds = []
@@ -484,9 +484,12 @@ NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
 # TODO: Cautious, this might be identified as 'nan' by pandas
 #'HCO3',  # good, from 'LABMETB'; TODO: Insufficient samples
 STRIDE_COMPONENT_TESTS = [
-    'WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'GLU', 'CO2', 'CA',
+    'WBC', 'HGB', 'PLT', 'NA', 'K', #'CL',
+    'CR', 'BUN', #'GLU',
+    'CO2', 'CA',
     #
-    'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A'
+    'TP',
+    'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', #'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A'
 ]  # good, LABHFP
 
 # ALKALINE PHOSPHATASE
@@ -496,17 +499,22 @@ STRIDE_COMPONENT_TESTS = [
 
 UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',  # TODO: confirm again
                                     'CREAT', 'TBIL',
-                                    'CHLOR', 'CO2', 'DBIL', 'AST', 'ALT',
-                                    'ALB', 'CAL', 'PCOAA2', 'PO2AA', 'pHA',
-                                    'T PROTEIN',
+                        #            'CHLOR',
+                        'CO2',
+                        #'DBIL',
+                        'AST', 'ALT',
+                                    'ALB', 'CAL', #'PCOAA2', 'PO2AA', 'pHA',
+                                    #'T PROTEIN', # Insufficient examples?
                                     'ALK',  # ALKALINE PHOSPHATASE
                                     'UN',  # Blood, Urine, 'BUN'
-                                    'IBIL',  # Bilirubin, Indirect
-                                    'HCO3-A',  # # good, from 'LABMETB'
-                                    'MAG',
-                                    'PHOS',
-                                    'INR',
-                                    "BLD", "ICAL", "LACA"
+                                    #'IBIL',  # Bilirubin, Indirect
+                                    #'HCO3-A',  # # good, from 'LABMETB'
+                                    #'MAG',
+                                    #'PHOS',
+                                    #'INR',
+                                    #"BLD",
+                         #           "ICAL",
+                        #"LACA"
                                     ]
 
 UMICH_TOP_PANELS = [
@@ -527,10 +535,14 @@ UMICH_TOP_PANELS = [
 
 UCSF_TOP_COMPONENTS = [
             'WBC', 'HGB', 'PLT', 'NA', 'K', 'CREAT', 'TBILI',
-            'CL', 'CO2', 'DBILI', 'AST', 'ALT', 'ALB', 'CA',
-            'PCO2', 'PO2', 'PH37', 'TP', 'ALKP', 'BUN', 'HCO3',
+            #'CL',
+    'CO2',
+    #'DBILI',
+    'AST', 'ALT', 'ALB', 'CA',
+            #'PCO2', 'PO2', 'PH37',
+    'TP', 'ALKP', 'BUN', #'HCO3',
             # No IBIL
-            'MG', 'PO4', 'INR', 'P060', 'CAI', 'CAIB', 'LACTWB'
+            #'MG', 'PO4', 'INR', 'P060', 'CAI', 'CAIB', 'LACTWB'
             #PHOSPHORUS, SERUM / PLASMA
             # PERIPHERAL BLOOD CULTURE
             ]
