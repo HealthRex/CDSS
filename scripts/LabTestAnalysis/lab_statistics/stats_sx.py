@@ -52,7 +52,7 @@ from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
 # all_components = STRIDE_COMPONENT_TESTS
 # all_UMichs = UMICH_TOP_COMPONENTS
 # all_UCSF = UCSF_TOP_COMPONENTS
-# all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
+all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
 
 class Stats_Plotter():
     def __init__(self, data_source='Stanford', lab_type='panel'):
@@ -331,6 +331,7 @@ class Stats_Plotter():
 
         :return:
         '''
+        print 'draw__Confusion_Metrics for', labs, ' with label %s...'%result_label
         # df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv' % self.lab_type,
         #                  keep_default_na=False)
         labs_stats_filepath = os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
@@ -338,8 +339,8 @@ class Stats_Plotter():
         df = pd.read_csv(labs_stats_filepath, keep_default_na=False)
 
         df = df[df['targeted_PPV_fixTrainPPV'] == targeted_PPV]
-        df = df[df['lab'].isin(labs)]
 
+        df = df[df['lab'].isin(labs)]
 
         cached_foldername = 'Fig3_Confusion_Metrics/'
         cached_folderpath = os.path.join(os.path.join(statsByLab_folderpath, cached_foldername))
@@ -367,7 +368,8 @@ class Stats_Plotter():
 
             # df = df[df['lab'].isin(labs)]
 
-            if self.data_source == 'Stanford':
+
+            if self.data_source == 'Stanford' and self.lab_type=='panel':
                 # if 'total_vol' not in df.columns.values.tolist():
                 # Stanford data, scaled by vol
                 df['total_vol'] = df['total_cnt']
@@ -383,7 +385,7 @@ class Stats_Plotter():
                 elif self.lab_type == 'component':
                     ucsf_lab_cnt = stats_database.UCSF_COMPONENT_TO_COUNT #dict(stats_database.UCSF_COMPONENTSS_AND_COUNTS)
                 df['total_vol'] = df['lab'].apply(lambda x: ucsf_lab_cnt[x])
-            elif self.data_source == 'UMich' and self.lab_type=='component':
+            elif self.data_source == 'UMich' and self.lab_type=='component' and result_label=='important_components':
                 umich_lab_cnt = {'WBC':5280.99347210938,
                 'HGB':5281.00748045835,
                 'PLT':5274.22743955397,
@@ -414,6 +416,8 @@ class Stats_Plotter():
             else:
                 df['total_vol'] = 1
 
+
+
             # TODO: use fractions in the original file!
             df['all_instance'] = df['true_positive'] + df['false_positive'] + df['true_negative'] + df['false_negative']
 
@@ -423,6 +427,7 @@ class Stats_Plotter():
 
             df['all_positive'] = df['true_positive'] + df['false_positive']
 
+            # print df[['all_positive', 'total_vol']]
             df['predicted_normal_vol'] = df['all_positive'] * df['total_vol']
 
             if result_label == 'important_components':
@@ -483,7 +488,7 @@ class Stats_Plotter():
             df_toshow['Vol'] = (df_toshow['total_vol'] / float(stats_utils.NUM_DISTINCT_ENCS / 1000.)).apply(
                 lambda x: int(round(x)))
 
-            if self.data_source == 'Stanford':
+            if self.data_source == 'Stanford' and self.lab_type=='panel':
                 df_toshow = df_toshow.rename(columns={'medicare': 'Medicare', 'chargemaster': 'Chargemaster'})
                 df_toshow.loc[df_toshow['Lab Test']=='Sodium', 'chargemaster'] = 219
                 df_toshow.loc[df_toshow['Lab Test'] == 'Specific Gravity', 'medicare'] = 3.28
@@ -501,7 +506,7 @@ class Stats_Plotter():
 
                 cols_to_show = ['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-'] + ['Medicare', 'Chargemaster']
             else:
-                cols_to_show = ['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-']
+                cols_to_show = ['Lab Test', 'AUROC'] + numeric_cols + ['LR+', 'LR-']
 
             df_toshow[cols_to_show].to_csv(cached_tablepath.replace('.csv', '_full.csv'), index=False)
             df_toshow[cols_to_show].iloc[:20].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
@@ -1790,28 +1795,28 @@ class Stats_Plotter():
                 For each lab at each (train_PPV), 
                 write all stats (e.g. AUROC, PPV, total cnts) into csv file. 
                 '''
-                try:
-                    stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
-                    stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg',
-                                                          stats_results_filename)
-                    if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
-                        os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
+                # try:
+                stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
+                stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg',
+                                                      stats_results_filename)
+                if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
+                    os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
 
-                    if not os.path.exists(stats_results_filepath):
-                        stats_utils.lab2stats(lab=lab,
-                                              data_source=self.data_source,
-                                              lab_type=self.lab_type,
-                                              all_algs=all_algs,
-                                              targeted_PPV=targeted_PPV,
-                                              columns=columns,
-                                              thres_mode=thres_mode,
-                                              train_data_labfolderpath=os.path.join(train_data_folderpath, lab),
-                                              ml_results_labfolderpath=os.path.join(ml_results_folderpath, lab),
-                                              stats_results_filepath=stats_results_filepath
-                                              )
-                except Exception as e:
-                    print e
-                    continue
+                if not os.path.exists(stats_results_filepath):
+                    stats_utils.lab2stats(lab=lab,
+                                          data_source=self.data_source,
+                                          lab_type=self.lab_type,
+                                          all_algs=all_algs,
+                                          targeted_PPV=targeted_PPV,
+                                          columns=columns,
+                                          thres_mode=thres_mode,
+                                          train_data_labfolderpath=os.path.join(train_data_folderpath, lab),
+                                          ml_results_labfolderpath=os.path.join(ml_results_folderpath, lab),
+                                          stats_results_filepath=stats_results_filepath
+                                          )
+                # except Exception as e:
+                #     print e
+                #     continue
 
     def main_stats2summary(self, targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
@@ -1824,24 +1829,20 @@ class Stats_Plotter():
 
         for targeted_PPV in targeted_PPVs:
             for lab in self.all_labs:
-                try:
-                    stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
-                    stats_results_filepath = os.path.join(project_stats_folderpath, 'stats_by_lab_alg',
-                                                          stats_results_filename)
-                    # results_filepath = results_filepath_template % (lab, thres_mode, str(targeted_PPV))
-                    df_lab = pd.read_csv(stats_results_filepath, keep_default_na=False)
-                    df_lab['targeted_PPV_%s' % thres_mode] = targeted_PPV
+                stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
+                stats_results_filepath = os.path.join(project_stats_folderpath, 'stats_by_lab_alg',
+                                                      stats_results_filename)
+                # results_filepath = results_filepath_template % (lab, thres_mode, str(targeted_PPV))
+                df_lab = pd.read_csv(stats_results_filepath, keep_default_na=False)
+                df_lab['targeted_PPV_%s' % thres_mode] = targeted_PPV
 
-                    df_long = df_long.append(df_lab, ignore_index=True)
+                df_long = df_long.append(df_lab, ignore_index=True)
 
-                    df_cur_best_alg = df_lab.groupby(['lab'], as_index=False).agg({'AUROC': 'max'})
-                    df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
+                df_cur_best_alg = df_lab.groupby(['lab'], as_index=False).agg({'AUROC': 'max'})
+                df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
 
-                    df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
-                    df_best_alg = df_best_alg.append(df_cur_best_alg)
-                except Exception as e:
-                    print e
-                    continue
+                df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
+                df_best_alg = df_best_alg.append(df_cur_best_alg)
 
         summary_long_filename = 'summary-stats-%s-%s.csv' % ('allalgs', thres_mode)
         summary_long_filepath = os.path.join(project_stats_folderpath, summary_long_filename)
@@ -1962,7 +1963,7 @@ class Stats_Plotter():
              stats_results_folderpath=stats_results_folderpath,
              thres_mode="fixTrainPPV")
 
-    def main(self, figs_to_plot):
+    def main(self, figs_to_plot, params={}):
         print 'stats_sx running...'
 
         '''
@@ -2090,29 +2091,30 @@ class Stats_Plotter():
             top_panels_cnts = stats_utils.get_top_labs_and_cnts(top_k=20)
             top_panels = [x[0] for x in top_panels_cnts]
             panels = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels)) + ['LABK', 'LABNA', 'LABLIDOL'] #, 'LABCR', 'LABPTT', 'LABCAI'
-            print self.all_labs
             components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA', \
                           'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
             important_components = stats_utils.get_important_labs('component')
 
+            result_label = params.get('Confusion_Metrics', 'all_labs')
+
             if self.data_source == 'Stanford':
                 if self.lab_type == 'panel':
-                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label='panels',
+                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
                                             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
                 else:
-                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=important_components, result_label='important_components',
+                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
                                             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
             elif self.data_source == 'UCSF':
-                self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label='important_components',
+                self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
                                         targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
 
             elif self.data_source == 'UMich':
                 if self.lab_type == 'component':
-                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label='important_components',
+                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label, #important_components
                                             targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False)
                 else:
                     self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs,
-                                                 result_label='all_labs',
+                                                 result_label=result_label,
                                                  targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False)
 
         if 'Predicted_Normal' in figs_to_plot:
@@ -2130,11 +2132,19 @@ class Stats_Plotter():
 
 if __name__ == '__main__':
 
-    plotter = Stats_Plotter(data_source="UMich", lab_type='panel')
+    plotter = Stats_Plotter(data_source="UCSF", lab_type='component')
     # plotter.main(figs_to_plot=['Order_Intensities'])
-    # plotter.main_of_main()
+    plotter.main_of_main()
 
-    plotter.main(figs_to_plot=['Confusion_Metrics']) #'ROC', 'PRC',
+    plotter.main(figs_to_plot=['Confusion_Metrics'], params={'Confusion_Metrics':'all_labs'})
+
+
+    '''
+    Params
+    '''
+    params_Confusion_Metrics = ['all_labs', 'important_components']
+
+    #'ROC', 'PRC',
 
 
     # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons' 'Model_Transfering

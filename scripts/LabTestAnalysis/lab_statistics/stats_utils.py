@@ -1191,7 +1191,7 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath,
 
     Same across all algs
     '''
-    baseline_roc_auc = get_baseline2_auroc(train_data_labfolderpath)
+    # baseline_roc_auc = get_baseline2_auroc(train_data_labfolderpath)
 
     # For STRIDE, also do cnts and costs
     if data_source == 'Stanford':#lab_type == 'panel' or lab_type == 'component':
@@ -1252,7 +1252,7 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath,
                         'num_test_patient': num_test_patient
                         })
 
-        one_row['baseline2_ROC'] = baseline_roc_auc
+        # one_row['baseline2_ROC'] = baseline_roc_auc
 
         df_direct_compare = pd.read_csv(ml_results_labfolderpath + '/' + alg + '/' + 'direct_comparisons.csv',
                                         #'%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),

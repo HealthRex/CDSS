@@ -483,7 +483,7 @@ NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
 
 # TODO: Cautious, this might be identified as 'nan' by pandas
 #'HCO3',  # good, from 'LABMETB'; TODO: Insufficient samples
-STRIDE_COMPONENT_TESTS = [
+STRIDE_COMPONENT_TESTS_common = [
     'WBC', 'HGB', 'PLT', 'NA', 'K', #'CL',
     'CR', 'BUN', #'GLU',
     'CO2', 'CA',
@@ -491,13 +491,13 @@ STRIDE_COMPONENT_TESTS = [
     'TP',
     'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', #'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A'
 ]  # good, LABHFP
-
+STRIDE_COMPONENT_TESTS = STRIDE_COMPONENT_TESTS_common + ['CL', 'GLU', 'DBIL', 'IBIL', 'PHA', 'PCO2A', 'PO2A']
 # ALKALINE PHOSPHATASE
 # Blood, Urine, 'BUN'
 # Bilirubin, Indirect
 # # good, from 'LABMETB'
 
-UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',  # TODO: confirm again
+UMICH_TOP_COMPONENTS_common = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',  # TODO: confirm again
                                     'CREAT', 'TBIL',
                         #            'CHLOR',
                         'CO2',
@@ -516,15 +516,22 @@ UMICH_TOP_COMPONENTS = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',  # TODO: confirm agai
                          #           "ICAL",
                         #"LACA"
                                     ]
+UMICH_TOP_COMPONENTS = UMICH_TOP_COMPONENTS_common + ['LACA',
+                                                      #'BLD', # TODO: all 'normal', fails to train
+                                                      #'INR', # TODO: all 'normal', fails to train
+                                                      'PHOS', 'MAG',
+                                                      'HCO3-A', 'IBIL', 'pHA', 'PO2AA', 'PCOAA2',
+                                                      'DBIL', 'CHLOR']
 
 UMICH_TOP_PANELS = [
-    'MAG', 'PHOS', 'PROTHROMBIN TIME',
+    'MAG', 'PHOS',
+    #'PROTHROMBIN TIME', #TODO: 0kb
     'A1C',
-    'BLD', #ADULT BLOOD CULTURE
-    'BLDAN',#'BLOOD CULTURE (ANA)'
+    #'BLD', #ADULT BLOOD CULTURE # TODO: all 'normal', fails to train
+    #'BLDAN',#'BLOOD CULTURE (ANA)' # TODO: all 'normal', fails to train
     'URIC',
-    'LACT',
-    'ESRA', #Erythrocyte Sedimentation Rate, iSED
+    #'LACT', #TODO: 0kb
+    #'ESRA', #Erythrocyte Sedimentation Rate, iSED #TODO: 0kb
     'ALB',
     'TSH',
     'TROP',
@@ -533,7 +540,7 @@ UMICH_TOP_PANELS = [
     'CAL'
 ]
 
-UCSF_TOP_COMPONENTS = [
+UCSF_TOP_COMPONENTS_common = [
             'WBC', 'HGB', 'PLT', 'NA', 'K', 'CREAT', 'TBILI',
             #'CL',
     'CO2',
@@ -546,6 +553,9 @@ UCSF_TOP_COMPONENTS = [
             #PHOSPHORUS, SERUM / PLASMA
             # PERIPHERAL BLOOD CULTURE
             ]
+UCSF_TOP_COMPONENTS = UCSF_TOP_COMPONENTS_common + ['CL', 'DBILI', 'PCO2', 'PO2', 'PH37',
+                                                    'MG', 'PO4', 'INR', 'P060', 'CAI',
+                                                    'CAIB', 'LACTWB']
 
 UCSF_TOP_PANELS = [
     'Magnesium, Serum / Plasma', # 68558
