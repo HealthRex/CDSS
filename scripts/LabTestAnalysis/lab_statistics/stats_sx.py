@@ -74,7 +74,7 @@ class Stats_Plotter():
 
         self.dataset_foldername = 'data-%s-%s-%s'%(data_source, lab_type, curr_version)
 
-        self.lab_descriptions = stats_utils.get_lab_descriptions(lab_type=lab_type)
+        self.lab_descriptions = stats_utils.get_lab_descriptions(data_source=self.data_source, lab_type=self.lab_type)
 
 
     def draw__Normality_Saturations(self, stats_folderpath, labs, max_repeat = 5, use_cached_fig_data=True):
@@ -150,7 +150,7 @@ class Stats_Plotter():
         print 'lab2cnt', lab2cnt
         print 'lab2frac', lab2frac
 
-        fig, ax = plt.subplots(figsize=(6.5, 2.565)) #6, 4.5 # 7, 2.565 #6.5, 3.75
+        fig, ax = plt.subplots(figsize=(6.5, 3.25)) #6, 4.5 # 7, 2.565 #6.5, 3.75
 
         labs_to_plots = [labs[:20], labs[20:40], labs[40:60], labs[60:]]
 
@@ -177,7 +177,7 @@ class Stats_Plotter():
             plt.tick_params('y', labelsize=13)  # 10
             plt.ylabel("Normal rate", fontsize=14)
             plt.ylim([-0.05, 1.05])
-            plt.legend()
+            plt.legend(fontsize=13)
             ax.yaxis.tick_right()
             ax.yaxis.set_label_position("right")
             plt.tight_layout()
@@ -369,7 +369,7 @@ class Stats_Plotter():
             # df = df[df['lab'].isin(labs)]
 
 
-            if self.data_source == 'Stanford' and self.lab_type=='panel':
+            if self.data_source == 'Stanford':
                 # if 'total_vol' not in df.columns.values.tolist():
                 # Stanford data, scaled by vol
                 df['total_vol'] = df['total_cnt']
@@ -439,13 +439,14 @@ class Stats_Plotter():
                 # df = df.sort_values('predicted_normal_vol', ascending=False)
                 #     print df['lab'].values
 
-                    df = df[df['lab'].isin(stats_utils.get_important_labs('component'))]
+                df = df[df['lab'].isin(stats_utils.get_important_labs('component'))]
                 df['lab'] = pd.Categorical(
                     df['lab'],
                     categories=stats_utils.get_important_labs('component'),
                     ordered=True
                 )
                 df = df.sort_values('lab')
+
             else:
                 df = df.sort_values('total_vol', ascending=False)
 
@@ -505,6 +506,8 @@ class Stats_Plotter():
 
 
                 cols_to_show = ['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-'] + ['Medicare', 'Chargemaster']
+            # elif self.data_source == 'Stanford' and self.lab_type=='component':
+            #     cols_to_show = ['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-']
             else:
                 cols_to_show = ['Lab Test', 'AUROC'] + numeric_cols + ['LR+', 'LR-']
 
@@ -544,9 +547,10 @@ class Stats_Plotter():
         for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
             if result_label == 'important_components':
-                fig, ax = plt.subplots(figsize=(8, 8))
+                fig, ax = plt.subplots(figsize=(6, 8))
             else:
                 fig, ax = plt.subplots(figsize=(10, 8))
+
             ax.barh(df_toplot['lab'], df_toplot['all_positive_vol'] / scale, color='orangered', alpha=1,
                     label='False Positive')
             ax.barh(df_toplot['lab'], df_toplot['true_positive_vol'] / scale, color='forestgreen', alpha=1,
@@ -556,50 +560,57 @@ class Stats_Plotter():
             ax.barh(df_toplot['lab'], df_toplot['true_negative_vol'] / scale, color='royalblue', alpha=1,
                     label='True Negative')
 
-            for i, v in enumerate(df_toplot['all_positive_vol']/scale):
-                cur_lab = df_toplot['lab'].values[i]
-                cur_description = self.lab_descriptions.get(cur_lab,cur_lab).replace(' - ', '/')
-
-                if self.data_source == 'UMich':
-                    ax.text(v+0.05, i - 0.2, cur_description, color='k', fontsize=14)
-                else:
-                    if '\n' in cur_description:
-                        ax.text(v+50, i-0.3, cur_description, color='k', fontsize=14)
-                    else:
-                        ax.text(v+50, i - 0.1, cur_description, color='k', fontsize=14)
 
             plt.yticks([])
 
-            if self.data_source == 'Stanford' and self.lab_type == 'panel':
-                plt.xlim([-2300, 2700])
-            elif self.data_source == 'Stanford' and self.lab_type == 'component':
-                if result_label == 'important_components':
-                    plt.xlim([-10000, 10000])
-                    plt.xticks([-10000, -5000, 0, 5000, 10000])
-                else:
-                    plt.xlim([-9000, 9000])
-                pass
-            elif self.data_source == 'UCSF' and self.lab_type == 'panel':
-                plt.xlim([-3200, 3200])
-            elif self.data_source == 'UCSF' and self.lab_type == 'component':
-                plt.xlim([-6000, 6000])
-            elif self.data_source == 'UMich' and self.lab_type == 'component':
-                # plt.xlim([-1.5, 1.5])
-                plt.xlim([-8000, 8000])
+            if result_label == 'important_components':
+                plt.xlim([-8500, 6500])
+                plt.xticks([-6000, -3000, 0, 3000, 6000])
+                ax.set_xticklabels([6000, 3000, 0, 3000, 6000])
 
-            handles, labels = plt.gca().get_legend_handles_labels()
-            order = [1, 0, 3, 2]
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['bottom'].set_visible(True)
+                ax.spines['left'].set_visible(False)
+                pass
+            else:
+                for i, v in enumerate(df_toplot['all_positive_vol'] / scale):
+                    cur_lab = df_toplot['lab'].values[i]
+                    cur_description = self.lab_descriptions.get(cur_lab, cur_lab).replace(' - ', '/')
+
+                    if self.data_source == 'UMich':
+                        ax.text(v + 0.05, i - 0.2, cur_description, color='k', fontsize=14)
+                    else:
+                        if '\n' in cur_description:
+                            ax.text(v + 50, i - 0.3, cur_description, color='k', fontsize=14)
+                        else:
+                            ax.text(v + 50, i - 0.1, cur_description, color='k', fontsize=14)
+
+                if self.data_source == 'Stanford' and self.lab_type == 'panel':
+                    plt.xlim([-2300, 2700])
+                elif self.data_source == 'Stanford' and self.lab_type == 'component':
+                    plt.xlim([-9000, 9000])
+                elif self.data_source == 'UCSF' and self.lab_type == 'panel':
+                    plt.xlim([-3200, 3200])
+                elif self.data_source == 'UCSF' and self.lab_type == 'component':
+                    plt.xlim([-6000, 6000])
+                elif self.data_source == 'UMich' and self.lab_type == 'component':
+                    # plt.xlim([-1.5, 1.5])
+                    plt.xlim([-8000, 8000])
+
+            # handles, labels = plt.gca().get_legend_handles_labels()
+            # order = [1, 0, 3, 2]
 
             # plt.legend([handles[idx] for idx in order], [labels[idx] for idx in order],
             #            loc=[0.05,0.1], ncol=2, prop={'size': 12})
-            if self.data_source == 'UCSF' or self.data_source == 'Stanford' or self.data_source == 'UMich':
-                plt.xlabel('Number of orders per 1000 patient encounters', fontsize=18) #, targeting at %.0f'%(targeted_PPV*100)+'% PPV'
-            else:
-                plt.xlabel('Fraction of orders, targeting at %.0f' % (targeted_PPV * 100) + '% PPV',
+                if self.data_source == 'UCSF' or self.data_source == 'Stanford' or self.data_source == 'UMich':
+                    plt.xlabel('Number of orders per 1000 patient encounters', fontsize=18) #, targeting at %.0f'%(targeted_PPV*100)+'% PPV'
+                else:
+                    plt.xlabel('Fraction of orders, targeting at %.0f' % (targeted_PPV * 100) + '% PPV',
                     fontsize=18)
             #plt.ylabel('Labs', fontsize=14)
 
-            plt.tick_params('x', labelsize=16)
+            plt.tick_params('x', labelsize=24)
 
 
             plt.tight_layout()
@@ -899,6 +910,13 @@ class Stats_Plotter():
             '''
             Getting p-values is slow
             '''
+            if self.lab_type=='panel' and self.data_source=='UCSF':
+                from scripts.LabTestAnalysis.machine_learning.ml_utils import map_lab
+                lab = map_lab(lab=lab.replace('-','/'), data_source=self.data_source,
+                              lab_type=self.lab_type, map_type='from_src')
+                self.lab_descriptions = stats_utils.get_lab_descriptions(data_source='Stanford',
+                              lab_type=self.lab_type)
+                print lab
             xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
                 = stats_utils.get_curve_onelab(lab,
                                                all_algs=algs,
@@ -915,8 +933,11 @@ class Stats_Plotter():
             i, j = i_s[ind], j_s[ind]
             plt.subplot2grid((row, col), (i, j))
 
-            plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
-            plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best))
+            # plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
+            plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best), color='orange')
+            dash_num = 20
+            plt.plot(np.linspace(0, 1, num=dash_num), np.linspace(0, 1, num=dash_num), color='lightblue',
+                     linestyle='--')
             plt.xlim([0,1])
             plt.ylim([0,1])
             plt.xticks([])
@@ -1168,20 +1189,25 @@ class Stats_Plotter():
         plt.savefig('cartoons_%ss.png'%self.lab_type)
 
 
-    def write_importantFeatures(self, lab_type="component"):
+    def write_importantFeatures(self):
+        stats_utils.output_feature_importances(self.all_labs,
+                                               data_source=self.data_source,
+                                               lab_type=self.lab_type)
+        return
+        data_folderpath = '../machine_learning/data-%s-%s-10000-episodes'%(self.data_source,self.lab_type)
+        result_folderpath = data_folderpath.replace('machine_learning', 'lab_statistics')
         all_rows = []
         num_rf_best = 0
 
-        if self.lab_type == 'component':
-            all_labs = STRIDE_COMPONENT_TESTS
-        elif self.lab_type == 'panel':
-            all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-        elif self.lab_type == 'UMich':
-            all_labs = UMICH_TOP_COMPONENTS
+        # if self.lab_type == 'component':
+        #     all_labs = STRIDE_COMPONENT_TESTS
+        # elif self.lab_type == 'panel':
+        #     all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
+        # elif self.lab_type == 'UMich':
+        #     all_labs = UMICH_TOP_COMPONENTS
 
-        for lab in all_labs: #TODO
-            df = pd.read_csv(
-                '../machine_learning/data-UMichs-10000-episodes/%s/%s-normality-prediction-report.tab'
+        for lab in self.all_labs: #TODO
+            df = pd.read_csv(data_folderpath + '/%s/%s-normality-prediction-report.tab'
                 %(lab,lab), sep='\t', skiprows=1, keep_default_na=False)
 
             best_row = df['roc_auc'].values.argmax()
@@ -1209,7 +1235,7 @@ class Stats_Plotter():
         print "Total number of labs:", len(all_rows), "num of RF best:", (num_rf_best)
 
         result_df = pd.DataFrame(all_rows, columns=['lab', 'feature 1', 'score 1', 'feature 2', 'score 2','feature 3', 'score 3'])
-        result_df.to_csv('RF_important_features_%ss.csv'%self.lab_type, index=False)
+        result_df.to_csv(result_folderpath + '/RF_important_features_%ss.csv'%self.lab_type, index=False)
 
     def print_HosmerLemeshowTest():
         labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
@@ -1493,7 +1519,6 @@ class Stats_Plotter():
 
         df['description'] = df['lab'].apply(lambda x: lab_descriptions.get(x, x))
         print df[['description', 'predicted_normal']].sort_values(['predicted_normal'], ascending=False).to_string(index=False)
-        quit()
 
         predicted_normal_fractions = np.linspace(0, 1, num=11)
         nums_labs = []
@@ -1987,10 +2012,10 @@ class Stats_Plotter():
                            #'LABAFP', # ALPHA FETOPROTEIN, SERUM
                            'LABYCP', # C - PEPTIDE, SERUM
                            'LABLIPS', # LIPASE
-                           'LABEP1', # ELECTROLYTE PANEL
+                           # 'LABEP1', # ELECTROLYTE PANEL
                            'LABAGALA', # ASPERGILLUS GALACTOMANNAN
                            'LABNTBNP',
-                           'LABPROCT'
+                           # 'LABPROCT'
                            #'LABYHISTS', # HISTOPLASMA AG, SERUM
                            #'LABSPIE', # PROTEIN IMMUNOFIX ELECTROPHORESIS, SERUM
                            #'LABUPIE' # URINE PROTEIN IMMUNOFIXATION ELECTROPHORESIS
@@ -2132,12 +2157,11 @@ class Stats_Plotter():
 
 if __name__ == '__main__':
 
-    plotter = Stats_Plotter(data_source="UCSF", lab_type='component')
-    # plotter.main(figs_to_plot=['Order_Intensities'])
+    plotter = Stats_Plotter(data_source="UCSF", lab_type='panel')
+    # plotter.main(figs_to_plot=['Normality_Saturations'])
     plotter.main_of_main()
-
-    plotter.main(figs_to_plot=['Confusion_Metrics'], params={'Confusion_Metrics':'all_labs'})
-
+    plotter.main(figs_to_plot=['ROC'], params={'Confusion_Metrics':'important_components'})
+    # plotter.write_importantFeatures()
 
     '''
     Params

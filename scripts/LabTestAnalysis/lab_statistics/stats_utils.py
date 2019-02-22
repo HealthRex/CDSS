@@ -1083,13 +1083,13 @@ def convert_floatstr2num(astr):
         else:
             return str('%.2f' % anum)
 
-def get_lab_descriptions(lab_type, succinct=True):
+def get_lab_descriptions(lab_type, data_source='Stanford', succinct=True):
     code2description_filepath = os.path.join(main_folder, 'machine_learning/data_conversion',
-                                             'map_%s_code2description.csv' % lab_type)
+                                             'map_%s.csv' % lab_type)
     df = pd.read_csv(code2description_filepath, keep_default_na=False)
     if succinct:
         df['description'] = df['description'].apply(lambda x: x.split(',')[0].strip())
-    lab_descriptions = dict(zip(df['lab'].values.tolist(), df['description'].values.tolist()))
+    lab_descriptions = dict(zip(df[data_source].values.tolist(), df['description'].values.tolist()))
 
     if lab_type == 'panel':
         lab_descriptions['LABCBCD'] = 'Complete Blood Count w/ Differential'
@@ -1141,8 +1141,8 @@ def get_queried_lab(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
     df.drop_duplicates(inplace=True)
     return df
 
-def get_labvol(lab, time_limit=DEFAULT_TIMELIMIT):
-    df = get_queried_lab(lab, time_limit=time_limit)
+def get_labvol(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
+    df = get_queried_lab(lab, lab_type, time_limit=time_limit)
     return df.shape[0]
 
 def get_medicare_price_dict():
@@ -1199,7 +1199,7 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath,
         # for time_limit in DEFAULT_TIMELIMITS:
         #     cur_vol = get_labvol(lab, time_limit=time_limit)
         #     lab_vols.append(cur_vol)
-        lab_vol = get_labvol(lab, time_limit=DEFAULT_TIMELIMIT)
+        lab_vol = get_labvol(lab, lab_type, time_limit=DEFAULT_TIMELIMIT)
 
     # For panels, also include price info
     # TODO: this operation was repeated for each lab?!
@@ -1532,8 +1532,10 @@ def main_queryAllLabsToDF(lab_type='panel'):
 
 
 
-def output_feature_importances(data_source='Stanford', lab_type='panel'):
+def output_feature_importances(labs, data_source='Stanford', lab_type='panel'):
     data_set_folder = 'data-%s-%s-10000-episodes'%(data_source, lab_type)
+
+
     def split_features(feature):
         divind = feature.find('(')
         featu = feature[:divind - 1]
@@ -1542,14 +1544,8 @@ def output_feature_importances(data_source='Stanford', lab_type='panel'):
 
     num_rf_best = 0
 
-    if data_source=='Stanford' and lab_type=='panel':
-        labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-    elif data_source=='Stanford' and lab_type=='component':
-        labs = STRIDE_COMPONENT_TESTS
-    elif data_source=='UCSF' and lab_type=='panel':
-        labs = UCSF_TOP_PANELS
 
-    lab_descriptions = get_lab_descriptions()
+    lab_descriptions = get_lab_descriptions(lab_type=lab_type, data_source=data_source)
 
     ml_folderpath = '../machine_learning/'
 
@@ -1570,7 +1566,15 @@ def output_feature_importances(data_source='Stanford', lab_type='panel'):
         return feature.split('.')[0]
 
     result_df = pd.DataFrame(columns=['lab', 'feature 1', 'score 1', 'feature 2', 'score 2', 'feature 3', 'score 3'])
+    from scripts.LabTestAnalysis.machine_learning import ml_utils
     for lab in labs:
+        if data_source == 'UCSF' and lab_type == 'panel':
+
+
+            lab = ml_utils.map_lab(lab=lab.replace('-','/'), # TODO...
+                                   data_source=data_source,
+                                   lab_type=lab_type,
+                                   map_type='from_src')
         report_folderpath = os.path.join(ml_folderpath, data_set_folder, lab, 'random-forest')
         report_filepath = os.path.join(report_folderpath, '%s-normality-prediction-random-forest-report.tab' % lab)
 
@@ -1578,6 +1582,16 @@ def output_feature_importances(data_source='Stanford', lab_type='panel'):
         rf_description = df['model'].values.tolist()[0]
         features_start = rf_description.index('features=[')
         features_str = rf_description[features_start + len('features=['):-2]
+
+        from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import UCSF_TOP_PANELS
+        for raw_lab in UCSF_TOP_PANELS:
+        # for ml_utils.map_lab()
+            new_lab = ml_utils.map_lab(lab=raw_lab.replace('-', '/'),  # TODO...
+                         data_source=data_source,
+                         lab_type=lab_type,
+                         map_type='from_src')
+            print raw_lab, new_lab
+            features_str = features_str.replace(raw_lab, new_lab)
 
         feature_tuples = [x.strip() for x in features_str.split(',')]
         # print feature_tuples
@@ -1589,20 +1603,26 @@ def output_feature_importances(data_source='Stanford', lab_type='panel'):
             one_lab_dict[grouped_feature] = one_lab_dict.get(grouped_feature, 0) + score
         sorted_tuples = sorted(one_lab_dict.items(), key=lambda x: x[1])[::-1]
 
-        one_df_dict = {'lab': lab,
-                       'feature 1': sorted_tuples[0][0],
-                       'score 1': sorted_tuples[0][1],
-                       'feature 2': sorted_tuples[1][0],
-                       'score 2': sorted_tuples[1][1],
-                       'feature 3': sorted_tuples[2][0],
-                       'score 3': sorted_tuples[2][1],
-                       }
-        # result_df.append(one_df_dict)
+        # one_df_dict = {'lab': lab,
+        #                'feature 1': sorted_tuples[0][0],
+        #                'score 1': sorted_tuples[0][1],
+        #                'feature 2': sorted_tuples[1][0],
+        #                'score 2': sorted_tuples[1][1],
+        #                'feature 3': sorted_tuples[2][0],
+        #                'score 3': sorted_tuples[2][1],
+        #                }
 
-        result_df.loc[len(result_df)] = [lab_descriptions[lab],
-                                         sorted_tuples[0][0], sorted_tuples[0][1],
-                                         sorted_tuples[1][0], sorted_tuples[1][1],
-                                         sorted_tuples[2][0], sorted_tuples[2][1]]
+        # result_df.append(one_df_dict)
+        print sorted_tuples
+
+        cur_rec = [lab_descriptions.get(lab,lab)]
+        for i in range(3):
+            if i < len(sorted_tuples):
+                cur_rec += [sorted_tuples[i][0], sorted_tuples[i][1]]
+            else:
+                cur_rec += ['-', '-']
+
+        result_df.loc[len(result_df)] = cur_rec
 
     result_df.to_csv(result_filepath, index=False)
 
