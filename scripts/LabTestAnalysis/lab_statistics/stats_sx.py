@@ -34,8 +34,6 @@ labs_query_folder = os.path.join(stats_results_folderpath, 'query_lab_results/')
 
 train_PPVs = (0.99, 0.95, 0.9, 0.8)
 
-curr_version = '10000-episodes'
-
 results_subfoldername = 'stats_by_lab_alg'
 results_filename_template = '%s-stats-target-%s-%s.csv'
 summary_filename_template = 'summary-stats-%s-%s.csv'
@@ -55,7 +53,7 @@ from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
 all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
 
 class Stats_Plotter():
-    def __init__(self, data_source='Stanford', lab_type='panel'):
+    def __init__(self, data_source='Stanford', lab_type='panel', curr_version='10000-episodes'):
         self.data_source = data_source
         self.lab_type = lab_type
 
@@ -71,6 +69,8 @@ class Stats_Plotter():
             self.all_labs = UCSF_TOP_COMPONENTS
         elif data_source == 'UCSF' and lab_type == 'panel':
             self.all_labs = UCSF_TOP_PANELS
+
+        self.curr_version = curr_version
 
         self.dataset_foldername = 'data-%s-%s-%s'%(data_source, lab_type, curr_version)
 
@@ -1964,18 +1964,18 @@ class Stats_Plotter():
         #                     columns=[x + '_baseline' for x in columns_statsMetrics],
         #                     thres_mode=thres_mode)
 
-    def main_of_main(self):
+    def main_generate_lab_statistics(self):
         print 'generate_result_tables running...'
 
         project_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
         train_data_folderpath = os.path.join(project_folder, 'machine_learning/',
-                                             'data-%s-%s-10000-episodes' % (
-                                             self.data_source, self.lab_type)
+                                             'data-%s-%s-%s' % (
+                                             self.data_source, self.lab_type, self.curr_version)
                                              )
         ml_results_folderpath = os.path.join(project_folder, 'machine_learning/',
                                              # 'results-from-panels-10000-to-panels-5000-part-1'
-                                             'data-%s-%s-10000-episodes' % (
-                                             self.data_source, self.lab_type)
+                                             'data-%s-%s-%s' % (
+                                             self.data_source, self.lab_type, self.curr_version)
                                              )
 
         stats_results_folderpath = ml_results_folderpath.replace('machine_learning', 'lab_statistics')
@@ -1988,7 +1988,7 @@ class Stats_Plotter():
              stats_results_folderpath=stats_results_folderpath,
              thres_mode="fixTrainPPV")
 
-    def main(self, figs_to_plot, params={}):
+    def main_generate_stats_figures_tables(self, figs_to_plot, params={}):
         print 'stats_sx running...'
 
         '''
@@ -2000,7 +2000,7 @@ class Stats_Plotter():
         ml_folderpath = os.path.join(stats_utils.main_folder, 'machine_learning')
 
         import LocalEnv
-        statsByDataSet_foldername = 'data-%s-%s-10000-episodes' % (self.data_source, self.lab_type)
+        statsByDataSet_foldername = 'data-%s-%s-%s' % (self.data_source, self.lab_type, self.curr_version)
         statsByDataSet_folderpath = os.path.join(stats_folderpath, statsByDataSet_foldername)
         if not os.path.exists(statsByDataSet_folderpath):
             os.mkdir(statsByDataSet_folderpath)
@@ -2155,12 +2155,175 @@ class Stats_Plotter():
         if 'Full_Cartoon' in figs_to_plot:
             self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=True)
 
-if __name__ == '__main__':
+        if 'write_importantFeatures' in figs_to_plot:
+            self.write_importantFeatures()
 
+def statistic_analysis(lab, dataset_folder):
+    from sklearn.metrics import roc_auc_score, roc_curve, precision_recall_curve, average_precision_score
+
+    direct_comparisons = pd.read_csv(os.path.join(dataset_folder, 'direct_comparisons.csv'))
+    # print direct_comparisons
+    return roc_auc_score(direct_comparisons['actual'].values, direct_comparisons['predict'].values)
+
+def get_AUC_transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel'):
+    # main_pipelining(labs=['LABA1C'], data_source='testingSupervisedLearner')
+    # dataset_folder = "data-apply-Stanford-to-UCSF-10000-episodes"
+
+    # from LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
+
+    if lab_type == 'panel':
+        labs = ['LABURIC']
+        # from scripts.LabTestAnalysis.machine_learning.ml_utils import map_panel_from_Stanford_to_UCSF as map_lab
+    else:
+        from scripts.LabTestAnalysis.lab_statistics import stats_utils
+        labs = stats_utils.get_important_labs(lab_type=lab_type) #STRIDE_COMPONENT_TESTS
+        # from scripts.LabTestAnalysis.machine_learning.ml_utils import map_component_from_Stanford_to_UCSF as map_lab
+
+    transfer_result_folderpath = 'data-%s-src-%s-dst-%s-10000-episodes/'%(lab_type,src_dataset,dst_dataset)
+    if not os.path.exists(transfer_result_folderpath):
+        os.mkdir(transfer_result_folderpath)
+
+    res = []
+    from scripts.LabTestAnalysis.machine_learning import LabNormalityLearner
+    for lab in labs:
+        direct_comparisons_folderpath = os.path.join(transfer_result_folderpath, lab)
+
+        cur_AUC = statistic_analysis(lab=lab, dataset_folder=direct_comparisons_folderpath)
+
+        res.append(cur_AUC)
+    return res
+
+def main_transfer_model():
+    all_sites = ['Stanford', 'UMich', 'UCSF']
+
+    res_filepath = 'all_transfers.csv'
+
+    if os.path.exists(res_filepath):
+        df_res = pd.read_csv(res_filepath, keep_default_na=False)
+
+    else:
+
+        from scripts.LabTestAnalysis.lab_statistics import stats_utils
+        labs = stats_utils.get_important_labs(lab_type='component')
+
+
+        all_res_dicts = {}
+        all_res_dicts['lab'] = labs
+
+        columns = ['lab']
+        for i in range(3):
+            for j in range(3):
+                if False:#i==j:
+                    continue
+                else:
+                    src = all_sites[i]
+                    dst = all_sites[j]
+
+                    cur_res_dict = transfer_labs(src_dataset=src, dst_dataset=dst, lab_type='component')
+                    col = '%s -> %s' % (src, dst)
+                    all_res_dicts[col] = cur_res_dict
+
+                    columns.append(col)
+        df_res = pd.DataFrame.from_dict(all_res_dicts)
+
+        descriptions = stats_utils.get_lab_descriptions(lab_type='component')
+        df_res['lab'] = df_res['lab'].apply(lambda x:descriptions[x])
+        df_res[columns].to_csv(res_filepath, index=False, float_format='%.2f')
+
+    # TODO: move this stats part away
+    import seaborn as sns; sns.set()
+    import numpy as np
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(figsize=(16, 12))
+    col = 5
+    for ind in range(df_res.shape[0]):
+        cur_row = df_res.iloc[ind].values
+        cur_lab = cur_row[0]
+        cur_aucs = cur_row[1:].astype(float).reshape(3,3)
+
+        i, j = ind/col, ind%col
+        plt.subplot2grid((3, col), (i, j))
+        ax = sns.heatmap(cur_aucs, vmin=0, vmax=1, cbar=False, annot=True, cmap='ocean',
+                         annot_kws={"size": 18},
+                         xticklabels=['S', 'UM', 'UC'], yticklabels=['S', 'UM', 'UC'])
+        plt.xlabel(cur_lab, fontsize=20)
+        ax.xaxis.set_label_position('top')
+        ax.xaxis.set_tick_params(labelsize=18)
+        ax.yaxis.set_tick_params(labelsize=18)
+
+
+    plt.tight_layout()
+    fig.subplots_adjust(hspace=.5)
+
+    plt.savefig('transfer_heatmap.png')
+
+
+    # statistic_analysis(lab='LABURIC', dataset_folder=os.path.join('data', 'LABURIC', 'transfer_Stanford_to_UCSF')) #'data-panel-Stanford-UCSF-10000-episodes'
+    # apply_Stanford_to_UCSF(lab='LABURIC', lab_type='panel',
+    #                        src_dataset_folderpath=os.path.join('data', 'LABURIC', 'wi last normality - Stanford'),
+    #                        dst_dataset_folderpath=os.path.join('data', 'LABURIC', 'wi last normality - UCSF'),
+    #                        output_folderpath=os.path.join('data', 'LABURIC', 'transfer_Stanford_to_UCSF'))
+
+def main_full_analysis(curr_version):
+    for data_source in ['Stanford', 'UMich', 'UCSF']:
+        for lab_type in ['panel', 'component']:
+            plotter = Stats_Plotter(data_source=data_source, lab_type=lab_type, curr_version=curr_version)
+            plotter.main_generate_lab_statistics()
+
+            if data_source=='Stanford' and lab_type=='panel':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Full_Cartoon', # Figure 1
+                                                                         'Order_Intensities', # Figure 2
+                                                                         'Confusion_Metrics', # Table 1 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures' # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': ['top_15', 'all_labs']}) # TODO
+
+            elif data_source=='Stanford' and lab_type=='component':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': ['common_components', 'all_labs']})  # TODO
+
+            elif data_source=='UMich' and lab_type=='panel':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': 'all_labs'})  # TODO
+
+            elif data_source=='UMich' and lab_type=='component':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': ['common_components', 'all_labs']})  # TODO
+
+            elif data_source=='UCSF' and lab_type=='panel':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': 'all_labs'})  # TODO
+
+            elif data_source=='UCSF' and lab_type=='component':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': ['common_components', 'all_labs']})  # TODO
+
+
+    main_transfer_model()
+
+
+def main_one_analysis():
     plotter = Stats_Plotter(data_source="UCSF", lab_type='panel')
     # plotter.main(figs_to_plot=['Normality_Saturations'])
-    plotter.main_of_main()
-    plotter.main(figs_to_plot=['ROC'], params={'Confusion_Metrics':'important_components'})
+    plotter.main_generate_lab_statistics()
+    plotter.main_generate_stats_figures_tables(figs_to_plot=['ROC'],
+                                               params={'Confusion_Metrics': 'important_components'})
     # plotter.write_importantFeatures()
 
     '''
@@ -2168,8 +2331,7 @@ if __name__ == '__main__':
     '''
     params_Confusion_Metrics = ['all_labs', 'important_components']
 
-    #'ROC', 'PRC',
-
+    # 'ROC', 'PRC',
 
     # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons' 'Model_Transfering
     # Normality_Saturations Order_Intensities Full_Cartoon
@@ -2183,3 +2345,6 @@ if __name__ == '__main__':
     # plotter.plot_one_curve(include_threshold_colors=False)
 
     # logistic_regression()
+
+if __name__ == '__main__':
+    main_full_analysis(curr_version='10000-episodes-lastnormal')
