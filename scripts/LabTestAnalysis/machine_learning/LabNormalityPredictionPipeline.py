@@ -504,7 +504,7 @@ UMICH_TOP_COMPONENTS_common = ['WBC', 'HGB', 'PLT', 'SOD', 'POT',  # TODO: confi
                         #'DBIL',
                         'AST', 'ALT',
                                     'ALB', 'CAL', #'PCOAA2', 'PO2AA', 'pHA',
-                                    #'T PROTEIN', # Insufficient examples?
+                                    'PROT', # Insufficient examples?
                                     'ALK',  # ALKALINE PHOSPHATASE
                                     'UN',  # Blood, Urine, 'BUN'
                                     #'IBIL',  # Bilirubin, Indirect

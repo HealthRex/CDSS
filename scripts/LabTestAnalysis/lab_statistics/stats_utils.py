@@ -309,7 +309,7 @@ def get_important_labs(lab_type='panel', order_by=None):
     elif lab_type == 'component':
         # TODO
         return ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CO2', 'BUN', 'CR', #'GLUC',
-                'CA', 'ALB', #'TP',
+                'CA', 'ALB', 'TP',
                 'ALKP', 'TBIL', 'AST', 'ALT']
 
     labs_and_cnts = sorted(labs_and_cnts, key=lambda x: x[1])
@@ -1532,8 +1532,8 @@ def main_queryAllLabsToDF(lab_type='panel'):
 
 
 
-def output_feature_importances(labs, data_source='Stanford', lab_type='panel'):
-    data_set_folder = 'data-%s-%s-10000-episodes'%(data_source, lab_type)
+def output_feature_importances(labs, data_source='Stanford', lab_type='panel', curr_version='10000-episodes'):
+    data_set_folder = 'data-%s-%s-%s'%(data_source, lab_type, curr_version)
 
 
     def split_features(feature):
@@ -1583,17 +1583,18 @@ def output_feature_importances(labs, data_source='Stanford', lab_type='panel'):
         features_start = rf_description.index('features=[')
         features_str = rf_description[features_start + len('features=['):-2]
 
-        from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import UCSF_TOP_PANELS
-        for raw_lab in UCSF_TOP_PANELS:
-        # for ml_utils.map_lab()
-            new_lab = ml_utils.map_lab(lab=raw_lab.replace('-', '/'),  # TODO...
-                         data_source=data_source,
-                         lab_type=lab_type,
-                         map_type='from_src')
-            print raw_lab, new_lab
-            features_str = features_str.replace(raw_lab, new_lab)
+        if data_source == 'UCSF' and lab_type == 'panel':
+            from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import UCSF_TOP_PANELS
+            for raw_lab in UCSF_TOP_PANELS:
+            # for ml_utils.map_lab()
+                new_lab = ml_utils.map_lab(lab=raw_lab.replace('-', '/'),  # TODO...
+                             data_source=data_source,
+                             lab_type=lab_type,
+                             map_type='from_src')
+                print raw_lab, new_lab
+                features_str = features_str.replace(raw_lab, new_lab)
 
-        feature_tuples = [x.strip() for x in features_str.split(',')]
+            feature_tuples = [x.strip() for x in features_str.split(',')]
         # print feature_tuples
 
         one_lab_dict = {}
@@ -1613,7 +1614,7 @@ def output_feature_importances(labs, data_source='Stanford', lab_type='panel'):
         #                }
 
         # result_df.append(one_df_dict)
-        print sorted_tuples
+        # print sorted_tuples
 
         cur_rec = [lab_descriptions.get(lab,lab)]
         for i in range(3):
