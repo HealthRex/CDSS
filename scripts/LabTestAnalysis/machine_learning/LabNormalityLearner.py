@@ -29,6 +29,7 @@ import ml_utils
 #     'leak_features':leak_features
 # }
 
+ml_folder = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/'
 
 def get_feature_dict():
     features = {}
@@ -175,7 +176,7 @@ def map_col(col, src, dst):
     '''
     for mapfile in ['map_vitals.csv', 'map_team.csv', 'map_cormobidity.csv', 'map_component.csv']:
 
-        df_map = pd.read_csv('data_conversion/%s'%mapfile, keep_default_na=False)
+        df_map = pd.read_csv(ml_folder + 'data_conversion/%s'%mapfile, keep_default_na=False)
         dict_map = dict(zip(df_map[src].values.tolist(),
                               df_map[dst].values.tolist()))
         for key, val in dict_map.items():
@@ -255,6 +256,8 @@ def apply_src_to_dst(lab, lab_type,
     Returns:
 
     '''
+    print "Transfering %s %s from %s to %s..." % (lab_type, lab, src_datasource, dst_datasource)
+
     from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
     import pickle
 
@@ -292,7 +295,7 @@ def apply_src_to_dst(lab, lab_type,
 
 
     '''
-    Load raw data from UCSF
+    Load raw data from dst
     '''
     df_raw_dst = SL.load_raw_matrix(lab=lab_dst, dataset_folderpath=dst_dataset_folderpath)
 
@@ -339,14 +342,6 @@ def apply_src_to_dst(lab, lab_type,
     If this feature exists in UCSF, then good
     If not, create dummy feature for UCSF raw matrix!
     '''
-    # imputations_ucsf = {}
-
-    # for feature, ind_val_pair in imputations_stanford.items():
-    #     feature_ucsf = map_col_Stanford_to_UCSF(feature)
-    #     if feature_ucsf not in raw_columns_dst:
-    #         print feature_ucsf
-    #         pass
-        # imputations_ucsf[]
 
     imputations_filepath = src_dataset_folderpath + '/' + lab_src + '/' + "feat2imputed_dict.pkl"
 
@@ -368,7 +363,7 @@ def apply_src_to_dst(lab, lab_type,
         elif col_dst not in raw_columns_dst:
             print "Unknown:", col_src, col_dst
             '''
-            Stanford feature that has not corresponding UCSF one; create dummy UCSF column
+            create dummy column for dst
             '''
 
             df_raw_evalu_dst[col_dst] = df_raw_evalu_dst['pat_id'].apply(lambda x: 0)
@@ -435,39 +430,32 @@ def apply_src_to_dst(lab, lab_type,
     SL.predict(X_evalu, y_evalu, classifier_src, output_filepath=output_filepath)
 
 
-def transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel'):
+def transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel', cur_version='10000-episodes'):
     # main_pipelining(labs=['LABA1C'], data_source='testingSupervisedLearner')
     # dataset_folder = "data-apply-Stanford-to-UCSF-10000-episodes"
 
     # from LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
 
     if lab_type == 'panel':
-        labs = ['LABURIC']
+        return
         # from scripts.LabTestAnalysis.machine_learning.ml_utils import map_panel_from_Stanford_to_UCSF as map_lab
     else:
         from scripts.LabTestAnalysis.lab_statistics import stats_utils
         labs = stats_utils.get_important_labs(lab_type=lab_type) #STRIDE_COMPONENT_TESTS
         # from scripts.LabTestAnalysis.machine_learning.ml_utils import map_component_from_Stanford_to_UCSF as map_lab
 
-    transfer_result_folderpath = 'data-%s-src-%s-dst-%s-10000-episodes/'%(lab_type,src_dataset,dst_dataset)
+    transfer_result_folderpath =  ml_folder + '/data-%s-src-%s-dst-%s-%s/'%(lab_type,src_dataset,dst_dataset,cur_version)
     if not os.path.exists(transfer_result_folderpath):
         os.mkdir(transfer_result_folderpath)
 
-    res = []
-    from scripts.LabTestAnalysis.machine_learning import LabNormalityLearner
     for lab in labs:
         direct_comparisons_folderpath = os.path.join(transfer_result_folderpath, lab)
-        LabNormalityLearner.apply_src_to_dst(lab=lab, lab_type=lab_type,
+        apply_src_to_dst(lab=lab, lab_type=lab_type,
                          src_datasource=src_dataset,
                          dst_datasource=dst_dataset,
-                               src_dataset_folderpath='data-%s-%s-10000-episodes'%(src_dataset, lab_type),#'data-Stanford-%s-10000-episodes'%lab_type,
-                               dst_dataset_folderpath='data-%s-%s-10000-episodes'%(dst_dataset, lab_type),
+                               src_dataset_folderpath=ml_folder + 'data-%s-%s-%s'%(src_dataset, lab_type,cur_version),#'data-Stanford-%s-10000-episodes'%lab_type,
+                               dst_dataset_folderpath=ml_folder + 'data-%s-%s-%s'%(dst_dataset, lab_type,cur_version),
                                output_folderpath=direct_comparisons_folderpath)
-    #     cur_AUC = statistic_analysis(lab=lab, dataset_folder=direct_comparisons_folderpath)
-    #
-    #     res.append(cur_AUC)
-    # return res
-
 
 
 
