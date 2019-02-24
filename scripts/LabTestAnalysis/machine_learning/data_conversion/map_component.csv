@@ -10,7 +10,7 @@ BUN,BUN,UN,BUN,"Urea Nitrogen, Serum/plasma"
 GLU,GLU,,,"Glucose, ISTAT"
 CO2,CO2,CO2,CO2,"CO2, Serum/plasma"
 CA,CA,CAL,CA,"Calcium, Serum/plasma"
-TP,TP,T PROTEIN,TP,"Protein, Total, Serum/plasma"
+TP,TP,PROT,TP,"Protein, Total, Serum/plasma"
 ALB,ALB,ALB,ALB,"Albumin, Serum/plasma"
 ALKP,ALKP,ALK,ALKP,"Alk Phos, Total, Serum/plasma"
 TBIL,TBIL,TBIL,TBILI,Total Bilirubin
