@@ -78,7 +78,7 @@ pat_split_filename = 'pat_split.csv'
 
 processed_matrix_template = '%s-normality-matrix-processed.tab'
 processed_matrix_train_template = '%s-normality-train-matrix-processed.tab'
-processed_matrix_evalu_template = '%s-normality-evalu-matrix-processed.tab'
+processed_matrix_evalu_template = '%s-normality-test-matrix-processed.tab' # TODO: rename test-matrix to evalu-matrix in the pipeline
 
 direct_comparisons_train_filename = 'direct_comparisons_train.csv'
 direct_comparisons_evalu_filename = 'direct_comparisons.csv'
@@ -162,7 +162,10 @@ def load_processed_matrix(lab, dataset_folderpath, type='full'):
     fm_io = FeatureMatrixIO()
 
     # TODO: check if raw matrix exists
-    matrix = fm_io.read_file_to_data_frame(matrix_filepath)
+    if os.path.exists(matrix_filepath):
+        matrix = fm_io.read_file_to_data_frame(matrix_filepath)
+    else:
+        matrix = fm_io.read_file_to_data_frame(matrix_filepath.replace('-test', '-evalu'))
     return matrix
 
 def load_imputation_template(lab, dataset_folderpath, lab_type='panel'):
