@@ -407,7 +407,7 @@ class Stats_Plotter():
                 # 'PO2AA':,
                 # 'DBIL':,
                 # 'pHA':,
-                'T PROTEIN':1667.87605412826,
+                'PROT':1667.87605412826,
                 'ALK':1667.87605412826,
                 'UN':5784.04729218614,
                 # 'IBIL':
@@ -462,7 +462,6 @@ class Stats_Plotter():
             df['true_negative'] = -df['true_negative']
             df['all_negative'] = -df['all_negative']
 
-
             df_toshow = df.copy().drop_duplicates()
 
             df_toshow['lab'] = df_toshow['lab'].apply(lambda x:self.lab_descriptions.get(x,x))
@@ -491,7 +490,7 @@ class Stats_Plotter():
             df_toshow['LR+'] = df_toshow['LR+'].apply(lambda x: stats_utils.convert_floatstr2num(x))
             df_toshow['LR-'] = df_toshow['LR-'].apply(lambda x: stats_utils.convert_floatstr2num(x))
 
-            df_toshow['Vol'] = (df_toshow['total_vol'] / float(stats_utils.NUM_DISTINCT_ENCS / 1000.)).apply(
+            df_toshow['Volume'] = (df_toshow['total_vol'] / float(stats_utils.NUM_DISTINCT_ENCS / 1000.)).apply(
                 lambda x: int(round(x)))
 
             if self.data_source == 'Stanford' and self.lab_type=='panel':
@@ -513,21 +512,23 @@ class Stats_Plotter():
 
 
 
-                cols_to_show = ['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-'] + ['Medicare', 'Chargemaster']
+                cols_to_show = ['Lab Test', 'Volume', 'AUROC'] \
+                               + numeric_cols \
+                               + ['Medicare', 'Chargemaster'] #+ ['LR+', 'LR-'] \
             # elif self.data_source == 'Stanford' and self.lab_type=='component':
             #     cols_to_show = ['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-']
             else:
-                cols_to_show = ['Lab Test', 'AUROC'] + numeric_cols + ['LR+', 'LR-']
+                cols_to_show = ['Lab Test', 'AUROC'] + numeric_cols #+ ['LR+', 'LR-']
 
             df_toshow[cols_to_show].to_csv(cached_tablepath.replace('.csv', '_full.csv'), index=False)
-            df_toshow[cols_to_show].iloc[:20].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
+            df_toshow[cols_to_show].iloc[:15].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
 
             df['all_positive_vol'] = df['all_positive'] * df['total_vol']
             df['true_positive_vol'] = df['true_positive'] * df['total_vol']
             df['all_negative_vol'] = df['all_negative'] * df['total_vol']
             df['true_negative_vol'] = df['true_negative'] * df['total_vol']
 
-            df_toplots = df.iloc[:20]
+            df_toplots = df.iloc[:15]
 
             df_toplots[['lab',
                         'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
@@ -555,7 +556,7 @@ class Stats_Plotter():
         for ind, df_toplot in enumerate([df_toplots.tail(38), df_toplots.head(38)]):
 
             if result_label == 'important_components':
-                fig, ax = plt.subplots(figsize=(6, 8))
+                fig, ax = plt.subplots(figsize=(6, 9))
             else:
                 fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -918,13 +919,13 @@ class Stats_Plotter():
             '''
             Getting p-values is slow
             '''
-            if self.lab_type=='panel' and self.data_source=='UCSF':
-                from scripts.LabTestAnalysis.machine_learning.ml_utils import map_lab
-                lab = map_lab(lab=lab.replace('-','/'), data_source=self.data_source,
-                              lab_type=self.lab_type, map_type='from_src')
-                self.lab_descriptions = stats_utils.get_lab_descriptions(data_source='Stanford',
-                              lab_type=self.lab_type)
-                print lab
+            # if self.lab_type=='panel' and self.data_source=='UCSF':
+            #     from scripts.LabTestAnalysis.machine_learning.ml_utils import map_lab
+            #     lab = map_lab(lab=lab.replace('-','/'), data_source=self.data_source,
+            #                   lab_type=self.lab_type, map_type='from_src')
+            #     self.lab_descriptions = stats_utils.get_lab_descriptions(data_source='Stanford',
+            #                   lab_type=self.lab_type)
+            #     print lab
             xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
                 = stats_utils.get_curve_onelab(lab,
                                                all_algs=algs,
@@ -1878,8 +1879,21 @@ class Stats_Plotter():
                 df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
                 df_best_alg = df_best_alg.append(df_cur_best_alg)
 
+        '''
+        TODO:!
+        '''
+        if self.lab_type=='panel' and self.data_source=='Stanford':
+            df_chargemasters = pd.read_csv('data_summary_stats/labs_charges_volumes.csv', keep_default_na=False)
+            df_chargemasters = df_chargemasters.rename(columns={'name':'lab', 'median_price':'chargemaster'})
+            df_long = df_long.drop(['chargemaster'], axis=1)
+            df_long = pd.merge(df_long, df_chargemasters[['lab', 'chargemaster']], on='lab', how='left')
+
+            df_best_alg = df_best_alg.drop(['chargemaster'], axis=1)
+            df_best_alg = pd.merge(df_best_alg, df_chargemasters[['lab', 'chargemaster']], on='lab', how='left')
+
         summary_long_filename = 'summary-stats-%s-%s.csv' % ('allalgs', thres_mode)
         summary_long_filepath = os.path.join(project_stats_folderpath, summary_long_filename)
+
         df_long[columns].to_csv(summary_long_filepath, index=False)
 
         summary_best_filename = 'summary-stats-%s-%s.csv' % ('bestalg', thres_mode)
@@ -1944,7 +1958,7 @@ class Stats_Plotter():
         # columns_STRIDE += ['%s count'%x for x in DEFAULT_TIMEWINDOWS]
         columns_STRIDE += ['total_cnt']  # 201407-201706
 
-        columns_panels = columns_STRIDE[:] + ['medicare']  # ['min_price', 'max_price', 'mean_price', 'median_price']
+        columns_panels = columns_STRIDE[:] + ['medicare', 'chargemaster']  # ['min_price', 'max_price', 'mean_price', 'median_price']
         # 'min_volume_charge', 'max_volume_charge', 'mean_volume_charge', 'median_volume_charge'
         columns_components = columns_STRIDE[:]
 
@@ -2302,51 +2316,51 @@ def main_full_analysis(curr_version):
             plotter = Stats_Plotter(data_source=data_source, lab_type=lab_type, curr_version=curr_version)
             plotter.main_generate_lab_statistics()
 
-            # if data_source=='Stanford' and lab_type=='panel':
-            #     plotter.main_generate_stats_figures_tables(figs_to_plot=['Full_Cartoon', # Figure 1
-            #                                                              'Order_Intensities', # Figure 2
-            #                                                              'Confusion_Metrics', # Table 1 & SI Table
-            #                                                              'ROC',  # SI Figure
-            #                                                              'write_importantFeatures' # SI Table
-            #                                                              ],
-            #                                                params={'Confusion_Metrics': ['top_15', 'all_labs']}) # TODO
-            #
-            # elif data_source=='Stanford' and lab_type=='component':
-            #     plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
-            #                                                              'ROC',  # SI Figure
-            #                                                              'write_importantFeatures'  # SI Table
-            #                                                              ],
-            #                                                params={'Confusion_Metrics': ['common_components', 'all_labs']})  # TODO
-            #
-            # elif data_source=='UMich' and lab_type=='panel':
-            #     plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # SI Table
-            #                                                              'ROC',  # SI Figure
-            #                                                              'write_importantFeatures'  # SI Table
-            #                                                              ],
-            #                                                params={'Confusion_Metrics': 'all_labs'})  # TODO
-            #
-            # elif data_source=='UMich' and lab_type=='component':
-            #     plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
-            #                                                              'ROC',  # SI Figure
-            #                                                              'write_importantFeatures'  # SI Table
-            #                                                              ],
-            #                                                params={'Confusion_Metrics': ['common_components', 'all_labs']})  # TODO
-            #
-            # elif data_source=='UCSF' and lab_type=='panel':
-            #     plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # SI Table
-            #                                                              'ROC',  # SI Figure
-            #                                                              'write_importantFeatures'  # SI Table
-            #                                                              ],
-            #                                                params={'Confusion_Metrics': 'all_labs'})  # TODO
-            #
-            # elif data_source=='UCSF' and lab_type=='component':
-            #     plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
-            #                                                              'ROC',  # SI Figure
-            #                                                              'write_importantFeatures'  # SI Table
-            #                                                              ],
-            #                                                params={'Confusion_Metrics': ['common_components', 'all_labs']})  # TODO
+            if data_source=='Stanford' and lab_type=='panel':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Full_Cartoon', # Figure 1
+                                                                         'Order_Intensities', # Figure 2
+                                                                         'Confusion_Metrics', # Table 1 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures' # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': 'all_labs'}) # TODO ['top_15', 'all_labs']
 
-    main_transfer_model(curr_version)
+            elif data_source=='Stanford' and lab_type=='component':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': 'important_components'})  # TODO ['common_components', 'all_labs']
+
+            elif data_source=='UMich' and lab_type=='panel':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': 'all_labs'})  # TODO
+
+            elif data_source=='UMich' and lab_type=='component':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': 'important_components'})  # TODO
+
+            elif data_source=='UCSF' and lab_type=='panel':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': 'all_labs'})  # TODO
+
+            elif data_source=='UCSF' and lab_type=='component':
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Confusion_Metrics': 'important_components'})  # TODO
+
+    # main_transfer_model(curr_version)
 
 
 def main_one_analysis():
