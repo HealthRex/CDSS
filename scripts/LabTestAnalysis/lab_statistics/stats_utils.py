@@ -290,7 +290,7 @@ def get_guideline_maxorderfreq():
 
     return maxorderfreq
 
-def get_important_labs(lab_type='panel', order_by=None):
+def get_important_labs(lab_type='panel', data_source='Stanford', order_by=None):
     # TODO: order_by
 
     if lab_type == 'panel':
@@ -308,9 +308,14 @@ def get_important_labs(lab_type='panel', order_by=None):
         #stats_utils.get_top_labs(lab_type=lab_type, top_k=10)
     elif lab_type == 'component':
         # TODO
-        return ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CO2', 'BUN', 'CR', #'GLUC',
-                'CA', 'ALB', 'TP',
-                'ALKP', 'TBIL', 'AST', 'ALT']
+        if data_source!='UMich': #TODO!
+            return ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CO2', 'BUN', 'CR', #'GLUC',
+                    'CA', 'ALB', 'TP',
+                    'ALKP', 'TBIL', 'AST', 'ALT']
+        else:
+            return ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CO2', 'BUN', 'CR',  # 'GLUC',
+                    'CA', 'ALB', 'PROT',
+                    'ALKP', 'TBIL', 'AST', 'ALT']
 
     labs_and_cnts = sorted(labs_and_cnts, key=lambda x: x[1])
     return [x[0] for x in labs_and_cnts]
@@ -1204,24 +1209,26 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath,
     # For panels, also include price info
     # TODO: this operation was repeated for each lab?!
     if lab_type == 'panel': #TODO: no price info for LABNA
-        if price_source == 'chargemaster':
+        if True: #price_source == 'chargemaster':
             prices_filepath = os.path.join(labs_old_stats_folder, 'labs_charges_volumes.csv')
             df_prices = pd.read_csv(prices_filepath, keep_default_na=False)
-            df_prices_dict = df_prices.ix[df_prices['name'] == lab,
-                                          ['min_price', 'max_price', 'mean_price', 'median_price']].to_dict(orient='list')
+            # df_prices_dict = df_prices.ix[df_prices['name'] == lab,
+            #                               ['min_price', 'max_price', 'mean_price', 'median_price']].to_dict(orient='list')
+            df_prices_dict = {'chargemaster':df_prices.ix[df_prices['name'] == lab, 'median_price'].values[0]}
             for key, val in df_prices_dict.items():
                 if lab == 'LABNA':
                     df_prices_dict[key] = 219
                 else:
                     df_prices_dict[key] = val[0]
-        elif price_source == 'medicare':
+        if True: #price_source == 'medicare':
             medicare_price_dict = get_medicare_price_dict()
             cur_price = medicare_price_dict.get(lab, float('nan'))
             # df_prices_dict = {'min_price':cur_price, 'max_price':cur_price,
             #                   'mean_price':cur_price, 'median_price':cur_price}
-            df_prices_dict = {'medicare':cur_price}
+            # df_prices_dict = {'medicare':cur_price}
+            df_prices_dict['medicare'] = cur_price
 
-
+    # print 'df_prices_dict', df_prices_dict
 
     fm_io = FeatureMatrixIO()
     processed_matrix_train_path = os.path.join(train_data_labfolderpath,
@@ -1568,13 +1575,13 @@ def output_feature_importances(labs, data_source='Stanford', lab_type='panel', c
     result_df = pd.DataFrame(columns=['lab', 'feature 1', 'score 1', 'feature 2', 'score 2', 'feature 3', 'score 3'])
     from scripts.LabTestAnalysis.machine_learning import ml_utils
     for lab in labs:
-        if data_source == 'UCSF' and lab_type == 'panel':
-
-
-            lab = ml_utils.map_lab(lab=lab.replace('-','/'), # TODO...
-                                   data_source=data_source,
-                                   lab_type=lab_type,
-                                   map_type='from_src')
+        # if data_source == 'UCSF' and lab_type == 'panel':
+        #
+        #
+        #     lab = ml_utils.map_lab(lab=lab.replace('-','/'), # TODO...
+        #                            data_source=data_source,
+        #                            lab_type=lab_type,
+        #                            map_type='from_src')
         report_folderpath = os.path.join(ml_folderpath, data_set_folder, lab, 'random-forest')
         report_filepath = os.path.join(report_folderpath, '%s-normality-prediction-random-forest-report.tab' % lab)
 
@@ -1594,7 +1601,7 @@ def output_feature_importances(labs, data_source='Stanford', lab_type='panel', c
                 print raw_lab, new_lab
                 features_str = features_str.replace(raw_lab, new_lab)
 
-            feature_tuples = [x.strip() for x in features_str.split(',')]
+        feature_tuples = [x.strip() for x in features_str.split(',')]
         # print feature_tuples
 
         one_lab_dict = {}
