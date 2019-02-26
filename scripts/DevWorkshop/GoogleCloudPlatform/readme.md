@@ -2,8 +2,8 @@
 
 ### Purpose: 
 
- **Store terabytes of health data that you can query with SQL Syntax**  
- **Increase Reproducibility by Sharing and Manipulating DataFrames and Code through Quiver on Collaborative Projects** 
+ 1. **Store terabytes of health data that you can query with SQL Syntax**  
+ 2. **Increase Reproducibility by Sharing and Manipulating DataFrames and Code through Quiver on Collaborative Projects** 
 
 
 ### Goals to get through 
@@ -22,6 +22,6 @@
 
 ### PART ONE: 
 1. [Navigate to google cloud](https://console.cloud.google.com/) make sure you are logged in Stanford (google)
-2. Go to Mininc Clinical Decisions 
+2. Go to Mining Clinical Decisions 
 3. Go to Saved Queries and click on Project Queries for DevWorkshop 
 
