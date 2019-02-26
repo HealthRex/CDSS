@@ -18,3 +18,7 @@
 1. SQL commands 
 2. Sub Queries
 3. Joins 
+
+
+### Steps: 
+1. [Navigate to google cloud] (https://console.cloud.google.com/) make sure you are logged in Stanford (google)
