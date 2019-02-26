@@ -11,8 +11,7 @@
 1. Making Queries in BQ  
 2. Saving a Table in BQ 
 3. Loading Data into Google Storage 
-4. Making a VM 
-5. Cloning a VM 
+
 
 ### SQL Introduced 
 1. SQL commands 
@@ -27,3 +26,14 @@
 
 ### PART TWO 
 1. [Navigate to Google Cloud Storage](https://console.cloud.google.com/storage/browser?project=mining-clinical-decisions&folder&organizationId=302681460499)
+2. save your table 
+
+### PART THREE
+1. Going through auth_cloud.py steps 
+2. Install virtual environment
+3. Install GCP credentials 
+4. Query from GCP from python scripts locally 
+
+## PART FOUR 
+1. Introduction to Quiver
+2. Saving+Sharing+Data/Scripts/Requirements to Box (PHI protected) 
