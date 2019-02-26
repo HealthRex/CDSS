@@ -13,3 +13,8 @@
 3. Loading Data into Google Storage 
 4. Making a VM 
 5. Cloning a VM 
+
+### SQL Introduced 
+1. SQL commands 
+2. Sub Queries
+3. Joins 
