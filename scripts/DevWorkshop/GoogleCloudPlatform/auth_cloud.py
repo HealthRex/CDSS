@@ -5,6 +5,20 @@ get project id
 write sql
 profit
 
+Setting Up Virtual Environment
+
+https://www.google.com/search?client=firefox-b-1-d&q=create+a+new+virtual+environment
+
+#! [mac]        python -m virtualenv env_gcp
+#! [windows]    py -m virtualenv env_gcp
+
+#! [mac]        source env_gcp/bin/activate
+#! [windows]    .\env_gcp\Scripts\activate
+
+# [installing pip requirements]
+
+#!              pip install -r  requirements.txt
+
 Authentication for Big Query
 https://cloud.google.com/docs/authentication/getting-started
 https://cloud.google.com/bigquery/docs/authentication/
@@ -13,7 +27,10 @@ https://cloud.google.com/python/setup
 
 from google.cloud import bigquery
 
+
+# CONFIGURATION
 client = bigquery.Client.from_service_account_json('gcp_key.json')
+project_id = 'mining-clinical-decisions'
 
 sql = '''
 
@@ -34,7 +51,6 @@ select patient_item_id, external_id, clinical_item_id, item_date, encounter_id, 
 # Run a Standard SQL query using the environment's default project
 df = client.query(sql).to_dataframe()
 
-# Run a Standard SQL query with the project set explicitly
-project_id = 'mining-clinical-decisions'
+
 df = client.query(sql, project=project_id).to_dataframe()
 print(df)
