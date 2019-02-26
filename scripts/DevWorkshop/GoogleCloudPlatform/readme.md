@@ -21,4 +21,4 @@
 
 
 ### Steps: 
-1. [Navigate to google cloud] (https://console.cloud.google.com/) make sure you are logged in Stanford (google)
+1. [Navigate to google cloud](https://console.cloud.google.com/) make sure you are logged in Stanford (google)
