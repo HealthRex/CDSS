@@ -20,5 +20,8 @@
 3. Joins 
 
 
-### Steps: 
+### PART ONE: 
 1. [Navigate to google cloud](https://console.cloud.google.com/) make sure you are logged in Stanford (google)
+2. Go to Mininc Clinical Decisions 
+3. Go to Saved Queries and click on Project Queries for DevWorkshop 
+
