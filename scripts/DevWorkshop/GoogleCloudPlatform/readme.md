@@ -21,7 +21,9 @@
 
 
 ### PART ONE: 
-1. [Navigate to google cloud](https://console.cloud.google.com/) make sure you are logged in Stanford (google)
+1. [Navigate to Google Cloud](https://console.cloud.google.com/) make sure you are logged in Stanford (google)
 2. Go to Mining Clinical Decisions 
 3. Go to Saved Queries and click on Project Queries for DevWorkshop 
 
+### PART TWO 
+1. [Navigate to Google Cloud Storage](https://console.cloud.google.com/storage/browser?project=mining-clinical-decisions&folder&organizationId=302681460499)
