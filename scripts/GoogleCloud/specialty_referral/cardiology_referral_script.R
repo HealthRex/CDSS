@@ -32,7 +32,6 @@ df_convert_date_to_numeric <- function(df){
 }
 # ------------------------------------------------------
 
-
 # Listing Datatables 
 data_tables <- dbListTables(con)
 
@@ -84,19 +83,15 @@ cdn6 <- cdn5 %>% filter(specialty %in% cardiology_list)
 # create new dataframe 
 dt2 <- rbind(cdf5, cdn6)
 
-
 # create a list from  ID 
 patient_split <- split(dt2, dt2$jc_uid)
 
-mtcars[which(mtcars[,1]>1),]
-
 # return a dataframe only if the rows is greater one 
-
-
 get_row <- function(c){
   t <- dim(c)[1]
   return(t)
 }
+
 cond <- sapply(patient_split, function(x) get_row(x) > 1)
 rc <- patient_split[cond]
 
@@ -129,5 +124,4 @@ colnames(t) <- "visit_difference"
 t2 <- t %>% filter(t < 365)
 summary(t2)
 
-# patient_split$JCcb6601 %>% arrange(date_num)
-# return only 
+
