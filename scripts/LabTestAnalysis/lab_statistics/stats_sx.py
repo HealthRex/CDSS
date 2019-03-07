@@ -8,7 +8,7 @@ import numpy as np
 import pickle
 
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
-
+from scripts.LabTestAnalysis.machine_learning.ml_utils import map_lab
 
 pd.set_option('display.width', 500)
 pd.set_option('display.max_columns', 500)
@@ -64,13 +64,13 @@ class Stats_Plotter():
         if data_source == 'Stanford' and lab_type == 'panel':
             self.all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS  # [x[0] for x in labs_and_cnts]
         elif data_source == 'Stanford' and lab_type == 'component':
-            self.all_labs = STRIDE_COMPONENT_TESTS_common#STRIDE_COMPONENT_TESTS
+            self.all_labs = STRIDE_COMPONENT_TESTS_common#
         elif data_source == 'UMich' and lab_type == 'panel':
             self.all_labs = UMICH_TOP_PANELS
         elif data_source == 'UMich' and lab_type == 'component':
-            self.all_labs = UMICH_TOP_COMPONENTS_common#UMICH_TOP_COMPONENTS
+            self.all_labs = UMICH_TOP_COMPONENTS_common#
         elif data_source == 'UCSF' and lab_type == 'component':
-            self.all_labs = UCSF_TOP_COMPONENTS_common #UCSF_TOP_COMPONENTS
+            self.all_labs = UCSF_TOP_COMPONENTS_common #
         elif data_source == 'UCSF' and lab_type == 'panel':
             self.all_labs = UCSF_TOP_PANELS
 
@@ -94,17 +94,8 @@ class Stats_Plotter():
         cached_result_foldername = os.path.join(stats_folderpath, 'Fig1_Normality_Saturations/')
         if not os.path.exists(cached_result_foldername):
             os.mkdir(cached_result_foldername)
-        # cached_result_filename = 'Normality_Saturations_%s.csv' % self.lab_type
-        # cached_result_path = os.path.join(cached_result_foldername, cached_result_filename)
-
 
         if os.path.exists(cached_result_foldername + 'lab2cnt.csv') and use_cached_fig_data:
-            # lab2stats = pickle.load(open(cached_result_path, 'r'))
-            # lab2stats_pd = pd.read_csv(cached_result_path)
-            # lab2stats_pd = lab2stats_pd.set_index('lab')
-            # lab2stats_pd.columns = lab2stats_pd.columns.astype(int)
-            #
-            # lab2stats = lab2stats_pd.to_dict(orient='index')
             lab2cnt_pd = pd.read_csv(cached_result_foldername + 'lab2cnt.csv', keep_default_na=False)\
                 .set_index('lab')
             lab2cnt_pd.columns = lab2cnt_pd.columns.astype(int)
@@ -329,14 +320,14 @@ class Stats_Plotter():
     refactoring
     '''
 
-    def draw__Confusion_Metrics(self, statsByLab_folderpath, labs, result_label='all_labs',
+    def draw__Diagnostic_Metrics(self, statsByLab_folderpath, labs, result_label='all_labs',
                                 targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False):
         '''
         Drawing Figure 3 in the main text.
 
         :return:
         '''
-        print 'draw__Confusion_Metrics for', labs, ' with label %s...'%result_label
+        print 'draw__Diagnostic_Metrics for', labs, ' with label %s...'%result_label
         # df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv' % self.lab_type,
         #                  keep_default_na=False)
         labs_stats_filepath = os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
@@ -347,13 +338,13 @@ class Stats_Plotter():
 
         df = df[df['lab'].isin(labs)]
 
-        cached_foldername = 'Fig3_Confusion_Metrics/'
+        cached_foldername = 'Fig3_Diagnostic_Metrics/'
         cached_folderpath = os.path.join(os.path.join(statsByLab_folderpath, cached_foldername))
 
-        cached_tablename = 'Confusion_Metrics_%ss_PPV_%.2f__%s.csv'%(self.lab_type, targeted_PPV, result_label)
+        cached_tablename = 'Diagnostic_Metrics_%ss_PPV_%.2f__%s.csv'%(self.lab_type, targeted_PPV, result_label)
         cached_tablepath = os.path.join(cached_folderpath, cached_tablename)
 
-        cached_figurename = 'Confusion_Metrics_%ss_PPV_%.2f_ind__%s.png'%(self.lab_type, targeted_PPV, result_label)
+        cached_figurename = 'Diagnostic_Metrics_%ss_PPV_%.2f_ind__%s.png'%(self.lab_type, targeted_PPV, result_label)
         cached_figurepath = os.path.join(cached_folderpath, cached_figurename)
 
         if not os.path.exists(cached_folderpath):
@@ -362,26 +353,15 @@ class Stats_Plotter():
         if os.path.exists(cached_tablepath) and use_cached_fig_data:
             # lab2stats = pickle.load(open(cached_result_path, 'r'))
             df_toplots = pd.read_csv(cached_tablepath, keep_default_na=False)
-            print df_toplots
+            # print df_toplots
 
         else:
-
-            # labs_and_cnts = stats_utils.get_top_labs_and_cnts(self.lab_type)
-
-            # labs_and_cnts.append(['LABCBCD', stats_utils.query_lab_cnt(lab='LABCBCD',
-            #                                                            time_limit=['2014-01-01', '2016-12-31'])])
-
-            # df = df[df['lab'].isin(labs)]
-
 
             if self.data_source == 'Stanford':
                 # if 'total_vol' not in df.columns.values.tolist():
                 # Stanford data, scaled by vol
                 df['total_vol'] = df['total_cnt']
-                #     df['total_vol'] =                            df['2014 2stHalf count'] + \
-                #                         df['2015 1stHalf count'] + df['2015 2stHalf count'] + \
-                #                         df['2016 1stHalf count'] + df['2016 2stHalf count'] + \
-                #                         df['2017 1stHalf count']
+
             elif self.data_source == 'UCSF':
                 import stats_database
                 if self.lab_type == 'panel':
@@ -436,7 +416,7 @@ class Stats_Plotter():
             df['predicted_normal_vol'] = df['all_positive'] * df['total_vol']
 
             if result_label == 'important_components':
-                from scripts.LabTestAnalysis.machine_learning.ml_utils import map_lab
+
 
                 if self.data_source == 'UMich' or self.data_source == 'UCSF':
                     df['lab'] = df['lab'].apply(lambda x: map_lab(x, self.data_source, self.lab_type, map_type='from_src'))
@@ -504,7 +484,7 @@ class Stats_Plotter():
                 df_toshow.loc[df_toshow['Lab Test'] == 'Calcium Ionized', 'medicare'] = 13.73
                 df_toshow.loc[df_toshow['Lab Test'] == 'Heparin', 'medicare'] = 16.16
 
-                print df_toshow
+                # print df_toshow
                 df_toshow = df_toshow.rename(columns={'medicare': 'Medicare', 'chargemaster': 'Chargemaster'})
 
                 df_toshow['Medicare'] = df_toshow['Medicare'].apply(lambda x: '$%s' % x if x != '-' else x)
@@ -664,35 +644,11 @@ class Stats_Plotter():
             key = columns[i]
             pre_sum = pre_sums[i]
 
-            # if not scale_by:
-            #     cur_cnt = pre_sum
-            # elif scale_by == 'pat':
-            #     cur_cnt = float(pre_sum)/stats_utils.NUM_DISTINCT_PATS
-            # elif scale_by == 'enc':
-            #     cur_cnt = float(pre_sum)/stats_utils.NUM_DISTINCT_ENCS
-
-            # if not to_normalize:
-            #     cur_cnt = pre_sum * scale
-            # else:
-            #     cur_cnt = pre_sum / total_sum
-            #
-
             lab_descriptions['LABTSH'] = 'TSH'
             lab_descriptions['LABESRP'] = 'Sedimentation Rate'
             lab_descriptions['LABCBCD'] = 'CBC w/ Diff'
             lab_descriptions['LABPTT'] = 'PTT'
-            # lab_descriptions['LABAGALA'] =
-            # lab_descriptions['LABEP1'] =
-            # lab_descriptions['LABYCP'] = 'C - PEPTIDE, SERUM'
-            # lab_descriptions['LABAFP'] =
-            # lab_descriptions['LABSPIE'] =
-            # lab_descriptions['LABUPIE'] =
-            # lab_descriptions['LABYHISTS'] =
             lab_desciption = lab_descriptions.get(lab, lab)
-
-
-
-
 
             if labeling:
                 plt.barh([lab_desciption], pre_sum, color=colors[i], alpha=alphas[i], label=key)
@@ -705,7 +661,6 @@ class Stats_Plotter():
 
             if cur_cnt < 400:
                 return
-            # percentages = ', '.join('%.0f'%(x / float(tot_cnt)*100) + '%' for x in time_since_last_order_binned.values())
             percentage = '%.0f' % (time_since_last_order_binned['< 24 hrs'] / float(tot_cnt) * 100) + '%'
             print 'lab', lab, 'lab_ind', lab_ind
             ax.text(cur_cnt / 2. - 100, lab_ind - 0.15, percentage, fontsize=10, fontweight='bold', color='white')
@@ -715,7 +670,6 @@ class Stats_Plotter():
             '''
             if lab == 'LABMETB':
                 pass
-                # ax.text(cur_cnt / 2. - 100, lab_ind - 0.15, '< 24 hrs', fontsize=10, fontweight='bold', color='white')
             pass
 
     def draw__Order_Intensities(self, stats_folderpath, labs,
@@ -803,7 +757,6 @@ class Stats_Plotter():
 
             df_res.to_csv(cached_result_path, index=False)
 
-        # quit()
         print lab2stats
         labs_ordered = sorted(labs, key=lambda x: lab2stats[x]['< 24 hrs'], reverse=True) #< 24 hrs
 
@@ -832,16 +785,6 @@ class Stats_Plotter():
 
                     elif scale_method == 'by_scale':
                         time_since_last_order_binned[time] = cnt*scale
-                # use_new_scheme = False
-                # if use_new_scheme:
-                #     time_since_last_order_binned[columns[0]] = time_since_last_order_binned['< 1 day']
-                #     time_since_last_order_binned[columns[1]] = time_since_last_order_binned['1-3 days']
-                #     time_since_last_order_binned[columns[2]] = time_since_last_order_binned['3-7 days'] + time_since_last_order_binned['> 7 days']
-                #
-                #     del time_since_last_order_binned['< 1 day']
-                #     del time_since_last_order_binned['1-3 days']
-                #     del time_since_last_order_binned['3-7 days']
-                #     del time_since_last_order_binned['> 7 days']
 
                 if i == 0:
                     self.plot_order_intensities_barh(lab, time_since_last_order_binned,
@@ -887,7 +830,8 @@ class Stats_Plotter():
             plt.clf()
 
 
-    def draw__stats_Curves(self, statsByLab_folderpath, labs, curve_type="ROC", algs=['random-forest'], result_label=None):
+    def draw__stats_Curves(self, statsByLab_folderpath, labs, curve_type="ROC", algs=['random-forest'], result_label=None,
+                           include_baseline=True):
         result_foldername = 'Fig_stats_Curves'
         if result_label:
             result_foldername += '_' + result_label
@@ -919,13 +863,7 @@ class Stats_Plotter():
             '''
             Getting p-values is slow
             '''
-            # if self.lab_type=='panel' and self.data_source=='UCSF':
-            #     from scripts.LabTestAnalysis.machine_learning.ml_utils import map_lab
-            #     lab = map_lab(lab=lab.replace('-','/'), data_source=self.data_source,
-            #                   lab_type=self.lab_type, map_type='from_src')
-            #     self.lab_descriptions = stats_utils.get_lab_descriptions(data_source='Stanford',
-            #                   lab_type=self.lab_type)
-            #     print lab
+
             xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
                 = stats_utils.get_curve_onelab(lab,
                                                all_algs=algs,
@@ -942,21 +880,23 @@ class Stats_Plotter():
             i, j = i_s[ind], j_s[ind]
             plt.subplot2grid((row, col), (i, j))
 
-            # plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
-            plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best), color='orange')
+            if include_baseline:
+                plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
+
             dash_num = 20
             plt.plot(np.linspace(0, 1, num=dash_num), np.linspace(0, 1, num=dash_num), color='lightblue',
                      linestyle='--')
+
+            plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best), color='orange')
+
             plt.xlim([0,1])
             plt.ylim([0,1])
             plt.xticks([])
             plt.yticks([])
-            plt.xlabel(self.lab_descriptions.get(lab))
+
+            plt.xlabel(self.lab_descriptions.get(lab, lab))
             plt.legend()
 
-        # scores_diffs_sorted = sorted(scores_diffs.items(), key=lambda x:x[1])[::-1]
-        # top_labs = [x[0] for x in scores_diffs_sorted[:35]]
-        # print top_labs
 
         plt.tight_layout()
         plt.savefig(result_figpath)
@@ -1001,7 +941,7 @@ class Stats_Plotter():
 
         if use_cache and os.path.exists(result_tablepath):
             df_twomethods = pd.read_csv(result_tablepath, keep_default_na=False)
-            print df_twomethods
+            # print df_twomethods
             savable_fractions_baseline1 = stats_utils.pandas2dict(df_twomethods, key='lab', val='savable_fraction_baseline1')
             savable_fractions_baseline2 = stats_utils.pandas2dict(df_twomethods, key='lab',
                                                                   val='savable_fraction_baseline2')
@@ -1109,19 +1049,8 @@ class Stats_Plotter():
 
 
     def plot_cartoons(self, ml_folderpath):
-        # try:
-        #     df = pd.read_csv('RF_important_features_%ss.csv'%self.lab_type, keep_default_na=False)
-        # except:
-        #     write_importantFeatures(self.lab_type)
 
-        # labs = df.sort_values('score 1', ascending=False)['lab'].values.tolist()[:15]
-        # print labs
-
-
-        # lab = 'WBC'
         alg = 'random-forest'
-
-
 
         labs = ['LABPTT', 'LABLDH', 'LABTNI']
         local_lab_descriptions = {'LABPTT':"PTT PARTIAL\nTHROMBOPLASTIN TIME\n",
@@ -1204,48 +1133,7 @@ class Stats_Plotter():
                                                lab_type=self.lab_type,
                                                curr_version=self.curr_version)
         return
-        # data_folderpath = '../machine_learning/data-%s-%s-10000-episodes'%(self.data_source,self.lab_type)
-        # result_folderpath = data_folderpath.replace('machine_learning', 'lab_statistics')
-        # all_rows = []
-        # num_rf_best = 0
-        #
-        # # if self.lab_type == 'component':
-        # #     all_labs = STRIDE_COMPONENT_TESTS
-        # # elif self.lab_type == 'panel':
-        # #     all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-        # # elif self.lab_type == 'UMich':
-        # #     all_labs = UMICH_TOP_COMPONENTS
-        #
-        # for lab in self.all_labs: #TODO
-        #     df = pd.read_csv(data_folderpath + '/%s/%s-normality-prediction-report.tab'
-        #         %(lab,lab), sep='\t', skiprows=1, keep_default_na=False)
-        #
-        #     best_row = df['roc_auc'].values.argmax()
-        #     if best_row == 2:
-        #         num_rf_best += 1
-        #
-        #     best_row = 2#df['roc_auc'].values.argmax()
-        #     best_model = df.ix[best_row, 'model']
-        #     best_model_split = best_model.split(',')
-        #
-        #     #best_alg = best_model_split[0][:best_model_split[0].find('(')]
-        #     top_1_feature = best_model_split[1][best_model_split[1].find('[')+1:].strip()
-        #     featu1, score1 = stats_utils.split_features(top_1_feature)
-        #
-        #     top_2_feature = best_model_split[2].strip()
-        #     featu2, score2 = stats_utils.split_features(top_2_feature)
-        #
-        #     top_3_feature = best_model_split[3].strip()
-        #     featu3, score3 = stats_utils.split_features(top_3_feature)
-        #
-        #     curr_row = [lab, featu1, score1, featu2, score2, featu3, score3]
-        #
-        #     all_rows.append(curr_row)
-        #
-        # print "Total number of labs:", len(all_rows), "num of RF best:", (num_rf_best)
-        #
-        # result_df = pd.DataFrame(all_rows, columns=['lab', 'feature 1', 'score 1', 'feature 2', 'score 2','feature 3', 'score 3'])
-        # result_df.to_csv(result_folderpath + '/RF_important_features_%ss.csv'%self.lab_type, index=False)
+
 
     def print_HosmerLemeshowTest():
         labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
@@ -1375,7 +1263,7 @@ class Stats_Plotter():
         summary_filename = 'summary-stats-bestalg-fixTrainPPV.csv'
         summary_filepath = os.path.join(statsByLab_folderpath, summary_filename)
         df = pd.read_csv(summary_filepath, keep_default_na=False)
-        print df.shape
+        # print df.shape
         df = df[['lab','targeted_PPV_fixTrainPPV','PPV']]
         df = df[df['PPV']!='']
 
@@ -1388,7 +1276,7 @@ class Stats_Plotter():
         result_figurepath = os.path.join(result_folderpath, result_figurename)
         labs = df['lab'].values.tolist()
 
-        print df['targeted_PPV_fixTrainPPV'].values.tolist()
+        # print df['targeted_PPV_fixTrainPPV'].values.tolist()
         target_PPVs = df['targeted_PPV_fixTrainPPV'].values.tolist()
         true_PPVs = [float(x) for x in df['PPV'].values.tolist() if x!='']
 
@@ -1404,10 +1292,6 @@ class Stats_Plotter():
 
         plt.xlabel('Targetd PPV')
         plt.ylabel('Actual PPV')
-
-        import adjust_text
-
-        # adjust_text.adjust_text(texts)
 
         plt.savefig(result_figurepath)
 
@@ -1528,7 +1412,7 @@ class Stats_Plotter():
         df['predicted_normal'] = (df['true_positive'] + df['false_positive']) / df['num_test_episodes']
 
         df['description'] = df['lab'].apply(lambda x: lab_descriptions.get(x, x))
-        print df[['description', 'predicted_normal']].sort_values(['predicted_normal'], ascending=False).to_string(index=False)
+        # print df[['description', 'predicted_normal']].sort_values(['predicted_normal'], ascending=False).to_string(index=False)
 
         predicted_normal_fractions = np.linspace(0, 1, num=11)
         nums_labs = []
@@ -1744,8 +1628,8 @@ class Stats_Plotter():
             scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
             scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
 
-            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='gray', label="Abnormal")
-            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='black', label="Normal")
+            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='red', label="Abnormal") #gray
+            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='green', label="Normal") #black
 
             plt.legend(fontsize=12)
 
@@ -1763,58 +1647,7 @@ class Stats_Plotter():
         else:
             plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s.png' % lab))
 
-    # def logistic_regression(self, lab='LABLDH'):
-    #     statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
-    #
-    #     ml_folderpath = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
-    #
-    #     from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
-    #     fm_io = FeatureMatrixIO()
-    #     df_train = fm_io.read_file_to_data_frame(ml_folderpath + "/%s/%s-normality-train-matrix-processed.tab" % (lab,lab))
-    #     df_train = df_train[['all_components_normal', 'order_time', 'pat_id']]
-    #     print df_train.head()
 
-    # def compare_accuracy(self, lab='LABBUN'):
-    #     statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-Stanford-panel-10000-episodes/'
-    #
-    #     ml_folderpath = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
-    #
-    #     plt.figure(figsize=(5, 4))
-    #     df = pd.read_csv(ml_folderpath + "/%s/baseline_comparisons.csv"
-    #                      % (lab), keep_default_na=False)
-    #     df['predict_label'] = df['predict'].apply(lambda x: 1 if x>=0.5 else 0)
-    #     # accuracy_baseline = df['']
-    #     accuracy_baseline = (df['predict_label']==df['actual']).sum()/float(df.shape[0])
-    #     # print accuracy_baseline
-    #
-    #     thres = 0.44
-    #     alg = 'random-forest'
-    #     df = pd.read_csv(ml_folderpath + "/%s/%s/direct_comparisons.csv"
-    #                      % (lab, alg), keep_default_na=False)
-    #
-    #
-    #
-    #     df_train = pd.read_csv(ml_folderpath + "/%s/%s/direct_comparisons_train.csv"
-    #                      % (lab, alg), keep_default_na=False)
-    #     best_thres = 0
-    #     max_accuracy = 0
-    #     for thres in np.linspace(0,1,num=101):
-    #         df_train['predict_label'] = df_train['predict'].apply(lambda x: 1 if x >= thres else 0)
-    #         # accuracy_baseline = df['']
-    #         accuracy_train = (df_train['predict_label'] == df_train['actual']).sum() / float(df_train.shape[0])
-    #         if accuracy_train > max_accuracy:
-    #             max_accuracy = accuracy_train
-    #             best_thres = thres
-    #
-    #     # print lab, best_thres, max_accuracy
-    #     df['predict_label'] = df['predict'].apply(lambda x: 1 if x >= best_thres else 0)
-    #     # accuracy_baseline = df['']
-    #     accuracy_rf = (df['predict_label'] == df['actual']).sum() / float(df.shape[0])
-    #     # print accuracy_rf
-    #
-    #     print lab, accuracy_baseline, accuracy_rf
-    #
-    #     return accuracy_baseline, accuracy_rf
 
     '''
     For each (train-)PPV wanted, each vital-day dataset
@@ -1921,7 +1754,7 @@ class Stats_Plotter():
         summary_best_filename = 'summary-stats-%s-%s.csv' % ('bestalg', thres_mode)
         summary_best_filepath = os.path.join(stats_results_folderpath, summary_best_filename)
         df_best_alg = pd.read_csv(summary_best_filepath, keep_default_na=False)
-        print df_best_alg.head()
+        # print df_best_alg.head()
 
         '''
         Get Baseline results for each lab
@@ -2135,7 +1968,7 @@ class Stats_Plotter():
         if 'plot_cartoons' in figs_to_plot:
             self.plot_cartoons(os.path.join(ml_folderpath, statsByDataSet_foldername))
 
-        if 'Confusion_Metrics' in figs_to_plot:
+        if 'Diagnostic_Metrics' in figs_to_plot:
             top_panels_cnts = stats_utils.get_top_labs_and_cnts(top_k=20)
             top_panels = [x[0] for x in top_panels_cnts]
             panels = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels)) + ['LABK', 'LABNA', 'LABLIDOL'] #, 'LABCR', 'LABPTT', 'LABCAI'
@@ -2143,25 +1976,25 @@ class Stats_Plotter():
                           'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
             important_components = stats_utils.get_important_labs('component')
 
-            result_label = params.get('Confusion_Metrics', 'all_labs')
+            result_label = params.get('Diagnostic_Metrics', 'all_labs')
 
             if self.data_source == 'Stanford':
                 if self.lab_type == 'panel':
-                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
+                    self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
                                             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
                 else:
-                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
+                    self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
                                             targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
             elif self.data_source == 'UCSF':
-                self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
+                self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
                                         targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
 
             elif self.data_source == 'UMich':
                 if self.lab_type == 'component':
-                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label, #important_components
+                    self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label, #important_components
                                             targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False)
                 else:
-                    self.draw__Confusion_Metrics(statsByDataSet_folderpath, labs=self.all_labs,
+                    self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs,
                                                  result_label=result_label,
                                                  targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False)
 
@@ -2176,7 +2009,7 @@ class Stats_Plotter():
             self.draw_histogram_transfer_modeling()
 
         if 'Full_Cartoon' in figs_to_plot:
-            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=True)
+            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False)
 
         if 'write_importantFeatures' in figs_to_plot:
             self.write_importantFeatures()
@@ -2319,77 +2152,101 @@ def main_full_analysis(curr_version):
             if data_source=='Stanford' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=['Full_Cartoon', # Figure 1
                                                                          'Order_Intensities', # Figure 2
-                                                                         'Confusion_Metrics', # Table 1 & SI Table
+                                                                         'Diagnostic_Metrics', # Table 1 & SI Table
                                                                          'ROC',  # SI Figure
                                                                          'write_importantFeatures' # SI Table
                                                                          ],
-                                                           params={'Confusion_Metrics': 'all_labs'}) # TODO ['top_15', 'all_labs']
+                                                           params={'Diagnostic_Metrics': 'all_labs'}) # TODO ['top_15', 'all_labs']
 
             elif data_source=='Stanford' and lab_type=='component':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
                                                                          'ROC',  # SI Figure
                                                                          'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Confusion_Metrics': 'important_components'})  # TODO ['common_components', 'all_labs']
+                                                           params={'Diagnostic_Metrics': 'important_components'})  # TODO ['common_components', 'all_labs']
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Diagnostic_Metrics': 'all_labs'})
 
             elif data_source=='UMich' and lab_type=='panel':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # SI Table
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # SI Table
                                                                          'ROC',  # SI Figure
                                                                          'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Confusion_Metrics': 'all_labs'})  # TODO
+                                                           params={'Diagnostic_Metrics': 'all_labs'})  # TODO
 
             elif data_source=='UMich' and lab_type=='component':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
                                                                          'ROC',  # SI Figure
                                                                          'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Confusion_Metrics': 'important_components'})  # TODO
+                                                           params={'Diagnostic_Metrics': 'important_components'})  # TODO
+
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Diagnostic_Metrics': 'all_labs'})  # TODO
 
             elif data_source=='UCSF' and lab_type=='panel':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # SI Table
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # SI Table
                                                                          'ROC',  # SI Figure
                                                                          'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Confusion_Metrics': 'all_labs'})  # TODO
+                                                           params={'Diagnostic_Metrics': 'all_labs'})  # TODO
 
             elif data_source=='UCSF' and lab_type=='component':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Confusion_Metrics',  # Figure 3 & SI Table
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
                                                                          'ROC',  # SI Figure
                                                                          'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Confusion_Metrics': 'important_components'})  # TODO
+                                                           params={'Diagnostic_Metrics': 'important_components'})  # TODO
 
-    # main_transfer_model(curr_version)
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
+                                                                         'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
+                                                                         ],
+                                                           params={'Diagnostic_Metrics': 'all_labs'})  # TODO
+
+    main_transfer_model(curr_version)
 
 
-def main_one_analysis():
-    plotter = Stats_Plotter(data_source="UCSF", lab_type='panel')
-    # plotter.main(figs_to_plot=['Normality_Saturations'])
-    plotter.main_generate_lab_statistics()
-    plotter.main_generate_stats_figures_tables(figs_to_plot=['ROC'],
-                                               params={'Confusion_Metrics': 'important_components'})
-    # plotter.write_importantFeatures()
+def main_one_analysis(curr_version):
+    list_of_figuretables = [
+        'ROC', 'PRC',
+        'Normality_Saturations',  # Normal rate saturates to 100% as number of consecutive normals accumulate.
+        'Order_Intensities',  # Volumes of repeated test
+        'plot_cartoons',  # all cartoons
+        'write_importantFeatures',
 
+        'Diagnostic_Metrics',  # After picking a threshold
+        'Potential_Savings',  # After scaled by chargemaster/medicare
+
+        'Model_Transfering',  #
+        'Comparing_Components',  #
+    ]
     '''
     Params
     '''
-    params_Confusion_Metrics = ['all_labs', 'important_components']
 
-    # 'ROC', 'PRC',
+    params = {
+        'Diagnostic_Metrics': ['all_labs', 'important_components']
+    }
 
-    # 'Confusion_Metrics' 'Potential_Savings' plot_cartoons Comparing_Components 'plot_cartoons' 'Model_Transfering
-    # Normality_Saturations Order_Intensities Full_Cartoon
+    figs_to_plot = []
 
-    # pairs = []
-    # for lab in stats_utils.NON_PANEL_TESTS_WITH_GT_500_ORDERS:
-    #     pairs.append(compare_accuracy(lab))
-    # plt.scatter(pairs)
-    # plt.savefig('accuracies.png')
+    plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
+    plotter.main_generate_stats_figures_tables(figs_to_plot=figs_to_plot,
+                                               params={'Diagnostic_Metrics': 'important_components'})
 
-    # plotter.plot_one_curve(include_threshold_colors=False)
+    # plotter.main(figs_to_plot=['Normality_Saturations'])
+    # plotter.main_generate_lab_statistics()
 
-    # logistic_regression()
 
 if __name__ == '__main__':
-    main_full_analysis(curr_version='10000-episodes-lastnormal')
+    curr_version = '10000-episodes-lastnormal'
+
+    main_one_analysis(curr_version=curr_version)
+    # main_full_analysis(curr_version=curr_version)
