@@ -24,6 +24,7 @@ FLOWSHEET_NAMES = \
     "Resp",
     "Temp",
     "Urine",
+    "Weight_kg"
 );
 # How far to look back and forward in time for flowsheet data
 FLOWSHEET_PRE_TIME_DELTA = timedelta(-1); # Use up to the past day of flowsheet data
@@ -48,7 +49,7 @@ LAB_POST_TIME_DELTA = timedelta(+1); # Look into the first day of admission data
 
 # Threshold volumes and Checkpoint Times to note accumulated isotonic IV Fluids
 IVF_THRESHOLD_VOLUMES = [500,1000,2000,3000,4000,5000,6000,7000,8000,9000,10000];  # Volumes (mL) of fluid interested in time until encountering
-IVF_CHECKPOINT_TIMES = [1*60*60, 2*60*60, 4*60*60, 12*60*60, 24*60*60, 48*60*60, 72*60*60];  # Time checkpoints (seconds) interested in accumulated fluid volume by that time
+IVF_CHECKPOINT_TIMES = [1*60*60, 2*60*60, 3*60*60, 4*60*60, 12*60*60, 24*60*60, 48*60*60, 72*60*60];  # Time checkpoints (seconds) interested in accumulated fluid volume by that time
 
 def main(argv=None):
     timer = time.time();
