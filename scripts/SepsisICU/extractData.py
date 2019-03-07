@@ -33,6 +33,7 @@ FLOWSHEET_NAMES = \
     "Resp",
     "Temp",
     "Urine",
+    "Weight_kg"
 );
 
 LAB_BASE_NAMES = \
@@ -64,8 +65,8 @@ def main(argv):
     #patientEpisodes = extractor.parsePatientEpisodeFile(stdOpen("patientEpisodes.tab"), list()); # Read from prior file if main query already done to avoid expensive query
     patientIds = set(columnFromModelList(patientEpisodes, "patient_id"));
 
-    extractor.queryFlowsheet(stdOpen("Flowsheet.tab.gz","w"), FLOWSHEET_NAMES, patientIds);
-    extractor.queryLabResults(stdOpen("LabResults.tab.gz","w"), LAB_BASE_NAMES, patientIds);
+    extractor.queryFlowsheet(FLOWSHEET_NAMES, patientIds, stdOpen("Flowsheet.tab.gz","w"));
+    extractor.queryLabResults(LAB_BASE_NAMES, patientIds, stdOpen("LabResults.tab.gz","w"));
     
     # Look for specific IV fluid medication subset
     ivfMedIds = set();
@@ -221,15 +222,15 @@ def queryPatientEpisodes(outputFile, extractor):
             adt1.event_in = 'Admission' and
             adt1.pat_anon_id in
             (    -- Select any patient with any suspected sepsis related order (i.e., IV antibiotics or blood cultures)
-                -- select patient_id
-                -- from patient_item as pi
-                -- where pi.clinical_item_id in (%s)
-                -- except
-                -- -- Exclude any patient who has been on a primary surgery team
-                -- select patient_id
-                -- from patient_item
-                -- where clinical_item_id in (%s)
-                -12434586418575,-12432455207729,-12428492282572,-12428492282572,-12424048595257,-12414081679705
+                select patient_id
+                from patient_item as pi
+                where pi.clinical_item_id in (%s)
+                except
+                -- Exclude any patient who has been on a primary surgery team
+                select patient_id
+                from patient_item
+                where clinical_item_id in (%s)
+                -- -12434586418575,-12432455207729,-12428492282572,-12428492282572,-12424048595257,-12414081679705
             ) and
             
             adt1.pat_enc_csn_anon_id = adt2.pat_enc_csn_anon_id and
