@@ -7,15 +7,18 @@ from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 
 class FeatureRemover(TransformerMixin):
-    def __init__(self):
+    '''
+    What: Remove specific features from a raw matrix
+    '''
+    def __init__(self, features_to_remove=[]):
+        self.features_to_remove = features_to_remove
         pass
 
-    def fit(self, X, y=None):
+    def fit(self):
         return self
 
     def transform(self, X):
-        return X
-
+        return X.drop(self.features_to_remove, axis=1)
 
 class Impute_Features(TransformerMixin):
     def fit(self, X, y=None):
