@@ -67,7 +67,7 @@ def main(argv):
 
     extractor.queryFlowsheet(FLOWSHEET_NAMES, patientIds, stdOpen("Flowsheet.tab.gz","w"));
     extractor.queryLabResults(LAB_BASE_NAMES, patientIds, stdOpen("LabResults.tab.gz","w"));
-    
+
     # Look for specific IV fluid medication subset
     ivfMedIds = set();
     for row in extractor.loadMapData("Medication.IVFluids"):
@@ -102,16 +102,23 @@ def main(argv):
     extractor.queryClinicalItemsByName(("RaceNativeAmerican",), patientIds, stdOpen("RaceNativeAmerican.tab","w"));
 
     # Extract out lists of ICD9 prefixes per disease category
-    icd9prefixesByDisease = dict();
+    icd_prefixesByDisease = dict();
     for row in extractor.loadMapData("CharlsonComorbidity-ICD9CM"):
         (disease, icd9prefix) = (row["charlson"],row["icd9cm"]);
-        if disease not in icd9prefixesByDisease:
-            icd9prefixesByDisease[disease] = list();
-        icd9prefixesByDisease[disease].append("^ICD9."+icd9prefix);
-    for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
+        if disease not in icd_prefixesByDisease:
+            icd_prefixesByDisease[disease] = list();
+        icd_prefixesByDisease[disease].append("^ICD9."+icd9prefix);
+
+    for row in extractor.loadMapData("CharlsonComorbidity-ICD10"):
+        (disease, icd10prefix) = (row["Category"], row["Code"]);
+        if disease not in icd_prefixesByDisease:
+            icd_prefixesByDisease[disease] = list();
+        icd_prefixesByDisease[disease].append("^ICD10." + icd10prefix + '.*'); # For ICD10, match the prefix
+
+    for disease, icd_prefixes in icd_prefixesByDisease.iteritems():
         disease = disease.translate(None," ()-/");   # Strip off punctuation
-        extractor.queryClinicalItemsByName(icd9prefixes, patientIds, stdOpen("Charlson."+disease+".tab","w"), operator="~*");
-    
+        extractor.queryClinicalItemsByName(icd_prefixes, patientIds, stdOpen("Charlson."+disease+".tab","w"), operator="~*");
+
     # Extract out lists of treatment team names per care category
     teamNameByCategory = dict();
     for row in extractor.loadMapData("TreatmentTeamGroups"):
