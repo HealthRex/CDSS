@@ -23,9 +23,6 @@ sql = """
          ordering_date_jittered DESC
 """
 
-# Run a Standard SQL query using the environment's default project
-df = client.query(sql).to_dataframe()
-
 # Run a Standard SQL query with the project set explicitly
 project_id = 'mining-clinical-decisions'
 df = client.query(sql, project=project_id).to_dataframe()
