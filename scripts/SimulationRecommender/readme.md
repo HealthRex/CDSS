@@ -24,14 +24,9 @@
 - sim_state_transition
 - sim_user 
 
-#### Shell Script to Dump DataTables (Jonathan Chen) 
-#### # !/bin/sh -x
-#### Define constants for connecting to database from which to dump tables.
-#### For example, if dumping from local database named test_database and accessing
-#### as user test_user, you would use the following lines:
-#### export DB_HOST=localhost
-#### export DB_DSN=test_database
-#### export DB_USER=test_user
+### Shell Script to Dump DataTables (Jonathan Chen) 
+
+#### Define constants for connecting to database from which to dump tables. For example, if dumping from local database named test_database and accessing as user test_user, you would use the following lines:
 export DB_HOST=localhost
 export DB_DSN=database
 export DB_USER=user
