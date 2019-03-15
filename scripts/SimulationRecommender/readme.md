@@ -25,11 +25,12 @@
 - sim_user 
 
 ### Shell Script to Dump DataTables (Jonathan Chen) 
+### Med Box directory 
 
 #### Define constants for connecting to database from which to dump tables. For example, if dumping from local database named test_database and accessing as user test_user, you would use the following lines:
-export DB_HOST=localhost
-export DB_DSN=database
-export DB_USER=user
+export DB_HOST=localhost <br />
+export DB_DSN=database <br />
+export DB_USER=user <br />
 
 #### Pipe the uncompressed data from gzip to psql to load to database.
 gzip -d -c clinical_item_category.dump.sql.gz | psql -h $DB_HOST -U $DB_USER $DB_DSN <br />
