@@ -47,26 +47,26 @@ BOX_CLIENT_SECRET = "BOX_API_CLIENT_SECRET" <br />
 BOX_ACCESS_TOKEN = "BOX_API_ACCESS_TOKEN" <br />
 BOX_STRIDE_FOLDER_ID = "BOX_STRIDE_FOLDER_ID" <br />
 
-LOCAL_PROD_DB_PARAM = {}
-LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'   # Database host. Localhost if running on your local computer. For AWS RDS instances, look for the "Endpoint" hostname, e.g. YourDatabaseIdentifier.cwyfvxgvic6c.us-east-1.rds.amazonaws.com
-LOCAL_PROD_DB_PARAM["DSN"] = 'medinfo'    # Specific database name hosted by the database server (e.g., medinfo)
-LOCAL_PROD_DB_PARAM["UID"] = 'postgres'
-LOCAL_PROD_DB_PARAM["PWD"] = "DB_PASSWORD" 
+LOCAL_PROD_DB_PARAM = {}  <br />
+LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'  <br />   
+LOCAL_PROD_DB_PARAM["DSN"] = 'medinfo'     <br />
+LOCAL_PROD_DB_PARAM["UID"] = 'postgres'  <br />
+LOCAL_PROD_DB_PARAM["PWD"] = "DB_PASSWORD"   <br />
 
 
-LOCAL_TEST_DB_PARAM = {}
-LOCAL_TEST_DB_PARAM["HOST"] = 'localhost'
-LOCAL_TEST_DB_PARAM["DSN"] = "DATABASE_NAME"
-LOCAL_TEST_DB_PARAM["UID"] = "DB_UID"
-LOCAL_TEST_DB_PARAM["PWD"] = "DB_PASSWORD"
+LOCAL_TEST_DB_PARAM = {}  <br />
+LOCAL_TEST_DB_PARAM["HOST"] = 'localhost'  <br />
+LOCAL_TEST_DB_PARAM["DSN"] = "DATABASE_NAME"  <br />
+LOCAL_TEST_DB_PARAM["UID"] = "DB_UID"  <br />
+LOCAL_TEST_DB_PARAM["PWD"] = "DB_PASSWORD"  <br />
 
 PATH_TO_CDSS = "/Users/jonc101/Documents/Biomedical_Data_Science/ui_server/CDSS/"; # Directory where this file is contained in
 
 TEST_RUNNER_VERBOSITY = 2
 
-DATASET_SOURCE_NAME = 'STRIDE'
-DATABASE_CONNECTOR_NAME = "psycopg2"
-SQL_PLACEHOLDER = "%s"
+DATASET_SOURCE_NAME = 'STRIDE'  <br />
+DATABASE_CONNECTOR_NAME = "psycopg2"  <br />
+SQL_PLACEHOLDER = "%s"  <br />
 
 
 #### Define constants for connecting to database from which to dump tables. For example, if dumping from local database named test_database and accessing as user test_user, you would use the following lines:
