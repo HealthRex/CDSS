@@ -25,7 +25,7 @@
 - sim_user 
 
 ### Shell Script to Dump DataTables (Jonathan Chen) 
-### Med Box directory 
+### Med Box directory [STRIDE-Inpatient-2008-2014]("https://stanfordmedicine.app.box.com")
 
 #### Define constants for connecting to database from which to dump tables. For example, if dumping from local database named test_database and accessing as user test_user, you would use the following lines:
 export DB_HOST=localhost <br />
