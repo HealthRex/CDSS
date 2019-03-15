@@ -31,21 +31,21 @@
 
 #### Configuring your Database and LocalEnv.py 
 
- LocalEnv.py is created dynamically by setup.sh, but if you don't need
-# to do any of the other steps in setup.sh (e.g. installing libraries,
-# initializing DB) it may be easier to just make a copy of this file
-# and name it LocalEnv.py before editing the actual values.
-#
-# medinfo/db/Env.py imports these DB variables, so all DB connections will
-# fail if these two environment variables are not defined.
-#
-# Other variables which are likely to vary between dev environments should
-# be added to this template file, then be given default values via setup.sh.
+ LocalEnv.py is created dynamically by setup.sh, but if you don't need <br />
+ to do any of the other steps in setup.sh (e.g. installing libraries, <br />
+ initializing DB) it may be easier to just make a copy of this file <br />
+ and name it LocalEnv.py before editing the actual values. <br />
 
-BOX_CLIENT_ID = "BOX_API_CLIENT_ID"
-BOX_CLIENT_SECRET = "BOX_API_CLIENT_SECRET"
-BOX_ACCESS_TOKEN = "BOX_API_ACCESS_TOKEN"
-BOX_STRIDE_FOLDER_ID = "BOX_STRIDE_FOLDER_ID"
+ medinfo/db/Env.py imports these DB variables, so all DB connections will <br />
+ fail if these two environment variables are not defined. <br />
+
+ Other variables which are likely to vary between dev environments should <br />
+ be added to this template file, then be given default values via setup.sh. <br />
+
+BOX_CLIENT_ID = "BOX_API_CLIENT_ID" <br />
+BOX_CLIENT_SECRET = "BOX_API_CLIENT_SECRET" <br />
+BOX_ACCESS_TOKEN = "BOX_API_ACCESS_TOKEN" <br />
+BOX_STRIDE_FOLDER_ID = "BOX_STRIDE_FOLDER_ID" <br />
 
 LOCAL_PROD_DB_PARAM = {}
 LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'   # Database host. Localhost if running on your local computer. For AWS RDS instances, look for the "Endpoint" hostname, e.g. YourDatabaseIdentifier.cwyfvxgvic6c.us-east-1.rds.amazonaws.com
