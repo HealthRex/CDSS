@@ -16,6 +16,7 @@ from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.naive_bayes import GaussianNB
 from sklearn.exceptions import ConvergenceWarning
 from xgboost import XGBClassifier
+from sklearn.neural_network import MLPClassifier
 import warnings
 
 from medinfo.common.Util import log
@@ -32,13 +33,14 @@ class SupervisedClassifier:
     ADABOOST = 'adaboost'
     SVM = 'svm'
     XGB = 'xgb'
+    NN = 'nn'
     GAUSSIAN_NAIVE_BAYES = 'gaussian-naive-bayes'
 
     # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
     # TODO(sbala): Neural Network: http://scikit-learn.org/stable/modules/neural_networks_supervised.html#neural-networks-supervised
     SUPPORTED_ALGORITHMS = [#DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST,
         #REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES
-        SVM, XGB
+        SVM, XGB, NN
     ]
 
     # Hyperparam search strategies.
@@ -98,6 +100,8 @@ class SupervisedClassifier:
             return self._describe_svm()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.XGB:
             return self._describe_xgb()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.NN:
+            return self._describe_nn()
         else:
             return 'SupervisedClassifier(%s, %s)' % (self._classes, self._hyperparams['algorithm'])
 
@@ -152,6 +156,10 @@ class SupervisedClassifier:
         params = self._params_xgb()
         return 'XGB(params=%s)' % params
 
+    def _describe_nn(self):
+        params = self._params_nn()
+        return 'NN(params=%s)' % params
+
     def algorithm(self):
         return self._hyperparams['algorithm']
 
@@ -188,7 +196,13 @@ class SupervisedClassifier:
         # Otherwise, define a decent initial value, based on algorithm.
         # If the hyperparam has a relevant search space, define it automatically.
         # Code sanitation note: please keep these conditions alphabetized =)
-        if hyperparam == 'adaboost_algorithm':
+        if hyperparam == 'activation':
+            # NN
+            self._hyperparams[hyperparam] = 'relu'
+            self._hyperparam_search_space[hyperparam] = [
+                'logistic', 'tanh', 'relu'
+            ]
+        elif hyperparam == 'adaboost_algorithm':
             # ADABOOST, DECISION_TREE
             self._hyperparams[hyperparam] = 'SAMME.R'
         elif hyperparam == 'algorithm':
@@ -232,6 +246,15 @@ class SupervisedClassifier:
             self._hyperparams[hyperparam] = 'auto'
             self._hyperparam_search_space[hyperparam] = [
                 0.1, 1, 10, 100
+            ]
+        elif hyperparam == 'hidden_layer_sizes':
+            # NN
+            self._hyperparams[hyperparam] = (32,)
+            self._hyperparam_search_space[hyperparam] = [
+                (8,),
+                (16,),
+                (32,),
+                (64,)
             ]
         elif hyperparam == 'hyperparam_strategy':
             # SUPPORTED_ALGORITHMS
@@ -343,8 +366,14 @@ class SupervisedClassifier:
             scorer = make_scorer(roc_auc_score, needs_threshold=True)
             self._hyperparams['scoring'] = scorer
         elif hyperparam == 'solver':
-            # LOGISTIC_REGRESSION
-            self._hyperparams[hyperparam] = 'saga'
+            # LOGISTIC_REGRESSION, NN
+            if self._hyperparams['algorithm'] == SupervisedClassifier.LOGISTIC_REGRESSION:
+                self._hyperparams[hyperparam] = 'saga'
+            elif self._hyperparams['algorithm'] == SupervisedClassifier.NN:
+                self._hyperparams[hyperparam] = 'adam'
+                self._hyperparam_search_space[hyperparam] = [
+                    'lbfgs', 'sgd', 'adam'
+                ]
         elif hyperparam == 'splitter':
             # DECISION_TREE
             self._hyperparams[hyperparam] = 'best'
@@ -377,6 +406,8 @@ class SupervisedClassifier:
             return self._params_svm()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.XGB:
             return self._params_xgb()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.NN:
+            return self._params_nn()
 
     def _params_regression(self):
         params = {}
@@ -491,6 +522,9 @@ class SupervisedClassifier:
         return self._model.get_params() # TODO sxu: come back later for a specific list of params?
 
     def _params_xgb(self):
+        return self._model.get_params()
+
+    def _params_nn(self):
         return self._model.get_params()
 
     def _maybe_reshape_y(self, y):
@@ -613,6 +647,8 @@ class SupervisedClassifier:
             self._train_svm(X, y)
         elif self._hyperparams['algorithm'] == SupervisedClassifier.XGB:
             self._train_xgb(X, y)
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.NN:
+            self._train_nn(X, y)
 
         return SupervisedClassifier.TRAINED
 
@@ -850,6 +886,19 @@ class SupervisedClassifier:
     def _train_regress_and_round(self, X, y):
         self._train_logistic_regression(X, y)
         self._tune_hyperparams_regress_and_round(X, y)
+
+    def _train_nn(self, X, y):
+        self._get_or_set_hyperparam('hidden_layer_sizes')
+        self._get_or_set_hyperparam('activation')
+        self._get_or_set_hyperparam('solver')
+
+        self._get_or_set_hyperparam('learning_rate')
+        self._get_or_set_hyperparam('max_iter')
+        self._get_or_set_hyperparam('scoring')
+        self._get_or_set_hyperparam('n_jobs')
+
+        self._tune_hyperparams(self._hyperparam_search_space, X, y)
+
 
     def _tune_hyperparams_regress_and_round(self, X, y):
         self._hyperparams['hyperparam_strategy'] = SupervisedClassifier.EXHAUSTIVE_SEARCH
