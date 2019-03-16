@@ -9,6 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.metrics import f1_score, roc_auc_score, make_scorer
+from sklearn.svm import SVC
 from sklearn.utils.validation import column_or_1d
 from sklearn.model_selection import StratifiedKFold, cross_val_score, GroupKFold
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
@@ -29,12 +30,14 @@ class SupervisedClassifier:
     REGRESS_AND_ROUND = 'regress-and-round'
     ADABOOST = 'adaboost'
     SVM = 'svm'
+    XGB = 'xgboost'
     GAUSSIAN_NAIVE_BAYES = 'gaussian-naive-bayes'
 
     # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
     # TODO(sbala): Neural Network: http://scikit-learn.org/stable/modules/neural_networks_supervised.html#neural-networks-supervised
-    SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST,
-        REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES
+    SUPPORTED_ALGORITHMS = [#DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST,
+        #REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES
+        SVM, XGB
     ]
 
     # Hyperparam search strategies.
@@ -90,6 +93,8 @@ class SupervisedClassifier:
             return self._describe_adaboost()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
             return self._describe_gaussian_naive_bayes()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.SVM:
+            return self._describe_svm()
         else:
             return 'SupervisedClassifier(%s, %s)' % (self._classes, self._hyperparams['algorithm'])
 
@@ -135,6 +140,10 @@ class SupervisedClassifier:
     def _describe_gaussian_naive_bayes(self):
         params = self._params_gaussian_naive_bayes()
         return 'GAUSSIAN_NAIVE_BAYES(priors=%s)' % params['priors']
+
+    def _describe_svm(self):
+        params = self._params_svm()
+        return 'SVM(params=%s)' % params
 
     def algorithm(self):
         return self._hyperparams['algorithm']
@@ -199,15 +208,33 @@ class SupervisedClassifier:
         elif hyperparam == 'cv':
             # SUPPORTED_ALGORITHMS
             self._hyperparams['cv'] = self._build_cv_generator(y)
+        elif hyperparam == 'degree':
+            # SVM, when kernel='poly'. TODO: in the future, do sub-case grid search as degree is only needed for poly
+            self._hyperparams[hyperparam] = 3
+            self._hyperparam_search_space[hyperparam] = [
+                0, 1, 2, 3, 4, 5, 6
+            ]
         elif hyperparam == 'dual':
             # LOGISTIC_REGRESSION
             self._hyperparams[hyperparam] = False
         elif hyperparam == 'fit_intercept':
             # LOGISTIC_REGRESSION
             self._hyperparams[hyperparam] = True
+        elif hyperparam == 'gamma':
+            # SVM, when non-linear kernel 'rbf', 'poly', 'sigmoid'
+            self._hyperparams[hyperparam] = 'auto'
+            self._hyperparam_search_space[hyperparam] = [
+                0.1, 1, 10, 100
+            ]
         elif hyperparam == 'hyperparam_strategy':
             # SUPPORTED_ALGORITHMS
             self._hyperparams[hyperparam] = SupervisedClassifier.STOCHASTIC_SEARCH
+        elif hyperparam == 'kernel':
+            # SVM
+            self._hyperparams[hyperparam] = 'rbf'
+            self._hyperparam_search_space[hyperparam] = [
+                'linear', 'poly', 'rbf', 'sigmoid'
+            ]
         elif hyperparam == 'learning_rate':
             # ADABOOST
             self._hyperparams[hyperparam] = 0.1
@@ -322,6 +349,11 @@ class SupervisedClassifier:
             self._hyperparams[hyperparam] = False
 
     def params(self):
+        '''
+        sx: This function is used after parameters were set.
+
+        :return:
+        '''
         if self._hyperparams['algorithm'] == SupervisedClassifier.LOGISTIC_REGRESSION:
             return self._params_regression()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.REGRESS_AND_ROUND:
@@ -334,6 +366,8 @@ class SupervisedClassifier:
             return self._params_adaboost()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
             return self._params_gaussian_naive_bayes()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.SVM:
+            return self._params_svm()
 
     def _params_regression(self):
         params = {}
@@ -443,6 +477,9 @@ class SupervisedClassifier:
         params['thetas'] = list(self._model.theta_[1,:])
         params['sigmas'] = list(self._model.sigma_[1,:])
         return params
+
+    def _params_svm(self):
+        return self._model.get_params() # TODO sxu: come back later for a specific list of params?
 
     def _maybe_reshape_y(self, y):
         # If necessary, reshape y from (n_samples, 1) to (n_samples, )
@@ -560,13 +597,10 @@ class SupervisedClassifier:
             self._train_adaboost(X, y)
         elif self._hyperparams['algorithm'] == SupervisedClassifier.GAUSSIAN_NAIVE_BAYES:
             self._train_gaussian_naive_bayes(X, y)
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.SVM:
+            self._train_svm(X, y)
 
         return SupervisedClassifier.TRAINED
-
-    def _train_svm(self, X, y):
-        # Define hyperparams.
-        # http://scikit-learn.org/stable/modules/svm.html#svm
-        pass
 
     def _train_gaussian_naive_bayes(self, X, y):
         # Define hyperparams.
@@ -671,6 +705,55 @@ class SupervisedClassifier:
         )
 
         # Tune hyperparams.
+        self._tune_hyperparams(self._hyperparam_search_space, X, y)
+
+    def _train_svm(self, X, y):
+        # Define hyperparams.
+        '''
+        List of parameters:
+        C: float, optional (default=1.0)
+            Penalty parameter C of the error term.
+        kernel: string, optional (default='rbf')
+            must be one of 'linear', 'poly', 'rbf', 'sigmoid', 'precomputed', or a callable.
+        degree : int, optional (default=3)
+            Degree of the polynomial kernel function ('poly'). Ignored by all other kernels.
+        gamma: float, optional (default='auto').
+            Kernel coefficient for 'rbf', 'poly', 'sigmoid'.
+        coef0: float, optional (default=0.)
+            Independent term in kernel func.
+        shrinking: boolean, optional (default=True)
+            Whether to use the shrinking heuristic.
+        probability: boolean, optional (default=False)
+            Whether to enable probability estimates (could slow down fit).
+        tol: float, optional (defualt=1e-3)
+            Tolerance for stopping criterion.
+        cache_size: float, optional.
+            Specify the size of the kernel cache (in MB).
+        class_weight: {dict, 'balanced'}, optional.
+            'balanced' mode use automatically: n_samples / (n_classes * np.bincount(y))
+        verbose: bool, default: False
+        max_iter: int, optional (default=1)
+            Hard limit on iterations within solver, or -1 for no limit.
+        decision_function_shape: 'ovo', 'ovr' (default)
+            Whether to return a one-vs-rest (ovr) of shape (n_samples, n_classes) as all other classes, or the original
+            one-vs-one (ovo) decision func of libsvm which has shape (n_sample, n_classes * (n_classes-1)/2).
+        random_state:.
+
+        :return:
+        '''
+        # http://scikit-learn.org/stable/modules/svm.html#svm
+        self._get_or_set_hyperparam('C')
+        self._get_or_set_hyperparam('kernel')
+        self._get_or_set_hyperparam('degree')
+        self._get_or_set_hyperparam('gamma')
+        self._get_or_set_hyperparam('scoring')
+        self._get_or_set_hyperparam('n_jobs')
+
+        self._model = SVC(C=self._hyperparams['C'],
+                          kernel=self._hyperparams['kernel'],
+                          degree=self._hyperparams['degree'],
+                          gamma=self._hyperparams['gamma'])
+
         self._tune_hyperparams(self._hyperparam_search_space, X, y)
 
     def _train_random_forest(self, X, y):
