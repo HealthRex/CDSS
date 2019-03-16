@@ -15,6 +15,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score, GroupKFold
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.naive_bayes import GaussianNB
 from sklearn.exceptions import ConvergenceWarning
+from xgboost import XGBClassifier
 import warnings
 
 from medinfo.common.Util import log
@@ -30,7 +31,7 @@ class SupervisedClassifier:
     REGRESS_AND_ROUND = 'regress-and-round'
     ADABOOST = 'adaboost'
     SVM = 'svm'
-    XGB = 'xgboost'
+    XGB = 'xgb'
     GAUSSIAN_NAIVE_BAYES = 'gaussian-naive-bayes'
 
     # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
@@ -95,6 +96,8 @@ class SupervisedClassifier:
             return self._describe_gaussian_naive_bayes()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.SVM:
             return self._describe_svm()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.XGB:
+            return self._describe_xgb()
         else:
             return 'SupervisedClassifier(%s, %s)' % (self._classes, self._hyperparams['algorithm'])
 
@@ -144,6 +147,10 @@ class SupervisedClassifier:
     def _describe_svm(self):
         params = self._params_svm()
         return 'SVM(params=%s)' % params
+
+    def _describe_xgb(self):
+        params = self._params_xgb()
+        return 'XGB(params=%s)' % params
 
     def algorithm(self):
         return self._hyperparams['algorithm']
@@ -368,6 +375,8 @@ class SupervisedClassifier:
             return self._params_gaussian_naive_bayes()
         elif self._hyperparams['algorithm'] == SupervisedClassifier.SVM:
             return self._params_svm()
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.XGB:
+            return self._params_xgb()
 
     def _params_regression(self):
         params = {}
@@ -480,6 +489,9 @@ class SupervisedClassifier:
 
     def _params_svm(self):
         return self._model.get_params() # TODO sxu: come back later for a specific list of params?
+
+    def _params_xgb(self):
+        return self._model.get_params()
 
     def _maybe_reshape_y(self, y):
         # If necessary, reshape y from (n_samples, 1) to (n_samples, )
@@ -599,6 +611,8 @@ class SupervisedClassifier:
             self._train_gaussian_naive_bayes(X, y)
         elif self._hyperparams['algorithm'] == SupervisedClassifier.SVM:
             self._train_svm(X, y)
+        elif self._hyperparams['algorithm'] == SupervisedClassifier.XGB:
+            self._train_xgb(X, y)
 
         return SupervisedClassifier.TRAINED
 
@@ -632,6 +646,42 @@ class SupervisedClassifier:
             n_estimators=self._hyperparams['n_estimators'],
             learning_rate=self._hyperparams['learning_rate'],
             algorithm=self._hyperparams['adaboost_algorithm'],
+            random_state=self._hyperparams['random_state']
+        )
+
+        # Tune hyperparams.
+        self._tune_hyperparams(self._hyperparam_search_space, X, y)
+
+    def _train_xgb(self, X, y):
+        '''
+        Tianqi Chen:
+        Adaboost and gradboosting [XGBoost] are two different ways to derive boosters.
+        Both are generic. I like gradboosting better because it works for generic loss functions,
+        while adaboost is derived mainly for classification with exponential loss.
+
+        Konrad Banachewicz:
+        Adaboost is more of a meta-estimator - you can fit anything as base (although most people use trees)
+        xgboost is more flexible, i.e. has more customizable parameters
+
+        :param X:
+        :param y:
+        :return:
+        '''
+        self._get_or_set_hyperparam('max_depth')
+        self._get_or_set_hyperparam('n_estimators')
+        self._get_or_set_hyperparam('gamma')
+
+        self._get_or_set_hyperparam('learning_rate')
+        self._get_or_set_hyperparam('scoring')
+        self._get_or_set_hyperparam('class_weight')
+        self._get_or_set_hyperparam('n_jobs')
+
+
+        # Build initial model.
+        self._model = XGBClassifier(
+            max_depth=self._hyperparams['max_depth'],
+            n_estimators=self._hyperparams['n_estimators'],
+            learning_rate=self._hyperparams['learning_rate'],
             random_state=self._hyperparams['random_state']
         )
 
