@@ -25,7 +25,7 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import columnFromModelList, SQLQuery, modelListFromTable
 from medinfo.db.ResultsFormatter import TabDictReader, TextResultsFormatter
 
-# For UMich data, we use sqlite database to avoid creating local postgres database on the UMich side
+# For NonStanford data, we use sqlite database to allow creating database onsite
 import LocalEnv
 if LocalEnv.DATABASE_CONNECTOR_NAME == 'psycopg2':
     from psycopg2.extensions import cursor
@@ -377,9 +377,9 @@ class FeatureMatrixFactory:
         self._processClinicalItemEvents(patientEpisodes, itemTimesByPatientId, \
                                         clinicalItemNames, dayBins, label=label, features=features)
 
-    # Updated this core function for Component and UMich data. Responsible for creating features of:
+    # Updated this core function for Component and Non-Stanford data. Responsible for creating features of:
     # lab_panel, component (for counting "order times"), birth/death, sex, race, comorbidity
-    def addClinicalItemFeatures_UMich(self, clinicalItemNames, dayBins=None, label=None, features=None
+    def addClinicalItemFeatures_NonStanford(self, clinicalItemNames, dayBins=None, label=None, features=None
                                 , clinicalItemType=None, clinicalItemTime=None, tableName=None):
         """
         Query patient_item for the clinical item orders and results for each
@@ -393,9 +393,9 @@ class FeatureMatrixFactory:
         if not self.patientsProcessed:
             raise ValueError("Must process patients before clinical item.")
 
-        # For adapting to UMich data, instead of creating intermediate tables clinical_items
-        # and patient_items, we directly query "raw" tables from the UMich.db
-        clinicalItemEvents = self._queryMichiganItemsByName(clinicalItemNames=clinicalItemNames, clinicalItemType=clinicalItemType,
+        # For adapting to NonStanford data, instead of creating intermediate tables clinical_items
+        # and patient_items, we directly query "raw" tables from the NonStanford.db
+        clinicalItemEvents = self._queryNonStanfordItemsByName(clinicalItemNames=clinicalItemNames, clinicalItemType=clinicalItemType,
                                                             tableName=tableName, clinicalItemTime=clinicalItemTime)
         itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
 
@@ -427,7 +427,7 @@ class FeatureMatrixFactory:
                                         categoryIds, dayBins, label=label, features=features)
 
     # This function is only used for handling the feature of AdmitDxDate
-    def addClinicalItemFeaturesByCategory_UMich(self, categoryIds, label=None, dayBins=None, features=None,
+    def addClinicalItemFeaturesByCategory_NonStanford(self, categoryIds, label=None, dayBins=None, features=None,
                                           tableName=None):
         """
         Query patient_item for the clinical item orders and results for each
@@ -442,8 +442,8 @@ class FeatureMatrixFactory:
         if label is None:
             label = "-".join(categoryIds)
 
-        # For UMich data, directly query label='AdmitDxDate' from the raw table
-        clinicalItemEvents = self._queryMichiganItemsByCategory(label,tableName) #
+        # For NonStanford data, directly query label='AdmitDxDate' from the raw table
+        clinicalItemEvents = self._queryNonStanfordItemsByCategory(label,tableName) #
         itemTimesByPatientId = self._getItemTimesByPatientId(clinicalItemEvents)
 
         # Read clinical item features to temp file.
@@ -1184,7 +1184,6 @@ class FeatureMatrixFactory:
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
             columnNames += ["sor.result_time"]
         else:
-        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             columnNames += ["result_time"]
 
         # Identify which patients to query.
@@ -1240,7 +1239,7 @@ class FeatureMatrixFactory:
             query_str += "ORDER BY pat_id"
             if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
                 query_str += ", sor.result_time"
-            elif LocalEnv.DATASET_SOURCE_NAME == 'UMich' or LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
+            else: # Implemented for UMich and UCSF
                 query_str += ", result_time"
 
             cur = DBUtil.connection().cursor()
@@ -1283,7 +1282,10 @@ class FeatureMatrixFactory:
                 baseName = result[nameCol]
                 try:
                     resultValue = float(result[valueCol])
-                except: # TODO sx: weird values of ord_num_value cannot be converted..
+                except Exception as e:
+                    print "In _parseResultsDataGenerator, " \
+                          "weird values of ord_num_value cannot be converted.. " \
+                          "Exception:", e
                     continue
                 resultTime = DBUtil.parseDateValue(result[datetimeCol])
 
@@ -1456,6 +1458,7 @@ class FeatureMatrixFactory:
                     icdprefixesByDisease[disease].append("^ICD10." + icd10prefix)
                     icdprefixesByDisease[disease].append(icd10prefix)
 
+
         for disease, icdprefixes in icdprefixesByDisease.iteritems():
             disease = disease.translate(None," ()-/") # Strip off punctuation
             log.debug('Adding %s comorbidity features...' % disease)
@@ -1463,10 +1466,12 @@ class FeatureMatrixFactory:
                 self.addClinicalItemFeatures(icdprefixes, operator="~*", \
                                              label="Comorbidity." + disease, features=features)
             else:
-            #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-                self.addClinicalItemFeatures_UMich(icdprefixes,
-                                        tableName = 'diagnoses', clinicalItemType='diagnose_code', clinicalItemTime='diagnose_time',
-                                        label="Comorbidity."+disease, features=features)
+                self.addClinicalItemFeatures_NonStanford(icdprefixes,
+                                                         tableName = 'diagnoses',
+                                                         clinicalItemType='diagnose_code',
+                                                         clinicalItemTime='diagnose_time',
+                                                         label="Comorbidity."+disease,
+                                                         features=features)
 
     def addTreatmentTeamFeatures(self, features=None):
         """
@@ -1498,7 +1503,7 @@ class FeatureMatrixFactory:
             for category, teamNames in teamNameByCategory.iteritems():
                 log.debug('Adding %s treatment team features...' % category)
                 # TODO sx: rename
-                self.addClinicalItemFeatures_UMich(teamNames, \
+                self.addClinicalItemFeatures_NonStanford(teamNames, \
                     tableName='labs', clinicalItemTime = 'order_time',
                     label="Team."+category, features=features)
 
@@ -1615,6 +1620,13 @@ class FeatureMatrixFactory:
         return self._numRows
 
     def queryAllRaces(self):
+        '''
+        In case that not all data are accessible for us beforehand,
+        we need to do a first "peek" of all possible Races.
+
+        Returns:
+
+        '''
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
             RACE_FEATURES = [
                 "RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
@@ -1624,7 +1636,6 @@ class FeatureMatrixFactory:
             ]
             return RACE_FEATURES
         else:
-        #elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             RACE_FEATURES = ['Caucasian', 'Unknown', 'African American',
                              'American Indian or Alaska Native', 'Patient Refused',
                              'Native Hawaiian and Other Pacific Islander',
