@@ -143,6 +143,11 @@ def main(argv):
     finally:
         conn.close();
 
+# Manually specified (I organized these in an Excel file first), 
+#   what order to report lab tests in, 
+#   as well as what categories/groupings to present them in.
+# Some can be inferred from database, but otherwise I had to reconstruct by
+#   intuition or by what typically actually is presented in the real EMR
 CORE_LAB_RESULT_DATA_TEXT_STR = \
 """sim_result_id;group_string;name;description;priority
 11000;LAB BLOOD ORDERABLES>Hematology>Automated Blood Count;WBC;WBC;11000
@@ -304,6 +309,7 @@ CORE_LAB_RESULT_DATA_TEXT_STR = \
 19090;CARDIOLOGY>EKG;PAXIS;P AXIS;19090
 """
 
+# Queried out of the database, order_proc and order_results to see which orders map to which components, as well as their average values.
 PROC_RESULT_DATA_TEXT_STR = \
 """proc_cat_name\tproc_id\tproc_code\tdescription\tbase_name\tcomponent_name\tmeanValue\tmeanTurnaround\tcountvalue\tsumvalue\tsumsquaresvalue\tcountturnaround\tsumturnaround\tsumsquaresturnaround
 POINT OF CARE TESTING\t472470\tLABPOCGLU\tGLUCOSE BY METER\tGLU\tGLUCOSE BY METER\t5931.844499\t56.13929433\t1139495\t6759307147\t6.58E+16\t491506\t27592800\t6.60E+11
