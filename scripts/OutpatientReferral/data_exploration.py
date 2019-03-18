@@ -147,26 +147,73 @@ group by
     t2.icd9
 '''
 
-df = pd.read_csv('data/JCquestion_20190318/referral_icd10_cnt_2016.csv')
-# description, icd10, cnt
-print df.shape
+# df = pd.read_csv('data/JCquestion_20190318/referral_icd10_cnt_2016.csv')
+# # description, icd10, cnt
+# print df.shape
+# all_referrals = df['description'].drop_duplicates().values.tolist()
+#
+# df_icd10_mapping = pd.read_csv('data/icd10_mapping.csv')
+# icd10_mapping_dict = dict(zip(df_icd10_mapping.icd10_code, df_icd10_mapping.short_description))
+#
+# df['icd10descript'] = df['icd10'].apply(lambda x: icd10_mapping_dict.get(x,'?'))
+#
+# all_res = []
+# for referral in all_referrals:
+#     cur_df = df[df['description']==referral]
+#
+#     cur_icds = cur_df['icd10descript'].values.tolist()
+#     cur_cnts = cur_df['cnt'].values.tolist()
+#     top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
+#
+#     all_res.append([referral] + top_10_pairs)
+# #all_referrals = df['']
+# df_top10_diagnoses = pd.DataFrame(all_res, columns=['referral']+[str(x+1) for x in range(10)])
+# print df_top10_diagnoses.head()
+# df_top10_diagnoses.to_csv('data/top10_diagnoses.csv', index=False)
+
+
+'''
+- For each Referral to A Specialty Order, look ahead 3 or 6 months, what are the most common New Patient 
+Visit departments. That should give a good guess of which referrals lead to which specialty visits Most 
+doable with SQL queries, also report conditional prevalence (support and confidence stats) will make it 
+easy to filter later.
+
+select 
+    p.description, d.specialty, count(e2.pat_enc_csn_id_coded) as cnt
+from 
+    datalake_47618.order_proc p,
+    datalake_47618.encounter e1,
+    datalake_47618.encounter e2,
+    datalake_47618.dep_map d
+where
+    lower(p.description) like '%referral%' 
+    and p.pat_enc_csn_id_coded = e1.pat_enc_csn_id_coded
+    and e1.jc_uid = e2.jc_uid
+    and e1.pat_enc_csn_id_coded != e2.pat_enc_csn_id_coded
+    and e1.appt_when_jittered <= e2.appt_when_jittered
+    and DATE_ADD(date(timestamp(e1.appt_when_jittered)), INTERVAL 3 month) > date(timestamp(e2.appt_when_jittered))
+    and e2.department_id = d.department_id
+    and e1.appt_when_jittered < '2017-01-01'
+    and e1.appt_when_jittered >= '2016-01-01'
+group by
+    p.description, 
+    d.specialty
+'''
+df = pd.read_csv('data/JCquestion_20190318/referral_specialty_cnt_2016.csv')
+print df.head()
 all_referrals = df['description'].drop_duplicates().values.tolist()
-
-df_icd10_mapping = pd.read_csv('data/icd10_mapping.csv')
-icd10_mapping_dict = dict(zip(df_icd10_mapping.icd10_code, df_icd10_mapping.short_description))
-
-df['icd10descript'] = df['icd10'].apply(lambda x: icd10_mapping_dict.get(x,'?'))
 
 all_res = []
 for referral in all_referrals:
     cur_df = df[df['description']==referral]
 
-    cur_icds = cur_df['icd10descript'].values.tolist()
+    cur_icds = cur_df['specialty'].values.tolist()
     cur_cnts = cur_df['cnt'].values.tolist()
     top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
 
     all_res.append([referral] + top_10_pairs)
-#all_referrals = df['']
-df_top10_diagnoses = pd.DataFrame(all_res, columns=['referral']+[str(x+1) for x in range(10)])
-print df_top10_diagnoses.head()
-df_top10_diagnoses.to_csv('data/top10_diagnoses.csv', index=False)
+
+df_top10_specialties = pd.DataFrame(all_res, columns=['specialty']+[str(x+1) for x in range(10)])
+print df_top10_specialties.head()
+df_top10_specialties.to_csv('data/top10_specialties.csv', index=False)
+
