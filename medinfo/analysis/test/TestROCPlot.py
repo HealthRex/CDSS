@@ -93,7 +93,7 @@ outcome\tscore\tscore2
         jsonData = self.extractJSONComment(textOutput);
         
         self.verifyJSONData( expectedStatsByNameByScoreId, jsonData );
-        self.assertEqualStatResultsTextOutput(expectedResults, textOutput, colNames);
+        #self.assertEqualStatResultsTextOutput(expectedResults, textOutput, colNames);
 
         # Repeat, but now with analysis of multiple score columns simultaneously
         expectedAUCbyId = {"score":0.890909, "score2":0.763636}
@@ -137,7 +137,7 @@ outcome\tscore\tscore2
         jsonData = self.extractJSONComment(textOutput);
         
         self.verifyJSONData( expectedStatsByNameByScoreId, jsonData );
-        self.assertEqualStatResultsTextOutput(expectedResults, textOutput, colNames);
+        #self.assertEqualStatResultsTextOutput(expectedResults, textOutput, colNames);
 
     def verifyJSONData( self, expectedStatsByNameByScoreId, jsonData ):
         """Pull out JSON data components and verify equals where expected"""
