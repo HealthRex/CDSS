@@ -206,7 +206,7 @@ group by
 #
 # all_res = []
 # for referral in all_referrals:
-#     cur_df = df[df['description']==referral]
+#     cur_df = df[df['description']==referral].copy()
 #
 #     cur_icds = cur_df['specialty'].values.tolist()
 #     cur_cnts = cur_df['cnt'].values.tolist()
@@ -219,30 +219,35 @@ group by
 # df_top10_specialties.to_csv('data/top10_specialties_next3mo_newvisits.csv', index=False)
 
 
-# '''
-# - Follow up of the previous:
-# Try calculating the total counts for ALL referrals, then divide the individual referral counts by the total
-# counts (basically TF-IDF) to get a relative scale of what's disproportionately associated with each referral.
-# '''
-# df = pd.read_csv('data/JCquestion_20190318/referral_specialty_next3mo_cnt_2016.csv')
-# print df.head()
-# all_referrals = df['description'].drop_duplicates().values.tolist()
-#
-# df_tmp = df[['specialty', 'cnt']].groupby('specialty').sum().reset_index()
-#
-# print df['cnt'].sum(),
-# quit()
-#
-# all_res = []
-# for referral in all_referrals:
-#     cur_df = df[df['description']==referral]
-#
-#     cur_icds = cur_df['specialty'].values.tolist()
-#     cur_cnts = cur_df['cnt'].values.tolist()
-#     top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
-#
-#     all_res.append([referral] + top_10_pairs)
-#
-# df_top10_specialties = pd.DataFrame(all_res, columns=['specialty']+[str(x+1) for x in range(10)])
-# print df_top10_specialties.head()
-# df_top10_specialties.to_csv('data/top10_specialties.csv', index=False)
+'''
+- Follow up of the previous:
+Try calculating the total counts for ALL referrals, then divide the individual referral counts by the total
+counts (basically TF-IDF) to get a relative scale of what's disproportionately associated with each referral.
+'''
+df = pd.read_csv('data/JCquestion_20190318/referral_specialty_next3mo_newvisits_cnt_2016.csv')
+print df.head()
+all_referrals = df['description'].drop_duplicates().values.tolist()
+
+df_tmp = df[['specialty', 'cnt']].groupby('specialty').sum().reset_index()
+specialty_totcnt = dict(zip(df_tmp['specialty'], df_tmp['cnt']))
+
+all_res = []
+for referral in all_referrals:
+    cur_df = df[df['description']==referral].copy()
+
+    cur_icds = cur_df['specialty'].values.tolist()
+    cur_cnts = cur_df['cnt'].values.tolist()
+
+    # scaling
+    cur_cnts = [float(cur_cnts[i])/specialty_totcnt[cur_icds[i]]
+                if cur_icds[i] == cur_icds[i] else float('nan')
+                for i in range(len(cur_icds))
+                ]
+
+    top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
+
+    all_res.append([referral] + top_10_pairs)
+
+df_top10_specialties = pd.DataFrame(all_res, columns=['specialty']+[str(x+1) for x in range(10)])
+print df_top10_specialties.head()
+df_top10_specialties.to_csv('data/top10_specialties_next3mo_newvisits_tfidf.csv', index=False)
