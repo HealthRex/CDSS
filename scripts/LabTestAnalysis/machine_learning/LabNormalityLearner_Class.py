@@ -21,18 +21,18 @@ class FeatureRemover(BaseEstimator, TransformerMixin):
 
 
 class FeatureImputer(BaseEstimator, TransformerMixin):
-    def __init__(self, imputation_dict=None):
-        self.imputation_dict = imputation_dict
+    def __init__(self, feat2mean_dict={}):
+        '''
+        imputation_dict:
+        key: feature_name
+        val:
+        '''
+        self.feat2mean_dict = feat2mean_dict
 
     def fit(self, X, y=None):
         '''
-        Learn the imputation dictionary
-        (1) Use population mean (prevalence) to impute:
-            Need store the prevalence in the training set
-        (2) Carrying forward the most recent non-missing value
-            Using training/testing data's own feature
-        (3) Using the previous + time difference if available; otherwise -infinite
-            Using posi/nega infinities to impute times
+        Regardless of whether to use the means later,
+        extract them here.
 
         Args:
             X:
@@ -41,25 +41,42 @@ class FeatureImputer(BaseEstimator, TransformerMixin):
         Returns:
 
         '''
-        # self.imputation_dict = Utils.extract_imputation_dict(X)
+        feats = X.columns.values.tolist()
+        for feat in feats:
+            if X[feat].dtype == type(1.) or X[feat].dtype == type(1):
+                self.feat2mean_dict[feat] = X[feat].mean()
+            else:
+                print 'Non numeric (cannot calc mean):', feat, X[feat].dtype
         return self
 
     def transform(self, X):
         '''
+        Imputation strategies:
+        (1) Use train population level to impute
+        e.g. population mean
 
-        1. Dictionary-based imputation. Use self.imputation_dict.
-        2. Prior-result-based imputation.
+        (2) Use local patient level to impute
+        e.g. most recent WBC stats carrying forward
+        e.g. most recent order time carrying forward + time lapse
+
+        (3) Use constants to impute
+        e.g. -inf for non-existing order time
+
+        For each feature, could use a mixture of multiple imputation strategies:
+        e.g.
+        <1>
 
         Args:
             X:
+            y:
 
         Returns:
 
         '''
-        X_imputed = Utils.impute_by_carry_forward(X, self.imputation_dict)
+        # X_imputed = Utils.impute_by_carry_forward(X, self.feat2mean_dict)
         # X_imputed = X.fillna(0)
 
-
+        X_imputed = Utils.do_impute_sx(X, self.feat2mean_dict)
         return X_imputed
 
 
