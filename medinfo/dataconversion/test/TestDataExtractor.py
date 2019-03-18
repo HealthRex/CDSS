@@ -798,6 +798,6 @@ def suite():
     return suite;
 
 if __name__=="__main__":
-    log = logging.getLogger("CDSS")
-    log.setLevel(logging.DEBUG)
+    #log = logging.getLogger("CDSS")
+    #log.setLevel(logging.DEBUG)
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())
