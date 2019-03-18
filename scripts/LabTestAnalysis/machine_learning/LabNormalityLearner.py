@@ -19,7 +19,8 @@ from sklearn.svm import LinearSVC
 
 import LabNormalityLearner_Utils as Utils
 import LabNormalityLearner_Class as Cls
-import LabNormalityLearner_System as LNL_sys
+import LabNormalityLearner_System as syst
+import LabNormalityLearner_Config as Config
 
 def run_one_lab_local(lab, lab_type, data_source, version):
     '''
@@ -31,40 +32,33 @@ def run_one_lab_local(lab, lab_type, data_source, version):
 
     # X_train_raw, y_train = [[1], [2]], [1, 2]
     # X_test_raw, y_test = [[3], [4]], [3, 4]
-    file_organizer = LNL_sys.FileOrganizerLocal(lab=lab,
+    file_organizer = syst.FileOrganizerLocal(lab=lab,
                                                 lab_type=lab_type,
                                                 data_source=data_source,
                                                 version=version)
 
     raw_matrix = file_organizer.get_raw_matrix()
 
-    X_train_raw, y_train = Utils.Split_Xy(raw_matrix)
+    raw_matrix_train, raw_matrix_test = Utils.split_rows(raw_matrix)
+    X_train_raw, y_train = Utils.split_Xy(raw_matrix_train,
+                                          ylabel='all_components_normal')
 
-    pipeline = Pipeline(memory = file_organizer.cached_pipeline_filepath,
-                        steps = [
-                                    ('feature_engineering', Pipeline
-                                        (
-                                            [
-                                                ('remove_features', Cls.FeatureRemover()),
-                                                ('impute_features', Cls.FeatureImputer()),
-                                                ('select_features', Cls.Select_Features())
-                                            ]
-                                        )
-                                     ),
-                                    ('machine_learning', Pipeline
-                                        (
-                                             [
-                                                 ('svc', LinearSVC())
-                                             ]
-                                        )
-                                     )
-                                ]
+    feature_engineering_pipeline = Pipeline(
+        memory = file_organizer.cached_pipeline_filepath,
+        steps = [
+             ('remove_features', Cls.FeatureRemover(features_to_remove=Config.features_to_remove)),
+             ('impute_features', Cls.FeatureImputer()),
+             # ('select_features', Cls.Select_Features())
+             ]
     )
 
-    pipeline.set_params()
-    pipeline.fit(X_train_raw, y_train)
+    # feature_engineering_pipeline.set_params()
+    print X_train_raw.shape
+    X_train_processed = feature_engineering_pipeline.fit_transform(X_train_raw, y_train)
+    print X_train_processed.shape
+    quit()
 
-    Xy_test_raw = LNL_sys.get_raw_matrix(lab_type=lab_type,
+    Xy_test_raw = syst.get_raw_matrix(lab_type=lab_type,
                                          data_source=data_source_test,
                                          version=version
                                          )

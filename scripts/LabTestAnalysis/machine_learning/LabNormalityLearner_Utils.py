@@ -1,7 +1,7 @@
 
 from sklearn import model_selection
 
-def Split_Xy(data_matrix):
+def split_rows(data_matrix):
     '''
     In the future, if want to re-use the column info that separates the matrix,
     can make this into a class
@@ -11,7 +11,10 @@ def Split_Xy(data_matrix):
     '''
     return model_selection.train_test_split(data_matrix)
 
-
+def split_Xy(data_matrix, ylabel):
+    X = data_matrix.copy()
+    y = X.pop(ylabel)
+    return X, y
 
 def extract_imputation_dict(matrix):
     imputation_dict = {}
