@@ -4,11 +4,7 @@ Test suite for respective module in application package.
 """
 import sys, os
 import LocalEnv
-LocalEnv.LOCAL_TEST_DB_PARAM["DSN"] = 'UMich_test.db'
-LocalEnv.LOCAL_TEST_DB_PARAM["DATAPATH"] = os.path.join(LocalEnv.PATH_TO_CDSS, 'medinfo/dataconversion/test/')
-import medinfo.db.Env # TODO: comment
-medinfo.db.Env.SQL_PLACEHOLDER = "?"
-medinfo.db.Env.DATABASE_CONNECTOR_NAME = "sqlite3"
+import medinfo.db.Env
 
 import datetime
 
@@ -38,6 +34,15 @@ class TestFeatureMatrixFactory(DBTestCase):
     def setUp(self):
         """Prepare state for test cases."""
         DBTestCase.setUp(self)
+
+        # Going to change database connection parameters. Store prior ones, so can revert back, otherwise will crash batch unit tests
+        self.origTestDBParam = dict(LocalEnv.LOCAL_TEST_DB_PARAM);
+        self.origDBSQLPlaceholder = medinfo.db.Env.SQL_PLACEHOLDER;
+        self.origDBConnectorName = medinfo.db.Env.DATABASE_CONNECTOR_NAME;
+        LocalEnv.LOCAL_TEST_DB_PARAM["DSN"] = 'UMich_test.db'
+        LocalEnv.LOCAL_TEST_DB_PARAM["DATAPATH"] = os.path.join(LocalEnv.PATH_TO_CDSS, 'medinfo/dataconversion/test/')
+        medinfo.db.Env.SQL_PLACEHOLDER = "?"
+        medinfo.db.Env.DATABASE_CONNECTOR_NAME = "sqlite3"
 
         # StrideLoader.build_stride_psql_schemata()
         # ClinicalItemDataLoader.build_clinical_item_psql_schemata();
@@ -111,6 +116,11 @@ class TestFeatureMatrixFactory(DBTestCase):
             pass
 
         self.connection.close();
+
+        # Revert to prior test database connection parameters
+        LocalEnv.LOCAL_TEST_DB_PARAM.update(self.origTestDBParam);
+        medinfo.db.Env.SQL_PLACEHOLDER = self.origDBSQLPlaceholder;
+        medinfo.db.Env.DATABASE_CONNECTOR_NAME = self.origTestDBParam;
 
         DBTestCase.tearDown(self)
 
