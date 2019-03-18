@@ -74,27 +74,99 @@ where
 '''
 (4) Mapping referrals and specialties 
 '''
-from editdistance import distance
-df_referral = pd.read_csv('data/counter_all_referrals_descriptions_firstHalf2016.csv')
-referrals = df_referral['description'].values.tolist()
-print 'numbers of unique referrals: ', len(referrals)
+# from editdistance import distance
+# df_referral = pd.read_csv('data/counter_all_referrals_descriptions_firstHalf2016.csv')
+# referrals = df_referral['description'].values.tolist()
+# print 'numbers of unique referrals: ', len(referrals)
+#
+# df_specialty = pd.read_csv('data/deduplicated_specialties.csv').rename(columns={'Unnamed: 0':'specialty'})
+# specialties = df_specialty['specialty'].values.tolist()
+# print 'number of unique specialties: ', len(specialties)
+#
+# all_dists = {}
+# all_res = []
+# for referral in referrals:
+#     referral_cleaned = referral.replace("REFERRAL TO ", "").lower()
+#     cur_dists = {}
+#     for specialty in specialties:
+#         specialty_cleaned = specialty.lower()
+#         cur_dists[specialty] = distance(referral_cleaned, specialty_cleaned)/float(len(specialty_cleaned))
+#
+#     top_10_mapped = sorted(cur_dists.items(), key=lambda (k,v):v)[:10]
+#     all_dists[referral] = top_10_mapped
+#     all_res.append([referral] + top_10_mapped)
+#
+# df_mapping = pd.DataFrame(all_res, columns=['referral']+[str(x+1) for x in range(10)])
+# df_mapping.to_csv('data/map_referral_to_specialties.csv', index=False)
 
-df_specialty = pd.read_csv('data/deduplicated_specialties.csv').rename(columns={'Unnamed: 0':'specialty'})
-specialties = df_specialty['specialty'].values.tolist()
-print 'number of unique specialties: ', len(specialties)
 
-all_dists = {}
+'''
+Next step: write trustable mapping into the database, 
+and then...
+'''
+
+
+
+'''
+Helping table: icd10 mapping
+'''
+# from medinfo.db import DBUtil
+# columns = ('icd10', 'short_description', 'icd10_code')
+#
+# query_str = "select %s, %s, %s " \
+#             "from stride_icd10_cm " \
+#
+#
+# db_cursor = DBUtil.connection().cursor()
+# db_cursor.execute(query_str % columns)
+#
+# all_rows = db_cursor.fetchall()
+# df_icd10_mapping = pd.DataFrame(all_rows, columns=columns)
+# df_icd10_mapping.to_csv('data/icd10_mapping.csv', index=False)
+# quit()
+
+
+'''
+Per Jonathan Chen's suggestion 03/18/2019
+- what was the Referral Diagnosis/Reason. 
+You could guess by seeing what are the Top 10 diagnoses at 
+the referring visit that entered the referral order.
+
+select 
+    t1.description, t2.icd9, count(t1.pat_enc_csn_id_coded) as cnt
+from
+  datalake_47618.order_proc t1,
+  datalake_47618.diagnosis_code t2
+where 
+  t1.pat_enc_csn_id_coded = t2.pat_enc_csn_id_coded
+  and t1.ordering_date_jittered < '2017-01-01'
+  and t1.ordering_date_jittered >= '2016-01-01'
+  and lower(t1.description) like '%referral%'
+group by 
+    t1.description, 
+    t2.icd9
+'''
+
+df = pd.read_csv('data/JCquestion_20190318/referral_icd10_cnt_2016.csv')
+# description, icd10, cnt
+print df.shape
+all_referrals = df['description'].drop_duplicates().values.tolist()
+
+df_icd10_mapping = pd.read_csv('data/icd10_mapping.csv')
+icd10_mapping_dict = dict(zip(df_icd10_mapping.icd10_code, df_icd10_mapping.short_description))
+
+df['icd10descript'] = df['icd10'].apply(lambda x: icd10_mapping_dict.get(x,'?'))
+
 all_res = []
-for referral in referrals:
-    referral_cleaned = referral.replace("REFERRAL TO ", "").lower()
-    cur_dists = {}
-    for specialty in specialties:
-        specialty_cleaned = specialty.lower()
-        cur_dists[specialty] = distance(referral_cleaned, specialty_cleaned)/float(len(specialty_cleaned))
+for referral in all_referrals:
+    cur_df = df[df['description']==referral]
 
-    top_10_mapped = sorted(cur_dists.items(), key=lambda (k,v):v)[:10]
-    all_dists[referral] = top_10_mapped
-    all_res.append([referral] + top_10_mapped)
+    cur_icds = cur_df['icd10descript'].values.tolist()
+    cur_cnts = cur_df['cnt'].values.tolist()
+    top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
 
-df_mapping = pd.DataFrame(all_res, columns=['referral']+[str(x+1) for x in range(10)])
-df_mapping.to_csv('data/map_referral_to_specialties.csv', index=False)
+    all_res.append([referral] + top_10_pairs)
+#all_referrals = df['']
+df_top10_diagnoses = pd.DataFrame(all_res, columns=['referral']+[str(x+1) for x in range(10)])
+print df_top10_diagnoses.head()
+df_top10_diagnoses.to_csv('data/top10_diagnoses.csv', index=False)
