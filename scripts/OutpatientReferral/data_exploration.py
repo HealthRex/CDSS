@@ -74,7 +74,7 @@ where
 '''
 (4) Mapping referrals and specialties 
 '''
-import editdistance
+from editdistance import distance
 df_referral = pd.read_csv('data/counter_all_referrals_descriptions_firstHalf2016.csv')
 referrals = df_referral['description'].values.tolist()
 print 'numbers of unique referrals: ', len(referrals)
@@ -83,3 +83,18 @@ df_specialty = pd.read_csv('data/deduplicated_specialties.csv').rename(columns={
 specialties = df_specialty['specialty'].values.tolist()
 print 'number of unique specialties: ', len(specialties)
 
+all_dists = {}
+all_res = []
+for referral in referrals:
+    referral_cleaned = referral.replace("REFERRAL TO ", "").lower()
+    cur_dists = {}
+    for specialty in specialties:
+        specialty_cleaned = specialty.lower()
+        cur_dists[specialty] = distance(referral_cleaned, specialty_cleaned)/float(len(specialty_cleaned))
+
+    top_10_mapped = sorted(cur_dists.items(), key=lambda (k,v):v)[:10]
+    all_dists[referral] = top_10_mapped
+    all_res.append([referral] + top_10_mapped)
+
+df_mapping = pd.DataFrame(all_res, columns=['referral']+[str(x+1) for x in range(10)])
+df_mapping.to_csv('data/map_referral_to_specialties.csv', index=False)
