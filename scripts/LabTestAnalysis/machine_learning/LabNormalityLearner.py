@@ -43,11 +43,20 @@ def run_one_lab_local(lab, lab_type, data_source, version):
     X_train_raw, y_train = Utils.split_Xy(raw_matrix_train,
                                           ylabel='all_components_normal')
 
+    '''
+    (1) Feature Impute: 
+    Imputation of some numerical values depend on prior stats of the same patient, 
+        so certain auxiliary columns are still useful
+    (2) Feature Remove:
+    Remove auxiliary columns
+    (3) Feature Selection:
+    
+    '''
     feature_engineering_pipeline = Pipeline(
         memory = file_organizer.cached_pipeline_filepath,
         steps = [
-             ('remove_features', Cls.FeatureRemover(features_to_remove=Config.features_to_remove)),
              ('impute_features', Cls.FeatureImputer()),
+             ('remove_features', Cls.FeatureRemover(features_to_remove=Config.features_to_remove)),
              # ('select_features', Cls.Select_Features())
              ]
     )

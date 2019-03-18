@@ -16,20 +16,87 @@ def split_Xy(data_matrix, ylabel):
     y = X.pop(ylabel)
     return X, y
 
-def extract_imputation_dict(matrix):
-    imputation_dict = {}
-
-    ''' 
-    
-    2.For the "time since the most recent test", if no prior value exists, then we impute with 
-    negative infinity. 
+def do_impute_sx(matrix, means):
     '''
+    sxu new implementation
 
+    Input: train_df, but does not change it
+    Output: dictionary {order_proc_id: {feature: imputation value}}
+    '''
+    import datetime
+    # TODO: alert: changes row order and indices of matrix!
 
+    datetime_format = "%Y-%m-%d %H:%M:%S"
 
-    return imputation_dict
+    matrix_sorted = matrix.sort_values(['pat_id', 'order_time']).reset_index()
+    count_time_suffixs = ['preTimeDays', 'postTimeDays']  # TODO: postTimeDays should really not appear!
+    stats_numeric_suffixs = ['min', 'max', 'median', 'mean', 'std', 'first', 'last', 'diff', 'slope',
+                             'proximate']
+    stats_time_suffixs = ['firstTimeDays', 'lastTimeDays', 'proximateTimeDays']
 
+    impute_train = {}
 
+    nega_inf_days = -1000000
+    for i in range(0, matrix_sorted.shape[0]):
+        cur_episode_id = matrix_sorted.ix[i, 'order_proc_id']
+        impute_train[cur_episode_id] = {}
+        for column in matrix_sorted.columns.values.tolist():
+            '''
+            Value not missing
+            '''
+            if matrix_sorted.ix[i, column] == matrix_sorted.ix[i, column]:
+                continue
+
+            '''
+            Value missing
+            '''
+            column_tail = column.split('.')[-1].strip()
+
+            if column in means:
+                popu_mean = means[column]  # TODO: pre-compute with dict
+
+            if column_tail in stats_numeric_suffixs:
+                '''
+                impute with the previous episode if available; otherwise population mean
+                '''
+                if i == 0 or (matrix_sorted.ix[i, 'pat_id'] != matrix_sorted.ix[i - 1, 'pat_id']) or (
+                        matrix_sorted.ix[i - 1, column] != matrix_sorted.ix[i - 1, column]):
+                    matrix_sorted.ix[i, column] = popu_mean  # impute_train[cur_episode_id][column] = popu_mean
+                else:
+                    matrix_sorted.ix[i, column] = matrix_sorted.ix[
+                        i - 1, column]  # impute_train[cur_episode_id][column] = train_df_sorted.ix[i-1, column]
+
+            elif column_tail in stats_time_suffixs:
+                '''
+                use the previous + time difference if available; otherwise -infinite
+                '''
+                if i == 0 or (matrix_sorted.ix[i, 'pat_id'] != matrix_sorted.ix[i - 1, 'pat_id']) or (
+                        matrix_sorted.ix[i - 1, column] != matrix_sorted.ix[i - 1, column]):
+                    # impute_train[cur_episode_id][column] = nega_inf_days
+                    matrix_sorted.ix[i, column] = nega_inf_days
+                else:
+                    day_diff = (datetime.datetime.strptime(matrix_sorted.ix[i, 'order_time'], datetime_format) -
+                                datetime.datetime.strptime(matrix_sorted.ix[i - 1, 'order_time'],
+                                                           datetime_format)).days
+                    # impute_train[cur_episode_id][column] = train_df_sorted.ix[i-1, column] - day_diff # TODO!
+
+                    matrix_sorted.ix[i, column] = matrix_sorted.ix[i - 1, column] - day_diff
+
+            elif column_tail in count_time_suffixs:
+                '''
+                -infinite
+                '''
+                # impute_train[cur_episode_id][column] = nega_inf_days
+                matrix_sorted.ix[i, column] = nega_inf_days
+
+            else:
+                '''
+                In all other cases, just use mean to impute
+                '''
+                matrix_sorted.ix[i, column] = popu_mean
+                pass
+
+    return matrix_sorted.set_index('index')
 
 def impute_by_carry_forward(matrix, impute_dict={}): # TODO: optimize list
     '''
