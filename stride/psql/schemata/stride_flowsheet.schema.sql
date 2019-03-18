@@ -134,5 +134,5 @@ CREATE TABLE IF NOT EXISTS stride_flowsheet
   flo_meas_id INTEGER,
   flowsheet_name TEXT,
   flowsheet_value FLOAT,
-  shifted_record_dt_tm TIMESTAMP
+  shifted_dt_tm TIMESTAMP
 );
