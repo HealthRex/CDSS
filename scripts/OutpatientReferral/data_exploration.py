@@ -190,6 +190,7 @@ where
     and p.pat_enc_csn_id_coded = e1.pat_enc_csn_id_coded
     and e1.jc_uid = e2.jc_uid
     and e1.pat_enc_csn_id_coded != e2.pat_enc_csn_id_coded
+    and e2.visit_type like '%NEW PATIENT%'
     and e1.appt_when_jittered <= e2.appt_when_jittered
     and DATE_ADD(date(timestamp(e1.appt_when_jittered)), INTERVAL 3 month) > date(timestamp(e2.appt_when_jittered))
     and e2.department_id = d.department_id
@@ -199,21 +200,49 @@ group by
     p.description, 
     d.specialty
 '''
-df = pd.read_csv('data/JCquestion_20190318/referral_specialty_cnt_2016.csv')
-print df.head()
-all_referrals = df['description'].drop_duplicates().values.tolist()
+# df = pd.read_csv('data/JCquestion_20190318/referral_specialty_next3mo_newvisits_cnt_2016.csv')
+# print df.head()
+# all_referrals = df['description'].drop_duplicates().values.tolist()
+#
+# all_res = []
+# for referral in all_referrals:
+#     cur_df = df[df['description']==referral]
+#
+#     cur_icds = cur_df['specialty'].values.tolist()
+#     cur_cnts = cur_df['cnt'].values.tolist()
+#     top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
+#
+#     all_res.append([referral] + top_10_pairs)
+#
+# df_top10_specialties = pd.DataFrame(all_res, columns=['specialty']+[str(x+1) for x in range(10)])
+# print df_top10_specialties.head()
+# df_top10_specialties.to_csv('data/top10_specialties_next3mo_newvisits.csv', index=False)
 
-all_res = []
-for referral in all_referrals:
-    cur_df = df[df['description']==referral]
 
-    cur_icds = cur_df['specialty'].values.tolist()
-    cur_cnts = cur_df['cnt'].values.tolist()
-    top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
-
-    all_res.append([referral] + top_10_pairs)
-
-df_top10_specialties = pd.DataFrame(all_res, columns=['specialty']+[str(x+1) for x in range(10)])
-print df_top10_specialties.head()
-df_top10_specialties.to_csv('data/top10_specialties.csv', index=False)
-
+# '''
+# - Follow up of the previous:
+# Try calculating the total counts for ALL referrals, then divide the individual referral counts by the total
+# counts (basically TF-IDF) to get a relative scale of what's disproportionately associated with each referral.
+# '''
+# df = pd.read_csv('data/JCquestion_20190318/referral_specialty_next3mo_cnt_2016.csv')
+# print df.head()
+# all_referrals = df['description'].drop_duplicates().values.tolist()
+#
+# df_tmp = df[['specialty', 'cnt']].groupby('specialty').sum().reset_index()
+#
+# print df['cnt'].sum(),
+# quit()
+#
+# all_res = []
+# for referral in all_referrals:
+#     cur_df = df[df['description']==referral]
+#
+#     cur_icds = cur_df['specialty'].values.tolist()
+#     cur_cnts = cur_df['cnt'].values.tolist()
+#     top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
+#
+#     all_res.append([referral] + top_10_pairs)
+#
+# df_top10_specialties = pd.DataFrame(all_res, columns=['specialty']+[str(x+1) for x in range(10)])
+# print df_top10_specialties.head()
+# df_top10_specialties.to_csv('data/top10_specialties.csv', index=False)
