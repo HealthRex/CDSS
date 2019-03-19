@@ -219,35 +219,94 @@ group by
 # df_top10_specialties.to_csv('data/top10_specialties_next3mo_newvisits.csv', index=False)
 
 
+# '''
+# - Follow up of the previous:
+# Try calculating the total counts for ALL referrals, then divide the individual referral counts by the total
+# counts (basically TF-IDF) to get a relative scale of what's disproportionately associated with each referral.
+# '''
+# df = pd.read_csv('data/JCquestion_20190318/referral_specialty_next3mo_newvisits_cnt_2016.csv')
+# print df.head()
+# all_referrals = df['description'].drop_duplicates().values.tolist()
+#
+# df_tmp = df[['specialty', 'cnt']].groupby('specialty').sum().reset_index()
+# specialty_totcnt = dict(zip(df_tmp['specialty'], df_tmp['cnt']))
+#
+# all_res = []
+# for referral in all_referrals:
+#     cur_df = df[df['description']==referral].copy()
+#
+#     cur_icds = cur_df['specialty'].values.tolist()
+#     cur_cnts = cur_df['cnt'].values.tolist()
+#
+#     # scaling
+#     cur_cnts = [float(cur_cnts[i])/specialty_totcnt[cur_icds[i]]
+#                 if cur_icds[i] == cur_icds[i] else float('nan')
+#                 for i in range(len(cur_icds))
+#                 ]
+#
+#     top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
+#
+#     all_res.append([referral] + top_10_pairs)
+#
+# df_top10_specialties = pd.DataFrame(all_res, columns=['specialty']+[str(x+1) for x in range(10)])
+# print df_top10_specialties.head()
+# df_top10_specialties.to_csv('data/top10_specialties_next3mo_newvisits_tfidf.csv', index=False)
+
+
 '''
-- Follow up of the previous:
-Try calculating the total counts for ALL referrals, then divide the individual referral counts by the total
-counts (basically TF-IDF) to get a relative scale of what's disproportionately associated with each referral.
+- Top 10 order w.r.t a specifical specialty?
+e.g. for specialty like '%Endocrinology%', we have the following pat_enc_csn_id_coded's:
+
+select distinct pat_enc_csn_id_coded
+from
+datalake_47618.encounter,
+datalake_47618.dep_map
+where 
+specialty like '%Endocrinology%'
+and
+appt_status = 'Completed'
+limit 10;
+
+131197725857
+131202278357
+131021075099
+131024034676
+131027175584
+131057236283
+131023575064
+131028236168
+131032418996
+131029212866
+
+Then:
+select * from datalake_47618.order_proc where pat_enc_csn_id_coded=131028236168
+
+Get:
+order_type: Imaging
+proc_id: 2352
+proc_code: IMGCTT
+description: CT THORAX
+display_name: CT Thorax
+order_status: Canceled (WTF?!)
+
+Then:
+select * from datalake_47618.order_proc where pat_enc_csn_id_coded in (131197725857, 131202278357, 131021075099,
+131024034676, 131027175584, 131057236283, 131023575064, 131028236168, 131032418996, 131029212866)
+
+
+It seems that datalake_47618.order_proc.display_name is a consistent way to express orders
+
+
+select 
+    specialty, display_name, count(pat_enc_csn_id_coded)
+
+from
+    datalake_47618.order_proc p,
+    datalake_47618.encounter e,
+    datalake_47618.dep_map d
+where
+    and p.
+    and e.department_id = d.department_id
+    and e.appt_status = 'Completed'
+    
 '''
-df = pd.read_csv('data/JCquestion_20190318/referral_specialty_next3mo_newvisits_cnt_2016.csv')
-print df.head()
-all_referrals = df['description'].drop_duplicates().values.tolist()
-
-df_tmp = df[['specialty', 'cnt']].groupby('specialty').sum().reset_index()
-specialty_totcnt = dict(zip(df_tmp['specialty'], df_tmp['cnt']))
-
-all_res = []
-for referral in all_referrals:
-    cur_df = df[df['description']==referral].copy()
-
-    cur_icds = cur_df['specialty'].values.tolist()
-    cur_cnts = cur_df['cnt'].values.tolist()
-
-    # scaling
-    cur_cnts = [float(cur_cnts[i])/specialty_totcnt[cur_icds[i]]
-                if cur_icds[i] == cur_icds[i] else float('nan')
-                for i in range(len(cur_icds))
-                ]
-
-    top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
-
-    all_res.append([referral] + top_10_pairs)
-
-df_top10_specialties = pd.DataFrame(all_res, columns=['specialty']+[str(x+1) for x in range(10)])
-print df_top10_specialties.head()
-df_top10_specialties.to_csv('data/top10_specialties_next3mo_newvisits_tfidf.csv', index=False)
