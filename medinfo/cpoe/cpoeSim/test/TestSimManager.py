@@ -14,7 +14,7 @@ from medinfo.db.test.Util import DBTestCase;
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel, modelListFromTable;
 
-from medinfo.cpoe.SimManager import SimManager;
+from medinfo.cpoe.cpoeSim.SimManager import SimManager;
 
 class TestSimManager(DBTestCase):
     def setUp(self):
