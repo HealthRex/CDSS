@@ -243,8 +243,9 @@ group by
 #                 if cur_icds[i] == cur_icds[i] else float('nan')
 #                 for i in range(len(cur_icds))
 #                 ]
-#
-#     top_10_pairs = sorted(zip(cur_icds, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
+#     paired = zip(cur_icds, cur_cnts)
+#     paired = [x for x in paired if x[1]==x[1]] # get rid of nan cnt
+#     top_10_pairs = sorted(paired, key=lambda (icd,cnt):cnt)[::-1][:10]
 #
 #     all_res.append([referral] + top_10_pairs)
 #
@@ -347,3 +348,17 @@ group by
 # print df_top10_orders.head()
 # df_top10_orders.to_csv('data/top10_orders_newvisits_2016_tfidf.csv', index=False)
 
+
+df_refer2spec = pd.read_csv('data/top10_specialties_next3mo_newvisits_tfidf.csv')\
+    .rename(columns={'specialty':'referral'})
+df_spec2order = pd.read_csv('data/top10_orders_newvisits_2016.csv')
+
+df_refer2spec['spec_score'] = df_refer2spec[['1','2']].apply(
+    lambda row: row['1'] if row['1']!='(nan, nan)' else row['2'], axis=1)
+df_refer2spec['specialty'] = df_refer2spec['spec_score'].apply(
+    lambda x: x.split(',')[0][1:][1:-1]
+)
+
+df_refer2order = pd.merge(df_refer2spec[['referral', 'specialty']],
+                df_spec2order, how='left', on='specialty')
+df_refer2order.to_csv('data/refer2order_2016.csv')
