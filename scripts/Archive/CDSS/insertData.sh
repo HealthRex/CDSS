@@ -41,14 +41,14 @@ python -m medinfo.db.DBUtil -d , -x -i $DATA_DIR/Chen_Order_Result_Yr5.csv.gz -t
 # python -m medinfo.db.DBUtil -i $DATA_DIR/Chen_Admit_Vitals.csv.gz -t stride_patient_encounter -d ,
 
 # # Flowsheet data (e.g., Vitals).  May need -e to skip errors for FiO2/PEEP Scale Standard whose values cannot be parsed as simple floats
-# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_fio2_Table4.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM -e
-# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_BP_Table1.namepatch.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_GCS_Table8.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_HRate_Table2.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_pulse_Table5.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_Resp_Table3.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_temp_Table6.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_urine_Table7.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
+# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_fio2_Table4.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM -e
+# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_BP_Table1.namepatch.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_GCS_Table8.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_HRate_Table2.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_pulse_Table5.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_Resp_Table3.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_temp_Table6.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+# python -m medinfo.db.DBUtil -i $DATA_DIR/JChenv3_urine_Table7.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
 
 # # Notes data (metadata not actual note content)
 # python -m medinfo.db.DBUtil -d , -i $DATA_DIR/Chen_Clinical_Notes_Yr1.csv.gz -t stride_note -f note_date

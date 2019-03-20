@@ -57,14 +57,14 @@ rem ADT (Location) Data
 python -m medinfo.db.DBUtil -d , -i %DATA_DIR%/JChenv3_ADTTable10.csv.gz -t stride_adt -f SHIFTED_TRANSF_IN_DT_TM,SHIFTED_TRANSF_OUT_DT_TM
 
 rem Flowsheet data (e.g., Vitals).  May need -e to skip errors for FiO2/PEEP Scale Standard whose values cannot be parsed as simple floats
-python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_fio2_Table4.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM -e
-python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_BP_Table1.namepatch.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_GCS_Table8.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_HRate_Table2.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_pulse_Table5.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_Resp_Table3.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_temp_Table6.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
-python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_urine_Table7.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_RECORD_DT_TM
+python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_fio2_Table4.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM -e
+python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_BP_Table1.namepatch.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_GCS_Table8.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_HRate_Table2.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_pulse_Table5.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_Resp_Table3.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_temp_Table6.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
+python -m medinfo.db.DBUtil -i %DATA_DIR%/JChenv3_urine_Table7.csv.gz -d , -t STRIDE_FLOWSHEET -f SHIFTED_DT_TM
 
 
 

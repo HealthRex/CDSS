@@ -136,11 +136,11 @@ def pd_process_vitals(vitals_df):
     #TODO: be careful of very large df operation...
     #TODO: is separate_demo... easy in memory?
     # Transform the whole table...
-    # VS record time --> shifted_record_dt_tm
+    # VS record time --> shifted_dt_tm
     #
     tab2df_dict = {}
     vitals_df = vitals_df.rename(columns={'CSN':'flo_meas_id',
-                                          'VS record time':'shifted_record_dt_tm',
+                                          'VS record time':'shifted_dt_tm',
                                           'SBP':'flowsheet_value_SBP',
                                           'DBP':'flowsheet_value_DBP',
                                           'FiO2 (%)':'flowsheet_value_FiO2',
@@ -150,11 +150,11 @@ def pd_process_vitals(vitals_df):
                                           'o2flow': 'flowsheet_value_o2flow'
                                           })
     vitals_df['pat_id'] = vitals_df['flo_meas_id'].apply(lambda x: hash(x))
-    vitals_df['shifted_record_dt_tm'] = vitals_df['shifted_record_dt_tm'].apply(lambda x: datetime.datetime.strptime(x, datetime_format))
+    vitals_df['shifted_dt_tm'] = vitals_df['shifted_dt_tm'].apply(lambda x: datetime.datetime.strptime(x, datetime_format))
 
     # print pd.wide_to_long
     vitals_df_long = pd.wide_to_long(vitals_df, stubnames='flowsheet_value',
-                          i=['pat_id', 'flo_meas_id', 'shifted_record_dt_tm'],
+                          i=['pat_id', 'flo_meas_id', 'shifted_dt_tm'],
                           j='flowsheet_name', sep='_', suffix='\w+')
     vitals_df_long = vitals_df_long.reset_index()
     vitals_df_long = vitals_df_long.drop(vitals_df_long[vitals_df_long.flowsheet_value=='NA'].index)
