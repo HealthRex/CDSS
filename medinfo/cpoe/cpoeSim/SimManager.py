@@ -15,8 +15,8 @@ from medinfo.db.DBUtil import DB_CONNECTOR_MODULE;
 IntegrityError = DB_CONNECTOR_MODULE.IntegrityError;
 from medinfo.db.Model import SQLQuery, RowItemModel, generatePlaceholders;
 from medinfo.db.Model import modelListFromTable, modelDictFromList, columnFromModelList;
-from Util import log;
-from Const import AD_HOC_SECTION, DEFAULT_STATE_ID;
+from medinfo.cpoe.Const import AD_HOC_SECTION;
+from Const import DEFAULT_STATE_ID;
 
 IntegrityError = DBUtil.DB_CONNECTOR_MODULE.IntegrityError;
 

@@ -160,7 +160,7 @@ FM_TEST_INPUT_TABLES = {
         -4000\t1\t10/5/2213 17:00\tBaz\t10\tMed\tN\n",
     "stride_flowsheet" :
         "pat_anon_id\tflo_meas_id\tflowsheet_name\tflowsheet_value\t\
-        shifted_record_dt_tm\n\
+        shifted_dt_tm\n\
         -123\t-1\tFiO2\t0.2\t4/6/2009 6:36\n\
         -123\t-1\tFiO2\t0\t4/6/2009 16:34\n\
         -123\t-2\tGlasgow Coma Scale Score\t2.1\t4/6/2009 15:12\n\

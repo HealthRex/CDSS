@@ -12,8 +12,8 @@ from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, modelListFromTable;
 from medinfo.db.ResultsFormatter import HtmlResultsFormatter;
 
-from medinfo.cpoe.SimManager import SimManager;
-from medinfo.cpoe.Const import BASE_TIME, TIME_FORMAT;
+from medinfo.cpoe.cpoeSim.SimManager import SimManager;
+from medinfo.cpoe.cpoeSim.Const import BASE_TIME, TIME_FORMAT;
 
 from medinfo.web.cgibin.cpoe.dynamicdata.BaseDynamicData import BaseDynamicData;
 from medinfo.web.cgibin import Options;

@@ -33,8 +33,6 @@ import UMichFeatureMatrixTestData as FMTU
 class TestFeatureMatrixFactory(DBTestCase):
     def setUp(self):
         """Prepare state for test cases."""
-        DBTestCase.setUp(self)
-
         # Going to change database connection parameters. Store prior ones, so can revert back, otherwise will crash batch unit tests
         self.origTestDBParam = dict(LocalEnv.LOCAL_TEST_DB_PARAM);
         self.origDBSQLPlaceholder = medinfo.db.Env.SQL_PLACEHOLDER;
@@ -43,6 +41,8 @@ class TestFeatureMatrixFactory(DBTestCase):
         LocalEnv.LOCAL_TEST_DB_PARAM["DATAPATH"] = os.path.join(LocalEnv.PATH_TO_CDSS, 'medinfo/dataconversion/test/')
         medinfo.db.Env.SQL_PLACEHOLDER = "?"
         medinfo.db.Env.DATABASE_CONNECTOR_NAME = "sqlite3"
+
+        DBTestCase.setUp(self)
 
         # StrideLoader.build_stride_psql_schemata()
         # ClinicalItemDataLoader.build_clinical_item_psql_schemata();
@@ -117,12 +117,12 @@ class TestFeatureMatrixFactory(DBTestCase):
 
         self.connection.close();
 
+        DBTestCase.tearDown(self)
+
         # Revert to prior test database connection parameters
         LocalEnv.LOCAL_TEST_DB_PARAM.update(self.origTestDBParam);
         medinfo.db.Env.SQL_PLACEHOLDER = self.origDBSQLPlaceholder;
         medinfo.db.Env.DATABASE_CONNECTOR_NAME = self.origTestDBParam;
-
-        DBTestCase.tearDown(self)
 
     def test__queryMichiganItemsByName_UMich(self):
         ## Input parameters:
@@ -231,7 +231,7 @@ def suite():
 
     # suite.addTest(TestFeatureMatrixFactory("test1"))
     # suite.addTest(TestFeatureMatrixFactory("test_querySexByName"))
-    suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
+    #suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
     return suite
 
 if __name__=="__main__":
