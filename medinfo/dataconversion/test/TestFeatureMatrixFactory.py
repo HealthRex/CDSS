@@ -66,7 +66,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         testRecords = FM_TEST_INPUT_TABLES.get("stride_flowsheet")
         DBUtil.insertFile(StringIO(testRecords), "stride_flowsheet", \
                             delim="\t", \
-                            dateColFormats={"shifted_record_dt_tm": None})
+                            dateColFormats={"shifted_dt_tm": None})
 
         # Populate stride_order_med.
         testRecords = FM_TEST_INPUT_TABLES.get("stride_order_med")
