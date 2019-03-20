@@ -6,7 +6,6 @@ library(stringr)
 library(data.table)
 library(ggplot2)
 
-# set path
 path <- "/Users/jonc101/Documents/Biomedical_Data_Science/gcp/gcp_read"
 setwd(path)
 
@@ -81,6 +80,20 @@ bargg <- function(df){
   p4
 }
 
+bargg.02 <- function(df){
+  p4 <- ggplot() + geom_bar(aes(y = order_type, 
+                                x = as.Date(Group.1), 
+                                fill = order_event), 
+                                data = df,
+                                stat="identity") + 
+                                xlab("Date") +
+                                ylab("Count") +
+                                ggtitle( paste0("Count of Stroke Orders Type: ")
+                                        ) +
+                                theme(plot.title = element_text(hjust = 0.5))
+  p4
+}
+
 convert_aggregate<- function(df){
   df$sub_date<- as.POSIXct(df$order_time_jittered,format="%Y-%m-%d %H:%M:%S")
   df$Day <- as.character( round(df$sub_date , "day" ) )
@@ -121,10 +134,12 @@ dt.list <- lapply(dt.listx, remove_duplicate)
 num_rows <- lapply(dt.list, get_row)
 
 agg_list <- lapply(dt.list, convert_aggregate)
-cplot <- lapply(agg_list, bargg)
+#cplot <- lapply(agg_list, bargg)
+cplot.02 <- lapply(agg_list, bargg.02)
 
-cplot$JCcb6780
-cplot$JCcb69b7
-cplot$JCcb92a7
-cplot$JCcbf918
-cplot$JCcc820c
+
+cplot.02$JCcb6780
+cplot.02$JCcb69b7
+cplot.02$JCcb92a7
+cplot.02$JCcbf918
+cplot.02$JCcc820c
