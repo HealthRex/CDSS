@@ -20,9 +20,12 @@ class TestSimManager(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
         DBTestCase.setUp(self);
+
+        self.manager = SimManager();  # Instance to test on
+
         from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader; 
         ClinicalItemDataLoader.build_clinical_item_psql_schemata();
-        ClinicalItemDataLoader.build_cpoeSim_psql_schemata();
+        self.manager.buildCPOESimSchema();
 
         self.testPatientId = None;
 
@@ -237,8 +240,6 @@ class TestSimManager(DBTestCase):
 -2;-2;0;Later Note
 """     # Parse into DB insertion object
         DBUtil.insertFile( StringIO(dataTextStr), "sim_note", delim=";");
-
-        self.manager = SimManager();  # Instance to test on
 
     def purgeTestRecords(self):
         log.info("Purge test records from the database")
