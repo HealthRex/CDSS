@@ -13,8 +13,8 @@ from datetime import datetime, timedelta;
 
 from medinfo.db import DBUtil
 from medinfo.db.ResultsFormatter import HtmlResultsFormatter
-from medinfo.cpoe.Const import BASE_TIME, TIME_FORMAT;
-from medinfo.cpoe.SimManager import SimManager;
+from medinfo.cpoe.cpoeSim.Const import BASE_TIME, TIME_FORMAT;
+from medinfo.cpoe.cpoeSim.SimManager import SimManager;
 
 from medinfo.web.cgibin.cpoe.BaseCPOEWeb import BaseCPOEWeb
 
