@@ -26,6 +26,24 @@ class SimManager:
     def __init__(self):
         self.connFactory = DBUtil.ConnectionFactory();  # Default connection source
 
+    def getSchemaFilepath(self):
+        """Find the file path for the schema definition for for simulation data."""
+        # For better platform independence, derive based on imported module location
+        import medinfo.cpoe.cpoeSim;
+        cpoeSimDir = os.path.dirname(medinfo.cpoe.cpoeSim.__file__);
+        schemaFilepath = os.path.join(cpoeSimDir,"simdata/cpoeSim.sql");
+        return schemaFilepath;
+
+    def buildCPOESimSchema(self, conn=None):
+        """Create the schema/table definitions needed for 
+        Clinical Provider Order Entry (CPOE) case Simulation interface.
+        Mostly for allowing (unit) testing purposes.
+        For human testing, probably want to just use the SQL data dumps to get
+        the schema and data files.
+        """
+        schemaFile = open(self.getSchemaFilepath());
+        DBUtil.execute(schemaFile.read(), conn=conn, connFactory=self.connFactory);
+
     def createUser(self, userData, conn=None):
         """Create a new user record given the data dictionary
         """
