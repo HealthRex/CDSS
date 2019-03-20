@@ -297,16 +297,53 @@ select * from datalake_47618.order_proc where pat_enc_csn_id_coded in (131197725
 It seems that datalake_47618.order_proc.display_name is a consistent way to express orders
 
 
-select 
-    specialty, display_name, count(pat_enc_csn_id_coded)
 
+
+Top 10 orders for each specialty:
+
+select 
+    d.specialty, p.description, count(p.pat_enc_csn_id_coded) as cnt
 from
     datalake_47618.order_proc p,
     datalake_47618.encounter e,
     datalake_47618.dep_map d
 where
-    and p.
+    p.pat_enc_csn_id_coded = e.pat_enc_csn_id_coded
     and e.department_id = d.department_id
+    and e.visit_type like '%NEW PATIENT%'
     and e.appt_status = 'Completed'
-    
+    and e.appt_when_jittered < '2017-01-01'
+    and e.appt_when_jittered >= '2016-01-01'
+group by
+    d.specialty, p.description
 '''
+
+# df = pd.read_csv('data/JCquestion_20190318/specialty_orders_newvisits_2016.csv')\
+#     .rename(columns={'description':'display_name'})
+# print df.head()
+#
+# df_tmp = df[['display_name', 'cnt']].groupby('display_name').sum().reset_index()
+# order_totcnt = dict(zip(df_tmp['display_name'], df_tmp['cnt']))
+#
+# all_specialties = df['specialty'].drop_duplicates().values.tolist()
+# all_res = []
+# for specialty in all_specialties:
+#     cur_df = df[df['specialty']==specialty].copy()
+#
+#     cur_orders = cur_df['display_name'].values.tolist()
+#     cur_cnts = cur_df['cnt'].values.tolist()
+#
+#     # scaling
+#     cur_cnts = [float(cur_cnts[i])/order_totcnt[cur_orders[i]]
+#                 if cur_orders[i] == cur_orders[i] else float('nan')
+#                 for i in range(len(cur_orders))
+#                 ]
+#
+#     top_10_pairs = sorted(zip(cur_orders, cur_cnts), key=lambda (icd,cnt):cnt)[::-1][:10]
+#
+#     all_res.append([specialty] + top_10_pairs)
+#
+# df_top10_orders = pd.DataFrame(all_res, columns=['specialty']+[str(x+1) for x in range(10)])
+# print df_top10_orders.head()
+# df_top10_orders.to_csv('data/top10_orders_newvisits_2016_tfidf.csv', index=False)
+
