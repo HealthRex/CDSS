@@ -97,12 +97,6 @@ class ClinicalItemDataLoader:
                 DBUtil.runDBScript(schema_file)
 
     @staticmethod
-    def build_cpoeSim_psql_schemata():
-        schema_file_name = os.path.join(ClinicalItemDataLoader.fetch_clinical_item_dir(), "cpoeSim", "cpoeSim.sql");
-        schema_file = open(schema_file_name);
-        DBUtil.execute(schema_file.read());
-
-    @staticmethod
     def transform_STRIDE_source_table(stride_source_table):
         # Get module for doing data conversion.
         transformer = ClinicalItemDataLoader.STRIDE_TABLE_TRANSFORMER_MAP[stride_source_table]
@@ -142,7 +136,7 @@ class ClinicalItemDataLoader:
             UPDATE clinical_item
             SET analysis_status = 0
             WHERE name IN (
-                'RXCUI854932', 'RXCUI854934', 'RXCUI854936', 'RXCUI854938', # Pneumococcal vaccine components
+                'RXCUI854932', 'RXCUI854934', 'RXCUI854936', 'RXCUI854938', -- Pneumococcal vaccine components
                 'RXCUI854940', 'RXCUI854942', 'RXCUI854944', 'RXCUI854946',
                 'RXCUI854948', 'RXCUI854950', 'RXCUI854952', 'RXCUI854954',
                 'RXCUI854956', 'RXCUI854958', 'RXCUI854960', 'RXCUI854962',
@@ -592,8 +586,8 @@ class ClinicalItemDataLoader:
             """
         results = DBUtil.execute(icu_ci_id_query)
         icu_ci_ids = [result[0] for result in results]
-        ClinicalItemDataLoader.build_composite_clinical_item(icu_ci_ids, 'ICUOrders', \
-            'ICU Specific/Correlated Orders', med_none_cic_id)
+        ClinicalItemDataLoader.build_composite_clinical_item(icu_ci_ids, 'AnyICUOrders', \
+            'Any ICU Specific/Correlated Orders', med_none_cic_id)
 
         # DNR / NON-FULL CODE ORDERS
         # Category = Code Status
@@ -909,8 +903,6 @@ if __name__=='__main__':
     if options.build_schemata:
         ClinicalItemDataLoader.build_clinical_item_psql_schemata()
     if options.build_simSchemata:
-        ClinicalItemDataLoader.build_cpoeSim_psql_schemata()
-    elif options.transform_stride_table:
         ClinicalItemDataLoader.transform_STRIDE_source_table(options.transform_stride_table)
     elif options.delete_tables:
         ClinicalItemDataLoader.clear_clinical_item_psql_tables()
