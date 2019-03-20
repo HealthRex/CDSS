@@ -66,11 +66,3 @@ COLLECTION_TYPE_ORDER_SET = 4;
 These are the "ad-hoc" individual orders that users can tack on to an order set at any one time.
 """
 AD_HOC_SECTION = "Ad-hoc Orders";
-
-"""Arbitrary base time to start simulations from"""
-BASE_TIME = datetime(2010,1,1,12,0);    
-TIME_FORMAT = "%m/%d/%Y, %I:%M%p";
-
-
-"""ID of the default simulation state to fall back on if have no other state-specific results/information"""
-DEFAULT_STATE_ID = 0;

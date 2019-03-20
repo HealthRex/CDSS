@@ -18,7 +18,7 @@ from medinfo.db.ResultsFormatter import HtmlResultsFormatter;
 
 from medinfo.common.StatsUtil import ContingencyStats;
 
-from medinfo.cpoe.SimManager import SimManager, ClinicalItemQuery;
+from medinfo.cpoe.cpoeSim.SimManager import SimManager, ClinicalItemQuery;
 
 from medinfo.web.cgibin.cpoe.dynamicdata.BaseDynamicData import BaseDynamicData;
 from medinfo.web.cgibin import Options;
