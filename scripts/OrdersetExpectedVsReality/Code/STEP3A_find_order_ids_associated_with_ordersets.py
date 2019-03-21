@@ -17,7 +17,6 @@ os.chdir('/Users/jwang/Desktop/CDSS')
 from medinfo.common.test.Util import MedInfoTestCase;
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery;
-from medinfo.db.DBUtil import NUMBER, BOOLEAN, STRING, DATETIME;
 
 # Medications
 orderset_order_med_ids = {} # key: patient_id, second_key: order_med_id associated with having been ordered from an orderset

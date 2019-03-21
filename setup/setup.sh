@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# See Wiki page for general starter notes,
+#   as this script will NOT fully automate everything,
+#   and will make mistakes if you have a different environment
+#   (e.g., Windows, already installed PostgreSQL)
+#   but gives you an idea of dependencies needed.
+#   Better then to just step through this script by hand and see
+#   what it's trying to do and replicate them as needed.
+# https://github.com/HealthRex/CDSS/wiki/Dev-Environment-Setup
+# 
+# Walking through the DevWorkshop below can be very helpful for notes on setting things up as well.
+# https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/ReadMe.AWSDevEnvironment.txt
+#
+
 ##### IDENTIFY PLATFORM #####
 echo "IDENTIFY PLATFORM"
 
@@ -40,13 +53,17 @@ else
   echo "Installing python..."
 fi
 
-# PYTHONPATH
+# PYTHONPATH environment variable, so Python knows where to find your code files
+#   If running in a Unix based environment, .bash_profile are "startup scripts" that will run
+#   whenever you start a terminal, so it will set this up for you everytime as a convenience.
 export PYTHONPATH=${PYTHONPATH}:~/healthrex/CDSS
 printf 'export PYTHONPATH=${PYTHONPATH}:~/healthrex/CDSS\n' >> ~/.bashrc
 printf 'export PYTHONPATH=${PYTHONPATH}:~/healthrex/CDSS\n' >> ~/.bash_profile
 
 # PostgreSQL (https://www.postgresql.org/)
 # psql (http://postgresguide.com/utilities/psql.html)
+# Open-source relational database platform (comparable to MySQL or commercial versions like Oracle)
+#   Includes psql command line program to faciltate communicating with PostgreSQL database servers.
 if [ "$(command -v postgres)" ]
 then
     POSTGRES_BIN=$(command -v postgres)
@@ -81,6 +98,7 @@ else
 fi
 
 # psycopg2 (http://initd.org/psycopg/)
+# Python module, allowing Python to talk to PostgreSQL databases
 PSYCOPG2_VERSION="$(pip list --format=legacy | grep 'psycopg' | sed 's/[)(]//g' | awk '{print $2}')"
 if [ -z "$PSYCOPG2_VERSION" ]
 then
@@ -92,9 +110,11 @@ else
 fi
 
 # NumPy (https://scipy.org/index.html)
+# Python package commonly used for scientific work, facilitating matrix algebra and numerical computations
 # pip install --user numpy
 
 # Pandas (http://pandas.pydata.org/)
+# Python package to organize data tables into dataframe objects, very similar to R, for convenient manipulation of 2D data
 PANDAS_VERSION="$(pip list --format=legacy | grep 'pandas' | sed 's/[)(]//g' | awk '{print $2}')"
 if [ -z "$PANDAS_VERSION" ]
 then
@@ -107,9 +127,11 @@ else
 fi
 
 # SciKit Learn (http://scikit-learn.org/stable/)
+# Python package as a common platform for machine learning algorithms and evaluation
 # pip install --user sklearn
 
 # gensim (https://radimrehurek.com/gensim/)
+# Python package for topic models (latent Dirichlet allocation)
 GENSIM_VERSION="$(pip list --format=legacy | grep 'gensim' | sed 's/[)(]//g' | awk '{print $2}')"
 if [ -z "$GENSIM_VERSION" ]
 then
@@ -122,6 +144,10 @@ else
 fi
 
 ##### VERIFY TESTS PASS #####
-
-# Print success state.
+# Try running unit tests in the main code repository to make sure things work
+# Example below, trying to setup and connect to the database with basic functions
+#   Requires your LocalEnv.py points to a TEST database name, 
+#   and that the database login user provided has permissions to create (temporary test) databases
 python medinfo/db/test/TestDBUtil.py
+# More comprehensive test of everything that can be found in the main medinfo application code directory tree
+python TestCDSS.py

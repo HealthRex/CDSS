@@ -12,7 +12,7 @@ http://www.egenix.com/files/python/
 If using different DB-API modules, this module should
 be edited in the following places...
     - module import statements
-    - SQL_PLACEHOLDER (in Env.py file)
+    - Env.SQL_PLACEHOLDER (in Env.py file)
     - connection method (including references to Env constants)
     - identityQuery method
 """
@@ -41,48 +41,8 @@ DOUBLE_TOKEN_END = TOKEN_END+TOKEN_END;
 ######### BEGIN Database Specific Stuff ###########
 ###################################################
 
-from Env import SQL_PLACEHOLDER, DATABASE_CONNECTOR_NAME;
-
-#import mx.ODBC.Windows     # DB-API for ODBC databases like MS Access.        See http://www.egenix.com/files/python/mxODBC.html for installation
-#from mx.ODBC.Windows import NUMBER, STRING, DATETIME, BIT as BOOLEAN;    # Abstract DBAPITypes to check column type codes against
-
-# MySQL pure Python DB connector
-if DATABASE_CONNECTOR_NAME == "mysql.connector":
-    import mysql.connector; 
-    DB_CONNECTOR_MODULE = mysql.connector;
-    BOOLEAN = 1;   # MySQLdb doesn't seem to have a built-in type code constant for BOOLEAN datatype
-
-# MySQL database connector
-if DATABASE_CONNECTOR_NAME == "MySQLdb":
-    import MySQLdb; 
-    DB_CONNECTOR_MODULE = MySQLdb;
-    BOOLEAN = 1;   # MySQLdb doesn't seem to have a built-in type code constant for BOOLEAN datatype
-
-# PostgreSQL interface.   See http://www.initd.org/tracker/psycopg
-if DATABASE_CONNECTOR_NAME == "psycopg2":
-    import psycopg2; 
-    DB_CONNECTOR_MODULE = psycopg2;
-    BOOLEAN = 16;   # Psycopg2 doesn't seem to have a built-in type code constant for BOOLEAN datatype
-
-if DATABASE_CONNECTOR_NAME == "cx_Oracle":
-    import cx_Oracle; 
-    DB_CONNECTOR_MODULE = cx_Oracle;
-    BOOLEAN = 1;   
-
-if DATABASE_CONNECTOR_NAME == "sqlite3":
-    import sqlite3;
-    DB_CONNECTOR_MODULE = sqlite3;
-
-# Abstract DBAPITypes to check column type codes against
-NUMBER = None;
-STRING = None;
-DATETIME = None;
-
-if DATABASE_CONNECTOR_NAME != "sqlite3":
-    # SQLite doesn't have these respective data type entries
-    NUMBER = DB_CONNECTOR_MODULE.NUMBER;
-    STRING = DB_CONNECTOR_MODULE.STRING;
-    DATETIME = DB_CONNECTOR_MODULE.DATETIME;
+import Env;
+SQL_PLACEHOLDER = Env.SQL_PLACEHOLDER;
 
 def connection( connParams=None ):
     """Return a connection to the application database.
@@ -103,16 +63,19 @@ def connection( connParams=None ):
         log.info("Preparing DB Connection to %(DSN)s@%(HOST)s as %(UID)s" % connParams );
     
     # MySQLdb
-    if DATABASE_CONNECTOR_NAME == "mysql.connector":
+    if Env.DATABASE_CONNECTOR_NAME == "mysql.connector":
+        import mysql.connector; 
         conn = mysql.connector.Connect(user=connParams["UID"], password=connParams["PWD"], host=connParams["HOST"], database=connParams["DSN"], buffered=True);
         return conn;
     
-    if DATABASE_CONNECTOR_NAME == "MySQLdb":
+    if Env.DATABASE_CONNECTOR_NAME == "MySQLdb":
+        import MySQLdb; 
         conn = MySQLdb.connect( host=connParams["HOST"], user=connParams["UID"], passwd=connParams["PWD"], db=connParams["DSN"]);
         return conn;
 
     # PostgreSQL: psycopg2 has slightly different syntax.., need to know if no pass needed..?
-    if DATABASE_CONNECTOR_NAME == "psycopg2":
+    if Env.DATABASE_CONNECTOR_NAME == "psycopg2":
+        import psycopg2; 
         if (connParams["PWD"] is None):
             if "PORT" in connParams and connParams["PORT"] is not None:
                 return psycopg2.connect(host=connParams["HOST"], port=connParams["PORT"], database=connParams["DSN"], user=connParams["UID"]);
@@ -124,29 +87,17 @@ def connection( connParams=None ):
             else:
                 return psycopg2.connect(host=connParams["HOST"], database=connParams["DSN"], user=connParams["UID"], password=connParams["PWD"]);
 
-    if DATABASE_CONNECTOR_NAME == "cx_Oracle":
+    if Env.DATABASE_CONNECTOR_NAME == "cx_Oracle":
+        import cx_Oracle; 
         connStr = "%(UID)s/%(PWD)s@%(HOST)s/%(DSN)s" % connParams;
         if "PORT" in connParams:
             connStr = "%(UID)s/%(PWD)s@%(HOST)s:%(PORT)s/%(DSN)s" % connParams;
         return cx_Oracle.connect(connStr);
 
-    if DATABASE_CONNECTOR_NAME == "sqlite3":
+    if Env.DATABASE_CONNECTOR_NAME == "sqlite3":
+        import sqlite3;
         return sqlite3.connect(os.path.join(connParams["DATAPATH"], connParams["DSN"]));
 
-    # ODBC (Access)
-    #connStr = formatDBConnectString( connParams );
-    #return mx.ODBC.Windows.DriverConnect( connStr );
-    
-
-    # PgSQL
-    #if "PORT" in connParams and connParams["PORT"] is not None:
-    #    return PgSQL.connect( host=connParams["HOST"], port=connParams["PORT"], database=connParams["DSN"], user=connParams["UID"], password=connParams["PWD"])
-    #else:
-    #    return PgSQL.connect( host=connParams["HOST"], database=connParams["DSN"], user=connParams["UID"], password=connParams["PWD"])
-
-    #print( connParams);
-    
-    
 def identityQuery( tableName , pgSeqName=None):
     """Given a table name, return the SQL query that will return the
     last auto-generated primary key value (i.e. sequences) from that table.
@@ -155,10 +106,10 @@ def identityQuery( tableName , pgSeqName=None):
     Added pgSeqName b/c with long table names the sequence name gets truncated.  
     Want to make sure can send in the correct sequence to grab.  
     """
-    if DATABASE_CONNECTOR_NAME in ("mysql.connector", "MySQLdb"):
+    if Env.DATABASE_CONNECTOR_NAME in ("mysql.connector", "MySQLdb"):
         return "select last_insert_id()";
     
-    if DATABASE_CONNECTOR_NAME == "psycopg2":
+    if Env.DATABASE_CONNECTOR_NAME == "psycopg2":
         if pgSeqName is None:
             # currently, NAMEDATALEN is set to 64, so the largest name can be 63 characters
             # the name for a sequence gets cropped before the _seq portion
@@ -181,7 +132,7 @@ def createDatabase( dbParams ):
     """Create a database based on the DSN name specified in the dbParams.
     Will likely require logging in first as the user-password specified in the dbParams.
     """
-    if DATABASE_CONNECTOR_NAME == "psycopg2":
+    if Env.DATABASE_CONNECTOR_NAME == "psycopg2":
         # For PostgreSQL, have to connect to some database first before can create a new one. Connect to default "postgres" database to start.
         defaultParams = dict(dbParams);
         defaultParams["DSN"] = "postgres";
@@ -191,7 +142,7 @@ def createDatabase( dbParams ):
             execute("CREATE DATABASE %s" % dbParams["DSN"], conn=defaultConn);
         finally:
             defaultConn.close();
-    elif DATABASE_CONNECTOR_NAME == "sqlite3":
+    elif Env.DATABASE_CONNECTOR_NAME == "sqlite3":
         defaultParams = dict(dbParams);
         # Sqlite3 automatically creates a database upon connection
         defaultConn = connection(defaultParams);
@@ -203,7 +154,7 @@ def dropDatabase( dbParams ):
     """Drop the database specified by the DSN name specified in the dbParams.
     Will likely require logging in first as the user-password specified.
     """
-    if DATABASE_CONNECTOR_NAME == "psycopg2":
+    if Env.DATABASE_CONNECTOR_NAME == "psycopg2":
     # For PostgreSQL, cannot drop database while connected to it, so connect to default "postgres" database to start.
         defaultParams = dict(dbParams);
         defaultParams["DSN"] = "postgres";
@@ -213,7 +164,7 @@ def dropDatabase( dbParams ):
             execute("DROP DATABASE %s" % dbParams["DSN"], conn=defaultConn);
         finally:
             defaultConn.close();
-    elif DATABASE_CONNECTOR_NAME == "sqlite3":
+    elif Env.DATABASE_CONNECTOR_NAME == "sqlite3":
         defaultParams = dict(dbParams);
         # Sqlite3 automatically creates a database upon connection
         try:
@@ -492,7 +443,7 @@ def insertFile( sourceFile, tableName, columnNames=None, delim=None, idFile=None
         sqlParts.append("values")
         sqlParts.append("(")
         for i in range(len(columnNames)):
-            sqlParts.append( SQL_PLACEHOLDER )    # Parameter placeholder, depends on DB-API
+            sqlParts.append( Env.SQL_PLACEHOLDER )    # Parameter placeholder, depends on DB-API
             sqlParts.append(",")
         sqlParts.pop(); # Remove extra end comma
         sqlParts.append(")")
@@ -601,7 +552,7 @@ def updateFromFile( sourceFile, tableName, columnNames=None, nIdCols=1, delim=No
         for i in xrange(nIdCols,nCols):
             sql.append(columnNames[i]);
             sql.append("=");
-            sql.append(SQL_PLACEHOLDER);
+            sql.append(Env.SQL_PLACEHOLDER);
             sql.append(",");
         sql.pop();  # Remove extra comma at end
 
@@ -610,7 +561,7 @@ def updateFromFile( sourceFile, tableName, columnNames=None, nIdCols=1, delim=No
         for i in xrange(nIdCols):
             sql.append(columnNames[i]);
             sql.append("=");
-            sql.append(SQL_PLACEHOLDER);
+            sql.append(Env.SQL_PLACEHOLDER);
             sql.append("and");
         sql.pop();  # Remove extra comma at end
 
@@ -834,7 +785,7 @@ def deleteRows(tableName, idValues, idCol=None, conn=None):
         cursor = conn.cursor()
 
         params = idValues;
-        paramPlaceholders = str.join(",", [SQL_PLACEHOLDER]*len(params) );
+        paramPlaceholders = str.join(",", [Env.SQL_PLACEHOLDER]*len(params) );
 
         query = """delete from %s where %s in (%s)""" % (tableName, idCol, paramPlaceholders);
 
@@ -941,7 +892,7 @@ def buildUpdateQuery(tableName, colNames, idColName=None, idValue=None):
     for col in colNames:
         sql.append(col);
         sql.append("=");
-        sql.append(SQL_PLACEHOLDER);
+        sql.append(Env.SQL_PLACEHOLDER);
         sql.append(",");
     sql.pop();  # Remove extra comma at end
     
@@ -954,7 +905,7 @@ def buildUpdateQuery(tableName, colNames, idColName=None, idValue=None):
         else:
             # Equals operator doesn't work for null values
             sql.append("is");
-        sql.append(SQL_PLACEHOLDER);
+        sql.append(Env.SQL_PLACEHOLDER);
         sql.append("and");
     sql.pop();  # Remove extra "and" at end
 
@@ -976,7 +927,7 @@ def buildInsertQuery(tableName, colNames):
     # Value placeholders
     query.append("values (");
     for col in colNames:
-        query.append("%s" % SQL_PLACEHOLDER);
+        query.append("%s" % Env.SQL_PLACEHOLDER);
         query.append(",");
     query[-1] = ")";        
     
@@ -986,7 +937,7 @@ def buildInsertQuery(tableName, colNames):
 
 def parameterizeQueryString( query, params=None ):
     """Given a SQL query string and tuple of parameters,
-    replace all of the SQL_PLACEHOLDER strings in the query
+    replace all of the Env.SQL_PLACEHOLDER strings in the query
     with the respective representation of the parameters.
     For the most part, this will just be the string representation
     of the parameter except in the case of str objects which
@@ -1005,8 +956,8 @@ def parameterizeQueryString( query, params=None ):
         params = query.getParams();
         query = str(query);
 
-    # Make sure all of the SQL_PLACEHOLDERS are Python string replacement vars
-    query = query.replace(SQL_PLACEHOLDER,"%s");
+    # Make sure all of the Env.SQL_PLACEHOLDERS are Python string replacement vars
+    query = query.replace(Env.SQL_PLACEHOLDER,"%s");
     
     # Modify parameter list if any text-based variables to replace
     if params:
@@ -1033,7 +984,7 @@ def loadRecordModelById( tableName, idValue, idCol=None, conn=None, connFactory=
     """
     if idCol is None:
         idCol = defaultIDColumn(tableName);
-    query = "select * from %s where %s = %s" % (tableName, idCol, SQL_PLACEHOLDER);
+    query = "select * from %s where %s = %s" % (tableName, idCol, Env.SQL_PLACEHOLDER);
     params = (idValue,);
     dataTable = execute( query, params, includeColumnNames=True, conn=conn, connFactory=connFactory);
     dataModels = modelListFromTable(dataTable);

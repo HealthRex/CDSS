@@ -231,7 +231,7 @@ def suite():
 
     # suite.addTest(TestFeatureMatrixFactory("test1"))
     # suite.addTest(TestFeatureMatrixFactory("test_querySexByName"))
-    #suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
+    suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
     return suite
 
 if __name__=="__main__":

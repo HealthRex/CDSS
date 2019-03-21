@@ -15,7 +15,6 @@ os.chdir('/Users/jwang/Desktop/ClinicalDecisionMaker')
 from medinfo.common.test.Util import MedInfoTestCase;
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery;
-from medinfo.db.DBUtil import NUMBER, BOOLEAN, STRING, DATETIME;
 
 # Create SCRIPT_FILE
 
