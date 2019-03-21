@@ -88,7 +88,11 @@ Granularity: Each row is a specific encounter
 Want referral code (p1.description), department name & specialty, list of orders
 
 select 
-    p1.description as referral, d.department_name, d.specialty, p2.description as item
+    p1.description as referral, 
+    p1.pat_enc_csn_id_coded as refer_enc_id,
+    d.department_name, 
+    d.specialty, 
+    p2.description as item
 from 
     datalake_47618.order_proc p1,
     datalake_47618.order_proc p2,
@@ -107,3 +111,12 @@ where
     and e1.appt_when_jittered >= '2017-01-01'
     and p2.pat_enc_csn_id_coded = e2.pat_enc_csn_id_coded
 '''
+
+df_test = pd.read_csv('data/JCquestion_20190318/testset_2017.csv')
+
+encnt2order_dict_test = df_test.head(30)[['refer_enc_id', 'item']].\
+        groupby('refer_enc_id')['item'].apply(list).to_dict()
+refer2order_dict_test = df_test.head(30)[['refer_enc_id', 'referral']].\
+        groupby('refer_enc_id')['referral'].apply(list).to_dict()
+print encnt2order_dict_test
+print refer2order_dict_test
