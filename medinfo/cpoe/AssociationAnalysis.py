@@ -7,8 +7,6 @@ from datetime import datetime;
 from optparse import OptionParser
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db import DBUtil;
-from medinfo.db.DBUtil import DB_CONNECTOR_MODULE;
-IntegrityError = DB_CONNECTOR_MODULE.IntegrityError;
 from medinfo.db.Model import SQLQuery, generatePlaceholders;
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList;
 from Env import DATE_FORMAT;
@@ -559,7 +557,7 @@ class AssociationAnalysis:
                     defaultAssociation = RowItemModel( itemIdPair, ("clinical_item_id","subsequent_item_id") );
                     try:    # Optimistic insert of a new item pair, should be safe since just checked above, but parallel processes may collide
                         DBUtil.insertRow("clinical_item_association", defaultAssociation, conn=conn);
-                    except IntegrityError, err:
+                    except conn.IntegrityError, err:
                         log.warning(err);
                         pass;
 
