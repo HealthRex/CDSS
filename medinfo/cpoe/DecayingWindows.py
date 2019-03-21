@@ -39,8 +39,6 @@ from optparse import OptionParser
 from medinfo.common.Util import stdOpen
 from medinfo.cpoe.Env import DATE_FORMAT
 from medinfo.db import DBUtil
-from medinfo.db.DBUtil import DB_CONNECTOR_MODULE
-IntegrityError = DB_CONNECTOR_MODULE.IntegrityError
 from medinfo.cpoe.test import TestAssociationAnalysis
 from medinfo.cpoe import AssociationAnalysis
 from medinfo.cpoe.test.Const import RUNNER_VERBOSITY
