@@ -20,7 +20,6 @@ os.chdir('/Users/jwang/Desktop/CDSS')
 from medinfo.common.test.Util import MedInfoTestCase;
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery;
-from medinfo.db.DBUtil import NUMBER, BOOLEAN, STRING, DATETIME;
 
 # year_intervals = [(2008, 2010), (2010, 2012), (2012, 2014), (2014, 2016)]
 year_intervals = [(2014, 2017)]

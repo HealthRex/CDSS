@@ -16,7 +16,6 @@ from medinfo.common.test.Util import MedInfoTestCase;
 
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery;
-from medinfo.db.DBUtil import NUMBER, BOOLEAN, STRING, DATETIME;
 
 # String representations for boolean values
 TRUE_STR = "1";
@@ -564,27 +563,6 @@ class TestDBUtil(DBTestCase):
         # Verify positive results
         results = DBUtil.execute( self.DATA_QUERY );
         self.assertEqual( self.DATA_ROWS, results );
-
-
-    def xtest_incColNamesAndTypeCodes(self):
-        # Skip this test for now.  Different DB connector modules
-        #   handle type codes differently (numbers, collections of numbers, objects containing collections)
-        #   Not using that feature for any function currently anyway
-        DBUtil.runDBScript( self.SCRIPT_FILE, False )
-
-        cols = ["testtypes_id", "mytext", "myinteger", "myreal", "mydatetime", "myyesno"];
-        types= [ROWID, STRING, NUMBER, NUMBER, DATETIME, BOOLEAN];
-
-        query = "select %s from TestTypes;" % str.join(",",cols);
-
-        results = DBUtil.execute( query, includeColumnNames=True, incTypeCodes=True );
-
-        self.assertEqual( cols, results[0] );
-        for verifyCode, typeCode in zip(types, results[1]):
-            print verifyCode, typeCode
-
-            #self.assertEqual( verifyCode, typeCode );
-
 
     def test_deleteRows(self):
         DBUtil.runDBScript( self.SCRIPT_FILE, False );

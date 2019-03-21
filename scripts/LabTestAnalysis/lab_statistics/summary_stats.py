@@ -12,7 +12,6 @@ from medinfo.db.test.Util import DBTestCase
 from medinfo.common.test.Util import MedInfoTestCase
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
-from medinfo.db.DBUtil import NUMBER, BOOLEAN, STRING, DATETIME
 
 CLINICAL_ITEM_ID = 'clinical_item_id'
 ITEM_COUNTS = 'item_counts'

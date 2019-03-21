@@ -10,13 +10,9 @@ import math;
 from datetime import datetime;
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db import DBUtil;
-from medinfo.db.DBUtil import DB_CONNECTOR_MODULE;
-IntegrityError = DB_CONNECTOR_MODULE.IntegrityError;
 from medinfo.db.Model import SQLQuery, RowItemModel, generatePlaceholders;
 from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from Util import log;
-
-IntegrityError = DBUtil.DB_CONNECTOR_MODULE.IntegrityError;
 
 class DataManager:
     connFactory = None;
@@ -324,7 +320,7 @@ class DataManager:
                 try:
                     # Optimistic insert of a new unique item
                     DBUtil.execute( insertQuery, insertParams, conn=conn );
-                except IntegrityError, err:
+                except conn.IntegrityError, err:
                     # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
                     log.info(err);
                 progress.Update();
@@ -414,7 +410,7 @@ class DataManager:
                     try:
                         # Optimistic insert of a new unique item
                         DBUtil.execute( insertQuery, insertParams, conn=conn );
-                    except IntegrityError, err:
+                    except conn.IntegrityError, err:
                         # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
                         log.info(err);
                         pass;
