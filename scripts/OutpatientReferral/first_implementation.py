@@ -47,4 +47,63 @@ Next steps:
 (2) Second implementation, check if adding in patient info (N features) upon the referral (will 
 need backtrace in time to see which earlier referral leads to this specialty consultation) will 
 improve the performance.
+
+Referral -> Specialty mapping is not necessarily one-to-one, because:
+(1) No visit by the patient
+(2) Primary care doctor only knows the general but not the specific specialty to consult. 
+There might be an extra layer (coordinator/scheduler?) to handle the referral-to-speciality mapping. 
+(3) Really is referral-to-department mapping, where department has a "speciality" feature. But different 
+departments with the same specialty might have different practice/routine of ordering things.
+'''
+
+'''
+20190321
+Try the first implementation of referral-to-department-to-specialty-to-order recommender 
+'''
+
+
+def train_model(refer2spec_df, spec2order_df):
+    '''
+    Input:
+        refer2spec_df
+        spec2order_df
+
+    Returns:
+        A dictionary that can be used to predict the top 10 orders associated with each referral
+
+    '''
+
+    pass
+
+
+refer2spec_df = None
+spec2order_df = None
+
+refer2order_dict = train_model(refer2spec_df, spec2order_df)
+
+
+'''
+Get test data by query:
+Granularity: Each row is a specific encounter
+Want referral code (p1.description), department name & specialty, list of orders
+
+select 
+    p1.description as referral, d.department_name, d.specialty, p2.description as item
+from 
+    datalake_47618.order_proc p1,
+    datalake_47618.order_proc p2,
+    datalake_47618.encounter e1,
+    datalake_47618.encounter e2,
+    datalake_47618.dep_map d
+where
+    lower(p1.description) like '%referral%' 
+    and p1.pat_enc_csn_id_coded = e1.pat_enc_csn_id_coded
+    and e1.jc_uid = e2.jc_uid
+    and e1.pat_enc_csn_id_coded != e2.pat_enc_csn_id_coded
+    and e2.visit_type like '%NEW PATIENT%'
+    and e1.appt_when_jittered <= e2.appt_when_jittered
+    and DATE_ADD(date(timestamp(e1.appt_when_jittered)), INTERVAL 3 month) > date(timestamp(e2.appt_when_jittered))
+    and e2.department_id = d.department_id
+    and e1.appt_when_jittered >= '2017-01-01'
+    and p2.pat_enc_csn_id_coded = e2.pat_enc_csn_id_coded
 '''
