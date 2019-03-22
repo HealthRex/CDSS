@@ -87,6 +87,17 @@ Get test data by query:
 Granularity: Each row is a specific encounter
 Want referral code (p1.description), department name & specialty, list of orders
 
+Raw queried data: referral, refer_enc_id, department_name, specialty, item
+Key: referral + refer_enc_id (a refer_enc_id could correspond to several referrals)
+Val: associated orders
+
+Ideal processed data: {(referral, enc_id): relevant orders}
+
+for each referral: (TODO: maintain a list of enc_ids for each referral)
+    get all (referral, enc_id) keys: (TODO: get a dictionary of key:val)
+        get pred by using model
+        compare against true orders (val)
+
 select 
     p1.description as referral, 
     p1.pat_enc_csn_id_coded as refer_enc_id,
@@ -114,9 +125,30 @@ where
 
 df_test = pd.read_csv('data/JCquestion_20190318/testset_2017.csv')
 
-encnt2order_dict_test = df_test.head(30)[['refer_enc_id', 'item']].\
-        groupby('refer_enc_id')['item'].apply(list).to_dict()
-refer2order_dict_test = df_test.head(30)[['refer_enc_id', 'referral']].\
-        groupby('refer_enc_id')['referral'].apply(list).to_dict()
-print encnt2order_dict_test
-print refer2order_dict_test
+'''
+get dict: {referral: a list of enc_ids}
+'''
+referral_to_encs_dict = df_test[['referral', 'refer_enc_id']]\
+                            .groupby('referral')['refer_enc_id'].apply(list).to_dict()
+
+
+'''
+get dict: {(referral, enc_id): relevant orders}
+'''
+
+df_test = df_test.head(500)
+keys = zip(df_test['refer_enc_id'].values, df_test['referral'].values)
+
+vals = df_test['item'].values
+my_dict = {}
+for i in range(len(keys)):
+    if keys[i] in my_dict:
+        my_dict[keys[i]].append(vals[i])
+    else:
+        my_dict[keys[i]] = [vals[i]]
+print my_dict
+
+
+# refer2order_dict_test = df_test.head(30)[['refer_enc_id', 'referral']].\
+#         groupby('refer_enc_id')['referral'].apply(list).to_dict()
+# print refer2order_dict_test
