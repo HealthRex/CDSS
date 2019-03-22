@@ -62,7 +62,7 @@ Try the first implementation of referral-to-department-to-specialty-to-order rec
 '''
 
 
-def train_model(refer2spec_df, spec2order_df):
+def train_model(refer2spec_df, spec2order_df, k=10): #
     '''
     Input:
         refer2spec_df
@@ -72,15 +72,24 @@ def train_model(refer2spec_df, spec2order_df):
         A dictionary that can be used to predict the top 10 orders associated with each referral
 
     '''
-
-    pass
+    df = pd.read_csv('data/refer2order_2016.csv')
+    my_dict = df.head(100).drop(['Unnamed: 0', 'specialty'], axis=1).set_index('referral').to_dict(orient='index')
+    for key, vals in my_dict.items():
+        re_ordered_vals = []
+        for i in range(1,11):
+            try:
+                cur_item = vals[str(i)].split(',')[0][2:-1] # TODO: assumption valid?
+            except:
+                cur_item = 'nonitem'
+            re_ordered_vals.append(cur_item)
+        my_dict[key] = re_ordered_vals
+    return my_dict
 
 
 refer2spec_df = None
 spec2order_df = None
 
-refer2order_dict = train_model(refer2spec_df, spec2order_df)
-
+refer2order_prediction = train_model(refer2spec_df, spec2order_df)
 
 '''
 Get test data by query:
@@ -135,20 +144,35 @@ referral_to_encs_dict = df_test[['referral', 'refer_enc_id']]\
 '''
 get dict: {(referral, enc_id): relevant orders}
 '''
+def prec_at_k(actuals, predicts, k=10): # TODO: how to use k
+    num_relevant = 0
+    for predict in predicts:
+        if predict in actuals:
+            num_relevant += 1
+    prec = float(num_relevant) / len(predicts)
+    return prec
 
 df_test = df_test.head(500)
 keys = zip(df_test['refer_enc_id'].values, df_test['referral'].values)
 
 vals = df_test['item'].values
-my_dict = {}
+actual_orders_dict = {}
 for i in range(len(keys)):
-    if keys[i] in my_dict:
-        my_dict[keys[i]].append(vals[i])
+    if keys[i] in actual_orders_dict:
+        actual_orders_dict[keys[i]].append(vals[i])
     else:
-        my_dict[keys[i]] = [vals[i]]
-print my_dict
+        actual_orders_dict[keys[i]] = [vals[i]]
 
+precs = []
+for referral in referral_to_encs_dict:
+    predict_orders = refer2order_prediction.get(referral, 'nonitem') # TODO
 
-# refer2order_dict_test = df_test.head(30)[['refer_enc_id', 'referral']].\
-#         groupby('refer_enc_id')['referral'].apply(list).to_dict()
-# print refer2order_dict_test
+    enc_ids = referral_to_encs_dict[referral]
+
+    actual_orders = actual_orders_dict.get(referral, 'nonitem') # TODO
+
+    cur_prec = prec_at_k(actual_orders, predict_orders)
+
+    precs.append(cur_prec)
+
+print 'mean precision at 10:', sum(precs)/len(precs)
