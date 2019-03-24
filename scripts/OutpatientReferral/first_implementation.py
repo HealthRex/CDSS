@@ -163,16 +163,25 @@ for i in range(len(keys)):
     else:
         actual_orders_dict[keys[i]] = [vals[i]]
 
+f = open('data/actual_predict.txt', 'w')
+
 precs = []
 for referral in referral_to_encs_dict:
-    predict_orders = refer2order_prediction.get(referral, 'nonitem') # TODO
+    predict_orders = refer2order_prediction.get(referral, ['nonitem_predict']) # TODO
 
     enc_ids = referral_to_encs_dict[referral]
 
-    actual_orders = actual_orders_dict.get(referral, 'nonitem') # TODO
+    actual_orders = actual_orders_dict.get(referral, ['nonitem_actual']) # TODO
+
+    f.write(str(predict_orders))
+    f.write('\t')
+    f.write(str(actual_orders))
+    f.write('\n')
 
     cur_prec = prec_at_k(actual_orders, predict_orders)
 
     precs.append(cur_prec)
 
+f.close()
+print precs
 print 'mean precision at 10:', sum(precs)/len(precs)
