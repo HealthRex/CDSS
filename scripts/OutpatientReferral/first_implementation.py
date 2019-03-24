@@ -152,7 +152,6 @@ def prec_at_k(actuals, predicts, k=10): # TODO: how to use k
     prec = float(num_relevant) / len(predicts)
     return prec
 
-df_test = df_test.head(500)
 keys = zip(df_test['refer_enc_id'].values, df_test['referral'].values)
 
 vals = df_test['item'].values
@@ -170,18 +169,17 @@ for referral in referral_to_encs_dict:
     predict_orders = refer2order_prediction.get(referral, ['nonitem_predict']) # TODO
 
     enc_ids = referral_to_encs_dict[referral]
+    for enc_id in enc_ids:
+        actual_orders = actual_orders_dict.get((enc_id, referral), ['nonitem_actual']) # TODO
 
-    actual_orders = actual_orders_dict.get(referral, ['nonitem_actual']) # TODO
+        # f.write(str(predict_orders))
+        # f.write('\t')
+        # f.write(str(actual_orders))
+        # f.write('\n')
 
-    f.write(str(predict_orders))
-    f.write('\t')
-    f.write(str(actual_orders))
-    f.write('\n')
+        cur_prec = prec_at_k(actual_orders, predict_orders)
 
-    cur_prec = prec_at_k(actual_orders, predict_orders)
-
-    precs.append(cur_prec)
+        precs.append(cur_prec)
 
 f.close()
-print precs
 print 'mean precision at 10:', sum(precs)/len(precs)
