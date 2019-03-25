@@ -73,7 +73,7 @@ def train_model(refer2spec_df, spec2order_df, k=10): #
 
     '''
     df = pd.read_csv('data/refer2order_2016.csv')
-    my_dict = df.head(100).drop(['Unnamed: 0', 'specialty'], axis=1).set_index('referral').to_dict(orient='index')
+    my_dict = df.drop(['Unnamed: 0', 'specialty'], axis=1).set_index('referral').to_dict(orient='index')
     for key, vals in my_dict.items():
         re_ordered_vals = []
         for i in range(1,11):
@@ -86,8 +86,9 @@ def train_model(refer2spec_df, spec2order_df, k=10): #
     return my_dict
 
 
-refer2spec_df = None
 spec2order_df = None
+refer2spec_df = pd.read_csv('data/JCquestion_20190318/referral_specialty_next3mo_newvisits_cnt_2016.csv')
+refer2spec_dict = dict(zip(refer2spec_df['description'].values, refer2spec_df['specialty'].values))
 
 refer2order_prediction = train_model(refer2spec_df, spec2order_df)
 
@@ -162,13 +163,20 @@ for i in range(len(keys)):
     else:
         actual_orders_dict[keys[i]] = [vals[i]]
 
-f = open('data/actual_predict.txt', 'w')
+f = open('data/actual_predict_samples.txt', 'w')
+
+all_actual_orders = []
+all_predict_orders = []
+
+case_to_look_each_type = 10
 
 precs = []
 for referral in referral_to_encs_dict:
     predict_orders = refer2order_prediction.get(referral, ['nonitem_predict']) # TODO
 
     enc_ids = referral_to_encs_dict[referral]
+
+    case_ind = 0
     for enc_id in enc_ids:
         actual_orders = actual_orders_dict.get((enc_id, referral), ['nonitem_actual']) # TODO
 
@@ -179,7 +187,24 @@ for referral in referral_to_encs_dict:
 
         cur_prec = prec_at_k(actual_orders, predict_orders)
 
+        all_actual_orders.append(actual_orders)
+        all_predict_orders.append(predict_orders)
+
+        if case_ind < case_to_look_each_type:
+            f.write('referral:' + referral + '\n')
+            f.write('specialty:' + str(refer2spec_dict.get(referral, 'no_corresponding_specialty')) + '\n')
+            f.write('actual_orders:' + str(actual_orders) + '\n')
+            f.write('predict_orders:' + str(predict_orders) + '\n')
+            if cur_prec > 0:
+                f.write('Something matched!\n')
+            f.write('\n')
+
+        case_ind += 1
+
         precs.append(cur_prec)
 
 f.close()
 print 'mean precision at 10:', sum(precs)/len(precs)
+
+df = pd.DataFrame({'actual':all_actual_orders, 'predict':all_predict_orders})
+df.to_csv('data/actual_predict.txt', index=False)
