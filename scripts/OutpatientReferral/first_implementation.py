@@ -165,32 +165,32 @@ for i in range(len(keys)):
 
 f = open('data/actual_predict_samples.txt', 'w')
 
-all_actual_orders = []
-all_predict_orders = []
 
 case_to_look_each_type = 10
 
-precs = []
-for referral in referral_to_encs_dict:
+'''
+Check the prec@k for each type
+'''
+
+avgprecs_by_referral = {}
+
+all_referrals = referral_to_encs_dict.keys()
+for referral in all_referrals:
     predict_orders = refer2order_prediction.get(referral, ['nonitem_predict']) # TODO
 
     enc_ids = referral_to_encs_dict[referral]
 
+    precs_by_referral = []
     case_ind = 0
     for enc_id in enc_ids:
         actual_orders = actual_orders_dict.get((enc_id, referral), ['nonitem_actual']) # TODO
 
-        # f.write(str(predict_orders))
-        # f.write('\t')
-        # f.write(str(actual_orders))
-        # f.write('\n')
-
         cur_prec = prec_at_k(actual_orders, predict_orders)
 
-        all_actual_orders.append(actual_orders)
-        all_predict_orders.append(predict_orders)
-
-        if case_ind < case_to_look_each_type:
+        '''
+        For each type of referral, check 10 examples
+        '''
+        if case_ind < case_to_look_each_type and referral=='REFERRAL TO NEUROGENETICS ONCOLOGY':
             f.write('referral:' + referral + '\n')
             f.write('specialty:' + str(refer2spec_dict.get(referral, 'no_corresponding_specialty')) + '\n')
             f.write('actual_orders:' + str(actual_orders) + '\n')
@@ -199,12 +199,13 @@ for referral in referral_to_encs_dict:
                 f.write('Something matched!\n')
             f.write('\n')
 
-        case_ind += 1
+            case_ind += 1
+        precs_by_referral.append(cur_prec)
+    avgprecs_by_referral[referral] = sum(precs_by_referral)/len(precs_by_referral)
 
-        precs.append(cur_prec)
 
 f.close()
-print 'mean precision at 10:', sum(precs)/len(precs)
+for key, val in sorted(avgprecs_by_referral.items(), key=lambda (k,v):v)[::-1]:
+    print 'referral, avgprec:', key, val
+# print 'mean precision at 10:', sum(all_precs)/len(all_precs)
 
-df = pd.DataFrame({'actual':all_actual_orders, 'predict':all_predict_orders})
-df.to_csv('data/actual_predict.txt', index=False)
