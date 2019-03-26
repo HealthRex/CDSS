@@ -204,7 +204,7 @@ if __name__ == '__main__':
             '''
             For each type of referral, check 10 examples
             '''
-            if case_ind < case_to_look_each_type and referral=='REFERRAL TO NEUROGENETICS ONCOLOGY':
+            if case_ind < case_to_look_each_type:
                 f.write('referral:' + referral + '\n')
                 f.write('specialty:' + str(refer2spec_dict.get(referral, 'no_corresponding_specialty')) + '\n')
                 f.write('actual_orders:' + str(actual_orders) + '\n')

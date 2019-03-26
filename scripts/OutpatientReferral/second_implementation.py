@@ -3,6 +3,7 @@
 
 
 '''
+import numpy as np
 import pandas as pd
 pd.set_option('display.width', 1000)
 
@@ -60,10 +61,12 @@ where
 For testing, group by encounters!
 '''
 df_test = pd.read_csv('data/second_implementation/test_data.csv')
-all_encounters = df_test['specialty_enc_id'].drop_duplicates().values.tolist()
+all_encounters = df_test['specialty_enc_id'].drop_duplicates().sample(1000).values.tolist()
 
 from first_implementation import prec_at_k
 all_precs = []
+precs_by_specialty = {}
+f = open('data/actual_predict_start_from_specialties_samples.txt', 'w')
 for encounter in all_encounters:
     df_tmp = df_test[df_test['specialty_enc_id']==encounter]
     cur_items = df_tmp['item'].values.tolist()
@@ -75,5 +78,19 @@ for encounter in all_encounters:
         continue
     cur_prec = prec_at_k(actuals=actuals, predicts=predicts)
 
+    f.write('specialty:' + specialty + '\n')
+    f.write('actual_orders:' + str(actuals) + '\n')
+    f.write('predict_orders:' + str(predicts) + '\n')
+    f.write('precision at 10: ' + str(cur_prec) + '\n')
+    f.write('\n')
+
+    if specialty in precs_by_specialty:
+        precs_by_specialty[specialty].append(cur_prec)
+    else:
+        precs_by_specialty[specialty] = [cur_prec]
+
     all_precs.append(cur_prec)
+f.close()
 print 'average prec:', sum(all_precs)/len(all_precs)
+
+print sorted(precs_by_specialty.items(), key=lambda (k,v):np.mean(v))[::-1]
