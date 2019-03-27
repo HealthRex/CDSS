@@ -124,7 +124,8 @@ For each referral_enc_id, only consider the earliest followup specialty visit
 # df_train_derma_firstSpecialtyVisit.to_csv('data/third_implementation/training_data_derma_firstSpecialtyVisit.csv', index=False)
 
 df_train_derma_firstSpecialtyVisit = pd.read_csv('data/third_implementation/training_data_derma_firstSpecialtyVisit.csv')
-# print df_train_derma_firstSpecialtyVisit.head()
+print 'df_train_derma_firstSpecialtyVisit.shape:', df_train_derma_firstSpecialtyVisit.shape
+print df_train_derma_firstSpecialtyVisit.head()
 
 '''
 Next goal: Based on icd10, predict 10 orders for each referral
@@ -132,16 +133,31 @@ Next goal: Based on icd10, predict 10 orders for each referral
 # print df_train_derma_firstSpecialtyVisit['specialty_order'].groupby(
 #         df_train_derma_firstSpecialtyVisit['referral_icd10']).value_counts() \
 #         .groupby(level=[0, 1]).nlargest(3)
-df_tmp = df_train_derma_firstSpecialtyVisit[['referral_icd10', 'specialty_order']]
+df_tmp = df_train_derma_firstSpecialtyVisit[['referral_icd10', 'specialty_order']].copy()
 # print df_tmp.groupby(['referral_icd10', 'specialty_order']).specialty_order.value_counts().nlargest(1)
+
+'''
+Handle multiple icd10 codes in a cell
+TODO: how to handle this? Not sure the order is for which icd10 code
+'''
+# print df_tmp[df_tmp.referral_icd10.str.contains(',')]
+
+'''
+Aggregate icd10 codes
+'''
+to_agg_icd10 = True
+if to_agg_icd10:
+    df_tmp['referral_icd10'] = df_tmp['referral_icd10'].apply(lambda x: x.split('.')[0])
 
 s = df_tmp['specialty_order'].groupby(df_tmp['referral_icd10']).value_counts()
 # print s.groupby(['referral_icd10', 'specialty_order']).nlargest(1)
-s = s.groupby(level=0).nlargest(2).reset_index(level=0, drop=True)
-print s
-
-'''
-Next goal:
-Aggregate ICD10 code. 
-Parse >1 ICD10 codes. 
-'''
+s = s.groupby(level=0).nlargest(5).reset_index(level=0, drop=True)
+icd10order_to_cnt = s.to_dict()
+icd10_to_orderCnt = {}
+for key, val in icd10order_to_cnt.items():
+    icd10, order = key
+    if icd10 in icd10_to_orderCnt:
+        icd10_to_orderCnt[icd10].append((order, val))
+    else:
+        icd10_to_orderCnt[icd10] = [(order, val)]
+print icd10_to_orderCnt
