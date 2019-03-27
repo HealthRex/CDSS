@@ -67,6 +67,7 @@ select
     d1.icd10 as referral_icd10,
     
     p2.pat_enc_csn_id_coded as specialty_enc_id,
+    e2.appt_when_jittered as specialty_time,
     d2.department_name as specialty_dep, 
     d2.specialty as specialty_name, 
     p2.description as specialty_order
@@ -95,4 +96,32 @@ where
     and p2.pat_enc_csn_id_coded = e2.pat_enc_csn_id_coded
 '''
 
+'''
+Focus on 1 referral type: REFERRAL TO DERMATOLOGY
+'''
+# df_train = pd.read_csv('data/third_implementation/training_data.csv')
+#
+# df_train_derma = df_train[(df_train['referral_name']=='REFERRAL TO DERMATOLOGY')
+#                         & (df_train['specialty_name']=='Dermatology')]
+#
+# df_train_derma.to_csv('data/third_implementation/training_data_derma.csv', index=False)
 
+'''
+For each referral_enc_id, only consider the earliest followup specialty visit
+'''
+# df_train_derma = pd.read_csv('data/third_implementation/training_data_derma.csv')
+# # print df_train_derma.head()
+#
+# df_train_derma = df_train_derma.sort_values(['referral_enc_id', 'specialty_time'])
+#
+# df_tmp = df_train_derma[['referral_enc_id', 'specialty_time']]\
+#                 .groupby('referral_enc_id').first().reset_index()
+# print 'Training size (num of referral encounters): ', df_tmp.shape[0]
+# refer_to_first_special = dict(zip(df_tmp['referral_enc_id'].values, df_tmp['specialty_time'].values))
+#
+# df_train_derma_firstSpecialtyVisit = df_train_derma[df_train_derma['specialty_time'] ==
+#                         df_train_derma['referral_enc_id'].apply(lambda x: refer_to_first_special[x])]
+# df_train_derma_firstSpecialtyVisit.to_csv('data/third_implementation/training_data_derma_firstSpecialtyVisit.csv', index=False)
+
+df_train_derma_firstSpecialtyVisit = pd.read_csv('data/third_implementation/training_data_derma_firstSpecialtyVisit.csv')
+print df_train_derma_firstSpecialtyVisit.shape
