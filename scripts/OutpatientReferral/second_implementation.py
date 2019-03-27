@@ -1,8 +1,9 @@
 
 '''
-
-
+Goal: Finding the top 10 orders associated with each Specialty
 '''
+
+
 import numpy as np
 import pandas as pd
 pd.set_option('display.width', 1000)
