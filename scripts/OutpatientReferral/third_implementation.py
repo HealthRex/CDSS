@@ -34,7 +34,7 @@ TODO: Could we assert that a (new visit) specialty has to come from referral?
 '''
 
 '''
-(1.2.1) Training set query for 2016
+(1.2.1) Training set query in 2016
 
 Goal: 
 - referral_enc_id, referral_time, referral_name, patient_id, ICD10, ICD9
@@ -160,4 +160,102 @@ for key, val in icd10order_to_cnt.items():
         icd10_to_orderCnt[icd10].append((order, val))
     else:
         icd10_to_orderCnt[icd10] = [(order, val)]
-print icd10_to_orderCnt
+
+
+'''
+(1.2.2) Test set query in 2017
+
+select 
+    p1.pat_enc_csn_id_coded as referral_enc_id,
+    p1.description as referral_name, 
+    e1.appt_when_jittered as referral_time, 
+    e1.jc_uid as pat_id,
+    d1.icd9 as referral_icd9,
+    d1.icd10 as referral_icd10,
+    
+    p2.pat_enc_csn_id_coded as specialty_enc_id,
+    e2.appt_when_jittered as specialty_time,
+    d2.department_name as specialty_dep, 
+    d2.specialty as specialty_name, 
+    p2.description as specialty_order
+from 
+    datalake_47618.encounter e1,
+    datalake_47618.order_proc p1,
+    datalake_47618.diagnosis_code d1,
+    
+    datalake_47618.encounter e2,
+    datalake_47618.order_proc p2,
+    datalake_47618.dep_map d2
+where
+    lower(p1.description) like '%referral%' 
+    and p1.pat_enc_csn_id_coded = e1.pat_enc_csn_id_coded
+    and p1.pat_enc_csn_id_coded = d1.pat_enc_csn_id_coded
+    and e1.appt_when_jittered >= '2017-01-01'
+    and e1.appt_when_jittered < '2018-01-01'
+    
+    and e1.jc_uid = e2.jc_uid
+    and e1.pat_enc_csn_id_coded != e2.pat_enc_csn_id_coded
+    and e1.appt_when_jittered <= e2.appt_when_jittered
+    and DATE_ADD(date(timestamp(e1.appt_when_jittered)), INTERVAL 3 month) > date(timestamp(e2.appt_when_jittered))
+    
+    and e2.visit_type like '%NEW PATIENT%'
+    and e2.department_id = d2.department_id
+    and p2.pat_enc_csn_id_coded = e2.pat_enc_csn_id_coded
+'''
+
+# df_test = pd.read_csv('data/third_implementation/test_data.csv')
+# df_test_derma = df_test[(df_test['referral_name']=='REFERRAL TO DERMATOLOGY')
+#                         & (df_test['specialty_name']=='Dermatology')]
+# print df_test_derma.head()
+# df_test_derma.to_csv('data/third_implementation/test_data_derma.csv', index=False)
+
+# df_test_derma = pd.read_csv('data/third_implementation/test_data_derma.csv')
+# # print df_test_derma.head()
+#
+# df_test_derma = df_test_derma.sort_values(['referral_enc_id', 'specialty_time'])
+#
+# df_tmp = df_test_derma[['referral_enc_id', 'specialty_time']]\
+#                 .groupby('referral_enc_id').first().reset_index()
+# print 'Test size (num of referral encounters): ', df_tmp.shape[0]
+# refer_to_first_special = dict(zip(df_tmp['referral_enc_id'].values, df_tmp['specialty_time'].values))
+#
+# df_test_derma_firstSpecialtyVisit = df_test_derma[df_test_derma['specialty_time'] ==
+#                                                    df_test_derma['referral_enc_id'].apply(lambda x: refer_to_first_special[x])]
+# df_test_derma_firstSpecialtyVisit.to_csv('data/third_implementation/test_data_derma_firstSpecialtyVisit.csv', index=False)
+from collections import Counter
+from first_implementation import prec_at_k, recall_at_k
+import numpy as np
+
+df_test_derma_firstSpecialtyVisit = pd.read_csv('data/third_implementation/test_data_derma_firstSpecialtyVisit.csv')
+all_test_enc_ids = df_test_derma_firstSpecialtyVisit['referral_enc_id'].drop_duplicates().values
+
+all_precisions =[]
+all_recalls = []
+for test_enc_id in all_test_enc_ids:
+    df_cur = df_test_derma_firstSpecialtyVisit[df_test_derma_firstSpecialtyVisit['referral_enc_id']==test_enc_id].copy()
+
+    cur_icd10s = df_cur['referral_icd10'].drop_duplicates().values
+
+    actual_orders = df_cur['specialty_order'].drop_duplicates().values
+
+    predicted_counters = Counter()
+    '''
+    TODO: How to handle multiple icd10s per encounter?
+    '''
+    for icd10 in cur_icd10s:
+        if to_agg_icd10:
+            icd10 = icd10.split('.')[0]
+        cur_predicts = icd10_to_orderCnt.get(icd10, [('no-recommend', 0)])
+        for cur_predict_order, cur_predict_cnt in cur_predicts:
+            predicted_counters[cur_predict_order] += cur_predict_cnt
+
+    predicted_top_5 = [x[0] for x in predicted_counters.most_common(5)]
+
+    cur_prec = prec_at_k(actuals=actual_orders, predicts=predicted_top_5)
+    cur_recall = recall_at_k(actuals=actual_orders, predicts=predicted_top_5)
+
+    all_precisions.append(cur_prec)
+    all_recalls.append(cur_recall)
+
+print 'np.mean(all_precisions):', np.mean(all_precisions)
+print 'np.mean(all_recalls):', np.mean(all_recalls)
