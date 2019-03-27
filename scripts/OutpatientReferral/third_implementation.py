@@ -14,10 +14,12 @@ pd.set_option('display.max_columns', 1000)
 from collections import Counter
 from first_implementation import prec_at_k, recall_at_k
 import numpy as np
+import os
 
 
-def main(referral, specialty):
+def main(referral, specialty, verbose=False):
     ''''''
+    print "Processing %s..."%referral
 
     '''
     (1.2) Do train and test for REFERRAL TO DERMATOLOGY. 
@@ -93,36 +95,46 @@ def main(referral, specialty):
     '''
     referral_code = referral.replace("REFERRAL TO ", "").replace(" ","-").replace("/","-")
 
-    df_train = pd.read_csv('data/third_implementation/training_data.csv')
+    train_filepath = 'data/third_implementation/training_data_%s_firstSpecialtyVisit.csv'%referral_code
 
-    df_train_one = df_train[(df_train['referral_name']==referral)
-                            & (df_train['specialty_name']==specialty)]
+    if not os.path.exists(train_filepath):
 
-    df_train_one.to_csv('data/third_implementation/training_data_%s.csv'%referral_code, index=False)
+        df_train = pd.read_csv('data/third_implementation/training_data.csv')
+
+        df_train_one = df_train[(df_train['referral_name']==referral)
+                                & (df_train['specialty_name']==specialty)]
+
+        df_train_one.to_csv('data/third_implementation/training_data_%s.csv'%referral_code, index=False)
 
 
-    '''
-    For each referral_enc_id, only consider the earliest followup specialty visit
-    '''
-    df_train_one = pd.read_csv('data/third_implementation/training_data_%s.csv'%referral_code)
+        '''
+        For each referral_enc_id, only consider the earliest followup specialty visit
+        '''
+        df_train_one = pd.read_csv('data/third_implementation/training_data_%s.csv'%referral_code)
 
-    df_train_one = df_train_one.sort_values(['referral_enc_id', 'specialty_time'])
+        df_train_one = df_train_one.sort_values(['referral_enc_id', 'specialty_time'])
 
-    df_tmp = df_train_one[['referral_enc_id', 'specialty_time']]\
-                    .groupby('referral_enc_id').first().reset_index()
-    print 'Training size (num of referral encounters): ', df_tmp.shape[0]
-    refer_to_first_special = dict(zip(df_tmp['referral_enc_id'].values, df_tmp['specialty_time'].values))
+        df_tmp = df_train_one[['referral_enc_id', 'specialty_time']]\
+                        .groupby('referral_enc_id').first().reset_index()
 
-    df_train_one_firstSpecialtyVisit = df_train_one[df_train_one['specialty_time'] ==
-                            df_train_one['referral_enc_id'].apply(lambda x: refer_to_first_special[x])]
-    df_train_one_firstSpecialtyVisit.to_csv('data/third_implementation/training_data_%s_firstSpecialtyVisit.csv'%referral_code, index=False)
+        if verbose:
+            print 'Training size (num of referral encounters): ', df_tmp.shape[0]
+        refer_to_first_special = dict(zip(df_tmp['referral_enc_id'].values, df_tmp['specialty_time'].values))
+
+        df_train_one_firstSpecialtyVisit = df_train_one[df_train_one['specialty_time'] ==
+                                df_train_one['referral_enc_id'].apply(lambda x: refer_to_first_special[x])]
+        df_train_one_firstSpecialtyVisit.to_csv('data/third_implementation/training_data_%s_firstSpecialtyVisit.csv'%referral_code, index=False)
+
+    else:
+
+        df_train_one_firstSpecialtyVisit = pd.read_csv(train_filepath)
 
     '''
     Next goal: Based on icd10, predict 10 orders for each referral
     '''
-    df_train_one_firstSpecialtyVisit = pd.read_csv('data/third_implementation/training_data_%s_firstSpecialtyVisit.csv'%referral_code)
-    print 'df_train_one_firstSpecialtyVisit.shape:', df_train_one_firstSpecialtyVisit.shape
-    print df_train_one_firstSpecialtyVisit.head()
+    if verbose:
+        print 'df_train_one_firstSpecialtyVisit.shape:', df_train_one_firstSpecialtyVisit.shape
+        print df_train_one_firstSpecialtyVisit.head()
 
     # print df_train_derma_firstSpecialtyVisit['specialty_order'].groupby(
     #         df_train_derma_firstSpecialtyVisit['referral_icd10']).value_counts() \
@@ -196,28 +208,36 @@ def main(referral, specialty):
         and e2.department_id = d2.department_id
         and p2.pat_enc_csn_id_coded = e2.pat_enc_csn_id_coded
     '''
+    test_filepath = 'data/third_implementation/test_data_%s_firstSpecialtyVisit.csv'%referral_code
 
-    df_test = pd.read_csv('data/third_implementation/test_data.csv')
-    df_test_one = df_test[(df_test['referral_name']==referral)
-                            & (df_test['specialty_name']==specialty)]
-    print df_test_one.head()
-    df_test_one.to_csv('data/third_implementation/test_data_%s.csv'%referral_code, index=False)
+    if not os.path.exists(test_filepath):
+        df_test = pd.read_csv('data/third_implementation/test_data.csv')
+        df_test_one = df_test[(df_test['referral_name']==referral)
+                                & (df_test['specialty_name']==specialty)]
+        if verbose:
+            print df_test_one.head()
 
-    df_test_one = pd.read_csv('data/third_implementation/test_data_%s.csv'%referral_code)
-    # print df_test_derma.head()
+        df_test_one.to_csv('data/third_implementation/test_data_%s.csv'%referral_code, index=False)
 
-    df_test_one = df_test_one.sort_values(['referral_enc_id', 'specialty_time'])
+        df_test_one = pd.read_csv('data/third_implementation/test_data_%s.csv'%referral_code)
+        # print df_test_derma.head()
 
-    df_tmp = df_test_one[['referral_enc_id', 'specialty_time']]\
-                    .groupby('referral_enc_id').first().reset_index()
-    print 'Test size (num of referral encounters): ', df_tmp.shape[0]
-    refer_to_first_special = dict(zip(df_tmp['referral_enc_id'].values, df_tmp['specialty_time'].values))
+        df_test_one = df_test_one.sort_values(['referral_enc_id', 'specialty_time'])
 
-    df_test_one_firstSpecialtyVisit = df_test_one[df_test_one['specialty_time'] ==
-                                                       df_test_one['referral_enc_id'].apply(lambda x: refer_to_first_special[x])]
-    df_test_one_firstSpecialtyVisit.to_csv('data/third_implementation/test_data_%s_firstSpecialtyVisit.csv'%referral_code, index=False)
+        df_tmp = df_test_one[['referral_enc_id', 'specialty_time']]\
+                        .groupby('referral_enc_id').first().reset_index()
+        if verbose:
+            print 'Test size (num of referral encounters): ', df_tmp.shape[0]
 
-    df_test_one_firstSpecialtyVisit = pd.read_csv('data/third_implementation/test_data_%s_firstSpecialtyVisit.csv'%referral_code)
+        refer_to_first_special = dict(zip(df_tmp['referral_enc_id'].values, df_tmp['specialty_time'].values))
+
+        df_test_one_firstSpecialtyVisit = df_test_one[df_test_one['specialty_time'] ==
+                                                           df_test_one['referral_enc_id'].apply(lambda x: refer_to_first_special[x])]
+        df_test_one_firstSpecialtyVisit.to_csv('data/third_implementation/test_data_%s_firstSpecialtyVisit.csv'%referral_code, index=False)
+
+    else:
+        df_test_one_firstSpecialtyVisit = pd.read_csv(test_filepath)
+
     all_test_enc_ids = df_test_one_firstSpecialtyVisit['referral_enc_id'].drop_duplicates().values
 
     all_precisions =[]
@@ -248,9 +268,11 @@ def main(referral, specialty):
         all_precisions.append(cur_prec)
         all_recalls.append(cur_recall)
 
-    print "Results for %s:"%referral
-    print 'np.mean(all_precisions):', np.mean(all_precisions)
-    print 'np.mean(all_recalls):', np.mean(all_recalls)
+    if verbose:
+        print "Results for %s:"%referral
+        print 'np.mean(all_precisions):', np.mean(all_precisions)
+        print 'np.mean(all_recalls):', np.mean(all_recalls)
+    return np.mean(all_precisions), np.mean(all_recalls)
 
 def explore_data():
     '''
@@ -275,8 +297,8 @@ def explore_data():
 if __name__ == '__main__':
     referral_specialty_pairs =\
     [
-        # ('REFERRAL TO DERMATOLOGY', 'Dermatology'),
-        # ('REFERRAL TO GASTROENTEROLOGY',   'Gastroenterology'),
+        ('REFERRAL TO DERMATOLOGY', 'Dermatology'),
+        ('REFERRAL TO GASTROENTEROLOGY',   'Gastroenterology'),
         ('REFERRAL TO EYE',    'Ophthalmology'),
             # REFERRAL TO PAIN CLINIC PROCEDURES,   Pain Management #(cnt: 525, but Neurosurgery has 224)
         ('REFERRAL TO ORTHOPEDICS',    'Orthopedic Surgery'),
@@ -287,5 +309,12 @@ if __name__ == '__main__':
         ('REFERRAL TO PAIN CLINIC', 'Pain Management'),
         ('REFERRAL TO UROLOGY CLINIC', 'Urology') #(cnt: 2827, but Oncology has 605)
     ]
+    precisions = []
+    recalls = []
     for referral, specialty in referral_specialty_pairs:
-        main(referral, specialty)
+        precision, recall = main(referral, specialty)
+        precisions.append(precision)
+        recalls.append(recall)
+    res_df = pd.DataFrame({'referral':referral_specialty_pairs, 'precision':precisions, 'recall':recalls})
+    print res_df
+    res_df.to_csv("data/third_implementation/res_df.csv", index=False)
