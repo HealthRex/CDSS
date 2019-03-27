@@ -1,3 +1,4 @@
+-- REQUIRES REVIEW: RUNS WAY TOO LONG 
 -- general population: people 
 -- stroke cohort table 
 -- take stroke cohort and 
