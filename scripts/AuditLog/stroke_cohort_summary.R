@@ -1,3 +1,5 @@
+# TODO Potentially Update TimeVis Project: 
+
 sync_environment = "/Users/jonc101/Box Sync/Jonathan Chiang's Files/mining-clinical-decisions/"
 #sync_environment = "/Users/jonc101/Box Sync/Jonathan Chiang's Files/audit_log/"
 #install.packages("data.table")
