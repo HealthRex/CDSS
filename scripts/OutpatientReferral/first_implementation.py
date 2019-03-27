@@ -99,6 +99,16 @@ def prec_at_k(actuals, predicts, k=10): # TODO: how to use k
     prec = float(num_relevant) / len(predicts)
     return prec
 
+def recall_at_k(actuals, predicts, k=10): # TODO: how to use k
+    if len(predicts)==0 and len(actuals)==0:
+        return float('nan')
+
+    num_recalled = 0
+    for actual in actuals:
+        if actual in predicts:
+            num_recalled += 1
+    recall = float(num_recalled) / len(actuals)
+    return recall
 
 if __name__ == '__main__':
 
