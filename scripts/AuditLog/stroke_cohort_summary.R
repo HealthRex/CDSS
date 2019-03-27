@@ -1,5 +1,3 @@
-# TO DO: CLEAN SCRIPT and UPDATE FIGURES FOR GGPLOT 
-
 sync_environment = "/Users/jonc101/Box Sync/Jonathan Chiang's Files/mining-clinical-decisions/"
 #sync_environment = "/Users/jonc101/Box Sync/Jonathan Chiang's Files/audit_log/"
 #install.packages("data.table")
@@ -135,7 +133,7 @@ colnames(t) <- c("start","end","content","group","type","id")
 # function to clean data 
 # 
 library(lubridate)
-with_tz(ymd_hms(stroke_cohort$emergencyAdmitTime),"America/Los_Angeles")
+#with_tz(ymd_hms(stroke_cohort$emergencyAdmitTime),"America/Los_Angeles")
 
 convert_datetime <- function(timeEHR){
   #convert to America_Pacific in lubridate
@@ -152,14 +150,59 @@ convert_datetime <- function(timeEHR){
   return(with_tz(ymd_hms(timeEHR),"America/Los_Angeles"))
 }
 
-time.interval <- start %--% end
-convert_datetime(stroke_cohort$ctHeadOrderTime) - convert_datetime(stroke_cohort$emergencyAdmitTime) 
 
-g <- ggplot(mpg, aes(class))
-# Number of cars in each class:
-g + geom_bar()
+find_time_difference <- function(time_start,time_end, jc_uid){
+    time_to_ct <- as.numeric(convert_datetime(time_end) - convert_datetime(time_start)) /60
+    #return(time_to_ct)
+    ct.df <- as_tibble(cbind(jc_uid, time_to_ct))
+    colnames(ct.df)[1] <- "id"
+    colnames(ct.df)[2] <- "time_diff"
+    ct.df$time_diff <- as.numeric(ct.df$time_diff)
+    return(ct.df)
+}
 
-# look at RCT: TABLE 1 
-# comorbidities 
 
-# 
+plot_density_difference_plotly <- function(dataframe){
+  #ct.df2 <- dataframe %>% filter(time_diff < 100)
+  pg2  <- ggplot(dataframe, aes(x=time_diff)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=1,
+                   colour="black", fill="white") +
+    geom_density(alpha=.2, fill="#FF6666")   # Overlay with transparent density plot 
+  return(plotly::ggplotly(pg2))
+}
+
+plot_density_difference <- function(dataframe){
+  #ct.df2 <- dataframe %>% filter(time_diff < 100)
+  pg2  <- ggplot(dataframe, aes(x=time_diff)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=1,
+                   colour="black", fill="white") +
+    geom_density(alpha=.2, fill="#FF6666")   # Overlay with transparent density plot 
+  return(pg2)
+}
+
+
+test1 <- find_time_difference(stroke_cohort$emergencyAdmitTime, stroke_cohort$ctHeadOrderTime, stroke_cohort$jc_uid)
+test1.1 <- test1 %>% filter(time_diff < 100)
+
+test2 <- find_time_difference(stroke_cohort$emergencyAdmitTime, stroke_cohort$inpatientAdmitTime, stroke_cohort$jc_uid)
+test2.1 <- test2 %>% filter(time_diff < 100)
+
+test3 <- find_time_difference(stroke_cohort$emergencyAdmitTime, stroke_cohort$tpaOrderTime, stroke_cohort$jc_uid)
+test3.1 <- test3 %>% filter(time_diff < 100)
+
+test4 <- find_time_difference(stroke_cohort$emergencyAdmitTime, stroke_cohort$tpaAdminTime, stroke_cohort$jc_uid)
+test4.1 <- test4 %>% filter(time_diff < 100)
+
+test5 <- find_time_difference(stroke_cohort$tpaOrderTime, stroke_cohort$tpaAdminTime, stroke_cohort$jc_uid)
+test5.1 <- test5 %>% filter(time_diff < 100)
+
+
+
+plot_density_difference(test1.1)
+plot_density_difference(test2.1)
+plot_density_difference(test3.1)
+plot_density_difference(test4.1)
+plot_density_difference(test5.1)
+
