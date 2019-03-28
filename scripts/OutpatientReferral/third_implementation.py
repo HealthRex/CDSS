@@ -305,10 +305,15 @@ if __name__ == '__main__':
         ('REFERRAL TO CARDIOLOGY',     'Cardiology'),
         ('REFERRAL TO PSYCHIATRY', 'Psychiatry'),
         ('SLEEP CLINIC REFERRAL', 'Sleep Center'),
-        ('REFERRAL TO SURGERY OTOLARYNGOLOGY/HEAD&NEC', 'ENT-Otolaryngology'), #(cnt: 2170, but Oncology has 480)
+        ('REFERRAL TO ENT/OTOLARYNGOLOGY', 'ENT-Otolaryngology'), #(cnt: 2170, but Oncology has 480)
         ('REFERRAL TO PAIN CLINIC', 'Pain Management'),
         ('REFERRAL TO UROLOGY CLINIC', 'Urology') #(cnt: 2827, but Oncology has 605)
     ]
+    '''
+    Referral names (and their counts) inconsistency:
+    2016: {'REFERRAL TO ENT/OTOLARYNGOLOGY': 39949, 'REFERRAL TO SURGERY OTOLARYNGOLOGY/HEAD&NEC': 22632, 'AMB REFERRAL TO ENT/OTOLARYNGOLOGY ALLERGY': 5205, 'REFERRAL TO ENT/OTOLARYNGOLOGY ALLERGY': 2441}
+    2017: {'REFERRAL TO ENT/OTOLARYNGOLOGY': 115736}
+    '''
     precisions = []
     recalls = []
     for referral, specialty in referral_specialty_pairs:
