@@ -262,7 +262,56 @@ insert into sim_note(note_type_id, author_type_id, service_type_id, relative_sta
 
 /* Insert state_results */
 
-
+/* TNI active */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (500, 40, 13530, 45870, 0.6, 'High');
+/* BNP active */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (501, 40, 13540, 45853, 1600, 'High');
+/* ABG pH */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (502, 40, 15010, 45760, 7.48, 'High');
+/* ABG O2 */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (503, 40, 15030, 45760, 75, 'Low');
+/* ABG CO2 */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (504, 40, 15020, 45760, 31, 'Low');
+/* ABG HCO3 */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (505, 40, 1000019, 45760, 21, 'Low');
+/* VBG pH */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (506, 40, 15050, 45919, 7.45, 'High');
+/* VBG O2 */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (507, 40, 15070, 45919, 21, 'Low');
+/* VBG CO2 */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (508, 40, 15060, 45919, 38, 'Low');
+/* VBG HCO3 */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (509, 40, 1001944, 45919, 19, 'Low');
+/* TNI stable */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (510, 41, 13530, 45870, 0.2, 'High');
+/* BNP stable */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, num_value, result_flag)
+  values (511, 41, 13540, 45853, 1200, 'High');
+/* ECG active */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, text_value)
+  values (512, 40, 1004198, 45866, 'Atrial fibrillation with rapid ventricular rate. 1mm ST depression in V1-V4');
+/* TTE active */
+insert into sim_result(sim_result_id, name, description, group_string)
+  values (200, 'TTE', 'TRANSTHORACIC ECHO', 'Cardiology>TTE');
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, text_value)
+  values (513, 40, 200, 61832, 'EF 71% with LVH, atrial fibrillation. No wall motion abnormality.');
+/* ECG stable */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, text_value)
+  values (514, 41, 1004198, 45866, 'Normal sinus rhythm');
+/* TTE stable */
+insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, text_value)
+  values (515, 41, 200, 61832, 'EF 68% with LVH, normal sinus rhythm');
 /* MRI */
 insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, clinical_item_id, text_value)
   values (530, 42, 130, 62831, 'Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.');
@@ -320,6 +369,9 @@ insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, c
 
 
 /* Insert required result mappings */
+/* TTE */
+insert into sim_order_result_map(sim_order_result_map_id, clinical_item_id, sim_result_id, turnaround_time)
+  values (8200, 61832, 150, 0);
 
 
 /* State transitions */
