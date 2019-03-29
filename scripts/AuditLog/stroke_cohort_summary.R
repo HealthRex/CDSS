@@ -1,5 +1,3 @@
-# TODO Potentially Update TimeVis Project: 
-
 sync_environment = "/Users/jonc101/Box Sync/Jonathan Chiang's Files/mining-clinical-decisions/"
 #sync_environment = "/Users/jonc101/Box Sync/Jonathan Chiang's Files/audit_log/"
 #install.packages("data.table")
@@ -184,21 +182,61 @@ plot_density_difference <- function(dataframe){
   return(pg2)
 }
 
+plot_density_difference_long <- function(dataframe){
+  #ct.df2 <- dataframe %>% filter(time_diff < 100)
+  pg2  <- ggplot(dataframe, aes(x=time_diff,color = event)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=1) +
+    geom_density(alpha=.2) + ggtitle("Stroke Density Plot Histograms") +
+    xlab("Time Differences in Minutes") + ylab("Density")  # Overlay with transparent density plot 
+  return(pg2)
+}
+
+plot_density_difference_long_facet <- function(dataframe){
+  #ct.df2 <- dataframe %>% filter(time_diff < 100)
+  pg2  <- ggplot(dataframe, aes(x=time_diff,color = event)) + 
+    geom_histogram(aes(y=..density..),      # Histogram with density instead of count on y-axis
+                   binwidth=1) +
+    geom_density(alpha=.2) +  # Overlay with transparent density plot 
+    facet_grid(rows = vars(event)) + ggtitle("Stroke Density Histograms") +
+    xlab("Time Differences in Minutes") + ylab("Density") + 
+    theme(
+    plot.title = element_text(color="red", size=14, face="bold.italic",hjust = 0.5),
+    axis.title.x = element_text(color="blue", size=14, face="bold"),
+    axis.title.y = element_text(color="#993333", size=14, face="bold"))
+  return(pg2)
+}
+
+
 
 test1 <- find_time_difference(stroke_cohort$emergencyAdmitTime, stroke_cohort$ctHeadOrderTime, stroke_cohort$jc_uid)
-test1.1 <- test1 %>% filter(time_diff < 100)
+test1.1 <- test1 %>% filter(time_diff < 100) %>% filter(time_diff > -16 )
 
 test2 <- find_time_difference(stroke_cohort$emergencyAdmitTime, stroke_cohort$inpatientAdmitTime, stroke_cohort$jc_uid)
-test2.1 <- test2 %>% filter(time_diff < 100)
+test2.1 <- test2 %>% filter(time_diff < 100) %>% filter(time_diff > -16 )
 
 test3 <- find_time_difference(stroke_cohort$emergencyAdmitTime, stroke_cohort$tpaOrderTime, stroke_cohort$jc_uid)
-test3.1 <- test3 %>% filter(time_diff < 100)
+test3.1 <- test3 %>% filter(time_diff < 100) %>% filter(time_diff > -16 )
 
 test4 <- find_time_difference(stroke_cohort$emergencyAdmitTime, stroke_cohort$tpaAdminTime, stroke_cohort$jc_uid)
-test4.1 <- test4 %>% filter(time_diff < 100)
+test4.1 <- test4 %>% filter(time_diff < 100) %>% filter(time_diff > -16 )
 
 test5 <- find_time_difference(stroke_cohort$tpaOrderTime, stroke_cohort$tpaAdminTime, stroke_cohort$jc_uid)
-test5.1 <- test5 %>% filter(time_diff < 100)
+test5.1 <- test5 %>% filter(time_diff < 100) %>% filter(time_diff > -16 )
+
+test1.1$event <- 'ER to CT Order' # Try: Red: Time diff between ERAdmitTime to CT Head Order
+test2.1$event <- 'ER to Inpatient' # Time diff between ERAdmitTime to Inpatient Transfer
+test3.1$event <- 'ER to tPA Order' # Green: Time diff between ERAdmitTime to tPA Order
+test4.1$event <- 'ER to tPAAdmin' # Blue: Time diff between ERAdmitTime to tPA administration (unless there's a way to tie directly to previous?)
+
+test5.1$event <- 'tPA Order to Admin'
+
+
+test_time_long <- rbind(test1.1, 
+                        test3.1,
+                        test2.1,
+                        test4.1)
+                        #test5.1)
 
 
 
@@ -207,4 +245,28 @@ plot_density_difference(test2.1)
 plot_density_difference(test3.1)
 plot_density_difference(test4.1)
 plot_density_difference(test5.1)
+
+
+
+# 
+colnames(stroke_cohort)
+colnames(stroke_cohort_demo)
+stroke_cohort_demo$jc_uid <- stroke_cohort_demo$rit_uid
+
+stroke_cohort_merge <- merge(stroke_cohort, stroke_cohort_demo, by= "jc_uid")
+sdf <- stroke_cohort_merge
+
+# push_quiver <- function(df, name, env){
+# push_quiver(stroke_cohort_merge, "stroke_cohort_merge", sync_environment)
+# list_quiver_csv(sync_environment)
+
+
+test6 <- find_time_difference(sdf$emergencyAdmitTime, sdf$ctHeadOrderTime, sdf$jc_uid)
+# Try: Red: Time diff between ERAdmitTime to CT Head Order
+# Green: Time diff between ERAdmitTime to tPA Order
+# Blue: Time diff between ERAdmitTime to tPA administration (unless there's a way to tie directly to previous?)
+# Time diff between ERAdmitTime to Inpatient Transfer
+
+# changnig colors 
+#http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
 
