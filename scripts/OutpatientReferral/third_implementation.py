@@ -156,9 +156,13 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
         df_tmp['referral_icd10'] = df_tmp['referral_icd10'].fillna('NA').apply(lambda x: x.split('.')[0])
 
     if explore:
+        num_rows = df_train_one_firstSpecialtyVisit.shape[0]
         icd10_cnter = Counter(df_tmp['referral_icd10'])
         icd10_cnt_common = icd10_cnter.most_common(5)
-        print icd10_cnt_common
+
+        icd10_prev = {}
+        for icd10, cnt in icd10_cnter.items():
+            icd10_prev[icd10] = float(cnt)/num_rows
 
     s = df_tmp['specialty_order'].groupby(df_tmp['referral_icd10']).value_counts()
     # print s.groupby(['referral_icd10', 'specialty_order']).nlargest(1)
@@ -174,17 +178,95 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
             icd10_to_orderCnt[icd10] = [(order, val)]
 
     if explore:
-        df_explore_icd10_to_orders = pd.DataFrame(columns=['icd10'] + ['top '+str(x+1) for x in range(5)])
+
+        order_cnter = Counter(df_train_one_firstSpecialtyVisit['specialty_order'])
+
+        '''
+        Among all (1) first, (2) new patient visit (3) with that referral code, 
+        (so, among all diagnoses code), 
+        what are the prevalence for that order.
+        '''
+        order_prev = {}
+        for order, cnt in order_cnter.items():
+            order_prev[order] = float(cnt)/num_rows
+
+        if verbose:
+            print order_cnter
+            print sorted(order_prev.items(), key=lambda (k,v):v)[::-1]
+
+        df_explore_icd10_to_orders = pd.DataFrame(columns=['Icd10'] +
+                                                          ['Top '+str(x+1)+' Order, Prev, PPV, RR' for x in range(5)])
         top_entries = [[]*6 for _ in range(5)]
+
+        '''
+        Construct 5 rows for the table. 
+        Each row is an icd10, including:
+        icd10_code,
+        top1 order summary, 
+        top2 order summary, 
+        top3 order summary, 
+        top4 order summary, 
+        top5 order summary. 
+        '''
         for j,pair in enumerate(icd10_cnt_common[:5]):
             # print icd10, sorted(icd10_to_orderCnt[icd10], key=lambda (k,v):v)[::-1]
             icd10 = pair[0]
-            top_entries[j] += [icd10]
-            top_entries[j] += sorted(icd10_to_orderCnt[icd10], key=lambda (k,v):v)[::-1][:5]
+            cur_icd10_summary = [icd10]
+
+            '''
+            Summary for each order, including: 
+            order_name,
+            prev,
+            PPV,
+            rela_risk
+            '''
+            top_orderCnts = sorted(icd10_to_orderCnt[icd10], key=lambda (k, v): v)[::-1][:5]
+            for k in range(5):
+                order, conditioned_cnt = top_orderCnts[k]
+                '''
+                order_name
+                '''
+                cur_order_summary = [order]
+
+                '''
+                prev
+                '''
+                prev_str = '%.2f'%order_prev[order]
+                cur_order_summary.append(prev_str)
+
+                '''
+                PPV, P(order|icd10) = P(order|icd10) / P(order|!icd10)
+                '''
+                ppv = float(conditioned_cnt)/icd10_cnter[icd10]
+                ppv_str = '%.2f'%ppv
+                cur_order_summary.append(ppv_str)
+
+                '''
+                Relative risk = P(order|diagnose) / P(order|!diagnose)
+                
+                According to Bayes formula:
+                P(o|d)P(d) + p(o|!d)P(!d) = P(o)
+                So:
+                denominator = p(o|!d) = (P(o)-P(o|d)P(d))/P(!d)
+                where:
+                    P(o) = order_prev[order]
+                    P(o|d) = PPV
+                    P(d) = icd10_prev[icd10]
+                    P(!d) = 1-icd10_prev[icd10]
+                '''
+                denominator = (order_prev[order] - ppv*icd10_prev[icd10])/(1.-icd10_prev[icd10])
+                rela_risk = ppv/denominator
+                rr_str = '%.2f'%rela_risk
+                cur_order_summary.append(rr_str)
+
+                cur_icd10_summary.append(cur_order_summary)
+
+            top_entries[j] += cur_icd10_summary #[icd10] + top_orderCnts
 
             df_explore_icd10_to_orders.loc[len(df_explore_icd10_to_orders)] = top_entries[j]
-        print df_explore_icd10_to_orders
-        df_explore_icd10_to_orders.to_csv('data/third_implementation/df_explore_%s_icd10_to_orders.csv'%referral_code, index=False)
+
+        df_explore_icd10_to_orders.to_csv('data/third_implementation/df_explore_%s_icd10_to_orders.csv'%referral_code, index=False, float_format='%.2f')
+
         quit()
     '''
     (1.2.2) Test set query in 2017
@@ -328,8 +410,7 @@ def main():
             # ('REFERRAL TO UROLOGY CLINIC', 'Urology')  # (cnt: 2827, but Oncology has 605)
             #
             ('REFERRAL TO ENDOCRINE CLINIC', 'Endocrinology'), # Suggested by Jon Chen
-            # ('REFERRAL TO HEMATOLOGY', 'Hematology') # Suggested by Jon Chen
-
+            ('REFERRAL TO HEMATOLOGY', 'Hematology') # Suggested by Jon Chen
         ]
     '''
     Referral names (and their counts) inconsistency:
