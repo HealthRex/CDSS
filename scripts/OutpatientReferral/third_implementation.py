@@ -17,7 +17,7 @@ import numpy as np
 import os
 
 
-def main(referral, specialty, verbose=False):
+def main_onereferral(referral, specialty, explore=True, verbose=False):
     ''''''
     print "Processing %s..."%referral
 
@@ -155,9 +155,15 @@ def main(referral, specialty, verbose=False):
     if to_agg_icd10:
         df_tmp['referral_icd10'] = df_tmp['referral_icd10'].fillna('NA').apply(lambda x: x.split('.')[0])
 
+    if explore:
+        icd10_cnter = Counter(df_tmp['referral_icd10'])
+        icd10_cnt_common = icd10_cnter.most_common(5)
+        print icd10_cnt_common
+
     s = df_tmp['specialty_order'].groupby(df_tmp['referral_icd10']).value_counts()
     # print s.groupby(['referral_icd10', 'specialty_order']).nlargest(1)
     s = s.groupby(level=0).nlargest(5).reset_index(level=0, drop=True)
+
     icd10order_to_cnt = s.to_dict()
     icd10_to_orderCnt = {}
     for key, val in icd10order_to_cnt.items():
@@ -167,7 +173,19 @@ def main(referral, specialty, verbose=False):
         else:
             icd10_to_orderCnt[icd10] = [(order, val)]
 
+    if explore:
+        df_explore_icd10_to_orders = pd.DataFrame(columns=['icd10'] + ['top '+str(x+1) for x in range(5)])
+        top_entries = [[]*6 for _ in range(5)]
+        for j,pair in enumerate(icd10_cnt_common[:5]):
+            # print icd10, sorted(icd10_to_orderCnt[icd10], key=lambda (k,v):v)[::-1]
+            icd10 = pair[0]
+            top_entries[j] += [icd10]
+            top_entries[j] += sorted(icd10_to_orderCnt[icd10], key=lambda (k,v):v)[::-1][:5]
 
+            df_explore_icd10_to_orders.loc[len(df_explore_icd10_to_orders)] = top_entries[j]
+        print df_explore_icd10_to_orders
+        df_explore_icd10_to_orders.to_csv('data/third_implementation/df_explore_%s_icd10_to_orders.csv'%referral_code, index=False)
+        quit()
     '''
     (1.2.2) Test set query in 2017
     
@@ -286,29 +304,33 @@ def explore_data():
     Oncology   467
     '''
     df = pd.read_csv('data/first_implementation/counter_all_referrals_descriptions_firstHalf2016.csv')
-    print df.head(20)
+    # print df.head(20)
 
     df_refer2spec = pd.read_csv('data/JCquestion_20190318/referral_specialty_next3mo_newvisits_cnt_2016.csv')
 
-    df_someRefer = df_refer2spec[df_refer2spec['description']=='REFERRAL TO UROLOGY CLINIC']\
+    df_someRefer = df_refer2spec[df_refer2spec['description'].str.contains('ENDOCRINE')]\
                 .copy().reset_index().sort_values('cnt', ascending=False)
-    print df_someRefer.head(10)
+    print df_someRefer
 
-if __name__ == '__main__':
-    referral_specialty_pairs =\
-    [
-        ('REFERRAL TO DERMATOLOGY', 'Dermatology'),
-        ('REFERRAL TO GASTROENTEROLOGY',   'Gastroenterology'),
-        ('REFERRAL TO EYE',    'Ophthalmology'),
-            # REFERRAL TO PAIN CLINIC PROCEDURES,   Pain Management #(cnt: 525, but Neurosurgery has 224)
-        ('REFERRAL TO ORTHOPEDICS',    'Orthopedic Surgery'),
-        ('REFERRAL TO CARDIOLOGY',     'Cardiology'),
-        ('REFERRAL TO PSYCHIATRY', 'Psychiatry'),
-        ('SLEEP CLINIC REFERRAL', 'Sleep Center'),
-        ('REFERRAL TO ENT/OTOLARYNGOLOGY', 'ENT-Otolaryngology'), #(cnt: 2170, but Oncology has 480)
-        ('REFERRAL TO PAIN CLINIC', 'Pain Management'),
-        ('REFERRAL TO UROLOGY CLINIC', 'Urology') #(cnt: 2827, but Oncology has 605)
-    ]
+def main():
+    referral_specialty_pairs = \
+        [
+            # ('REFERRAL TO DERMATOLOGY', 'Dermatology'),
+            # ('REFERRAL TO GASTROENTEROLOGY', 'Gastroenterology'),
+            # ('REFERRAL TO EYE', 'Ophthalmology'),
+            # # REFERRAL TO PAIN CLINIC PROCEDURES,   Pain Management #(cnt: 525, but Neurosurgery has 224)
+            # ('REFERRAL TO ORTHOPEDICS', 'Orthopedic Surgery'),
+            # ('REFERRAL TO CARDIOLOGY', 'Cardiology'),
+            # ('REFERRAL TO PSYCHIATRY', 'Psychiatry'),
+            # ('SLEEP CLINIC REFERRAL', 'Sleep Center'),
+            # ('REFERRAL TO ENT/OTOLARYNGOLOGY', 'ENT-Otolaryngology'),  # (cnt: 2170, but Oncology has 480)
+            # ('REFERRAL TO PAIN CLINIC', 'Pain Management'),
+            # ('REFERRAL TO UROLOGY CLINIC', 'Urology')  # (cnt: 2827, but Oncology has 605)
+            #
+            ('REFERRAL TO ENDOCRINE CLINIC', 'Endocrinology'), # Suggested by Jon Chen
+            # ('REFERRAL TO HEMATOLOGY', 'Hematology') # Suggested by Jon Chen
+
+        ]
     '''
     Referral names (and their counts) inconsistency:
     2016: {'REFERRAL TO ENT/OTOLARYNGOLOGY': 39949, 'REFERRAL TO SURGERY OTOLARYNGOLOGY/HEAD&NEC': 22632, 'AMB REFERRAL TO ENT/OTOLARYNGOLOGY ALLERGY': 5205, 'REFERRAL TO ENT/OTOLARYNGOLOGY ALLERGY': 2441}
@@ -317,9 +339,12 @@ if __name__ == '__main__':
     precisions = []
     recalls = []
     for referral, specialty in referral_specialty_pairs:
-        precision, recall = main(referral, specialty)
+        precision, recall = main_onereferral(referral, specialty)
         precisions.append(precision)
         recalls.append(recall)
-    res_df = pd.DataFrame({'referral':referral_specialty_pairs, 'precision':precisions, 'recall':recalls})
+    res_df = pd.DataFrame({'referral': referral_specialty_pairs, 'precision': precisions, 'recall': recalls})
     print res_df
     res_df.to_csv("data/third_implementation/res_df.csv", index=False)
+
+if __name__ == '__main__':
+    main()
