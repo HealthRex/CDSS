@@ -1,7 +1,7 @@
 
 from sklearn.base import BaseEstimator, TransformerMixin
 import LabNormalityLearner_Utils as Utils
-
+from medinfo.ml.FeatureSelector import FeatureSelector
 
 
 class FeatureRemover(BaseEstimator, TransformerMixin):
@@ -74,14 +74,46 @@ class FeatureImputer(BaseEstimator, TransformerMixin):
 
         '''
         # X_imputed = Utils.impute_by_carry_forward(X, self.feat2mean_dict)
-        # X_imputed = X.fillna(0)
+        X_imputed = X.fillna(0)
 
-        X_imputed = Utils.do_impute_sx(X, self.feat2mean_dict)
+        # X_imputed = Utils.do_impute_sx(X, self.feat2mean_dict)
         return X_imputed
 
 
 class Select_Features(TransformerMixin):
-    def fit(self, X, y=None):
+    def __init__(self, random_state=0):
+        self.fs = FeatureSelector(problem=FeatureSelector.CLASSIFICATION,
+                                  algorithm=FeatureSelector.RECURSIVE_ELIMINATION,
+                                  random_state=random_state)
+        self.feat2imputeValOrder_dict = {}
+
+    def fit(self, X, y=None, features_to_keep=[], select_percent=0.05):
+        '''
+        TODO: Does this "select_percent" include those pre-set to keep?
+        features_to_keep includes both features wanted to keep + non-numeric features
+
+        Args:
+            X:
+            y:
+            features_to_keep:
+            select_percent:
+
+        Returns:
+
+        '''
+        self.fs.set_input_matrix(X, y)
+
+        num_features_to_select = select_percent * len(X.columns.values)
+        self.fs.select(k=num_features_to_select)
+
+        feature_ranks = self.fs.compute_ranks()
+        for i in range(len(feature_ranks)):
+            if feature_ranks[i] <= num_features_to_select:
+                # If in features_to_keep, pretend it wasn't eliminated.
+                features_to_keep.append(X.columns[i])
+
+
+
         return self
 
     def transform(self, X):

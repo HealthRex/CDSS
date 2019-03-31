@@ -22,7 +22,7 @@ import LabNormalityLearner_Class as Cls
 import LabNormalityLearner_System as syst
 import LabNormalityLearner_Config as Config
 
-def run_one_lab_local(lab, lab_type, data_source, version):
+def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
     '''
 
     Input:
@@ -39,25 +39,44 @@ def run_one_lab_local(lab, lab_type, data_source, version):
 
     raw_matrix = file_organizer.get_raw_matrix()
 
+    y_label = 'all_components_normal'
+
     raw_matrix_train, raw_matrix_test = Utils.split_rows(raw_matrix)
-    X_train_raw, y_train = Utils.split_Xy(raw_matrix_train,
-                                          ylabel='all_components_normal')
+    X_train_raw, y_train = Utils.split_Xy(raw_matrix_train, ylabel=y_label)
+
+    redundant_features = ['proc_code', 'num_components', 'num_normal_components', 'abnormal_panel']
+    id_features = ['pat_id', 'order_proc_id', 'order_time']
+
+    numeric_features = X_train_raw.columns[~X_train_raw.columns.isin([y_label]+redundant_features+id_features)]
+
+    '''
+    Check if the left features are all numeric
+    '''
+    assert X_train_raw[numeric_features].select_dtypes(exclude=['object']).shape == X_train_raw[numeric_features].shape
+    quit()
+    print X_train_raw[numeric_features].head()
+
+    quit()
 
     '''
     (1) Feature Impute: 
     Imputation of some numerical values depend on prior stats of the same patient, 
         so certain auxiliary columns are still useful
+    
+    
     (2) Feature Remove:
     Remove auxiliary columns
+    
     (3) Feature Selection:
+    Only select from numerical columns
     
     '''
     feature_engineering_pipeline = Pipeline(
-        memory = file_organizer.cached_pipeline_filepath,
+        memory = None,#file_organizer.cached_pipeline_filepath,
         steps = [
              ('impute_features', Cls.FeatureImputer()),
              ('remove_features', Cls.FeatureRemover(features_to_remove=Config.features_to_remove)),
-             # ('select_features', Cls.Select_Features())
+             ('select_features', Cls.Select_Features(random_state=random_state))
              ]
     )
 
