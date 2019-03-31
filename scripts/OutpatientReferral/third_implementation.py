@@ -15,6 +15,11 @@ from collections import Counter
 from first_implementation import prec_at_k, recall_at_k
 import numpy as np
 import os
+from datetime import datetime
+
+import matplotlib as mpl
+mpl.use('TkAgg')
+import matplotlib.pyplot as plt
 
 
 def main_onereferral(referral, specialty, explore=True, verbose=False):
@@ -156,6 +161,9 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
         df_tmp['referral_icd10'] = df_tmp['referral_icd10'].fillna('NA').apply(lambda x: x.split('.')[0])
 
     if explore:
+        '''
+        What are the common diagnostic codes mapped to the referral, and their stats
+        '''
         num_rows = df_train_one_firstSpecialtyVisit.shape[0]
         icd10_cnter = Counter(df_tmp['referral_icd10'])
         icd10_cnt_common = icd10_cnter.most_common(5)
@@ -163,6 +171,28 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
         icd10_prev = {}
         for icd10, cnt in icd10_cnter.items():
             icd10_prev[icd10] = float(cnt)/num_rows
+
+
+        '''
+        Waiting time until specialty visit
+        '''
+        print df_train_one_firstSpecialtyVisit.head()
+        time_format = '%Y-%m-%d %H:%M:%S'
+
+        df_tmp_timediff = df_train_one_firstSpecialtyVisit[['referral_enc_id','referral_time','specialty_time']].copy().drop_duplicates()
+        df_tmp_timediff['specialty_timestamp'] = \
+            df_tmp_timediff['specialty_time'].apply(lambda x: datetime.strptime(x, time_format))
+        df_tmp_timediff['referral_timestamp'] = \
+            df_tmp_timediff['referral_time'].apply(lambda x: datetime.strptime(x, time_format))
+        df_tmp_timediff['time_diff'] = df_tmp_timediff['specialty_timestamp']\
+            - df_tmp_timediff['referral_timestamp']
+
+        print 'Train sample size for waiting time:', df_tmp_timediff['time_diff'].shape[0]
+        all_waiting_days = df_tmp_timediff['time_diff'].apply(lambda x: x.days)
+        plt.hist(all_waiting_days)
+        plt.xlabel('Waiting days for %s'%referral)
+        plt.savefig('data/third_implementation/figs/waiting_%s.png'%referral_code)
+        quit()
 
     s = df_tmp['specialty_order'].groupby(df_tmp['referral_icd10']).value_counts()
     # print s.groupby(['referral_icd10', 'specialty_order']).nlargest(1)
@@ -409,7 +439,7 @@ def main():
             # ('REFERRAL TO PAIN CLINIC', 'Pain Management'),
             # ('REFERRAL TO UROLOGY CLINIC', 'Urology')  # (cnt: 2827, but Oncology has 605)
             #
-            ('REFERRAL TO ENDOCRINE CLINIC', 'Endocrinology'), # Suggested by Jon Chen
+            # ('REFERRAL TO ENDOCRINE CLINIC', 'Endocrinology'), # Suggested by Jon Chen
             ('REFERRAL TO HEMATOLOGY', 'Hematology') # Suggested by Jon Chen
         ]
     '''
