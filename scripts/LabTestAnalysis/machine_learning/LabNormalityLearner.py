@@ -53,10 +53,11 @@ def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
     Check if the left features are all numeric
     '''
     assert X_train_raw[numeric_features].select_dtypes(exclude=['object']).shape == X_train_raw[numeric_features].shape
-    quit()
-    print X_train_raw[numeric_features].head()
 
-    quit()
+    features_by_type = {'redundant_features': redundant_features,
+                    'id_features':id_features,
+                    'numeric_features':numeric_features,
+                    'y_label':y_label}
 
     '''
     (1) Feature Impute: 
@@ -76,7 +77,7 @@ def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
         steps = [
              ('impute_features', Cls.FeatureImputer()),
              ('remove_features', Cls.FeatureRemover(features_to_remove=Config.features_to_remove)),
-             ('select_features', Cls.Select_Features(random_state=random_state))
+             ('select_features', Cls.Select_Features(random_state=random_state, features_by_type=features_by_type))
              ]
     )
 
