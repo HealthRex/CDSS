@@ -425,7 +425,7 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
         print 'np.mean(all_recalls):', np.mean(all_recalls)
     return np.mean(all_precisions), np.mean(all_recalls)
 
-def explore_data():
+def explore_referrals():
     '''
     (1.1) What is an example of well-mapped referral among large vol referrals?
 
@@ -444,6 +444,26 @@ def explore_data():
     df_someRefer = df_refer2spec[df_refer2spec['description'].str.contains('ENDOCRINE')]\
                 .copy().reset_index().sort_values('cnt', ascending=False)
     print df_someRefer
+
+def explore_orders():
+    df = pd.read_csv('data/third_implementation/training_data.csv')
+    all_orders = df['specialty_order'].drop_duplicates().values.tolist()
+    print "Number of different types of orders:", len(all_orders)
+
+    order_cnter = {}
+    for key, val in Counter(df['specialty_order']).items():
+        if val >= 100:
+            order_cnter[key] = val
+    print "Number of common (>100) orders:", len(order_cnter)
+
+    all_cnters = []
+    for i, one_order in enumerate(order_cnter.keys()):
+        # print "the %d-th order %s..."%(i, one_order)
+        cur_specialties = df[df['specialty_order']==one_order]['specialty_name'].values.tolist()
+        cur_cnter = Counter(cur_specialties)
+        all_cnters.append(cur_cnter.most_common(5))
+    df_res = pd.DataFrame({'orders':order_cnter.keys(), 'specialtiy_cnt':all_cnters})
+    df_res.to_csv('data/third_implementation/explore_orders.csv', index=False)
 
 def main():
     referral_specialty_pairs = \
@@ -471,7 +491,7 @@ def main():
     precisions = []
     recalls = []
     for referral, specialty in referral_specialty_pairs:
-        precision, recall = main_onereferral(referral, specialty)
+        precision, recall = main_onereferral(referral, specialty, explore=False)
         precisions.append(precision)
         recalls.append(recall)
     res_df = pd.DataFrame({'referral': referral_specialty_pairs, 'precision': precisions, 'recall': recalls})
@@ -479,4 +499,4 @@ def main():
     res_df.to_csv("data/third_implementation/res_df.csv", index=False)
 
 if __name__ == '__main__':
-    main()
+    explore_orders()
