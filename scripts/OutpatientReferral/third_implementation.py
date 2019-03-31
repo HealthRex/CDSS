@@ -102,6 +102,27 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
 
     train_filepath = 'data/third_implementation/training_data_%s_firstSpecialtyVisit.csv'%referral_code
 
+    if explore:
+        '''
+        How many referral encounters have at least one such specialty visit in the next 3 months?
+        '''
+        df_train = pd.read_csv('data/third_implementation/training_data.csv')
+        df_tmp_referenc_specialty = df_train[df_train['referral_name']==referral]\
+            [['referral_enc_id', 'specialty_name']].drop_duplicates()
+
+        '''
+        One encounter id can still map to multiple specialty_names
+        '''
+        all_refer_encs = df_tmp_referenc_specialty['referral_enc_id'].drop_duplicates()
+        num_has_visit = 0
+        for refer_enc in all_refer_encs:
+            cur_visit_num = df_tmp_referenc_specialty[(df_tmp_referenc_specialty['referral_enc_id']==refer_enc)
+                                & (df_tmp_referenc_specialty['specialty_name']==specialty)].shape[0]
+            num_has_visit += (cur_visit_num>0)
+        print "Fraction of %s's that has a followup visit in the next 3 months:"%referral_code \
+                    + '%.2f'%(float(num_has_visit)/all_refer_encs.shape[0])
+        quit()
+
     if not os.path.exists(train_filepath):
 
         df_train = pd.read_csv('data/third_implementation/training_data.csv')
@@ -439,7 +460,7 @@ def main():
             # ('REFERRAL TO PAIN CLINIC', 'Pain Management'),
             # ('REFERRAL TO UROLOGY CLINIC', 'Urology')  # (cnt: 2827, but Oncology has 605)
             #
-            # ('REFERRAL TO ENDOCRINE CLINIC', 'Endocrinology'), # Suggested by Jon Chen
+            ('REFERRAL TO ENDOCRINE CLINIC', 'Endocrinology'), # Suggested by Jon Chen
             ('REFERRAL TO HEMATOLOGY', 'Hematology') # Suggested by Jon Chen
         ]
     '''
