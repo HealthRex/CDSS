@@ -16,11 +16,14 @@ import logging
 
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
+from sklearn.utils.validation import column_or_1d
 
 import LabNormalityLearner_Utils as Utils
 import LabNormalityLearner_Class as Cls
 import LabNormalityLearner_System as syst
 import LabNormalityLearner_Config as Config
+
+from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 
 def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
     '''
@@ -33,15 +36,21 @@ def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
     # X_train_raw, y_train = [[1], [2]], [1, 2]
     # X_test_raw, y_test = [[3], [4]], [3, 4]
     file_organizer = syst.FileOrganizerLocal(lab=lab,
-                                                lab_type=lab_type,
-                                                data_source=data_source,
-                                                version=version)
+                                             lab_type=lab_type,
+                                             data_source=data_source,
+                                             version=version)
 
     raw_matrix = file_organizer.get_raw_matrix()
 
     y_label = 'all_components_normal'
 
+    '''
+    TODO: later on pat_ids
+    '''
     raw_matrix_train, raw_matrix_test = Utils.split_rows(raw_matrix)
+
+    patIds_train = raw_matrix_train['pat_id'].values.tolist()
+
     X_train_raw, y_train = Utils.split_Xy(raw_matrix_train, ylabel=y_label)
 
     redundant_features = ['proc_code', 'num_components', 'num_normal_components', 'abnormal_panel']
@@ -72,7 +81,7 @@ def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
     Only select from numerical columns
     
     '''
-    feature_engineering_pipeline = Pipeline(
+    feature_processing_pipeline = Pipeline(
         memory = None,#file_organizer.cached_pipeline_filepath,
         steps = [
              ('impute_features', Cls.FeatureImputer()),
@@ -83,19 +92,28 @@ def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
 
     # feature_engineering_pipeline.set_params()
     print X_train_raw.shape
-    X_train_processed = feature_engineering_pipeline.fit_transform(X_train_raw, y_train)
+    X_train_processed = feature_processing_pipeline.fit_transform(X_train_raw, y_train)
     print X_train_processed.shape
+
+    hyperparams = {}
+    hyperparams['algorithm'] = 'random-forest'
+    predictor = SupervisedClassifier(classes=[0,1], hyperparams=hyperparams)
+
+    '''
+    Automatically takes care of tuning hyperparameters via stochastic-search
+    '''
+    status = predictor.train(X_train_processed, column_or_1d(y_train),
+                                       groups = patIds_train)
     quit()
 
-    Xy_test_raw = syst.get_raw_matrix(lab_type=lab_type,
-                                         data_source=data_source_test,
-                                         version=version
-                                         )
-    X_test_raw, y_test = Utils.Split_Xy(Xy_test_raw)
-
-    y_pred = pipeline.predict(X_test_raw)
-
-    print y_pred
+    '''
+    Test set
+    '''
+    X_test_raw, y_test = Utils.split_Xy(raw_matrix_test, ylabel=y_label)
+    print X_test_raw.shape
+    X_test_processed = feature_processing_pipeline.transform(X_test_raw)
+    print X_test_processed.shape
+    print X_test_processed.head()
 
 
 if __name__ == '__main__':

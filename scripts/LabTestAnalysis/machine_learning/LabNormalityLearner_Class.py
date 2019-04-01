@@ -73,6 +73,13 @@ class FeatureImputer(BaseEstimator, TransformerMixin):
         Returns:
 
         '''
+        '''
+        need to make sure that indices are conserved during imputation!
+        otherwise cannot match back to y_labels!
+        
+        TODO: last_normality should be engineered in the feature_engineering stage, 
+        not this feature processing stage!  
+        '''
         # X_imputed = Utils.impute_by_carry_forward(X, self.feat2mean_dict)
         X_imputed = X.fillna(0)
 
