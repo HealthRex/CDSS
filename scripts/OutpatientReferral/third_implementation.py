@@ -22,7 +22,7 @@ mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
-def main_onereferral(referral, specialty, explore=True, verbose=False):
+def main_onereferral(referral, specialty, explore=None, verbose=False):
     ''''''
     print "Processing %s..."%referral
 
@@ -102,7 +102,7 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
 
     train_filepath = 'data/third_implementation/training_data_%s_firstSpecialtyVisit.csv'%referral_code
 
-    if explore:
+    if explore=='fraction_do_have_specialty_visit':
         '''
         How many referral encounters have at least one such specialty visit in the next 3 months?
         '''
@@ -181,19 +181,20 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
     if to_agg_icd10:
         df_tmp['referral_icd10'] = df_tmp['referral_icd10'].fillna('NA').apply(lambda x: x.split('.')[0])
 
-    if explore:
+    num_rows = df_train_one_firstSpecialtyVisit.shape[0]
+
+    if explore == 'waiting_time_specialty_visit' or explore == 'full_icd10_to_orders_table':
         '''
         What are the common diagnostic codes mapped to the referral, and their stats
         '''
-        num_rows = df_train_one_firstSpecialtyVisit.shape[0]
         icd10_cnter = Counter(df_tmp['referral_icd10'])
         icd10_cnt_common = icd10_cnter.most_common(5)
 
         icd10_prev = {}
         for icd10, cnt in icd10_cnter.items():
-            icd10_prev[icd10] = float(cnt)/num_rows
+            icd10_prev[icd10] = float(cnt) / num_rows
 
-
+    if explore=='waiting_time_specialty_visit':
         '''
         Waiting time until specialty visit
         '''
@@ -228,7 +229,7 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
         else:
             icd10_to_orderCnt[icd10] = [(order, val)]
 
-    if explore:
+    if explore=='full_icd10_to_orders_table':
 
         order_cnter = Counter(df_train_one_firstSpecialtyVisit['specialty_order'])
 
@@ -246,7 +247,8 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
             print sorted(order_prev.items(), key=lambda (k,v):v)[::-1]
 
         df_explore_icd10_to_orders = pd.DataFrame(columns=['Icd10'] +
-                                                          ['Top '+str(x+1)+' Order, Prev, PPV, RR' for x in range(5)])
+                                                          ['Top ' + str(x+1) +
+                                                           ' Order, Prev, PPV, RR, PC_cnt, nonPC_cnt' for x in range(5)])
         top_entries = [[]*6 for _ in range(5)]
 
         '''
@@ -259,6 +261,8 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
         top4 order summary, 
         top5 order summary. 
         '''
+        order_to_PCnonPC = explore_orders()
+
         for j,pair in enumerate(icd10_cnt_common[:5]):
             # print icd10, sorted(icd10_to_orderCnt[icd10], key=lambda (k,v):v)[::-1]
             icd10 = pair[0]
@@ -310,7 +314,10 @@ def main_onereferral(referral, specialty, explore=True, verbose=False):
                 rr_str = '%.2f'%rela_risk
                 cur_order_summary.append(rr_str)
 
+                cur_order_summary.append(order_to_PCnonPC[order])
+
                 cur_icd10_summary.append(cur_order_summary)
+
 
             top_entries[j] += cur_icd10_summary #[icd10] + top_orderCnts
 
@@ -446,24 +453,66 @@ def explore_referrals():
     print df_someRefer
 
 def explore_orders():
-    df = pd.read_csv('data/third_implementation/training_data.csv')
-    all_orders = df['specialty_order'].drop_duplicates().values.tolist()
-    print "Number of different types of orders:", len(all_orders)
+    if not os.path.exists('data/third_implementation/explore_orders.csv'):
 
-    order_cnter = {}
-    for key, val in Counter(df['specialty_order']).items():
-        if val >= 100:
-            order_cnter[key] = val
-    print "Number of common (>100) orders:", len(order_cnter)
+        df = pd.read_csv('data/third_implementation/training_data.csv')
+        all_orders = df['specialty_order'].drop_duplicates().values.tolist()
+        print "Number of different types of orders:", len(all_orders)
 
-    all_cnters = []
-    for i, one_order in enumerate(order_cnter.keys()):
-        # print "the %d-th order %s..."%(i, one_order)
-        cur_specialties = df[df['specialty_order']==one_order]['specialty_name'].values.tolist()
-        cur_cnter = Counter(cur_specialties)
-        all_cnters.append(cur_cnter.most_common(5))
-    df_res = pd.DataFrame({'orders':order_cnter.keys(), 'specialtiy_cnt':all_cnters})
-    df_res.to_csv('data/third_implementation/explore_orders.csv', index=False)
+        order_cnter = {}
+        for key, val in Counter(df['specialty_order']).items():
+            if val >= 100:
+                order_cnter[key] = val
+        print "Number of common (>100) orders:", len(order_cnter)
+
+        all_cnters = []
+        for i, one_order in enumerate(order_cnter.keys()):
+            # print "the %d-th order %s..."%(i, one_order)
+            cur_specialties = df[df['specialty_order']==one_order]['specialty_name'].values.tolist()
+            cur_cnter = Counter(cur_specialties)
+            all_cnters.append(cur_cnter.most_common(5))
+        df_res = pd.DataFrame({'orders':order_cnter.keys(), 'specialtiy_cnt':all_cnters})
+        df_res.to_csv('data/third_implementation/explore_orders.csv', index=False)
+
+    else:
+        df = pd.read_csv('data/third_implementation/explore_orders.csv')
+
+    print df.head()
+
+    def specialCntStr_to_dominateType(cntstrs):
+        cnts_splited = cntstrs.split('),')
+
+        all_cnts_clean = []
+
+        cnt_splited = [x.strip() for x in cnts_splited[0][2:].split(',')] # Filter out '[('
+        if len(cnts_splited) == 1:
+            cnt_splited[1] = cnt_splited[1][:-2] # Filter out )]
+        all_cnts_clean.append(cnt_splited)
+
+        for i in range(1, len(cnts_splited)-1): # Filter out '('
+            cnt_splited = [x.strip() for x in cnts_splited[i][2:].split(',')]
+            all_cnts_clean.append(cnt_splited)
+
+        if len(cnts_splited) > 1: # Filter out )]
+            cnt_splited = [x.strip() for x in cnts_splited[-1][2:-2].split(',')]
+            all_cnts_clean.append(cnt_splited)
+
+        all_cnts_clean = [[x[0][1:-1], float(x[1])] for x in all_cnts_clean]
+
+        PC_cnt = 0
+        nonPC_cnt = 0
+        for one_cntpair in all_cnts_clean:
+            if one_cntpair[0] == 'Primary Care':
+                PC_cnt += one_cntpair[1]
+            else:
+                nonPC_cnt += one_cntpair[1]
+
+        return PC_cnt, nonPC_cnt
+
+    df['PC_nonPC_cnt'] = df['specialtiy_cnt'].apply(lambda x: str(specialCntStr_to_dominateType(x)))
+    order_to_PCnonPC = dict(zip(df['orders'], df['PC_nonPC_cnt']))
+
+    return order_to_PCnonPC
 
 def main():
     referral_specialty_pairs = \
@@ -491,7 +540,7 @@ def main():
     precisions = []
     recalls = []
     for referral, specialty in referral_specialty_pairs:
-        precision, recall = main_onereferral(referral, specialty, explore=False)
+        precision, recall = main_onereferral(referral, specialty, explore='full_icd10_to_orders_table')
         precisions.append(precision)
         recalls.append(recall)
     res_df = pd.DataFrame({'referral': referral_specialty_pairs, 'precision': precisions, 'recall': recalls})
@@ -499,4 +548,4 @@ def main():
     res_df.to_csv("data/third_implementation/res_df.csv", index=False)
 
 if __name__ == '__main__':
-    explore_orders()
+    main()
