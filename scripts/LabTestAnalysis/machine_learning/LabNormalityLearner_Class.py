@@ -1,8 +1,8 @@
 
 from sklearn.base import BaseEstimator, TransformerMixin
 import LabNormalityLearner_Utils as Utils
-
-
+from medinfo.ml.FeatureSelector import FeatureSelector
+from sklearn.utils.validation import column_or_1d
 
 class FeatureRemover(BaseEstimator, TransformerMixin):
     '''
@@ -74,15 +74,60 @@ class FeatureImputer(BaseEstimator, TransformerMixin):
 
         '''
         # X_imputed = Utils.impute_by_carry_forward(X, self.feat2mean_dict)
-        # X_imputed = X.fillna(0)
+        X_imputed = X.fillna(0)
 
-        X_imputed = Utils.do_impute_sx(X, self.feat2mean_dict)
+        # X_imputed = Utils.do_impute_sx(X, self.feat2mean_dict)
         return X_imputed
 
 
 class Select_Features(TransformerMixin):
-    def fit(self, X, y=None):
+    def __init__(self, random_state=0, features_by_type=None):
+        '''
+        TODO: if feature_collection is None, assume all features are numeric.
+
+        Args:
+            random_state:
+            feature_dict:
+        '''
+        self.fs = FeatureSelector(problem=FeatureSelector.CLASSIFICATION,
+                                  algorithm=FeatureSelector.RECURSIVE_ELIMINATION,
+                                  random_state=random_state)
+        self.features_by_type = features_by_type
+        self.selected_features = []
+
+    def fit(self, X, y=None, features_to_keep=None, select_percent=0.05):
+        '''
+        TODO: Does this "select_percent" include those pre-set to keep?
+        features_to_keep includes both features wanted to keep + non-numeric features
+
+        Args:
+            X:
+            y:
+            features_to_keep:
+            select_percent:
+
+        Returns:
+
+        '''
+        if not features_to_keep:
+            features_to_keep = []
+
+        X_numeric = X[X.columns[X.columns.isin(self.features_by_type['numeric_features'])]]
+
+        self.fs.set_input_matrix(X_numeric.values, column_or_1d(y.values))
+
+        num_features_to_select = int(round(select_percent * len(X_numeric.columns.values)))
+        self.fs.select(k=num_features_to_select)
+
+        feature_ranks = self.fs.compute_ranks()
+
+        for i in range(len(feature_ranks)):
+            if feature_ranks[i] <= num_features_to_select:
+                # If in features_to_keep, pretend it wasn't eliminated.
+                features_to_keep.append(X_numeric.columns[i])
+
+        self.selected_features = features_to_keep[:]
         return self
 
     def transform(self, X):
-        return X
+        return X[self.selected_features]
