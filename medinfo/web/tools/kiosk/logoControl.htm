@@ -6,7 +6,8 @@
 	function periodicFrameRefresh(frameToRefresh)
 	{
 		var interval = 240000;	// Milliseconds
-	    setInterval(function(){ frameToRefresh.location.reload(); frameToRefresh.scrollTo(0,0); }, interval);
+		var feedURL = frameToRefresh.location.href;	// Just doing reload causes problems when intermittent connectivity issues, so store URL once
+	    setInterval(function(){ frameToRefresh.location.replace(feedURL); frameToRefresh.scrollTo(0,0); }, interval);
 	}
 	</script>
 </head>
