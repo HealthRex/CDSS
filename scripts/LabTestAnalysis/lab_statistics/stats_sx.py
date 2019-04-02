@@ -2214,19 +2214,29 @@ def main_full_analysis(curr_version):
 
 
 def main_one_analysis(curr_version):
-    list_of_figuretables = [
-        'ROC', 'PRC',
-        'Normality_Saturations',  # Normal rate saturates to 100% as number of consecutive normals accumulate.
-        'Order_Intensities',  # Volumes of repeated test
-        'plot_cartoons',  # all cartoons
-        'write_importantFeatures',
+    # list_of_figuretables = [
+    #     'ROC', 'PRC',
+    #     'Normality_Saturations',  # Normal rate saturates to 100% as number of consecutive normals accumulate.
+    #     'Order_Intensities',  # Volumes of repeated test
+    #     'plot_cartoons',  # all cartoons
+    #     'write_importantFeatures',
+    #
+    #     'Diagnostic_Metrics',  # After picking a threshold
+    #     'Potential_Savings',  # After scaled by chargemaster/medicare
+    #
+    #     'Model_Transfering',  #
+    #     'Comparing_Components',  #
+    # ]
 
-        'Diagnostic_Metrics',  # After picking a threshold
-        'Potential_Savings',  # After scaled by chargemaster/medicare
-
-        'Model_Transfering',  #
-        'Comparing_Components',  #
+    main_figuretables = [
+        'LDH_cartoons', # main Figure 1
+        'common_repeated_labs', # main Figure 2
+        'panel_diagnostics_table', # main Table 1
+        'component_compare_figure',  # main Figure 3
+        'component_cross_site_aucs', # main Figure 4
     ]
+
+
     '''
     Params
     '''
@@ -2235,9 +2245,15 @@ def main_one_analysis(curr_version):
         'Diagnostic_Metrics': ['all_labs', 'important_components']
     }
 
+    plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
+    if 'LDH_cartoons' in main_figuretables:
+        plotter.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False)
+
+    quit()
+
     figs_to_plot = []
 
-    plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
+
     plotter.main_generate_stats_figures_tables(figs_to_plot=figs_to_plot,
                                                params={'Diagnostic_Metrics': 'important_components'})
 

@@ -790,7 +790,7 @@ def bootstrap_CI(actual_list, predict_list, num_repeats=1000, stat='roc_auc',
         roc_auc_right = np.percentile(all_stats, (1 + confident_lvl) / 2. * 100)
 
     except Exception as e:
-        print e
+        # print e
         roc_auc_left, roc_auc_right = float('nan'), float('nan')
 
     return roc_auc_left, roc_auc_right
@@ -810,13 +810,13 @@ def fill_df_fix_PPV(lab, alg, data_folder='', PPV_wanted=0.9, lab_type=None, thr
     try:
         roc_auc = roc_auc_score(actual_list, df['predict'].values)
     except Exception as e:
-        print e
+        # print e
         roc_auc = float('nan')
 
     try:
         roc_auc_left, roc_auc_right = bootstrap_CI(actual_list, df['predict'], confident_lvl=0.95)
     except Exception as e:
-        print e
+        # print e
         roc_auc_left, roc_auc_right = float('nan'), float('nan')
 
     '''
@@ -1125,7 +1125,7 @@ def get_queried_lab(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
 
 
     lab_query_filepath = os.path.join(labs_query_folder, lab + '.csv')
-    print lab, 'os.path.exists(lab_query_filepath)', os.path.exists(lab_query_filepath)
+    # print lab, 'os.path.exists(lab_query_filepath)', os.path.exists(lab_query_filepath)
     if not os.path.exists(lab_query_filepath):
         df = query_to_dataframe(lab, lab_type, lab_query_filepath=lab_query_filepath)
     else:
@@ -1598,7 +1598,7 @@ def output_feature_importances(labs, data_source='Stanford', lab_type='panel', c
                              data_source=data_source,
                              lab_type=lab_type,
                              map_type='from_src')
-                print raw_lab, new_lab
+                # print raw_lab, new_lab
                 features_str = features_str.replace(raw_lab, new_lab)
 
         feature_tuples = [x.strip() for x in features_str.split(',')]

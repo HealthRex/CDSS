@@ -69,9 +69,6 @@ class FileOrganizerLocal():
 
         self.raw_matrix_filename_template = '%s-normality-matrix-raw.tab'
 
-        self.cached_pipeline_filename = 'pipeline_memory_%s' % self.cur_tag
-
-
         self.ml_lab_folderpath = os.path.join(self.ml_dataset_folderpath, lab)
         if not os.path.exists(self.ml_lab_folderpath):
             logging.info('Path %s not existing, creating...' % self.ml_lab_folderpath)
@@ -83,8 +80,16 @@ class FileOrganizerLocal():
                                            self.raw_matrix_filename_template % self.lab)
 
         self.cached_pipeline_filepath = os.path.join(self.ml_lab_folderpath,
-                                                     self.cached_pipeline_filename)
+                                                     'pipeline_memory_%s' % self.cur_tag)
+
+        self.output_filepath = 'direct_output.csv'
 
     def get_raw_matrix(self):
         return FeatureMatrixIO().read_file_to_data_frame(self.raw_matrix_filepath)
+
+    def get_output_filepath(self, alg):
+        cur_alg_folderpath = os.path.join(self.ml_lab_folderpath, alg)
+        if not os.path.exists(cur_alg_folderpath):
+            os.mkdir(cur_alg_folderpath)
+        return os.path.join(cur_alg_folderpath, self.output_filepath)
 
