@@ -1656,13 +1656,46 @@ class Stats_Plotter():
 
     def main_labs2stats(self, train_data_folderpath, ml_results_folderpath, stats_results_folderpath,
                         targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
+        '''
+        For each lab at each train_PPV,
+        write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
 
-        for targeted_PPV in targeted_PPVs:
-            for lab in self.all_labs:
-                '''
-                For each lab at each (train_PPV), 
-                write all stats (e.g. AUROC, PPV, total cnts) into csv file. 
-                '''
+        Output table's columns for a Stanford panel:
+        - lab
+        - total_vol_20140701_20170701
+        - num_train_episodes
+        - num_train_patients
+        - num_test_episodes
+        - num_test_patients
+        - alg
+        - AUC
+        - AUC_95%_CI
+        - AUC_baseline (last_normality + train population mean)
+        - fixTrainPPV
+        - score_thres
+        - TP
+        - FP
+        - TN
+        - FN
+        - sens
+        - spec
+        - LR_p
+        - LR_n
+        - PPV
+        - NPV
+        - medicare
+        - chargemaster
+
+        '''
+
+        for lab in self.all_labs:
+            '''
+            lab, total_vol_20140701_20170701, medicare, chargemaster, 
+            num_train_episodes, num_train_patients, num_test_episodes, num_test_patients, 
+            AUC_baseline
+            '''
+
+            for targeted_PPV in targeted_PPVs:
                 # try:
                 stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
                 stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg',
@@ -1671,6 +1704,10 @@ class Stats_Plotter():
                     os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
 
                 if not os.path.exists(stats_results_filepath):
+                    '''
+                    
+                    '''
+
                     stats_utils.lab2stats(lab=lab,
                                           data_source=self.data_source,
                                           lab_type=self.lab_type,
@@ -1777,19 +1814,18 @@ class Stats_Plotter():
         '''
         Shared columns
         '''
-        columns = ['lab', 'num_train_episodes', 'num_train_patient', 'num_test_episodes', 'num_test_patient']
-        columns += ['alg', 'AUROC', '95%_CI', 'baseline2_ROC']
-        columns += ['targeted_PPV_%s' % thres_mode]
+        columns = ['lab', 'total_vol_20140701_20170701', 'num_train_episodes', 'num_train_patient', 'num_test_episodes', 'num_test_patient']
+        columns += ['alg', 'AUC', 'AUC_95%_CI', 'AUC_baseline']
+        columns += [thres_mode]
 
         columns_statsMetrics = []
-        columns_statsMetrics += ['score_thres', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
-        columns_statsMetrics += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
+        columns_statsMetrics += ['score_thres', 'TP', 'FP', 'TN', 'FN']
+        columns_statsMetrics += ['sens', 'spec', 'LR_p', 'LR_n', 'PPV', 'NPV']
 
         columns += columns_statsMetrics
 
         columns_STRIDE = columns[:]
         # columns_STRIDE += ['%s count'%x for x in DEFAULT_TIMEWINDOWS]
-        columns_STRIDE += ['total_cnt']  # 201407-201706
 
         columns_panels = columns_STRIDE[:] + ['medicare', 'chargemaster']  # ['min_price', 'max_price', 'mean_price', 'median_price']
         # 'min_volume_charge', 'max_volume_charge', 'mean_volume_charge', 'median_volume_charge'
@@ -2264,5 +2300,5 @@ def main_one_analysis(curr_version):
 if __name__ == '__main__':
     curr_version = '10000-episodes-lastnormal'
 
-    main_one_analysis(curr_version=curr_version)
-    # main_full_analysis(curr_version=curr_version)
+    # main_one_analysis(curr_version=curr_version)
+    main_full_analysis(curr_version=curr_version)
