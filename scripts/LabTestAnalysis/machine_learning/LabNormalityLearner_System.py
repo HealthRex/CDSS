@@ -16,10 +16,10 @@ machine_learning_folderpath = os.path.join(project_folderpath,
                                            'machine_learning',)
 
 class FileOrganizerRemote():
-    def __init__(self, lab_type, data_source_train, data_source_test, version):
+    def __init__(self, lab_type, data_source_src, data_source_dst, version):
         self.lab_type = lab_type
-        self.data_source_train = data_source_train
-        self.data_source_test = data_source_test
+        self.data_source_src = data_source_src
+        self.data_source_dst = data_source_dst
         self.version = version
 
         self.machine_learning_folderpath = os.path.join(project_folderpath,
@@ -27,13 +27,19 @@ class FileOrganizerRemote():
                                                         )
 
         self.dataset_foldername = 'data-%s-src-%s-dst-%s-%s'%(lab_type,
-                                                   data_source_train,
-                                                   data_source_test,
-                                                   version
+                                                              data_source_src,
+                                                              data_source_dst,
+                                                    version
                                                    )
 
 
         self.raw_matrix_filename_template = '%s-normality-matrix-raw.tab'
+
+    def get_raw_matrix(self, data_tag):
+        if data_tag == "src":
+            return FeatureMatrixIO().read_file_to_data_frame(self.raw_matrix_filepath)
+        else:
+            return FeatureMatrixIO().read_file_to_data_frame(self.raw_matrix_filepath)
 
 
 class FileOrganizerLocal():
