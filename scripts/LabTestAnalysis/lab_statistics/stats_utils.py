@@ -1146,8 +1146,9 @@ def get_queried_lab(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
     df.drop_duplicates(inplace=True)
     return df
 
-def get_labvol(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
-    df = get_queried_lab(lab, lab_type, time_limit=time_limit)
+def get_labvol(lab, lab_type, data_source='Stanford', time_limit=DEFAULT_TIMELIMIT):
+    if data_source=='Stanford':
+        df = get_queried_lab(lab, lab_type, time_limit=time_limit)
     return df.shape[0]
 
 def get_medicare_price_dict():
@@ -1183,28 +1184,18 @@ def get_medicare_price_dict():
 def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath,
               ml_results_labfolderpath, stats_results_filepath, price_source='medicare',
               data_source='Stanford', lab_type='panel', all_algs=['random-forest']):
-    '''
-    For each lab at each train_PPV,
-    write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
-
-    '''
 
     df = pd.DataFrame(columns=columns)
-
     '''
-    Baseline 2: Predict by last normality (when it is available), or by population average.
+    Baseline: Predict by last normality (when it is available), or by population average.
 
     Same across all algs
     '''
-    # baseline_roc_auc = get_baseline2_auroc(train_data_labfolderpath)
+    baseline_roc_auc = get_baseline2_auroc(train_data_labfolderpath)
 
-    # For STRIDE, also do cnts and costs
-    if data_source == 'Stanford':#lab_type == 'panel' or lab_type == 'component':
-        # lab_vols = []
-        # for time_limit in DEFAULT_TIMELIMITS:
-        #     cur_vol = get_labvol(lab, time_limit=time_limit)
-        #     lab_vols.append(cur_vol)
-        lab_vol = get_labvol(lab, lab_type, time_limit=DEFAULT_TIMELIMIT)
+    lab_vol = get_labvol(lab, lab_type, data_source=data_source, time_limit=DEFAULT_TIMELIMIT)
+    print baseline_roc_auc, lab_vol
+    quit()
 
     # For panels, also include price info
     # TODO: this operation was repeated for each lab?!
