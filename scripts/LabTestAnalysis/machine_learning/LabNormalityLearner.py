@@ -82,7 +82,7 @@ def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
     
     '''
     feature_processing_pipeline = Pipeline(
-        memory = None,#file_organizer.cached_pipeline_filepath,
+        memory = None, #file_organizer.cached_pipeline_filepath,
         steps = [
              ('impute_features', Cls.FeatureImputer()),
              ('remove_features', Cls.FeatureRemover(features_to_remove=Config.features_to_remove)),
@@ -115,6 +115,18 @@ def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
     print X_test_processed.shape
     print X_test_processed.head()
 
+def run_one_lab_remote(lab, lab_type, data_source, version, random_state=0):
+    file_organizer = syst.FileOrganizerRemote(lab_type="panel",
+                                              data_source_src="Stanford",
+                                              data_source_dst="UMich",
+                                              version="10000-episodes-lastnormal")
+    raw_matrix_src = file_organizer.get_raw_matrix(data_tag="src")
+    raw_matrix_train, _ = Utils.split_rows(raw_matrix_src)
+
+    raw_matrix_dst = file_organizer.get_raw_matrix(data_tag="dst")
+    _, raw_matrix_test = Utils.split_rows(raw_matrix_dst)
+
+    pass
 
 if __name__ == '__main__':
     lab = 'LABA1C'

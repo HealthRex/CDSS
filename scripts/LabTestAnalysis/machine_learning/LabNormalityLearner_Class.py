@@ -1,6 +1,7 @@
 
-from sklearn.base import BaseEstimator, TransformerMixin
 import LabNormalityLearner_Utils as Utils
+
+from sklearn.base import BaseEstimator, TransformerMixin
 from medinfo.ml.FeatureSelector import FeatureSelector
 from sklearn.utils.validation import column_or_1d
 
