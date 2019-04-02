@@ -91,9 +91,7 @@ def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
     )
 
     # feature_engineering_pipeline.set_params()
-    print X_train_raw.shape
     X_train_processed = feature_processing_pipeline.fit_transform(X_train_raw, y_train)
-    print X_train_processed.shape
 
     hyperparams = {}
     hyperparams['algorithm'] = 'random-forest'
@@ -104,16 +102,20 @@ def run_one_lab_local(lab, lab_type, data_source, version, random_state=0):
     '''
     status = predictor.train(X_train_processed, column_or_1d(y_train),
                                        groups = patIds_train)
-    quit()
+
+    logging.INFO('status: %s'%status)
 
     '''
     Test set
     '''
     X_test_raw, y_test = Utils.split_Xy(raw_matrix_test, ylabel=y_label)
-    print X_test_raw.shape
     X_test_processed = feature_processing_pipeline.transform(X_test_raw)
-    print X_test_processed.shape
-    print X_test_processed.head()
+    y_test_pred_proba = predictor.predict_probability(X_test_processed)
+
+    res_df = pd.DataFrame({'actual':y_test,
+                           'predict': y_test_pred_proba})
+    res_df.to_csv(file_organizer.get_output_filepath(alg=hyperparams['algorithm']))
+
 
 def run_one_lab_remote(lab, lab_type, data_source, version, random_state=0):
     file_organizer = syst.FileOrganizerRemote(lab_type="panel",
