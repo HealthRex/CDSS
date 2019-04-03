@@ -1740,7 +1740,7 @@ class Stats_Plotter():
 
             lab_to_stats_meta = {}
             lab_to_stats_meta['lab'] = lab
-            lab_to_stats_meta['lab_vol'] = lab_vol
+            lab_to_stats_meta['total_vol_20140701_20170701'] = lab_vol
             lab_to_stats_meta['chargemaster'] = chargemaster
             lab_to_stats_meta['medicare'] = medicare
             lab_to_stats_meta['num_train_episodes'] = num_train_episodes
@@ -1820,31 +1820,29 @@ class Stats_Plotter():
             stats_results_filepath = os.path.join(project_stats_folderpath, 'stats_by_lab_alg', '%s.csv'%lab)
 
             df_lab = pd.read_csv(stats_results_filepath, keep_default_na=False)
-            print df_lab.head()
-
-            # df_lab['targeted_PPV_%s' % thres_mode] = targeted_PPV
 
             df_long = df_long.append(df_lab, ignore_index=True)
 
-            df_cur_best_alg = df_lab.groupby(['lab', 'fixTrainPPV'], as_index=False).agg({'AUC': 'max'})
-            print df_cur_best_alg
-            quit()
-            df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
+            idx_bestalgs = df_lab.groupby(['lab', 'fixTrainPPV'])['AUC'].transform(max) == df_lab['AUC']
+            df_cur_bestalg = df_lab[idx_bestalgs]
 
-            df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
+            # df_cur_best_alg = df_lab.groupby(['lab', 'fixTrainPPV'])['AUC'].max()
+            # df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
+
+            df_cur_best_alg = df_cur_bestalg.rename(columns={'alg': 'best_alg'})
             df_best_alg = df_best_alg.append(df_cur_best_alg)
 
-        '''
-        TODO:!
-        '''
-        if self.lab_type=='panel' and self.data_source=='Stanford':
-            df_chargemasters = pd.read_csv('data_summary_stats/labs_charges_volumes.csv', keep_default_na=False)
-            df_chargemasters = df_chargemasters.rename(columns={'name':'lab', 'median_price':'chargemaster'})
-            df_long = df_long.drop(['chargemaster'], axis=1)
-            df_long = pd.merge(df_long, df_chargemasters[['lab', 'chargemaster']], on='lab', how='left')
-
-            df_best_alg = df_best_alg.drop(['chargemaster'], axis=1)
-            df_best_alg = pd.merge(df_best_alg, df_chargemasters[['lab', 'chargemaster']], on='lab', how='left')
+        # '''
+        # TODO:!
+        # '''
+        # if self.lab_type=='panel' and self.data_source=='Stanford':
+        #     df_chargemasters = pd.read_csv('data_summary_stats/labs_charges_volumes.csv', keep_default_na=False)
+        #     df_chargemasters = df_chargemasters.rename(columns={'name':'lab', 'median_price':'chargemaster'})
+        #     df_long = df_long.drop(['chargemaster'], axis=1)
+        #     df_long = pd.merge(df_long, df_chargemasters[['lab', 'chargemaster']], on='lab', how='left')
+        #
+        #     df_best_alg = df_best_alg.drop(['chargemaster'], axis=1)
+        #     df_best_alg = pd.merge(df_best_alg, df_chargemasters[['lab', 'chargemaster']], on='lab', how='left')
 
         summary_long_filename = 'summary-stats-%s-%s.csv' % ('allalgs', thres_mode)
         summary_long_filepath = os.path.join(project_stats_folderpath, summary_long_filename)
