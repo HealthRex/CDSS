@@ -1709,6 +1709,16 @@ class Stats_Plotter():
         lab_to_medicare = stats_utils.get_medicare_price_dict()
 
         for lab in self.all_labs:
+            stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg', '%s.csv' % lab)
+            if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
+                os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
+            if os.path.exists(stats_results_filepath):
+                print "lab stats for %s exists!" % lab
+                continue
+            else:
+                print "processing lab stats for %s" % lab
+
+
             df_lab2stats = pd.DataFrame(columns=columns) #
             '''
             lab, total_vol_20140701_20170701, medicare, chargemaster, 
@@ -1739,66 +1749,60 @@ class Stats_Plotter():
             lab_to_stats_meta['num_test_patient'] = num_test_patient
             lab_to_stats_meta['AUC_baseline'] = AUC_baseline
 
-            stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg', '%s.csv' % lab)
-            if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
-                os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
-
-            if not os.path.exists(stats_results_filepath):
-
-                for targeted_PPV in targeted_PPVs:
-                    lab_to_stats = copy.deepcopy(lab_to_stats_meta) #lab_to_stats_meta.copy()
-                    lab_to_stats['fixTrainPPV'] = targeted_PPV
-                    # try:
-                    #stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
+            for targeted_PPV in targeted_PPVs:
+                lab_to_stats = copy.deepcopy(lab_to_stats_meta) #lab_to_stats_meta.copy()
+                lab_to_stats['fixTrainPPV'] = targeted_PPV
+                # try:
+                #stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
 
 
-                    for alg in all_algs:
-                        lab_to_stats['alg'] = alg
+                for alg in all_algs:
+                    lab_to_stats['alg'] = alg
 
-                        df_direct_compare = pd.read_csv(
-                            ml_results_folderpath + '/' + lab + '/' + alg + '/' + 'direct_comparisons.csv',
+                    df_direct_compare = pd.read_csv(
+                        ml_results_folderpath + '/' + lab + '/' + alg + '/' + 'direct_comparisons.csv',
+                        # '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
+                        keep_default_na=False)
+                    actual_labels, predict_scores = df_direct_compare['actual'].values, df_direct_compare[
+                        'predict'].values
+
+                    lab_to_stats['AUC'] = stats_utils.get_safe(roc_auc_score, actual_labels, predict_scores)
+                    AUROC_left, AUROC_right = stats_utils.bootstrap_CI(actual_labels, predict_scores, confident_lvl=0.95)
+                    lab_to_stats['AUC_95%_CI'] = '[%f, %f]' % (AUROC_left, AUROC_right)
+
+                    if thres_mode == 'fixTestPPV':
+                        score_thres = stats_utils.pick_threshold(actual_labels, predict_scores,
+                                                     target_PPV=targeted_PPV)  # TODO!
+                    else:
+                        df_direct_compare_train = pd.read_csv(
+                            ml_results_folderpath + '/' + lab + '/' + alg + '/' + 'direct_comparisons_train.csv',
                             # '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
                             keep_default_na=False)
-                        actual_labels, predict_scores = df_direct_compare['actual'].values, df_direct_compare[
-                            'predict'].values
+                        actual_labels_train, predict_scores_train = df_direct_compare_train['actual'].values, \
+                                                                    df_direct_compare_train['predict'].values
+                        score_thres = stats_utils.pick_threshold(actual_labels_train, predict_scores_train,
+                                                     target_PPV=targeted_PPV)
 
-                        lab_to_stats['AUROC'] = stats_utils.get_safe(roc_auc_score, actual_labels, predict_scores)
-                        AUROC_left, AUROC_right = stats_utils.bootstrap_CI(actual_labels, predict_scores, confident_lvl=0.95)
-                        lab_to_stats['AUC_95%_CI'] = '[%f, %f]' % (AUROC_left, AUROC_right)
+                    lab_to_stats['score_thres'] = score_thres
 
-                        if thres_mode == 'fixTestPPV':
-                            score_thres = stats_utils.pick_threshold(actual_labels, predict_scores,
-                                                         target_PPV=targeted_PPV)  # TODO!
-                        else:
-                            df_direct_compare_train = pd.read_csv(
-                                ml_results_folderpath + '/' + lab + '/' + alg + '/' + 'direct_comparisons_train.csv',
-                                # '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
-                                keep_default_na=False)
-                            actual_labels_train, predict_scores_train = df_direct_compare_train['actual'].values, \
-                                                                        df_direct_compare_train['predict'].values
-                            score_thres = stats_utils.pick_threshold(actual_labels_train, predict_scores_train,
-                                                         target_PPV=targeted_PPV)
+                    TP, FP, TN, FN, sens, spec, LR_p, LR_n, PPV, NPV = stats_utils.get_confusion_metrics(actual_labels,
+                                                                                           predict_scores,
+                                                                                           threshold=score_thres,
+                                                                                           also_return_cnts=True)
 
-                        lab_to_stats['score_thres'] = score_thres
-
-                        TP, FP, TN, FN, sens, spec, LR_p, LR_n, PPV, NPV = stats_utils.get_confusion_metrics(actual_labels,
-                                                                                               predict_scores,
-                                                                                               threshold=score_thres,
-                                                                                               also_return_cnts=True)
-
-                        lab_to_stats.update({
-                            'TP': TP / float(num_test_episodes),
-                            'FP': FP / float(num_test_episodes),
-                            'TN': TN / float(num_test_episodes),
-                            'FN': FN / float(num_test_episodes),
-                            'sens': sens,
-                            'spec': spec,
-                            'LR_p': LR_p,
-                            'LR_n': LR_n,
-                            'PPV': PPV,
-                            'NPV': NPV
-                        })
-                        df_lab2stats = df_lab2stats.append(lab_to_stats, ignore_index=True)
+                    lab_to_stats.update({
+                        'TP': TP / float(num_test_episodes),
+                        'FP': FP / float(num_test_episodes),
+                        'TN': TN / float(num_test_episodes),
+                        'FN': FN / float(num_test_episodes),
+                        'sens': sens,
+                        'spec': spec,
+                        'LR_p': LR_p,
+                        'LR_n': LR_n,
+                        'PPV': PPV,
+                        'NPV': NPV
+                    })
+                    df_lab2stats = df_lab2stats.append(lab_to_stats, ignore_index=True)
 
                 df_lab2stats[columns].to_csv(stats_results_filepath, index=False)
 
@@ -1811,22 +1815,24 @@ class Stats_Plotter():
 
         project_stats_folderpath = os.path.join(stats_results_folderpath, self.dataset_foldername)
 
-        for targeted_PPV in targeted_PPVs:
-            for lab in self.all_labs:
-                stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
-                stats_results_filepath = os.path.join(project_stats_folderpath, 'stats_by_lab_alg',
-                                                      stats_results_filename)
-                # results_filepath = results_filepath_template % (lab, thres_mode, str(targeted_PPV))
-                df_lab = pd.read_csv(stats_results_filepath, keep_default_na=False)
-                df_lab['targeted_PPV_%s' % thres_mode] = targeted_PPV
+        for lab in self.all_labs:
+            # for targeted_PPV in targeted_PPVs:
+            stats_results_filepath = os.path.join(project_stats_folderpath, 'stats_by_lab_alg', '%s.csv'%lab)
 
-                df_long = df_long.append(df_lab, ignore_index=True)
+            df_lab = pd.read_csv(stats_results_filepath, keep_default_na=False)
+            print df_lab.head()
 
-                df_cur_best_alg = df_lab.groupby(['lab'], as_index=False).agg({'AUROC': 'max'})
-                df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
+            # df_lab['targeted_PPV_%s' % thres_mode] = targeted_PPV
 
-                df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
-                df_best_alg = df_best_alg.append(df_cur_best_alg)
+            df_long = df_long.append(df_lab, ignore_index=True)
+
+            df_cur_best_alg = df_lab.groupby(['lab', 'fixTrainPPV'], as_index=False).agg({'AUC': 'max'})
+            print df_cur_best_alg
+            quit()
+            df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
+
+            df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
+            df_best_alg = df_best_alg.append(df_cur_best_alg)
 
         '''
         TODO:!
