@@ -211,10 +211,12 @@ def main_onereferral(referral, specialty, explore=None, verbose=False):
 
         print 'Train sample size for waiting time:', df_tmp_timediff['time_diff'].shape[0]
         all_waiting_days = df_tmp_timediff['time_diff'].apply(lambda x: x.days)
-        plt.hist(all_waiting_days)
+        plt.hist(all_waiting_days, bins=15)
         plt.xlabel('Waiting days for %s'%referral)
+        plt.xlim([0,90])
         plt.savefig('data/third_implementation/figs/waiting_%s.png'%referral_code)
-        quit()
+        plt.clf()
+        return
 
     s = df_tmp['specialty_order'].groupby(df_tmp['referral_icd10']).value_counts()
     # print s.groupby(['referral_icd10', 'specialty_order']).nlargest(1)
@@ -517,18 +519,17 @@ def explore_orders():
 def main():
     referral_specialty_pairs = \
         [
-            # ('REFERRAL TO DERMATOLOGY', 'Dermatology'),
-            # ('REFERRAL TO GASTROENTEROLOGY', 'Gastroenterology'),
-            # ('REFERRAL TO EYE', 'Ophthalmology'),
-            # # REFERRAL TO PAIN CLINIC PROCEDURES,   Pain Management #(cnt: 525, but Neurosurgery has 224)
-            # ('REFERRAL TO ORTHOPEDICS', 'Orthopedic Surgery'),
-            # ('REFERRAL TO CARDIOLOGY', 'Cardiology'),
-            # ('REFERRAL TO PSYCHIATRY', 'Psychiatry'),
-            # ('SLEEP CLINIC REFERRAL', 'Sleep Center'),
-            # ('REFERRAL TO ENT/OTOLARYNGOLOGY', 'ENT-Otolaryngology'),  # (cnt: 2170, but Oncology has 480)
-            # ('REFERRAL TO PAIN CLINIC', 'Pain Management'),
-            # ('REFERRAL TO UROLOGY CLINIC', 'Urology')  # (cnt: 2827, but Oncology has 605)
-            #
+            ('REFERRAL TO DERMATOLOGY', 'Dermatology'),
+            ('REFERRAL TO GASTROENTEROLOGY', 'Gastroenterology'),
+            ('REFERRAL TO EYE', 'Ophthalmology'),
+            # REFERRAL TO PAIN CLINIC PROCEDURES,   Pain Management #(cnt: 525, but Neurosurgery has 224)
+            ('REFERRAL TO ORTHOPEDICS', 'Orthopedic Surgery'),
+            ('REFERRAL TO CARDIOLOGY', 'Cardiology'),
+            ('REFERRAL TO PSYCHIATRY', 'Psychiatry'),
+            ('SLEEP CLINIC REFERRAL', 'Sleep Center'),
+            ('REFERRAL TO ENT/OTOLARYNGOLOGY', 'ENT-Otolaryngology'),  # (cnt: 2170, but Oncology has 480)
+            ('REFERRAL TO PAIN CLINIC', 'Pain Management'),
+            ('REFERRAL TO UROLOGY CLINIC', 'Urology'),  # (cnt: 2827, but Oncology has 605)
             ('REFERRAL TO ENDOCRINE CLINIC', 'Endocrinology'), # Suggested by Jon Chen
             ('REFERRAL TO HEMATOLOGY', 'Hematology') # Suggested by Jon Chen
         ]
@@ -540,7 +541,11 @@ def main():
     precisions = []
     recalls = []
     for referral, specialty in referral_specialty_pairs:
-        precision, recall = main_onereferral(referral, specialty, explore='full_icd10_to_orders_table')
+        one_res = main_onereferral(referral, specialty, explore='waiting_time_specialty_visit') # full_icd10_to_orders_table
+        if not one_res:
+            continue
+
+        precision, recall = one_res
         precisions.append(precision)
         recalls.append(recall)
     res_df = pd.DataFrame({'referral': referral_specialty_pairs, 'precision': precisions, 'recall': recalls})
