@@ -17,6 +17,8 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
+import copy
+
 from sklearn.metrics import roc_auc_score
 
 import LocalEnv
@@ -1707,7 +1709,7 @@ class Stats_Plotter():
         lab_to_medicare = stats_utils.get_medicare_price_dict()
 
         for lab in self.all_labs:
-            df_lab2stats = pd.DataFrame() #columns=columns
+            df_lab2stats = pd.DataFrame(columns=columns) #
             '''
             lab, total_vol_20140701_20170701, medicare, chargemaster, 
             num_train_episodes, num_train_patients, num_test_episodes, num_test_patients, 
@@ -1726,27 +1728,29 @@ class Stats_Plotter():
 
             AUC_baseline = stats_utils.get_baseline2_auroc(os.path.join(train_data_folderpath, lab))
 
-            lab_to_stats = {}
-            lab_to_stats['lab'] = lab
-            lab_to_stats['lab_vol'] = lab_vol
-            lab_to_stats['chargemaster'] = chargemaster
-            lab_to_stats['medicare'] = medicare
-            lab_to_stats['num_train_episodes'] = num_train_episodes
-            lab_to_stats['num_train_patient'] = num_train_patient
-            lab_to_stats['num_test_episodes'] = num_test_episodes
-            lab_to_stats['num_test_patient'] = num_test_patient
-            lab_to_stats['AUC_baseline'] = AUC_baseline
+            lab_to_stats_meta = {}
+            lab_to_stats_meta['lab'] = lab
+            lab_to_stats_meta['lab_vol'] = lab_vol
+            lab_to_stats_meta['chargemaster'] = chargemaster
+            lab_to_stats_meta['medicare'] = medicare
+            lab_to_stats_meta['num_train_episodes'] = num_train_episodes
+            lab_to_stats_meta['num_train_patient'] = num_train_patient
+            lab_to_stats_meta['num_test_episodes'] = num_test_episodes
+            lab_to_stats_meta['num_test_patient'] = num_test_patient
+            lab_to_stats_meta['AUC_baseline'] = AUC_baseline
 
-            for targeted_PPV in targeted_PPVs:
-                lab_to_stats['fixTrainPPV'] = targeted_PPV
-                # try:
-                stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
-                stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg',
-                                                      stats_results_filename)
-                if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
-                    os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
+            stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg', '%s.csv' % lab)
+            if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
+                os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
 
-                if not os.path.exists(stats_results_filepath):
+            if not os.path.exists(stats_results_filepath):
+
+                for targeted_PPV in targeted_PPVs:
+                    lab_to_stats = copy.deepcopy(lab_to_stats_meta) #lab_to_stats_meta.copy()
+                    lab_to_stats['fixTrainPPV'] = targeted_PPV
+                    # try:
+                    #stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
+
 
                     for alg in all_algs:
                         lab_to_stats['alg'] = alg
@@ -1794,25 +1798,9 @@ class Stats_Plotter():
                             'PPV': PPV,
                             'NPV': NPV
                         })
-            df_lab2stats = df_lab2stats.append(lab_to_stats, ignore_index=True)
-            print df_lab2stats
-            quit()
-            df_lab2stats[columns].to_csv(stats_results_filepath, index=False)
+                        df_lab2stats = df_lab2stats.append(lab_to_stats, ignore_index=True)
 
-                    # stats_utils.lab2stats(lab=lab,
-                    #                       data_source=self.data_source,
-                    #                       lab_type=self.lab_type,
-                    #                       all_algs=all_algs,
-                    #                       targeted_PPV=targeted_PPV,
-                    #                       columns=columns,
-                    #                       thres_mode=thres_mode,
-                    #                       train_data_labfolderpath=os.path.join(train_data_folderpath, lab),
-                    #                       ml_results_labfolderpath=os.path.join(ml_results_folderpath, lab),
-                    #                       stats_results_filepath=stats_results_filepath
-                    #                       )
-                # except Exception as e:
-                #     print e
-                #     continue
+                df_lab2stats[columns].to_csv(stats_results_filepath, index=False)
 
     def main_stats2summary(self, targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
