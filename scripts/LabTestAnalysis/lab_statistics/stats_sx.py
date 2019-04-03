@@ -17,6 +17,8 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
+from sklearn.metrics import roc_auc_score
+
 import LocalEnv
 
 
@@ -1688,14 +1690,55 @@ class Stats_Plotter():
 
         '''
 
+        '''
+        Chargemaster pricing. 
+        
+        For some reason, there is no entry for LABNA
+        '''
+
+        chargemaster_filepath = os.path.join(labs_old_stats_folder, 'labs_charges_volumes.csv')
+        df_chargemaster = pd.read_csv(chargemaster_filepath)
+        lab_to_chargemaster_median = dict(zip(df_chargemaster['name'], df_chargemaster['median_price']))
+        lab_to_chargemaster_median['LABNA'] = 219.
+
+        '''
+        Medicare pricing. 
+        '''
+        lab_to_medicare = stats_utils.get_medicare_price_dict()
+
         for lab in self.all_labs:
+            df_lab2stats = pd.DataFrame() #columns=columns
             '''
             lab, total_vol_20140701_20170701, medicare, chargemaster, 
             num_train_episodes, num_train_patients, num_test_episodes, num_test_patients, 
             AUC_baseline
             '''
+            lab_vol = stats_utils.get_labvol(lab=lab,
+                                             lab_type=self.lab_type,
+                                             data_source=self.data_source,
+                                             time_limit=DEFAULT_TIMELIMIT)
+
+            chargemaster = lab_to_chargemaster_median.get(lab, float('nan'))
+            medicare = lab_to_medicare.get(lab, float('nan'))
+
+            num_train_episodes, num_train_patient, num_test_episodes, num_test_patient = \
+                stats_utils.describe_lab_train_test_datasets(lab, train_data_folderpath)
+
+            AUC_baseline = stats_utils.get_baseline2_auroc(os.path.join(train_data_folderpath, lab))
+
+            lab_to_stats = {}
+            lab_to_stats['lab'] = lab
+            lab_to_stats['lab_vol'] = lab_vol
+            lab_to_stats['chargemaster'] = chargemaster
+            lab_to_stats['medicare'] = medicare
+            lab_to_stats['num_train_episodes'] = num_train_episodes
+            lab_to_stats['num_train_patient'] = num_train_patient
+            lab_to_stats['num_test_episodes'] = num_test_episodes
+            lab_to_stats['num_test_patient'] = num_test_patient
+            lab_to_stats['AUC_baseline'] = AUC_baseline
 
             for targeted_PPV in targeted_PPVs:
+                lab_to_stats['fixTrainPPV'] = targeted_PPV
                 # try:
                 stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
                 stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg',
@@ -1704,21 +1747,69 @@ class Stats_Plotter():
                     os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
 
                 if not os.path.exists(stats_results_filepath):
-                    '''
-                    
-                    '''
 
-                    stats_utils.lab2stats(lab=lab,
-                                          data_source=self.data_source,
-                                          lab_type=self.lab_type,
-                                          all_algs=all_algs,
-                                          targeted_PPV=targeted_PPV,
-                                          columns=columns,
-                                          thres_mode=thres_mode,
-                                          train_data_labfolderpath=os.path.join(train_data_folderpath, lab),
-                                          ml_results_labfolderpath=os.path.join(ml_results_folderpath, lab),
-                                          stats_results_filepath=stats_results_filepath
-                                          )
+                    for alg in all_algs:
+                        lab_to_stats['alg'] = alg
+
+                        df_direct_compare = pd.read_csv(
+                            ml_results_folderpath + '/' + lab + '/' + alg + '/' + 'direct_comparisons.csv',
+                            # '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
+                            keep_default_na=False)
+                        actual_labels, predict_scores = df_direct_compare['actual'].values, df_direct_compare[
+                            'predict'].values
+
+                        lab_to_stats['AUROC'] = stats_utils.get_safe(roc_auc_score, actual_labels, predict_scores)
+                        AUROC_left, AUROC_right = stats_utils.bootstrap_CI(actual_labels, predict_scores, confident_lvl=0.95)
+                        lab_to_stats['AUC_95%_CI'] = '[%f, %f]' % (AUROC_left, AUROC_right)
+
+                        if thres_mode == 'fixTestPPV':
+                            score_thres = stats_utils.pick_threshold(actual_labels, predict_scores,
+                                                         target_PPV=targeted_PPV)  # TODO!
+                        else:
+                            df_direct_compare_train = pd.read_csv(
+                                ml_results_folderpath + '/' + lab + '/' + alg + '/' + 'direct_comparisons_train.csv',
+                                # '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
+                                keep_default_na=False)
+                            actual_labels_train, predict_scores_train = df_direct_compare_train['actual'].values, \
+                                                                        df_direct_compare_train['predict'].values
+                            score_thres = stats_utils.pick_threshold(actual_labels_train, predict_scores_train,
+                                                         target_PPV=targeted_PPV)
+
+                        lab_to_stats['score_thres'] = score_thres
+
+                        TP, FP, TN, FN, sens, spec, LR_p, LR_n, PPV, NPV = stats_utils.get_confusion_metrics(actual_labels,
+                                                                                               predict_scores,
+                                                                                               threshold=score_thres,
+                                                                                               also_return_cnts=True)
+
+                        lab_to_stats.update({
+                            'TP': TP / float(num_test_episodes),
+                            'FP': FP / float(num_test_episodes),
+                            'TN': TN / float(num_test_episodes),
+                            'FN': FN / float(num_test_episodes),
+                            'sens': sens,
+                            'spec': spec,
+                            'LR_p': LR_p,
+                            'LR_n': LR_n,
+                            'PPV': PPV,
+                            'NPV': NPV
+                        })
+            df_lab2stats = df_lab2stats.append(lab_to_stats, ignore_index=True)
+            print df_lab2stats
+            quit()
+            df_lab2stats[columns].to_csv(stats_results_filepath, index=False)
+
+                    # stats_utils.lab2stats(lab=lab,
+                    #                       data_source=self.data_source,
+                    #                       lab_type=self.lab_type,
+                    #                       all_algs=all_algs,
+                    #                       targeted_PPV=targeted_PPV,
+                    #                       columns=columns,
+                    #                       thres_mode=thres_mode,
+                    #                       train_data_labfolderpath=os.path.join(train_data_folderpath, lab),
+                    #                       ml_results_labfolderpath=os.path.join(ml_results_folderpath, lab),
+                    #                       stats_results_filepath=stats_results_filepath
+                    #                       )
                 # except Exception as e:
                 #     print e
                 #     continue

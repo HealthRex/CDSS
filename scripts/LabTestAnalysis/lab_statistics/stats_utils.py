@@ -1181,6 +1181,25 @@ def get_medicare_price_dict():
             lab_price[lab] = dict_price[cur_new_description]['RATE2018']
     return lab_price
 
+def describe_lab_train_test_datasets(lab, dataset_folderpath):
+    fm_io = FeatureMatrixIO()
+    processed_matrix_train_path = os.path.join(dataset_folderpath, lab,
+                                               '%s-normality-train-matrix-processed.tab' % lab)
+    # TODO: get rid of '10000' in file name
+    processed_matrix_train = fm_io.read_file_to_data_frame(processed_matrix_train_path)
+    num_train_episodes = processed_matrix_train.shape[0]
+    num_train_patient = len(set(processed_matrix_train['pat_id'].values.tolist()))
+
+    processed_matrix_test_path = os.path.join(dataset_folderpath, lab,
+                                              '%s-normality-test-matrix-processed.tab' % lab)
+    # TODO: get rid of '10000' in file name
+    processed_matrix_test = fm_io.read_file_to_data_frame(processed_matrix_test_path)
+    # pd.read_csv(processed_matrix_test_path, keep_default_na=False)#fm_io.read_file_to_data_frame(processed_matrix_test_path)
+    num_test_episodes = processed_matrix_test.shape[0]
+    num_test_patient = len(set(processed_matrix_test['pat_id'].values.tolist()))
+
+    return num_train_episodes, num_train_patient, num_test_episodes, num_test_patient
+
 def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath,
               ml_results_labfolderpath, stats_results_filepath, price_source='medicare',
               data_source='Stanford', lab_type='panel', all_algs=['random-forest']):
@@ -1191,98 +1210,93 @@ def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath,
 
     Same across all algs
     '''
-    baseline_roc_auc = get_baseline2_auroc(train_data_labfolderpath)
-
-    lab_vol = get_labvol(lab, lab_type, data_source=data_source, time_limit=DEFAULT_TIMELIMIT)
-    print baseline_roc_auc, lab_vol
-    quit()
 
     # For panels, also include price info
     # TODO: this operation was repeated for each lab?!
-    if lab_type == 'panel': #TODO: no price info for LABNA
-        if True: #price_source == 'chargemaster':
-            prices_filepath = os.path.join(labs_old_stats_folder, 'labs_charges_volumes.csv')
-            df_prices = pd.read_csv(prices_filepath, keep_default_na=False)
-            # df_prices_dict = df_prices.ix[df_prices['name'] == lab,
-            #                               ['min_price', 'max_price', 'mean_price', 'median_price']].to_dict(orient='list')
-            df_prices_dict = {'chargemaster':df_prices.ix[df_prices['name'] == lab, 'median_price'].values[0]}
-            for key, val in df_prices_dict.items():
-                if lab == 'LABNA':
-                    df_prices_dict[key] = 219
-                else:
-                    df_prices_dict[key] = val[0]
-        if True: #price_source == 'medicare':
-            medicare_price_dict = get_medicare_price_dict()
-            cur_price = medicare_price_dict.get(lab, float('nan'))
-            # df_prices_dict = {'min_price':cur_price, 'max_price':cur_price,
-            #                   'mean_price':cur_price, 'median_price':cur_price}
-            # df_prices_dict = {'medicare':cur_price}
-            df_prices_dict['medicare'] = cur_price
+    # if lab_type == 'panel': #TODO: no price info for LABNA
+    #     if True: #price_source == 'chargemaster':
+    #         prices_filepath = os.path.join(labs_old_stats_folder, 'labs_charges_volumes.csv')
+    #         df_prices = pd.read_csv(prices_filepath, keep_default_na=False)
+    #         # df_prices_dict = df_prices.ix[df_prices['name'] == lab,
+    #         #                               ['min_price', 'max_price', 'mean_price', 'median_price']].to_dict(orient='list')
+    #         df_prices_dict = {'chargemaster':df_prices.ix[df_prices['name'] == lab, 'median_price'].values[0]}
+    #         for key, val in df_prices_dict.items():
+    #             if lab == 'LABNA':
+    #                 df_prices_dict[key] = 219
+    #             else:
+    #                 df_prices_dict[key] = val[0]
+    #     if True: #price_source == 'medicare':
+    #         medicare_price_dict = get_medicare_price_dict()
+    #         cur_price = medicare_price_dict.get(lab, float('nan'))
+    #         # df_prices_dict = {'min_price':cur_price, 'max_price':cur_price,
+    #         #                   'mean_price':cur_price, 'median_price':cur_price}
+    #         # df_prices_dict = {'medicare':cur_price}
+    #         df_prices_dict['medicare'] = cur_price
 
     # print 'df_prices_dict', df_prices_dict
 
-    fm_io = FeatureMatrixIO()
-    processed_matrix_train_path = os.path.join(train_data_labfolderpath,
-                                         '%s-normality-train-matrix-processed.tab'%lab)
-    # TODO: get rid of '10000' in file name
-    processed_matrix_train = fm_io.read_file_to_data_frame(processed_matrix_train_path)
-    num_train_episodes = processed_matrix_train.shape[0]
-    num_train_patient = len(set(processed_matrix_train['pat_id'].values.tolist()))
-
-    processed_matrix_test_path = os.path.join(ml_results_labfolderpath,
-                                               '%s-normality-test-matrix-processed.tab' % lab)
-    # TODO: get rid of '10000' in file name
-    processed_matrix_test = fm_io.read_file_to_data_frame(processed_matrix_test_path)
-    #pd.read_csv(processed_matrix_test_path, keep_default_na=False)#fm_io.read_file_to_data_frame(processed_matrix_test_path)
-    num_test_episodes = processed_matrix_test.shape[0]
-    num_test_patient = len(set(processed_matrix_test['pat_id'].values.tolist()))
+    # fm_io = FeatureMatrixIO()
+    # processed_matrix_train_path = os.path.join(train_data_labfolderpath,
+    #                                      '%s-normality-train-matrix-processed.tab'%lab)
+    # # TODO: get rid of '10000' in file name
+    # processed_matrix_train = fm_io.read_file_to_data_frame(processed_matrix_train_path)
+    # num_train_episodes = processed_matrix_train.shape[0]
+    # num_train_patient = len(set(processed_matrix_train['pat_id'].values.tolist()))
+    #
+    # processed_matrix_test_path = os.path.join(ml_results_labfolderpath,
+    #                                            '%s-normality-test-matrix-processed.tab' % lab)
+    # # TODO: get rid of '10000' in file name
+    # processed_matrix_test = fm_io.read_file_to_data_frame(processed_matrix_test_path)
+    # #pd.read_csv(processed_matrix_test_path, keep_default_na=False)#fm_io.read_file_to_data_frame(processed_matrix_test_path)
+    # num_test_episodes = processed_matrix_test.shape[0]
+    # num_test_patient = len(set(processed_matrix_test['pat_id'].values.tolist()))
 
     for alg in all_algs:
         print 'Processing lab %s with alg %s' % (lab, alg)
         one_row = {}
 
-        one_row['lab'] = lab
-        one_row['alg'] = alg
-
-        one_row.update({'num_train_episodes':num_train_episodes,
-                        'num_train_patient':num_train_patient,
-                        'num_test_episodes': num_test_episodes,
-                        'num_test_patient': num_test_patient
-                        })
+        # one_row['lab'] = lab
+        # one_row['alg'] = alg
+        #
+        # one_row.update({'num_train_episodes':num_train_episodes,
+        #                 'num_train_patient':num_train_patient,
+        #                 'num_test_episodes': num_test_episodes,
+        #                 'num_test_patient': num_test_patient
+        #                 })
 
         # one_row['baseline2_ROC'] = baseline_roc_auc
 
-        df_direct_compare = pd.read_csv(ml_results_labfolderpath + '/' + alg + '/' + 'direct_comparisons.csv',
-                                        #'%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
-                                        keep_default_na=False)
+        # df_direct_compare = pd.read_csv(ml_results_labfolderpath + '/' + alg + '/' + 'direct_comparisons.csv',
+        #                                 #'%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
+        #                                 keep_default_na=False)
+        #
+        # actual_labels, predict_scores = df_direct_compare['actual'].values, df_direct_compare['predict'].values
+        #
+        # one_row['AUROC'] = get_safe(roc_auc_score, actual_labels, predict_scores)
+        # AUROC_left, AUROC_right = bootstrap_CI(actual_labels, predict_scores, confident_lvl=0.95)
+        # one_row['95%_CI'] = '[%f, %f]' % (AUROC_left, AUROC_right)
+        #
+        # '''
+        # Adding confusion metrics after picking a threshold
+        # '''
+        # one_row['targeted_PPV_%s'%thres_mode] = targeted_PPV
 
-        actual_labels, predict_scores = df_direct_compare['actual'].values, df_direct_compare['predict'].values
+        # if thres_mode=='fixTestPPV':
+        #     score_thres = pick_threshold(actual_labels, predict_scores, target_PPV=targeted_PPV) # TODO!
+        # else:
+        #     df_direct_compare_train = pd.read_csv(ml_results_labfolderpath + '/' + alg + '/' + 'direct_comparisons_train.csv',
+        #                                 #'%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
+        #                                 keep_default_na=False)
+        #     actual_labels_train, predict_scores_train = df_direct_compare_train['actual'].values, df_direct_compare_train['predict'].values
+        #     score_thres = pick_threshold(actual_labels_train, predict_scores_train, target_PPV=targeted_PPV)
+        #
+        # one_row['score_thres'] = score_thres
 
-        one_row['AUROC'] = get_safe(roc_auc_score, actual_labels, predict_scores)
-        AUROC_left, AUROC_right = bootstrap_CI(actual_labels, predict_scores, confident_lvl=0.95)
-        one_row['95%_CI'] = '[%f, %f]' % (AUROC_left, AUROC_right)
-
-        '''
-        Adding confusion metrics after picking a threshold
-        '''
-        one_row['targeted_PPV_%s'%thres_mode] = targeted_PPV
-
-        if thres_mode=='fixTestPPV':
-            score_thres = pick_threshold(actual_labels, predict_scores, target_PPV=targeted_PPV) # TODO!
-        else:
-            df_direct_compare_train = pd.read_csv(ml_results_labfolderpath + '/' + alg + '/' + 'direct_comparisons_train.csv',
-                                        #'%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
-                                        keep_default_na=False)
-            actual_labels_train, predict_scores_train = df_direct_compare_train['actual'].values, df_direct_compare_train['predict'].values
-            score_thres = pick_threshold(actual_labels_train, predict_scores_train, target_PPV=targeted_PPV)
-
-        one_row['score_thres'] = score_thres
-
-        true_positive, false_positive, true_negative, false_negative, \
-        sensitivity, specificity, LR_p, LR_n, PPV, NPV = get_confusion_metrics(actual_labels,
-                                                                               predict_scores,
-                                                                               threshold=score_thres,
-                                                                               also_return_cnts=True)
+        # true_positive, false_positive, true_negative, false_negative, \
+        # sensitivity, specificity, LR_p, LR_n, PPV, NPV = get_confusion_metrics(actual_labels,
+        #                                                                        predict_scores,
+        #                                                                        threshold=score_thres,
+        #                                                                        also_return_cnts=True)
         one_row.update({
             'true_positive':true_positive/float(num_test_episodes),
             'false_positive':false_positive/float(num_test_episodes),
