@@ -130,7 +130,7 @@ def run_one_lab_remote(lab, lab_type, data_source, version, random_state=0):
 
     pass
 
-if __name__ == '__main__':
+def main():
     lab = 'LABA1C'
     lab_type = 'standalone'
     data_source = 'Stanford'
@@ -142,3 +142,27 @@ if __name__ == '__main__':
                       lab_type=lab_type,
                       data_source=data_source,
                       version=version)
+
+def test_SupervisedLearner():
+    from medinfo.ml.SupervisedLearner import SupervisedLearner
+    import inspect
+    from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
+
+    class LabNormalityLearner(SupervisedLearner):
+        def __init__(self, input_matrix, ylabel):
+            self.working_folderpath = '/'.join(inspect.getfile(inspect.currentframe()).split('/')[:-1])
+            self.input_matrix = input_matrix
+            self.ylabel = ylabel
+            pass
+
+    fm_io = FeatureMatrixIO()
+    processed_matrix = fm_io.read_file_to_data_frame('data-testingSupervisedLearner-panel-10000-episodes/LABA1C/LABA1C-normality-train-matrix-processed.tab')
+    processed_matrix.pop('pat_id')
+
+    lnl = LabNormalityLearner(processed_matrix, 'all_components_normal')
+    lnl.run()
+
+
+
+if __name__ == '__main__':
+    test_SupervisedLearner()

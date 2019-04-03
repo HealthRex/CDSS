@@ -27,10 +27,18 @@ class FeatureImputer(BaseEstimator, TransformerMixin):
         self.feat2mean_dict = feat2mean_dict
 
     def fit(self, X, y=None):
+        feats = X.columns.values.tolist()
+        for feat in feats:
+            if X[feat].dtype == type(1.) or X[feat].dtype == type(1):
+                self.feat2mean_dict[feat] = X[feat].mean()
+            else:
+                print 'Non numeric (cannot calc mean):', feat, X[feat].dtype
         return self
 
     def transform(self, X):
-        X_imputed = X.fillna(0)
+        X_imputed = X.copy()
+        for feat, imputed in self.feat2mean_dict.items():
+            X_imputed[feat] = X.fillna(imputed)
         return X_imputed
 
 
