@@ -77,121 +77,29 @@ class DB_Preparor:
                 self.enlarge_a_file(os.path.join(raw_data_folderpath, raw_file), num_repeats=self.num_repeats)
                 data_files.append(raw_file.replace(".sample",".test"))
             data_folderpath = raw_data_folderpath
-            # large_data_folderpath = raw_data_folderpath + '/' + 'enlarged_data_by_%s_fold'%str(fold_enlarge_data)
-            #
-            # if not os.path.exists(large_data_folderpath):
-            #     os.mkdir(large_data_folderpath)
-            #
-            # large_data_files = [x.replace('sample','large') for x in raw_data_files]
-            # # Same file names, different folders
-            # create_large_files(raw_data_files,raw_data_folderpath,
-            #                                large_data_files,large_data_folderpath,
-            #                                              num_repeats=fold_enlarge_data, USE_CACHED_DB=USE_CACHED_DB)
-            # data_files = large_data_files
-            # data_folderpath = large_data_folderpath
+
         else:
             data_files = raw_data_files
             data_folderpath = raw_data_folderpath
 
         for data_file in data_files:
-            self.raw2db(data_file, data_folderpath, db_path=raw_data_folderpath,
-                   db_name=db_name, build_index_patid=True)
+            print 'Started processing %s...' % data_file
+            if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+                if 'encounters' in data_file:
+                    all_included_order_proc_ids = utils_NonSTRIDE.raw2db(data_file, data_folderpath,
+                                                                     db_path=raw_data_folderpath, db_name=db_name,
+                                                                     build_index_patid=True)
+                elif 'labs' in data_file:
+                    utils_NonSTRIDE.raw2db(data_file, data_folderpath, db_path=raw_data_folderpath, db_name=db_name,
+                                       build_index_patid=True,
+                                       collected_included_order_proc_ids=all_included_order_proc_ids)
+                else:
+                    utils_NonSTRIDE.raw2db(data_file, data_folderpath, db_path=raw_data_folderpath, db_name=db_name,
+                                       build_index_patid=True)
+            else:
+                self.raw2db(data_file, data_folderpath, db_path=raw_data_folderpath,
+                       db_name=db_name, build_index_patid=True)
 
-
-    # def perturb_str(any_str, seed=None):
-    #     if seed:
-    #         np.random.seed(seed)
-    #     str_len = len(any_str)
-    #     ind_to_perturb = np.random.choice(str_len)
-    #     chr_to_perturb = random.choice(string.letters + '-0123456789')
-    #     any_str = any_str[:ind_to_perturb] + chr_to_perturb + any_str[ind_to_perturb+1:]
-    #     return any_str
-    #
-    # def perturb_a_file(raw_file_path, target_file_path, col_patid, perturb_dict, params_str2list):
-    #     with open(raw_file_path) as fr:
-    #         lines_raw = fr.readlines()
-    #         fr.close()
-    #
-    #     import os
-    #     if not os.path.exists(target_file_path):
-    #         fw = open(target_file_path,'w')
-    #         fw.write(lines_raw[0]) # column name line
-    #     else:
-    #         fw = open(target_file_path,'a')
-    #     for line_raw in lines_raw[1:]:
-    #         # print 'line_raw:', len(line_raw.split('\t'))
-    #         line_as_list = utils_NonSTRIDE.line_str2list(line_raw, params_str2list)
-    #         try:
-    #             cur_pat_id = line_as_list[col_patid]
-    #         except:
-    #             # Handle cases where the line is empty
-    #             continue
-    #
-    #         perturbed_patid = perturb_dict[cur_pat_id]
-    #         line_as_list[col_patid] = perturbed_patid # perturbing pat_id
-    #
-    #         if params_str2list['has_extra_quotes']:
-    #             line_as_list = ["\"" + x + "\"" for x in line_as_list]
-    #
-    #         line_perturbed = params_str2list['sep'].join(line_as_list) #first col won't be a problem
-    #
-    #         line_perturbed += '\n'
-    #
-    #         fw.write(line_perturbed)
-
-    # Both name lists have the same order!
-
-    # def create_large_files(raw_data_files,raw_data_folderpath,
-    #                        large_data_files,large_data_folderpath,
-    #                        num_repeats=100,USE_CACHED_DB=True):
-    #     import os
-    #     if os.path.exists(large_data_folderpath + '/' + large_data_files[0]):
-    #         if USE_CACHED_DB:
-    #             log.info("Large files exist!")
-    #             return
-    #         else:
-    #             # for large_data_file in large_data_files:
-    #             for one_file in os.listdir(large_data_folderpath):
-    #                 os.remove(large_data_folderpath + '/' + one_file)
-    #
-    #     if 'labs' not in raw_data_files[0]:
-    #         log.debug("Please place labs file as the beginning of raw_data_files!")
-    #         quit()
-    #
-    #     params_str2list = {}
-    #     if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-    #         col_patid = 1
-    #
-    #         params_str2list['sep'] = '|'
-    #         params_str2list['has_extra_quotes'] = True
-    #         params_str2list['skip_first_col'] = True
-    #     elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-    #         col_patid = 0
-    #
-    #         params_str2list['sep'] = '\t'
-    #         params_str2list['has_extra_quotes'] = False
-    #         params_str2list['skip_first_col'] = False
-    #
-    #     # query all_pat_ids from raw_data. Presumably small files, so should not be problem
-    #     with open(raw_data_folderpath + '/' + raw_data_files[0]) as f:
-    #         lines_lab = f.readlines()
-    #         f.close()
-    #
-    #     all_pat_ids = set([utils_NonSTRIDE.line_str2list(line,params_str2list=params_str2list)[col_patid] for line in lines_lab[1:]]) # skip the first row as columns
-    #
-    #     # Each time, perturb pat_ids in a specific random way, and modify all tables accordingly...
-    #     for _ in range(num_repeats):
-    #         # Create a different perturbation rule each time
-    #         perturb_dict = {}
-    #         for pat_id in all_pat_ids:
-    #             perturb_dict[pat_id] = perturb_str(pat_id)
-    #
-    #         # For each perturbation, perturb all tables
-    #         for ind in range(len(raw_data_files)):
-    #             raw_file_path = raw_data_folderpath+'/'+raw_data_files[ind]
-    #             target_file_path = large_data_folderpath+'/'+large_data_files[ind]
-    #             perturb_a_file(raw_file_path, target_file_path, col_patid=col_patid,
-    #                            perturb_dict=perturb_dict, params_str2list=params_str2list)
 
     def enlarge_a_file(self, filename, num_repeats=10):
 

@@ -184,6 +184,46 @@ class LabNormalityMatrix(FeatureMatrix):
                 query.addWhere('sop.order_proc_id = sor.order_proc_id')
             ##
                 query.addWhereIn("base_name", [self._lab_var])
+        elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            query_str = "SELECT CAST(pat_id AS BIGINT) AS pat_id , "
+            query_str += "COUNT(order_proc_id) AS num_orders "
+            query_str += "FROM labs "
+            # query_str += " WHERE %s IN (%s) "%(self._varTypeInTable, self._lab_var)
+            query_str += "WHERE %s = '%s' " % (self._varTypeInTable, self._lab_var)
+            if self.notUsePatIds:
+                query_str += "AND pat_id NOT IN ("
+                for pat_id in self.notUsePatIds:
+                    query_str += "%s," % pat_id
+                query_str = query_str[:-1] + ") "  # get rid of comma
+            query_str += "GROUP BY pat_id"
+
+            log.debug('Querying median orders per patient...')
+
+            # TODO: best way to integrate UMich code
+            results = DBUtil.execute(query_str)
+            order_counts = [row[1] for row in results]
+
+            if len(results) == 0:
+                error_msg = '0 orders for order "%s."' % self._lab_var  # sx
+                log.critical(error_msg)
+                raise Exception(error_msg)
+                # sys.exit('[ERROR] %s' % error_msg) # sxu: sys.exit cannot be caught by Exception
+            else:
+                avg_orders_per_patient = numpy.median(order_counts)
+                log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
+                # Based on average # of results, figure out how many patients we'd
+                # need to get for a feature matrix of requested size.
+                self._num_patients = int(numpy.max([self._num_requested_episodes / \
+                                                    avg_orders_per_patient, 1]))
+                # Some components may have fewer associated patients than the required sample size
+                patient_number_chosen = min([len(results), self._num_patients])  #
+                inds_random_patients = numpy.random.choice(len(results), size=patient_number_chosen, replace=False)
+                # print 'inds_random_patients:', inds_random_patients
+                pat_IDs_random_patients = []
+                for ind in inds_random_patients:
+                    pat_IDs_random_patients.append(results[ind][0])
+                return pat_IDs_random_patients
+
         else:
             query.addSelect('COUNT(order_proc_id) AS num_orders')
             query.addFrom('labs')

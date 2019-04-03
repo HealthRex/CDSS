@@ -41,7 +41,10 @@ class SupervisedLearner():
         )
         X_train_processed = feature_processing_pipeline.fit_transform(X_train_raw, y_train)
 
-        predictor = SupervisedClassifier(classes=[0, 1], hyperparams={'algorithm':'random-forest'})
+        predictor = SupervisedClassifier(classes=[0, 1], hyperparams={'algorithm':'random-forest',
+                                                                      'hyperparam_strategy':SupervisedClassifier.EXHAUSTIVE_SEARCH,
+                                                                      'max_iter': 1024
+                                                                      })
 
         status = predictor.train(X_train_processed, column_or_1d(y_train))
 
