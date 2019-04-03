@@ -118,7 +118,7 @@ class FeatureMatrixFactory:
         self._pipeDbCursorToTsvFile(self.patientListInput, patientListTempFile)
         patientListTempFile.close()
 
-    def _pipeDbCursorToTsvFile(self, dbCursor, tsvFile):
+    def _pipeDbCursorToTsvFile(self, dbCursor, tsvFile, include_columns=True):
         """
         Pipe any arbitrary DB cursor to a TSV file.
         """
@@ -126,11 +126,12 @@ class FeatureMatrixFactory:
         columns = dbCursor.description
         numColumns = len(columns)
 
-        # Write TSV header.
-        for i in range(numColumns - 1):
-            # 0th index is column name.
-            tsvFile.write("%s\t" % columns[i][0])
-        tsvFile.write("%s\n" % columns[numColumns - 1][0])
+        if include_columns:
+            # Write TSV header.
+            for i in range(numColumns - 1):
+                # 0th index is column name.
+                tsvFile.write("%s\t" % columns[i][0])
+            tsvFile.write("%s\n" % columns[numColumns - 1][0])
 
         # By default, cursor iterates through both header and data rows.
         self._numRows = 0
@@ -1472,6 +1473,42 @@ class FeatureMatrixFactory:
                                                          clinicalItemTime='diagnose_time',
                                                          label="Comorbidity."+disease,
                                                          features=features)
+        # TODO: Figure out the best way to handle UMich
+        # icd9prefixesByDisease = dict()
+        # for row in self.loadMapData("CharlsonComorbidity-ICD9CM"):
+        #     (disease, icd9prefix) = (row["charlson"], row["icd9cm"])
+        #     if disease not in icd9prefixesByDisease:
+        #         icd9prefixesByDisease[disease] = list()
+        #     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+        #         icd9prefixesByDisease[disease].append("^ICD9." + icd9prefix)
+        #     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        #         icd9prefixesByDisease[disease].append(icd9prefix)
+        #
+        # '''
+        # Solution:
+        # For ICD9, map the whole code
+        # For ICD10, only map the prefix
+        # '''
+        # if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        #     for row in self.loadMapData("CharlsonComorbidity-ICD10"):
+        #         (disease, icd10prefix) = (row["charlson"], row["icd10"])
+        #         if disease not in icd9prefixesByDisease:
+        #             icd9prefixesByDisease[disease] = list()
+        #         # icd9prefixesByDisease[disease].append(icd10prefix)
+        #
+        # for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
+        #     disease = disease.translate(None, " ()-/")  # Strip off punctuation
+        #     log.debug('Adding %s comorbidity features...' % disease)
+        #     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
+        #         self.addClinicalItemFeatures(icd9prefixes, operator="~*", \
+        #                                      label="Comorbidity." + disease, features=features)
+        #     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+        #         self.addClinicalItemFeatures_UMich(icd9prefixes,
+        #                                            tableName='diagnoses',
+        #                                            clinicalItemType='diagnose_code',
+        #                                            clinicalItemTime='diagnose_time',
+        #                                            label="Comorbidity." + disease,
+        #                                            features=features)
 
     def addTreatmentTeamFeatures(self, features=None):
         """

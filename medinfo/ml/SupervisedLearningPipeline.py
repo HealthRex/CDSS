@@ -34,6 +34,8 @@ from medinfo.ml.Regressor import Regressor
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.ClassifierAnalyzer import ClassifierAnalyzer
 
+import LocalEnv
+
 
 class SupervisedLearningPipeline:
     CLASSIFICATION = 'classification'
@@ -113,7 +115,14 @@ class SupervisedLearningPipeline:
 
         # e.g. data_dir = CDSS/scripts/LabTestAnalysis/machine_learning/data
         parent_dir_list = app_dir.split('/')
-        parent_dir_list.append('data')
+
+        if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
+            if self._isLabPanel:
+                parent_dir_list.append('data-panel')
+            else:
+                parent_dir_list.append('data-component')
+        else:
+            parent_dir_list.append('data')
         parent_dir_list.append(self._var)
         data_dir = '/'.join(parent_dir_list)
 
