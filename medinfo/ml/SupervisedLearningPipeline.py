@@ -182,9 +182,7 @@ class SupervisedLearningPipeline:
         if os.path.exists(processed_matrix_path) and not self._flush_cache:
             # Assume feature selection already happened, but we still need
             # to split the data into training and test data.
-            processed_matrix = fm_io.read_file_to_data_frame(processed_matrix_path)
-
-            # processed_matrix['pat_id'] = processed_matrix['pat_id'].apply(lambda x: str(x))
+            processed_matrix = pd.read_csv(processed_matrix_path, sep='\t', comment='#', keep_default_na=False)
 
             self._train_test_split(processed_matrix, params['outcome_label'])
             '''
@@ -195,7 +193,7 @@ class SupervisedLearningPipeline:
         else:
             # Read raw matrix.
             raw_matrix = fm_io.read_file_to_data_frame(params['raw_matrix_path'])
-            # raw_matrix['pat_id'] = raw_matrix['pat_id'].apply(lambda x: str(x))
+
             # Initialize FMT.
 
             # Divide processed_matrix into training and test data.
@@ -205,17 +203,6 @@ class SupervisedLearningPipeline:
             patIds_df = raw_matrix['pat_id'].copy()
 
             self._train_test_split(raw_matrix, params['outcome_label'])
-
-            # ##
-            # folder_path = '/'.join(params['raw_matrix_path'].split('/')[:-1])
-            # self._X_train.join(self._y_train).to_csv(folder_path + '/' + 'train_raw.csv', index=False)
-            # self._X_test.join(self._y_test).to_csv(folder_path + '/' + 'test_raw.csv', index=False)
-            #
-            # '''
-            # Mini-test that there are no overlapping patients
-            # '''
-            # assert bool(set(self._X_train['pat_id'].values) & set(self._X_test['pat_id'].values)) == False
-            # ##
 
             fmt = FeatureMatrixTransform()
             train_df = self._X_train.join(self._y_train)
