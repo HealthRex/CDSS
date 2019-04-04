@@ -319,6 +319,15 @@ class SimManager:
                 updateDict = {"relative_time_end": currentTime };
                 for patientOrderId in discontinuePatientOrderIds:
                     DBUtil.updateRow("sim_patient_order", updateDict, patientOrderId, conn=conn);
+                # If order is discontinued/cancelled at the same (or before) time of entry, 
+                #   take that as a signal to cleanup and delete the record altogether 
+                #   (effectively there was no time at which the order was ever allowed to exist)
+                deleteQuery = SQLQuery();
+                deleteQuery.delete = True;
+                deleteQuery.addFrom("sim_patient_order");
+                deleteQuery.addWhereEqual("sim_patient_id", patientId);
+                deleteQuery.addWhere("relative_time_end <= relative_time_start");
+                DBUtil.execute(deleteQuery, conn=conn);
         finally:
             conn.commit();
             if not extConn:
@@ -352,6 +361,29 @@ class SimManager:
             if not extConn:
                 conn.close();
     
+    def loadPatientLastEventTime(self, patientId, conn=None):
+        """Find the last simulated time where the patient received any user orders (or default to time 0).
+        Makes for natural starting point for resuming a simulation.
+        Note: Misses cases where patient state also changed, not triggered by order, but by just time lag.
+        """
+        extConn = True;
+        if conn is None:
+            conn = self.connFactory.connection();
+            extConn = False;
+        try:
+            query = SQLQuery();
+            query.addSelect("max(relative_time_start)");
+            query.addSelect("max(relative_time_end)");
+            query.addSelect("0");   # Simply select 0 as default time if don't find any others
+            query.addFrom("sim_patient_order as po");
+            query.addWhereEqual("sim_patient_id", patientId );
+
+            lastOrderTime = max(DBUtil.execute(query, conn=conn)[0]);
+            return lastOrderTime;
+        finally:
+            if not extConn:
+                conn.close();
+
     def loadPatientOrders(self, patientId, currentTime, loadActive=True, conn=None):
         """Load orders for the given patient that exist by the specified current time point.
         loadActive - Specify whether to load active vs. inactive/completed orders.  Set to None to load both
@@ -393,8 +425,11 @@ class SimManager:
             if loadActive:  # Organize currently active orders by category
                 query.addOrderBy("cic.description");
                 query.addOrderBy("ci.description");
+                query.addOrderBy("relative_time_start");
             else:   # Otherwise chronologic order
                 query.addOrderBy("relative_time_start");
+                query.addOrderBy("cic.description");
+                query.addOrderBy("ci.description");
 
             dataTable = DBUtil.execute( query, includeColumnNames=True, conn=conn);
             dataModels = modelListFromTable(dataTable);
@@ -439,6 +474,8 @@ class SimManager:
             query.addWhereEqual("spo.sim_patient_id", patientId );
             # Only unlock results if appropiate prereq orders were placed in the past (and longer than the turnaround time)
             query.addWhereOp("spo.relative_time_start + sorm.turnaround_time","<=", relativeTime );  
+            # Also check that the triggering order was not cancelled before the completion of the turnaround time
+            query.addWhere("( spo.relative_time_end is null or spo.relative_time_start + sorm.turnaround_time <= spo.relative_time_end )");
 
             query.addOrderBy("result_relative_time");
             query.addOrderBy("sr.priority");
@@ -540,12 +577,13 @@ class SimManager:
                 conn.close();
 
 
-    def recentItemIds(self, patientId, currentTime, timeDelta=None, conn=None):
+    def recentItemIds(self, patientId, currentTime, timeDelta=None, includeResults=False, conn=None):
         """Load a list of clinicalItemIds
         (orders, diagnoses, unlocked results, etc.)
         to establish current patient context.
         
-        If timeDelta specified, only count items that occurred within that much past time from the current simTime
+        timeDelta - If specified, only count items that occurred within that much past time from the current simTime
+        includeResults - If True (default False), then also include clinical_items that represent (abnormal) test results.
         """
         extConn = True;
         if conn is None:
@@ -558,10 +596,11 @@ class SimManager:
             for patientOrder in patientOrders:
                 itemIds.add(patientOrder["clinical_item_id"]);
             
-            results = self.loadResults(patientId, currentTime, conn=conn);
-            for result in results:
-                if result["clinical_item_id"] is not None:
-                    itemIds.add(result["clinical_item_id"]);
+            if includeResults:
+                results = self.loadResults(patientId, currentTime, conn=conn);
+                for result in results:
+                    if result["clinical_item_id"] is not None:
+                        itemIds.add(result["clinical_item_id"]);
             
             return itemIds;
         finally:
