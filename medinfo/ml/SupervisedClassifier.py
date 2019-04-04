@@ -703,21 +703,12 @@ class SupervisedClassifier:
         :param y:
         :return:
         '''
-        self._get_or_set_hyperparam('max_depth')
-        self._get_or_set_hyperparam('n_estimators')
-        self._get_or_set_hyperparam('gamma')
-
-        self._get_or_set_hyperparam('learning_rate')
+        #
         self._get_or_set_hyperparam('scoring')
-        self._get_or_set_hyperparam('class_weight')
         self._get_or_set_hyperparam('n_jobs')
-
 
         # Build initial model.
         self._model = XGBClassifier(
-            max_depth=self._hyperparams['max_depth'],
-            n_estimators=self._hyperparams['n_estimators'],
-            learning_rate=self._hyperparams['learning_rate'],
             random_state=self._hyperparams['random_state']
         )
 
