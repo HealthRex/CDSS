@@ -32,7 +32,7 @@ class PatientCareFrame(BaseCPOEWeb):
         self.requestData["sim_user_id"] = "";
         self.requestData["sim_patient_id"] = "";
         self.requestData["sim_state_id"] = "";
-        self.requestData["sim_time"] = "0";
+        self.requestData["sim_time"] = "";
 
         self.requestData["currentDataPage"] = NotesReview.__name__;
         self.requestData["autoQuery"] = "";
@@ -72,14 +72,25 @@ class PatientCareFrame(BaseCPOEWeb):
         deltaSeconds = len(subData.requestData["newOrderItemId"]) * 60;
         self.requestData["sim_time"] = simTime + deltaSeconds;
 
+        # Revert back to the NotesReview page to catch any state change notes
+        self.requestData["currentDataPage"] = NotesReview.__name__;
+
     def action_default(self):
         """Render the details for the specified patient information, including controls to modify"""
         userId = int(self.requestData["sim_user_id"]);
         patientId = int(self.requestData["sim_patient_id"]);
-        simTime = int(self.requestData["sim_time"]);
+        simTime = None;
 
         manager = SimManager();
         userModel = manager.loadUserInfo([userId])[0];  # Assume found good single match
+        try:
+            simTime = int(self.requestData["sim_time"]);
+        except ValueError:
+            # Unable to parse any explicit simulation time. 
+            # Lookup the last activity (order) time for the patient and start just after that to resume the simulation
+            simTime = manager.loadPatientLastEventTime(patientId) + 60;  # Advance by one minute to avoid confusing states where multiple events happening within zero time.
+            self.requestData["sim_time"] = simTime; # So sub-pages have access
+
         patientModel = manager.loadPatientInfo([patientId], simTime)[0];
         #print >> sys.stderr, "Loaded %(sim_patient_id)s in state %(sim_state_id)s at %(relative_time_start)s" % patientModel
 

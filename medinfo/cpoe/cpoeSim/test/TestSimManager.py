@@ -181,13 +181,13 @@ class TestSimManager(DBTestCase):
         # Order Vital Signs at time 0, then basic labs (CBC, BMP, LFTs) at 10 minutes (600 seconds)
         dataTextStr = \
 """sim_patient_order_id;sim_user_id;sim_patient_id;sim_state_id;clinical_item_id;relative_time_start;relative_time_end
--1;-1;-1;-1;-15;0;0
--2;-1;-1;-1;-1;600;600
--3;-1;-1;-1;-2;600;600
--4;-1;-1;-1;-3;600;600
--5;-1;-1;-2;-15;1800;1800
--6;-1;-1;-2;-1;1800;1800
--7;-1;-1;-2;-2;1800;1800
+-1;-1;-1;-1;-15;0;None
+-2;-1;-1;-1;-1;600;None
+-3;-1;-1;-1;-2;600;None
+-4;-1;-1;-1;-3;600;None
+-5;-1;-1;-2;-15;1800;None
+-6;-1;-1;-2;-1;1800;None
+-7;-1;-1;-2;-2;1800;None
 """     # Parse into DB insertion object
         DBUtil.insertFile( StringIO(dataTextStr), "sim_patient_order", delim=";");
 
@@ -292,7 +292,7 @@ class TestSimManager(DBTestCase):
         dataCols = ["sim_user_id","sim_patient_id","sim_state_id","clinical_item_id","relative_time_start","relative_time_end"];
         sampleData = self.manager.loadPatientOrders(self.testPatientId, futureTime, loadActive=None);
         verifyData = \
-            [   RowItemModel([-1,self.testPatientId,-1,-15,0,0], dataCols),
+            [   RowItemModel([-1,self.testPatientId,-1,-15,0,None], dataCols),
             ];
         self.assertEqualDictList(verifyData, sampleData, dataCols);
 
@@ -511,6 +511,77 @@ class TestSimManager(DBTestCase):
             ];
         self.assertEqualDictList(verifyResults, sampleResults, colNames);
 
+
+    def test_discontinueOrders(self):
+        # Query for results based on simulated turnaround times, including fallback to default normal values
+        #   if no explicit (abnormal) values specified for simulated state
+
+        colNames = ["name", "num_value", "result_relative_time"];
+
+        # See setUp for test data construction
+        userId = -1;
+        patientId = -1;
+
+        # Time zero, vital sign orders check entered (clinical_item_id = -15, sim_patient_order_id = -1)
+        # Time 2 minutes, orders done, but not long-enough to get results back, so no results should exist
+        relativeTime = 120;
+        sampleResults = self.manager.loadResults(patientId, relativeTime);
+        verifyResults = \
+            [
+            ];
+        self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
+        # Time 5 minutes, vital signs should result now
+        relativeTime = 300;
+        sampleResults = self.manager.loadResults(patientId, relativeTime);
+        verifyResults = \
+            [
+                RowItemModel(["Temp", 101.4, 300], colNames),
+                RowItemModel(["Pulse", 115, 300], colNames),
+                RowItemModel(["SBP", 92, 300], colNames),
+                RowItemModel(["DBP", 55, 300], colNames),
+                RowItemModel(["Resp", 12, 300], colNames),  # Normal result retrieve from default state 0
+            ];
+        self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
+        # Go back and simulate the vitals check order being discontinued before results came back
+        discontinueTime = 120;
+        newOrderItemIds = [];   # No new orders
+        discontinuePatientOrderIds = [-1];  # See setUp data for the ID of the order to simulate canceling
+        self.manager.signOrders(userId, patientId, discontinueTime, newOrderItemIds, discontinuePatientOrderIds);
+
+        # Redo simulation of Time 5 minutes, vital signs should not appear now, since order was cancelled
+        relativeTime = 300;
+        sampleResults = self.manager.loadResults(patientId, relativeTime);
+        verifyResults = \
+            [
+            ];
+        self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
+        # Check that there is still a record of orders, including the cancelled one
+        orderCols = ["name","relative_time_start","relative_time_end"];
+        sampleOrders = self.manager.loadPatientOrders(patientId, 300, loadActive=None);
+        verifyOrders = \
+            [
+                RowItemModel(["Vital Signs", 0, 120], orderCols),
+            ];
+        self.assertEqualDictList(verifyOrders, sampleOrders, orderCols);
+
+        # Go back and simulate the vitals check order being discontinued immediately (same time as order),
+        #   then don't even keep a record of it to clean up data entry error
+        discontinueTime = 0;
+        newOrderItemIds = [];   # No new orders
+        discontinuePatientOrderIds = [-1];  # See setUp data for the ID of the order to simulate canceling
+        self.manager.signOrders(userId, patientId, discontinueTime, newOrderItemIds, discontinuePatientOrderIds);
+
+        # Check that there is no record of the order anymore, even including the cancelled one
+        orderCols = ["name","relative_time_start","relative_time_end"];
+        sampleOrders = self.manager.loadPatientOrders(patientId, 300, loadActive=None);
+        verifyOrders = \
+            [
+            ];
+        self.assertEqualDictList(verifyOrders, sampleOrders, orderCols);
+
     def test_stateTransition(self):
         # Query for results based on simulated turnaround times, including fallback to default normal values
         #   if no explicit (abnormal) values specified for simulated state
@@ -594,6 +665,53 @@ class TestSimManager(DBTestCase):
         verifyPatient = RowItemModel([-4], colNames);
         self.assertEqualDict(samplePatient, verifyPatient, colNames);
 
+    def test_loadPatientLastEventTime(self):
+        # Query for last time have a record of a patient order start or cancellation
+        #   as natural point to resume a simulated case
+
+        # See setUp for test data construction
+        userId = -1;
+        patientId = -1;
+
+        # Initial test data already loaded with example orders
+        sampleValue = self.manager.loadPatientLastEventTime(patientId);
+        verifyValue = 1800;
+        self.assertEqual(verifyValue, sampleValue);
+
+        # Sign an additional order
+        relativeTime = 2000;
+        newOrderItemIds = [-1];   # Any additional order
+        self.manager.signOrders(userId, patientId, relativeTime, newOrderItemIds);
+
+        # Verify update of last order time
+        sampleValue = self.manager.loadPatientLastEventTime(patientId);
+        verifyValue = 2000;
+        self.assertEqual(verifyValue, sampleValue);
+
+        # Find and cancel the last order at a later time
+        relativeTime = 2200;
+        patientOrders = self.manager.loadPatientOrders(patientId, relativeTime);
+        lastOrder = patientOrders[0];
+        for patientOrder in patientOrders:
+            if lastOrder["relative_time_start"] < patientOrder["relative_time_start"]:
+                lastOrder = patientOrder;
+
+        newOrderItemIds = [];   # No new orders
+        discontinuePatientOrderIds = [lastOrder["sim_patient_order_id"]];
+        self.manager.signOrders(userId, patientId, relativeTime, newOrderItemIds, discontinuePatientOrderIds);
+
+        # Verify update of last order time includes discontinue times
+        sampleValue = self.manager.loadPatientLastEventTime(patientId);
+        verifyValue = 2200;
+        self.assertEqual(verifyValue, sampleValue);
+
+        # Lookup patient with no prior orders recorded, then should default to time 0
+        patientId = -2;
+        sampleValue = self.manager.loadPatientLastEventTime(patientId);
+        verifyValue = 0;
+        self.assertEqual(verifyValue, sampleValue);
+
+
 
 def suite():
     """Returns the suite of tests to run for this test class / module.
@@ -601,10 +719,11 @@ def suite():
     methods for the given class whose name starts with "test"
     """
     suite = unittest.TestSuite();
-    #suite.addTest(TestSimManager("test_compositeRelated"));
-    #suite.addTest(TestSimManager("test_insertFile_skipErrors"));
+    #suite.addTest(TestSimManager("test_copyPatientTemplate"));
+    #suite.addTest(TestSimManager("test_loadPatientLastEventTime"));
     #suite.addTest(TestSimManager('test_executeIterator'));
     #suite.addTest(TestSimManager('test_stateTransition'));
+    #suite.addTest(TestSimManager('test_discontinueOrders'));
     suite.addTest(unittest.makeSuite(TestSimManager));
 
     return suite;
