@@ -44,7 +44,7 @@ class NotesReview(BaseDynamicData):
         self.addHandler("sim_patient_id", NotesReview.action_default.__name__);
         
     def action_default(self):
-        """Present currently selected set of pending clinical item orders"""
+        """Present set of patient notes"""
         patientId = int(self.requestData["sim_patient_id"]);
         simTime = int(self.requestData["sim_time"]);
         
@@ -61,7 +61,7 @@ class NotesReview(BaseDynamicData):
         self.requestData["detailTable"] = str.join("\n", htmlLines );
         
         if len(results) > 0:
-            self.requestData["initialNoteContent"] = results[0]["content"];
+            self.requestData["initialNoteContent"] = results[-1]["content"];
 
     def formatDataModel(self, dataModel, noteTypeById):
         """Populate dataModel with formatted items"""
