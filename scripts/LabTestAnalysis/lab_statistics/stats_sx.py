@@ -17,6 +17,10 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
+import copy
+
+from sklearn.metrics import roc_auc_score
+
 import LocalEnv
 
 
@@ -1656,35 +1660,151 @@ class Stats_Plotter():
 
     def main_labs2stats(self, train_data_folderpath, ml_results_folderpath, stats_results_folderpath,
                         targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
+        '''
+        For each lab at each train_PPV,
+        write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
 
-        for targeted_PPV in targeted_PPVs:
-            for lab in self.all_labs:
-                '''
-                For each lab at each (train_PPV), 
-                write all stats (e.g. AUROC, PPV, total cnts) into csv file. 
-                '''
+        Output table's columns for a Stanford panel:
+        - lab
+        - total_vol_20140701_20170701
+        - num_train_episodes
+        - num_train_patients
+        - num_test_episodes
+        - num_test_patients
+        - alg
+        - AUC
+        - AUC_95%_CI
+        - AUC_baseline (last_normality + train population mean)
+        - fixTrainPPV
+        - score_thres
+        - TP
+        - FP
+        - TN
+        - FN
+        - sens
+        - spec
+        - LR_p
+        - LR_n
+        - PPV
+        - NPV
+        - medicare
+        - chargemaster
+
+        '''
+
+        '''
+        Chargemaster pricing. 
+        
+        For some reason, there is no entry for LABNA
+        '''
+
+        chargemaster_filepath = os.path.join(labs_old_stats_folder, 'labs_charges_volumes.csv')
+        df_chargemaster = pd.read_csv(chargemaster_filepath)
+        lab_to_chargemaster_median = dict(zip(df_chargemaster['name'], df_chargemaster['median_price']))
+        lab_to_chargemaster_median['LABNA'] = 219.
+
+        '''
+        Medicare pricing. 
+        '''
+        lab_to_medicare = stats_utils.get_medicare_price_dict()
+
+        for lab in self.all_labs:
+            stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg', '%s.csv' % lab)
+            if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
+                os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
+            if os.path.exists(stats_results_filepath):
+                print "lab stats for %s exists!" % lab
+                continue
+            else:
+                print "processing lab stats for %s" % lab
+
+
+            df_lab2stats = pd.DataFrame(columns=columns) #
+            '''
+            lab, total_vol_20140701_20170701, medicare, chargemaster, 
+            num_train_episodes, num_train_patients, num_test_episodes, num_test_patients, 
+            AUC_baseline
+            '''
+            lab_vol = stats_utils.get_labvol(lab=lab,
+                                             lab_type=self.lab_type,
+                                             data_source=self.data_source,
+                                             time_limit=DEFAULT_TIMELIMIT)
+
+            chargemaster = lab_to_chargemaster_median.get(lab, float('nan'))
+            medicare = lab_to_medicare.get(lab, float('nan'))
+
+            num_train_episodes, num_train_patient, num_test_episodes, num_test_patient = \
+                stats_utils.describe_lab_train_test_datasets(lab, train_data_folderpath)
+
+            AUC_baseline = stats_utils.get_baseline2_auroc(os.path.join(train_data_folderpath, lab))
+
+            lab_to_stats_meta = {}
+            lab_to_stats_meta['lab'] = lab
+            lab_to_stats_meta['total_vol_20140701_20170701'] = lab_vol
+            lab_to_stats_meta['chargemaster'] = chargemaster
+            lab_to_stats_meta['medicare'] = medicare
+            lab_to_stats_meta['num_train_episodes'] = num_train_episodes
+            lab_to_stats_meta['num_train_patient'] = num_train_patient
+            lab_to_stats_meta['num_test_episodes'] = num_test_episodes
+            lab_to_stats_meta['num_test_patient'] = num_test_patient
+            lab_to_stats_meta['AUC_baseline'] = AUC_baseline
+
+            for targeted_PPV in targeted_PPVs:
+                lab_to_stats = copy.deepcopy(lab_to_stats_meta) #lab_to_stats_meta.copy()
+                lab_to_stats['fixTrainPPV'] = targeted_PPV
                 # try:
-                stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
-                stats_results_filepath = os.path.join(stats_results_folderpath, 'stats_by_lab_alg',
-                                                      stats_results_filename)
-                if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
-                    os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
+                #stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
 
-                if not os.path.exists(stats_results_filepath):
-                    stats_utils.lab2stats(lab=lab,
-                                          data_source=self.data_source,
-                                          lab_type=self.lab_type,
-                                          all_algs=all_algs,
-                                          targeted_PPV=targeted_PPV,
-                                          columns=columns,
-                                          thres_mode=thres_mode,
-                                          train_data_labfolderpath=os.path.join(train_data_folderpath, lab),
-                                          ml_results_labfolderpath=os.path.join(ml_results_folderpath, lab),
-                                          stats_results_filepath=stats_results_filepath
-                                          )
-                # except Exception as e:
-                #     print e
-                #     continue
+
+                for alg in all_algs:
+                    lab_to_stats['alg'] = alg
+
+                    df_direct_compare = pd.read_csv(
+                        ml_results_folderpath + '/' + lab + '/' + alg + '/' + 'direct_comparisons.csv',
+                        # '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
+                        keep_default_na=False)
+                    actual_labels, predict_scores = df_direct_compare['actual'].values, df_direct_compare[
+                        'predict'].values
+
+                    lab_to_stats['AUC'] = stats_utils.get_safe(roc_auc_score, actual_labels, predict_scores)
+                    AUROC_left, AUROC_right = stats_utils.bootstrap_CI(actual_labels, predict_scores, confident_lvl=0.95)
+                    lab_to_stats['AUC_95%_CI'] = '[%f, %f]' % (AUROC_left, AUROC_right)
+
+                    if thres_mode == 'fixTestPPV':
+                        score_thres = stats_utils.pick_threshold(actual_labels, predict_scores,
+                                                     target_PPV=targeted_PPV)  # TODO!
+                    else:
+                        df_direct_compare_train = pd.read_csv(
+                            ml_results_folderpath + '/' + lab + '/' + alg + '/' + 'direct_comparisons_train.csv',
+                            # '%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
+                            keep_default_na=False)
+                        actual_labels_train, predict_scores_train = df_direct_compare_train['actual'].values, \
+                                                                    df_direct_compare_train['predict'].values
+                        score_thres = stats_utils.pick_threshold(actual_labels_train, predict_scores_train,
+                                                     target_PPV=targeted_PPV)
+
+                    lab_to_stats['score_thres'] = score_thres
+
+                    TP, FP, TN, FN, sens, spec, LR_p, LR_n, PPV, NPV = stats_utils.get_confusion_metrics(actual_labels,
+                                                                                           predict_scores,
+                                                                                           threshold=score_thres,
+                                                                                           also_return_cnts=True)
+
+                    lab_to_stats.update({
+                        'TP': TP / float(num_test_episodes),
+                        'FP': FP / float(num_test_episodes),
+                        'TN': TN / float(num_test_episodes),
+                        'FN': FN / float(num_test_episodes),
+                        'sens': sens,
+                        'spec': spec,
+                        'LR_p': LR_p,
+                        'LR_n': LR_n,
+                        'PPV': PPV,
+                        'NPV': NPV
+                    })
+                    df_lab2stats = df_lab2stats.append(lab_to_stats, ignore_index=True)
+
+                df_lab2stats[columns].to_csv(stats_results_filepath, index=False)
 
     def main_stats2summary(self, targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
 
@@ -1695,34 +1815,34 @@ class Stats_Plotter():
 
         project_stats_folderpath = os.path.join(stats_results_folderpath, self.dataset_foldername)
 
-        for targeted_PPV in targeted_PPVs:
-            for lab in self.all_labs:
-                stats_results_filename = results_filename_template % (lab, thres_mode, str(targeted_PPV))
-                stats_results_filepath = os.path.join(project_stats_folderpath, 'stats_by_lab_alg',
-                                                      stats_results_filename)
-                # results_filepath = results_filepath_template % (lab, thres_mode, str(targeted_PPV))
-                df_lab = pd.read_csv(stats_results_filepath, keep_default_na=False)
-                df_lab['targeted_PPV_%s' % thres_mode] = targeted_PPV
+        for lab in self.all_labs:
+            # for targeted_PPV in targeted_PPVs:
+            stats_results_filepath = os.path.join(project_stats_folderpath, 'stats_by_lab_alg', '%s.csv'%lab)
 
-                df_long = df_long.append(df_lab, ignore_index=True)
+            df_lab = pd.read_csv(stats_results_filepath, keep_default_na=False)
 
-                df_cur_best_alg = df_lab.groupby(['lab'], as_index=False).agg({'AUROC': 'max'})
-                df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
+            df_long = df_long.append(df_lab, ignore_index=True)
 
-                df_cur_best_alg = df_cur_best_alg.rename(columns={'alg': 'best_alg'})
-                df_best_alg = df_best_alg.append(df_cur_best_alg)
+            idx_bestalgs = df_lab.groupby(['lab', 'fixTrainPPV'])['AUC'].transform(max) == df_lab['AUC']
+            df_cur_bestalg = df_lab[idx_bestalgs]
 
-        '''
-        TODO:!
-        '''
-        if self.lab_type=='panel' and self.data_source=='Stanford':
-            df_chargemasters = pd.read_csv('data_summary_stats/labs_charges_volumes.csv', keep_default_na=False)
-            df_chargemasters = df_chargemasters.rename(columns={'name':'lab', 'median_price':'chargemaster'})
-            df_long = df_long.drop(['chargemaster'], axis=1)
-            df_long = pd.merge(df_long, df_chargemasters[['lab', 'chargemaster']], on='lab', how='left')
+            # df_cur_best_alg = df_lab.groupby(['lab', 'fixTrainPPV'])['AUC'].max()
+            # df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
 
-            df_best_alg = df_best_alg.drop(['chargemaster'], axis=1)
-            df_best_alg = pd.merge(df_best_alg, df_chargemasters[['lab', 'chargemaster']], on='lab', how='left')
+            df_cur_best_alg = df_cur_bestalg.rename(columns={'alg': 'best_alg'})
+            df_best_alg = df_best_alg.append(df_cur_best_alg)
+
+        # '''
+        # TODO:!
+        # '''
+        # if self.lab_type=='panel' and self.data_source=='Stanford':
+        #     df_chargemasters = pd.read_csv('data_summary_stats/labs_charges_volumes.csv', keep_default_na=False)
+        #     df_chargemasters = df_chargemasters.rename(columns={'name':'lab', 'median_price':'chargemaster'})
+        #     df_long = df_long.drop(['chargemaster'], axis=1)
+        #     df_long = pd.merge(df_long, df_chargemasters[['lab', 'chargemaster']], on='lab', how='left')
+        #
+        #     df_best_alg = df_best_alg.drop(['chargemaster'], axis=1)
+        #     df_best_alg = pd.merge(df_best_alg, df_chargemasters[['lab', 'chargemaster']], on='lab', how='left')
 
         summary_long_filename = 'summary-stats-%s-%s.csv' % ('allalgs', thres_mode)
         summary_long_filepath = os.path.join(project_stats_folderpath, summary_long_filename)
@@ -1777,19 +1897,18 @@ class Stats_Plotter():
         '''
         Shared columns
         '''
-        columns = ['lab', 'num_train_episodes', 'num_train_patient', 'num_test_episodes', 'num_test_patient']
-        columns += ['alg', 'AUROC', '95%_CI', 'baseline2_ROC']
-        columns += ['targeted_PPV_%s' % thres_mode]
+        columns = ['lab', 'total_vol_20140701_20170701', 'num_train_episodes', 'num_train_patient', 'num_test_episodes', 'num_test_patient']
+        columns += ['alg', 'AUC', 'AUC_95%_CI', 'AUC_baseline']
+        columns += [thres_mode]
 
         columns_statsMetrics = []
-        columns_statsMetrics += ['score_thres', 'true_positive', 'false_positive', 'true_negative', 'false_negative']
-        columns_statsMetrics += ['sensitivity', 'specificity', 'LR_p', 'LR_n', 'PPV', 'NPV']
+        columns_statsMetrics += ['score_thres', 'TP', 'FP', 'TN', 'FN']
+        columns_statsMetrics += ['sens', 'spec', 'LR_p', 'LR_n', 'PPV', 'NPV']
 
         columns += columns_statsMetrics
 
         columns_STRIDE = columns[:]
         # columns_STRIDE += ['%s count'%x for x in DEFAULT_TIMEWINDOWS]
-        columns_STRIDE += ['total_cnt']  # 201407-201706
 
         columns_panels = columns_STRIDE[:] + ['medicare', 'chargemaster']  # ['min_price', 'max_price', 'mean_price', 'median_price']
         # 'min_volume_charge', 'max_volume_charge', 'mean_volume_charge', 'median_volume_charge'
@@ -2214,19 +2333,29 @@ def main_full_analysis(curr_version):
 
 
 def main_one_analysis(curr_version):
-    list_of_figuretables = [
-        'ROC', 'PRC',
-        'Normality_Saturations',  # Normal rate saturates to 100% as number of consecutive normals accumulate.
-        'Order_Intensities',  # Volumes of repeated test
-        'plot_cartoons',  # all cartoons
-        'write_importantFeatures',
+    # list_of_figuretables = [
+    #     'ROC', 'PRC',
+    #     'Normality_Saturations',  # Normal rate saturates to 100% as number of consecutive normals accumulate.
+    #     'Order_Intensities',  # Volumes of repeated test
+    #     'plot_cartoons',  # all cartoons
+    #     'write_importantFeatures',
+    #
+    #     'Diagnostic_Metrics',  # After picking a threshold
+    #     'Potential_Savings',  # After scaled by chargemaster/medicare
+    #
+    #     'Model_Transfering',  #
+    #     'Comparing_Components',  #
+    # ]
 
-        'Diagnostic_Metrics',  # After picking a threshold
-        'Potential_Savings',  # After scaled by chargemaster/medicare
-
-        'Model_Transfering',  #
-        'Comparing_Components',  #
+    main_figuretables = [
+        'LDH_cartoons', # main Figure 1
+        'common_repeated_labs', # main Figure 2
+        'panel_diagnostics_table', # main Table 1
+        'component_compare_figure',  # main Figure 3
+        'component_cross_site_aucs', # main Figure 4
     ]
+
+
     '''
     Params
     '''
@@ -2235,9 +2364,15 @@ def main_one_analysis(curr_version):
         'Diagnostic_Metrics': ['all_labs', 'important_components']
     }
 
+    plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
+    if 'LDH_cartoons' in main_figuretables:
+        plotter.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False)
+
+    quit()
+
     figs_to_plot = []
 
-    plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
+
     plotter.main_generate_stats_figures_tables(figs_to_plot=figs_to_plot,
                                                params={'Diagnostic_Metrics': 'important_components'})
 
@@ -2248,5 +2383,5 @@ def main_one_analysis(curr_version):
 if __name__ == '__main__':
     curr_version = '10000-episodes-lastnormal'
 
-    main_one_analysis(curr_version=curr_version)
-    # main_full_analysis(curr_version=curr_version)
+    # main_one_analysis(curr_version=curr_version)
+    main_full_analysis(curr_version=curr_version)

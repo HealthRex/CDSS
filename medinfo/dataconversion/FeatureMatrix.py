@@ -56,6 +56,25 @@ class FeatureMatrix:
 
         return num_episodes
 
+    def _querystr_patient_episodes(self, querystr, pat_id_col=None, index_time_col=None):
+        # Initialize DB cursor.
+        cursor = self._connection.cursor()
+
+        # Fetch and return results.
+        log.info('query: %s' % querystr)
+        cursor.execute(querystr)
+
+        # Parse arguments.
+        if pat_id_col is None:
+            pat_id_col = 'pat_id'
+        if index_time_col is None:
+            index_time_col = 'index_time'
+
+        self._factory.setPatientEpisodeInput(cursor, pat_id_col, index_time_col)
+        num_episodes = self._factory.processPatientEpisodeInput()
+
+        return num_episodes
+
     def _add_features(self, index_time_col=None):
 
         if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
