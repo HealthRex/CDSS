@@ -27,16 +27,17 @@ CATEGORY_HEADER_TEMPLATE = \
 LINE_TEMPLATE_BY_ACTIVE = \
     {   True: """
             <tr>
-                <td align=center><b>%(category_description.format)s</b></td>
-                <td>%(description)s</td>
-                <td align=center><input type=button value="X" onClick="discontinueOrder('%(sim_patient_order_id)s|%(clinical_item_id)s|%(name)s|%(description)s')"></td>
+                <td valign=top align=center><b>%(category_description.format)s</b></td>
+                <td valign=top>%(description)s</td>
+                <td valign=top align=center><input type=button value="X" onClick="discontinueOrder('%(sim_patient_order_id)s|%(clinical_item_id)s|%(name)s|%(description)s')"></td>
             </tr>
             """,
         False: """
             <tr>
-                <td align=center><b>%(category_description.format)s</b></td>
-                <td>%(description)s</td>
-                <td align=center>%(start_time.format)s</td>
+                <td valign=top align=center><b>%(category_description.format)s</b></td>
+                <td valign=top>%(description)s</td>
+                <td valign=top align=center nowrap>%(start_time.format)s<br>%(end_time.format)s</td>
+                <td valign=top align=center><input type=button value="X" onClick="discontinueOrder('%(sim_patient_order_id)s|%(clinical_item_id)s|%(name)s|%(description)s')"></td>
             </tr>
             """,
     };
@@ -50,7 +51,7 @@ class ActiveOrders(BaseDynamicData):
         
         self.requestData["sim_patient_id"] = "";
         self.requestData["sim_time"] = "";
-        self.requestData["loadActive"] = "true";    # Default to showing active (not inactive / completed) orders
+        self.requestData["loadActive"] = "false";    # Default to showing whole order history instead of just active (not inactive / completed) orders
         
         self.requestData["activeCompleted"] = "Active";
         self.requestData["activeOrderButtonClass"] = "buttonSelected";
@@ -87,6 +88,11 @@ class ActiveOrders(BaseDynamicData):
         """
         startTime = BASE_TIME + timedelta(0, patientOrder["relative_time_start"]);
         patientOrder["start_time.format"] =  startTime.strftime(TIME_FORMAT);
+        patientOrder["end_time.format"] = "";
+        if patientOrder["relative_time_end"] is not None:
+            endTime = BASE_TIME + timedelta(0, patientOrder["relative_time_end"]);
+            patientOrder["end_time.format"] = "<i>(%s)</i>" % endTime.strftime(TIME_FORMAT);
+
         if lastPatientOrder is None or patientOrder["category_description"] != lastPatientOrder["category_description"]:
             patientOrder["category_description.format"] = patientOrder["category_description"];   # Only show category for first item for more of a less redundant tree layout
         else:

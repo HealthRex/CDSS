@@ -13,7 +13,7 @@ function loadActiveOrders(theForm)
 
     var resultSpace = document.getElementById('currentDataTableSpace');
     resultSpace.innerHTML = AJAX_LOADER_HTML;
-    ajaxRequest('dynamicdata/'+dataPage+'.py?sim_patient_id='+patientId+'&sim_time='+simTime, function(data){ resultSpace.innerHTML = data; } );
+    ajaxRequest('dynamicdata/'+dataPage+'.py?loadActive=true&sim_patient_id='+patientId+'&sim_time='+simTime, function(data){ resultSpace.innerHTML = data; } );
 }
 
 /**

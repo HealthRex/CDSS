@@ -790,7 +790,7 @@ def bootstrap_CI(actual_list, predict_list, num_repeats=1000, stat='roc_auc',
         roc_auc_right = np.percentile(all_stats, (1 + confident_lvl) / 2. * 100)
 
     except Exception as e:
-        print e
+        # print e
         roc_auc_left, roc_auc_right = float('nan'), float('nan')
 
     return roc_auc_left, roc_auc_right
@@ -810,13 +810,13 @@ def fill_df_fix_PPV(lab, alg, data_folder='', PPV_wanted=0.9, lab_type=None, thr
     try:
         roc_auc = roc_auc_score(actual_list, df['predict'].values)
     except Exception as e:
-        print e
+        # print e
         roc_auc = float('nan')
 
     try:
         roc_auc_left, roc_auc_right = bootstrap_CI(actual_list, df['predict'], confident_lvl=0.95)
     except Exception as e:
-        print e
+        # print e
         roc_auc_left, roc_auc_right = float('nan'), float('nan')
 
     '''
@@ -1125,7 +1125,7 @@ def get_queried_lab(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
 
 
     lab_query_filepath = os.path.join(labs_query_folder, lab + '.csv')
-    print lab, 'os.path.exists(lab_query_filepath)', os.path.exists(lab_query_filepath)
+    # print lab, 'os.path.exists(lab_query_filepath)', os.path.exists(lab_query_filepath)
     if not os.path.exists(lab_query_filepath):
         df = query_to_dataframe(lab, lab_type, lab_query_filepath=lab_query_filepath)
     else:
@@ -1146,8 +1146,9 @@ def get_queried_lab(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
     df.drop_duplicates(inplace=True)
     return df
 
-def get_labvol(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
-    df = get_queried_lab(lab, lab_type, time_limit=time_limit)
+def get_labvol(lab, lab_type, data_source='Stanford', time_limit=DEFAULT_TIMELIMIT):
+    if data_source=='Stanford':
+        df = get_queried_lab(lab, lab_type, time_limit=time_limit)
     return df.shape[0]
 
 def get_medicare_price_dict():
@@ -1180,144 +1181,24 @@ def get_medicare_price_dict():
             lab_price[lab] = dict_price[cur_new_description]['RATE2018']
     return lab_price
 
-def lab2stats(lab, targeted_PPV, columns, thres_mode, train_data_labfolderpath,
-              ml_results_labfolderpath, stats_results_filepath, price_source='medicare',
-              data_source='Stanford', lab_type='panel', all_algs=['random-forest']):
-    '''
-    For each lab at each train_PPV,
-    write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
-
-    '''
-
-    df = pd.DataFrame(columns=columns)
-
-    '''
-    Baseline 2: Predict by last normality (when it is available), or by population average.
-
-    Same across all algs
-    '''
-    # baseline_roc_auc = get_baseline2_auroc(train_data_labfolderpath)
-
-    # For STRIDE, also do cnts and costs
-    if data_source == 'Stanford':#lab_type == 'panel' or lab_type == 'component':
-        # lab_vols = []
-        # for time_limit in DEFAULT_TIMELIMITS:
-        #     cur_vol = get_labvol(lab, time_limit=time_limit)
-        #     lab_vols.append(cur_vol)
-        lab_vol = get_labvol(lab, lab_type, time_limit=DEFAULT_TIMELIMIT)
-
-    # For panels, also include price info
-    # TODO: this operation was repeated for each lab?!
-    if lab_type == 'panel': #TODO: no price info for LABNA
-        if True: #price_source == 'chargemaster':
-            prices_filepath = os.path.join(labs_old_stats_folder, 'labs_charges_volumes.csv')
-            df_prices = pd.read_csv(prices_filepath, keep_default_na=False)
-            # df_prices_dict = df_prices.ix[df_prices['name'] == lab,
-            #                               ['min_price', 'max_price', 'mean_price', 'median_price']].to_dict(orient='list')
-            df_prices_dict = {'chargemaster':df_prices.ix[df_prices['name'] == lab, 'median_price'].values[0]}
-            for key, val in df_prices_dict.items():
-                if lab == 'LABNA':
-                    df_prices_dict[key] = 219
-                else:
-                    df_prices_dict[key] = val[0]
-        if True: #price_source == 'medicare':
-            medicare_price_dict = get_medicare_price_dict()
-            cur_price = medicare_price_dict.get(lab, float('nan'))
-            # df_prices_dict = {'min_price':cur_price, 'max_price':cur_price,
-            #                   'mean_price':cur_price, 'median_price':cur_price}
-            # df_prices_dict = {'medicare':cur_price}
-            df_prices_dict['medicare'] = cur_price
-
-    # print 'df_prices_dict', df_prices_dict
-
+def describe_lab_train_test_datasets(lab, dataset_folderpath):
     fm_io = FeatureMatrixIO()
-    processed_matrix_train_path = os.path.join(train_data_labfolderpath,
-                                         '%s-normality-train-matrix-processed.tab'%lab)
+    processed_matrix_train_path = os.path.join(dataset_folderpath, lab,
+                                               '%s-normality-train-matrix-processed.tab' % lab)
     # TODO: get rid of '10000' in file name
     processed_matrix_train = fm_io.read_file_to_data_frame(processed_matrix_train_path)
     num_train_episodes = processed_matrix_train.shape[0]
     num_train_patient = len(set(processed_matrix_train['pat_id'].values.tolist()))
 
-    processed_matrix_test_path = os.path.join(ml_results_labfolderpath,
-                                               '%s-normality-test-matrix-processed.tab' % lab)
+    processed_matrix_test_path = os.path.join(dataset_folderpath, lab,
+                                              '%s-normality-test-matrix-processed.tab' % lab)
     # TODO: get rid of '10000' in file name
     processed_matrix_test = fm_io.read_file_to_data_frame(processed_matrix_test_path)
-    #pd.read_csv(processed_matrix_test_path, keep_default_na=False)#fm_io.read_file_to_data_frame(processed_matrix_test_path)
+    # pd.read_csv(processed_matrix_test_path, keep_default_na=False)#fm_io.read_file_to_data_frame(processed_matrix_test_path)
     num_test_episodes = processed_matrix_test.shape[0]
     num_test_patient = len(set(processed_matrix_test['pat_id'].values.tolist()))
 
-    for alg in all_algs:
-        print 'Processing lab %s with alg %s' % (lab, alg)
-        one_row = {}
-
-        one_row['lab'] = lab
-        one_row['alg'] = alg
-
-        one_row.update({'num_train_episodes':num_train_episodes,
-                        'num_train_patient':num_train_patient,
-                        'num_test_episodes': num_test_episodes,
-                        'num_test_patient': num_test_patient
-                        })
-
-        # one_row['baseline2_ROC'] = baseline_roc_auc
-
-        df_direct_compare = pd.read_csv(ml_results_labfolderpath + '/' + alg + '/' + 'direct_comparisons.csv',
-                                        #'%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
-                                        keep_default_na=False)
-
-        actual_labels, predict_scores = df_direct_compare['actual'].values, df_direct_compare['predict'].values
-
-        one_row['AUROC'] = get_safe(roc_auc_score, actual_labels, predict_scores)
-        AUROC_left, AUROC_right = bootstrap_CI(actual_labels, predict_scores, confident_lvl=0.95)
-        one_row['95%_CI'] = '[%f, %f]' % (AUROC_left, AUROC_right)
-
-        '''
-        Adding confusion metrics after picking a threshold
-        '''
-        one_row['targeted_PPV_%s'%thres_mode] = targeted_PPV
-
-        if thres_mode=='fixTestPPV':
-            score_thres = pick_threshold(actual_labels, predict_scores, target_PPV=targeted_PPV) # TODO!
-        else:
-            df_direct_compare_train = pd.read_csv(ml_results_labfolderpath + '/' + alg + '/' + 'direct_comparisons_train.csv',
-                                        #'%s-normality-prediction-%s-direct-compare-results.csv' % (lab, alg),
-                                        keep_default_na=False)
-            actual_labels_train, predict_scores_train = df_direct_compare_train['actual'].values, df_direct_compare_train['predict'].values
-            score_thres = pick_threshold(actual_labels_train, predict_scores_train, target_PPV=targeted_PPV)
-
-        one_row['score_thres'] = score_thres
-
-        true_positive, false_positive, true_negative, false_negative, \
-        sensitivity, specificity, LR_p, LR_n, PPV, NPV = get_confusion_metrics(actual_labels,
-                                                                               predict_scores,
-                                                                               threshold=score_thres,
-                                                                               also_return_cnts=True)
-        one_row.update({
-            'true_positive':true_positive/float(num_test_episodes),
-            'false_positive':false_positive/float(num_test_episodes),
-            'true_negative':true_negative/float(num_test_episodes),
-            'false_negative':false_negative/float(num_test_episodes),
-            'sensitivity': sensitivity,
-            'specificity': specificity,
-            'LR_p': LR_p,
-            'LR_n': LR_n,
-            'PPV': PPV,
-            'NPV': NPV
-                   })
-
-        if data_source == 'Stanford':
-            # for i_tw, time_window in enumerate(DEFAULT_TIMEWINDOWS):
-            #     one_row['%s count'%time_window] = lab_vols[i_tw]
-            one_row['total_cnt'] = lab_vol
-
-        if lab_type == 'panel':
-            one_row.update(df_prices_dict)
-
-        df = df.append(one_row, ignore_index=True)
-
-    df[columns].to_csv(stats_results_filepath, index=False)
-
-    return df
+    return num_train_episodes, num_train_patient, num_test_episodes, num_test_patient
 
 '''
 refactored
@@ -1598,7 +1479,7 @@ def output_feature_importances(labs, data_source='Stanford', lab_type='panel', c
                              data_source=data_source,
                              lab_type=lab_type,
                              map_type='from_src')
-                print raw_lab, new_lab
+                # print raw_lab, new_lab
                 features_str = features_str.replace(raw_lab, new_lab)
 
         feature_tuples = [x.strip() for x in features_str.split(',')]

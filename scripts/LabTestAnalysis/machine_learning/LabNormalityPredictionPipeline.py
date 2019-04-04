@@ -524,7 +524,8 @@ UMICH_TOP_COMPONENTS = UMICH_TOP_COMPONENTS_common + ['LACA',
                                                       'DBIL', 'CHLOR']
 
 UMICH_TOP_PANELS = [
-    'MAG', 'PHOS',
+    'MAG',
+    'PHOS',
     #'PROTHROMBIN TIME', #TODO: 0kb
     'A1C',
     #'BLD', #ADULT BLOOD CULTURE # TODO: all 'normal', fails to train
@@ -555,7 +556,8 @@ UCSF_TOP_COMPONENTS_common = [
             ]
 UCSF_TOP_COMPONENTS = UCSF_TOP_COMPONENTS_common + ['CL', 'DBILI', 'PCO2', 'PO2', 'PH37',
                                                     'MG', 'PO4', 'INR', 'P060', 'CAI',
-                                                    'CAIB', 'LACTWB']
+                                                    #'CAIB', 'LACTWB'
+                                                    ]
 
 UCSF_TOP_PANELS = [
     'Magnesium, Serum / Plasma', # 68558
@@ -606,9 +608,9 @@ if __name__ == '__main__':
     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
         raw_data_folderpath = LocalEnv.LOCAL_PROD_DB_PARAM["DATAPATH"]
 
-        test_mode = True
-        raw_matrix_exists = True
-        pat_batch_mode = False
+        test_mode = True # TODO: when execute, set to False
+        raw_matrix_exists = True # TODO: when execute, set to False
+        pat_batch_mode = False # TODO: when execute, set to True
 
         if not raw_matrix_exists:
             if test_mode:
@@ -629,6 +631,7 @@ if __name__ == '__main__':
             fold_enlarge_data = 1
             USE_CACHED_DB = True # TODO: take care of USE_CACHED_LARGEFILE in the future
 
+            # TODO:
             db_preparor = prepareData_NonSTRIDE.DB_Preparor(raw_data_files, raw_data_folderpath,
                                                    db_name=db_name,
                                                    fold_enlarge_data=fold_enlarge_data,
@@ -636,49 +639,37 @@ if __name__ == '__main__':
                                                    time_min=None,#'2015-01-01',
                                                    test_mode=test_mode)
 
-        if LocalEnv.LAB_TYPE == 'component':
+        for panel in UMICH_TOP_PANELS:
+            print "processing %s..."%panel
+            try:
+                if not pat_batch_mode:
+                    LabNormalityPredictionPipeline(panel, 10000, use_cache=False, random_state=123456789, isLabPanel=True)
+                else:
+                    pat_batch_size = 500
+                    notUsePatIds = []
+                    for pat_batch_ind in range(10000/pat_batch_size): #10000
+                        cur_pipe = LabNormalityPredictionPipeline(panel, pat_batch_size, use_cache=False, random_state=123456789,
+                                                       isLabPanel=True, notUsePatIds=notUsePatIds, pat_batch_ind=pat_batch_ind)
+                        notUsePatIds += cur_pipe.usedPatIds
+            except Exception as e:
+                log.info(e)
+                pass
 
-            for component in UMICH_TOP_COMPONENTS: #['UN', 'IBIL', 'ALK', 'T PROTEIN', 'pHA', 'DBIL']: # UMICH_TOP_COMPONENTS:
-                # print "processing %s..." % component
-
-                try:
-                    if not pat_batch_mode:
-                        LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789,
-                                                       isLabPanel=False)
-                    else:
-                        pat_batch_size = 500
-                        notUsePatIds = []
-                        for pat_batch_ind in range(10000 / pat_batch_size):  # 10000
-                            cur_pipe = LabNormalityPredictionPipeline(component, pat_batch_size, use_cache=False,
-                                                                      random_state=123456789,
-                                                                      isLabPanel=False, notUsePatIds=notUsePatIds,
-                                                                      pat_batch_ind=pat_batch_ind)
-                            notUsePatIds += cur_pipe.usedPatIds
-                except Exception as e:
-                    log.info(e)
-                    pass
-
-        else:
-
-            for component in UMICH_TOP_PANELS:  # ['UN', 'IBIL', 'ALK', 'T PROTEIN', 'pHA', 'DBIL']: # UMICH_TOP_COMPONENTS:
-                # print "processing %s..." % component
-
-                try:
-                    if not pat_batch_mode:
-                        LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789,
-                                                       isLabPanel=True)
-                    else:
-                        pat_batch_size = 500
-                        notUsePatIds = []
-                        for pat_batch_ind in range(10000 / pat_batch_size):  # 10000
-                            cur_pipe = LabNormalityPredictionPipeline(component, pat_batch_size, use_cache=False,
-                                                                      random_state=123456789,
-                                                                      isLabPanel=True, notUsePatIds=notUsePatIds,
-                                                                      pat_batch_ind=pat_batch_ind)
-                            notUsePatIds += cur_pipe.usedPatIds
-                except Exception as e:
-                    log.info(e)
-                    pass
+        for component in UMICH_TOP_COMPONENTS:
+            print "processing %s..."%component
+            try:
+                if not pat_batch_mode:
+                    LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
+                else:
+                    pat_batch_size = 500
+                    notUsePatIds = []
+                    for pat_batch_ind in range(10000/pat_batch_size): #10000
+                        cur_pipe = LabNormalityPredictionPipeline(component, pat_batch_size, use_cache=False, random_state=123456789,
+                                                       isLabPanel=False, notUsePatIds=notUsePatIds, pat_batch_ind=pat_batch_ind)
+                        notUsePatIds += cur_pipe.usedPatIds
+            except Exception as e:
+                log.info(e)
+                pass
 
     elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
 
