@@ -819,17 +819,11 @@ class SupervisedClassifier:
         :return:
         '''
         # http://scikit-learn.org/stable/modules/svm.html#svm
-        self._get_or_set_hyperparam('C')
-        self._get_or_set_hyperparam('kernel')
-        self._get_or_set_hyperparam('degree')
-        self._get_or_set_hyperparam('gamma')
         self._get_or_set_hyperparam('scoring')
         self._get_or_set_hyperparam('n_jobs')
 
-        self._model = SVC(C=self._hyperparams['C'],
-                          kernel=self._hyperparams['kernel'],
-                          degree=self._hyperparams['degree'],
-                          gamma=self._hyperparams['gamma'])
+        self._model = SVC(probability=True,
+                          random_state=self._hyperparams['random_state'])
 
         self._tune_hyperparams(self._hyperparam_search_space, X, y)
 
