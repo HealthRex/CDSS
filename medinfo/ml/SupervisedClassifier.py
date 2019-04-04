@@ -879,14 +879,12 @@ class SupervisedClassifier:
         self._tune_hyperparams_regress_and_round(X, y)
 
     def _train_nn(self, X, y):
-        self._get_or_set_hyperparam('hidden_layer_sizes')
-        self._get_or_set_hyperparam('activation')
-        self._get_or_set_hyperparam('solver')
-
-        self._get_or_set_hyperparam('learning_rate')
-        self._get_or_set_hyperparam('max_iter')
         self._get_or_set_hyperparam('scoring')
         self._get_or_set_hyperparam('n_jobs')
+
+        self._model = MLPClassifier(
+            random_state=self._hyperparams['random_state']
+        )
 
         self._tune_hyperparams(self._hyperparam_search_space, X, y)
 
