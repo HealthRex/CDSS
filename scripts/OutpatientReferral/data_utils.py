@@ -63,6 +63,7 @@ class ReferralDataMunger():
 
     def __init__(self, referral, df, to_truncate_icd10=True, verbose=False):
         self.referral = referral
+        self.referral_code = referral.replace("REFERRAL TO ", "").replace(" ","-").replace("/","-")
         self.specialty = referral_to_specialty_dict[referral]
         self.df = df
 
@@ -144,7 +145,8 @@ class ReferralDataMunger():
         Find out the top k orders for that icd10
         '''
         df_res = pd.DataFrame(columns=['order', 'Preva', 'Preva_referrel', 'Preva_referrel_icd10',
-                                       'PPV', 'RelaRisk', 'PC_cnt', 'NonPC_cnt'])
+                                       'PPV' #, 'RelaRisk', 'PC_cnt', 'NonPC_cnt'
+                                       ])
         # print self.icd10_absCnt_local.most_common(top_k)
         common_absCnt_locals = self.order_absCnt_inner[icd10].most_common(top_k)
         for k in range(len(common_absCnt_locals)):
@@ -173,7 +175,8 @@ class ReferralDataMunger():
             cur_order_summary['Preva_referrel_icd10'] = Preva_referrel_icd10
 
             '''
-            PPV: When predicting order is in the actual order list, the fraction of time correct.  
+            PPV: When (1 referral, 1 icd10 appear) 
+            predicting order is in the actual order list, the fraction of time correct.  
             '''
             # print self.df_referID_orders.head()
             df_referID_icd10_orders = self.df_referID_orders[self.df_referID_orders['referral_icd10']==icd10]
@@ -183,10 +186,11 @@ class ReferralDataMunger():
                                     .map(lambda x: order in x)].shape[0]
             PPV = float(num_icd10_encs_wOrder)/num_icd10_encs
             cur_order_summary['PPV'] = '%.2f' % PPV
-            continue
 
             '''
-            Relative risk = P(order|diagnose) / P(order|!diagnose)
+            TODO: What is the "whole: set? (definition of N in Table 2 of OrderRex paper)
+            
+            Relative risk = PPV / P(order|!diagnose)
 
             According to Bayes formula:
             P(o|d)P(d) + p(o|!d)P(!d) = P(o)
@@ -198,14 +202,15 @@ class ReferralDataMunger():
                 P(d) = icd10_prev[icd10]
                 P(!d) = 1-icd10_prev[icd10]
             '''
-            denominator = (order_prev[order] - ppv * icd10_prev[icd10]) / (1. - icd10_prev[icd10])
-            rela_risk = ppv / denominator
-            rr_str = '%.2f' % rela_risk
-            cur_order_summary.append(rr_str)
+            # denominator = (order_prev[order] - ppv * icd10_prev[icd10]) / (1. - icd10_prev[icd10])
+            # rela_risk = ppv / denominator
+            # rr_str = '%.2f' % rela_risk
+            # cur_order_summary.append(rr_str)
 
-            cur_order_summary.append(order_to_PCnonPC[order])
+            # cur_order_summary.append(order_to_PCnonPC[order])
 
-            cur_icd10_summary.append(cur_order_summary)
+            df_res = df_res.append(cur_order_summary, ignore_index=True)
+        df_res.to_csv('tables/%s_%s.csv' % (self.referral_code, icd10), index=False)
 
 def test_query():
     query = queries.query_for_recent6months()
@@ -213,7 +218,7 @@ def test_query():
     print df.shape
     print df.head()
 
-def test_munger(referral, test_mode=True):
+def test_munger(referral, test_mode=False):
     if test_mode:
         df = pd.read_csv(os.path.join(result_folderpath, 'queried_data_2690237133563743535_sample.csv'))
     else:
@@ -222,7 +227,7 @@ def test_munger(referral, test_mode=True):
 
     munger = ReferralDataMunger(referral=referral,
                                 df=df)
-    munger.generate_order_stats(icd10='E11')
+    munger.generate_order_stats(icd10='E11', top_k=10)
 
 if __name__ == '__main__':
     test_munger('REFERRAL TO ENDOCRINE CLINIC', test_mode=False)
