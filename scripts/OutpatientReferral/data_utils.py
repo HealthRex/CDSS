@@ -128,6 +128,14 @@ class ReferralDataMunger():
         # for icd10, cnt in icd10_cnter.items():
         #     icd10_prev[icd10] = float(cnt) / num_rows
 
+        '''
+        Event based stats
+        '''
+        self.df_referID_orders = self.df[['referral_enc_id', 'referral_icd10', 'specialty_order']]\
+                            .groupby(['referral_enc_id','referral_icd10'])['specialty_order']\
+                            .apply(list).reset_index()
+
+
 
     def generate_order_stats(self, icd10, top_k=5):
         ''''''
@@ -135,31 +143,47 @@ class ReferralDataMunger():
         '''
         Find out the top k orders for that icd10
         '''
-        df_res = pd.DataFrame(columns=['order', 'Preva', 'PPV',
-                                       'RelaRisk', 'PC_cnt', 'NonPC_cnt'])
+        df_res = pd.DataFrame(columns=['order', 'Preva', 'Preva_referrel', 'Preva_referrel_icd10',
+                                       'PPV', 'RelaRisk', 'PC_cnt', 'NonPC_cnt'])
         # print self.icd10_absCnt_local.most_common(top_k)
-        common_absCnt_locals = self.order_absCnt_local.most_common(top_k)
-        for k in range(top_k):
+        common_absCnt_locals = self.order_absCnt_inner[icd10].most_common(top_k)
+        for k in range(len(common_absCnt_locals)):
             order, absCnt_local = common_absCnt_locals[k]
             '''
             Order_name
             '''
-            cur_order_summary = [order]
+            cur_order_summary = {'order':order}
 
             '''
-            Preva:
+            Preva
             '''
-            preva_str = '%.2f' % self.order_absCnt_inner[icd10][order]
-            cur_order_summary.append(preva_str)
-            print cur_order_summary
-            quit()
+            Preva = self.order_absCnt_global[order]
+            cur_order_summary['Preva'] = Preva
 
             '''
-            PPV, P(order|icd10) = P(order|icd10) / P(order|!icd10)
+            Preva_referrel
             '''
-            ppv = float(conditioned_cnt) / icd10_cnter[icd10]
-            ppv_str = '%.2f' % ppv
-            cur_order_summary.append(ppv_str)
+            Preva_referrel = self.order_absCnt_local[order]
+            cur_order_summary['Preva_referrel'] = Preva_referrel
+
+            '''
+            Preva_referrel_icd10
+            '''
+            Preva_referrel_icd10 = self.order_absCnt_inner[icd10][order]
+            cur_order_summary['Preva_referrel_icd10'] = Preva_referrel_icd10
+
+            '''
+            PPV: When predicting order is in the actual order list, the fraction of time correct.  
+            '''
+            # print self.df_referID_orders.head()
+            df_referID_icd10_orders = self.df_referID_orders[self.df_referID_orders['referral_icd10']==icd10]
+                                         #self.df_referID_orders['specialty_order'].str.contains('PARATHYROID')].head()
+            num_icd10_encs = df_referID_icd10_orders.shape[0]
+            num_icd10_encs_wOrder = df_referID_icd10_orders[df_referID_icd10_orders['specialty_order']
+                                    .map(lambda x: order in x)].shape[0]
+            PPV = float(num_icd10_encs_wOrder)/num_icd10_encs
+            cur_order_summary['PPV'] = '%.2f' % PPV
+            continue
 
             '''
             Relative risk = P(order|diagnose) / P(order|!diagnose)
@@ -194,11 +218,11 @@ def test_munger(referral, test_mode=True):
         df = pd.read_csv(os.path.join(result_folderpath, 'queried_data_2690237133563743535_sample.csv'))
     else:
         query = queries.query_for_recent6months()
-        df = get_queried_data(query).sample(n=10000)
+        df = get_queried_data(query)
 
     munger = ReferralDataMunger(referral=referral,
                                 df=df)
     munger.generate_order_stats(icd10='E11')
 
 if __name__ == '__main__':
-    test_munger('REFERRAL TO ENDOCRINE CLINIC')
+    test_munger('REFERRAL TO ENDOCRINE CLINIC', test_mode=False)
