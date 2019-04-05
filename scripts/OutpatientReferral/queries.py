@@ -9,8 +9,10 @@ DEPMAP_TABLE = 'datalake_47618.dep_map'
 
 def query_sample():
     return """
-            select patient_item_id, external_id, clinical_item_id, item_date, encounter_id, text_value, num_value, source_id from 
-            `clinical_inpatient.patient_item` where item_date >= timestamp('2014-01-01 00:00:00')
+            select patient_item_id, external_id, clinical_item_id, item_date, encounter_id, text_value, num_value, source_id 
+            from 
+            `clinical_inpatient.patient_item` 
+            where item_date >= timestamp('2014-01-01 00:00:00')
             """
 
 def query_for_recent6months():
