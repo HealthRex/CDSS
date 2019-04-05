@@ -1659,7 +1659,7 @@ class Stats_Plotter():
     '''
 
     def main_labs2stats(self, train_data_folderpath, ml_results_folderpath, stats_results_folderpath,
-                        targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV"):
+                        targeted_PPVs=train_PPVs, columns=None, thres_mode="fixTrainPPV",verbose=True):
         '''
         For each lab at each train_PPV,
         write all stats (e.g. roc_auc, PPV, total cnts) into csv file.
@@ -1713,7 +1713,8 @@ class Stats_Plotter():
             if not os.path.exists(os.path.join(stats_results_folderpath, 'stats_by_lab_alg')):
                 os.mkdir(os.path.join(stats_results_folderpath, 'stats_by_lab_alg'))
             if os.path.exists(stats_results_filepath):
-                print "lab stats for %s exists!" % lab
+                if verbose:
+                    print "lab stats for %s exists!" % lab
                 continue
             else:
                 print "processing lab stats for %s" % lab
@@ -1882,7 +1883,8 @@ class Stats_Plotter():
 
         print columns
 
-    def main_basic_tables(self, train_data_folderpath, ml_results_folderpath, stats_results_folderpath, thres_mode="fixTrainPPV"):
+    def main_basic_tables(self, train_data_folderpath, ml_results_folderpath, stats_results_folderpath, thres_mode="fixTrainPPV",
+                          verbose=True):
         '''
         Performance on test set, by choosing a threshold whether from train or test.
 
@@ -1929,7 +1931,8 @@ class Stats_Plotter():
                         stats_results_folderpath=stats_results_folderpath,
                         targeted_PPVs=train_PPVs,
                         columns=columns,
-                        thres_mode=thres_mode)
+                        thres_mode=thres_mode,
+                             verbose=verbose)
 
         self.main_stats2summary(targeted_PPVs=train_PPVs,
                            columns=columns,
@@ -1939,8 +1942,8 @@ class Stats_Plotter():
         #                     columns=[x + '_baseline' for x in columns_statsMetrics],
         #                     thres_mode=thres_mode)
 
-    def main_generate_lab_statistics(self):
-        print 'generate_result_tables running...'
+    def main_generate_lab_statistics(self, verbose=True):
+        print 'Generating lab-wise tables...'
 
         project_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
         train_data_folderpath = os.path.join(project_folder, 'machine_learning/',
@@ -1961,10 +1964,12 @@ class Stats_Plotter():
         self.main_basic_tables(train_data_folderpath=train_data_folderpath,
              ml_results_folderpath=ml_results_folderpath,
              stats_results_folderpath=stats_results_folderpath,
-             thres_mode="fixTrainPPV")
+             thres_mode="fixTrainPPV",
+                               verbose=verbose)
 
     def main_generate_stats_figures_tables(self, figs_to_plot, params={}):
-        print 'stats_sx running...'
+        print 'Generating figures and tables %s...' % str(figs_to_plot)
+        quit()
 
         '''
         scale by each 1000 patient encounter
@@ -2266,7 +2271,13 @@ def main_full_analysis(curr_version):
         for lab_type in ['panel', 'component']:
 
             plotter = Stats_Plotter(data_source=data_source, lab_type=lab_type, curr_version=curr_version)
-            plotter.main_generate_lab_statistics()
+
+            '''
+            Two steps: 
+            lab2stats: Getting lab-wise stats tables under lab_statistics/dataset_folder/stats_by_lab_alg/..
+            stats2summary: Aggregate all labs' stats under lab_statistics/dataset_folder/..
+            '''
+            plotter.main_generate_lab_statistics(verbose=False)
 
             if data_source=='Stanford' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=['Full_Cartoon', # Figure 1
@@ -2276,6 +2287,7 @@ def main_full_analysis(curr_version):
                                                                          'write_importantFeatures' # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'}) # TODO ['top_15', 'all_labs']
+                quit()
 
             elif data_source=='Stanford' and lab_type=='component':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
