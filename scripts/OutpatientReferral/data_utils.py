@@ -7,6 +7,8 @@ import queries
 
 from google.cloud import bigquery
 
+testdf = pd.DataFrame({'test':[1,2,3]})
+
 result_folderpath = 'queried_results'
 if not os.path.exists(result_folderpath):
     os.mkdir(result_folderpath)
@@ -31,7 +33,7 @@ def get_queried_data(query):
     cached_filepath = os.path.join(result_folderpath, 'queried_data_%d.csv'%query_id)
 
     if os.path.exists(cached_filepath):
-        return pd.read_csv(cached_filepath,
+        df = pd.read_csv(cached_filepath,
                            comment='#',
                            )
     else:
@@ -40,14 +42,14 @@ def get_queried_data(query):
         df = make_bigquery(query, client=client, project_id=project_id)
 
         f = open(cached_filepath, 'a')
-        f.write('#' + str(query) + '\n')
+        f.write('#' + query.replace('\n', '\n#') + '\n')
         df.to_csv(f, index=False)
         f.close()
 
-        return df
+    return df
 
 if __name__ == '__main__':
     query = queries.query_for_recent6months()
     df = get_queried_data(query)
-    print df.shape()
+    print df.shape
     print df.head()
