@@ -50,4 +50,4 @@ def query_for_recent6months():
     query.addWhere("e2.visit_type like '%NEW PATIENT%'")
     query.addWhere("e2.department_id = d2.department_id")
     query.addWhere("p2.pat_enc_csn_id_coded = e2.pat_enc_csn_id_coded")
-    return query
+    return str(query)

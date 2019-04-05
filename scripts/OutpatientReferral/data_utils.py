@@ -16,11 +16,16 @@ def setup_client(jsonkey_filepath):
     return client
 
 def make_bigquery(query, client, project_id):
-    df = client.query(str(query), project=project_id).to_dataframe()
+    df = client.query(query, project=project_id).to_dataframe()
 
     return df
 
 def get_queried_data(query):
+    ''''''
+
+    '''
+    Alert: Python hash function which potentially could be random? (not now)
+    '''
     query_id = hash(query)
 
     cached_filepath = os.path.join(result_folderpath, 'queried_data_%d.csv'%query_id)
@@ -41,5 +46,8 @@ def get_queried_data(query):
 
         return df
 
-query = queries.query_sample()
-print get_queried_data(query)
+if __name__ == '__main__':
+    query = queries.query_for_recent6months()
+    df = get_queried_data(query)
+    print df.shape()
+    print df.head()
