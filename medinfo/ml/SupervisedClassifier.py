@@ -703,21 +703,12 @@ class SupervisedClassifier:
         :param y:
         :return:
         '''
-        self._get_or_set_hyperparam('max_depth')
-        self._get_or_set_hyperparam('n_estimators')
-        self._get_or_set_hyperparam('gamma')
-
-        self._get_or_set_hyperparam('learning_rate')
+        #
         self._get_or_set_hyperparam('scoring')
-        self._get_or_set_hyperparam('class_weight')
         self._get_or_set_hyperparam('n_jobs')
-
 
         # Build initial model.
         self._model = XGBClassifier(
-            max_depth=self._hyperparams['max_depth'],
-            n_estimators=self._hyperparams['n_estimators'],
-            learning_rate=self._hyperparams['learning_rate'],
             random_state=self._hyperparams['random_state']
         )
 
@@ -828,17 +819,11 @@ class SupervisedClassifier:
         :return:
         '''
         # http://scikit-learn.org/stable/modules/svm.html#svm
-        self._get_or_set_hyperparam('C')
-        self._get_or_set_hyperparam('kernel')
-        self._get_or_set_hyperparam('degree')
-        self._get_or_set_hyperparam('gamma')
         self._get_or_set_hyperparam('scoring')
         self._get_or_set_hyperparam('n_jobs')
 
-        self._model = SVC(C=self._hyperparams['C'],
-                          kernel=self._hyperparams['kernel'],
-                          degree=self._hyperparams['degree'],
-                          gamma=self._hyperparams['gamma'])
+        self._model = SVC(probability=True,
+                          random_state=self._hyperparams['random_state'])
 
         self._tune_hyperparams(self._hyperparam_search_space, X, y)
 
@@ -888,14 +873,12 @@ class SupervisedClassifier:
         self._tune_hyperparams_regress_and_round(X, y)
 
     def _train_nn(self, X, y):
-        self._get_or_set_hyperparam('hidden_layer_sizes')
-        self._get_or_set_hyperparam('activation')
-        self._get_or_set_hyperparam('solver')
-
-        self._get_or_set_hyperparam('learning_rate')
-        self._get_or_set_hyperparam('max_iter')
         self._get_or_set_hyperparam('scoring')
         self._get_or_set_hyperparam('n_jobs')
+
+        self._model = MLPClassifier(
+            random_state=self._hyperparams['random_state']
+        )
 
         self._tune_hyperparams(self._hyperparam_search_space, X, y)
 
