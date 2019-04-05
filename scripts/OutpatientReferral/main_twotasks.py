@@ -94,7 +94,7 @@ def truncate_icd10(icd10):
     except AttributeError: # empty value 'nan'
         return ''
 
-def explore_icd10s():
+def get_icd10_totcnter():
     '''
     Returns:
     Dict:
