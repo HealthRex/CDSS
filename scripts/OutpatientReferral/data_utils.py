@@ -83,6 +83,15 @@ class ReferralDataMunger():
         '''
         self.order_absCnt_global = Counter(self.df['specialty_order'])
 
+        self.order_typeCnt_global = self.df[['specialty_order', 'specialty_name']]\
+                .groupby('specialty_order')['specialty_name']\
+                .apply(list).apply(Counter).to_dict()
+        self.order_isPCCnt_global = {}
+        for order, cnter in self.order_typeCnt_global.items():
+            self.order_isPCCnt_global[order] = {'PC_cnt':cnter['Primary Care'],
+                                                'nonPC_cnt':sum(cnter.values())-cnter['Primary Care']}
+
+
         '''Making df local (only to the current referral)'''
         self.df = self.df[(self.df['referral_name'] == referral) & (self.df['specialty_name'] == self.specialty)].copy()
         if verbose:
@@ -146,7 +155,7 @@ class ReferralDataMunger():
         Find out the top k orders for that icd10
         '''
         df_res = pd.DataFrame(columns=['order', 'Preva', 'Preva_referrel', 'Preva_referrel_icd10',
-                                       'PPV', 'RelaRisk' #, , 'PC_cnt', 'NonPC_cnt'
+                                       'PPV', 'RelaRisk', 'PC_cnt', 'nonPC_cnt'
                                        ])
         # print self.icd10_absCnt_local.most_common(top_k)
         common_absCnt_locals = self.order_absCnt_inner[icd10].most_common(top_k)
@@ -207,7 +216,8 @@ class ReferralDataMunger():
             RelaRisk = PPV/( (P_o-PPV*P_rd)/(1.-P_rd) )
             cur_order_summary['RelaRisk'] = RelaRisk
 
-            # cur_order_summary.append(order_to_PCnonPC[order])
+            cur_order_summary['PC_cnt'] =  self.order_isPCCnt_global[order]['PC_cnt']
+            cur_order_summary['nonPC_cnt'] = self.order_isPCCnt_global[order]['nonPC_cnt']
 
             df_res = df_res.append(cur_order_summary, ignore_index=True)
         df_res.to_csv('tables/%s_%s.csv' % (self.referral_code, icd10), index=False)
