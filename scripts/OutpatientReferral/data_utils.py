@@ -73,6 +73,7 @@ class ReferralDataMunger():
         '''A bunch of global stats'''
         if verbose:
             print "Original df shape:", df.shape
+        self.num_rows_global = self.df.shape[0]
         self.icd10_absCnt_global = Counter(self.df['referral_icd10'])
         '''
         More complicated for orders:
@@ -99,7 +100,7 @@ class ReferralDataMunger():
         #     .apply(lambda x: referral_to_1stSpecialtyTime[x])]
         # print "First-visit-only df shape:", self.df.shape
 
-        self.num_rows = self.df.shape[0]
+        self.num_rows_local = self.df.shape[0]
 
         '''
         Counts:
@@ -145,7 +146,7 @@ class ReferralDataMunger():
         Find out the top k orders for that icd10
         '''
         df_res = pd.DataFrame(columns=['order', 'Preva', 'Preva_referrel', 'Preva_referrel_icd10',
-                                       'PPV' #, 'RelaRisk', 'PC_cnt', 'NonPC_cnt'
+                                       'PPV', 'RelaRisk' #, , 'PC_cnt', 'NonPC_cnt'
                                        ])
         # print self.icd10_absCnt_local.most_common(top_k)
         common_absCnt_locals = self.order_absCnt_inner[icd10].most_common(top_k)
@@ -175,7 +176,7 @@ class ReferralDataMunger():
             cur_order_summary['Preva_referrel_icd10'] = Preva_referrel_icd10
 
             '''
-            PPV: When (1 referral, 1 icd10 appear) 
+            PPV = P(order|referral, diagnose)=P(o|rd): When (1 referral, 1 icd10 appear) 
             predicting order is in the actual order list, the fraction of time correct.  
             '''
             # print self.df_referID_orders.head()
@@ -188,24 +189,23 @@ class ReferralDataMunger():
             cur_order_summary['PPV'] = '%.2f' % PPV
 
             '''
-            TODO: What is the "whole: set? (definition of N in Table 2 of OrderRex paper)
             
-            Relative risk = PPV / P(order|!diagnose)
+            Relative risk = PPV / P(order|!rd)
 
             According to Bayes formula:
-            P(o|d)P(d) + p(o|!d)P(!d) = P(o)
+            P(o|rd)P(rd) + p(o|!rd)P(!rd) = P(o)
             So:
-            denominator = p(o|!d) = (P(o)-P(o|d)P(d))/P(!d)
+            denominator = p(o|!rd) = (P(o)-P(o|rd)P(rd))/P(!rd)
             where:
-                P(o) = order_prev[order]
-                P(o|d) = PPV
-                P(d) = icd10_prev[icd10]
-                P(!d) = 1-icd10_prev[icd10]
+                P(o) = self.order_absCnt_global[order]/self.num_rows_global
+                P(o|rd) = PPV
+                P(rd) = self.icd10_absCnt_local[icd10]/self.num_rows_global
+                P(!rd) = 1 - P(rd)
             '''
-            # denominator = (order_prev[order] - ppv * icd10_prev[icd10]) / (1. - icd10_prev[icd10])
-            # rela_risk = ppv / denominator
-            # rr_str = '%.2f' % rela_risk
-            # cur_order_summary.append(rr_str)
+            P_o = self.order_absCnt_global[order]/float(self.num_rows_global)
+            P_rd = self.icd10_absCnt_local[icd10]/float(self.num_rows_global)
+            RelaRisk = PPV/( (P_o-PPV*P_rd)/(1.-P_rd) )
+            cur_order_summary['RelaRisk'] = RelaRisk
 
             # cur_order_summary.append(order_to_PCnonPC[order])
 
