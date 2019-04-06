@@ -15,3 +15,13 @@ referral_to_specialty_tuples =\
     ('REFERRAL TO HEMATOLOGY', 'Hematology')
 ]
 referral_to_specialty_dict = dict(referral_to_specialty_tuples)
+
+import pandas as pd
+
+def get_icd10_category_mapping():
+    df = pd.read_csv('mapping/icd10_categories.csv', keep_default_na=False, header=None)
+    icd10_category_mapping = dict(zip(df[0], df[1]))
+    return icd10_category_mapping
+
+if __name__ == '__main__':
+    print get_icd10_category_mapping()
