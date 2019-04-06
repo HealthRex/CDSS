@@ -128,6 +128,11 @@ class ReferralDataMunger():
         if verbose:
             print 'self.icd10_absCnt_local.most_common(5):', self.icd10_absCnt_local.most_common(5)
 
+        self.icd10_tfidf_local = Counter()
+        for icd10, absCnt_local in self.icd10_absCnt_local.items():
+            self.icd10_tfidf_local[icd10] = float(absCnt_local) * self.num_rows_global \
+                                            / (self.num_rows_local * self.icd10_absCnt_global[icd10])
+
         # self.icd10_ipwCnt = Counter()
         # for icd10, absCnt_local in self.icd10_absCnt_local.items():
         #     self.icd10_ipwCnt[icd10] = float(absCnt_local)/self.icd10_absCnt_global[icd10]
@@ -194,6 +199,18 @@ class ReferralDataMunger():
             ax.set_xlim([0, 30 * 6])  # six month by default
 
             ax.get_xaxis().set_ticks([])
+
+    def explore_referral(self, top_k=5, rank_by='abs'):
+        icd10_category_mapping = data_config.get_icd10_category_mapping()
+        print 'Top icd10s and their categories by %s_cnt:'%rank_by
+        if rank_by == 'abs':
+            icd10_cnts = self.icd10_absCnt_local.most_common(top_k)
+        elif rank_by == 'tfidf':
+            icd10_cnts = self.icd10_tfidf_local.most_common(top_k)
+
+        icd10s = [x[0] for x in icd10_cnts]
+        categories = [icd10_category_mapping[x] for x in icd10s]
+        print zip(icd10s, categories)
 
     def generate_order_stats(self, icd10, top_k=5, rank_by='abs'):
         ''''''
@@ -290,11 +307,12 @@ def load_data(test_mode=False):
         df = get_queried_data(query)
     return df
 
-def test_munger(referral, test_mode=False):
+def test_munger(referral, icd10, test_mode=False):
     df = load_data(test_mode=test_mode)
     munger = ReferralDataMunger(referral=referral,
                                 df=df)
-    munger.generate_order_stats(icd10='E11', top_k=10, rank_by='tfidf')
+    munger.generate_order_stats(icd10=icd10, top_k=10, rank_by='abs')
+    munger.generate_order_stats(icd10=icd10, top_k=10, rank_by='tfidf')
 
 def plot_waiting_times(col=3):
     df = load_data()
@@ -310,7 +328,14 @@ def plot_waiting_times(col=3):
     # fig.suptitle('waiting days (max 6 months)', verticalalignment='bottom')
     plt.show()
 
+def explore_referrals(referral, rank_by='abs'):
+    df = load_data(test_mode=False)
+    munger = ReferralDataMunger(referral=referral,
+                                df=df)
+    munger.explore_referral(rank_by=rank_by)
 
 if __name__ == '__main__':
-    test_munger('REFERRAL TO ENDOCRINE CLINIC', test_mode=False)
+    # REFERRAL TO ENDOCRINE CLINIC, 'E11'
+    # explore_referrals('REFERRAL TO HEMATOLOGY', rank_by='abs')
+    test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
     # plot_waiting_times()
