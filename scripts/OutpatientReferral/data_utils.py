@@ -6,6 +6,8 @@ import pandas as pd
 pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 1000)
 
+import data_config
+
 import queries
 
 from google.cloud import bigquery
@@ -146,7 +148,29 @@ class ReferralDataMunger():
                             .groupby(['referral_enc_id','referral_icd10'])['specialty_order']\
                             .apply(list).reset_index()
 
+    def plot_waiting_times(self):
+        from datetime import datetime
+        import matplotlib as mpl
+        mpl.use('TkAgg')
+        import matplotlib.pyplot as plt
+        time_format = '%Y-%m-%d %H:%M:%S'
 
+        df_tmp_timediff = self.df[
+            ['referral_enc_id', 'referral_time', 'specialty_time']].copy().drop_duplicates()
+        df_tmp_timediff['specialty_timestamp'] = \
+            df_tmp_timediff['specialty_time'].apply(lambda x: datetime.strptime(x, time_format))
+        df_tmp_timediff['referral_timestamp'] = \
+            df_tmp_timediff['referral_time'].apply(lambda x: datetime.strptime(x, time_format))
+        df_tmp_timediff['time_diff'] = df_tmp_timediff['specialty_timestamp'] \
+                                       - df_tmp_timediff['referral_timestamp']
+
+        print 'Train sample size for waiting time:', df_tmp_timediff['time_diff'].shape[0]
+        all_waiting_days = df_tmp_timediff['time_diff'].apply(lambda x: x.days)
+        plt.hist(all_waiting_days, bins=15)
+        plt.xlabel('Waiting days for %s' % self.referral)
+        plt.xlim([0, 30*6]) # six month by default
+        plt.savefig('figures/waiting_time_%s.png' % self.referral_code)
+        plt.clf()
 
     def generate_order_stats(self, icd10, top_k=5):
         ''''''
@@ -235,9 +259,16 @@ def test_munger(referral, test_mode=False):
         query = queries.query_for_recent6months()
         df = get_queried_data(query)
 
-    munger = ReferralDataMunger(referral=referral,
-                                df=df)
-    munger.generate_order_stats(icd10='E11', top_k=10)
+    # munger = ReferralDataMunger(referral=referral,
+    #                             df=df)
+    # munger.generate_order_stats(icd10='E11', top_k=10)
+
+    for referral, _ in data_config.referral_to_specialty_tuples:
+        munger = ReferralDataMunger(referral=referral,
+                                    df=df)
+        # munger.generate_order_stats(icd10='E11', top_k=10)
+        munger.plot_waiting_times()
+
 
 if __name__ == '__main__':
     test_munger('REFERRAL TO ENDOCRINE CLINIC', test_mode=False)
