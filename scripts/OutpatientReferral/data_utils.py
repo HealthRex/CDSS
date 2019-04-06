@@ -91,10 +91,12 @@ class ReferralDataMunger():
         '''
         self.order_absCnt_global = Counter(self.df['specialty_order'])
 
+        ''' Type: Primary Care, Cancer, etc.'''
         self.order_typeCnt_global = self.df[['specialty_order', 'specialty_name']]\
                 .groupby('specialty_order')['specialty_name']\
                 .apply(list).apply(Counter).to_dict()
         self.order_isPCCnt_global = {}
+        # TODO: be careful of missing specialty departments, could potentially all be PC?
         for order, cnter in self.order_typeCnt_global.items():
             self.order_isPCCnt_global[order] = {'PC_cnt':cnter['Primary Care'],
                                                 'nonPC_cnt':sum(cnter.values())-cnter['Primary Care']}
@@ -126,26 +128,37 @@ class ReferralDataMunger():
         if verbose:
             print 'self.icd10_absCnt_local.most_common(5):', self.icd10_absCnt_local.most_common(5)
 
-        self.icd10_ipwCnt = Counter()
-        for icd10, absCnt_local in self.icd10_absCnt_local.items():
-            self.icd10_ipwCnt[icd10] = float(absCnt_local)/self.icd10_absCnt_global[icd10]
-        if verbose:
-            print 'self.icd10_ipwCnt.most_common(5):', self.icd10_ipwCnt.most_common(5)
+        # self.icd10_ipwCnt = Counter()
+        # for icd10, absCnt_local in self.icd10_absCnt_local.items():
+        #     self.icd10_ipwCnt[icd10] = float(absCnt_local)/self.icd10_absCnt_global[icd10]
+        # if verbose:
+        #     print 'self.icd10_ipwCnt.most_common(5):', self.icd10_ipwCnt.most_common(5)
 
         self.order_absCnt_local = Counter(self.df['specialty_order'])
 
         '''
-        A cnt for each icd10
+        An order cnt for each icd10
         '''
         self.order_absCnt_inner = {}
-        for icd10, absCnt_local in self.icd10_absCnt_local.most_common(5): # TODO:
+        ''' 
+        tfidf: defined by n(o, rd) * N / n(o) n(rd), where: 
+            n(o, rd) = self.order_absCnt_inner[icd10][order]
+            N = self.num_rows_global
+            n(o) = self.order_absCnt_global[order]
+            n(rd) = self.icd10_absCnt_local[icd10]
+        '''
+        self.order_tfidf_inner = {}
+        for icd10, _ in self.icd10_absCnt_local.most_common(10): # TODO:
             cur_df = self.df[self.df['referral_icd10']==icd10]
             self.order_absCnt_inner[icd10] = Counter(cur_df['specialty_order'])
+
+            self.order_tfidf_inner[icd10] = Counter()
+            for order, _ in self.order_absCnt_inner[icd10].items():
+                self.order_tfidf_inner[icd10][order] = float(self.order_absCnt_inner[icd10][order]) * self.num_rows_global \
+                    / (self.order_absCnt_global[order] * self.icd10_absCnt_local[icd10])
+
         if verbose:
             print self.order_absCnt_inner
-        # icd10_prev = {}
-        # for icd10, cnt in icd10_cnter.items():
-        #     icd10_prev[icd10] = float(cnt) / num_rows
 
         '''
         Event based stats
@@ -182,18 +195,21 @@ class ReferralDataMunger():
 
             ax.get_xaxis().set_ticks([])
 
-
-    def generate_order_stats(self, icd10, top_k=5):
+    def generate_order_stats(self, icd10, top_k=5, rank_by='abs'):
         ''''''
 
         '''
         Find out the top k orders for that icd10
         '''
-        df_res = pd.DataFrame(columns=['order', 'Preva', 'Preva_referrel', 'Preva_referrel_icd10',
-                                       'PPV', 'RelaRisk', 'PC_cnt', 'nonPC_cnt'
+        df_res = pd.DataFrame(columns=['order', 'Prev_global', 'Prev_local', 'Prev_inner',
+                                       'PPV', 'RelaRisk', 'TFIDF', 'PC_cnt', 'nonPC_cnt'
                                        ])
         # print self.icd10_absCnt_local.most_common(top_k)
-        common_absCnt_locals = self.order_absCnt_inner[icd10].most_common(top_k)
+        if rank_by == 'abs':
+            common_absCnt_locals = self.order_absCnt_inner[icd10].most_common(top_k)
+        elif rank_by == 'tfidf':
+            common_absCnt_locals = self.order_tfidf_inner[icd10].most_common(top_k)
+
         for k in range(len(common_absCnt_locals)):
             order, absCnt_local = common_absCnt_locals[k]
             '''
@@ -204,20 +220,20 @@ class ReferralDataMunger():
             '''
             Preva
             '''
-            Preva = self.order_absCnt_global[order]
-            cur_order_summary['Preva'] = Preva
+            Prev_global = self.order_absCnt_global[order]
+            cur_order_summary['Prev_global'] = Prev_global
 
             '''
             Preva_referrel
             '''
-            Preva_referrel = self.order_absCnt_local[order]
-            cur_order_summary['Preva_referrel'] = Preva_referrel
+            Prev_local = self.order_absCnt_local[order]
+            cur_order_summary['Prev_local'] = Prev_local
 
             '''
             Preva_referrel_icd10
             '''
-            Preva_referrel_icd10 = self.order_absCnt_inner[icd10][order]
-            cur_order_summary['Preva_referrel_icd10'] = Preva_referrel_icd10
+            Prev_inner = self.order_absCnt_inner[icd10][order]
+            cur_order_summary['Prev_inner'] = Prev_inner
 
             '''
             PPV = P(order|referral, diagnose)=P(o|rd): When (1 referral, 1 icd10 appear) 
@@ -249,13 +265,16 @@ class ReferralDataMunger():
             P_o = self.order_absCnt_global[order]/float(self.num_rows_global)
             P_rd = self.icd10_absCnt_local[icd10]/float(self.num_rows_global)
             RelaRisk = PPV/( (P_o-PPV*P_rd)/(1.-P_rd) )
-            cur_order_summary['RelaRisk'] = RelaRisk
+            cur_order_summary['RelaRisk'] = '%d' % int(round(RelaRisk))
+
+
+            cur_order_summary['TFIDF'] = '%d' % int(round(self.order_tfidf_inner[icd10][order]))
 
             cur_order_summary['PC_cnt'] =  self.order_isPCCnt_global[order]['PC_cnt']
             cur_order_summary['nonPC_cnt'] = self.order_isPCCnt_global[order]['nonPC_cnt']
 
             df_res = df_res.append(cur_order_summary, ignore_index=True)
-        df_res.to_csv('tables/%s_%s.csv' % (self.referral_code, icd10), index=False)
+        df_res.to_csv('tables/%s_%s_%s.csv' % (self.referral_code, icd10, rank_by), index=False)
 
 def test_query():
     query = queries.query_for_recent6months()
@@ -275,7 +294,7 @@ def test_munger(referral, test_mode=False):
     df = load_data(test_mode=test_mode)
     munger = ReferralDataMunger(referral=referral,
                                 df=df)
-    munger.generate_order_stats(icd10='E11', top_k=10)
+    munger.generate_order_stats(icd10='E11', top_k=10, rank_by='tfidf')
 
 def plot_waiting_times(col=3):
     df = load_data()
@@ -293,5 +312,5 @@ def plot_waiting_times(col=3):
 
 
 if __name__ == '__main__':
-    # test_munger('REFERRAL TO ENDOCRINE CLINIC', test_mode=False)
-    plot_waiting_times()
+    test_munger('REFERRAL TO ENDOCRINE CLINIC', test_mode=False)
+    # plot_waiting_times()
