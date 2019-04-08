@@ -2,19 +2,24 @@
 -- PostgreSQL database dump
 --
 
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
+
 SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-
-SET search_path = public, pg_catalog;
+SET row_security = off;
 
 --
 -- Data for Name: sim_user; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY sim_user (sim_user_id, name) FROM stdin;
+COPY public.sim_user (sim_user_id, name) FROM stdin;
 0	Default User
 1	Jonathan Chen
 9	User1
@@ -30,7 +35,7 @@ COPY sim_user (sim_user_id, name) FROM stdin;
 -- Name: sim_user_sim_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('sim_user_sim_user_id_seq', 13, true);
+SELECT pg_catalog.setval('public.sim_user_sim_user_id_seq', 13, true);
 
 
 --
