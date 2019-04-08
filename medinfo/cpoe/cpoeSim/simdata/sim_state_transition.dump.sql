@@ -2,19 +2,24 @@
 -- PostgreSQL database dump
 --
 
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
+
 SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-
-SET search_path = public, pg_catalog;
+SET row_security = off;
 
 --
 -- Data for Name: sim_state_transition; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY sim_state_transition (sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, time_trigger, description) FROM stdin;
+COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, time_trigger, description) FROM stdin;
 1	14	15	\N	3600	Active bleed uncontrolled
 2	15	4	\N	1800	Bled out, coding
 3	15	14	65640	\N	Transfuse RBC temporarily restabilizes
@@ -53,7 +58,7 @@ COPY sim_state_transition (sim_state_transition_id, pre_state_id, post_state_id,
 -- Name: sim_state_transition_sim_state_transition_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('sim_state_transition_sim_state_transition_id_seq', 37, true);
+SELECT pg_catalog.setval('public.sim_state_transition_sim_state_transition_id_seq', 37, true);
 
 
 --

@@ -2,19 +2,24 @@
 -- PostgreSQL database dump
 --
 
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
+
 SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-
-SET search_path = public, pg_catalog;
+SET row_security = off;
 
 --
 -- Data for Name: sim_state; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY sim_state (sim_state_id, name, description) FROM stdin;
+COPY public.sim_state (sim_state_id, name, description) FROM stdin;
 1	Example	Example State
 0	Default	Default State Info
 5	ACS Relief	ACS Pain Relief
@@ -44,7 +49,7 @@ COPY sim_state (sim_state_id, name, description) FROM stdin;
 -- Name: sim_state_sim_state_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('sim_state_sim_state_id_seq', 21, true);
+SELECT pg_catalog.setval('public.sim_state_sim_state_id_seq', 21, true);
 
 
 --

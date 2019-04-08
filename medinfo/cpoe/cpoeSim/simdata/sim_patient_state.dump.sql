@@ -2,33 +2,27 @@
 -- PostgreSQL database dump
 --
 
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
+
 SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-
-SET search_path = public, pg_catalog;
+SET row_security = off;
 
 --
 -- Data for Name: sim_patient_state; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY sim_patient_state (sim_patient_state_id, sim_patient_id, sim_state_id, relative_time_start, relative_time_end) FROM stdin;
-2	2	2	0	\N
-3	3	1	0	\N
-4	4	2	0	\N
-5	1	2	6000	\N
-1	1	1	0	6000
-26	21	14	0	3600
-29	21	15	3600	3600
-10	11	1	0	\N
-30	21	14	3600	4800
+COPY public.sim_patient_state (sim_patient_state_id, sim_patient_id, sim_state_id, relative_time_start, relative_time_end) FROM stdin;
 9	9	3	-7200	\N
-11	12	3	-7200	\N
 13	6	6	-14400	\N
 7	7	7	-7200	\N
-31	21	14	4800	4800
 15	13	3	-7200	\N
 16	14	6	-14400	\N
 17	15	7	-7200	\N
@@ -37,10 +31,6 @@ COPY sim_patient_state (sim_patient_state_id, sim_patient_id, sim_state_id, rela
 22	20	6	-14400	\N
 23	5	13	-7200	0
 24	5	14	0	\N
-25	21	13	-7200	0
-32	21	14	4800	8400
-38	21	15	8400	9360
-40	21	14	9360	\N
 42	23	13	-7200	0
 44	24	3	-7200	\N
 45	25	6	-14400	\N
@@ -48,11 +38,9 @@ COPY sim_patient_state (sim_patient_state_id, sim_patient_id, sim_state_id, rela
 18	16	9	-36000	0
 19	17	9	-36000	0
 41	22	9	-36000	0
-46	26	9	-36000	0
 49	16	21	0	\N
 50	17	21	0	\N
 51	22	21	0	\N
-52	26	21	0	\N
 47	8	21	0	1440
 53	8	18	1440	\N
 43	23	14	0	0
@@ -62,9 +50,6 @@ COPY sim_patient_state (sim_patient_state_id, sim_patient_id, sim_state_id, rela
 57	23	14	1620	4800
 58	23	16	4800	4860
 59	23	2	4860	\N
-60	27	13	-7200	0
-61	27	14	0	0
-62	27	16	0	\N
 63	28	9	-36000	0
 65	29	3	-7200	\N
 66	30	6	-14400	\N
@@ -117,7 +102,7 @@ COPY sim_patient_state (sim_patient_state_id, sim_patient_id, sim_state_id, rela
 -- Name: sim_patient_state_sim_patient_state_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('sim_patient_state_sim_patient_state_id_seq', 107, true);
+SELECT pg_catalog.setval('public.sim_patient_state_sim_patient_state_id_seq', 107, true);
 
 
 --

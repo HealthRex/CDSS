@@ -2,49 +2,24 @@
 -- PostgreSQL database dump
 --
 
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
+
 SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-
-SET search_path = public, pg_catalog;
+SET row_security = off;
 
 --
 -- Data for Name: sim_patient_order; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id, clinical_item_id, relative_time_start, relative_time_end, sim_state_id) FROM stdin;
-35	1	1	44872	0	0	0
-36	1	1	44008	0	0	0
-33	1	1	61842	0	0	0
-34	1	1	48711	0	0	0
-37	1	1	61842	0	0	0
-38	1	1	48711	0	0	0
-39	1	1	44008	0	0	0
-40	1	1	45813	0	0	0
-41	1	1	45813	0	0	0
-43	1	1	48711	0	0	0
-44	1	1	44008	0	0	0
-42	1	1	61842	0	0	0
-45	1	1	61842	0	0	0
-46	1	1	48711	0	0	0
-47	1	1	44008	0	0	0
-49	1	1	63729	0	0	0
-50	1	1	48711	0	0	0
-51	1	1	44008	0	0	0
-48	1	1	61842	0	0	0
-54	1	1	61842	0	0	0
-56	1	1	44008	0	0	0
-55	1	1	48711	0	0	0
-57	1	1	61842	0	0	0
-58	1	1	61842	0	\N	0
-59	1	1	48711	0	\N	0
-60	1	1	44008	0	\N	0
-61	1	1	45793	0	\N	0
-62	1	1	45771	0	\N	0
-66	1	1	62042	0	\N	2
-69	1	1	31239	0	\N	1
+COPY public.sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id, clinical_item_id, relative_time_start, relative_time_end, sim_state_id) FROM stdin;
 125	9	13	44256	0	\N	3
 78	0	9	41839	0	\N	3
 126	9	13	62083	1800	\N	3
@@ -54,14 +29,6 @@ COPY sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id, clini
 130	0	14	45955	-1200	\N	6
 131	0	14	45873	-1200	\N	6
 132	0	14	45821	-1200	\N	6
-86	1	12	45793	0	\N	3
-87	1	12	45763	0	\N	3
-88	1	12	45821	0	\N	3
-89	1	12	45801	0	\N	3
-90	1	12	45914	0	\N	3
-91	1	12	45866	0	\N	3
-94	1	12	44256	0	\N	3
-95	1	12	44206	0	\N	3
 114	0	13	45763	-1200	\N	3
 115	0	13	45801	-1200	\N	3
 116	0	13	45866	-1200	\N	3
@@ -93,8 +60,6 @@ COPY sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id, clini
 150	9	15	45969	0	\N	7
 151	9	15	49481	0	\N	7
 152	9	15	45945	0	\N	7
-93	1	12	45838	0	0	3
-92	1	12	45870	0	0	3
 153	9	15	45927	0	\N	7
 154	9	15	48954	0	\N	7
 155	9	15	63165	0	\N	7
@@ -118,17 +83,11 @@ COPY sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id, clini
 173	9	16	63927	0	\N	9
 174	9	16	45751	0	\N	9
 175	9	16	50850	1200	\N	9
-245	1	12	45818	0	\N	3
 178	0	6	41964	0	\N	6
-246	1	12	45818	0	\N	3
-247	1	12	45818	0	\N	3
 180	0	7	41788	0	\N	7
-248	1	12	45818	0	\N	3
-249	1	12	45818	0	\N	3
 184	0	18	41788	0	\N	7
 185	0	19	41839	0	\N	3
 186	0	20	41964	0	\N	6
-187	1	12	45892	0	\N	3
 188	2	17	45793	0	\N	9
 189	2	17	45771	0	\N	9
 190	2	17	50343	0	\N	9
@@ -179,51 +138,11 @@ COPY sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id, clini
 235	2	20	45801	0	\N	6
 236	2	20	45945	0	\N	6
 237	2	20	43997	1200	\N	6
-238	1	12	44236	0	\N	3
-239	1	12	44212	0	\N	3
-240	1	12	45771	0	\N	3
-241	1	12	45771	0	\N	3
-242	1	12	45771	0	\N	3
-243	1	12	45771	0	\N	3
-244	1	12	63714	0	\N	3
-250	1	12	45818	0	\N	3
-251	1	12	45818	0	\N	3
-252	1	12	45818	0	\N	3
 253	0	5	41788	0	\N	14
-256	0	21	41788	0	0	14
-258	1	21	45945	3600	\N	15
-259	1	21	45927	3600	\N	15
-260	1	21	61975	3600	\N	15
-261	1	21	43996	4800	\N	14
-262	1	21	43996	4800	\N	14
-263	1	21	61993	7200	7200	14
-264	1	21	45748	9600	\N	15
-265	1	21	45969	7200	\N	14
-266	1	21	45748	7200	\N	15
-267	1	21	45748	7200	\N	15
-268	1	21	45748	9720	\N	15
-269	1	21	45927	9720	\N	15
-270	1	21	45748	9720	\N	15
-271	1	21	45927	9720	\N	15
-272	1	21	45748	9840	\N	15
-273	1	21	45748	10140	\N	15
-274	1	21	45748	10440	\N	4
-275	1	21	45748	8940	\N	15
-276	1	21	45748	9240	\N	15
-277	1	21	45748	9240	\N	15
-278	1	21	45748	9240	\N	15
-279	1	21	45748	9240	\N	15
-280	1	21	45748	9300	\N	15
-281	1	21	61975	9360	\N	15
 282	0	23	41788	0	\N	14
 283	0	23	41788	0	\N	14
 284	0	24	41839	0	\N	3
 285	0	25	41964	0	\N	6
-286	1	26	45873	0	\N	9
-287	1	26	45763	0	\N	9
-288	1	26	45788	0	\N	9
-289	1	26	35850	1080	2040	9
-290	1	26	46277	2040	\N	21
 291	10	8	45793	0	\N	21
 292	10	8	45763	60	\N	21
 293	10	8	45797	60	\N	21
@@ -278,11 +197,6 @@ COPY sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id, clini
 343	10	23	44439	2940	\N	14
 344	10	23	44001	4800	\N	14
 345	10	23	45969	4860	\N	16
-346	0	27	41788	0	\N	14
-347	0	27	41788	0	\N	14
-348	1	27	45872	0	\N	14
-349	1	27	65702	0	\N	14
-350	1	27	45838	120	\N	16
 351	0	29	41839	0	\N	3
 352	0	30	41964	0	\N	6
 353	0	31	41788	0	\N	14
@@ -516,16 +430,6 @@ COPY sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id, clini
 581	13	38	43997	0	\N	6
 582	13	38	45811	1620	\N	6
 583	13	38	45919	1620	\N	6
-257	0	21	41788	0	0	14
-585	1	21	48711	60	120	14
-584	1	21	61842	0	120	14
-586	1	21	61842	120	\N	14
-587	1	21	50897	180	240	14
-588	1	21	48711	240	360	14
-589	1	21	44008	300	360	14
-590	1	21	44235	360	420	14
-591	1	21	63729	420	480	14
-592	1	21	44872	480	540	14
 \.
 
 
@@ -533,7 +437,7 @@ COPY sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id, clini
 -- Name: sim_patient_order_sim_patient_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('sim_patient_order_sim_patient_order_id_seq', 592, true);
+SELECT pg_catalog.setval('public.sim_patient_order_sim_patient_order_id_seq', 592, true);
 
 
 --
