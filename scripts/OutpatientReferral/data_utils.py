@@ -25,10 +25,12 @@ if not os.path.exists(result_folderpath):
     os.mkdir(result_folderpath)
 
 def setup_client(jsonkey_filepath):
+    print 'Setting up client...'
     client = bigquery.Client.from_service_account_json(jsonkey_filepath)
     return client
 
 def make_bigquery(query, client, project_id):
+    print 'Making bigquery...'
     df = client.query(query, project=project_id).to_dataframe()
 
     return df
@@ -67,9 +69,25 @@ def truncate_icd10(icd10):
     except AttributeError: # empty value 'nan'
         return ''
 
+def plot_visit_cnts(df):
+    df_visitCnts = df[['referral_enc_id', 'specialty_enc_id']]\
+                    .groupby('referral_enc_id')['specialty_enc_id']\
+                    .count().reset_index().rename(columns={'specialty_enc_id':'visit_cnt'})
+    plt.hist(df_visitCnts['visit_cnt'])
+    plt.show()
+    pass
+
+def test_plotVisitCnts():
+    df = pd.read_csv('queried_results/queried_data_2690237133563743535_sample.csv')
+    print df.head()
+    plot_visit_cnts(df)
+
+
+
+
 class ReferralDataMunger():
 
-    def __init__(self, referral, df, to_truncate_icd10=True, verbose=False):
+    def __init__(self, referral, df, newPatientOnly=False, to_truncate_icd10=True, verbose=False):
         self.referral = referral
         self.referral_code = referral.replace("REFERRAL TO ", "").replace(" ","-").replace("/","-")
         self.specialty = referral_to_specialty_dict[referral]
@@ -81,6 +99,17 @@ class ReferralDataMunger():
         '''A bunch of global stats'''
         if verbose:
             print "Original df shape:", df.shape
+
+        if not newPatientOnly:
+            '''Task 1: stats of number of specialty visits TODO'''
+
+
+
+            '''Task 2: Only keep new patient TODO'''
+            pass
+
+
+
         self.num_rows_global = self.df.shape[0]
         self.icd10_absCnt_global = Counter(self.df['referral_icd10'])
         '''
@@ -303,7 +332,7 @@ def load_data(test_mode=False):
     if test_mode:
         df = pd.read_csv(os.path.join(result_folderpath, 'queried_data_2690237133563743535_sample.csv'))
     else:
-        query = queries.query_for_recent6months()
+        query = queries.query_for_recent6months(newPatientOnly=False)
         df = get_queried_data(query)
     return df
 
@@ -337,5 +366,10 @@ def explore_referrals(referral, rank_by='abs'):
 if __name__ == '__main__':
     # REFERRAL TO ENDOCRINE CLINIC, 'E11'
     # explore_referrals('REFERRAL TO HEMATOLOGY', rank_by='abs')
-    test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
+    # test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
     # plot_waiting_times()
+
+    # df = load_data()
+    # print df.shape
+
+    test_plotVisitTimes()
