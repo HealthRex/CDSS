@@ -371,7 +371,7 @@ insert into sim_state_result(sim_state_result_id, sim_state_id, sim_result_id, c
 /* Insert required result mappings */
 /* TTE */
 insert into sim_order_result_map(sim_order_result_map_id, clinical_item_id, sim_result_id, turnaround_time)
-  values (8200, 61832, 150, 0);
+  values (8200, 61832, 200, 0);
 
 
 /* State transitions */
