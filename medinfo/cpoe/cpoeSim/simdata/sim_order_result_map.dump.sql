@@ -2,19 +2,24 @@
 -- PostgreSQL database dump
 --
 
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
+
 SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-
-SET search_path = public, pg_catalog;
+SET row_security = off;
 
 --
 -- Data for Name: sim_order_result_map; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY sim_order_result_map (sim_order_result_map_id, clinical_item_id, sim_result_id, turnaround_time) FROM stdin;
+COPY public.sim_order_result_map (sim_order_result_map_id, clinical_item_id, sim_result_id, turnaround_time) FROM stdin;
 33	45821	10	300
 34	45821	20	300
 35	45821	30	300
@@ -7991,7 +7996,7 @@ COPY sim_order_result_map (sim_order_result_map_id, clinical_item_id, sim_result
 -- Name: sim_order_result_map_sim_order_result_map_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('sim_order_result_map_sim_order_result_map_id_seq', 8016, true);
+SELECT pg_catalog.setval('public.sim_order_result_map_sim_order_result_map_id_seq', 8016, true);
 
 
 --

@@ -2,19 +2,24 @@
 -- PostgreSQL database dump
 --
 
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
+
 SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
 SET check_function_bodies = false;
 SET client_min_messages = warning;
-
-SET search_path = public, pg_catalog;
+SET row_security = off;
 
 --
 -- Data for Name: sim_state_transition; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY sim_state_transition (sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, time_trigger, description) FROM stdin;
+COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, time_trigger, description) FROM stdin;
 1	14	15	\N	3600	Active bleed uncontrolled
 2	15	4	\N	1800	Bled out, coding
 3	15	14	65640	\N	Transfuse RBC temporarily restabilizes
@@ -46,6 +51,24 @@ COPY sim_state_transition (sim_state_transition_id, pre_state_id, post_state_id,
 35	18	19	44316	\N	Gap closed when ongoing insulin supplemented by glucose and potassium
 36	18	19	46277	\N	Gap closed when ongoing insulin supplemented by glucose and potassium
 37	18	19	46505	\N	Gap closed when ongoing insulin supplemented by glucose and potassium
+5000	5000	5001	44391	\N	Appropriate antibiotics improve patient condition - Zosyn (pip/tazo)
+5010	5000	5001	44252	\N	Appropriate antibiotics improve patient condition - Zosyn (pip/tazo) (alternate)
+5020	5000	5001	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
+5030	5000	5001	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
+5040	5000	5001	44678	\N	Appropriate antibiotics improve patient condition - Aztreonam
+5050	5000	5001	44637	\N	Appropriate antibiotics improve patient condition - Ceftazadime
+5100	5000	5002	44198	\N	IV Fluid resuscitation improves patient condition - Sodium Chloride/Normal Saline
+5110	5000	5002	44439	\N	IV Fluid resuscitation improves patient condition - Lactated Ringers
+5120	5000	5002	44290	\N	IV Fluid resuscitation improves patient condition - Lactated Ringers v2
+5210	5001	5003	44198	\N	IV Fluid resuscitation improves patient condition - Sodium Chloride/Normal Saline
+5220	5001	5003	44439	\N	IV Fluid resuscitation improves patient condition - Lactated Ringers
+5230	5001	5003	44290	\N	IV Fluid resuscitation improves patient condition - Lactated Ringers v2
+5300	5002	5003	44391	\N	Appropriate antibiotics improve patient condition - Zosyn (pip/tazo)
+5310	5002	5003	44252	\N	Appropriate antibiotics improve patient condition - Zosyn (pip/tazo) (alternate)
+5320	5002	5003	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
+5330	5002	5003	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
+5340	5002	5003	44678	\N	Appropriate antibiotics improve patient condition - Aztreonam
+5350	5002	5003	44637	\N	Appropriate antibiotics improve patient condition - Ceftazadime
 \.
 
 
@@ -53,7 +76,7 @@ COPY sim_state_transition (sim_state_transition_id, pre_state_id, post_state_id,
 -- Name: sim_state_transition_sim_state_transition_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('sim_state_transition_sim_state_transition_id_seq', 37, true);
+SELECT pg_catalog.setval('public.sim_state_transition_sim_state_transition_id_seq', 37, true);
 
 
 --
