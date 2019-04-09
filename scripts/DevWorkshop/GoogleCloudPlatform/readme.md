@@ -3,7 +3,7 @@
 ### Purpose: 
 
  1. **Store terabytes of health data that you can query with SQL Syntax**  
- 2. **Increase Reproducibility by Sharing and Manipulating DataFrames and Code through Quiver on Collaborative Projects** 
+ 2. **Increase Reproducibility by Sharing and Manipulating DataFrames and Code on Collaborative Projects** 
 
 
 ### Goals to get through 
