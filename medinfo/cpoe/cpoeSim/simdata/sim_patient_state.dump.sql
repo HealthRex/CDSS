@@ -95,6 +95,10 @@ COPY public.sim_patient_state (sim_patient_state_id, sim_patient_id, sim_state_i
 105	39	14	1860	2280
 106	39	16	2280	2520
 107	39	2	2520	\N
+121	50	5000	0	\N
+108	40	5000	0	2160
+109	40	5001	2160	3180
+110	40	5003	3180	\N
 \.
 
 
@@ -102,7 +106,7 @@ COPY public.sim_patient_state (sim_patient_state_id, sim_patient_id, sim_state_i
 -- Name: sim_patient_state_sim_patient_state_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_state_sim_patient_state_id_seq', 107, true);
+SELECT pg_catalog.setval('public.sim_patient_state_sim_patient_state_id_seq', 110, true);
 
 
 --

@@ -42,6 +42,10 @@ COPY public.sim_state (sim_state_id, name, description) FROM stdin;
 21	DKA Hyperglycemic	Diabetic Ketoacidosis - High Glucose, Normal-High K, Anion Gap
 18	DKA Euglycemic	Diabetic Ketoacidosis - Normal Glucose, Normal K, Anion Gap
 19	DKA Gap Closed	Diabetic Ketoacidosis - Gap Closed
+5000	Neutropenic Fever v2	Neutropenic Fever (v2 example) Initial State
+5001	Neutropenic Fever Treated with Abx	Appropriate antibiotic improve patient condition
+5002	Neutropenic Fever Treated with IVF	Appropriate IVF improve patient condition
+5003	Neutropenic Fever Treated with IVF + ABX	Appropriate Treatments for patient condition
 \.
 
 
