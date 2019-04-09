@@ -132,7 +132,7 @@ insert into sim_note(note_type_id, author_type_id, service_type_id, relative_sta
 
  /* Meningitis inadequately treated */
  insert into sim_note(note_type_id, author_type_id, service_type_id, relative_state_time, sim_state_id, content)
-    values (2, 2001, 1500, 1800, 32, 'The patient continues to feel worse, and her nurse orders an RRT.  The MICU fellow responds and recommends changing the empiric regimen for bacterial meningitis to vancomycin and ceftriaxone, to be given stat.
+    values (2, 2001, 1500, 0, 32, 'The patient continues to feel worse, and her nurse orders an RRT.  The MICU fellow responds and recommends changing the empiric regimen for bacterial meningitis to vancomycin and ceftriaxone, to be given stat.
  T: 103.1F, BP: 86/52, HR: 128, RR: 21, O2: 96%
 
  <ul>
@@ -485,21 +485,27 @@ insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_sta
   values (40, 30, 31, 35733, 'Appropriate antibiotics improve patient condition');
 insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, description)
   values (41, 32, 31, 35733, 'Appropriate antibiotics improve patient condition');
+insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, description)
+  values (42, 33, 31, 35733, 'Appropriate antibiotics improve patient condition');
 /* IV Cefepime -> adequately treated */
 insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, description)
-  values (42, 30, 31, 36210, 'Appropriate antibiotics improve patient condition');
+  values (43, 30, 31, 36210, 'Appropriate antibiotics improve patient condition');
 insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, description)
-  values (43, 32, 31, 36210, 'Appropriate antibiotics improve patient condition');
+  values (44, 32, 31, 36210, 'Appropriate antibiotics improve patient condition');
+insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, description)
+  values (45, 33, 31, 36210, 'Appropriate antibiotics improve patient condition');
 /* IV Meropenem -> adequately treated */
 insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, description)
-  values (44, 30, 31, 44008, 'Appropriate antibiotics improve patient condition');
+  values (46, 30, 31, 44008, 'Appropriate antibiotics improve patient condition');
 insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, description)
-  values (45, 32, 31, 44008, 'Appropriate antibiotics improve patient condition');
+  values (47, 32, 31, 44008, 'Appropriate antibiotics improve patient condition');
+insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, description)
+  values (48, 33, 31, 44008, 'Appropriate antibiotics improve patient condition');
 
 
-/* 1hr later -> State worsens */
+/* 1hr later -> patient worsens */
 insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_state_id, time_trigger, description)
-  values (46, 30, 33, 3600, 'Patient condition worsens after 1 hr of inadquate empiric treatment');
+  values (50, 30, 33, 3600, 'Patient condition worsens after 1 hr of inadquate empiric treatment');
 /* 2hr later -> Inadequately treated */
 insert into sim_state_transition(sim_state_transition_id, pre_state_id, post_state_id, time_trigger, description)
-  values (47, 30, 32, 7200, 'Inadequate empiric treatment worsens patient condition');
+  values (49, 33, 32, 3600, 'Inadequate empiric treatment worsens patient condition');
