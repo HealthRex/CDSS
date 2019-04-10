@@ -99,6 +99,8 @@ COPY public.sim_patient_state (sim_patient_state_id, sim_patient_id, sim_state_i
 108	40	5000	0	2160
 109	40	5001	2160	3180
 110	40	5003	3180	\N
+120	48	30	0	\N
+600	49	40	0	\N
 \.
 
 

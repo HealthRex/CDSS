@@ -51,6 +51,8 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 39	(User6) Hematemesis, Alcohol	59	Male
 50	(Template) Chemo Fever v2	30	Male
 40	TestNFEve2	30	Male
+48	(Template) Neck Stiffness	25	Female
+49	(Template) Shortness of Breath	66	Female
 \.
 
 
