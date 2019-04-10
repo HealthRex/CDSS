@@ -699,6 +699,131 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 5023	5001	13504	66505	3.3999999999999999	0.20000000000000001	\N	High
 5024	5002	13504	66505	2.1000000000000001	0.20000000000000001	\N	High
 5025	5003	13504	66505	1.2	0.20000000000000001	\N	\N
+400	30	13270	48744	4	\N	\N	Normal
+401	30	13260	49026	100	\N	\N	Normal
+402	30	13250	48831	30	\N	\N	Normal
+403	30	13240	50163	30	\N	\N	Normal
+404	30	13050	48917	30	\N	\N	High
+405	30	13060	48574	1.5	\N	\N	High
+406	30	13220	46048	1	\N	\N	Normal
+407	30	13830	46048	0	\N	\N	Normal
+408	30	13210	48645	1	\N	\N	Normal
+409	30	13530	45870	\N	\N	<0.01	Normal
+410	30	12040	45942	1.1000000000000001	\N	\N	Normal
+411	30	12030	45759	15	\N	\N	Normal
+412	30	11020	45891	40	\N	\N	Normal
+413	30	11010	46051	13	\N	\N	Normal
+414	30	11030	46090	88	\N	\N	Low
+415	30	11000	65835	18	\N	\N	High
+416	30	13504	62151	2.2999999999999998	\N	\N	High
+417	30	1000129	48880	\N	\N	WBCCSF 1500, Neutrophil 98%	\N
+418	32	1000129	48880	\N	\N	WBCCSF 1500, Neutrophil 98%	\N
+419	33	1000129	48880	\N	\N	WBCCSF 1500, Neutrophil 98%	\N
+420	31	1000129	48880	\N	\N	WBCCSF 1500, Neutrophil 98%	\N
+421	30	1000330	50510	15	\N	\N	\N
+422	32	1000330	50510	15	\N	\N	\N
+423	33	1000330	50510	15	\N	\N	\N
+424	31	1000330	50510	15	\N	\N	High
+425	30	125	49083	\N	\N	Rare Gram Positive Diplococci, many neutrophils	\N
+426	32	125	49083	\N	\N	Rare Gram Positive Diplococci, many neutrophils	\N
+427	33	125	49083	\N	\N	Rare Gram Positive Diplococci, many neutrophils	\N
+428	31	125	49083	\N	\N	Moderate neutrophils, no organisms seen	\N
+429	30	1000156	49020	200	\N	\N	\N
+430	32	1000156	49020	200	\N	\N	\N
+431	33	1000156	49020	200	\N	\N	\N
+432	31	1000156	49020	200	\N	\N	High
+433	30	1000155	48577	10	\N	\N	\N
+434	32	1000155	48577	10	\N	\N	\N
+435	33	1000155	48577	10	\N	\N	\N
+436	31	1000155	48577	10	\N	\N	Low
+437	30	130	62831	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
+438	30	130	46039	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
+439	30	130	46065	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
+440	32	130	62831	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
+441	32	130	46039	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
+442	32	130	46065	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
+443	30	131	62831	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
+444	30	131	46039	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
+445	30	131	46065	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
+446	32	131	62831	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
+447	32	131	46039	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
+448	32	131	46065	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
+449	30	132	45804	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+450	30	132	45983	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+451	30	132	48524	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+452	30	132	50241	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+453	30	132	52016	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+454	30	132	64739	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+455	30	132	65940	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+456	30	132	50098	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+457	30	132	49965	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+458	32	132	45804	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+459	32	132	45983	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+460	32	132	48524	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+461	32	132	50241	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+462	32	132	52016	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+463	32	132	64739	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+464	32	132	65940	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+465	32	132	50098	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+466	32	132	49965	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+467	30	133	45804	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+468	30	133	45983	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+469	30	133	48524	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+470	30	133	50241	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+471	30	133	52016	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+472	30	133	64739	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+473	30	133	65940	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+474	30	133	50098	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+475	30	133	49965	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+476	32	133	45804	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+477	32	133	45983	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+478	32	133	48524	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+479	32	133	50241	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+480	32	133	52016	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+481	32	133	64739	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+482	32	133	65940	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+483	32	133	50098	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+484	32	133	49965	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
+500	40	13530	45870	0.59999999999999998	\N	\N	High
+501	40	13540	45853	1600	\N	\N	High
+502	40	15010	45760	7.4800000000000004	\N	\N	High
+503	40	15030	45760	75	\N	\N	Low
+504	40	15020	45760	31	\N	\N	Low
+505	40	1000019	45760	21	\N	\N	Low
+506	40	15050	45919	7.4500000000000002	\N	\N	High
+507	40	15070	45919	21	\N	\N	Low
+508	40	15060	45919	38	\N	\N	Low
+509	40	1001944	45919	19	\N	\N	Low
+510	41	13530	45870	0.20000000000000001	\N	\N	High
+511	41	13540	45853	1200	\N	\N	High
+512	40	1004198	45866	\N	\N	Atrial fibrillation with rapid ventricular rate. 1mm ST depression in V1-V4	\N
+513	40	200	61832	\N	\N	EF 71% with LVH, atrial fibrillation. No wall motion abnormality.	\N
+514	41	1004198	45866	\N	\N	Normal sinus rhythm	\N
+515	41	200	61832	\N	\N	EF 68% with LVH, normal sinus rhythm	\N
+530	42	130	62831	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
+531	42	130	46039	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
+532	42	130	46065	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
+533	42	131	62831	\N	\N	DWI demonstrates restricted diffusion in the L temporal lobe, R internal capsule, consistent with cardio-embolic stroke.	\N
+534	42	131	46039	\N	\N	DWI demonstrates restricted diffusion in the L temporal lobe, R internal capsule, consistent with cardio-embolic stroke.	\N
+535	42	131	46065	\N	\N	DWI demonstrates restricted diffusion in the L temporal lobe, R internal capsule, consistent with cardio-embolic stroke.	\N
+536	42	132	45804	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+537	42	132	45983	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+538	42	132	48524	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+539	42	132	50241	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+540	42	132	52016	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+541	42	132	64739	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+542	42	132	65940	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+543	42	132	50098	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+544	42	132	49965	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
+545	42	133	45804	\N	\N	No acute intracranial abnormality.	\N
+546	42	133	45983	\N	\N	No acute intracranial abnormality.	\N
+547	42	133	48524	\N	\N	No acute intracranial abnormality.	\N
+548	42	133	50241	\N	\N	No acute intracranial abnormality.	\N
+549	42	133	52016	\N	\N	No acute intracranial abnormality.	\N
+560	42	133	64739	\N	\N	No acute intracranial abnormality.	\N
+561	42	133	65940	\N	\N	No acute intracranial abnormality.	\N
+562	42	133	50098	\N	\N	No acute intracranial abnormality.	\N
+563	42	133	49965	\N	\N	No acute intracranial abnormality.	\N
 \.
 
 

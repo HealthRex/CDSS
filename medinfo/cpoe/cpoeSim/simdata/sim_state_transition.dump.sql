@@ -69,6 +69,29 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 5330	5002	5003	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
 5340	5002	5003	44678	\N	Appropriate antibiotics improve patient condition - Aztreonam
 5350	5002	5003	44637	\N	Appropriate antibiotics improve patient condition - Ceftazadime
+40	30	31	35733	\N	Appropriate antibiotics improve patient condition
+41	32	31	35733	\N	Appropriate antibiotics improve patient condition
+42	33	31	35733	\N	Appropriate antibiotics improve patient condition
+43	30	31	36210	\N	Appropriate antibiotics improve patient condition
+44	32	31	36210	\N	Appropriate antibiotics improve patient condition
+45	33	31	36210	\N	Appropriate antibiotics improve patient condition
+46	30	31	44008	\N	Appropriate antibiotics improve patient condition
+47	32	31	44008	\N	Appropriate antibiotics improve patient condition
+48	33	31	44008	\N	Appropriate antibiotics improve patient condition
+50	30	33	\N	3600	Patient condition worsens after 1 hr of inadquate empiric treatment
+49	33	32	\N	3600	Inadequate empiric treatment worsens patient condition
+500	40	42	65534	\N	Cardioversion improves hemodynamics
+51	42	41	44234	\N	No anticoagulation after cardioversion results in stroke
+53	42	41	60178	\N	No anticoagulation after cardioversion results in stroke
+54	42	41	44359	\N	No anticoagulation after cardioversion results in stroke
+55	42	41	44250	\N	No anticoagulation after cardioversion results in stroke
+56	42	41	54380	\N	No anticoagulation after cardioversion results in stroke
+57	40	43	44004	\N	Diuretics worsen hypotension
+58	40	44	44393	\N	Nodal Agents worsen hypotension
+59	40	44	44327	\N	Nodal Agents worsen hypotension
+60	40	45	35968	\N	Amio drip (without bolus) slows heart rate
+61	40	41	44352	\N	Maintenance of rhythm with amiodarone
+62	42	46	49251	\N	Maintenance of rhythm with amiodarone
 \.
 
 
