@@ -123,7 +123,7 @@ class ReferralDataMunger():
 
 
 
-        '''Count dict of orders for different specialties'''
+        '''Count dict of orders associated w/ different specialties'''
         self.N_to_o = Counter(self.df_full['specialty_order'])
 
         ''' Type: Primary Care, Cancer, etc.'''
@@ -139,21 +139,19 @@ class ReferralDataMunger():
         '''Total number of orders corresponding to the current referral'''
         self.N_by_r = self.df.shape[0]
 
-        '''Count dict for different icd10s for the current referral'''
+        '''Count dict of orders associated w/ different icd10s for the current referral'''
         self.N_to_ri = Counter(self.df['referral_icd10'])
         if verbose:
             print 'self.N_to_ri.most_common(5):', self.N_to_ri.most_common(5)
 
-
-        # TODO: this might be repeat cnting icd10!!, because the dataframe is order-based.
-        self.icd10_absCnt_global = Counter(self.df_full['referral_icd10'])
-
-
+        '''Count dict of occurrences associated w/ different icd10s for any referral'''
+        self.I_to_i = Counter(self.df_full[['referral_enc_id', 'referral_icd10']]
+                                           .drop_duplicates()['referral_icd10'])
 
         self.N_to_ri_tfidf = Counter()
         for icd10, absCnt_local in self.N_to_ri.items():
             self.N_to_ri_tfidf[icd10] = float(absCnt_local) * self.N \
-                                            / (self.N_by_r * self.icd10_absCnt_global[icd10])
+                                            / (self.N_by_r * self.I_to_i[icd10])
 
         self.N_to_ro = Counter(self.df['specialty_order'])
 
@@ -181,18 +179,6 @@ class ReferralDataMunger():
         if verbose:
             print self.N_to_rio
 
-
-
-
-
-
-
-
-
-
-
-
-
         ''' Initial processing: Keeping only the most recent specialty visit  '''
         # Almost already make sure of this by requiring "New Patient" in the query
         #
@@ -205,15 +191,11 @@ class ReferralDataMunger():
         #     .apply(lambda x: referral_to_1stSpecialtyTime[x])]
         # print "First-visit-only df shape:", self.df.shape
 
-
-
         # self.icd10_ipwCnt = Counter()
         # for icd10, absCnt_local in self.N_to_ri.items():
-        #     self.icd10_ipwCnt[icd10] = float(absCnt_local)/self.icd10_absCnt_global[icd10]
+        #     self.icd10_ipwCnt[icd10] = float(absCnt_local)/self.I_to_i[icd10]
         # if verbose:
         #     print 'self.icd10_ipwCnt.most_common(5):', self.icd10_ipwCnt.most_common(5)
-
-
 
         '''
         Event based stats
