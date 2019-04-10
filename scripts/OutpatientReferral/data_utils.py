@@ -147,6 +147,9 @@ class ReferralDataMunger():
         '''Count dict of occurrences associated w/ different icd10s for any referral'''
         self.I_to_i = Counter(self.df_full[['referral_enc_id', 'referral_icd10']]
                                            .drop_duplicates()['referral_icd10'])
+        self.I_to_ri = Counter(self.df[['referral_enc_id', 'referral_icd10']]
+                              .drop_duplicates()['referral_icd10'])
+
 
         self.N_to_ri_tfidf = Counter()
         for icd10, absCnt_local in self.N_to_ri.items():
@@ -250,8 +253,9 @@ class ReferralDataMunger():
         '''
         Find out the top k orders for that icd10
         '''
-        df_res = pd.DataFrame(columns=['order', 'Prev_global', 'Prev_local', 'Prev_inner',
-                                       'PPV', 'RelaRisk', 'TFIDF', 'PC_cnt', 'nonPC_cnt'
+        df_res = pd.DataFrame(columns=['order', 'N(o)', 'N(o,r)', 'N(o,r,i)', 'N(r,i)',
+                                       'PPV', 'RelaRisk', 'TFIDF', 'PrimaryCareRatio'
+                                       #'PC_cnt', 'nonPC_cnt'
                                        ])
         # print self.N_to_ri.most_common(top_k)
         if rank_by == 'abs':
@@ -269,20 +273,19 @@ class ReferralDataMunger():
             '''
             Preva
             '''
-            Prev_global = self.N_to_o[order]
-            cur_order_summary['Prev_global'] = Prev_global
+            cur_order_summary['N(o)'] = self.N_to_o[order]
 
             '''
             Preva_referrel
             '''
-            Prev_local = self.N_to_ro[order]
-            cur_order_summary['Prev_local'] = Prev_local
+            cur_order_summary['N(o,r)'] = self.N_to_ro[order]
 
             '''
             Preva_referrel_icd10
             '''
-            Prev_inner = self.N_to_rio[icd10][order]
-            cur_order_summary['Prev_inner'] = Prev_inner
+            cur_order_summary['N(o,r,i)'] = self.N_to_rio[icd10][order]
+
+            cur_order_summary['N(r,i)'] = self.I_to_ri[icd10]
 
             '''
             PPV = P(order|referral, diagnose)=P(o|rd): When (1 referral, 1 icd10 appear) 
@@ -291,10 +294,12 @@ class ReferralDataMunger():
             # print self.df_referID_orders.head()
             df_referID_icd10_orders = self.df_referID_orders[self.df_referID_orders['referral_icd10']==icd10]
                                          #self.df_referID_orders['specialty_order'].str.contains('PARATHYROID')].head()
-            num_icd10_encs = df_referID_icd10_orders.shape[0]
-            num_icd10_encs_wOrder = df_referID_icd10_orders[df_referID_icd10_orders['specialty_order']
-                                    .map(lambda x: order in x)].shape[0]
-            PPV = float(num_icd10_encs_wOrder)/num_icd10_encs
+            # TODO: how is this wrong?
+            # num_icd10_encs = df_referID_icd10_orders.shape[0]
+            # num_icd10_encs_wOrder = df_referID_icd10_orders[df_referID_icd10_orders['specialty_order']
+            #                         .map(lambda x: order in x)].shape[0]
+            # PPV = float(num_icd10_encs_wOrder)/num_icd10_encs
+            PPV = float(self.N_to_rio[icd10][order]) / float(self.I_to_ri[icd10])
             cur_order_summary['PPV'] = '%.2f' % PPV
 
             '''
@@ -319,8 +324,10 @@ class ReferralDataMunger():
 
             cur_order_summary['TFIDF'] = '%d' % int(round(self.N_to_rio_tfidf[icd10][order]))
 
-            cur_order_summary['PC_cnt'] =  self.order_isPCCnt_global[order]['PC_cnt']
-            cur_order_summary['nonPC_cnt'] = self.order_isPCCnt_global[order]['nonPC_cnt']
+            # cur_order_summary['PC_cnt'] =  self.order_isPCCnt_global[order]['PC_cnt']
+            # cur_order_summary['nonPC_cnt'] = self.order_isPCCnt_global[order]['nonPC_cnt']
+            cur_order_summary['PrimaryCareRatio'] = '%.2f' % (float(self.order_isPCCnt_global[order]['PC_cnt'])
+                                                              /float(self.order_isPCCnt_global[order]['nonPC_cnt']))
 
             df_res = df_res.append(cur_order_summary, ignore_index=True)
         df_res.to_csv('tables/%s_%s_%s.csv' % (self.referral_code, icd10, rank_by), index=False)
