@@ -252,19 +252,22 @@ class ReferralDataMunger():
         print zip(icd10s, categories)
 
     def get_cnt(self, referral=None, order=None, icd10=None):
-        cur_df = self.df_full[['referral_enc_id', 'referral_name', 'specialty_order', 'referral_icd10']]\
-                    .drop_duplicates()
+        cur_df = self.df_full[['referral_enc_id', 'referral_name', 'specialty_order', 'referral_icd10']]
 
+        included_columns = ['referral_enc_id']
         if referral:
             cur_df = cur_df[cur_df['referral_name'] == referral]
+            included_columns.append('referral_name')
 
         if order:
             cur_df = cur_df[cur_df['specialty_order'] == order]
+            included_columns.append('specialty_order')
 
         if icd10:
             cur_df = cur_df[cur_df['referral_icd10'] == icd10]
+            included_columns.append('referral_icd10')
 
-        return float(cur_df.shape[0])
+        return float(cur_df[included_columns].drop_duplicates().shape[0])
 
 
     # def get_icd10_cnt(self, referral=None, icd10=None):
@@ -376,11 +379,11 @@ class ReferralDataMunger():
             P_o = self.get_cnt(order=order)/self.get_cnt()
             P_ri = self.get_cnt(referral=self.referral, icd10=icd10)/self.get_cnt()
             RelaRisk = PPV / ( (P_o-PPV*P_ri)/(1.-P_ri) )
-            cur_order_summary['RelaRisk'] = RelaRisk #'%d' % int(round(RelaRisk))
+            cur_order_summary['RelaRisk'] = '%.2f' % RelaRisk #'%d' % int(round(RelaRisk))
 
             TFIDF = cur_order_summary['N(o,r,i)']*self.get_cnt()/\
                     (cur_order_summary['N(r,i)'] * cur_order_summary['N(o)'])
-            cur_order_summary['TFIDF'] = TFIDF #'%d' % int(round(TFIDF))
+            cur_order_summary['TFIDF'] = '%.2f' % TFIDF #'%d' % int(round(TFIDF))
 
             # cur_order_summary['PC_cnt'] =  self.order_isPCCnt_global[order]['PC_cnt']
             # cur_order_summary['nonPC_cnt'] = self.order_isPCCnt_global[order]['nonPC_cnt']
