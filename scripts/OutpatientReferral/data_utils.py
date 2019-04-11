@@ -60,6 +60,17 @@ def get_queried_data(query):
 
     return df
 
+def calc_PC_cnts(df_full):
+    order_typeCnt_global = df_full[['specialty_order', 'specialty_name']] \
+        .groupby('specialty_order')['specialty_name'] \
+        .apply(list).apply(Counter).to_dict()
+    order_isPCCnt_global = {}
+    # # TODO: be careful of missing specialty departments, could potentially all be PC?
+    for order, cnter in order_typeCnt_global.items():
+        order_isPCCnt_global[order] = {'PC_cnt': cnter['Primary Care'],
+                                            'nonPC_cnt': sum(cnter.values()) - cnter['Primary Care']}
+    return order_isPCCnt_global
+
 from data_config import referral_to_specialty_dict
 from collections import Counter
 
@@ -131,14 +142,8 @@ class ReferralDataMunger():
         # self.N_to_o = Counter(self.df_full['specialty_order'])
         #
         # ''' Type: Primary Care, Cancer, etc.'''
-        self.order_typeCnt_global = self.df_full[['specialty_order', 'specialty_name']] \
-            .groupby('specialty_order')['specialty_name'] \
-            .apply(list).apply(Counter).to_dict()
-        self.order_isPCCnt_global = {}
-        # # TODO: be careful of missing specialty departments, could potentially all be PC?
-        for order, cnter in self.order_typeCnt_global.items():
-            self.order_isPCCnt_global[order] = {'PC_cnt': cnter['Primary Care'],
-                                                'nonPC_cnt': sum(cnter.values()) - cnter['Primary Care']}
+
+        self.order_isPCCnt_global = calc_PC_cnts(self.df_full)
         #
         # '''Total number of orders corresponding to the current referral'''
         # self.N_by_r = self.df.shape[0]
@@ -434,13 +439,29 @@ def explore_referrals(referral, rank_by='abs'):
                                 df=df)
     munger.explore_referral(rank_by=rank_by)
 
+def explore_savable_time():
+    df = load_data(test_mode=False)
+    pc_cnts = calc_PC_cnts(df)
+    df = df[['specialty_enc_id', 'specialty_name', 'specialty_order']]
+
+    df['savable_order'] = df['specialty_order']\
+        .apply(lambda x: float(pc_cnts[x]['PC_cnt'])/(pc_cnts[x]['nonPC_cnt']+0.1) >= 0.1)
+
+    df_tmp = df[['specialty_enc_id', 'specialty_name', 'savable_order']]\
+              .groupby(['specialty_enc_id', 'specialty_name'])['savable_order']\
+        .all().reset_index().rename(columns={'savable_order':'savable_enc'})
+    print df_tmp.groupby(['specialty_name'])['savable_enc'].mean().reset_index()\
+        .rename(columns={'savable_enc':'savable_frac'})
+
 if __name__ == '__main__':
     # REFERRAL TO ENDOCRINE CLINIC, 'E11'
     # explore_referrals('REFERRAL TO HEMATOLOGY', rank_by='abs')
-    test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
+    # test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
     # plot_waiting_times()
 
     # df = load_data()
     # print df.shape
 
     # test_plotVisitTimes()
+
+    explore_savable_time()
