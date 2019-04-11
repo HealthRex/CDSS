@@ -349,7 +349,7 @@ class ReferralDataMunger():
         # elif rank_by == 'tfidf':
         #     common_absCnt_locals = self.N_to_rio_tfidf[icd10].most_common(top_k)
 
-        top_orders_cnts = self.get_most_common_orders(icd10, top_k, rank_by='abs')
+        top_orders_cnts = self.get_most_common_orders(icd10, top_k, rank_by=rank_by)
 
         for order, _ in top_orders_cnts:  # TODO: when tfidf?
             '''
@@ -409,7 +409,7 @@ class ReferralDataMunger():
             '''
             P_o = self.get_cnt(order=order)/self.get_cnt()
             P_ri = self.get_cnt(referral=self.referral, icd10=icd10)/self.get_cnt()
-            RelaRisk = PPV / ( (P_o-PPV*P_ri)/(1.-P_ri) )
+            RelaRisk = PPV / ( (P_o-PPV*P_ri)/(1.-P_ri+0.00001) +0.00001)
             cur_order_summary['RelaRisk'] = '%.2f' % RelaRisk #'%d' % int(round(RelaRisk))
 
             TFIDF = cur_order_summary['N(o,r,i)']*self.get_cnt()/\
@@ -488,8 +488,8 @@ def explore_savable_time(specialty='Hematology'):
 
 if __name__ == '__main__':
     # REFERRAL TO ENDOCRINE CLINIC, 'E11'
-    explore_referrals('REFERRAL TO HEMATOLOGY', top_k=10)
-    quit()
+    # explore_referrals('REFERRAL TO HEMATOLOGY', top_k=10)
+    # quit()
     test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
     # plot_waiting_times()
 
