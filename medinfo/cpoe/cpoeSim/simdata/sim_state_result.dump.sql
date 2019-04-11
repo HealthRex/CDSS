@@ -766,15 +766,6 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 464	32	132	65940	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
 465	32	132	50098	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
 466	32	132	49965	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-467	30	133	45804	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
-468	30	133	45983	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
-469	30	133	48524	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
-470	30	133	50241	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
-471	30	133	52016	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
-472	30	133	64739	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
-473	30	133	65940	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
-474	30	133	50098	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
-475	30	133	49965	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
 476	32	133	45804	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
 477	32	133	45983	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
 478	32	133	48524	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
@@ -824,6 +815,7 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 561	42	133	65940	\N	\N	No acute intracranial abnormality.	\N
 562	42	133	50098	\N	\N	No acute intracranial abnormality.	\N
 563	42	133	49965	\N	\N	No acute intracranial abnormality.	\N
+467	30	133	\N	\N	\N	No acute intracranial abnormality	\N
 \.
 
 
