@@ -15,7 +15,7 @@ def query_sample():
             where item_date >= timestamp('2014-01-01 00:00:00')
             """
 
-def query_for_recent6months(newPatientOnly=True):
+def query_for_recent6months(newPatientOnly=True, referral_name=None):
     query = SQLQuery()
     query.addSelect('p1.pat_enc_csn_id_coded AS referral_enc_id')
     query.addSelect('p1.description AS referral_name')
@@ -45,6 +45,8 @@ def query_for_recent6months(newPatientOnly=True):
     query.addWhere("e1.appt_when_jittered < '2017-01-01'")
 
     query.addWhere("e1.jc_uid = e2.jc_uid")
+    if referral_name:
+        query.addWhere("p1.description = '%s'" % referral_name)
     query.addWhere("e1.pat_enc_csn_id_coded != e2.pat_enc_csn_id_coded")
     query.addWhere("e1.appt_when_jittered <= e2.appt_when_jittered")
     query.addWhere("DATE_ADD(date(timestamp(e1.appt_when_jittered)), INTERVAL 6 month) > date(timestamp(e2.appt_when_jittered))")
