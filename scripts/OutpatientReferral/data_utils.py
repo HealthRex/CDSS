@@ -248,15 +248,24 @@ class ReferralDataMunger():
 
     def explore_referral(self, top_k=5, rank_by='abs'):
         icd10_category_mapping = data_config.get_icd10_category_mapping()
-        print 'Top icd10s and their categories by %s_cnt:'%rank_by
-        if rank_by == 'abs':
-            icd10_cnts = self.N_to_ri.most_common(top_k)
-        elif rank_by == 'tfidf':
-            icd10_cnts = self.N_to_ri_tfidf.most_common(top_k)
+        #print 'Top icd10s (categories) and %s_cnt:'%rank_by
+        # if rank_by == 'abs':
+        #     icd10_cnts = self.N_to_ri.most_common(top_k)
+        # elif rank_by == 'tfidf':
+        #     icd10_cnts = self.N_to_ri_tfidf.most_common(top_k)
+        icd10_cnts = self.get_most_common_icd10s(top_k, rank_by=rank_by)
 
         icd10s = [x[0] for x in icd10_cnts]
+        cnts = [x[1] for x in icd10_cnts]
         categories = [icd10_category_mapping[x] for x in icd10s]
-        print zip(icd10s, categories)
+
+        pd.DataFrame({'icd10':icd10s,
+                      '%s_cnt'%rank_by:cnts,
+                      'category':categories
+                        })[['icd10', 'category', '%s_cnt'%rank_by]]\
+            .to_csv('explore_%s_by_%s.csv'%(self.referral, rank_by), index=False)
+        # for i in range(len(icd10s)):
+        #     print "%s (%s), %f" % (icd10s[i], categories[i], icd10_cnts[i][1])
 
     def get_cnt(self, referral=None, order=None, icd10=None):
         cur_df = self.df_full[['referral_enc_id', 'referral_name', 'specialty_order', 'referral_icd10']]
@@ -307,6 +316,21 @@ class ReferralDataMunger():
                                     / (self.get_cnt(order=order)
                                        * self.get_cnt(referral=self.referral, icd10=icd10))
             return order_tfidfs.most_common(top_k)
+
+    def get_most_common_icd10s(self, top_k, rank_by='abs'):
+        cur_df = self.df
+        icd10_abscnts = Counter(cur_df['referral_icd10'])
+
+        if rank_by == 'abs':
+            return icd10_abscnts.most_common(top_k)
+
+        else:
+            icd10_tfidfs = Counter()
+            for icd10, abscnt in icd10_abscnts.items():
+                icd10_tfidfs[icd10] = float(abscnt) * self.get_cnt() \
+                                      / (self.get_cnt(icd10=icd10)
+                                         * self.get_cnt(referral=self.referral))
+            return icd10_tfidfs.most_common(top_k)
 
 
     def generate_order_stats(self, icd10, top_k=5, rank_by='abs'):
@@ -435,11 +459,13 @@ def plot_waiting_times(col=3):
     # fig.suptitle('waiting days (max 6 months)', verticalalignment='bottom')
     plt.show()
 
-def explore_referrals(referral, rank_by='abs'):
+def explore_referrals(referral, top_k=5):
     df = load_data(test_mode=False)
     munger = ReferralDataMunger(referral=referral,
-                                df=df)
-    munger.explore_referral(rank_by=rank_by)
+                                df_full=df)
+    munger.explore_referral(top_k=top_k, rank_by='abs')
+
+    munger.explore_referral(top_k=top_k, rank_by='tfidf')
 
 def explore_savable_frac():
     df = load_data(test_mode=False)
@@ -462,8 +488,9 @@ def explore_savable_time(specialty='Hematology'):
 
 if __name__ == '__main__':
     # REFERRAL TO ENDOCRINE CLINIC, 'E11'
-    # explore_referrals('REFERRAL TO HEMATOLOGY', rank_by='abs')
-    # test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
+    explore_referrals('REFERRAL TO HEMATOLOGY', top_k=10)
+    quit()
+    test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
     # plot_waiting_times()
 
     # df = load_data()
@@ -472,4 +499,4 @@ if __name__ == '__main__':
     # test_plotVisitTimes()
 
     # explore_savable_frac()
-    explore_savable_time()
+    # explore_savable_time()
