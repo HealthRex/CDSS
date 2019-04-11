@@ -51,6 +51,9 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 39	(User6) Hematemesis, Alcohol	59	Male
 50	(Template) Chemo Fever v2	30	Male
 40	TestNFEve2	30	Male
+48	(Template) Neck Stiffness	25	Female
+49	(Template) Shortness of Breath	66	Female
+41	TestMeningitis	25	Female
 \.
 
 
@@ -58,7 +61,7 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 -- Name: sim_patient_sim_patient_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 40, true);
+SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 41, true);
 
 
 --

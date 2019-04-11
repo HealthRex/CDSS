@@ -4390,6 +4390,12 @@ COPY public.sim_result (sim_result_id, name, description, group_string, priority
 1004203	MRICSpine	MRI Cervical Spine	Imaging>MRI	2030300
 1004205	MRILSpine	MRI Lumbar Spine	Imagine>MRI	2030700
 1004198	ECG	ECG 12-Lead	Cardiology>EKG	3000000
+125	Gram Stain and Culture	CULTURE AND GRAM STAIN, CSF	BODY FLUID ORDERABLES>Other>CULTURE AND GRAM STAIN, CSF	\N
+130	MRI Brain Pending	MRI Brain Pending Notification	IMAGING>MRI	\N
+131	MRI Brain	MRI Brain	IMAGING>MRI	\N
+132	CT Head Pending	CT Head Pending Notification	IMAGING>CT	\N
+133	CT Head	CT Head	IMAGING>CT	\N
+200	TTE	TRANSTHORACIC ECHO	Cardiology>TTE	\N
 \.
 
 
