@@ -46,9 +46,11 @@ def get_queried_data(query):
     cached_filepath = os.path.join(result_folderpath, 'queried_data_%d.csv'%query_id)
 
     if os.path.exists(cached_filepath):
+        print "Found cached query data, now loading..."
         df = pd.read_csv(cached_filepath, comment='#', sep='\t')
 
     else:
+        print "Making new query..."
         client = setup_client('MiningClinicalDecisions_Song.json')
         project_id = 'mining-clinical-decisions'
         df = make_bigquery(query, client=client, project_id=project_id)
@@ -404,11 +406,11 @@ def test_query():
     print df.shape
     print df.head()
 
-def load_data(test_mode=False, newPatientOnly=True):
+def load_data(test_mode=False, newPatientOnly=True, referral_name=None):
     if test_mode:
         df = pd.read_csv(os.path.join(result_folderpath, 'queried_data_2690237133563743535_sample.csv'))
     else:
-        query = queries.query_for_recent6months(newPatientOnly=newPatientOnly)
+        query = queries.query_for_recent6months(newPatientOnly=newPatientOnly, referral_name=referral_name)
         df = get_queried_data(query)
     return df
 
@@ -439,7 +441,7 @@ def explore_referrals(referral, rank_by='abs'):
                                 df=df)
     munger.explore_referral(rank_by=rank_by)
 
-def explore_savable_time():
+def explore_savable_frac():
     df = load_data(test_mode=False)
     pc_cnts = calc_PC_cnts(df)
     df = df[['specialty_enc_id', 'specialty_name', 'specialty_order']]
@@ -453,6 +455,11 @@ def explore_savable_time():
     print df_tmp.groupby(['specialty_name'])['savable_enc'].mean().reset_index()\
         .rename(columns={'savable_enc':'savable_frac'})
 
+def explore_savable_time(specialty='Hematology'):
+    df = load_data(newPatientOnly=False, referral_name='REFERRAL TO HEMATOLOGY')
+    print df.head()
+    pass
+
 if __name__ == '__main__':
     # REFERRAL TO ENDOCRINE CLINIC, 'E11'
     # explore_referrals('REFERRAL TO HEMATOLOGY', rank_by='abs')
@@ -464,4 +471,5 @@ if __name__ == '__main__':
 
     # test_plotVisitTimes()
 
+    # explore_savable_frac()
     explore_savable_time()
