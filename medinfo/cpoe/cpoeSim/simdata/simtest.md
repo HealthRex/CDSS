@@ -14,7 +14,7 @@ STEP 2
 Things to Test
 
 
-|ABX   | Result   |   
+|Treatment Path   | Result   |   
 |---   |---       |
 |amoxicillin      | state doesn't change      |    
 |doxycline        | state doesn't change      |   
