@@ -101,7 +101,7 @@ class SupervisedLearningPipeline:
     def _build_matrix_path(self, file_name_template, pipeline_module_path):
         # Build matrix file name.
         slugified_var = '-'.join(self._var.split())
-        matrix_name = file_name_template % (slugified_var) #, self._num_rows
+        matrix_name = file_name_template % (slugified_var, self._num_rows) #, self._num_rows
 
         # Build path.
         data_dir = self._fetch_data_dir_path(pipeline_module_path)
