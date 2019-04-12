@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.3.11
--- Dumped by pg_dump version 9.6.9
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 10.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -69,9 +69,6 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 5330	5002	5003	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
 5340	5002	5003	44678	\N	Appropriate antibiotics improve patient condition - Aztreonam
 5350	5002	5003	44637	\N	Appropriate antibiotics improve patient condition - Ceftazadime
-50	30	33	\N	3600	Patient condition worsens after 1 hr of inadquate empiric treatment
-49	33	32	\N	3600	Inadequate empiric treatment worsens patient condition
-500	40	42	65534	\N	Cardioversion improves hemodynamics
 51	42	41	44234	\N	No anticoagulation after cardioversion results in stroke
 53	42	41	60178	\N	No anticoagulation after cardioversion results in stroke
 54	42	41	44359	\N	No anticoagulation after cardioversion results in stroke
@@ -91,6 +88,8 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 42	33	31	35733	\N	Appropriate antibiotics improve patient condition - Ceftriaxone
 43	30	31	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
 44	32	31	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
+50	30	33	\N	3600	Patient condition worsens after 1 hr of inadquate empiric treatment
+500	40	42	-100	\N	Cardioversion improves hemodynamics
 45	33	31	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
 46	30	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
 47	32	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
