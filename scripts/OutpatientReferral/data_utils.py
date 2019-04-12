@@ -268,7 +268,7 @@ class ReferralDataMunger():
         #     print "%s (%s), %f" % (icd10s[i], categories[i], icd10_cnts[i][1])
 
     def get_cnt(self, referral=None, order=None, icd10=None):
-        cur_df = self.df_full[['referral_enc_id', 'referral_name', 'specialty_order', 'referral_icd10']]
+        cur_df = self.df_full[['referral_enc_id', 'referral_name', 'specialty_order', 'referral_icd10']].copy()
 
         included_columns = ['referral_enc_id']
         if referral:
@@ -486,11 +486,28 @@ def explore_savable_time(specialty='Hematology'):
     print df.head()
     pass
 
+def explore_PC_freq():
+    df = load_data(test_mode=False)
+    top_orders_cnts = Counter(df['specialty_order']).most_common(1000)
+    PC_dict = calc_PC_cnts(df)
+
+    orders = []
+    PC_cnts = []
+    nonPC_cnts = []
+    for order, cnt in top_orders_cnts:
+        orders.append(order)
+        PC_cnts.append(PC_dict[order]['PC_cnt'])
+        nonPC_cnts.append(PC_dict[order]['nonPC_cnt'])
+        # print order, PC_dict[order]
+    pd.DataFrame({'order':orders, 'PC_cnt':PC_cnts, 'nonPC_cnt':nonPC_cnts})\
+        [['order', 'PC_cnt', 'nonPC_cnt']].to_csv('PC_freqs.csv', index=False)
+    pass
+
 if __name__ == '__main__':
     # REFERRAL TO ENDOCRINE CLINIC, 'E11'
     # explore_referrals('REFERRAL TO HEMATOLOGY', top_k=10)
     # quit()
-    test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
+    # test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
     # plot_waiting_times()
 
     # df = load_data()
@@ -498,5 +515,6 @@ if __name__ == '__main__':
 
     # test_plotVisitTimes()
 
-    # explore_savable_frac()
+    explore_savable_frac()
     # explore_savable_time()
+    # explore_PC_freq()
