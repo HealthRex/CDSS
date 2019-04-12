@@ -128,16 +128,16 @@ load up an EC2 Linux instance that already has a database locally installed. Ski
 				LOCAL_PROD_DB_PARAM["HOST"] = 'YourDBID.cwyfvxgvic6c.us-east-1.rds.amazonaws.com'	# "Endpoint"
 				LOCAL_PROD_DB_PARAM["DSN"] = "medinfo"		# "DB Name"
 				LOCAL_PROD_DB_PARAM["UID"] = 'postgres'		# "Username" default master account name at this time.
-				LOCAL_PROD_DB_PARAM["PWD"] = '<password>'	# Get this from someone else or LastPass
+				LOCAL_PROD_DB_PARAM["PWD"] = '<password>'	# Get this from someone else or LastPass. Or see "Version B's" LocalEnv.py file.
 
 
 === Version B - Restore an EC2 Linux Server with Local Database ===
-If you just want to run some code against a local of a database, this will likely be a simpler, efficient approach.
+If you just want to run some code against a local copy of a database, this will likely be a simpler, efficient approach.
 
 - Restore EC2 (Elastic Compute) Instance
 	- Pick the Amazon Machine Image to [Launch]
 		Find and select the image in EC2 > Images > AMIs section you want to restore. For example:
-		- stride-inpatient-2008-2014-postgresql - Has  local PostgreSQL database installed with inpatient data from 2008-2014
+		- stride-inpatient-2008-2014-postgresql - Has local PostgreSQL database installed with inpatient data from 2008-2014
 		- stride-inpatient-2008-2017-postgresql - Should be a superset of the above, updating dataset to 2017
 	- Additional Configuration and Connection Steps
 		See Version A above for the basic configuration steps, which should all basically be the same, 
@@ -148,6 +148,7 @@ If you just want to run some code against a local of a database, this will likel
 		~/CDSS directory with code repo. But run `git pull` to make sure it's up-to-date.
 		~/CDSS/LocalEnv.py should already have the connection parameters to the local database.
 		~/.bash_profile should already have some auto-startup configurations (runs everytime you connect to server).
+		    This should include command to start the local PostgreSQL server (`sudo service postgresql start`)
 
 		Depending upon your needs, you may still need to install or update some additional library dependencies 
 		(e.g., `sudo yum install XXX` or `sudo python -m pip install XXX`).
