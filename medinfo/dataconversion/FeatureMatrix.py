@@ -285,8 +285,8 @@ class FeatureMatrix:
         source_path = self._factory.getMatrixFileName()
         # Write to new matrix filee.
         matrix_file = open(dest_path, 'w')
-        for line in header:
-            matrix_file.write('# %s\n' % line)
+        # for line in header:
+        #     matrix_file.write('# %s\n' % line)
         for line in open(source_path, 'r'):
             if line[0] != '#':
                 matrix_file.write(line)
