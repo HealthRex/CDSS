@@ -14,7 +14,7 @@ STEP 2
 Things to Test
 
 
-|Treatment Path   | Result   |   
+|Action   | Result   |   
 |---   |---       |
 |amoxicillin      | state doesn't change      |    
 |doxycline        | state doesn't change      |   
@@ -36,3 +36,13 @@ Things to Test
 |Aztreonam + IVF   | 5000 -> (5001,5003)             |   
 |Lactated Ringers  + Cefepime  | 5000 -> (5002,5003) |
 |Lactated Ringers + Meropenum   |5000 -> (5002,5003) |
+
+#### Meningitis (Neck Stiffness) Testing
+
+|Action   | Result   |   
+|---   |---       |
+|Ceftriaxone  (intravenous)   | 30 -> 31      |    
+|cefepime         | 30 -> 31             |   
+|Meropenem        | 30 -> 31 |   
+|Do nothing for two hours        | 30 -> 32 -> 33|   
+
