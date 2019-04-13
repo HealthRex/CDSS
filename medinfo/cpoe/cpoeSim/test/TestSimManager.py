@@ -513,8 +513,10 @@ class TestSimManager(DBTestCase):
 
 
     def test_discontinueOrders(self):
-        # Query for results based on simulated turnaround times, including fallback to default normal values
-        #   if no explicit (abnormal) values specified for simulated state
+        # Verify behavior of discontinuing/cancelling orders
+        #   Should not generate subsequent results or count as "recent items" that should
+        #   be considered to trigger recommender. If cancelled at same time as order time,
+        #   then delete the record altogether.
 
         colNames = ["name", "num_value", "result_relative_time"];
 
@@ -531,6 +533,12 @@ class TestSimManager(DBTestCase):
             ];
         self.assertEqualDictList(verifyResults, sampleResults, colNames);
 
+        # Record of vital sign order (but not yet resulted)
+        sampleRecentItemIds = self.manager.recentItemIds(patientId, relativeTime);
+        verifyRecentItemIds = set([-15]);
+        self.assertEqual(verifyRecentItemIds, sampleRecentItemIds);
+
+
         # Time 5 minutes, vital signs should result now
         relativeTime = 300;
         sampleResults = self.manager.loadResults(patientId, relativeTime);
@@ -543,6 +551,17 @@ class TestSimManager(DBTestCase):
                 RowItemModel(["Resp", 12, 300], colNames),  # Normal result retrieve from default state 0
             ];
         self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
+        # Restrict recent item search to limited time that should miss the vital sign order
+        sampleRecentItemIds = self.manager.recentItemIds(patientId, relativeTime, 100);
+        verifyRecentItemIds = set([]);
+        self.assertEqual(verifyRecentItemIds, sampleRecentItemIds);
+
+        # Include longer time difference that should catch the prior order
+        sampleRecentItemIds = self.manager.recentItemIds(patientId, relativeTime, 400);
+        verifyRecentItemIds = set([-15]);
+        self.assertEqual(verifyRecentItemIds, sampleRecentItemIds);
+
 
         # Go back and simulate the vitals check order being discontinued before results came back
         discontinueTime = 120;
@@ -558,7 +577,7 @@ class TestSimManager(DBTestCase):
             ];
         self.assertEqualDictList(verifyResults, sampleResults, colNames);
 
-        # Check that there is still a record of orders, including the cancelled one
+        # Check that there is still a record of orders, including the cancelled one (but not in "recent items" list)
         orderCols = ["name","relative_time_start","relative_time_end"];
         sampleOrders = self.manager.loadPatientOrders(patientId, 300, loadActive=None);
         verifyOrders = \
@@ -566,6 +585,10 @@ class TestSimManager(DBTestCase):
                 RowItemModel(["Vital Signs", 0, 120], orderCols),
             ];
         self.assertEqualDictList(verifyOrders, sampleOrders, orderCols);
+
+        sampleRecentItemIds = self.manager.recentItemIds(patientId, relativeTime);
+        verifyRecentItemIds = set([]);   # Don't count the cancelled order
+        self.assertEqual(verifyRecentItemIds, sampleRecentItemIds);
 
         # Go back and simulate the vitals check order being discontinued immediately (same time as order),
         #   then don't even keep a record of it to clean up data entry error
@@ -581,6 +604,10 @@ class TestSimManager(DBTestCase):
             [
             ];
         self.assertEqualDictList(verifyOrders, sampleOrders, orderCols);
+
+        sampleRecentItemIds = self.manager.recentItemIds(patientId, relativeTime);
+        verifyRecentItemIds = set([]);
+        self.assertEqual(verifyRecentItemIds, sampleRecentItemIds);
 
     def test_stateTransition(self):
         # Query for results based on simulated turnaround times, including fallback to default normal values
