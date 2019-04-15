@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.5
--- Dumped by pg_dump version 10.3
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -69,17 +69,6 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 5330	5002	5003	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
 5340	5002	5003	44678	\N	Appropriate antibiotics improve patient condition - Aztreonam
 5350	5002	5003	44637	\N	Appropriate antibiotics improve patient condition - Ceftazadime
-51	42	41	44234	\N	No anticoagulation after cardioversion results in stroke
-53	42	41	60178	\N	No anticoagulation after cardioversion results in stroke
-54	42	41	44359	\N	No anticoagulation after cardioversion results in stroke
-55	42	41	44250	\N	No anticoagulation after cardioversion results in stroke
-56	42	41	54380	\N	No anticoagulation after cardioversion results in stroke
-57	40	43	44004	\N	Diuretics worsen hypotension
-58	40	44	44393	\N	Nodal Agents worsen hypotension
-59	40	44	44327	\N	Nodal Agents worsen hypotension
-60	40	45	35968	\N	Amio drip (without bolus) slows heart rate
-61	40	41	44352	\N	Maintenance of rhythm with amiodarone
-62	42	46	49251	\N	Maintenance of rhythm with amiodarone
 63	30	31	43997	\N	Appropriate antibiotics improve patient condition - Vancomycin
 64	32	31	43997	\N	Appropriate antibiotics improve patient condition - Vancomycin
 65	33	31	43997	\N	Appropriate antibiotics improve patient condition - Vancomycin
@@ -89,18 +78,29 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 43	30	31	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
 44	32	31	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
 50	30	33	\N	3600	Patient condition worsens after 1 hr of inadquate empiric treatment
-500	40	42	-100	\N	Cardioversion improves hemodynamics
 45	33	31	36210	\N	Appropriate antibiotics improve patient condition - Cefepime
 46	30	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
 47	32	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
 48	33	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
-80	46	41	44234	\N	Anticoagulant prevents stroke - warfarin
-81	46	41	60178	\N	Anticoagulant prevents stroke - rivaroxaban
-82	46	41	44359	\N	Anticoagulant prevents stroke - heparin
-83	46	41	44250	\N	Anticoagulant prevents stroke - enoxaparin
-84	46	41	54380	\N	Anticoagulant prevents stroke - dabigatran
-85	44	42	-100	\N	Cardioversion improves hemodynamics - from critical post nodal
-86	43	42	-100	\N	Cardioversion improves hemodynamics - from critical post diuretics
+86	44	44	\N	\N	\N
+85	44	44	\N	\N	\N
+80	44	44	\N	\N	\N
+81	44	44	\N	\N	\N
+82	44	44	\N	\N	\N
+83	44	44	\N	\N	\N
+84	44	44	\N	\N	\N
+57	40	46	49251	\N	Cardiology Consultation
+58	40	43	35846	\N	Nodal Agents worsen hypotension
+59	40	43	44327	\N	Nodal Agents worsen hypotension
+60	40	45	35968	\N	Transient improvement with amiodarone
+61	45	40	\N	0	Amiodarone not enough to stabilize so revert
+500	40	41	-100	\N	Cardioversion improves hemodynamics
+51	43	45	35968	\N	Transient improvement with amiodarone
+53	46	40	\N	0	Consult completed, back to start
+54	40	42	46605	\N	Adenosine evaluation
+55	42	40	\N	0	Adenosine wears off, back to prior state
+56	43	41	-100	\N	Cardioversion improves hemodynamics - from critical post diuretics
+62	43	42	46605	\N	Adenosine evaluation
 \.
 
 
