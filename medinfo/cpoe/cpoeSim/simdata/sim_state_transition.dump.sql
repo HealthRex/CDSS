@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.3.11
--- Dumped by pg_dump version 9.6.9
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 10.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -94,6 +94,13 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 46	30	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
 47	32	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
 48	33	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
+80	46	41	44234	\N	Anticoagulant prevents stroke - warfarin
+81	46	41	60178	\N	Anticoagulant prevents stroke - rivaroxaban
+82	46	41	44359	\N	Anticoagulant prevents stroke - heparin
+83	46	41	44250	\N	Anticoagulant prevents stroke - enoxaparin
+84	46	41	54380	\N	Anticoagulant prevents stroke - dabigatran
+85	44	42	-100	\N	Cardioversion improves hemodynamics - from critical post nodal
+86	43	42	-100	\N	Cardioversion improves hemodynamics - from critical post diuretics
 \.
 
 
