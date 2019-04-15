@@ -2,7 +2,7 @@
 
 # This file serves as documentation to help users understand LocalEnv.py.
 #
-# LocalEnv.py is created dynamically by setup.sh, but if you don't need
+# LocalEnv.py can be created dynamically by setup.sh, but if you don't need
 # to do any of the other steps in setup.sh (e.g. installing libraries,
 # initializing DB) it may be easier to just make a copy of this file
 # and name it LocalEnv.py before editing the actual values.
@@ -18,23 +18,30 @@ BOX_CLIENT_SECRET = "BOX_API_CLIENT_SECRET"
 BOX_ACCESS_TOKEN = "BOX_API_ACCESS_TOKEN"
 BOX_STRIDE_FOLDER_ID = "BOX_STRIDE_FOLDER_ID"
 
+# Database connection type
+DATASET_SOURCE_NAME = 'STRIDE'
+DATABASE_CONNECTOR_NAME = "psycopg2"
+SQL_PLACEHOLDER = "%s"
+
+# Connection parameters to primary working database of interest
 LOCAL_PROD_DB_PARAM = {}
 LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'   # Database host. Localhost if running on your local computer. For AWS RDS instances, look for the "Endpoint" hostname, e.g. YourDatabaseIdentifier.cwyfvxgvic6c.us-east-1.rds.amazonaws.com
-LOCAL_PROD_DB_PARAM["DSN"] = 'databaseName'    # Specific database name hosted by the database server (e.g., medinfo)
+LOCAL_PROD_DB_PARAM["DSN"] = 'databaseName'    # Specific database name hosted by the database server (e.g., stride_inpatient_2008_2017)
 LOCAL_PROD_DB_PARAM["UID"] = 'databaseUserId'
 LOCAL_PROD_DB_PARAM["PWD"] = 'databaseUserPassword'
 
-
+# Connection parameters for a test database to create and manipulate during unit tests
+#	The DSN (database name) MUST NOT BE the same as any real working database.
+#	Many of the Python application unit tests' first and last steps
+#	will be to delete any database identified by these test identifiers.
+#	The database user (UID) and password (PWD) will need to be a valid 
+#	database user with permissions to create and delete such databases.
 LOCAL_TEST_DB_PARAM = {}
 LOCAL_TEST_DB_PARAM["HOST"] = 'localhost'
-LOCAL_TEST_DB_PARAM["DSN"] = 'test'
+LOCAL_TEST_DB_PARAM["DSN"] = 'unittest_db'
 LOCAL_TEST_DB_PARAM["UID"] = 'testuid'
 LOCAL_TEST_DB_PARAM["PWD"] = 'testpwd'
 
 PATH_TO_CDSS = "/foo/bar/CDSS"; # Directory where this file is contained in
 
 TEST_RUNNER_VERBOSITY = 2
-
-DATASET_SOURCE_NAME = 'STRIDE'
-DATABASE_CONNECTOR_NAME = "psycopg2"
-SQL_PLACEHOLDER = "%s"

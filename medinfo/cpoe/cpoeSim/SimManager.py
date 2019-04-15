@@ -416,8 +416,8 @@ class SimManager:
             
             if loadActive:  # Filter out inactive orders here.
                 query.openWhereOrClause();
-                query.addWhereOp("relative_time_end",">", currentTime);
                 query.addWhere("relative_time_end is null");
+                query.addWhereOp("relative_time_end",">", currentTime);
                 query.closeWhereOrClause();
             #elif loadActive is not None:    # Filter out active orders here.
             #    query.addWhereOp("relative_time_end","<=", currentTime);
@@ -577,12 +577,13 @@ class SimManager:
                 conn.close();
 
 
-    def recentItemIds(self, patientId, currentTime, timeDelta=None, includeResults=False, conn=None):
+    def recentItemIds(self, patientId, currentTime, timeDelta=None, loadActive=True, includeResults=False, conn=None):
         """Load a list of clinicalItemIds
         (orders, diagnoses, unlocked results, etc.)
         to establish current patient context.
         
         timeDelta - If specified, only count items that occurred within that much past time from the current simTime
+        loadActive - If True then only look for patient orders that have not since been cancelled
         includeResults - If True (default False), then also include clinical_items that represent (abnormal) test results.
         """
         extConn = True;
@@ -592,16 +593,16 @@ class SimManager:
         try:
             itemIds = set();
             
-            patientOrders = self.loadPatientOrders(patientId, currentTime, loadActive=True, conn=conn);
+            patientOrders = self.loadPatientOrders(patientId, currentTime, loadActive=loadActive, conn=conn);
             for patientOrder in patientOrders:
-                itemIds.add(patientOrder["clinical_item_id"]);
+                if timeDelta is None or patientOrder["relative_time_start"] >= currentTime-timeDelta:
+                    itemIds.add(patientOrder["clinical_item_id"]);
             
             if includeResults:
                 results = self.loadResults(patientId, currentTime, conn=conn);
                 for result in results:
                     if result["clinical_item_id"] is not None:
                         itemIds.add(result["clinical_item_id"]);
-            
             return itemIds;
         finally:
             if not extConn:
