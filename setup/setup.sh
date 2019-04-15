@@ -9,8 +9,10 @@
 #   what it's trying to do and replicate them as needed.
 # https://github.com/HealthRex/CDSS/wiki/Dev-Environment-Setup
 # 
+# See installPythonLibraries.py for example of installing commonly needed Python dependencies through PIP
+#
 # Walking through the DevWorkshop below can be very helpful for notes on setting things up as well.
-# https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/ReadMe.AWSDevEnvironment.txt
+#   https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/ReadMe.AWSDevEnvironment.txt
 #
 
 ##### IDENTIFY PLATFORM #####

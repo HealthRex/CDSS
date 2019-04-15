@@ -51,7 +51,9 @@ def get_queried_data(query):
 
     else:
         print "Making new query..."
-        client = setup_client('MiningClinicalDecisions_Song.json')
+        print "set client path to gcp key" 
+        client = setup_client('/Users/jonc101/Documents/Biomedical_Data_Science/gcp/gcp_key.json')
+        # client = setup_client('MiningClinicalDecisions_Song.json')
         project_id = 'mining-clinical-decisions'
         df = make_bigquery(query, client=client, project_id=project_id)
 
@@ -268,7 +270,7 @@ class ReferralDataMunger():
         #     print "%s (%s), %f" % (icd10s[i], categories[i], icd10_cnts[i][1])
 
     def get_cnt(self, referral=None, order=None, icd10=None):
-        cur_df = self.df_full[['referral_enc_id', 'referral_name', 'specialty_order', 'referral_icd10']]
+        cur_df = self.df_full[['referral_enc_id', 'referral_name', 'specialty_order', 'referral_icd10']].copy()
 
         included_columns = ['referral_enc_id']
         if referral:
@@ -379,8 +381,8 @@ class ReferralDataMunger():
                                                          icd10=icd10)
 
             '''
-            PPV = P(order|referral, diagnose)=P(o|rd): When (1 referral, 1 icd10 appear) 
-            predicting order is in the actual order list, the fraction of time correct.  
+            PPV = P(order|referral, diagnose)=P(o|rd): When (1 referral, 1 icd10 appear)
+            predicting order is in the actual order list, the fraction of time correct.
             '''
             # print self.df_referID_orders.head()
             # df_referID_icd10_orders = self.df_referID_orders[self.df_referID_orders['referral_icd10']==icd10]
@@ -394,7 +396,7 @@ class ReferralDataMunger():
             cur_order_summary['PPV'] = '%.2f' % PPV
 
             '''
-            
+
             Relative risk = PPV / P(order|!ri)
 
             According to Bayes formula:
@@ -422,6 +424,8 @@ class ReferralDataMunger():
                                                               /float(self.order_isPCCnt_global[order]['nonPC_cnt']))
 
             df_res = df_res.append(cur_order_summary, ignore_index=True)
+        if not os.path.exists("tables"):
+            os.mkdir("tables")
         df_res.to_csv('tables/%s_%s_%s.csv' % (self.referral_code, icd10, rank_by), index=False)
 
 def test_query():
@@ -439,12 +443,16 @@ def load_data(test_mode=False, newPatientOnly=True, referral_name=None):
     return df
 
 def test_munger(referral, icd10, test_mode=False):
+    print "loading data into test munger for referral:  %s  with icd10: %s " %(referral,icd10)
     df = load_data(test_mode=test_mode, newPatientOnly=True)
+    print "running data munger"
     munger = ReferralDataMunger(referral=referral,
                                 df_full=df)
+    print "generate order stats by abs"
     munger.generate_order_stats(icd10=icd10, top_k=10, rank_by='abs')
+    print "generate order stats by tfidf"
     munger.generate_order_stats(icd10=icd10, top_k=10, rank_by='tfidf')
-
+    print "test munger complete"
 def plot_waiting_times(col=3):
     df = load_data()
     row = len(data_config.referral_to_specialty_tuples)/col
@@ -461,11 +469,15 @@ def plot_waiting_times(col=3):
 
 def explore_referrals(referral, top_k=5):
     df = load_data(test_mode=False)
+    print "reading data into munger"
     munger = ReferralDataMunger(referral=referral,
                                 df_full=df)
+    print "calculating by abs"
     munger.explore_referral(top_k=top_k, rank_by='abs')
 
+    print "calculating tfidf"
     munger.explore_referral(top_k=top_k, rank_by='tfidf')
+    print "finished explore_referral"
 
 def explore_savable_frac():
     df = load_data(test_mode=False)
@@ -486,6 +498,23 @@ def explore_savable_time(specialty='Hematology'):
     print df.head()
     pass
 
+def explore_PC_freq():
+    df = load_data(test_mode=False)
+    top_orders_cnts = Counter(df['specialty_order']).most_common(1000)
+    PC_dict = calc_PC_cnts(df)
+
+    orders = []
+    PC_cnts = []
+    nonPC_cnts = []
+    for order, cnt in top_orders_cnts:
+        orders.append(order)
+        PC_cnts.append(PC_dict[order]['PC_cnt'])
+        nonPC_cnts.append(PC_dict[order]['nonPC_cnt'])
+        # print order, PC_dict[order]
+    pd.DataFrame({'order':orders, 'PC_cnt':PC_cnts, 'nonPC_cnt':nonPC_cnts})\
+        [['order', 'PC_cnt', 'nonPC_cnt']].to_csv('PC_freqs.csv', index=False)
+    pass
+
 if __name__ == '__main__':
     # REFERRAL TO ENDOCRINE CLINIC, 'E11'
     # explore_referrals('REFERRAL TO HEMATOLOGY', top_k=10)
@@ -500,3 +529,4 @@ if __name__ == '__main__':
 
     # explore_savable_frac()
     # explore_savable_time()
+    # explore_PC_freq(
