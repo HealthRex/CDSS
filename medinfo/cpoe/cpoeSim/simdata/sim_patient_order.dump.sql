@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.5
--- Dumped by pg_dump version 10.3
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -434,6 +434,44 @@ COPY public.sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id
 678	0	48	41758	0	\N	30
 691	0	49	41870	0	\N	40
 800	0	49	41870	0	\N	40
+712	0	56	41758	0	\N	30
+713	1	56	45955	60	\N	30
+714	1	56	44198	60	\N	30
+715	1	56	45771	60	\N	30
+716	1	56	45901	60	\N	30
+717	1	56	45751	60	\N	30
+718	1	56	45752	60	\N	30
+719	1	56	45788	60	\N	30
+720	1	56	45818	480	\N	30
+721	1	56	63725	1440	\N	30
+722	1	56	45918	1440	\N	30
+723	1	56	62151	1440	\N	30
+724	1	56	45983	2520	\N	30
+725	1	56	63811	6180	\N	33
+726	1	56	48880	6240	\N	33
+727	1	56	63767	6240	\N	33
+728	1	56	48577	6360	\N	33
+729	1	56	49020	6360	\N	33
+730	1	56	35733	7380	\N	33
+731	1	56	44017	7440	\N	31
+732	1	56	43997	7440	\N	31
+733	1	56	50510	7560	\N	31
+734	0	57	41758	0	\N	30
+735	1	57	63811	60	\N	30
+736	1	57	45771	60	\N	30
+737	1	57	45901	60	\N	30
+738	1	57	36210	60	\N	30
+739	1	57	45752	60	\N	30
+740	1	57	45788	60	\N	30
+741	1	57	43997	60	\N	30
+742	1	57	48880	480	\N	31
+743	1	57	63767	480	\N	31
+744	1	57	48577	600	\N	31
+745	1	57	49083	600	\N	31
+746	1	57	49020	600	\N	31
+747	0	58	41870	0	\N	40
+748	0	58	41870	0	\N	40
+788	1	58	-100	540	\N	40
 \.
 
 
@@ -441,7 +479,7 @@ COPY public.sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id
 -- Name: sim_patient_order_sim_patient_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_order_sim_patient_order_id_seq', 711, true);
+SELECT pg_catalog.setval('public.sim_patient_order_sim_patient_order_id_seq', 788, true);
 
 
 --

@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.5
--- Dumped by pg_dump version 10.3
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -50,13 +50,13 @@ COPY public.sim_state (sim_state_id, name, description) FROM stdin;
 31	Meningitis Adequately Treated	Appropriate antibiotic improve patient condition
 32	Meningits Inadequately Treated	Inadequate treatment worsens patient condition
 33	Meningits Worsens	Patient condition worsens after 1 hr
-40	Afib-RVR Active	Afib-RVR Active
-41	Afib-RVR Stabilized	Cardioversion improves hemodynamics
-42	Afib-RVR Stabilized No Anti-coag	No anticoagulation after cardioversion results in stroke
-43	Afib-RVR Critical Post Diuretics	Diuretics worsen hypotension
-44	Afib-RVR Critical Post Nodal	Nodal Agents worsen hypotension
-45	Afib-RVR Metastable	Amio drip (without bolus) slows heart rate
-46	Afib-RVR Stablized Consult	Cardiology consult is ordered
+40	Afib-RVR Initial	Afib-RVR Initial State (unstable/hypotensive)
+41	Afib-RVR Stabilized	DC Cardioversion improves hemodynamics
+43	Afib-RVR Worse	More unstable (after time or nodal blocking agent)
+46	Afib-RVR Cardiology	Cardiology consult response
+42	Afib-RVR Adenosine	Transient state while adenosine administered
+45	Afib-RVR Antiarrhythmic	Transient state with amiodarone or others, but still unstable
+44	Afib-RVR critical???	Critical after nodal agents, may be redundant with 43?
 \.
 
 
