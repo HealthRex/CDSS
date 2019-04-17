@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.3.11
--- Dumped by pg_dump version 9.6.9
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 10.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -82,13 +82,6 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 46	30	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
 47	32	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
 48	33	31	44008	\N	Appropriate antibiotics improve patient condition - Meropenem
-86	44	44	\N	\N	\N
-85	44	44	\N	\N	\N
-80	44	44	\N	\N	\N
-81	44	44	\N	\N	\N
-82	44	44	\N	\N	\N
-83	44	44	\N	\N	\N
-84	44	44	\N	\N	\N
 57	40	46	49251	\N	Cardiology Consultation
 58	40	43	35846	\N	Nodal Agents worsen hypotension
 59	40	43	44327	\N	Nodal Agents worsen hypotension
@@ -101,6 +94,14 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 55	42	40	\N	0	Adenosine wears off, back to prior state
 56	43	41	-100	\N	Cardioversion improves hemodynamics - from critical post diuretics
 62	43	42	46605	\N	Adenosine evaluation
+86	44	43	\N	\N	\N
+85	44	43	\N	\N	\N
+80	44	43	\N	\N	\N
+81	44	43	\N	\N	\N
+82	44	43	\N	\N	\N
+83	44	43	\N	\N	\N
+84	44	43	\N	\N	\N
+69	40	43	44004	\N	Diuretics worsen hypotension
 \.
 
 
