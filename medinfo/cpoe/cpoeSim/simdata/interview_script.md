@@ -26,7 +26,19 @@ COPD Example Order Set
 - [ ] Complete Survey
 - [ ] Gift card / compensation
 
-Hello, my name is Jonathan Chiang, and I am a Staff Researcher under Jonathan Chen. THank you for coming in to help test our Physician Simulation User Interface. Before we begin, I need you to sign this consent form. Upon completion you will immediately recieve 195 gift card to amazon. 
+Hello, my name is Jonathan Chiang, and I am a Staff Researcher under Jonathan Chen. Thank you for coming in to help test our Physician Simulation User Interface. Before we begin, I need you to sign this consent form. 
 
-Do you have any questions, before I give you instructions and take you through a sample case? 
+Upon completion of our 1 hour session you will immediately recieve $195 gift card to amazon. 
+Do you have any questions, before I take you through a sample case without the recommender? 
+
+You will have roughly 5 to 10 minutes per case, in cases where you may finish faster or slower and the physician note will prompt when the attending team has arrived, this signals that the patient has been adequately treated and you may wrap any final orders and move on to the next case. 
+
+Feel free to ask me any questions about the interface. 
+
+-- Begin Recommender Setup: o
+
+-- Wrap Up 
+
+Thanks for coming in today, we have a survey for you to follow up with. Once this is completed you will receive your $195 gift card. 
+
 
