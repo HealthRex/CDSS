@@ -347,7 +347,8 @@ SQL Queries and Databases
   - What are other medications/drugs are in the same pharmaceutical class as Metoprolol?
   - For Blood Culture (2 Aerobic) results, what were Top 10 bugs grown? How often were they Susceptible to Ceftriaxone? To Ciprofloxacin?
   - What percent of patients had a Glucose By Meter lab_result value >250 at some point in 2017?
-  - For each of the patients above, what was the average number of units of Insulin administered to them (mar table) on any day they received insulin?
+  - For each of the patients above, what was the average number of units of Insulin administered to them on any day they received insulin?
+    (Look in mar = Medication Administration Record table. For some reason, the dose given is recorded in the "sig" field.)
   - Find all patients who received a tPA infusion (medication_id = 86145) and report the 
   	time the patient presented to the emergency department (adt.effective_time_jittered
   	    (where admit.event_type_c = 1 -- Admission 
