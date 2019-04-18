@@ -68,7 +68,7 @@ SQL Queries and Databases
           FROM starr_datelake2018.order_med
           LIMIT 100;
 
-      * Query for just some of the most relevant columns information
+    * Query for just some of the most relevant columns information
 
         SELECT
           jc_uid,   -- Unique patient identifier (Deidentified. Not the "real" MRN, but can be mapped back to real data for specific IRB approved projects)
@@ -342,8 +342,12 @@ SQL Queries and Databases
           COUNT(DISTINCT enc.pat_enc_csn_id_coded) DESC;
 
 - Challenge Queries
-  - Top 10 Diagnoses recorded in 2017?
-  - For Blood Culture results, what were Top 10 bugs grown, and how often were they Susceptible to Ceftriaxone?
+  - Top 10 Diagnoses recorded in 2017? In 2018?
+  - Top 5 medication routes of administration in Inpatient setting in 2017?
+  - What are other medications/drugs are in the same pharmaceutical class as Metoprolol?
+  - For Blood Culture (2 Aerobic) results, what were Top 10 bugs grown? How often were they Susceptible to Ceftriaxone? To Ciprofloxacin?
+  - What percent of patients had a Glucose By Meter lab_result value >250 at some point in 2017?
+  - For each of the patients above, what was the average number of units of Insulin administered to them (mar table) on any day they received insulin?
   - Find all patients who received a tPA infusion (medication_id = 86145) and report the 
   	time the patient presented to the emergency department (adt.effective_time_jittered
   	    (where admit.event_type_c = 1 -- Admission 
@@ -351,4 +355,4 @@ SQL Queries and Databases
   	time the medication was ordered (order_med.order_time_jittered),
   	time the medication was administered (mar.taken_time_jittered)
 
-  	To estimate the average time between showing up in the emergency department and receiving tPA for those who received it.
+  	Use above to estimate the average time between showing up in the emergency department and receiving tPA for those who received it.
