@@ -65,7 +65,7 @@ SQL Queries and Databases
     * Querying for a sample of medication order data
 
           SELECT *
-          FROM starr_datelake2018.order_med
+          FROM starr_datalake2018.order_med
           LIMIT 100;
 
     * Query for just some of the most relevant columns information
