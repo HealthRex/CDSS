@@ -30,3 +30,17 @@ Consult Song <br/>
 
 ## Communicating with Susan Weber to Get Data 
 
+#### April 15, 2019 
+
+[ ]	Figure out Timestamp for google query (https://stackoverflow.com/questions/38837868/add-five-hours-to-timestamp-field)
+
+
+#### BIG QUERY CHEAT SHEET 
+
+- TIMESTAMP 
+
+/*
+select TIMESTAMP(effective_time_jittered) as timestamp, TIMESTAMP_ADD(TIMESTAMP(effective_time_jittered), INTERVAL 60 MINUTE) as one_hour_later
+from `datalake_47618_sample.adt`
+*/
+
