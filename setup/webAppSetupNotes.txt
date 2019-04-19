@@ -5,7 +5,10 @@
 #	perfectly synced binaries / compiler versions for each component.
 #	Best if you have a package installer (e.g., yum) that does it automatically, otherwise
 #	you'll have to hunt down the right combination of pre-compiled components that are compatible.
-# Setup the Apache webserver as per standard instructions, then add the extra configuration below to add the custom Python app
+# Setup the Apache webserver as per standard instructions, 
+#	Can just be a matter of downloading the respective package and running httpd -k install
+#	or using a package manager like yum / apt-get / brew, etc.,
+#	then add the extra configuration below to add the custom Python app
 # Sample Apache Config:
 sudo vi /etc/httpd/conf/httpd.conf
 
@@ -44,7 +47,7 @@ sudo vi /etc/httpd/conf/httpd.conf
 
 # Update medinfo/web/cgibin/Env.py, CGI_TEXT_RESPONSE depending on if using CGI or WSGI setup
 # Windows: May need to add Apache directive, so CGI knows how to run .py files
-	ScriptInterpreterResoruce Registry
+	ScriptInterpreterSource Registry
 
 # Link with tips on setting up apache environment variable configuration if needed
 # Basically adding values to a configuration file like below, though CGI and WSGI should accept PYTHONPATH specification as above
