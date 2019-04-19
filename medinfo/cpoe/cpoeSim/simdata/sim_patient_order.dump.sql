@@ -442,7 +442,7 @@ COPY public.sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id
 -- Name: sim_patient_order_sim_patient_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_order_sim_patient_order_id_seq', 810, true);
+SELECT pg_catalog.setval('public.sim_patient_order_sim_patient_order_id_seq', 823, true);
 
 
 --

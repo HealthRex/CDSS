@@ -265,13 +265,13 @@ function loadRelatedOrders()
 
     // Two queries for different sort options. Nest calls for sequential asynchronous call.
     // Total time takes longer to fill simultaneous queries
-    var queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=PPV&displayFields=PPV&title=Common Orders';
+    var queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=PPV&displayFields=&title=Common Orders';
     //console.log( queryURL );
     ajaxRequest(queryURL, function(data) {
         resultSpace1.innerHTML = data;
         // Defined in Track.js
         recordNewResults('resultSpace1') // Record any new items in resultSpace1
-        queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=P-YatesChi2-NegLog&filterField1=prevalence<:0.015&displayFields=RR&title=Specific Orders'
+        queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=P-YatesChi2-NegLog&filterField1=prevalence<:0.01&displayFields=&title=Related Orders'
         console.log( queryURL );
         ajaxRequest( queryURL, function(data){
           resultSpace2.innerHTML = data;
