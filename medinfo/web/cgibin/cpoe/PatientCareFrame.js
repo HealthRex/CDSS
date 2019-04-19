@@ -271,14 +271,14 @@ function loadRelatedOrders()
         resultSpace1.innerHTML = data;
         // Defined in Track.js
         recordNewResults('resultSpace1') // Record any new items in resultSpace1
-        queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=P-YatesChi2-NegLog&displayFields=RR&title=Specific Orders'
+        queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=P-YatesChi2-NegLog&filterField1=prevalence<:0.015&displayFields=RR&title=Specific Orders'
         console.log( queryURL );
         ajaxRequest( queryURL, function(data){
           resultSpace2.innerHTML = data;
           // Defined in Track.js
           recordNewResults('resultSpace2') // Record any new items in resultSpace2
         });
-    	});
+    });
 
 }
 

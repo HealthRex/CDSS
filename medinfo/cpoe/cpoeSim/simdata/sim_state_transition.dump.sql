@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.5
--- Dumped by pg_dump version 10.3
+-- Dumped from database version 9.6.9
+-- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -102,6 +102,18 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 83	44	43	\N	\N	\N
 84	44	43	\N	\N	\N
 69	40	43	44004	\N	Diuretics worsen hypotension
+87	10	11	45900	\N	Oxygen supplementation
+88	10	11	45864	\N	Oxygen supplementation
+89	10	11	45921	\N	Oxygen supplementation
+90	10	12	44359	\N	Anticoagulation, but still hypoxic (Heparin IV)
+91	10	12	44250	\N	Anticoagulation, but still hypoxic (Enoxaparin)
+92	10	12	60178	\N	Anticoagulation, but still hypoxic (Rivaroxaban - Note Apixiban not available in 2014 data)
+93	11	8	44359	\N	Oxygen + Anticoagulation added
+94	11	8	44250	\N	Oxygen + Anticoagulation added
+95	11	8	60178	\N	Oxygen + Anticoagulation added
+96	12	8	45900	\N	Anticoagulation + Oxygen supplemented
+97	12	8	45864	\N	Anticoagulation + Oxygen supplemented
+98	12	8	45921	\N	Anticoagulation + Oxygen supplemented
 \.
 
 
@@ -109,7 +121,7 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 -- Name: sim_state_transition_sim_state_transition_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_state_transition_sim_state_transition_id_seq', 65, true);
+SELECT pg_catalog.setval('public.sim_state_transition_sim_state_transition_id_seq', 98, true);
 
 
 --

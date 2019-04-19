@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.5
--- Dumped by pg_dump version 10.3
+-- Dumped from database version 9.6.9
+-- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -4378,24 +4378,24 @@ COPY public.sim_result (sim_result_id, name, description, group_string, priority
 40	DBP	Blood Pressure, Diastolic (DBP)	Flowsheet>Vitals	40
 80	GCS	Glasgow Coma Scale (GCS)	Flowsheet>Vitals	80
 1004193	SpO2	O2 Saturation	Flowsheet>Vitals	55
+125	Gram Stain and Culture	CULTURE AND GRAM STAIN, CSF	BODY FLUID ORDERABLES>Other>CULTURE AND GRAM STAIN, CSF	\N
+1004208	VQScan	Ventilation/Perfusion Scan	Imaging>Nuclear	2050000
 1004194	CXR	Chest XRay	Imaging>XRay	2000000
-1004196	CTAbdomen	CT Abdomen	Imaging>CT	2011000
-1004197	CTPelvis	CT Pelvis	Imaging>CT	2011010
-1004199	CTHead	CT Head	Imaging>CT	2010000
 1004195	CTChest	CT Chest	Imaging>CT	2010500
 1004200	AbdUS	US Abdomen	Imaging>US	2020000
-1004201	MRIBrain	MRI Brain	Imaging>MRI	2030000
 1004202	CTCSpine	CT Cervical Spine	Imaging>CT	2010200
 1004204	MRITSpine	MRI Thoracic Spine	Imaging>MRI	2030500
 1004203	MRICSpine	MRI Cervical Spine	Imaging>MRI	2030300
 1004205	MRILSpine	MRI Lumbar Spine	Imagine>MRI	2030700
 1004198	ECG	ECG 12-Lead	Cardiology>EKG	3000000
-125	Gram Stain and Culture	CULTURE AND GRAM STAIN, CSF	BODY FLUID ORDERABLES>Other>CULTURE AND GRAM STAIN, CSF	\N
-130	MRI Brain Pending	MRI Brain Pending Notification	IMAGING>MRI	\N
-131	MRI Brain	MRI Brain	IMAGING>MRI	\N
-132	CT Head Pending	CT Head Pending Notification	IMAGING>CT	\N
-133	CT Head	CT Head	IMAGING>CT	\N
-200	TTE	TRANSTHORACIC ECHO	Cardiology>TTE	\N
+200	ECHO	Echocardiogram	Cardiology>ECHO	3000100
+1004206	DVTUS	Deep Vein Thrombosis Ultrasound	Imaging>US	2020100
+1004207	ECHOStress	Stress Echocardiogram	Cardiology>ECHO	3000200
+132	CT Head Pending	CT Head Pending Notification	Imaging>CT	2010000
+133	CT Head	CT Head	Imaging>CT	2010002
+130	MRI Brain Pending	MRI Brain Pending Notification	Imaging>MRI	2030000
+131	MRI Brain	MRI Brain	Imaging>MRI	2030002
+1004196	CTAbdPelv	CT Abdomen Pelvis	Imaging>CT	2011000
 \.
 
 
@@ -4403,7 +4403,7 @@ COPY public.sim_result (sim_result_id, name, description, group_string, priority
 -- Name: sim_result_sim_result_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_result_sim_result_id_seq', 1004205, true);
+SELECT pg_catalog.setval('public.sim_result_sim_result_id_seq', 1004208, true);
 
 
 --
