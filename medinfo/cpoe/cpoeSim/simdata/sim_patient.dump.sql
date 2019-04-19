@@ -60,7 +60,7 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 -- Name: sim_patient_sim_patient_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 61, true);
+SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 62, true);
 
 
 --

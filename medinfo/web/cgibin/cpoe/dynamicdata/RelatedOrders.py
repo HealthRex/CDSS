@@ -174,7 +174,9 @@ class RelatedOrders(BaseDynamicData):
     def prepareDisplayHeaders(self, displayFields):
         showCounts = (self.requestData["showCounts"].lower() not in FALSE_STRINGS);
 
-        fieldHeadersHTML  = '<th nowrap>' + str.join('</th><th nowrap>', displayFields) + '</th>';
+        fieldHeadersHTML  = "";
+        for displayField in displayFields:
+            fieldHeadersHTML += '<th nowrap>' + displayField + '</th>';
         if showCounts:
             fieldHeadersHTML += '<th>' + str.join('</th><th>', CORE_FIELDS) + '</th>';
 
