@@ -31,18 +31,18 @@ def buildLinks( linkHRefList, linkTextList, linkFormat, linkSeparator ):
 BASE_LINK_DIR = "..";
 
 HEADER_LINK_HREF = [];  HEADER_LINK_TEXT = [];
-HEADER_LINK_HREF.append("../index.htm");        HEADER_LINK_TEXT.append("MedInfo");
+HEADER_LINK_HREF.append("../../index.htm");        HEADER_LINK_TEXT.append("MedInfo");
 HEADER_LINKS = buildLinks(HEADER_LINK_HREF,HEADER_LINK_TEXT,HEADER_LINK_FORMAT,HEADER_LINK_SEPARATOR);
 
 NAV_LINK_HREF = [];                                 NAV_LINK_TEXT = [];
-NAV_LINK_HREF.append("../index.htm");               NAV_LINK_TEXT.append("Home")
+NAV_LINK_HREF.append("../../index.htm");               NAV_LINK_TEXT.append("Home")
 NAV_LINK_HREF.append("../../cgibin/cpoe/ItemRecommenderWeb.py");       NAV_LINK_TEXT.append("Item Recommender")
 NAV_LINK_HREF.append("../../cgibin/admin/DBUtilWeb.py");           NAV_LINK_TEXT.append("DBUtil")
 NAV_LINKS = buildLinks(NAV_LINK_HREF,NAV_LINK_TEXT,NAV_LINK_FORMAT,NAV_LINK_SEPARATOR);
 
 FOOTER_LINK_HREF = [];                                  FOOTER_LINK_TEXT = [];
-FOOTER_LINK_HREF.append("../index.htm");                FOOTER_LINK_TEXT.append("Home");
-FOOTER_LINK_HREF.append("../contacts.htm");             FOOTER_LINK_TEXT.append("Contacts");
+FOOTER_LINK_HREF.append("../../index.htm");                FOOTER_LINK_TEXT.append("Home");
+FOOTER_LINK_HREF.append("../../contacts.htm");             FOOTER_LINK_TEXT.append("Contacts");
 FOOTER_LINKS = buildLinks(FOOTER_LINK_HREF,FOOTER_LINK_TEXT,FOOTER_LINK_FORMAT,FOOTER_LINK_SEPARATOR);
 
 ############### Admin Nav Links #################################

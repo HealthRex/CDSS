@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.5
--- Dumped by pg_dump version 10.3
+-- Dumped from database version 9.6.9
+-- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -26,10 +26,6 @@ COPY public.sim_state (sim_state_id, name, description) FROM stdin;
 6	NFever	Neutropenic Fever (no source) Initial State
 7	GIBleed	GI Bleed Initial State
 3	ACS	ACS Initial State
-8	AMS UTI 	Altered, UTI
-10	AMS HyperNa	Altered, Hypernatremia
-11	COPD-PNA	COPD Exacerbation, CAPneumonia
-12	VTE-Low Risk PE	Low Risk Pulmonary Embolism
 14	EtOH-GIBleed Active	Alcoholic Hepatitis - GI Bleed Active
 15	EtOH-GIBleed Bleeding Out	Alcoholic Hepatitis - GI Bleed Bleeding Out
 4	CodeBlue	Code Blue / ACLS / Dead / Dying
@@ -57,6 +53,10 @@ COPY public.sim_state (sim_state_id, name, description) FROM stdin;
 42	Afib-RVR Adenosine	Transient state while adenosine administered
 45	Afib-RVR Antiarrhythmic	Transient state with amiodarone or others, but still unstable
 44	Afib-RVR critical???	Critical after nodal agents, may be redundant with 43?
+10	PE-COPD-LungCA	Shortness of Breath - PE - COPD - Lung Cancer
+11	PE-COPD-LungCA + O2	Shortness of Breath - PE - COPD - Lung Cancer + O2
+12	PE-COPD-LungCA + Anticoagulation	Shortness of Breath - PE - COPD - Lung Cancer + Anticoagulation
+8	PE-COPD-LungCA + O2 + Anticoagulation	Shortness of Breath - PE - COPD - Lung Cancer + O2 + Anticoagulation
 \.
 
 

@@ -53,7 +53,7 @@ class RelatedOrders(BaseDynamicData):
         self.requestData["targetItemIds"] = "";
         self.requestData["excludeItemIds"] = "";
         self.requestData["excludeCategoryIds"] = "";
-        self.requestData["timeDeltaMax"] = "86400";
+        self.requestData["timeDeltaMax"] = "86400"; # Look for recommendations likely within 24 hours
         self.requestData["sortField"] = "";
         self.requestData["displayFields"] = ""; #"prevalence","PPV","RR","P-YatesChi2"
         self.requestData["sortReverse"] = "True";
