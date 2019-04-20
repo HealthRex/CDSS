@@ -609,6 +609,92 @@ class TestSimManager(DBTestCase):
         verifyRecentItemIds = set([]);
         self.assertEqual(verifyRecentItemIds, sampleRecentItemIds);
 
+    def test_loadPendingResultOrders(self):
+        # Verify behavior of finding patient orders that will, but have not yet, yielded test results
+        colNames = ["clinical_item_id", "name", "time_until_result"];
+
+        # See setUp for test data construction
+        userId = -1;
+        patientId = -1;
+
+        # Time zero, vital sign orders check entered (clinical_item_id = -15, sim_patient_order_id = -1)
+        # Time 2 minutes, orders done, but not long-enough to get results back, so no results should exist, but can see pending result
+        relativeTime = 120;
+        sampleResults = self.manager.loadPendingResultOrders(patientId, relativeTime);
+        verifyResults = \
+            [   RowItemModel([-15, "Vital Signs", 300-(120-0)], colNames),
+            ];
+        self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
+        # Time 5 minutes, vital signs should result now. So no pending results
+        relativeTime = 300;
+        sampleResults = self.manager.loadPendingResultOrders(patientId, relativeTime);
+        verifyResults = \
+            [
+            ];
+        self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
+        # Go back and simulate the vitals check order being discontinued before results came back
+        discontinueTime = 100;
+        newOrderItemIds = [];   # No new orders
+        discontinuePatientOrderIds = [-1];  # See setUp data for the ID of the order to simulate canceling
+        self.manager.signOrders(userId, patientId, discontinueTime, newOrderItemIds, discontinuePatientOrderIds);
+
+        # Redo simulation shortly after. Should not show pending results since order was cancelled
+        relativeTime = 120;
+        sampleResults = self.manager.loadPendingResultOrders(patientId, relativeTime);
+        verifyResults = \
+            [
+            ];
+        self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
+        # Time 10 minutes, should have multiple pending orders just entered
+        relativeTime = 600;
+        sampleResults = self.manager.loadPendingResultOrders(patientId, relativeTime);
+        verifyResults = \
+            [   # Show results sorted by time until result, then alphabetical order
+                RowItemModel([-2, "BMP", 600-(600-600)], colNames),
+                RowItemModel([-3, "Hepatic Panel", 600-(600-600)], colNames),
+                RowItemModel([-1, "CBC", 900-(600-600)], colNames),
+            ];
+        self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
+        # Time 20 minutes, some of the results should be back, while others still pending
+        relativeTime = 1200;
+        sampleResults = self.manager.loadPendingResultOrders(patientId, relativeTime);
+        verifyResults = \
+            [   
+                RowItemModel([-1, "CBC", 900-(1200-600)], colNames),
+            ];
+        self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
+        # Go back and sign new orders of same type
+        relativeTime = 900;
+        orderItemIds = [-1,-2];
+        self.manager.signOrders(userId, patientId, relativeTime, orderItemIds);
+
+        # Should now see some overlapping pending order times
+        relativeTime = 1200;
+        sampleResults = self.manager.loadPendingResultOrders(patientId, relativeTime);
+        verifyResults = \
+            [   # If multiple results with same time until result, then show in order of first one ordered
+                RowItemModel([-1, "CBC", 900-(1200-600)], colNames),
+                RowItemModel([-2, "BMP", 600-(1200-900)], colNames),
+                RowItemModel([-1, "CBC", 900-(1200-900)], colNames),
+            ];
+        self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
+        # Later batch of more orders at 30 minutes
+        relativeTime = 1800;
+        sampleResults = self.manager.loadPendingResultOrders(patientId, relativeTime);
+        verifyResults = \
+            [   
+                RowItemModel([-15, "Vital Signs", 300-(1800-1800)], colNames),
+                RowItemModel([-2, "BMP", 600-(1800-1800)], colNames),
+                RowItemModel([-1, "CBC", 900-(1800-1800)], colNames),
+            ];
+        self.assertEqualDictList(verifyResults, sampleResults, colNames);
+
     def test_stateTransition(self):
         # Query for results based on simulated turnaround times, including fallback to default normal values
         #   if no explicit (abnormal) values specified for simulated state
@@ -748,7 +834,7 @@ def suite():
     suite = unittest.TestSuite();
     #suite.addTest(TestSimManager("test_copyPatientTemplate"));
     #suite.addTest(TestSimManager("test_loadPatientLastEventTime"));
-    #suite.addTest(TestSimManager('test_executeIterator'));
+    #suite.addTest(TestSimManager('test_loadPendingResultOrders'));
     #suite.addTest(TestSimManager('test_stateTransition'));
     #suite.addTest(TestSimManager('test_discontinueOrders'));
     suite.addTest(unittest.makeSuite(TestSimManager));

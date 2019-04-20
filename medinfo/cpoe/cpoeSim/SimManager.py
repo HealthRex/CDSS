@@ -541,6 +541,52 @@ class SimManager:
             if not extConn:
                 conn.close();
 
+    def loadPendingResultOrders(self, patientId, relativeTime, conn=None):
+        """Load all patient orders at the given relativeTime that 
+        are due to yield results, but have not yet. 
+        Include an estimate of time until results available.
+        """
+        extConn = True;
+        if conn is None:
+            conn = self.connFactory.connection();
+            extConn = False;
+        try:
+            query = SQLQuery();
+            query.addSelect("distinct po.clinical_item_id");    # Distinct so don't report multiple times for panel orders
+            query.addSelect("po.relative_time_start");
+            query.addSelect("po.relative_time_end");
+            query.addSelect("ci.name");
+            query.addSelect("ci.description");
+            query.addSelect("sorm.turnaround_time");    # Could have different turnaround times for single order if different sub results. Just report each.
+            query.addSelect("sorm.turnaround_time - (%d - po.relative_time_start) as time_until_result" % relativeTime);    # Calculate time until expect result
+            query.addFrom("sim_patient_order as po");
+            query.addFrom("clinical_item as ci");
+            query.addFrom("sim_order_result_map as sorm");
+            query.addWhere("po.clinical_item_id = ci.clinical_item_id");
+            query.addWhere("po.clinical_item_id = sorm.clinical_item_id");
+            query.addWhereEqual("sim_patient_id", patientId );
+
+            # Only catch orders up to the given relativeTime and not cancelled
+            query.addWhereOp("relative_time_start","<=", relativeTime );
+            query.openWhereOrClause();
+            query.addWhere("relative_time_end is null");
+            query.addWhereOp("relative_time_end",">", relativeTime);
+            query.closeWhereOrClause();
+
+            # Only PENDING orders, so don't report orders who results should already be available
+            query.addWhereOp("sorm.turnaround_time + po.relative_time_start",">", relativeTime);
+
+            query.addOrderBy("time_until_result");
+            query.addOrderBy("relative_time_start");
+            query.addOrderBy("ci.name");
+
+            dataTable = DBUtil.execute( query, includeColumnNames=True, conn=conn);
+            dataModels = modelListFromTable(dataTable);
+            return dataModels;
+        finally:
+            if not extConn:
+                conn.close();
+
     def loadNotes(self, patientId, currentTime, conn=None):
         """Load notes committed up to the given simulation time.
         """
