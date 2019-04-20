@@ -35,7 +35,7 @@ class PatientCareFrame(BaseCPOEWeb):
         self.requestData["sim_time"] = "";
 
         self.requestData["currentDataPage"] = NotesReview.__name__;
-        self.requestData["autoQuery"] = "";
+        self.requestData["enableRecommender"] = "";
         self.requestData["maxResults"] = "50";  # Maximum of results to show when searching for orders
 
         self.requestData["newOrderItemId"] = list();
