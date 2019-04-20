@@ -4391,9 +4391,7 @@ COPY public.sim_result (sim_result_id, name, description, group_string, priority
 200	ECHO	Echocardiogram	Cardiology>ECHO	3000100
 1004206	DVTUS	Deep Vein Thrombosis Ultrasound	Imaging>US	2020100
 1004207	ECHOStress	Stress Echocardiogram	Cardiology>ECHO	3000200
-132	CT Head Pending	CT Head Pending Notification	Imaging>CT	2010000
 133	CT Head	CT Head	Imaging>CT	2010002
-130	MRI Brain Pending	MRI Brain Pending Notification	Imaging>MRI	2030000
 131	MRI Brain	MRI Brain	Imaging>MRI	2030002
 1004196	CTAbdPelv	CT Abdomen Pelvis	Imaging>CT	2011000
 \.

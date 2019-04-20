@@ -577,7 +577,6 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 414	30	11030	46090	88	\N	\N	Low
 415	30	11000	65835	18	\N	\N	High
 416	30	13504	62151	2.2999999999999998	\N	\N	High
-418	32	1000129	48880	\N	\N	WBCCSF 1500, Neutrophil 98%	\N
 422	32	1000330	50510	15	\N	\N	\N
 425	30	125	49083	\N	\N	Rare Gram Positive Diplococci, many neutrophils	\N
 426	32	125	49083	\N	\N	Rare Gram Positive Diplococci, many neutrophils	\N
@@ -593,37 +592,14 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 421	30	1000330	50510	15	\N	\N	High
 423	33	1000330	50510	15	\N	\N	High
 424	31	1000330	50510	15	\N	\N	High
-437	30	130	62831	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
 6051	43	40	46160	59	\N	\N	\N
-438	30	130	46039	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
-439	30	130	46065	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
-440	32	130	62831	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
-441	32	130	46039	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
-442	32	130	46065	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
+418	32	1000129	48880	1394	\N	Neutrophil 95%	High
 443	30	131	62831	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
 444	30	131	46039	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
 445	30	131	46065	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
 446	32	131	62831	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
 447	32	131	46039	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
 448	32	131	46065	\N	\N	Questionable subtle diffuse meningeal enhancement.	\N
-449	30	132	45804	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-450	30	132	45983	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-451	30	132	48524	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-452	30	132	50241	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-453	30	132	52016	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-454	30	132	64739	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-455	30	132	65940	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-456	30	132	50098	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-457	30	132	49965	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-458	32	132	45804	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-459	32	132	45983	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-460	32	132	48524	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-461	32	132	50241	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-462	32	132	52016	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-463	32	132	64739	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-464	32	132	65940	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-465	32	132	50098	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
-466	32	132	49965	\N	\N	Head CT ordered. Scan is pending. Estimated completion in 1 hour.	\N
 476	32	133	45804	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
 477	32	133	45983	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
 478	32	133	48524	\N	\N	Preliminary read: No hemorrhage or evidence of ischemic stroke.	\N
@@ -649,16 +625,10 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 513	40	200	61832	\N	\N	EF 71% with LVH, atrial fibrillation. No wall motion abnormality.	\N
 514	41	1004198	45866	\N	\N	Normal sinus rhythm	\N
 515	41	200	61832	\N	\N	EF 68% with LVH, normal sinus rhythm	\N
-530	42	130	62831	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
-531	42	130	46039	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
-532	42	130	46065	\N	\N	Brain MRI ordered. Scan is pending. Estimated completion in 1 hour.	\N
 533	42	131	62831	\N	\N	DWI demonstrates restricted diffusion in the L temporal lobe, R internal capsule, consistent with cardio-embolic stroke.	\N
 534	42	131	46039	\N	\N	DWI demonstrates restricted diffusion in the L temporal lobe, R internal capsule, consistent with cardio-embolic stroke.	\N
 535	42	131	46065	\N	\N	DWI demonstrates restricted diffusion in the L temporal lobe, R internal capsule, consistent with cardio-embolic stroke.	\N
 436	31	1000155	48577	10	\N	\N	Low
-417	30	1000129	48880	1500	\N	Neutrophil 98%	High
-419	33	1000129	48880	1500	\N	Neutrophil 98%	High
-420	31	1000129	48880	1500	\N	Neutrophil 98%	High
 490	30	10	46160	101.2	\N	\N	\N
 492	30	20	46160	104	\N	\N	\N
 494	30	50	46160	18	\N	\N	\N
@@ -676,6 +646,7 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 6021	43	50	46160	24	\N	\N	\N
 6031	43	60	46160	0.92000000000000004	\N	\N	\N
 6041	43	30	46160	83	\N	\N	\N
+417	30	1000129	48880	1487	\N	Neutrophil 98%	High
 6002	44	10	46160	97.900000000000006	\N	\N	\N
 6012	44	20	46160	123	\N	\N	\N
 6022	44	50	46160	30	\N	\N	\N
@@ -982,6 +953,8 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 5177	8	1004208	\N	\N	\N	Perfusion defects in L lower lung fields. Moderate probability of pulmonary embolism.	\N
 5178	8	1004198	\N	\N	\N	Normal sinus rhythm	\N
 5179	8	200	\N	\N	\N	LVEF 37% with no significant valvular abnormalities noted. RVSP 29. RAP 8.	\N
+419	33	1000129	48880	1454	\N	Neutrophil 96%	High
+420	31	1000129	48880	1462	\N	Neutrophil 93%	High
 \.
 
 
