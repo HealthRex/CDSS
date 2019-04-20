@@ -122,7 +122,7 @@ function selectItem(checkbox)
 			// Create a temporary div object to process an innerHTML segment.
 			// Avoid doing a direct newOrderSpace.innerHTML += newHTML, because will overwrite any transient contents (i.e., checkbox deselections) in the prior content
 			var div = document.createElement('div');
-			div.innerHTML =  '<input type=checkbox name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a><br>\n';
+			div.innerHTML =  '<input type=checkbox name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a>&nbsp;<a href="javascript:loadRelatedOrders('+itemId+')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a><br>\n';
 			newOrderSpace.appendChild(div);
 		}
     }
@@ -268,8 +268,8 @@ function loadRelatedOrders( queryItemIdsStr )
 
     var itemQueryParams = 'sim_patient_id='+patientId+'&sim_time='+simTime; // Default to searching based on a specific patient record
     if ( queryItemIdsStr )
-    {   // Have a non-blank string of specific query Items to search by. Use that instead then
-        itemQueryParams = 'queryItemIds='+queryItemIdsStr;
+    {   // Have a non-blank string of specific query Items to search by. Use if available
+        itemQueryParams += '&queryItemIds='+queryItemIdsStr;
     }
 
     var resultSpace = document.getElementById('searchResultsTableSpace');
@@ -281,13 +281,13 @@ function loadRelatedOrders( queryItemIdsStr )
 
     // Two queries for different sort options. Nest calls for sequential asynchronous call.
     // Total time takes longer to fill simultaneous queries
-    var queryURL = 'dynamicdata/RelatedOrders.py?'+itemQueryParams+'&sortField=PPV&displayFields=&title=Common Orders';
+    var queryURL = 'dynamicdata/RelatedOrders.py?RelatedOrders=action&'+itemQueryParams+'&sortField=PPV&displayFields=&title=Common Orders';
     //console.log( queryURL );
     ajaxRequest(queryURL, function(data) {
         resultSpace1.innerHTML = data;
         // Defined in Track.js
         recordNewResults('resultSpace1') // Record any new items in resultSpace1
-        queryURL = 'dynamicdata/RelatedOrders.py?'+itemQueryParams+'&sortField=P-YatesChi2-NegLog&filterField1=prevalence<:0.01&displayFields=&title=Related Orders'
+        queryURL = 'dynamicdata/RelatedOrders.py?RelatedOrders=action&'+itemQueryParams+'&sortField=P-YatesChi2-NegLog&filterField1=prevalence<:0.01&displayFields=&title=Related Orders'
         console.log( queryURL );
         ajaxRequest( queryURL, function(data){
           resultSpace2.innerHTML = data;

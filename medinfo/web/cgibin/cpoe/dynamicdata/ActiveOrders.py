@@ -16,6 +16,7 @@ from medinfo.cpoe.cpoeSim.Const import BASE_TIME, TIME_FORMAT;
 from medinfo.cpoe.cpoeSim.SimManager import SimManager;
 
 from medinfo.web.cgibin.cpoe.dynamicdata.BaseDynamicData import BaseDynamicData;
+from medinfo.web.cgibin.cpoe.dynamicdata.RelatedOrders import RELATED_LINK_TEMPLATE;
 from medinfo.web.cgibin import Options;
 
 CATEGORY_HEADER_TEMPLATE = \
@@ -38,8 +39,8 @@ LINE_TEMPLATE_BY_ACTIVE = \
                 <td valign=top>%(description)s</td>
                 <td valign=top align=center nowrap>%(start_time.format)s<br>%(end_time.format)s</td>
                 <td valign=top align=center nowrap>
-                    <a href="javascript:loadRelatedOrders('%(clinical_item_id)s')"><img src="../../resource/graphIcon.png" width=20 height=20 alt="Find Related Orders"></a>
-                    <a href="javascript:discontinueOrder('%(sim_patient_order_id)s|%(clinical_item_id)s|%(name)s|%(description)s')"><img src="../../resource/cancelIcon.svg" width=20 height=20 alt="Cancel/Discontinue Order"></a>
+                    <a href="javascript:loadRelatedOrders('%(clinical_item_id)s')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a>
+                    <a href="javascript:discontinueOrder('%(sim_patient_order_id)s|%(clinical_item_id)s|%(name)s|%(description)s')"><img src="../../resource/cancelIcon.svg" width=12 height=12 alt="Cancel/Discontinue Order"></a>
                 </td>
             </tr>
             """,

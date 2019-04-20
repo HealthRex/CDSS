@@ -24,16 +24,19 @@ from medinfo.web.cgibin.cpoe.dynamicdata.BaseDynamicData import BaseDynamicData;
 from medinfo.web.cgibin import Options;
 from medinfo.web.cgibin.Util import webDataCache;
 
-CONTROLS_TEMPLATE = \
-    """
-    <input type=checkbox class="orderCheckbox" onClick="selectItem(this)" value="%(clinical_item_id)s|%(name)s|%(description)s">
-    <!--a href="javascript:ignoreItem(%(clinical_item_id)s)">[x]</a-->
-    """;
 CATEGORY_HEADER_TEMPLATE = \
     """
     <tr><td class="spacer" height=10 colspan=100></td></tr>
     <tr><td colspan=%(nPreCols)s></td><td colspan=99><b>%(category_description)s</b></td></tr>
     """;
+CONTROLS_TEMPLATE = \
+    """
+    <input type=checkbox class="orderCheckbox" onClick="selectItem(this)" value="%(clinical_item_id)s|%(name)s|%(description)s">
+    """;
+DESCRIPTION_TEMPLATE = \
+    """<a href="javascript:clickItemById(%(clinical_item_id)s)">%(description)s</a>""";
+RELATED_LINK_TEMPLATE = \
+    """&nbsp;<a href="javascript:loadRelatedOrders('%(clinical_item_id)s')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a>""";    
 
 class RelatedOrders(BaseDynamicData):
     """Simple script to (dynamically) relay query and result data
@@ -70,8 +73,7 @@ class RelatedOrders(BaseDynamicData):
         self.requestData["dataRows"] = '<tr><td colspan=100 align=center height=200><img src="../../resource/ajax-loader.gif"></td></tr>';
 
         self.addHandler("searchStr", RelatedOrders.action_orderSearch.__name__);
-        self.addHandler("queryItemIds", RelatedOrders.action_default.__name__);
-        self.addHandler("sim_patient_id", RelatedOrders.action_searchByPatient.__name__);
+        self.addHandler("RelatedOrders", RelatedOrders.action_default.__name__);
 
     def action_orderSearch(self):
         """Search for orders by query string"""
@@ -104,8 +106,19 @@ class RelatedOrders(BaseDynamicData):
 
     def action_default(self):
         """Look for related orders by association / recommender methods"""
-        self.recommender = ItemAssociationRecommender();  # Instance to test on
-        self.recommender.dataManager.dataCache = webDataCache;
+        # If patient is specified then modify query and exclusion list based on items already ordered for patient
+        recentItemIds = set();
+        if self.requestData["sim_patient_id"]:
+            patientId = int(self.requestData["sim_patient_id"]);
+            simTime = int(self.requestData["sim_time"]);
+
+            # Track recent item IDs (orders, diagnoses, unlocked results, etc. that related order queries will be based off of)
+            manager = SimManager();
+            recentItemIds = manager.recentItemIds(patientId, simTime);
+
+        # Recommender Instance to test on
+        self.recommender = ItemAssociationRecommender();  
+        self.recommender.dataManager.dataCache = webDataCache;  # Allow caching of data for rapid successive queries
 
         query = RecommenderQuery();
         if self.requestData["sortField"] == "":
@@ -119,6 +132,11 @@ class RelatedOrders(BaseDynamicData):
         displayFields = list();
         if self.requestData["displayFields"] != "":
             displayFields = self.requestData["displayFields"].split(",");
+
+        # Exclude items already ordered for the patient from any recommended list
+        query.excludeItemIds.update(recentItemIds);
+        if not query.queryItemIds:  # If no specific query items specified, then use the recent patient item IDs
+            query.queryItemIds.update(recentItemIds);
 
         recommendedData = self.recommender( query );
 
@@ -151,25 +169,6 @@ class RelatedOrders(BaseDynamicData):
             htmlLines.append( self.formatRowHTML(dataModel, colNames, showCategory) );
             lastModel = dataModel;
         self.requestData["dataRows"] = str.join("\n", htmlLines );
-
-    def action_searchByPatient(self):
-        """Rather than explicit query items, specify a patient state context from which
-        recent items can be extracted and used to query.
-        """
-        patientId = int(self.requestData["sim_patient_id"]);
-        simTime = int(self.requestData["sim_time"]);
-
-        # Track recent item IDs (orders, diagnoses, unlocked results, etc. that related order queries will be based off of)
-        manager = SimManager();
-        recentItemIds = manager.recentItemIds(patientId, simTime);
-        recentItemIdStrs = list();
-        for itemId in recentItemIds:
-            recentItemIdStrs.append(str(itemId));
-
-        self.requestData["queryItemIds"] = str.join(",", recentItemIdStrs);
-
-        # Delegate to default action now
-        self.action_default();
 
     def prepareDisplayHeaders(self, displayFields):
         showCounts = (self.requestData["showCounts"].lower() not in FALSE_STRINGS);
@@ -249,7 +248,10 @@ class RelatedOrders(BaseDynamicData):
                 else:
                     htmlList.append('<td></td>');
             elif col == "description":
-                htmlList.append('<td align=left><a href="javascript:clickItemById(%(clinical_item_id)s)">%(description)s</a></td>' % dataModel);
+                htmlList.append('<td align=left>');
+                htmlList.append( DESCRIPTION_TEMPLATE % dataModel);
+                htmlList.append( RELATED_LINK_TEMPLATE % dataModel);
+                htmlList.append('</td>');
             else:
                 htmlList.append('<td align=right>%s</td>' % dataModel[col]);
         htmlList.append('</tr>');
