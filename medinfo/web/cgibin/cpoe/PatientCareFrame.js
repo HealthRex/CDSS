@@ -233,7 +233,7 @@ function searchOrders(searchField)
     else
     {
     	var sortParam = '';
-    	if ( searchField.form.autoQuery.value != '' )
+    	if ( !searchField.form.enableRecommender.value )
     	{
     		sortParam = '&sortField=item_count desc'
     	}
@@ -249,12 +249,28 @@ function searchOrders(searchField)
 
 /**
  * Search for related orders based on currently available selected items
+ *
+ * Expect comma-separated list of query Item IDs to search based on.
+ * If none provided, will instead look for current patient record to infer current patient items/orders.
  */
-function loadRelatedOrders()
+function loadRelatedOrders( queryItemIdsStr )
 {
     var theForm = document.forms[0];   // Assume the first and only form
+
+    if ( !theForm.enableRecommender.value )
+    {   
+        alert('Related orders / recommender functionality disabled');
+        return;
+    }
+
     var patientId = theForm.elements["sim_patient_id"].value;
     var simTime = theForm.elements["sim_time"].value;
+
+    var itemQueryParams = 'sim_patient_id='+patientId+'&sim_time='+simTime; // Default to searching based on a specific patient record
+    if ( queryItemIdsStr )
+    {   // Have a non-blank string of specific query Items to search by. Use that instead then
+        itemQueryParams = 'queryItemIds='+queryItemIdsStr;
+    }
 
     var resultSpace = document.getElementById('searchResultsTableSpace');
     resultSpace.innerHTML = '<table cellspacing=0 cellpadding=0 width=100%><tr valign=top><td id="resultSpace1" width=50% align=center></td><td id="resultSpace2" align=center></td></tr></table>'
@@ -265,13 +281,13 @@ function loadRelatedOrders()
 
     // Two queries for different sort options. Nest calls for sequential asynchronous call.
     // Total time takes longer to fill simultaneous queries
-    var queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=PPV&displayFields=&title=Common Orders';
+    var queryURL = 'dynamicdata/RelatedOrders.py?'+itemQueryParams+'&sortField=PPV&displayFields=&title=Common Orders';
     //console.log( queryURL );
     ajaxRequest(queryURL, function(data) {
         resultSpace1.innerHTML = data;
         // Defined in Track.js
         recordNewResults('resultSpace1') // Record any new items in resultSpace1
-        queryURL = 'dynamicdata/RelatedOrders.py?sim_patient_id='+patientId+'&sim_time='+simTime+'&sortField=P-YatesChi2-NegLog&filterField1=prevalence<:0.01&displayFields=&title=Related Orders'
+        queryURL = 'dynamicdata/RelatedOrders.py?'+itemQueryParams+'&sortField=P-YatesChi2-NegLog&filterField1=prevalence<:0.01&displayFields=&title=Related Orders'
         console.log( queryURL );
         ajaxRequest( queryURL, function(data){
           resultSpace2.innerHTML = data;

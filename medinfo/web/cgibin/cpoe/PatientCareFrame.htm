@@ -15,7 +15,7 @@
  */
 function initPage()
 {
-    if ('%(autoQuery)s')
+    if ('%(enableRecommender)s')
     {
         loadRelatedOrders();
     }
@@ -60,7 +60,7 @@ function initPage()
     <input type=hidden name="sim_time" value="%(sim_time)s">
 
     <input type=hidden name="currentDataPage" value="%(currentDataPage)s">
-    <input type=hidden name="autoQuery" value="%(autoQuery)s">
+    <input type=hidden name="enableRecommender" value="%(enableRecommender)s">
     <input type=hidden name="maxResults" value="%(maxResults)s">
 
     <table cellspacing=0 cellpadding=0 border=0 style="width:100%%;">

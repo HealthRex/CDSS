@@ -37,7 +37,10 @@ LINE_TEMPLATE_BY_ACTIVE = \
                 <td valign=top align=center><b>%(category_description.format)s</b></td>
                 <td valign=top>%(description)s</td>
                 <td valign=top align=center nowrap>%(start_time.format)s<br>%(end_time.format)s</td>
-                <td valign=top align=center><input type=button value="X" onClick="discontinueOrder('%(sim_patient_order_id)s|%(clinical_item_id)s|%(name)s|%(description)s')"></td>
+                <td valign=top align=center nowrap>
+                    <a href="javascript:loadRelatedOrders('%(clinical_item_id)s')"><img src="../../resource/graphIcon.png" width=20 height=20 alt="Find Related Orders"></a>
+                    <a href="javascript:discontinueOrder('%(sim_patient_order_id)s|%(clinical_item_id)s|%(name)s|%(description)s')"><img src="../../resource/cancelIcon.svg" width=20 height=20 alt="Cancel/Discontinue Order"></a>
+                </td>
             </tr>
             """,
     };
