@@ -86,12 +86,9 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 58	40	43	35846	\N	Nodal Agents worsen hypotension
 59	40	43	44327	\N	Nodal Agents worsen hypotension
 60	40	45	35968	\N	Transient improvement with amiodarone
-61	45	40	\N	0	Amiodarone not enough to stabilize so revert
 500	40	41	-100	\N	Cardioversion improves hemodynamics
 51	43	45	35968	\N	Transient improvement with amiodarone
-53	46	40	\N	0	Consult completed, back to start
 54	40	42	46605	\N	Adenosine evaluation
-55	42	40	\N	0	Adenosine wears off, back to prior state
 56	43	41	-100	\N	Cardioversion improves hemodynamics - from critical post diuretics
 62	43	42	46605	\N	Adenosine evaluation
 86	44	43	\N	\N	\N
@@ -114,6 +111,9 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 96	12	8	45900	\N	Anticoagulation + Oxygen supplemented
 97	12	8	45864	\N	Anticoagulation + Oxygen supplemented
 98	12	8	45921	\N	Anticoagulation + Oxygen supplemented
+61	45	43	\N	0	Amiodarone not enough to stabilize. Send to worse state to avoid repeating initial history
+53	46	43	\N	0	Consult completed. Send to worse state to avoid repeating initial history
+55	42	43	\N	0	Adenosine wears off. Send to worse state to avoid repeating initial history
 \.
 
 

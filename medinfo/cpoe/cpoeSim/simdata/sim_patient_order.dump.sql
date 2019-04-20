@@ -430,11 +430,10 @@ COPY public.sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id
 581	13	38	43997	0	\N	6
 582	13	38	45811	1620	\N	6
 583	13	38	45919	1620	\N	6
-593	0	50	41964	0	\N	5000
-678	0	48	41758	0	\N	30
 691	0	49	41870	0	\N	40
-800	0	49	41870	0	\N	40
 810	0	61	41796	0	\N	10
+824	0	48	42197	0	\N	30
+825	0	50	41759	0	\N	5000
 \.
 
 
@@ -442,7 +441,7 @@ COPY public.sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id
 -- Name: sim_patient_order_sim_patient_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_order_sim_patient_order_id_seq', 823, true);
+SELECT pg_catalog.setval('public.sim_patient_order_sim_patient_order_id_seq', 825, true);
 
 
 --
