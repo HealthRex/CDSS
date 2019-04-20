@@ -28,7 +28,7 @@ def buildLinks( linkHRefList, linkTextList, linkFormat, linkSeparator ):
 
 
 ################## Base Navigation Links ##########################
-BASE_LINK_DIR = "..";
+BASE_LINK_DIR = "../..";
 
 HEADER_LINK_HREF = [];  HEADER_LINK_TEXT = [];
 HEADER_LINK_HREF.append("../../index.htm");        HEADER_LINK_TEXT.append("MedInfo");
