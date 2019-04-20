@@ -35,6 +35,23 @@ LINE_TEMPLATE = \
     </tr>
     """;
 
+PENDING_ORDER_LINE_TEMPLATE = \
+    """
+    <tr>
+        <td align=center>%(order_time.format)s
+        <td align=center>%(name)s</td>
+        <td align=left>%(description)s</td>
+        <td align=right>%(time_until_result.format)s</td>
+    </tr>
+    """;
+EMPTY_RESULTS_LINE = \
+    """
+    <tr>
+        <td align=center colspan=100>No results pending</td>
+    </tr>
+    """;
+
+
 class ResultsReview(BaseDynamicData):
     """Simple script to (dynamically) relay query and result data
     """
@@ -45,6 +62,7 @@ class ResultsReview(BaseDynamicData):
         self.requestData["sim_time"] = "";
         
         self.requestData["detailTable"] = "";
+        self.requestData["pendingResultOrdersTable"] = EMPTY_RESULTS_LINE;
         
         self.addHandler("sim_patient_id", ResultsReview.action_default.__name__);
         
@@ -54,8 +72,9 @@ class ResultsReview(BaseDynamicData):
         simTime = int(self.requestData["sim_time"]);
         
         manager = SimManager();
+
+        # Load and format the results available so far
         results = manager.loadResults(patientId, simTime);
-        
         lastGroupStrings = ['New']; # Sentinel value that will be different than first real data row
         lenLastGroupStrings = len(lastGroupStrings);
         htmlLines = list();
@@ -69,6 +88,16 @@ class ResultsReview(BaseDynamicData):
             lenLastGroupStrings = len(lastGroupStrings);
         self.requestData["detailTable"] = str.join("\n", htmlLines );
 
+        # Load and format information on any pending result orders
+        pendingResultOrders = manager.loadPendingResultOrders(patientId, simTime);
+        htmlLines = list();
+        for dataModel in pendingResultOrders:
+            self.formatPendingResultOrderModel(dataModel);
+            htmlLines.append( PENDING_ORDER_LINE_TEMPLATE % dataModel );
+        self.requestData["pendingResultOrdersTable"] = str.join("\n", htmlLines );
+        if len(pendingResultOrders) < 1: # Leave default "no results pending" message if don't find any
+            self.requestData["pendingResultOrdersTable"] = EMPTY_RESULTS_LINE;
+
     def formatDataModel(self, dataModel):
         """Populate dataModel with formatted items"""
         dataModel["groupStrings"] = dataModel["group_string"].split(">");
@@ -79,6 +108,11 @@ class ResultsReview(BaseDynamicData):
             if dataModel[key] is None:
                 dataModel[key] = "";
         dataModel["result_time.format"] = (BASE_TIME + timedelta(0,dataModel["result_relative_time"])).strftime(TIME_FORMAT);
+
+    def formatPendingResultOrderModel(self, dataModel):
+        """Populate dataModel with formatted items"""
+        dataModel["order_time.format"] = (BASE_TIME + timedelta(0,dataModel["relative_time_start"])).strftime(TIME_FORMAT);
+        dataModel["time_until_result.format"] = dataModel["time_until_result"] / 60;    # Convert time in seconds into minutes
 
         
 # CGI Boilerplate to initiate script
