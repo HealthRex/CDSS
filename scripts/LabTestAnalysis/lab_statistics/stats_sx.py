@@ -84,6 +84,40 @@ class Stats_Plotter():
 
         self.lab_descriptions = stats_utils.get_lab_descriptions(data_source=self.data_source, lab_type=self.lab_type)
 
+    def compare_algs(self, alg1, alg2, fixPPV=0.95):
+        df_full = pd.read_csv(os.path.join(self.dataset_foldername,
+                                           'summary-stats-allalgs-fixTrainPPV.csv'))
+        df = df_full[df_full['fixTrainPPV']==fixPPV]
+        auc_1s = []
+        auc_2s = []
+        for lab in self.all_labs:
+            df_cur = df[df['lab']==lab]
+            auc_1 = df_cur[df_cur['alg'] == alg1]['AUC'].values[0]
+            auc_2 = df_cur[df_cur['alg'] == alg2]['AUC'].values[0]
+
+            auc_1s.append(auc_1)
+            auc_2s.append(auc_2)
+
+        auc_1s = np.array(auc_1s)
+        auc_2s = np.array(auc_2s)
+
+        alg1_winFrac = float(sum(auc_1s > auc_2s))\
+                       /float(len(auc_1s))
+
+        plt.scatter(auc_1s[auc_1s > auc_2s],
+                    auc_2s[auc_1s > auc_2s],
+                    color='b', label='%s wins'%alg1)
+        plt.scatter(auc_1s[auc_1s < auc_2s],
+                    auc_2s[auc_1s < auc_2s],
+                    color='r', label='%s wins'%alg2)
+        plt.scatter(auc_1s[auc_1s == auc_2s],
+                    auc_2s[auc_1s == auc_2s],
+                    color='g', label='equal')
+        plt.xlabel('%s AUC, winning %.2f'%(alg1, alg1_winFrac))
+        plt.ylabel('%s AUC, winning %.2f'%(alg2, 1.-alg1_winFrac))
+        plt.legend()
+        plt.show()
+
 
     def draw__Normality_Saturations(self, stats_folderpath, labs, max_repeat = 5, use_cached_fig_data=True):
         '''
@@ -2376,9 +2410,13 @@ def main_one_analysis(curr_version):
         'Diagnostic_Metrics': ['all_labs', 'important_components']
     }
 
-    plotter = Stats_Plotter(data_source="Stanford", lab_type='panel')
-    if 'LDH_cartoons' in main_figuretables:
-        plotter.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False)
+    plotter = Stats_Plotter(data_source="Stanford",
+                            lab_type='panel',
+                            curr_version=curr_version)
+    plotter.compare_algs(alg1='random-forest', alg2='xgb')
+
+    # if 'LDH_cartoons' in main_figuretables:
+    #     plotter.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False)
 
     quit()
 
@@ -2392,8 +2430,9 @@ def main_one_analysis(curr_version):
     # plotter.main_generate_lab_statistics()
 
 
+
 if __name__ == '__main__':
     curr_version = '10000-episodes-lastnormal'
 
-    # main_one_analysis(curr_version=curr_version)
-    main_full_analysis(curr_version=curr_version)
+    main_one_analysis(curr_version=curr_version)
+    # main_full_analysis(curr_version=curr_version)
