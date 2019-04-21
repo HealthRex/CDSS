@@ -101,8 +101,10 @@ SQL Queries and Databases
         FROM
           starr_datalake2018.order_med
         WHERE
-          med_description like 'INSULIN%'
+          UPPER(med_description) like 'INSULIN%'
         LIMIT 100
+	
+	Note the "UPPER" string function applied to the text field to effectively make this a case-insensitive search.
 
       * And occurs in the inpatient setting (ordering_mode_c = 2)
 
@@ -124,7 +126,7 @@ SQL Queries and Databases
         WHERE
           med_description like 'INSULIN%' AND 
           ordering_mode_c = 2 AND -- Inpatient 
-          med_route_c in (18,11) -- Subcutaneous or Intravenous
+          med_route_c IN (18,11) -- Subcutaneous or Intravenous
         LIMIT 100
 
       * And occurred in the year 2016
@@ -136,8 +138,8 @@ SQL Queries and Databases
         WHERE
           med_description like 'INSULIN%' AND 
           ordering_mode_c = 2 AND -- Inpatient 
-          med_route_c in (18,11) AND -- Subcutaneous or Intravenous
-          order_time_jittered >= '2016-01-01' and order_time_jittered < '2017-01-01'
+          med_route_c IN (18,11) AND -- Subcutaneous or Intravenous
+          order_time_jittered >= '2016-01-01' AND order_time_jittered < '2017-01-01'
         LIMIT 100
 
   - ORDER BY - Sort query results by column values
@@ -152,7 +154,7 @@ SQL Queries and Databases
         WHERE
           med_description like 'INSULIN%' AND 
           ordering_mode_c = 2 AND -- Inpatient 
-          med_route_c in (18,11) AND -- Subcutaneous or Intravenous
+          med_route_c IN (18,11) AND -- Subcutaneous or Intravenous
           order_time_jittered >= '2016-01-01' and order_time_jittered < '2017-01-01' AND
           jc_uid IN ('JCde49f8','JCd08052')
         ORDER BY 
@@ -206,7 +208,7 @@ SQL Queries and Databases
           orderMonth
         LIMIT 100
 
-  - CASE WHEN -- Embed and if/then statement into a query. Can be a convenient way to extract out a "one hot" encoding of categorical data
+  - CASE WHEN -- Embed an if/then statement into a query. Can be a convenient way to extract out a "one hot" encoding of categorical data
 
   	* Count up the total number Male vs. Female patients as well as the most common categories of canonical_race
 
@@ -308,8 +310,8 @@ SQL Queries and Databases
         ORDER BY
           COUNT(DISTINCT enc.pat_enc_csn_id_coded) DESC;
 
-    * Problem with above is only shows results for 7 patients (those that had some encounters on 2016-01-01). 
-      No results are shown at all for the patients who had no encounters on that date.
+    * Problem with above is that it only shows results for 7 patients (those that had some encounters on 2016-01-01). 
+      No results are shown at all for the patients who had no encounters on that date. (Would like to report "0" encounters.)
       Go back to the query for one row per patient encounter and do an outer join to at least fill in "null" value entries
       for the patients who didn't have any specific encounters.
 
