@@ -223,6 +223,9 @@ class SupervisedClassifier:
         elif hyperparam == 'class_weight':
             # ADABOOST, DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST
             self._hyperparams[hyperparam] = 'balanced'
+        elif hyperparam == 'colsample_bytree':
+            # XGB
+            self._hyperparam_search_space[hyperparam] = [0.6, 0.8, 1.0]
         elif hyperparam == 'criterion':
             # DECISION_TREE, RANDOM_FOREST
             self._hyperparams[hyperparam] = 'gini'
@@ -266,16 +269,16 @@ class SupervisedClassifier:
                 'linear', 'poly', 'rbf', 'sigmoid'
             ]
         elif hyperparam == 'learning_rate':
-            # ADABOOST
+            # ADABOOST, XGB
             self._hyperparams[hyperparam] = 0.1
             self._hyperparam_search_space[hyperparam] = [
                 0.001, 0.01, 0.1, 1.0, 10.0
             ]
         elif hyperparam == 'max_depth':
-            # DECISION_TREE, RANDOM_FOREST
-            self._hyperparams[hyperparam] = None
+            # DECISION_TREE, RANDOM_FOREST, XGB (XGB does not allow 'None')
+            self._hyperparams[hyperparam] = 3
             # Include 1, 2, 3 to bias towards simpler tree.
-            self._hyperparam_search_space[hyperparam] = [1, 2, 3, 4, 5, None]
+            self._hyperparam_search_space[hyperparam] = [1, 2, 3, 4, 5]
         elif hyperparam == 'max_features':
             # DECISION_TREE, RANDOM_FOREST
             self._hyperparams[hyperparam] = 'sqrt'
@@ -287,6 +290,9 @@ class SupervisedClassifier:
         elif hyperparam == 'max_iter':
             # LOGISTIC_REGRESSION
             self._hyperparams[hyperparam] = 100
+        elif hyperparam == 'min_child_weight':
+            # XGB
+            self._hyperparam_search_space[hyperparam] = [1, 5, 10]
         elif hyperparam == 'min_impurity_decrease':
             # DECISION_TREE, RANDOM_FOREST
             self._hyperparams[hyperparam] = 0.0
@@ -377,6 +383,9 @@ class SupervisedClassifier:
         elif hyperparam == 'splitter':
             # DECISION_TREE
             self._hyperparams[hyperparam] = 'best'
+        elif hyperparam == 'subsample':
+            # XGB
+            self._hyperparam_search_space[hyperparam] = [0.6, 0.8, 1.0]
         elif hyperparam == 'tol':
             # LOGISTIC_REGRESSION
             self._hyperparams[hyperparam] = 0.0001
@@ -706,6 +715,13 @@ class SupervisedClassifier:
         #
         self._get_or_set_hyperparam('scoring')
         self._get_or_set_hyperparam('n_jobs')
+
+        self._get_or_set_hyperparam('learning_rate')
+        self._get_or_set_hyperparam('min_child_weight')
+        self._get_or_set_hyperparam('gamma')
+        self._get_or_set_hyperparam('subsample')
+        self._get_or_set_hyperparam('colsample_bytree')
+        self._get_or_set_hyperparam('max_depth')
 
         # Build initial model.
         self._model = XGBClassifier(
