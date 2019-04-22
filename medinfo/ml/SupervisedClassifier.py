@@ -223,9 +223,6 @@ class SupervisedClassifier:
         elif hyperparam == 'class_weight':
             # ADABOOST, DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST
             self._hyperparams[hyperparam] = 'balanced'
-        elif hyperparam == 'colsample_bytree':
-            # XGB
-            self._hyperparam_search_space[hyperparam] = [0.6, 0.8, 1.0]
         elif hyperparam == 'criterion':
             # DECISION_TREE, RANDOM_FOREST
             self._hyperparams[hyperparam] = 'gini'
@@ -252,12 +249,11 @@ class SupervisedClassifier:
             ]
         elif hyperparam == 'hidden_layer_sizes':
             # NN
-            self._hyperparams[hyperparam] = (32,)
+            self._hyperparams[hyperparam] = (10,10,10)
             self._hyperparam_search_space[hyperparam] = [
-                (8,),
-                (16,),
-                (32,),
-                (64,)
+                (10,),
+                (10,10),
+                (10,10,10,10)
             ]
         elif hyperparam == 'hyperparam_strategy':
             # SUPPORTED_ALGORITHMS
@@ -720,7 +716,6 @@ class SupervisedClassifier:
         self._get_or_set_hyperparam('min_child_weight')
         self._get_or_set_hyperparam('gamma')
         self._get_or_set_hyperparam('subsample')
-        self._get_or_set_hyperparam('colsample_bytree')
         self._get_or_set_hyperparam('max_depth')
 
         # Build initial model.
@@ -892,7 +887,13 @@ class SupervisedClassifier:
         self._get_or_set_hyperparam('scoring')
         self._get_or_set_hyperparam('n_jobs')
 
+        self._get_or_set_hyperparam('hidden_layer_sizes')
+
+        print "here!"
+        quit()
+
         self._model = MLPClassifier(
+            hidden_layer_sizes=self._hyperparams['hidden_layer_sizes'],
             random_state=self._hyperparams['random_state']
         )
 
