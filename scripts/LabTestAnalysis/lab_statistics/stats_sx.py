@@ -1559,7 +1559,7 @@ class Stats_Plotter():
         plt.tight_layout()
         plt.savefig(result_figpath)
 
-    def plot_full_cartoon(self, lab='LABLDH', include_threshold_colors = True):
+    def plot_full_cartoon(self, lab='LABLDH', include_threshold_colors=True, inverse01=False):
         print 'Running plot_full_cartoon...'
 
         statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-%s-%s-%s/'%(self.data_source,self.lab_type,self.curr_version)
@@ -1576,7 +1576,11 @@ class Stats_Plotter():
 
         plt.figure(figsize=(5, 4))
         # plt.plot(xVal_base, yVal_base, label='baseline model, %0.2f' % (score_base), linewidth=2)
-        plt.plot(xVal_best, yVal_best, color='orange', linewidth=2) #, label='random forest', AUROC=%0.2f  % (score_best)
+        '''Representative ROC of LABLDH'''
+        if not inverse01:
+            plt.plot(xVal_best, yVal_best, color='orange', linewidth=2) #, label='random forest', AUROC=%0.2f  % (score_best)
+        else:
+            plt.plot(1-yVal_best, 1-xVal_best, color='orange', linewidth=2)
 
         if include_threshold_colors:
             df_directcompare_rf = pd.read_csv(os.path.join(ml_folderpath, lab, 'random-forest', 'direct_comparisons.csv'))
@@ -1588,8 +1592,13 @@ class Stats_Plotter():
             print "specificity", specificity
             print "score_thres", score_thres
 
-            plt.scatter(1-specificity, sensitivity, s=50, color='orange')
+            '''The POINT of PPV=0.95'''
+            if not inverse01:
+                plt.scatter(1-specificity, sensitivity, s=50, color='orange')
+            else:
+                plt.scatter(1-sensitivity, specificity, s=50, color='orange')
 
+            '''Reference line of AUC=0.5'''
             dash_num = 20
             # plt.plot([1-specificity]*dash_num, np.linspace(0,1,num=dash_num), 'k--')
             plt.plot(np.linspace(0,1,num=dash_num),np.linspace(0,1,num=dash_num), color='lightblue', linestyle='--')
@@ -1652,22 +1661,36 @@ class Stats_Plotter():
             scores_actual_falsNega = df.ix[(df['actual'] == 1) & (df['predict'] < score_thres), 'predict'].values
             scores_actual_truePosi = df.ix[(df['actual'] == 1) & (df['predict'] >= score_thres), 'predict'].values
 
-            plt.hist(scores_actual_trueNega, bins=22, alpha=0.8, color='royalblue', label="true negatives")
-            plt.hist(scores_actual_falsNega, bins=22, alpha=0.8, color='gold', label="false negatives")
-            plt.hist(scores_actual_truePosi, bins=7, alpha=0.8, color='forestgreen', label="true positives")
-            plt.hist(scores_actual_falsPosi, bins=7, alpha=0.8, color='orangered', label="false positives")
+            if not inverse01:
+                plt.hist(scores_actual_trueNega, bins=22, alpha=0.8, color='royalblue', label="true negatives")
+                plt.hist(scores_actual_falsNega, bins=22, alpha=0.8, color='gold', label="false negatives")
+                plt.hist(scores_actual_truePosi, bins=7, alpha=0.8, color='forestgreen', label="true positives")
+                plt.hist(scores_actual_falsPosi, bins=7, alpha=0.8, color='orangered', label="false positives")
 
-            plt.plot([score_thres] * dash_num, np.linspace(0, 800, num=dash_num), 'k--')
+                plt.plot([score_thres] * dash_num, np.linspace(0, 800, num=dash_num), 'k--')
+            else:
+                plt.hist(1-scores_actual_trueNega, bins=22, alpha=0.8, color='royalblue', label="true positives")
+                plt.hist(1-scores_actual_falsNega, bins=22, alpha=0.8, color='gold', label="false positives")
+                plt.hist(1-scores_actual_truePosi, bins=7, alpha=0.8, color='forestgreen', label="true negatives")
+                plt.hist(1-scores_actual_falsPosi, bins=7, alpha=0.8, color='orangered', label="false negatives")
 
-            plt.legend(loc=(0.1,0.6), fontsize=12)
+                plt.plot([1-score_thres] * dash_num, np.linspace(0, 800, num=dash_num), 'k--')
+
+
+
+            plt.legend(loc=(0.45,0.6), fontsize=12)
 
         else:
 
             scores_actual_0 = df.ix[df['actual'] == 0, 'predict'].values
             scores_actual_1 = df.ix[df['actual'] == 1, 'predict'].values
 
-            plt.hist(scores_actual_0, bins=30, alpha=0.8, color='red', label="Abnormal") #gray
-            plt.hist(scores_actual_1, bins=30, alpha=0.8, color='green', label="Normal") #black
+            if not inverse01:
+                plt.hist(scores_actual_0, bins=30, alpha=0.8, color='gray', label="Abnormal") #gray red
+                plt.hist(scores_actual_1, bins=30, alpha=0.8, color='black', label="Normal") #black green
+            else:
+                plt.hist(1-scores_actual_0, bins=30, alpha=0.8, color='gray', label="Abnormal")
+                plt.hist(1-scores_actual_1, bins=30, alpha=0.8, color='black', label="Normal")
 
             plt.legend(fontsize=12)
 
@@ -1680,10 +1703,12 @@ class Stats_Plotter():
         plt.xlabel('Score', fontsize=16)
         plt.ylabel('Number of orders', fontsize=16)
 
+        inverse_maker = '_inversed01' if inverse01 else ''
+
         if include_threshold_colors:
-            plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s_thres.png' % lab))
+            plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s_thres%s.png' % (lab, inverse_maker)))
         else:
-            plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s.png' % lab))
+            plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s%s.png' % (lab, inverse_maker)))
 
 
 
@@ -2003,7 +2028,6 @@ class Stats_Plotter():
 
     def main_generate_stats_figures_tables(self, figs_to_plot, params={}):
         print 'Generating figures and tables %s...' % str(figs_to_plot)
-        quit()
 
         '''
         scale by each 1000 patient encounter
@@ -2167,7 +2191,8 @@ class Stats_Plotter():
             self.draw_histogram_transfer_modeling()
 
         if 'Full_Cartoon' in figs_to_plot:
-            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False)
+            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=True, inverse01=True)
+            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False, inverse01=True)
 
         if 'write_importantFeatures' in figs_to_plot:
             self.write_importantFeatures()
@@ -2311,14 +2336,14 @@ def main_full_analysis(curr_version):
             lab2stats: Getting lab-wise stats tables under lab_statistics/dataset_folder/stats_by_lab_alg/..
             stats2summary: Aggregate all labs' stats under lab_statistics/dataset_folder/..
             '''
-            plotter.main_generate_lab_statistics(verbose=False)
+            # plotter.main_generate_lab_statistics(verbose=False)
 
             if data_source=='Stanford' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=['Full_Cartoon', # Figure 1
-                                                                         'Order_Intensities', # Figure 2
+                                                                         #'Order_Intensities', # Figure 2
                                                                          'Diagnostic_Metrics', # Table 1 & SI Table
-                                                                         'ROC',  # SI Figure
-                                                                         'write_importantFeatures' # SI Table
+                                                                         #'ROC',  # SI Figure
+                                                                         #'write_importantFeatures' # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'}) # TODO ['top_15', 'all_labs']
                 quit()
@@ -2434,5 +2459,5 @@ def main_one_analysis(curr_version):
 if __name__ == '__main__':
     curr_version = '10000-episodes-lastnormal'
 
-    main_one_analysis(curr_version=curr_version)
-    # main_full_analysis(curr_version=curr_version)
+    # main_one_analysis(curr_version=curr_version)
+    main_full_analysis(curr_version=curr_version)
