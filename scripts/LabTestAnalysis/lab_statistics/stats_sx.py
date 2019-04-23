@@ -206,16 +206,16 @@ class Stats_Plotter():
                 # plt.plot(y_s[0], '-'+marker_types[k], color=l2.get_color(), markerfacecolor=l1.get_color(), label='My plots')
 
             plt.xticks(range(0, max_repeat + 1))
-            plt.xlabel('Consecutive normal tests in the past 7 days', fontsize=14)
+            plt.xlabel('Consecutive negative tests in the past 7 days', fontsize=14)
             plt.tick_params('x', labelsize=15)  # 12
             plt.tick_params('y', labelsize=13)  # 10
-            plt.ylabel("Normal rate", fontsize=14)
+            plt.ylabel("Negative rate", fontsize=14)
             plt.ylim([-0.05, 1.05])
             plt.legend(fontsize=13)
             ax.yaxis.tick_right()
             ax.yaxis.set_label_position("right")
             plt.tight_layout()
-            plt.savefig(cached_result_foldername + 'Normality_Saturations_%s_%i'%(self.lab_type, ind))
+            plt.savefig(cached_result_foldername + 'Negative_Saturations_%s_%i'%(self.lab_type, ind))
             plt.clf()
 
 
@@ -1562,6 +1562,8 @@ class Stats_Plotter():
     def plot_full_cartoon(self, lab='LABLDH', include_threshold_colors=True, inverse01=False):
         print 'Running plot_full_cartoon...'
 
+        inverse_maker = '_inversed01' if inverse01 else ''
+
         statsByLab_folderpath = '/Users/songxu/healthrex/CDSS/scripts/LabTestAnalysis/lab_statistics/data-%s-%s-%s/'%(self.data_source,self.lab_type,self.curr_version)
         ml_folderpath = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
 
@@ -1603,15 +1605,14 @@ class Stats_Plotter():
             # plt.plot([1-specificity]*dash_num, np.linspace(0,1,num=dash_num), 'k--')
             plt.plot(np.linspace(0,1,num=dash_num),np.linspace(0,1,num=dash_num), color='lightblue', linestyle='--')
 
-
         plt.xlim([0, 1])
         plt.ylim([0, 1])
         plt.xticks([])
         plt.yticks([])
         plt.ylabel('Sensitivity', fontsize=16) #lab_descriptions.get(lab, lab)
         plt.xlabel('1-Specificity', fontsize=16)
-        plt.legend(fontsize=12)
-        plt.savefig(os.path.join(statsByLab_folderpath, 'ROC_%s.png'%lab))
+        # plt.legend(fontsize=12)
+        plt.savefig(os.path.join(statsByLab_folderpath, 'ROC_%s%s.png'%(lab,inverse_maker)))
 
         plt.clf()
 
@@ -1689,8 +1690,8 @@ class Stats_Plotter():
                 plt.hist(scores_actual_0, bins=30, alpha=0.8, color='gray', label="Abnormal") #gray red
                 plt.hist(scores_actual_1, bins=30, alpha=0.8, color='black', label="Normal") #black green
             else:
-                plt.hist(1-scores_actual_0, bins=30, alpha=0.8, color='gray', label="Abnormal")
-                plt.hist(1-scores_actual_1, bins=30, alpha=0.8, color='black', label="Normal")
+                plt.hist(1-scores_actual_0, bins=30, alpha=0.8, color='gray', label="Positive")
+                plt.hist(1-scores_actual_1, bins=30, alpha=0.8, color='black', label="Negative")
 
             plt.legend(fontsize=12)
 
@@ -1703,7 +1704,7 @@ class Stats_Plotter():
         plt.xlabel('Score', fontsize=16)
         plt.ylabel('Number of orders', fontsize=16)
 
-        inverse_maker = '_inversed01' if inverse01 else ''
+
 
         if include_threshold_colors:
             plt.savefig(os.path.join(statsByLab_folderpath, 'cartoon_%s_thres%s.png' % (lab, inverse_maker)))
@@ -2191,8 +2192,9 @@ class Stats_Plotter():
             self.draw_histogram_transfer_modeling()
 
         if 'Full_Cartoon' in figs_to_plot:
-            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=True, inverse01=True)
             self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False, inverse01=True)
+            self.plot_full_cartoon(lab='LABLDH', include_threshold_colors=True, inverse01=True)
+
 
         if 'write_importantFeatures' in figs_to_plot:
             self.write_importantFeatures()
@@ -2339,26 +2341,27 @@ def main_full_analysis(curr_version):
             # plotter.main_generate_lab_statistics(verbose=False)
 
             if data_source=='Stanford' and lab_type=='panel':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Full_Cartoon', # Figure 1
-                                                                         #'Order_Intensities', # Figure 2
-                                                                         'Diagnostic_Metrics', # Table 1 & SI Table
+                plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Full_Cartoon', # Figure 1
+                                                                         # 'Order_Intensities', # Figure 2
+                                                                         #'Diagnostic_Metrics', # Table 1 & SI Table
                                                                          #'ROC',  # SI Figure
                                                                          #'write_importantFeatures' # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'}) # TODO ['top_15', 'all_labs']
-                quit()
 
             elif data_source=='Stanford' and lab_type=='component':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
-                                                                         'ROC',  # SI Figure
-                                                                         'write_importantFeatures'  # SI Table
-                                                                         ],
-                                                           params={'Diagnostic_Metrics': 'important_components'})  # TODO ['common_components', 'all_labs']
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
-                                                                         'ROC',  # SI Figure
-                                                                         'write_importantFeatures'  # SI Table
+                # plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
+                #                                                          'ROC',  # SI Figure
+                #                                                          'write_importantFeatures'  # SI Table
+                #                                                          ],
+                #                                            params={'Diagnostic_Metrics': 'important_components'})  # TODO ['common_components', 'all_labs']
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Normality_Saturations',
+                                                                         #'Diagnostic_Metrics',  # Figure 3 & SI Table
+                                                                         #'ROC',  # SI Figure
+                                                                         #'write_importantFeatures'  # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'})
+                quit()
 
             elif data_source=='UMich' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # SI Table
