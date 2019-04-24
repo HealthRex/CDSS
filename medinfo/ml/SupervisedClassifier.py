@@ -38,9 +38,10 @@ class SupervisedClassifier:
 
     # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
     # TODO(sbala): Neural Network: http://scikit-learn.org/stable/modules/neural_networks_supervised.html#neural-networks-supervised
-    SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST,
-        REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES,
-        #SVM, XGB, NN
+    SUPPORTED_ALGORITHMS = [#DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST,
+        #REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES,
+        XGB        
+#SVM, XGB, NN
     ]
 
     # Hyperparam search strategies.
@@ -225,6 +226,7 @@ class SupervisedClassifier:
             self._hyperparams[hyperparam] = 'balanced'
         elif hyperparam == 'colsample_bytree':
             # XGB
+            self._hyperparams[hyperparam] = 0.5
             self._hyperparam_search_space[hyperparam] = [0.6, 0.8, 1.0]
         elif hyperparam == 'criterion':
             # DECISION_TREE, RANDOM_FOREST
@@ -291,6 +293,7 @@ class SupervisedClassifier:
             self._hyperparams[hyperparam] = 100
         elif hyperparam == 'min_child_weight':
             # XGB
+            self._hyperparams[hyperparam] = 3
             self._hyperparam_search_space[hyperparam] = [1, 5, 10]
         elif hyperparam == 'min_impurity_decrease':
             # DECISION_TREE, RANDOM_FOREST
@@ -384,6 +387,7 @@ class SupervisedClassifier:
             self._hyperparams[hyperparam] = 'best'
         elif hyperparam == 'subsample':
             # XGB
+            self._hyperparams[hyperparam] = 0.5
             self._hyperparam_search_space[hyperparam] = [0.6, 0.8, 1.0]
         elif hyperparam == 'tol':
             # LOGISTIC_REGRESSION
