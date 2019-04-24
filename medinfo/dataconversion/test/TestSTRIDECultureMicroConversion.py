@@ -35,20 +35,20 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
         ###### PREPARE SOME FAKE INPUT DATA TO BE CONVERTED ##############
         ###### PREPARE SOME FAKE INPUT DATA TO BE CONVERTED ##############
         ###### PREPARE SOME FAKE INPUT DATA TO BE CONVERTED ##############
+
         dataTextStr = \
-"""stride_treatment_team_id\tpat_id\tpat_enc_csn_id\ttrtmnt_tm_begin_date\ttrtmnt_tm_end_date\ttreatment_team\tprov_name
--100\t-2536\t-57\t\t\t\tAnonymous.
--200\t-117\t0\t10/5/2113 23:18\t10/6/2113 10:20\tAdditional Communicating Provider\tAnonymous.Additional Communicating Provider
--300\t-4845\t-60\t6/26/2113 8:11\t6/26/2113 8:13\tCare Coordinator\tAnonymous.Care Coordinator
--400\t-9194\t-26\t4/11/2109 8:39\t\tCase Manager\tAnonymous.Case Manager
--500\t-9519\t-69\t3/19/2113 12:10\t\tChief Resident\tAnonymous.Chief Resident
--600\t-8702\t-77\t4/10/2109 8:45\t\tClinical Dietician\tAnonymous.Clinical Dietician
--700\t-8307\t-92\t7/9/2113 0:21\t7/9/2113 2:16\tCo-Attending\tAnonymous.Co-Attending
--800\t-5474\t-78\t12/4/2113 9:47\t12/4/2113 12:55\tConsulting Attending\tAnonymous.Consulting Attending
--900\t-6015\t-47\t7/24/2113 2:29\t\tConsulting Fellow\tAnonymous.Consulting Fellow
+"""order_proc_anon_id,pat_anon_id,pat_enc_csn_anon_id,proc_code,organism_name,antibiotic_name,suseptibility,shifted_result_time
+-10,1,2,LABBLC,BACTEROIDES FRAGILIS,Clindamycin,Intermediate,9/10/2111 13:15
+-11,2,3,LABBLC,COAG NEGATIVE STAPHYLOCOCCUS,Vancomycin,Susceptible,4/26/2109 9:49
+-12,3,4,LABBLC,COAG NEGATIVE STAPHYLOCOCCUS,Oxacillin,Resistant,4/18/2109 4:48
+-13,4,5,LABBLC,COAG NEGATIVE STAPHYLOCOCCUS,Vancomycin,Susceptible,3/28/2109 23:21
+-14,5,6,LABBLC,ENTEROCOCCUS FAECALIS,Penicillin,Susceptible,6/3/2109 17:07
+-15,6,7,LABBLC2,,,,6/4/2109 17:07
 """
         # Parse into DB insertion object
-        DBUtil.insertFile( StringIO(dataTextStr), "stride_culture_micro", delim="\t", dateColFormats={"trtmnt_tm_begin_date": None, "trtmnt_tm_end_date": None} );
+        # DBUtil.insertFile( StringIO(dataTextStr), "stride_culture_micro", delim="   ", dateColFormats={"trtmnt_tm_begin_date": None, "trtmnt_tm_end_date": None} );
+        DBUtil.insertFile( StringIO(dataTextStr), "stride_culture_micro", delim=",", dateColFormats={"shifted_result_time": None} );
+
 
         self.converter = STRIDECultureMicroConversion();  # Instance to test on
 
@@ -63,7 +63,7 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
             (   select clinical_item_id
                 from clinical_item as ci, clinical_item_category as cic
                 where ci.clinical_item_category_id = cic.clinical_item_category_id
-                and cic.source_table = 'stride_treatment_team'
+                and cic.source_table = 'stride_culture_micro'
             );
             """
         );
@@ -72,13 +72,13 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
             where clinical_item_category_id in 
             (   select clinical_item_category_id 
                 from clinical_item_category 
-                where source_table = 'stride_treatment_team'
+                where source_table = 'strid_culture_micro'
             );
             """
         );
-        DBUtil.execute("delete from clinical_item_category where source_table = 'stride_treatment_team';");
+        DBUtil.execute("delete from clinical_item_category where source_table = 'stride_culture_micro ';");
 
-        DBUtil.execute("delete from stride_treatment_team where stride_treatment_team_id < 0");
+        DBUtil.execute("delete from stride_culture_micro where order_proc_anon_id < 0");
 
         DBTestCase.tearDown(self);
 
@@ -97,7 +97,6 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
                 pi.patient_id,
                 pi.encounter_id,
                 cic.description,
-                ci.external_id,
                 ci.name,
                 ci.description,
                 pi.item_date
@@ -110,19 +109,17 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
                 ci.clinical_item_category_id = cic.clinical_item_category_id and
                 cic.source_table = 'stride_culture_micro'
             order by
-                pi.external_id desc, ci.external_id desc
+                pi.external_id desc
             """;
         expectedData = \
             [   ##### CHANGE to the actual expected data
-[-200, -117, 0, "Treatment Team", None, "ACP", "Additional Communicating Provider", DBUtil.parseDateValue("10/5/2113 23:18"),],
-[-300, -4845, -60, "Treatment Team", None, "CC", "Care Coordinator", DBUtil.parseDateValue("6/26/2113 8:11"),],
-[-400, -9194, -26, "Treatment Team", None, "CM", "Case Manager", DBUtil.parseDateValue("4/11/2109 8:39"),],
-[-500, -9519, -69, "Treatment Team", None, "CR", "Chief Resident", DBUtil.parseDateValue("3/19/2113 12:10"),],
-[-600, -8702, -77, "Treatment Team", None, "CD", "Clinical Dietician", DBUtil.parseDateValue("4/10/2109 8:45"),],
-[-700, -8307, -92, "Treatment Team", None, "C", "Co-Attending", DBUtil.parseDateValue("7/9/2113 0:21"),],
-[-800, -5474, -78, "Treatment Team", None, "CA", "Consulting Attending", DBUtil.parseDateValue("12/4/2113 9:47"),],
-[-900, -6015, -47, "Treatment Team", None, "CF", "Consulting Fellow", DBUtil.parseDateValue("7/24/2113 2:29"),],
-            ];
+[-10, 1, 2, "Microculture Susceptibility", "LABBLC:BACTEROIDES FRAGILIS:Clindamycin:Intermediate", "LABBLC GREW BACTEROIDES FRAGILIS Intermediate TO Clindamycin", DBUtil.parseDateValue("9/10/2111 13:15"),],
+[-11, 2, 3, "Microculture Susceptibility", "LABBLC:COAG NEGATIVE STAPHYLOCOCCUS:Vancomycin:Susceptible", "LABBLC GREW COAG NEGATIVE STAPHYLOCOCCUS Susceptible TO Vancomycin", DBUtil.parseDateValue("4/26/2109 9:49"),],
+[-12, 3, 4, "Microculture Susceptibility", "LABBLC:COAG NEGATIVE STAPHYLOCOCCUS:Oxacillin:Resistant", "LABBLC GREW COAG NEGATIVE STAPHYLOCOCCUS Resistant TO Oxacillin", DBUtil.parseDateValue("4/18/2109 4:48"),],
+[-13, 4, 5, "Microculture Susceptibility", "LABBLC:COAG NEGATIVE STAPHYLOCOCCUS:Vancomycin:Susceptible", "LABBLC GREW COAG NEGATIVE STAPHYLOCOCCUS Susceptible TO Vancomycin", DBUtil.parseDateValue("3/28/2109 23:21"),],
+[-14, 5, 6, "Microculture Susceptibility", "LABBLC:ENTEROCOCCUS FAECALIS:Penicillin:Susceptible", "LABBLC GREW ENTEROCOCCUS FAECALIS Susceptible TO Penicillin", DBUtil.parseDateValue("6/3/2109 17:07"),],
+[-15, 6, 7, "Microculture Susceptibility",  "LABBLC2:None:None:None", "LABBLC2 GREW None None TO None", DBUtil.parseDateValue("6/4/2109 17:07")]
+];
         actualData = DBUtil.execute(testQuery);
         self.assertEqualTable( expectedData, actualData );
 

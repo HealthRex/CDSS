@@ -11,8 +11,9 @@ from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList
 from Util import log;
 from Env import DATE_FORMAT;
 
+
 SOURCE_TABLE = "stride_culture_micro";
-CATEGORY_TEMPLATE = "Culture Susceptibility";
+CATEGORY_TEMPLATE = "Microculture Susceptibility";
 
 class STRIDECultureMicroConversion:
     """Data conversion module to take STRIDE data
@@ -67,7 +68,7 @@ class STRIDECultureMicroConversion:
         ############ TO DO: Fix this to match the actual data of interest ##################
         ############ TO DO: Fix this to match the actual data of interest ##################
         ############ TO DO: Fix this to match the actual data of interest ##################
-        headers = ["stride_treatment_team_id","pat_id","pat_enc_csn_id","trtmnt_tm_begin_date","trtmnt_tm_end_date","treatment_team","prov_name"];
+        headers = ["order_proc_anon_id","pat_anon_id","pat_enc_csn_anon_id","proc_code","organism_name","antibiotic_name","suseptibility", "shifted_result_time"];
         ############ TO DO: Fix this to match the actual data of interest ##################
         ############ TO DO: Fix this to match the actual data of interest ##################
         ############ TO DO: Fix this to match the actual data of interest ##################
@@ -77,10 +78,11 @@ class STRIDECultureMicroConversion:
         for header in headers:
             query.addSelect( header );
         query.addFrom("stride_culture_micro");
-        if convOptions.startDate is not None:
-            query.addWhereOp("trtmnt_tm_begin_date",">=", convOptions.startDate);
-        if convOptions.endDate is not None:
-            query.addWhereOp("trtmnt_tm_begin_date","<", convOptions.endDate);  # Still use begin date as common filter value
+        # if convOptions.startDate is not None:
+        #     query.addWhereOp("shifted_result_time",">=", convOptions.startDate);
+        # if convOptions.endDate is not None:
+        #     query.addWhereOp("shifted_result_time","<", convOptions.endDate);  # Still use begin date as common filter value
+      
         ############ TO DO: Fix this to match the actual data of interest ##################
         ############ TO DO: Fix this to match the actual data of interest ##################
         ############ TO DO: Fix this to match the actual data of interest ##################
@@ -131,7 +133,7 @@ class STRIDECultureMicroConversion:
 
     def categoryFromSourceItem(self, sourceItem, conn):
         # Load or produce a clinical_item_category record model for the given sourceItem
-        #   In this case, always Medication
+        #   In this case, always Microculture Susceptibility
         categoryDescription = CATEGORY_TEMPLATE;
         categoryKey = (SOURCE_TABLE, categoryDescription);
         if categoryKey not in self.categoryBySourceDescr:
@@ -149,15 +151,19 @@ class STRIDECultureMicroConversion:
 
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
-        clinicalItemKey = (category["clinical_item_category_id"], sourceItem["description"]);
+        sourceItem_description = "%s:%s:%s:%s" % (sourceItem['proc_code'], sourceItem['organism_name'],
+                                                 sourceItem['antibiotic_name'], sourceItem['suseptibility'])
+        clinicalItemKey = (category["clinical_item_category_id"], sourceItem_description); ########## TODO probably needs to change
         if clinicalItemKey not in self.clinicalItemByCompositeKey:
             # Clinical Item does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             clinicalItem = \
                 RowItemModel \
                 (   {   "clinical_item_category_id": category["clinical_item_category_id"],
                         "external_id": None,
-                        "name": "%(proc_code)s;%(antibiotic)s;%(suscibility)s" % sourceItem, ############FIX THIS TO BE WHATEVER from source data
-                        "description": "%(proc_code)s;%(antibiotic)s;%(suscibility)s" % sourceItem,   ############FIX THIS TO BE WHATEVER from source data
+                        "name": "%s:%s:%s:%s" % (sourceItem['proc_code'], sourceItem['organism_name'],
+                                                 sourceItem['antibiotic_name'], sourceItem['suseptibility']), ############FIX THIS TO BE WHATEVER from source data
+                        "description": "%s GREW %s %s TO %s" % (sourceItem['proc_code'], sourceItem['organism_name'],
+                                                                sourceItem['suseptibility'], sourceItem['antibiotic_name'])   ############FIX THIS TO BE WHATEVER from source data
                     }
                 );
             (clinicalItemId, isNew) = DBUtil.findOrInsertItem("clinical_item", clinicalItem, conn=conn);
@@ -169,11 +175,11 @@ class STRIDECultureMicroConversion:
         # Produce a patient_item record model for the given sourceItem
         patientItem = \
             RowItemModel \
-            (   {   "external_id":  sourceItem["order_proc_anon_id"],      #### Or whatever was the most unique source ID?
-                    "patient_id":  sourceItem["pat_id"],                ### Fix reference
-                    "encounter_id":  sourceItem["pat_enc_csn_id"],          ### Fix reference
+            (   {   "external_id":  sourceItem["order_proc_anon_id"],      #### Or whatever was the most unique source ID? DONE
+                    "patient_id":  sourceItem["pat_anon_id"],                ### Fix reference DONE
+                    "encounter_id":  sourceItem["pat_enc_csn_anon_id"],          ### Fix reference DONE
                     "clinical_item_id":  clinicalItem["clinical_item_id"],
-                    "item_date":  sourceItem["XXXX_date"],       ### Whatever is the result timestamp???
+                    "item_date":  sourceItem["shifted_result_time"],       ### Whatever is the result timestamp??? DONE
                 }
             );
         insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys() );
