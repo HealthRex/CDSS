@@ -29,31 +29,31 @@ COPD Example Order Set (Diabetes)
 
 **NOTES from Watching Video** 
 
-[ ] This is low stakes: writing the code (nothing broke) you can order whatever you want 
-[ ] Oddities names won't always match 
-[ ] Sodium chloride intravenous (not sodium) 
-[ ] This is all basic functionality not what we are testing on 
-[ ] Get you familiar with the case 
-[ ] Look for things out loud 
-[ ] Now the difference is the point of the study the new functionality that doesn't exist in the EHR 
-[ ] Understand basic structure but this kind of functionality 
-[ ] You can completely ignore or you can 
-[ ] **Are these Stat orders??** 
-[ ] **Do I need to order this?** Like Real Life 
-[ ] Now this is a slightly different thing (remove statistics)
-[ ] Keep Searching and sign
-[ ] Probably want to see lab results now 
-[ ] Results review on the left 
-[ ] Meant to be a shell for basic function not the point of the study 
-[ ] you might want to order (dka orderset) 
-[ ] diet NPO 
-[ ] Sodium Chloride 
-[ ] Sense of Basic Functionaliy
-[ ] Real test and see what happens 
-[ ] Person Orders (everything you did before) 
-[ ] You can talk outloud if you'd like (not realistic behavior) 
-[ ] List is adapting to your orders 
-[ ] Admitting Decision versus ER treatment decision ()
+- [ ] This is low stakes: writing the code (nothing broke) you can order whatever you want 
+- [ ] Oddities names won't always match 
+- [ ] Sodium chloride intravenous (not sodium) 
+- [ ] This is all basic functionality not what we are testing on 
+- [ ] Get you familiar with the case 
+- [ ] Look for things out loud 
+- [ ] Now the difference is the point of the study the new functionality that doesn't exist in the EHR 
+- [ ] Understand basic structure but this kind of functionality 
+- [ ] You can completely ignore or you can 
+- [ ] **Are these Stat orders??** 
+- [ ] **Do I need to order this?** Like Real Life 
+- [ ] Now this is a slightly different thing (remove statistics)
+- [ ] Keep Searching and sign
+- [ ] Probably want to see lab results now 
+- [ ] Results review on the left 
+- [ ] Meant to be a shell for basic function not the point of the study 
+- [ ] you might want to order (dka orderset) 
+- [ ] diet NPO 
+- [ ] Sodium Chloride 
+- [ ] Sense of Basic Functionaliy
+- [ ] Real test and see what happens 
+- [ ] Person Orders (everything you did before) 
+- [ ] You can talk outloud if you'd like (not realistic behavior) 
+- [ ] List is adapting to your orders 
+- [ ] Admitting Decision versus ER treatment decision ()
 
   
 Feel free to ask me any questions about the interface. 
