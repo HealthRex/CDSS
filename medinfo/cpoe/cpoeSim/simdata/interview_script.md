@@ -1,3 +1,11 @@
+Advertisement Email message approved by IRB:
+"I am looking to pay $195 for one hour of time from MD participants (anyone who has admitted patients to an inpatient general medical service in the past year).  If you are interested, you will participate in a study on the utility of clinical decision support tools integrated into the electronic medical record interface.  Specifically you will be asked to work on a computer terminal simulating an electronic medical record interface and enter orders for a series of virtual patients while being observed by researchers, concluding with a survey.
+
+Please contact Jonathan H. Chen (jonc101@stanford.edu) to arrange a session time if you are interested in participating."
+
+
+
+
 From Sim Ui Testing :
 
 == Prep ==
