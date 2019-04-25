@@ -12,11 +12,9 @@ import os, sys
 
 import LocalEnv
 
-
-
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
-
+from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
 
 '''
 For each lab, get a bunch of stuff
@@ -1231,6 +1229,8 @@ def get_top_labs_and_cnts(lab_type='panel', top_k=None, bottom_k=None, criterion
     #     return res
 
     data_folder = "query_lab_results/"
+    if not os.path.exists(data_folder):
+        os.mkdir(data_folder)
     labs_and_cnts_file = "%ss_and_cnts_2014-2016.csv" % lab_type
     labs_and_cnts_path = os.path.join(data_folder, labs_and_cnts_file)
     if os.path.exists(labs_and_cnts_path):
@@ -1251,7 +1251,10 @@ def get_top_labs_and_cnts(lab_type='panel', top_k=None, bottom_k=None, criterion
             lab_data_filename = '%s.csv'%lab
             lab_data_path = os.path.join(data_folder, lab_data_filename)
 
-            df = pd.read_csv(lab_data_path, keep_default_na=False)
+            if os.path.exists(lab_data_path):
+                df = pd.read_csv(lab_data_path, keep_default_na=False)
+            else:
+                df = query_to_dataframe(lab, lab_type=lab_type)
             if lab_type == 'panel':
                 df = df[df['order_status']=='Completed']
             if time_limit:
