@@ -38,9 +38,8 @@ class SupervisedClassifier:
 
     # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
     # TODO(sbala): Neural Network: http://scikit-learn.org/stable/modules/neural_networks_supervised.html#neural-networks-supervised
-    SUPPORTED_ALGORITHMS = [#DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST,
-        #REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES,
-        NN
+    SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST,
+        REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES,
 #SVM, XGB, NN
     ]
 
