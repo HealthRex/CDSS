@@ -99,6 +99,9 @@ class STRIDECultureMicroConversion:
         row = cursor.fetchone();
         while row is not None:
             rowModel = RowItemModel( row, headers );
+            if rowModel['shifted_result_time'] is None: # Don't add if no end time
+                row = cursor.fetchone();
+                continue
             yield rowModel; # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
             row = cursor.fetchone();
 
