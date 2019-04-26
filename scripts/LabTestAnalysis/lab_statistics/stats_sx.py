@@ -259,10 +259,10 @@ class Stats_Plotter():
             df = df[df[price_source] != '']
             df[price_source] = df[price_source].astype(float)
 
-            df['TP_cost'] = df['true_positive'] * df['total_cnt'] * df[price_source]
-            df['FP_cost'] = df['false_positive'] * df['total_cnt'] * df[price_source]
-            df['FN_cost'] = df['false_negative'] * df['total_cnt'] * df[price_source]
-            df['TN_cost'] = df['true_negative'] * df['total_cnt'] * df[price_source]
+            df['TP_cost'] = df['TP'] * df['total_cnt'] * df[price_source]
+            df['FP_cost'] = df['FP'] * df['total_cnt'] * df[price_source]
+            df['FN_cost'] = df['FN'] * df['total_cnt'] * df[price_source]
+            df['TN_cost'] = df['TN'] * df['total_cnt'] * df[price_source]
             df['total_cost'] = df['TP_cost'] + df['FP_cost'] + df['FN_cost'] + df['TN_cost']
 
             df = df[['lab', 'TP_cost', 'FP_cost', 'FN_cost', 'TN_cost', 'total_cost']]
@@ -371,8 +371,9 @@ class Stats_Plotter():
         labs_stats_filepath = os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
 
         df = pd.read_csv(labs_stats_filepath, keep_default_na=False)
+        print df.head()
 
-        df = df[df['targeted_PPV_fixTrainPPV'] == targeted_PPV]
+        df = df[df['fixTrainPPV'] == targeted_PPV]
 
         df = df[df['lab'].isin(labs)]
 
@@ -398,7 +399,7 @@ class Stats_Plotter():
             if self.data_source == 'Stanford':
                 # if 'total_vol' not in df.columns.values.tolist():
                 # Stanford data, scaled by vol
-                df['total_vol'] = df['total_cnt']
+                df['total_vol'] = df['total_vol_20140701_20170701']
 
             elif self.data_source == 'UCSF':
                 import stats_database
@@ -442,13 +443,13 @@ class Stats_Plotter():
 
 
             # TODO: use fractions in the original file!
-            df['all_instance'] = df['true_positive'] + df['false_positive'] + df['true_negative'] + df['false_negative']
+            df['all_instance'] = df['TP'] + df['FP'] + df['TN'] + df['FN']
 
-            for cnt_type in ['true_positive', 'false_positive', 'true_negative', 'false_negative']:
+            for cnt_type in ['TP', 'FP', 'TN', 'FN']:
                 df[cnt_type] = df[cnt_type]/df['all_instance']
 
 
-            df['all_positive'] = df['true_positive'] + df['false_positive']
+            df['all_positive'] = df['TP'] + df['FP']
 
             # print df[['all_positive', 'total_vol']]
             df['predicted_normal_vol'] = df['all_positive'] * df['total_vol']
@@ -475,28 +476,28 @@ class Stats_Plotter():
 
 
 
-            df['all_negative'] = df['true_negative'] + df['false_negative']
+            df['all_negative'] = df['TN'] + df['FN']
 
-            df['true_negative'] = -df['true_negative']
+            df['TN'] = -df['TN']
             df['all_negative'] = -df['all_negative']
 
             df_toshow = df.copy().drop_duplicates()
 
             df_toshow['lab'] = df_toshow['lab'].apply(lambda x:self.lab_descriptions.get(x,x))
-            df_toshow['true_negative'] = -df_toshow['true_negative']
+            df_toshow['TN'] = -df_toshow['TN']
 
-            df_toshow['Prev'] = df_toshow['true_positive'] + df_toshow['false_negative']
+            df_toshow['Prev'] = df_toshow['TP'] + df_toshow['FN']
             df_toshow = df_toshow.rename(columns={
                'lab':'Lab Test',
                 'num_test_episodes':'Count',
-                                                'true_positive':'TP',
-                                                  'false_positive':'FP',
-                                                  'true_negative':'TN',
-                                                  'false_negative':'FN',
-                                                  'sensitivity':'sens',
-                                                  'specificity':'spec',
+                                                'TP':'TP',
+                                                  'FP':'FP',
+                                                  'TN':'TN',
+                                                  'FN':'FN',
+                                                  'sens':'sens',
+                                                  'spec':'spec',
                                                   'LR_p':'LR+', 'LR_n':'LR-'})
-            df_toshow['AUROC'] = df_toshow['AUROC'].apply(lambda x: '%.2f'%(x))
+            df_toshow['AUC'] = df_toshow['AUC'].apply(lambda x: '%.2f'%(x))
 
             numeric_cols = ['Prev', 'PPV', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec']
             for numeric_col in numeric_cols:
@@ -530,26 +531,26 @@ class Stats_Plotter():
 
 
 
-                cols_to_show = ['Lab Test', 'Volume', 'AUROC'] \
+                cols_to_show = ['Lab Test', 'Volume', 'AUC'] \
                                + numeric_cols \
                                + ['Medicare', 'Chargemaster'] #+ ['LR+', 'LR-'] \
             # elif self.data_source == 'Stanford' and self.lab_type=='component':
-            #     cols_to_show = ['Lab Test', 'Vol', 'AUROC'] + numeric_cols + ['LR+', 'LR-']
+            #     cols_to_show = ['Lab Test', 'Vol', 'AUC'] + numeric_cols + ['LR+', 'LR-']
             else:
-                cols_to_show = ['Lab Test', 'AUROC'] + numeric_cols #+ ['LR+', 'LR-']
+                cols_to_show = ['Lab Test', 'AUC'] + numeric_cols #+ ['LR+', 'LR-']
 
             df_toshow[cols_to_show].to_csv(cached_tablepath.replace('.csv', '_full.csv'), index=False)
             df_toshow[cols_to_show].iloc[:15].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
 
             df['all_positive_vol'] = df['all_positive'] * df['total_vol']
-            df['true_positive_vol'] = df['true_positive'] * df['total_vol']
+            df['true_positive_vol'] = df['TP'] * df['total_vol']
             df['all_negative_vol'] = df['all_negative'] * df['total_vol']
-            df['true_negative_vol'] = df['true_negative'] * df['total_vol']
+            df['true_negative_vol'] = df['TN'] * df['total_vol']
 
             df_toplots = df.iloc[:15]
 
             df_toplots[['lab',
-                        'PPV', 'NPV', 'sensitivity', 'specificity', 'LR_p', 'LR_n',
+                        'PPV', 'NPV', 'sens', 'spec', 'LR_p', 'LR_n',
                         'total_vol',
                        'all_positive_vol', 'true_positive_vol', 'all_negative_vol', 'true_negative_vol']]\
                         .to_csv(cached_tablepath, index=False, float_format='%.3f') # .sort_values('total_vol', ascending=False)\
@@ -718,7 +719,7 @@ class Stats_Plotter():
 
         '''
         Drawing Figure 2 in the main text.
-    
+
         :param self.lab_type:
         :return:
         '''
@@ -1064,7 +1065,7 @@ class Stats_Plotter():
             df_mlmodel = pd.read_csv('data_performance_stats/best-alg-panel-summary-fix-trainPPV.csv',
                              keep_default_na=False)
             df_mlmodel = df_mlmodel[(df_mlmodel['train_PPV']==0.95) & df_mlmodel['lab'].isin(labs)]
-            df_mlmodel['savable_fraction_mlmodel'] = (df_mlmodel['true_positive'] + df_mlmodel['false_positive'])#.round(5)
+            df_mlmodel['savable_fraction_mlmodel'] = (df_mlmodel['TP'] + df_mlmodel['FP'])#.round(5)
             df_mlmodel = df_mlmodel[['lab', 'savable_fraction_mlmodel']]
 
             savable_fractions_mlmodel = stats_utils.pandas2dict(df_mlmodel, key='lab', val='savable_fraction_mlmodel')
@@ -1354,23 +1355,23 @@ class Stats_Plotter():
         df_ucsf = df_ucsf[df_ucsf['targeted_PPV_fixTrainPPV'] == target_PPV]
 
         for df in [df_stanford, df_umich, df_ucsf]:
-            df['total_cnt'] = df['true_positive'] + df['false_positive'] + df['true_negative'] + df['false_negative']
-            df['true_positive'] = df['true_positive'] / df['total_cnt']
-            df['false_positive'] = df['false_positive'] / df['total_cnt']
-            df['true_negative'] = df['true_negative'] / df['total_cnt']
-            df['false_negative'] = df['false_negative'] / df['total_cnt']
+            df['total_cnt'] = df['TP'] + df['FP'] + df['TN'] + df['FN']
+            df['TP'] = df['TP'] / df['total_cnt']
+            df['FP'] = df['FP'] / df['total_cnt']
+            df['TN'] = df['TN'] / df['total_cnt']
+            df['FN'] = df['FN'] / df['total_cnt']
 
 
         df_stanford = df_stanford[df_stanford['lab'].isin(labs_important)]
-        df_stanford['predicted_normal_Stanford'] = df_stanford['true_positive']+df_stanford['false_positive']
+        df_stanford['predicted_normal_Stanford'] = df_stanford['TP']+df_stanford['FP']
 
-        df_stanford = df_stanford.rename(columns={'AUROC':'AUC_Stanford',
+        df_stanford = df_stanford.rename(columns={'AUC':'AUC_Stanford',
                                                   #'baseline2_ROC':'B_ROC_Stanford',
                                                   'PPV':'PPV_Stanford',
-                                                  'true_positive': 'TP_Stanford',
-                                                  'false_positive': 'FP_Stanford',
-                                                  'true_negative': 'TN_Stanford',
-                                                  'false_negative': 'FN_Stanford'
+                                                  'TP': 'TP_Stanford',
+                                                  'FP': 'FP_Stanford',
+                                                  'TN': 'TN_Stanford',
+                                                  'FN': 'FN_Stanford'
                                                   })
 
 
@@ -1378,14 +1379,14 @@ class Stats_Plotter():
         df_convert_table_UMich = pd.read_csv('../machine_learning/data_conversion/map_UMich_component_raw2code.csv', keep_default_na=False)
         umich_replace = dict(zip(df_convert_table_UMich['raw'].values.tolist(), df_convert_table_UMich['lab'].values.tolist()))
         df_umich['lab'] = df_umich['lab'].apply(lambda x: umich_replace[x] if x in umich_replace else x)
-        df_umich['predicted_normal_UMich'] = df_umich['true_positive'] + df_umich['false_positive']
-        df_umich = df_umich.rename(columns={'AUROC': 'AUC_UMich',
+        df_umich['predicted_normal_UMich'] = df_umich['TP'] + df_umich['FP']
+        df_umich = df_umich.rename(columns={'AUC': 'AUC_UMich',
                                             #'baseline2_ROC': 'B_ROC_UMich',
                                                   'PPV':'PPV_UMich',
-                                                  'true_positive': 'TP_UMich',
-                                                  'false_positive': 'FP_UMich',
-                                                  'true_negative': 'TN_UMich',
-                                                  'false_negative': 'FN_UMich'
+                                                  'TP': 'TP_UMich',
+                                                  'FP': 'FP_UMich',
+                                                  'TN': 'TN_UMich',
+                                                  'FN': 'FN_UMich'
                                                   })
 
         # ucsf_replace = {'CREAT': 'CR'}
@@ -1394,17 +1395,17 @@ class Stats_Plotter():
         ucsf_replace = dict(
             zip(df_convert_table_UCSF['raw'].values.tolist(), df_convert_table_UCSF['lab'].values.tolist()))
         df_ucsf['lab'] = df_ucsf['lab'].apply(lambda x: ucsf_replace[x] if x in ucsf_replace else x)
-        df_ucsf['predicted_normal_UCSF'] = df_ucsf['true_positive'] + df_ucsf['false_positive']
-        df_ucsf = df_ucsf.rename(columns={'AUROC': 'AUC_UCSF',
+        df_ucsf['predicted_normal_UCSF'] = df_ucsf['TP'] + df_ucsf['FP']
+        df_ucsf = df_ucsf.rename(columns={'AUC': 'AUC_UCSF',
                                           #'baseline2_ROC': 'B_ROC_UCSF',
                                                   'PPV':'PPV_UCSF',
-                                            'true_positive': 'TP_UCSF',
-                                            'false_positive': 'FP_UCSF',
-                                            'true_negative': 'TN_UCSF',
-                                            'false_negative': 'FN_UCSF'
+                                            'TP': 'TP_UCSF',
+                                            'FP': 'FP_UCSF',
+                                            'TN': 'TN_UCSF',
+                                            'FN': 'FN_UCSF'
                                             })
 
-        columns = ['lab', 'AUC', 'PPV', 'predicted_normal']#, 'true_positive', 'false_positive', 'true_negative', 'false_negative']
+        columns = ['lab', 'AUC', 'PPV', 'predicted_normal']#, 'TP', 'FP', 'TN', 'FN']
         columns_stanford = [x+'_Stanford' if x !='lab' else x for x in columns]
         columns_umich = [x+'_UMich' if x !='lab' else x for x in columns]
         columns_ucsf = [x+'_UCSF' if x !='lab' else x for x in columns]
@@ -1433,7 +1434,7 @@ class Stats_Plotter():
         merged_df[columns_merged].to_csv(os.path.join(stats_folderpath, 'components_comparisons.csv'), index=False)
 
 
-    def draw__predicted_normal_fractions(statsByLab_folderpath, targeted_PPV):
+    def draw__predicted_normal_fractions(self, statsByLab_folderpath, targeted_PPV):
         labs_stats_filepath = os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
 
         df = pd.read_csv(labs_stats_filepath)
@@ -1447,9 +1448,9 @@ class Stats_Plotter():
         result_figname = 'Predicted_Normal_Fractions_%.2f.png'%targeted_PPV
         result_figpath = os.path.join(result_folderpath, result_figname)
 
-        df['predicted_normal'] = (df['true_positive'] + df['false_positive']) / df['num_test_episodes']
+        df['predicted_normal'] = (df['TP'] + df['FP']) / df['num_test_episodes']
 
-        df['description'] = df['lab'].apply(lambda x: lab_descriptions.get(x, x))
+        df['description'] = df['lab'].apply(lambda x: self.lab_descriptions.get(x, x))
         # print df[['description', 'predicted_normal']].sort_values(['predicted_normal'], ascending=False).to_string(index=False)
 
         predicted_normal_fractions = np.linspace(0, 1, num=11)
@@ -1888,7 +1889,7 @@ class Stats_Plotter():
             df_cur_bestalg = df_lab[idx_bestalgs]
 
             # df_cur_best_alg = df_lab.groupby(['lab', 'fixTrainPPV'])['AUC'].max()
-            # df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUROC'], how='left')
+            # df_cur_best_alg = pd.merge(df_cur_best_alg, df_lab, on=['lab', 'AUC'], how='left')
 
             df_cur_best_alg = df_cur_bestalg.rename(columns={'alg': 'best_alg'})
             df_best_alg = df_best_alg.append(df_cur_best_alg)
@@ -2152,7 +2153,7 @@ class Stats_Plotter():
             self.plot_cartoons(os.path.join(ml_folderpath, statsByDataSet_foldername))
 
         if 'Diagnostic_Metrics' in figs_to_plot:
-            top_panels_cnts = stats_utils.get_top_labs_and_cnts(top_k=20)
+            top_panels_cnts = stats_utils.get_top_labs_and_cnts(lab_type=self.lab_type, top_k=20)
             top_panels = [x[0] for x in top_panels_cnts]
             panels = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels)) + ['LABK', 'LABNA', 'LABLIDOL'] #, 'LABCR', 'LABPTT', 'LABCAI'
             components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA', \
@@ -2342,9 +2343,9 @@ def main_full_analysis(curr_version):
 
             if data_source=='Stanford' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Full_Cartoon', # Figure 1
-                                                                         # 'Order_Intensities', # Figure 2
-                                                                         #'Diagnostic_Metrics', # Table 1 & SI Table
-                                                                         #'ROC',  # SI Figure
+                                                                         #'Order_Intensities', # Figure 2
+                                                                         'Diagnostic_Metrics', # Table 1 & SI Table
+                                                                         'ROC',  # SI Figure
                                                                          #'write_importantFeatures' # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'}) # TODO ['top_15', 'all_labs']
@@ -2372,14 +2373,14 @@ def main_full_analysis(curr_version):
 
             elif data_source=='UMich' and lab_type=='component':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
-                                                                         'ROC',  # SI Figure
-                                                                         'write_importantFeatures'  # SI Table
+                                                                         #'ROC',  # SI Figure
+                                                                         #'write_importantFeatures'  # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'important_components'})  # TODO
 
                 plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
-                                                                         'ROC',  # SI Figure
-                                                                         'write_importantFeatures'  # SI Table
+                                                                         #'ROC',  # SI Figure
+                                                                         #'write_importantFeatures'  # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'})  # TODO
 
