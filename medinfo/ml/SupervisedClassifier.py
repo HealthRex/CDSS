@@ -38,9 +38,8 @@ class SupervisedClassifier:
 
     # TODO(sbala): Nearest Neighbors: http://scikit-learn.org/stable/modules/neighbors.html#neighbors
     # TODO(sbala): Neural Network: http://scikit-learn.org/stable/modules/neural_networks_supervised.html#neural-networks-supervised
-    SUPPORTED_ALGORITHMS = [#DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST,
-        #REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES,
-        XGB        
+    SUPPORTED_ALGORITHMS = [DECISION_TREE, LOGISTIC_REGRESSION, RANDOM_FOREST,
+        REGRESS_AND_ROUND, ADABOOST, GAUSSIAN_NAIVE_BAYES,
 #SVM, XGB, NN
     ]
 
@@ -902,12 +901,13 @@ class SupervisedClassifier:
         self._get_or_set_hyperparam('n_jobs')
 
         self._get_or_set_hyperparam('hidden_layer_sizes')
-
-        print "here!"
-        quit()
+        self._get_or_set_hyperparam('activation')
+        self._get_or_set_hyperparam('solver')
 
         self._model = MLPClassifier(
             hidden_layer_sizes=self._hyperparams['hidden_layer_sizes'],
+            activation=self._hyperparams['activation'],
+            solver=self._hyperparams['solver'],
             random_state=self._hyperparams['random_state']
         )
 
