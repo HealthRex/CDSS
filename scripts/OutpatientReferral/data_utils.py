@@ -248,6 +248,10 @@ class ReferralDataMunger():
 
             ax.get_xaxis().set_ticks([])
 
+        # return median and IQR
+        return all_waiting_days.median(), \
+               all_waiting_days.quantile(0.75) - all_waiting_days.quantile(0.25)
+
     def explore_referral(self, top_k=5, rank_by='abs'):
         icd10_category_mapping = data_config.get_icd10_category_mapping()
         #print 'Top icd10s (categories) and %s_cnt:'%rank_by
@@ -453,16 +457,29 @@ def test_munger(referral, icd10, test_mode=False):
     print "generate order stats by tfidf"
     munger.generate_order_stats(icd10=icd10, top_k=10, rank_by='tfidf')
     print "test munger complete"
+
 def plot_waiting_times(col=3):
     df = load_data()
     row = len(data_config.referral_to_specialty_tuples)/col
 
+    referrals = []
+    medians = []
+    IQRs = []
     fig, axes = plt.subplots(row, col)
     for i, pair in enumerate(data_config.referral_to_specialty_tuples):
         referral = pair[0]
+        referrals.append(referral)
+        print "plot_waiting_times for %s" % referral
+
         munger = ReferralDataMunger(referral=referral,
-                                    df=df)
-        munger.plot_waiting_times(axes[i/col, i%col])
+                                    df_full=df)
+        median, IQR = munger.plot_waiting_times(axes[i/col, i%col])
+
+        medians.append(median)
+        IQRs.append(IQR)
+
+    pd.DataFrame({'referral':referrals, 'median': medians, 'IQR': IQRs})\
+        [['referral', 'median', 'IQR']].to_csv('waiting_time_stats.csv', index=False)
     plt.tight_layout()
     # fig.suptitle('waiting days (max 6 months)', verticalalignment='bottom')
     plt.show()
@@ -490,8 +507,8 @@ def explore_savable_frac():
     df_tmp = df[['specialty_enc_id', 'specialty_name', 'savable_order']]\
               .groupby(['specialty_enc_id', 'specialty_name'])['savable_order']\
         .all().reset_index().rename(columns={'savable_order':'savable_enc'})
-    print df_tmp.groupby(['specialty_name'])['savable_enc'].mean().reset_index()\
-        .rename(columns={'savable_enc':'savable_frac'})
+    df_tmp.groupby(['specialty_name'])['savable_enc'].mean().reset_index()\
+        .rename(columns={'savable_enc':'savable_frac'}).to_csv('savable_frac.csv', index=False)
 
 def explore_savable_time(specialty='Hematology'):
     df = load_data(newPatientOnly=False, referral_name='REFERRAL TO HEMATOLOGY')
@@ -519,8 +536,8 @@ if __name__ == '__main__':
     # REFERRAL TO ENDOCRINE CLINIC, 'E11'
     # explore_referrals('REFERRAL TO HEMATOLOGY', top_k=10)
     # quit()
-    test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
-    # plot_waiting_times()
+    # test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
+    plot_waiting_times()
 
     # df = load_data()
     # print df.shape
