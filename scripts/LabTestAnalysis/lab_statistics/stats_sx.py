@@ -359,7 +359,8 @@ class Stats_Plotter():
     '''
 
     def draw__Diagnostic_Metrics(self, statsByLab_folderpath, labs, result_label='all_labs',
-                                targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False):
+                                targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False,
+                                 inverse01=False):
         '''
         Drawing Figure 3 in the main text.
 
@@ -497,7 +498,11 @@ class Stats_Plotter():
                                                   'sens':'sens',
                                                   'spec':'spec',
                                                   'LR_p':'LR+', 'LR_n':'LR-'})
+
             df_toshow['AUC'] = df_toshow['AUC'].apply(lambda x: '%.2f'%(x))
+
+            print df_toshow['NPV']
+            df_toshow['NPV'] = df_toshow['NPV'].apply(lambda x: stats_utils.convert_floatstr2percentage(x))
 
             numeric_cols = ['Prev', 'PPV', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec']
             for numeric_col in numeric_cols:
@@ -509,7 +514,7 @@ class Stats_Plotter():
             df_toshow['LR+'] = df_toshow['LR+'].apply(lambda x: stats_utils.convert_floatstr2num(x))
             df_toshow['LR-'] = df_toshow['LR-'].apply(lambda x: stats_utils.convert_floatstr2num(x))
 
-            df_toshow['Volume'] = (df_toshow['total_vol'] / float(stats_utils.NUM_DISTINCT_ENCS / 1000.)).apply(
+            df_toshow['Vol'] = (df_toshow['total_vol'] / float(stats_utils.NUM_DISTINCT_ENCS / 1000.)).apply(
                 lambda x: int(round(x)))
 
             if self.data_source == 'Stanford' and self.lab_type=='panel':
@@ -531,16 +536,37 @@ class Stats_Plotter():
 
 
 
-                cols_to_show = ['Lab Test', 'Volume', 'AUC'] \
-                               + numeric_cols \
-                               + ['Medicare', 'Chargemaster'] #+ ['LR+', 'LR-'] \
+                cols_to_show = ['Lab Test', 'Vol', 'AUC'] \
+                               + numeric_cols
+                               #+ ['Medicare', 'Chargemaster'] #+ ['LR+', 'LR-'] \
+                print df_toshow['Lab Test'].values.tolist()
+                labs_to_show = ['Magnesium', 'Prothrombin Time', 'Phosphorus', 'Partial Thromboplastin Time',
+                                'Lactate', 'Calcium Ionized', 'Potassium', 'Troponin I', 'LDH Total',
+                                #'Heparin', 'Urinalysis', # too few positives
+                                'Blood Culture (Aerobic & Anaerobic)',
+                                'Blood Culture (2 Aerobic)', 'Sodium', 'Lidocaine', 'Hematocrit', 'Urine Culture',
+                                'Urinalysis With Microscopic', 'Uric Acid', 'Hemoglobin A1c']
+                # quit()
             # elif self.data_source == 'Stanford' and self.lab_type=='component':
             #     cols_to_show = ['Lab Test', 'Vol', 'AUC'] + numeric_cols + ['LR+', 'LR-']
             else:
                 cols_to_show = ['Lab Test', 'AUC'] + numeric_cols #+ ['LR+', 'LR-']
 
+            if inverse01:
+                df_toshow = df_toshow.rename(columns={'PPV': 'NPV',
+                                                      'NPV': 'PPV',
+                                                      'TP': 'TN',
+                                                      'FP': 'FN',
+                                                      'TN': 'TP',
+                                                      'FN': 'FP',
+                                                      'sens':'spec',
+                                                      'spec':'sens'})
+                cols_to_show = ['Lab Test', 'Vol', 'AUC', 'Prev', 'NPV', 'PPV', 'TN', 'FN', 'TP', 'FP', 'spec', 'sens']
+
+
             df_toshow[cols_to_show].to_csv(cached_tablepath.replace('.csv', '_full.csv'), index=False)
-            df_toshow[cols_to_show].iloc[:15].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
+            df_toshow[cols_to_show].iloc[:20].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
+            quit()
 
             df['all_positive_vol'] = df['all_positive'] * df['total_vol']
             df['true_positive_vol'] = df['TP'] * df['total_vol']
@@ -2028,7 +2054,7 @@ class Stats_Plotter():
              thres_mode="fixTrainPPV",
                                verbose=verbose)
 
-    def main_generate_stats_figures_tables(self, figs_to_plot, params={}):
+    def main_generate_stats_figures_tables(self, figs_to_plot, params={}, inverse01=False):
         print 'Generating figures and tables %s...' % str(figs_to_plot)
 
         '''
@@ -2165,10 +2191,10 @@ class Stats_Plotter():
             if self.data_source == 'Stanford':
                 if self.lab_type == 'panel':
                     self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
-                                            targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
+                                            targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False, inverse01=inverse01)
                 else:
                     self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
-                                            targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
+                                            targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False, inverse01=inverse01)
             elif self.data_source == 'UCSF':
                 self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
                                         targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
@@ -2328,7 +2354,7 @@ def main_transfer_model(curr_version, lab_type='component'):
     #                        dst_dataset_folderpath=os.path.join('data', 'LABURIC', 'wi last normality - UCSF'),
     #                        output_folderpath=os.path.join('data', 'LABURIC', 'transfer_Stanford_to_UCSF'))
 
-def main_full_analysis(curr_version):
+def main_full_analysis(curr_version, inverse01=False):
     for data_source in ['Stanford', 'UMich', 'UCSF']:
         for lab_type in ['panel', 'component']:
 
@@ -2339,7 +2365,7 @@ def main_full_analysis(curr_version):
             lab2stats: Getting lab-wise stats tables under lab_statistics/dataset_folder/stats_by_lab_alg/..
             stats2summary: Aggregate all labs' stats under lab_statistics/dataset_folder/..
             '''
-            # plotter.main_generate_lab_statistics(verbose=False)
+            plotter.main_generate_lab_statistics(verbose=False)
 
             if data_source=='Stanford' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Full_Cartoon', # Figure 1
@@ -2348,7 +2374,8 @@ def main_full_analysis(curr_version):
                                                                          'ROC',  # SI Figure
                                                                          #'write_importantFeatures' # SI Table
                                                                          ],
-                                                           params={'Diagnostic_Metrics': 'all_labs'}) # TODO ['top_15', 'all_labs']
+                                                           params={'Diagnostic_Metrics': 'all_labs'},
+                    inverse01=inverse01) # TODO ['top_15', 'all_labs']
 
             elif data_source=='Stanford' and lab_type=='component':
                 # plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
@@ -2361,7 +2388,8 @@ def main_full_analysis(curr_version):
                                                                          #'ROC',  # SI Figure
                                                                          #'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Diagnostic_Metrics': 'all_labs'})
+                                                           params={'Diagnostic_Metrics': 'all_labs'},
+                                                           inverse01=inverse01)
                 quit()
 
             elif data_source=='UMich' and lab_type=='panel':
@@ -2464,4 +2492,4 @@ if __name__ == '__main__':
     curr_version = '10000-episodes-lastnormal'
 
     # main_one_analysis(curr_version=curr_version)
-    main_full_analysis(curr_version=curr_version)
+    main_full_analysis(curr_version=curr_version, inverse01=True)
