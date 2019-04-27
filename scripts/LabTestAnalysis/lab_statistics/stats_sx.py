@@ -542,10 +542,11 @@ class Stats_Plotter():
                 print df_toshow['Lab Test'].values.tolist()
                 labs_to_show = ['Magnesium', 'Prothrombin Time', 'Phosphorus', 'Partial Thromboplastin Time',
                                 'Lactate', 'Calcium Ionized', 'Potassium', 'Troponin I', 'LDH Total',
-                                #'Heparin', 'Urinalysis', # too few positives
+                                'Heparin', 'Urinalysis', # too few positives
                                 'Blood Culture (Aerobic & Anaerobic)',
                                 'Blood Culture (2 Aerobic)', 'Sodium', 'Lidocaine', 'Hematocrit', 'Urine Culture',
-                                'Urinalysis With Microscopic', 'Uric Acid', 'Hemoglobin A1c']
+                                'Urinalysis With Microscopic', 'Uric Acid', 'Hemoglobin A1c'
+                                ]
                 # quit()
             # elif self.data_source == 'Stanford' and self.lab_type=='component':
             #     cols_to_show = ['Lab Test', 'Vol', 'AUC'] + numeric_cols + ['LR+', 'LR-']
@@ -561,12 +562,11 @@ class Stats_Plotter():
                                                       'FN': 'FP',
                                                       'sens':'spec',
                                                       'spec':'sens'})
-                cols_to_show = ['Lab Test', 'Vol', 'AUC', 'Prev', 'NPV', 'PPV', 'TN', 'FN', 'TP', 'FP', 'spec', 'sens']
+                cols_to_show = ['Lab Test', 'Vol', 'AUC', 'Prev', 'NPV', 'PPV', 'sens', 'spec', 'TN', 'FN', 'TP', 'FP']
 
 
             df_toshow[cols_to_show].to_csv(cached_tablepath.replace('.csv', '_full.csv'), index=False)
             df_toshow[cols_to_show].iloc[:20].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
-            quit()
 
             df['all_positive_vol'] = df['all_positive'] * df['total_vol']
             df['true_positive_vol'] = df['TP'] * df['total_vol']
@@ -896,7 +896,7 @@ class Stats_Plotter():
 
 
     def draw__stats_Curves(self, statsByLab_folderpath, labs, curve_type="ROC", algs=['random-forest'], result_label=None,
-                           include_baseline=True):
+                           include_baseline=True, inverse01=False):
         result_foldername = 'Fig_stats_Curves'
         if result_label:
             result_foldername += '_' + result_label
@@ -945,14 +945,18 @@ class Stats_Plotter():
             i, j = i_s[ind], j_s[ind]
             plt.subplot2grid((row, col), (i, j))
 
-            if include_baseline:
-                plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
-
             dash_num = 20
             plt.plot(np.linspace(0, 1, num=dash_num), np.linspace(0, 1, num=dash_num), color='lightblue',
                      linestyle='--')
 
-            plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best), color='orange')
+            if not inverse01:
+                plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best), color='orange')
+                if include_baseline:
+                    plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
+            else:
+                plt.plot(1-yVal_best, 1-xVal_best, label='%0.2f' % (score_best), color='orange')
+                if include_baseline:
+                    plt.plot(1 - yVal_base, 1 - xVal_base, label='%0.2f' % (score_base))
 
             plt.xlim([0,1])
             plt.ylim([0,1])
@@ -2156,10 +2160,10 @@ class Stats_Plotter():
                                      'LABLIDOL', 'LABHCTX', 'LABPTT', 'LABCA', 'LABRETIC', 'LABSPLAC', 'LABTRIG']
                 # lab_set, set_label = top_improved_labs, 'top_improved_labs'
                 self.draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=['random-forest'],
-                                   result_label=set_label)
+                                   result_label=set_label, inverse01=inverse01)
             if 'PRC' in figs_to_plot:
                 self.draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=['random-forest'],
-                                   result_label=set_label)
+                                   result_label=set_label, inverse01=inverse01)
 
             merge_ROC_PRC = False
             if merge_ROC_PRC:
