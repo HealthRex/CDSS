@@ -102,6 +102,9 @@ class STRIDECultureMicroConversion:
             if rowModel['shifted_result_time'] is None: # Don't add if no end time
                 row = cursor.fetchone();
                 continue
+            if rowModel['antibiotic_name'] == 'Method': # Don't add if antibiotic name is method
+                row = cursor.fetchone();
+                continue
             yield rowModel; # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
             row = cursor.fetchone();
 
@@ -163,9 +166,9 @@ class STRIDECultureMicroConversion:
                 RowItemModel \
                 (   {   "clinical_item_category_id": category["clinical_item_category_id"],
                         "external_id": None,
-                        "name": "%s:%s:%s:%s" % (sourceItem['proc_code'], sourceItem['organism_name'],
+                        "name": "%s:%s:%s" % (sourceItem['proc_code'],
                                                  sourceItem['antibiotic_name'], sourceItem['suseptibility']), ############FIX THIS TO BE WHATEVER from source data
-                        "description": "%s GREW %s %s TO %s" % (sourceItem['proc_code'], sourceItem['organism_name'],
+                        "description": "%s %s TO %s" % (sourceItem['proc_code'],
                                                                 sourceItem['suseptibility'], sourceItem['antibiotic_name'])   ############FIX THIS TO BE WHATEVER from source data
                     }
                 );
@@ -193,7 +196,7 @@ class STRIDECultureMicroConversion:
             patientItem["patient_item_id"] = DBUtil.execute( DBUtil.identityQuery("patient_item"), conn=conn )[0][0];
         except conn.IntegrityError, err:
             # If turns out to be a duplicate, okay, pull out existing ID and continue to insert whatever else is possible
-            log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again
+            # log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again
             searchPatientItem = \
                 {   "patient_id":       patientItem["patient_id"],
                     "clinical_item_id": patientItem["clinical_item_id"],

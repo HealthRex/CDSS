@@ -44,6 +44,7 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
 -13,4,5,LABBLC,COAG NEGATIVE STAPHYLOCOCCUS,Vancomycin,Susceptible,3/28/2109 23:21
 -14,5,6,LABBLC,ENTEROCOCCUS FAECALIS,Penicillin,Susceptible,6/3/2109 17:07
 -14,5,6,LABBLC,ENTEROCOCCUS FAECALIS,Penicillin,Susceptible,6/3/2109 17:07
+-20,10,11,LABBLC,ENTEROCOCCUS FAECALIS,Method,,6/10/2109 17:07
 -15,6,7,LABBLC2,,,,6/4/2109 17:07
 -16,7,8,LABBLC2,,,,
 """
@@ -115,12 +116,12 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
             """;
         expectedData = \
             [   ##### CHANGE to the actual expected data
-[-10, 1, 2, "Microculture Susceptibility", "LABBLC:BACTEROIDES FRAGILIS:Clindamycin:Intermediate", "LABBLC GREW BACTEROIDES FRAGILIS Intermediate TO Clindamycin", DBUtil.parseDateValue("9/10/2111 13:15"),],
-[-11, 2, 3, "Microculture Susceptibility", "LABBLC:COAG NEGATIVE STAPHYLOCOCCUS:Vancomycin:Susceptible", "LABBLC GREW COAG NEGATIVE STAPHYLOCOCCUS Susceptible TO Vancomycin", DBUtil.parseDateValue("4/26/2109 9:49"),],
-[-12, 3, 4, "Microculture Susceptibility", "LABBLC:COAG NEGATIVE STAPHYLOCOCCUS:Oxacillin:Resistant", "LABBLC GREW COAG NEGATIVE STAPHYLOCOCCUS Resistant TO Oxacillin", DBUtil.parseDateValue("4/18/2109 4:48"),],
-[-13, 4, 5, "Microculture Susceptibility", "LABBLC:COAG NEGATIVE STAPHYLOCOCCUS:Vancomycin:Susceptible", "LABBLC GREW COAG NEGATIVE STAPHYLOCOCCUS Susceptible TO Vancomycin", DBUtil.parseDateValue("3/28/2109 23:21"),],
-[-14, 5, 6, "Microculture Susceptibility", "LABBLC:ENTEROCOCCUS FAECALIS:Penicillin:Susceptible", "LABBLC GREW ENTEROCOCCUS FAECALIS Susceptible TO Penicillin", DBUtil.parseDateValue("6/3/2109 17:07")],
-[-15, 6, 7, "Microculture Susceptibility",  "LABBLC2:None:None:None", "LABBLC2 GREW None None TO None", DBUtil.parseDateValue("6/4/2109 17:07")]
+[-10, 1, 2, "Microculture Susceptibility", "LABBLC:Clindamycin:Intermediate", "LABBLC Intermediate TO Clindamycin", DBUtil.parseDateValue("9/10/2111 13:15"),],
+[-11, 2, 3, "Microculture Susceptibility", "LABBLC:Vancomycin:Susceptible", "LABBLC Susceptible TO Vancomycin", DBUtil.parseDateValue("4/26/2109 9:49"),],
+[-12, 3, 4, "Microculture Susceptibility", "LABBLC:Oxacillin:Resistant", "LABBLC Resistant TO Oxacillin", DBUtil.parseDateValue("4/18/2109 4:48"),],
+[-13, 4, 5, "Microculture Susceptibility", "LABBLC:Vancomycin:Susceptible", "LABBLC Susceptible TO Vancomycin", DBUtil.parseDateValue("3/28/2109 23:21"),],
+[-14, 5, 6, "Microculture Susceptibility", "LABBLC:Penicillin:Susceptible", "LABBLC Susceptible TO Penicillin", DBUtil.parseDateValue("6/3/2109 17:07")],
+[-15, 6, 7, "Microculture Susceptibility",  "LABBLC2:None:None", "LABBLC2 None TO None", DBUtil.parseDateValue("6/4/2109 17:07")]
 ];
         actualData = DBUtil.execute(testQuery);
         self.assertEqualTable( expectedData, actualData );
