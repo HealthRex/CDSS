@@ -1,0 +1,295 @@
+clinical_item_id,name,description
+73412,5-Flucytosine:Intermediate,Intermediate TO 5-Flucytosine
+73375,5-Flucytosine:No Interpretation,No Interpretation TO 5-Flucytosine
+73403,5-Flucytosine:Resistant,Resistant TO 5-Flucytosine
+73506,5-Flucytosine:Susceptible,Susceptible TO 5-Flucytosine
+73411,ACYCLOVIR:Resistant,Resistant TO ACYCLOVIR
+73512,ACYCLOVIR:Susceptible,Susceptible TO ACYCLOVIR
+73304,Amikacin:Intermediate,Intermediate TO Amikacin
+73469,Amikacin:No Interpretation,No Interpretation TO Amikacin
+73441,Amikacin:Not done,Not done TO Amikacin
+73321,Amikacin:Resistant,Resistant TO Amikacin
+73275,Amikacin:Susceptible,Susceptible TO Amikacin
+73382,Amoxicillin-Clavulanic Acid:Intermediate,Intermediate TO Amoxicillin-Clavulanic Acid
+73442,Amoxicillin-Clavulanic Acid:No Interpretation,No Interpretation TO Amoxicillin-Clavulanic Acid
+73523,Amoxicillin-Clavulanic Acid:Not done,Not done TO Amoxicillin-Clavulanic Acid
+73352,Amoxicillin-Clavulanic Acid:Resistant,Resistant TO Amoxicillin-Clavulanic Acid
+73305,Amoxicillin-Clavulanic Acid:Susceptible,Susceptible TO Amoxicillin-Clavulanic Acid
+73312,Amphotericin B:No Interpretation,No Interpretation TO Amphotericin B
+73266,Ampicillin-Sulbactam:Intermediate,Intermediate TO Ampicillin-Sulbactam
+73519,Ampicillin-Sulbactam:No Interpretation,No Interpretation TO Ampicillin-Sulbactam
+73242,Ampicillin-Sulbactam:Resistant,Resistant TO Ampicillin-Sulbactam
+73297,Ampicillin-Sulbactam:Susceptible,Susceptible TO Ampicillin-Sulbactam
+73353,Ampicillin:Intermediate,Intermediate TO Ampicillin
+73425,Ampicillin:Not done,Not done TO Ampicillin
+73249,Ampicillin:Resistant,Resistant TO Ampicillin
+73244,Ampicillin:Susceptible,Susceptible TO Ampicillin
+73504,Anidulafungin:Intermediate,Intermediate TO Anidulafungin
+73503,Anidulafungin:No Interpretation,No Interpretation TO Anidulafungin
+73418,Anidulafungin:Non Susceptible,Non Susceptible TO Anidulafungin
+73493,Anidulafungin:Resistant,Resistant TO Anidulafungin
+73340,Anidulafungin:Susceptible,Susceptible TO Anidulafungin
+73311,Aztreonam.:Intermediate,Intermediate TO Aztreonam.
+73511,Aztreonam.:No Interpretation,No Interpretation TO Aztreonam.
+73293,Aztreonam.:Resistant,Resistant TO Aztreonam.
+73295,Aztreonam.:Susceptible,Susceptible TO Aztreonam.
+73509,Aztreonam:Intermediate,Intermediate TO Aztreonam
+73424,Aztreonam:Resistant,Resistant TO Aztreonam
+73359,Aztreonam:Susceptible,Susceptible TO Aztreonam
+73407,Beta Lactamase:Negative,Negative TO Beta Lactamase
+73427,Beta Lactamase:Positive,Positive TO Beta Lactamase
+73472,Beta Lactamase:Susceptible,Susceptible TO Beta Lactamase
+73409,Carbapenemase:Negative,Negative TO Carbapenemase
+73434,Carbapenemase:Positive,Positive TO Carbapenemase
+73452,Caspofungin:Intermediate,Intermediate TO Caspofungin
+73429,Caspofungin:No Interpretation,No Interpretation TO Caspofungin
+73328,Caspofungin:Non Susceptible,Non Susceptible TO Caspofungin
+73272,Caspofungin:Susceptible,Susceptible TO Caspofungin
+73358,Cefazolin..:Resistant,Resistant TO Cefazolin..
+73357,Cefazolin..:Susceptible,Susceptible TO Cefazolin..
+73298,Cefazolin:Intermediate,Intermediate TO Cefazolin
+73485,Cefazolin:Not done,Not done TO Cefazolin
+73271,Cefazolin:Resistant,Resistant TO Cefazolin
+73289,Cefazolin:Susceptible,Susceptible TO Cefazolin
+73349,Cefepime:Intermediate,Intermediate TO Cefepime
+73318,Cefepime:Resistant,Resistant TO Cefepime
+73291,Cefepime:Susceptible,Susceptible TO Cefepime
+73390,Cefotaxime:Intermediate,Intermediate TO Cefotaxime
+73401,Cefotaxime:Resistant,Resistant TO Cefotaxime
+73326,Cefotaxime:Susceptible,Susceptible TO Cefotaxime
+73314,Cefotetan:Intermediate,Intermediate TO Cefotetan
+73466,Cefotetan:No Interpretation,No Interpretation TO Cefotetan
+73396,Cefotetan:Resistant,Resistant TO Cefotetan
+73247,Cefotetan:Susceptible,Susceptible TO Cefotetan
+73337,Cefoxitin:Intermediate,Intermediate TO Cefoxitin
+73459,Cefoxitin:No Interpretation,No Interpretation TO Cefoxitin
+73296,Cefoxitin:Resistant,Resistant TO Cefoxitin
+73292,Cefoxitin:Susceptible,Susceptible TO Cefoxitin
+73473,Cefpodoxime:Susceptible,Susceptible TO Cefpodoxime
+73444,Ceftaroline:Susceptible,Susceptible TO Ceftaroline
+73372,Ceftazidime.:Intermediate,Intermediate TO Ceftazidime.
+73475,Ceftazidime.:Not done,Not done TO Ceftazidime.
+73317,Ceftazidime.:Resistant,Resistant TO Ceftazidime.
+73354,Ceftazidime.:Susceptible,Susceptible TO Ceftazidime.
+73398,Ceftazidime:Intermediate,Intermediate TO Ceftazidime
+73324,Ceftazidime:Resistant,Resistant TO Ceftazidime
+73313,Ceftazidime:Susceptible,Susceptible TO Ceftazidime
+73524,Ceftriaxone (Meningeal):Intermediate,Intermediate TO Ceftriaxone (Meningeal)
+73333,Ceftriaxone (Meningeal):Susceptible,Susceptible TO Ceftriaxone (Meningeal)
+73393,Ceftriaxone.:Intermediate,Intermediate TO Ceftriaxone.
+73497,Ceftriaxone.:Not done,Not done TO Ceftriaxone.
+73299,Ceftriaxone.:Resistant,Resistant TO Ceftriaxone.
+73344,Ceftriaxone.:Susceptible,Susceptible TO Ceftriaxone.
+73338,Ceftriaxone:Intermediate,Intermediate TO Ceftriaxone
+73413,Ceftriaxone:No Interpretation,No Interpretation TO Ceftriaxone
+73282,Ceftriaxone:Resistant,Resistant TO Ceftriaxone
+73239,Ceftriaxone:Susceptible,Susceptible TO Ceftriaxone
+73376,Cefuroxime (IV):Intermediate,Intermediate TO Cefuroxime (IV)
+73513,Cefuroxime (IV):Not done,Not done TO Cefuroxime (IV)
+73263,Cefuroxime (IV):Resistant,Resistant TO Cefuroxime (IV)
+73236,Cefuroxime (IV):Susceptible,Susceptible TO Cefuroxime (IV)
+73362,Cefuroxime (PO):Intermediate,Intermediate TO Cefuroxime (PO)
+73360,Cefuroxime (PO):Not done,Not done TO Cefuroxime (PO)
+73361,Cefuroxime (PO):Resistant,Resistant TO Cefuroxime (PO)
+73433,Cefuroxime (PO):Susceptible,Susceptible TO Cefuroxime (PO)
+73487,Cephalexin-Cephalothin:Intermediate,Intermediate TO Cephalexin-Cephalothin
+73508,Cephalexin-Cephalothin:Not done,Not done TO Cephalexin-Cephalothin
+73456,Cephalexin-Cephalothin:Resistant,Resistant TO Cephalexin-Cephalothin
+73467,Cephalexin-Cephalothin:Susceptible,Susceptible TO Cephalexin-Cephalothin
+73517,Cephalothin:Susceptible,Susceptible TO Cephalothin
+73378,Chloramphenicol:Intermediate,Intermediate TO Chloramphenicol
+73494,Chloramphenicol:Susceptible,Susceptible TO Chloramphenicol
+73308,Ciprofloxacin:Intermediate,Intermediate TO Ciprofloxacin
+73499,Ciprofloxacin:No Interpretation,No Interpretation TO Ciprofloxacin
+73347,Ciprofloxacin:Non Susceptible,Non Susceptible TO Ciprofloxacin
+73527,Ciprofloxacin:Not done,Not done TO Ciprofloxacin
+73252,Ciprofloxacin:Resistant,Resistant TO Ciprofloxacin
+73384,Ciprofloxacin:See Levofloxacin Result,See Levofloxacin Result TO Ciprofloxacin
+73260,Ciprofloxacin:Susceptible,Susceptible TO Ciprofloxacin
+73463,Clarithromycin:Resistant,Resistant TO Clarithromycin
+73389,Clarithromycin:Susceptible,Susceptible TO Clarithromycin
+73240,Clindamycin:Intermediate,Intermediate TO Clindamycin
+73465,Clindamycin:Negative,Negative TO Clindamycin
+73501,Clindamycin:No Interpretation,No Interpretation TO Clindamycin
+73274,Clindamycin:Resistant,Resistant TO Clindamycin
+73264,Clindamycin:Susceptible,Susceptible TO Clindamycin
+73510,Colistin:No Interpretation,No Interpretation TO Colistin
+73451,Colistin:Resistant,Resistant TO Colistin
+73363,Colistin:Susceptible,Susceptible TO Colistin
+73495,D-Test:Positive,Positive TO D-Test
+73521,DORIPENEM:Intermediate,Intermediate TO DORIPENEM
+73526,DORIPENEM:No Interpretation,No Interpretation TO DORIPENEM
+73437,DORIPENEM:Non Susceptible,Non Susceptible TO DORIPENEM
+73399,DORIPENEM:Resistant,Resistant TO DORIPENEM
+73484,DORIPENEM:Susceptible,Susceptible TO DORIPENEM
+73498,Daptomycin:No Interpretation,No Interpretation TO Daptomycin
+73428,Daptomycin:Non Susceptible,Non Susceptible TO Daptomycin
+73368,Daptomycin:Resistant,Resistant TO Daptomycin
+73281,Daptomycin:Susceptible,Susceptible TO Daptomycin
+73315,Doxycycline:Intermediate,Intermediate TO Doxycycline
+73309,Doxycycline:Resistant,Resistant TO Doxycycline
+73370,Doxycycline:Susceptible,Susceptible TO Doxycycline
+73265,ESBL confirmation test:Negative,Negative TO ESBL confirmation test
+73279,ESBL confirmation test:Positive,Positive TO ESBL confirmation test
+73367,Ertapenem:Intermediate,Intermediate TO Ertapenem
+73392,Ertapenem:No Interpretation,No Interpretation TO Ertapenem
+73414,Ertapenem:Resistant,Resistant TO Ertapenem
+73261,Ertapenem:Susceptible,Susceptible TO Ertapenem
+73350,Erythromycin:Intermediate,Intermediate TO Erythromycin
+73516,Erythromycin:No Interpretation,No Interpretation TO Erythromycin
+73259,Erythromycin:Resistant,Resistant TO Erythromycin
+73283,Erythromycin:Susceptible,Susceptible TO Erythromycin
+73330,Esbl Check:Negative,Negative TO Esbl Check
+73496,Esbl Check:No Interpretation,No Interpretation TO Esbl Check
+73366,Esbl Check:Positive,Positive TO Esbl Check
+73341,Ethambutol 5.0 mcg-ml:Susceptible,Susceptible TO Ethambutol 5.0 mcg-ml
+73477,Ethambutol:No Interpretation,No Interpretation TO Ethambutol
+73525,FOSFOMYCIN:Intermediate,Intermediate TO FOSFOMYCIN
+73449,FOSFOMYCIN:Resistant,Resistant TO FOSFOMYCIN
+73404,FOSFOMYCIN:Susceptible,Susceptible TO FOSFOMYCIN
+73436,Fluconazole:No Interpretation,No Interpretation TO Fluconazole
+73364,Fluconazole:Resistant,Resistant TO Fluconazole
+73345,Fluconazole:Susceptible,Susceptible TO Fluconazole
+73346,Fluconazole:Susceptible - Dose Dependent,Susceptible - Dose Dependent TO Fluconazole
+73507,Foscarnet:Resistant,Resistant TO Foscarnet
+73490,Foscarnet:Susceptible,Susceptible TO Foscarnet
+73432,Ganciclovir:Resistant,Resistant TO Ganciclovir
+73453,Ganciclovir:Susceptible,Susceptible TO Ganciclovir
+73385,Gentamicin 500 mcg-ml.:No Synergy,No Synergy TO Gentamicin 500 mcg-ml.
+73489,Gentamicin 500 mcg-ml.:Susceptible,Susceptible TO Gentamicin 500 mcg-ml.
+73343,Gentamicin 500 mcg-ml.:Synergy,Synergy TO Gentamicin 500 mcg-ml.
+73380,Gentamicin:Intermediate,Intermediate TO Gentamicin
+73522,Gentamicin:No Interpretation,No Interpretation TO Gentamicin
+73514,Gentamicin:Not done,Not done TO Gentamicin
+73280,Gentamicin:Resistant,Resistant TO Gentamicin
+73241,Gentamicin:Susceptible,Susceptible TO Gentamicin
+73374,INH 0.1 mcg-ml:Susceptible,Susceptible TO INH 0.1 mcg-ml
+73335,Imipenem:Intermediate,Intermediate TO Imipenem
+73395,Imipenem:No Interpretation,No Interpretation TO Imipenem
+73329,Imipenem:Resistant,Resistant TO Imipenem
+73302,Imipenem:Susceptible,Susceptible TO Imipenem
+73421,Itraconazole:No Interpretation,No Interpretation TO Itraconazole
+73303,Itraconazole:Resistant,Resistant TO Itraconazole
+73373,Itraconazole:Susceptible,Susceptible TO Itraconazole
+73334,Itraconazole:Susceptible - Dose Dependent,Susceptible - Dose Dependent TO Itraconazole
+73251,Levofloxacin:Intermediate,Intermediate TO Levofloxacin
+73423,Levofloxacin:No Interpretation,No Interpretation TO Levofloxacin
+73454,Levofloxacin:Not done,Not done TO Levofloxacin
+73270,Levofloxacin:Resistant,Resistant TO Levofloxacin
+73235,Levofloxacin:Susceptible,Susceptible TO Levofloxacin
+73415,Linezolid:Intermediate,Intermediate TO Linezolid
+73445,Linezolid:No Interpretation,No Interpretation TO Linezolid
+73438,Linezolid:Resistant,Resistant TO Linezolid
+73278,Linezolid:Susceptible,Susceptible TO Linezolid
+73336,Meropenem:Intermediate,Intermediate TO Meropenem
+73455,Meropenem:No Interpretation,No Interpretation TO Meropenem
+73294,Meropenem:Resistant,Resistant TO Meropenem
+73238,Meropenem:Susceptible,Susceptible TO Meropenem
+73500,Metronidazole:Intermediate,Intermediate TO Metronidazole
+73443,Metronidazole:Resistant,Resistant TO Metronidazole
+73356,Metronidazole:Susceptible,Susceptible TO Metronidazole
+73479,Micafungin:Intermediate,Intermediate TO Micafungin
+73387,Micafungin:No Interpretation,No Interpretation TO Micafungin
+73478,Micafungin:Non Susceptible,Non Susceptible TO Micafungin
+73388,Micafungin:Susceptible,Susceptible TO Micafungin
+73419,Minocycline:Intermediate,Intermediate TO Minocycline
+73458,Minocycline:Resistant,Resistant TO Minocycline
+73394,Minocycline:Susceptible,Susceptible TO Minocycline
+73518,Moxifloxacin.:Susceptible,Susceptible TO Moxifloxacin.
+73273,Moxifloxacin:Intermediate,Intermediate TO Moxifloxacin
+73520,Moxifloxacin:No Interpretation,No Interpretation TO Moxifloxacin
+73288,Moxifloxacin:Resistant,Resistant TO Moxifloxacin
+73327,Moxifloxacin:Susceptible,Susceptible TO Moxifloxacin
+73480,Nalidixic Acid.:Intermediate,Intermediate TO Nalidixic Acid.
+73277,Negative Culture,Microculture Grew No Bacteria
+73248,Nitrofurantoin:Intermediate,Intermediate TO Nitrofurantoin
+73243,Nitrofurantoin:Not done,Not done TO Nitrofurantoin
+73284,Nitrofurantoin:Resistant,Resistant TO Nitrofurantoin
+73237,Nitrofurantoin:Susceptible,Susceptible TO Nitrofurantoin
+73255,Oxacillin.:Resistant,Resistant TO Oxacillin.
+73306,Oxacillin.:Susceptible,Susceptible TO Oxacillin.
+73482,Oxacillin:Negative,Negative TO Oxacillin
+73391,Oxacillin:Positive,Positive TO Oxacillin
+73323,Oxacillin:Resistant,Resistant TO Oxacillin
+73256,Oxacillin:Susceptible,Susceptible TO Oxacillin
+73325,PENICILLIN G (MENINGEAL):Resistant,Resistant TO PENICILLIN G (MENINGEAL)
+73383,PENICILLIN G (MENINGEAL):Susceptible,Susceptible TO PENICILLIN G (MENINGEAL)
+73379,PENICILLIN G (NON-MENINGEAL):Susceptible,Susceptible TO PENICILLIN G (NON-MENINGEAL)
+73460,PENICILLIN V (ORAL):Intermediate,Intermediate TO PENICILLIN V (ORAL)
+73491,PENICILLIN V (ORAL):Resistant,Resistant TO PENICILLIN V (ORAL)
+73365,PENICILLIN V (ORAL):Susceptible,Susceptible TO PENICILLIN V (ORAL)
+73474,Penicillin-Ampicillin:Resistant,Resistant TO Penicillin-Ampicillin
+73515,Penicillin..:Not done,Not done TO Penicillin..
+73462,Penicillin..:Resistant,Resistant TO Penicillin..
+73405,Penicillin..:Susceptible,Susceptible TO Penicillin..
+73320,Penicillin:Intermediate,Intermediate TO Penicillin
+73461,Penicillin:No Interpretation,No Interpretation TO Penicillin
+73268,Penicillin:Resistant,Resistant TO Penicillin
+73258,Penicillin:Susceptible,Susceptible TO Penicillin
+73246,Piperacillin-Tazobactam:Intermediate,Intermediate TO Piperacillin-Tazobactam
+73486,Piperacillin-Tazobactam:No Interpretation,No Interpretation TO Piperacillin-Tazobactam
+73286,Piperacillin-Tazobactam:Resistant,Resistant TO Piperacillin-Tazobactam
+73250,Piperacillin-Tazobactam:Susceptible,Susceptible TO Piperacillin-Tazobactam
+73446,Piperacillin:Intermediate,Intermediate TO Piperacillin
+73355,Piperacillin:Resistant,Resistant TO Piperacillin
+73377,Piperacillin:Susceptible,Susceptible TO Piperacillin
+73481,Polymixin B:Intermediate,Intermediate TO Polymixin B
+73457,Polymixin B:No Interpretation,No Interpretation TO Polymixin B
+73492,Polymixin B:Resistant,Resistant TO Polymixin B
+73426,Polymixin B:Susceptible,Susceptible TO Polymixin B
+73322,Posaconazole:No Interpretation,No Interpretation TO Posaconazole
+73488,Pyrazinamide 100 mcg-ml:Resistant,Resistant TO Pyrazinamide 100 mcg-ml
+73406,Pyrazinamide 100 mcg-ml:Susceptible,Susceptible TO Pyrazinamide 100 mcg-ml
+73307,Quinupristin-Dalfopristin:Intermediate,Intermediate TO Quinupristin-Dalfopristin
+73450,Quinupristin-Dalfopristin:No Interpretation,No Interpretation TO Quinupristin-Dalfopristin
+73269,Quinupristin-Dalfopristin:Resistant,Resistant TO Quinupristin-Dalfopristin
+73332,Quinupristin-Dalfopristin:Susceptible,Susceptible TO Quinupristin-Dalfopristin
+73470,Rifabutin:No Interpretation,No Interpretation TO Rifabutin
+73371,Rifampin 1.0 mcg-ml:Susceptible,Susceptible TO Rifampin 1.0 mcg-ml
+73400,Rifampin:Intermediate,Intermediate TO Rifampin
+73468,Rifampin:No Interpretation,No Interpretation TO Rifampin
+73319,Rifampin:Resistant,Resistant TO Rifampin
+73290,Rifampin:Susceptible,Susceptible TO Rifampin
+73342,Streptomycin 1000 mcg-ml:No Synergy,No Synergy TO Streptomycin 1000 mcg-ml
+73528,Streptomycin 1000 mcg-ml:Resistant,Resistant TO Streptomycin 1000 mcg-ml
+73464,Streptomycin 1000 mcg-ml:Susceptible,Susceptible TO Streptomycin 1000 mcg-ml
+73316,Streptomycin 1000 mcg-ml:Synergy,Synergy TO Streptomycin 1000 mcg-ml
+73505,Streptomycin 2000 mcg-ml:No Synergy,No Synergy TO Streptomycin 2000 mcg-ml
+73447,Streptomycin 2000 mcg-ml:Synergy,Synergy TO Streptomycin 2000 mcg-ml
+73408,Streptomycin:No Interpretation,No Interpretation TO Streptomycin
+73435,Telavancin:No Interpretation,No Interpretation TO Telavancin
+73476,Telavancin:Susceptible,Susceptible TO Telavancin
+73397,Tetracycline:Intermediate,Intermediate TO Tetracycline
+73262,Tetracycline:Resistant,Resistant TO Tetracycline
+73287,Tetracycline:Susceptible,Susceptible TO Tetracycline
+73369,Ticacarcillin-Clavulanic Acid:Intermediate,Intermediate TO Ticacarcillin-Clavulanic Acid
+73439,Ticacarcillin-Clavulanic Acid:Resistant,Resistant TO Ticacarcillin-Clavulanic Acid
+73351,Ticacarcillin-Clavulanic Acid:Susceptible,Susceptible TO Ticacarcillin-Clavulanic Acid
+73471,Ticarcillin:Intermediate,Intermediate TO Ticarcillin
+73386,Ticarcillin:Resistant,Resistant TO Ticarcillin
+73276,Ticarcillin:Susceptible,Susceptible TO Ticarcillin
+73402,Tigecycline:Intermediate,Intermediate TO Tigecycline
+73420,Tigecycline:No Interpretation,No Interpretation TO Tigecycline
+73430,Tigecycline:Resistant,Resistant TO Tigecycline
+73381,Tigecycline:Susceptible,Susceptible TO Tigecycline
+73310,Tobramycin:Intermediate,Intermediate TO Tobramycin
+73417,Tobramycin:No Interpretation,No Interpretation TO Tobramycin
+73483,Tobramycin:Not done,Not done TO Tobramycin
+73348,Tobramycin:Resistant,Resistant TO Tobramycin
+73267,Tobramycin:Susceptible,Susceptible TO Tobramycin
+73416,Trimethoprim-Sulfamethoxazole.:Not done,Not done TO Trimethoprim-Sulfamethoxazole.
+73245,Trimethoprim-Sulfamethoxazole.:Resistant,Resistant TO Trimethoprim-Sulfamethoxazole.
+73254,Trimethoprim-Sulfamethoxazole.:Susceptible,Susceptible TO Trimethoprim-Sulfamethoxazole.
+73448,Trimethoprim-Sulfamethoxazole:Intermediate,Intermediate TO Trimethoprim-Sulfamethoxazole
+73502,Trimethoprim-Sulfamethoxazole:No Interpretation,No Interpretation TO Trimethoprim-Sulfamethoxazole
+73285,Trimethoprim-Sulfamethoxazole:Resistant,Resistant TO Trimethoprim-Sulfamethoxazole
+73257,Trimethoprim-Sulfamethoxazole:Susceptible,Susceptible TO Trimethoprim-Sulfamethoxazole
+73301,Vancomycin:Intermediate,Intermediate TO Vancomycin
+73431,Vancomycin:No Interpretation,No Interpretation TO Vancomycin
+73440,Vancomycin:Not done,Not done TO Vancomycin
+73300,Vancomycin:Resistant,Resistant TO Vancomycin
+73253,Vancomycin:Susceptible,Susceptible TO Vancomycin
+73422,Voriconazole:No Interpretation,No Interpretation TO Voriconazole
+73339,Voriconazole:Resistant,Resistant TO Voriconazole
+73331,Voriconazole:Susceptible,Susceptible TO Voriconazole
+73410,Voriconazole:Susceptible - Dose Dependent,Susceptible - Dose Dependent TO Voriconazole
