@@ -57,6 +57,30 @@ select count(distinct order_proc_id) from stride_order_proc where proc_code='LAB
 '''
 NUM_MAGNESIUM_COMPLETED_ORDERS = 282414
 
+umich_lab_cnt = {'WBC':5280.99347210938,
+                'HGB':5281.00748045835,
+                'PLT':5274.22743955397,
+                'SOD':5784.07530888409,
+                'POT':5784.06130053512,
+                'CR':5784.04729218614,
+                'TBIL':1662.90309024178,
+                'CHLOR':5784.07530888409,
+                'CO2':5784.04729218614,
+                'AST':1667.87605412826,
+                'ALB':2239.66884263021,
+                'CAL':5791.51374219035,
+                # 'PCO2AA':,
+                # 'PO2AA':,
+                # 'DBIL':,
+                # 'pHA':,
+                'PROT':1667.87605412826,
+                'ALK':1667.87605412826,
+                'UN':5784.04729218614,
+                # 'IBIL':
+                'CREAT': 5784.04729218614,
+                'ALT': 1667.87605412826
+                }
+
 # DEFAULT_TIMELIMITS = []
 # for time_window in DEFAULT_TIMEWINDOWS:
 #     year_str, section_str = time_window.split(' ')
@@ -1147,7 +1171,9 @@ def get_queried_lab(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
 def get_labvol(lab, lab_type, data_source='Stanford', time_limit=DEFAULT_TIMELIMIT):
     if data_source=='Stanford':
         df = get_queried_lab(lab, lab_type, time_limit=time_limit)
-    return df.shape[0]
+        return df.shape[0]
+    elif data_source == 'UMich':
+        return umich_lab_cnt.get(lab, 0)
 
 def get_medicare_price_dict():
     data_folder = os.path.join(main_folder, 'lab_statistics/', 'data_summary_stats/')

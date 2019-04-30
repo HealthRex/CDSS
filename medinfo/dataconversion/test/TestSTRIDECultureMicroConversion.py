@@ -42,10 +42,13 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
 -11,2,3,LABBLC,COAG NEGATIVE STAPHYLOCOCCUS,Vancomycin,Susceptible,4/26/2109 9:49
 -12,3,4,LABBLC,COAG NEGATIVE STAPHYLOCOCCUS,Oxacillin,Resistant,4/18/2109 4:48
 -13,4,5,LABBLC,COAG NEGATIVE STAPHYLOCOCCUS,Vancomycin,Susceptible,3/28/2109 23:21
--14,5,6,LABBLC,ENTEROCOCCUS FAECALIS,Penicillin,Susceptible,6/3/2109 17:07
--14,5,6,LABBLC,ENTEROCOCCUS FAECALIS,Penicillin,Susceptible,6/3/2109 17:07
+-14,5,6,LABBLC,ENTEROCOCCUS FAECALIS,Amoxicillin/Clavulanic Acid,Susceptible,6/3/2109 17:07
+-14,5,6,LABBLC,ENTEROCOCCUS FAECALIS,Amoxicillin/Clavulanic Acid,Susceptible,6/3/2109 17:07
+-20,10,11,LABBLC,ENTEROCOCCUS FAECALIS,Method,,6/10/2109 17:07
 -15,6,7,LABBLC2,,,,6/4/2109 17:07
 -16,7,8,LABBLC2,,,,
+-17,10,10,LABBLC2,ENTEROCOCCUS FAECALIS,Penicillin,,6/8/2109 17:07
+-17,10,10,LABBLC2,ENTEROCOCCUS FAECALIS,,Intermediate,6/11/2109 17:07
 """
         # Parse into DB insertion object
         # DBUtil.insertFile( StringIO(dataTextStr), "stride_culture_micro", delim="   ", dateColFormats={"trtmnt_tm_begin_date": None, "trtmnt_tm_end_date": None} );
@@ -115,12 +118,11 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
             """;
         expectedData = \
             [   ##### CHANGE to the actual expected data
-[-10, 1, 2, "Microculture Susceptibility", "LABBLC:BACTEROIDES FRAGILIS:Clindamycin:Intermediate", "LABBLC GREW BACTEROIDES FRAGILIS Intermediate TO Clindamycin", DBUtil.parseDateValue("9/10/2111 13:15"),],
-[-11, 2, 3, "Microculture Susceptibility", "LABBLC:COAG NEGATIVE STAPHYLOCOCCUS:Vancomycin:Susceptible", "LABBLC GREW COAG NEGATIVE STAPHYLOCOCCUS Susceptible TO Vancomycin", DBUtil.parseDateValue("4/26/2109 9:49"),],
-[-12, 3, 4, "Microculture Susceptibility", "LABBLC:COAG NEGATIVE STAPHYLOCOCCUS:Oxacillin:Resistant", "LABBLC GREW COAG NEGATIVE STAPHYLOCOCCUS Resistant TO Oxacillin", DBUtil.parseDateValue("4/18/2109 4:48"),],
-[-13, 4, 5, "Microculture Susceptibility", "LABBLC:COAG NEGATIVE STAPHYLOCOCCUS:Vancomycin:Susceptible", "LABBLC GREW COAG NEGATIVE STAPHYLOCOCCUS Susceptible TO Vancomycin", DBUtil.parseDateValue("3/28/2109 23:21"),],
-[-14, 5, 6, "Microculture Susceptibility", "LABBLC:ENTEROCOCCUS FAECALIS:Penicillin:Susceptible", "LABBLC GREW ENTEROCOCCUS FAECALIS Susceptible TO Penicillin", DBUtil.parseDateValue("6/3/2109 17:07")],
-[-15, 6, 7, "Microculture Susceptibility",  "LABBLC2:None:None:None", "LABBLC2 GREW None None TO None", DBUtil.parseDateValue("6/4/2109 17:07")]
+[-10, 1, 2, "Microculture Susceptibility General", "Clindamycin:Intermediate", "Intermediate TO Clindamycin", DBUtil.parseDateValue("9/10/2111 13:15"),],
+[-11, 2, 3, "Microculture Susceptibility General", "Vancomycin:Susceptible", "Susceptible TO Vancomycin", DBUtil.parseDateValue("4/26/2109 9:49"),],
+[-12, 3, 4, "Microculture Susceptibility General", "Oxacillin:Resistant", "Resistant TO Oxacillin", DBUtil.parseDateValue("4/18/2109 4:48"),],
+[-13, 4, 5, "Microculture Susceptibility General", "Vancomycin:Susceptible", "Susceptible TO Vancomycin", DBUtil.parseDateValue("3/28/2109 23:21"),],
+[-14, 5, 6, "Microculture Susceptibility General", "Amoxicillin-Clavulanic Acid:Susceptible", "Susceptible TO Amoxicillin-Clavulanic Acid", DBUtil.parseDateValue("6/3/2109 17:07")],
 ];
         actualData = DBUtil.execute(testQuery);
         self.assertEqualTable( expectedData, actualData );

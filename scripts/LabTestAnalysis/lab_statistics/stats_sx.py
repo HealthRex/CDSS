@@ -359,7 +359,8 @@ class Stats_Plotter():
     '''
 
     def draw__Diagnostic_Metrics(self, statsByLab_folderpath, labs, result_label='all_labs',
-                                targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False):
+                                targeted_PPV=0.95, scale_by=None, use_cached_fig_data=False,
+                                 inverse01=False):
         '''
         Drawing Figure 3 in the main text.
 
@@ -410,33 +411,10 @@ class Stats_Plotter():
                     ucsf_lab_cnt = stats_database.UCSF_COMPONENT_TO_COUNT #dict(stats_database.UCSF_COMPONENTSS_AND_COUNTS)
                 df['total_vol'] = df['lab'].apply(lambda x: ucsf_lab_cnt[x])
             elif self.data_source == 'UMich' and self.lab_type=='component' and result_label=='important_components':
-                umich_lab_cnt = {'WBC':5280.99347210938,
-                'HGB':5281.00748045835,
-                'PLT':5274.22743955397,
-                'SOD':5784.07530888409,
-                'POT':5784.06130053512,
-                'CR':5784.04729218614,
-                'TBIL':1662.90309024178,
-                'CHLOR':5784.07530888409,
-                'CO2':5784.04729218614,
-                'AST':1667.87605412826,
-                'ALB':2239.66884263021,
-                'CAL':5791.51374219035,
-                # 'PCO2AA':,
-                # 'PO2AA':,
-                # 'DBIL':,
-                # 'pHA':,
-                'PROT':1667.87605412826,
-                'ALK':1667.87605412826,
-                'UN':5784.04729218614,
-                # 'IBIL':
-                'CREAT': 5784.04729218614,
-                'ALT': 1667.87605412826
-                }
-                df = df[df['lab'].isin(umich_lab_cnt)]
+                df = df[df['lab'].isin(stats_utils.umich_lab_cnt)]
 
 
-                df['total_vol'] = df['lab'].apply(lambda x: umich_lab_cnt[x])
+                df['total_vol'] = df['lab'].apply(lambda x: stats_utils.umich_lab_cnt[x])
             else:
                 df['total_vol'] = 1
 
@@ -497,7 +475,11 @@ class Stats_Plotter():
                                                   'sens':'sens',
                                                   'spec':'spec',
                                                   'LR_p':'LR+', 'LR_n':'LR-'})
+
             df_toshow['AUC'] = df_toshow['AUC'].apply(lambda x: '%.2f'%(x))
+
+            print df_toshow['NPV']
+            df_toshow['NPV'] = df_toshow['NPV'].apply(lambda x: stats_utils.convert_floatstr2percentage(x))
 
             numeric_cols = ['Prev', 'PPV', 'TP', 'FP', 'TN', 'FN', 'sens', 'spec']
             for numeric_col in numeric_cols:
@@ -509,7 +491,7 @@ class Stats_Plotter():
             df_toshow['LR+'] = df_toshow['LR+'].apply(lambda x: stats_utils.convert_floatstr2num(x))
             df_toshow['LR-'] = df_toshow['LR-'].apply(lambda x: stats_utils.convert_floatstr2num(x))
 
-            df_toshow['Volume'] = (df_toshow['total_vol'] / float(stats_utils.NUM_DISTINCT_ENCS / 1000.)).apply(
+            df_toshow['Vol'] = (df_toshow['total_vol'] / float(stats_utils.NUM_DISTINCT_ENCS / 1000.)).apply(
                 lambda x: int(round(x)))
 
             if self.data_source == 'Stanford' and self.lab_type=='panel':
@@ -531,16 +513,37 @@ class Stats_Plotter():
 
 
 
-                cols_to_show = ['Lab Test', 'Volume', 'AUC'] \
-                               + numeric_cols \
-                               + ['Medicare', 'Chargemaster'] #+ ['LR+', 'LR-'] \
+                cols_to_show = ['Lab Test', 'Vol', 'AUC'] \
+                               + numeric_cols
+                               #+ ['Medicare', 'Chargemaster'] #+ ['LR+', 'LR-'] \
+                print df_toshow['Lab Test'].values.tolist()
+                labs_to_show = ['Magnesium', 'Prothrombin Time', 'Phosphorus', 'Partial Thromboplastin Time',
+                                'Lactate', 'Calcium Ionized', 'Potassium', 'Troponin I', 'LDH Total',
+                                'Heparin', 'Urinalysis', # too few positives
+                                'Blood Culture (Aerobic & Anaerobic)',
+                                'Blood Culture (2 Aerobic)', 'Sodium', 'Lidocaine', 'Hematocrit', 'Urine Culture',
+                                'Urinalysis With Microscopic', 'Uric Acid', 'Hemoglobin A1c'
+                                ]
+                # quit()
             # elif self.data_source == 'Stanford' and self.lab_type=='component':
             #     cols_to_show = ['Lab Test', 'Vol', 'AUC'] + numeric_cols + ['LR+', 'LR-']
             else:
                 cols_to_show = ['Lab Test', 'AUC'] + numeric_cols #+ ['LR+', 'LR-']
 
+            if inverse01:
+                df_toshow = df_toshow.rename(columns={'PPV': 'NPV',
+                                                      'NPV': 'PPV',
+                                                      'TP': 'TN',
+                                                      'FP': 'FN',
+                                                      'TN': 'TP',
+                                                      'FN': 'FP',
+                                                      'sens':'spec',
+                                                      'spec':'sens'})
+                cols_to_show = ['Lab Test', 'Vol', 'AUC', 'Prev', 'NPV', 'PPV', 'sens', 'spec', 'TN', 'FN', 'TP', 'FP']
+
+
             df_toshow[cols_to_show].to_csv(cached_tablepath.replace('.csv', '_full.csv'), index=False)
-            df_toshow[cols_to_show].iloc[:15].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
+            df_toshow[cols_to_show].iloc[:20].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
 
             df['all_positive_vol'] = df['all_positive'] * df['total_vol']
             df['true_positive_vol'] = df['TP'] * df['total_vol']
@@ -870,7 +873,7 @@ class Stats_Plotter():
 
 
     def draw__stats_Curves(self, statsByLab_folderpath, labs, curve_type="ROC", algs=['random-forest'], result_label=None,
-                           include_baseline=True):
+                           include_baseline=True, inverse01=False):
         result_foldername = 'Fig_stats_Curves'
         if result_label:
             result_foldername += '_' + result_label
@@ -919,14 +922,18 @@ class Stats_Plotter():
             i, j = i_s[ind], j_s[ind]
             plt.subplot2grid((row, col), (i, j))
 
-            if include_baseline:
-                plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
-
             dash_num = 20
             plt.plot(np.linspace(0, 1, num=dash_num), np.linspace(0, 1, num=dash_num), color='lightblue',
                      linestyle='--')
 
-            plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best), color='orange')
+            if not inverse01:
+                plt.plot(xVal_best, yVal_best, label='%0.2f' % (score_best), color='orange')
+                if include_baseline:
+                    plt.plot(xVal_base, yVal_base, label='%0.2f' % (score_base))
+            else:
+                plt.plot(1-yVal_best, 1-xVal_best, label='%0.2f' % (score_best), color='orange')
+                if include_baseline:
+                    plt.plot(1 - yVal_base, 1 - xVal_base, label='%0.2f' % (score_base))
 
             plt.xlim([0,1])
             plt.ylim([0,1])
@@ -1516,7 +1523,7 @@ class Stats_Plotter():
             '''
             xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val\
                     = stats_utils.get_curve_onelab(lab,
-                                                   all_algs=['random-forest'],
+                                                   all_algs=all_algs,
                                                    data_folder=result_ml_folderpath,
                                                    curve_type='ROC',
                                                    get_pval=False,
@@ -1531,7 +1538,7 @@ class Stats_Plotter():
             '''
             xVal_base, yVal_base, score_base, xVal_best, yVal_best, score_best, p_val \
                 = stats_utils.get_curve_onelab(lab,
-                                               all_algs=['random-forest'],
+                                               all_algs=all_algs,
                                                data_folder=dst_folderpath,
                                                curve_type='ROC',
                                                get_pval=False,
@@ -2028,7 +2035,7 @@ class Stats_Plotter():
              thres_mode="fixTrainPPV",
                                verbose=verbose)
 
-    def main_generate_stats_figures_tables(self, figs_to_plot, params={}):
+    def main_generate_stats_figures_tables(self, figs_to_plot, params={}, inverse01=False):
         print 'Generating figures and tables %s...' % str(figs_to_plot)
 
         '''
@@ -2129,11 +2136,11 @@ class Stats_Plotter():
                                      'LABCSFTP', 'LABDIGL', 'LABNTBNP', 'LABURIC', 'LABHEPAR', 'LABMGN', 'LABLAC',
                                      'LABLIDOL', 'LABHCTX', 'LABPTT', 'LABCA', 'LABRETIC', 'LABSPLAC', 'LABTRIG']
                 # lab_set, set_label = top_improved_labs, 'top_improved_labs'
-                self.draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=['random-forest'],
-                                   result_label=set_label)
+                self.draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="ROC", algs=all_algs,
+                                   result_label=set_label, inverse01=inverse01)
             if 'PRC' in figs_to_plot:
-                self.draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=['random-forest'],
-                                   result_label=set_label)
+                self.draw__stats_Curves(statsByDataSet_folderpath, lab_set, curve_type="PRC", algs=all_algs,
+                                   result_label=set_label, inverse01=inverse01)
 
             merge_ROC_PRC = False
             if merge_ROC_PRC:
@@ -2165,10 +2172,10 @@ class Stats_Plotter():
             if self.data_source == 'Stanford':
                 if self.lab_type == 'panel':
                     self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
-                                            targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
+                                            targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False, inverse01=inverse01)
                 else:
                     self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
-                                            targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False)
+                                            targeted_PPV=0.95, scale_by='enc', use_cached_fig_data=False, inverse01=inverse01)
             elif self.data_source == 'UCSF':
                 self.draw__Diagnostic_Metrics(statsByDataSet_folderpath, labs=self.all_labs, result_label=result_label,
                                         targeted_PPV=0.95, scale_by='enc_ucsf', use_cached_fig_data=False)
@@ -2328,8 +2335,8 @@ def main_transfer_model(curr_version, lab_type='component'):
     #                        dst_dataset_folderpath=os.path.join('data', 'LABURIC', 'wi last normality - UCSF'),
     #                        output_folderpath=os.path.join('data', 'LABURIC', 'transfer_Stanford_to_UCSF'))
 
-def main_full_analysis(curr_version):
-    for data_source in ['Stanford', 'UMich', 'UCSF']:
+def main_full_analysis(curr_version, inverse01=False):
+    for data_source in ['UMich', 'UCSF']: #'Stanford',
         for lab_type in ['panel', 'component']:
 
             plotter = Stats_Plotter(data_source=data_source, lab_type=lab_type, curr_version=curr_version)
@@ -2339,7 +2346,7 @@ def main_full_analysis(curr_version):
             lab2stats: Getting lab-wise stats tables under lab_statistics/dataset_folder/stats_by_lab_alg/..
             stats2summary: Aggregate all labs' stats under lab_statistics/dataset_folder/..
             '''
-            # plotter.main_generate_lab_statistics(verbose=False)
+            plotter.main_generate_lab_statistics(verbose=False)
 
             if data_source=='Stanford' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Full_Cartoon', # Figure 1
@@ -2348,7 +2355,8 @@ def main_full_analysis(curr_version):
                                                                          'ROC',  # SI Figure
                                                                          #'write_importantFeatures' # SI Table
                                                                          ],
-                                                           params={'Diagnostic_Metrics': 'all_labs'}) # TODO ['top_15', 'all_labs']
+                                                           params={'Diagnostic_Metrics': 'all_labs'},
+                    inverse01=inverse01) # TODO ['top_15', 'all_labs']
 
             elif data_source=='Stanford' and lab_type=='component':
                 # plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
@@ -2356,13 +2364,13 @@ def main_full_analysis(curr_version):
                 #                                                          'write_importantFeatures'  # SI Table
                 #                                                          ],
                 #                                            params={'Diagnostic_Metrics': 'important_components'})  # TODO ['common_components', 'all_labs']
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Normality_Saturations',
-                                                                         #'Diagnostic_Metrics',  # Figure 3 & SI Table
-                                                                         #'ROC',  # SI Figure
+                plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Normality_Saturations',
+                                                                         'Diagnostic_Metrics',  # Figure 3 & SI Table
+                                                                         'ROC',  # SI Figure
                                                                          #'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Diagnostic_Metrics': 'all_labs'})
-                quit()
+                                                           params={'Diagnostic_Metrics': 'all_labs'},
+                                                           inverse01=inverse01)
 
             elif data_source=='UMich' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # SI Table
@@ -2464,4 +2472,4 @@ if __name__ == '__main__':
     curr_version = '10000-episodes-lastnormal'
 
     # main_one_analysis(curr_version=curr_version)
-    main_full_analysis(curr_version=curr_version)
+    main_full_analysis(curr_version=curr_version, inverse01=True)
