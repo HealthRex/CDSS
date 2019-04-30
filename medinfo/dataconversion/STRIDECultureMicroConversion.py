@@ -13,7 +13,7 @@ from Env import DATE_FORMAT;
 
 
 SOURCE_TABLE = "stride_culture_micro";
-CATEGORY_TEMPLATE = "Microculture Susceptibility";
+CATEGORY_TEMPLATE = "Microculture Susceptibility General";
 
 class STRIDECultureMicroConversion:
     """Data conversion module to take STRIDE data
@@ -99,9 +99,14 @@ class STRIDECultureMicroConversion:
         row = cursor.fetchone();
         while row is not None:
             rowModel = RowItemModel( row, headers );
-            if rowModel['shifted_result_time'] is None: # Don't add if no end time
+
+            if rowModel['shifted_result_time'] is None or rowModel['suseptibility'] is None: # Don't add if no end time or no susceptibility info
                 row = cursor.fetchone();
                 continue
+            if rowModel['antibiotic_name'] == 'Method' or rowModel['antibiotic_name'] is None: # Don't add if antibiotic name is method or none
+                row = cursor.fetchone();
+                continue
+            rowModel['antibiotic_name'] = rowModel['antibiotic_name'].replace('/', '-') # So that we don't run into directory issues later
             yield rowModel; # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
             row = cursor.fetchone();
 
@@ -154,8 +159,7 @@ class STRIDECultureMicroConversion:
 
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
-        sourceItem_description = "%s:%s:%s:%s" % (sourceItem['proc_code'], sourceItem['organism_name'],
-                                                 sourceItem['antibiotic_name'], sourceItem['suseptibility'])
+        sourceItem_description = "%s:%s" % (sourceItem['antibiotic_name'], sourceItem['suseptibility'])
         clinicalItemKey = (category["clinical_item_category_id"], sourceItem_description); ########## TODO probably needs to change
         if clinicalItemKey not in self.clinicalItemByCompositeKey:
             # Clinical Item does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
@@ -163,10 +167,8 @@ class STRIDECultureMicroConversion:
                 RowItemModel \
                 (   {   "clinical_item_category_id": category["clinical_item_category_id"],
                         "external_id": None,
-                        "name": "%s:%s:%s:%s" % (sourceItem['proc_code'], sourceItem['organism_name'],
-                                                 sourceItem['antibiotic_name'], sourceItem['suseptibility']), ############FIX THIS TO BE WHATEVER from source data
-                        "description": "%s GREW %s %s TO %s" % (sourceItem['proc_code'], sourceItem['organism_name'],
-                                                                sourceItem['suseptibility'], sourceItem['antibiotic_name'])   ############FIX THIS TO BE WHATEVER from source data
+                        "name": "%s:%s" % (sourceItem['antibiotic_name'], sourceItem['suseptibility']), ############FIX THIS TO BE WHATEVER from source data
+                        "description": "%s TO %s" % (sourceItem['suseptibility'], sourceItem['antibiotic_name'])   ############FIX THIS TO BE WHATEVER from source data
                     }
                 );
             (clinicalItemId, isNew) = DBUtil.findOrInsertItem("clinical_item", clinicalItem, conn=conn);
@@ -193,7 +195,7 @@ class STRIDECultureMicroConversion:
             patientItem["patient_item_id"] = DBUtil.execute( DBUtil.identityQuery("patient_item"), conn=conn )[0][0];
         except conn.IntegrityError, err:
             # If turns out to be a duplicate, okay, pull out existing ID and continue to insert whatever else is possible
-            log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again
+            # log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again
             searchPatientItem = \
                 {   "patient_id":       patientItem["patient_id"],
                     "clinical_item_id": patientItem["clinical_item_id"],
