@@ -123,6 +123,7 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
 [-12, 3, 4, "Microculture Susceptibility General", "Oxacillin:Resistant", "Resistant TO Oxacillin", DBUtil.parseDateValue("4/18/2109 4:48"),],
 [-13, 4, 5, "Microculture Susceptibility General", "Vancomycin:Susceptible", "Susceptible TO Vancomycin", DBUtil.parseDateValue("3/28/2109 23:21"),],
 [-14, 5, 6, "Microculture Susceptibility General", "Amoxicillin-Clavulanic Acid:Susceptible", "Susceptible TO Amoxicillin-Clavulanic Acid", DBUtil.parseDateValue("6/3/2109 17:07")],
+[-15, 6, 7, "Microculture Susceptibility General", "Negative Culture", "Microculture Grew No Bacteria", DBUtil.parseDateValue("6/4/2109 17:07")]
 ];
         actualData = DBUtil.execute(testQuery);
         self.assertEqualTable( expectedData, actualData );
