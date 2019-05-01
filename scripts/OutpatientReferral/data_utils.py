@@ -114,111 +114,7 @@ class ReferralDataMunger():
         self.df = self.df_full[(self.df_full['referral_name'] == referral)
                                & (self.df_full['specialty_name'] == self.specialty)].copy()
 
-
-        #
-        #
-        #
-        # '''A bunch of global stats'''
-        # if verbose:
-        #     print "Original df shape:", df.shape
-        #
-        # if not newPatientOnly:
-        #     '''Task 1: stats of number of specialty visits TODO'''
-        #
-        #
-        #
-        #     '''Task 2: Only keep new patient TODO'''
-        #     pass
-        #
-        #
-        # """
-        # Order-based cnts: each row corresponds to 1 order
-        # """
-        # '''Total number of any orders in 'New Patient Visit' of any department of any type at any time t1'''
-        #
-        #
-        # if verbose:
-        #     print "Current referral's df shape:", self.df.shape
-        #
-        #
-        #
-        # '''Count dict of orders associated w/ different specialties'''
-        # self.N_to_o = Counter(self.df_full['specialty_order'])
-        #
-        # ''' Type: Primary Care, Cancer, etc.'''
-
         self.order_isPCCnt_global = calc_PC_cnts(self.df_full)
-        #
-        # '''Total number of orders corresponding to the current referral'''
-        # self.N_by_r = self.df.shape[0]
-        #
-        # '''Count dict of orders associated w/ different icd10s for the current referral'''
-        # self.N_to_ri = Counter(self.df['referral_icd10'])
-        # if verbose:
-        #     print 'self.N_to_ri.most_common(5):', self.N_to_ri.most_common(5)
-        #
-        # '''Count dict of occurrences associated w/ different icd10s for any referral'''
-        # self.I_to_i = Counter(self.df_full[['referral_enc_id', 'referral_icd10']]
-        #                                    .drop_duplicates()['referral_icd10'])
-        # self.I_to_ri = Counter(self.df[['referral_enc_id', 'referral_icd10']]
-        #                       .drop_duplicates()['referral_icd10'])
-        #
-        #
-        # self.N_to_ri_tfidf = Counter()
-        # for icd10, absCnt_local in self.N_to_ri.items():
-        #     self.N_to_ri_tfidf[icd10] = float(absCnt_local) * self.N \
-        #                                     / (self.N_by_r * self.I_to_i[icd10])
-        #
-        # self.N_to_ro = Counter(self.df['specialty_order'])
-        #
-        # '''
-        # An order cnt for each icd10
-        # '''
-        # self.N_to_rio = {}
-        # '''
-        # tfidf: defined by n(o, rd) * N / n(o) n(rd), where:
-        #     n(o, rd) = self.N_to_rio[icd10][order]
-        #     N = self.N
-        #     n(o) = self.N_to_o[order]
-        #     n(rd) = self.N_to_ri[icd10]
-        # '''
-        # self.N_to_rio_tfidf = {}
-        # for icd10, _ in self.N_to_ri.most_common(10):  # TODO:
-        #     cur_df = self.df[self.df['referral_icd10'] == icd10]
-        #     self.N_to_rio[icd10] = Counter(cur_df['specialty_order'])
-        #
-        #     self.N_to_rio_tfidf[icd10] = Counter()
-        #     for order, _ in self.N_to_rio[icd10].items():
-        #         self.N_to_rio_tfidf[icd10][order] = float(self.N_to_rio[icd10][order]) * self.N \
-        #                                                / (self.N_to_o[order] * self.N_to_ri[icd10])
-        #
-        # if verbose:
-        #     print self.N_to_rio
-        #
-        # ''' Initial processing: Keeping only the most recent specialty visit  '''
-        # # Almost already make sure of this by requiring "New Patient" in the query
-        # #
-        # # self.df = self.df.sort_values(['referral_enc_id', 'specialty_time'])
-        # # referral_to_1stSpecialtyTime = self.df[['referral_enc_id', 'specialty_time']]\
-        # #     .groupby('referral_enc_id')\
-        # #     .first()\
-        # #     .to_dict()['specialty_time']
-        # # self.df = self.df[self.df['specialty_time'] == self.df['referral_enc_id']
-        # #     .apply(lambda x: referral_to_1stSpecialtyTime[x])]
-        # # print "First-visit-only df shape:", self.df.shape
-        #
-        # # self.icd10_ipwCnt = Counter()
-        # # for icd10, absCnt_local in self.N_to_ri.items():
-        # #     self.icd10_ipwCnt[icd10] = float(absCnt_local)/self.I_to_i[icd10]
-        # # if verbose:
-        # #     print 'self.icd10_ipwCnt.most_common(5):', self.icd10_ipwCnt.most_common(5)
-        #
-        # '''
-        # Event based stats
-        # '''
-        # self.df_referID_orders = self.df[['referral_enc_id', 'referral_icd10', 'specialty_order']]\
-        #                     .groupby(['referral_enc_id','referral_icd10'])['specialty_order']\
-        #                     .apply(list).reset_index()
 
     def plot_waiting_times(self, ax):
 
@@ -356,6 +252,7 @@ class ReferralDataMunger():
         #     common_absCnt_locals = self.N_to_rio_tfidf[icd10].most_common(top_k)
 
         top_orders_cnts = self.get_most_common_orders(icd10, top_k, rank_by=rank_by)
+        print top_orders_cnts
 
         for order, _ in top_orders_cnts:  # TODO: when tfidf?
             '''
@@ -454,8 +351,8 @@ def test_munger(referral, icd10, test_mode=False):
                                 df_full=df)
     print "generate order stats by abs"
     munger.generate_order_stats(icd10=icd10, top_k=10, rank_by='abs')
-    print "generate order stats by tfidf"
-    munger.generate_order_stats(icd10=icd10, top_k=10, rank_by='tfidf')
+    # print "generate order stats by tfidf"
+    # munger.generate_order_stats(icd10=icd10, top_k=10, rank_by='tfidf')
     print "test munger complete"
 
 def plot_waiting_times(col=3):
@@ -536,8 +433,8 @@ if __name__ == '__main__':
     # REFERRAL TO ENDOCRINE CLINIC, 'E11'
     # explore_referrals('REFERRAL TO HEMATOLOGY', top_k=10)
     # quit()
-    # test_munger('REFERRAL TO HEMATOLOGY', 'D69', test_mode=False)
-    plot_waiting_times()
+    test_munger('REFERRAL TO HEMATOLOGY', 'D50', test_mode=False)
+    # plot_waiting_times()
 
     # df = load_data()
     # print df.shape
