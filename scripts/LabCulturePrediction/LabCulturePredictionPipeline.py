@@ -62,7 +62,7 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
         }
 
         features_to_remove = [
-            'pat_anon_id', 'shifted_order_time',
+            'pat_id', 'shifted_order_time',
             'proc_code', 'abnormal_panel', 'Birth.pre',
             'Male.preTimeDays', 'Female.preTimeDays',
             'RaceWhiteHispanicLatino.preTimeDays',
@@ -89,7 +89,7 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
         ]
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
-            '%s.pre' % self._var
+            '%s.pre' % '-'.join(self._var.split())
         ]
         outcome_label = 'no_bacteria'
         selection_problem = FeatureSelector.CLASSIFICATION
@@ -282,6 +282,6 @@ if __name__ == '__main__':
     CULTURE_MICRO_ORDERS = ["LABBLC", "LABBLC2", "LABURNC"]
 
     labs_to_test = CULTURE_MICRO_ORDERS
-
-    for panel in labs_to_test:
-        LabCulturePredictionPipeline(panel, 1000, use_cache=True, random_state=123456789)
+    panel = "LABBLC LABBLC2"
+    # for panel in labs_to_test:
+    LabCulturePredictionPipeline(panel, 50, use_cache=True, random_state=123456789)
