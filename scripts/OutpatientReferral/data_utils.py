@@ -146,7 +146,8 @@ class ReferralDataMunger():
 
         # return median and IQR
         return all_waiting_days.median(), \
-               all_waiting_days.quantile(0.75) - all_waiting_days.quantile(0.25)
+               all_waiting_days.quantile(0.25), \
+               all_waiting_days.quantile(0.75)
 
     def explore_referral(self, top_k=5, rank_by='abs'):
         icd10_category_mapping = data_config.get_icd10_category_mapping()
@@ -252,7 +253,6 @@ class ReferralDataMunger():
         #     common_absCnt_locals = self.N_to_rio_tfidf[icd10].most_common(top_k)
 
         top_orders_cnts = self.get_most_common_orders(icd10, top_k, rank_by=rank_by)
-        print top_orders_cnts
 
         for order, _ in top_orders_cnts:  # TODO: when tfidf?
             '''
@@ -361,7 +361,7 @@ def plot_waiting_times(col=3):
 
     referrals = []
     medians = []
-    IQRs = []
+    Q1s, Q3s = [], []
     fig, axes = plt.subplots(row, col)
     for i, pair in enumerate(data_config.referral_to_specialty_tuples):
         referral = pair[0]
@@ -370,13 +370,14 @@ def plot_waiting_times(col=3):
 
         munger = ReferralDataMunger(referral=referral,
                                     df_full=df)
-        median, IQR = munger.plot_waiting_times(axes[i/col, i%col])
+        median, Q1, Q3 = munger.plot_waiting_times(axes[i/col, i%col])
 
         medians.append(median)
-        IQRs.append(IQR)
+        Q1s.append(Q1)
+        Q3s.append(Q3)
 
-    pd.DataFrame({'referral':referrals, 'median': medians, 'IQR': IQRs})\
-        [['referral', 'median', 'IQR']].to_csv('waiting_time_stats.csv', index=False)
+    pd.DataFrame({'referral':referrals, 'median':medians, 'Q1':Q1s, 'Q3':Q3s})\
+        [['referral', 'median', 'Q1', 'Q3']].to_csv('waiting_time_stats.csv', index=False)
     plt.tight_layout()
     # fig.suptitle('waiting days (max 6 months)', verticalalignment='bottom')
     plt.show()
@@ -432,12 +433,8 @@ def explore_PC_freq():
 if __name__ == '__main__':
     # REFERRAL TO ENDOCRINE CLINIC, 'E11'
     # explore_referrals('REFERRAL TO HEMATOLOGY', top_k=10)
-    # quit()
     test_munger('REFERRAL TO HEMATOLOGY', 'D50', test_mode=False)
     # plot_waiting_times()
-
-    # df = load_data()
-    # print df.shape
 
     # test_plotVisitTimes()
 

@@ -10,6 +10,7 @@ import os
 import sys
 import time
 import numpy
+import pandas as pd
 
 from medinfo.common.Util import log
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
@@ -23,6 +24,20 @@ class LabCultureMatrix(FeatureMatrix):
 
         # Parse arguments.
         self._lab_panel = lab_panel
+        self._med_panel = [['Cefepime (Oral)', 'Cefepime (Intravenous)'],
+                            ['Cefazolin (Oral)', 'Cefazolin (Intravenous)'],
+                            ['Ceftriaxone (Oral)', 'Ceftriaxone (Intravenous)'],
+                            ['Meropenem (Oral)', 'Meropenem (Intravenous)'],
+                            ['Vancomycin (Oral)', 'Vancomycin (Intravenous)'],
+                            ['Linezolid (Oral)', 'Linezolid (Intravenous)'],
+                            ['Daptomycin (Oral)', 'Daptomycin (Intravenous)'],
+                            ['Levofloxacin (Oral)', 'Levofloxacin (Intravenous)'],
+                            ['Ciprofloxacin (Oral)', 'Ciprofloxacin (Intravenous)'],
+                            ['Ampicillin (Oral)', 'Ampicillin (Intravenous)'],
+                            ['Metronidazole (Oral)', 'Metronidazole (Intravenous)'],
+                            ['Caspofungin (Oral)', 'Caspofungin (Intravenous)']]
+        susceptibility_df = pd.read_csv('/Users/conorcorbin/repos/CDSS/Scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
+        self._susceptibility_names = susceptibility_df['name'].values        
         self._num_requested_episodes = num_episodes
         self._num_reported_episodes = 0
 
@@ -161,7 +176,7 @@ class LabCultureMatrix(FeatureMatrix):
         # High Panic: 8084 lab components can have this flag, many core
         #           metabolic components. Include it.
         query = SQLQuery()
-        query.addSelect('CAST(pat_anon_id AS BIGINT)')
+        query.addSelect('CAST(pat_anon_id AS BIGINT) AS pat_id')
         query.addSelect('CAST(shifted_order_time AS TIMESTAMP)')
         query.addSelect('stride_culture_micro.proc_code')
         query.addSelect('organism_name') #one for the result
@@ -181,20 +196,26 @@ class LabCultureMatrix(FeatureMatrix):
         query.addFrom('stride_culture_micro')
  
         query.addWhereIn("stride_culture_micro.proc_code", [self._lab_panel])
-        query.addWhereIn("pat_anon_id", random_patient_list)
-        query.addGroupBy('pat_anon_id')
+        query.addWhereIn("pat_id", random_patient_list)
+        query.addGroupBy('pat_id')
         query.addGroupBy('shifted_order_time')
         query.addGroupBy('stride_culture_micro.proc_code')
         query.addGroupBy('organism_name')
-        query.addOrderBy('pat_anon_id')
+        query.addOrderBy('pat_id')
         query.addOrderBy('shifted_order_time')
         query.addOrderBy('stride_culture_micro.proc_code')
         query.addOrderBy('organism_name')
         query.setLimit(self._num_requested_episodes)
 
-        self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, pat_id_col='pat_anon_id', index_time_col='shifted_order_time')
+        self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, pat_id_col='pat_id', index_time_col='shifted_order_time')
 
     def _add_features(self):
+        # Add past susceptibility readings
+        self._add_susc_features()
+
+        # Add past antibiotic use as features
+        self._add_med_features()
+
         # Add lab panel order features.
         self._factory.addClinicalItemFeatures([self._lab_panel], features="pre")
 
@@ -207,6 +228,21 @@ class LabCultureMatrix(FeatureMatrix):
             self._factory.addLabResultFeatures(self._lab_components, False, pre_time_delta, LAB_POST_TIME_DELTA)
 
         FeatureMatrix._add_features(self, index_time_col='shifted_order_time')
+
+    def _add_susc_features(self):
+        for susc_name in self._susceptibility_names:
+            log.debug('Adding %s feature...' % susc_name)
+            self._factory.addClinicalItemFeatures([susc_name], column='name',
+                                                  label=susc_name, features="pre")
+
+    def _add_med_features(self):
+        # Adds all prior antibiotic use as features
+        for med_set in self._med_panel:
+            med_label = med_set[0].split()[0] # Takes name of antibiotic
+            log.debug('Adding %s medication features...' % med_label)
+            self._factory.addClinicalItemFeatures(med_set, column="description",
+                                                  label="Med." + med_label, features="pre")
+
 
     def write_matrix(self, dest_path):
         log.info('Writing %s...' % dest_path)
