@@ -171,11 +171,13 @@ class ReferralDataMunger():
         #     print "%s (%s), %f" % (icd10s[i], categories[i], icd10_cnts[i][1])
 
     def get_cnt(self, referral=None, order=None, icd10=None):
-        cur_df = self.df_full[['referral_enc_id', 'referral_name', 'specialty_order', 'referral_icd10']].copy()
+        cur_df = self.df_full[['referral_enc_id', 'referral_name', 'specialty_name', 'specialty_order', 'referral_icd10']].copy()
 
         included_columns = ['referral_enc_id']
         if referral:
-            cur_df = cur_df[cur_df['referral_name'] == referral]
+            specialty = referral_to_specialty_dict[referral]
+            cur_df = cur_df[(cur_df['referral_name'] == referral) & \
+                            (cur_df['specialty_name'] == specialty)]
             included_columns.append('referral_name')
 
         if order:
@@ -186,27 +188,11 @@ class ReferralDataMunger():
             cur_df = cur_df[cur_df['referral_icd10'] == icd10]
             included_columns.append('referral_icd10')
 
-        return float(cur_df[included_columns].drop_duplicates().shape[0])
-
-
-    # def get_icd10_cnt(self, referral=None, icd10=None):
-    #     ''''''
-    #     '''
-    #     Unit of occurrence measured by referral_enc_id, not by row (order!)
-    #     '''
-    #     cur_df = self.df_full[['referral_enc_id', 'referral_name', 'referral_icd10']].drop_duplicates()
-    #
-    #     if referral:
-    #         cur_df = cur_df[cur_df['referral_name'] == referral]
-    #
-    #     if icd10:
-    #         cur_df = cur_df[cur_df['referral_icd10'] == icd10]
-    #
-    #     return cur_df.shape[0]
-
+        return float(cur_df[included_columns].drop_duplicates().shape[0]) #
 
     def get_most_common_orders(self, icd10, top_k, rank_by='abs'):
-        cur_df = self.df[self.df['referral_icd10'] == icd10]
+        cur_df = self.df[self.df['referral_icd10'] == icd10][['referral_enc_id', 'referral_name', 'specialty_name', 'specialty_order', 'referral_icd10']]\
+            .drop_duplicates()
         order_abscnts = Counter(cur_df['specialty_order'])
 
         if rank_by=='abs':
@@ -253,6 +239,7 @@ class ReferralDataMunger():
         #     common_absCnt_locals = self.N_to_rio_tfidf[icd10].most_common(top_k)
 
         top_orders_cnts = self.get_most_common_orders(icd10, top_k, rank_by=rank_by)
+        print top_orders_cnts
 
         for order, _ in top_orders_cnts:  # TODO: when tfidf?
             '''
@@ -277,6 +264,7 @@ class ReferralDataMunger():
             cur_order_summary['N(o,r,i)'] = self.get_cnt(order=order,
                                                        referral=self.referral,
                                                          icd10=icd10)
+            print order, cur_order_summary['N(o,r,i)']
 
             cur_order_summary['N(r,i)'] = self.get_cnt(referral=self.referral,
                                                          icd10=icd10)
