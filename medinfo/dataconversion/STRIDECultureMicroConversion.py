@@ -13,7 +13,7 @@ from Env import DATE_FORMAT;
 
 
 SOURCE_TABLE = "stride_culture_micro";
-CATEGORY_TEMPLATE = "Microculture Susceptibility";
+CATEGORY_TEMPLATE = "Microculture Susceptibility General";
 
 class STRIDECultureMicroConversion:
     """Data conversion module to take STRIDE data
@@ -59,35 +59,19 @@ class STRIDECultureMicroConversion:
             conn = self.connFactory.connection();
 
         # Column headers to query for that map to respective fields in analysis table
-
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
         headers = ["order_proc_anon_id","pat_anon_id","pat_enc_csn_anon_id","proc_code","organism_name","antibiotic_name","suseptibility", "shifted_result_time"];
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
-
 
         query = SQLQuery();
         for header in headers:
             query.addSelect( header );
         query.addFrom("stride_culture_micro");
+        # TODO: FIGURE OUT WHY CAN"T DO >= OPERATION HERE
         # if convOptions.startDate is not None:
         #     query.addWhereOp("shifted_result_time",">=", convOptions.startDate);
         # if convOptions.endDate is not None:
         #     query.addWhereOp("shifted_result_time","<", convOptions.endDate);  # Still use begin date as common filter value
       
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
-        ############ TO DO: Fix this to match the actual data of interest ##################
-
-
+      
         # Query to get an estimate of how long the process will be
         if progress is not None:
             progress.total = DBUtil.execute(query.totalQuery(), conn=conn)[0][0];
@@ -99,9 +83,22 @@ class STRIDECultureMicroConversion:
         row = cursor.fetchone();
         while row is not None:
             rowModel = RowItemModel( row, headers );
-            if rowModel['shifted_result_time'] is None: # Don't add if no end time
+
+            if rowModel['shifted_result_time'] is None: # Don't add if no result time given
                 row = cursor.fetchone();
                 continue
+
+            if rowModel['organism_name'] is not None: # if positive culture but results uninterpretable, don't add feature
+                if rowModel['suseptibility'] is None or rowModel['antibiotic_name'] == 'Method' or rowModel['antibiotic_name'] is None:
+                    row = cursor.fetchone();
+                    continue
+
+            # So that we don't run into directory issues later when writing temp files
+            try:
+                rowModel['antibiotic_name'] = rowModel['antibiotic_name'].replace('/', '-') 
+            except: # When antibiotic name is none
+                pass
+
             yield rowModel; # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
             row = cursor.fetchone();
 
@@ -154,19 +151,24 @@ class STRIDECultureMicroConversion:
 
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
-        sourceItem_description = "%s:%s:%s:%s" % (sourceItem['proc_code'], sourceItem['organism_name'],
-                                                 sourceItem['antibiotic_name'], sourceItem['suseptibility'])
+        sourceItem_description = "%s:%s" % (sourceItem['antibiotic_name'], sourceItem['suseptibility'])
         clinicalItemKey = (category["clinical_item_category_id"], sourceItem_description); ########## TODO probably needs to change
         if clinicalItemKey not in self.clinicalItemByCompositeKey:
             # Clinical Item does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
+            if sourceItem['antibiotic_name'] is None and sourceItem['suseptibility'] is None: # we only get here if no bacteria grew
+                name = "Negative Culture"
+                description ="Microculture Grew No Bacteria"
+            else:
+                name = "%s:%s" % (sourceItem['antibiotic_name'], sourceItem['suseptibility'])
+                description = "%s TO %s" % (sourceItem['suseptibility'], sourceItem['antibiotic_name'])
+
+
             clinicalItem = \
                 RowItemModel \
                 (   {   "clinical_item_category_id": category["clinical_item_category_id"],
                         "external_id": None,
-                        "name": "%s:%s:%s:%s" % (sourceItem['proc_code'], sourceItem['organism_name'],
-                                                 sourceItem['antibiotic_name'], sourceItem['suseptibility']), ############FIX THIS TO BE WHATEVER from source data
-                        "description": "%s GREW %s %s TO %s" % (sourceItem['proc_code'], sourceItem['organism_name'],
-                                                                sourceItem['suseptibility'], sourceItem['antibiotic_name'])   ############FIX THIS TO BE WHATEVER from source data
+                        "name": name,
+                        "description": description
                     }
                 );
             (clinicalItemId, isNew) = DBUtil.findOrInsertItem("clinical_item", clinicalItem, conn=conn);
@@ -178,11 +180,11 @@ class STRIDECultureMicroConversion:
         # Produce a patient_item record model for the given sourceItem
         patientItem = \
             RowItemModel \
-            (   {   "external_id":  sourceItem["order_proc_anon_id"],      #### Or whatever was the most unique source ID? DONE
-                    "patient_id":  sourceItem["pat_anon_id"],                ### Fix reference DONE
-                    "encounter_id":  sourceItem["pat_enc_csn_anon_id"],          ### Fix reference DONE
+            (   {   "external_id":  sourceItem["order_proc_anon_id"],
+                    "patient_id":  sourceItem["pat_anon_id"],    
+                    "encounter_id":  sourceItem["pat_enc_csn_anon_id"],   
                     "clinical_item_id":  clinicalItem["clinical_item_id"],
-                    "item_date":  sourceItem["shifted_result_time"],       ### Whatever is the result timestamp??? DONE
+                    "item_date":  sourceItem["shifted_result_time"],
                 }
             );
         insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys() );
@@ -193,7 +195,7 @@ class STRIDECultureMicroConversion:
             patientItem["patient_item_id"] = DBUtil.execute( DBUtil.identityQuery("patient_item"), conn=conn )[0][0];
         except conn.IntegrityError, err:
             # If turns out to be a duplicate, okay, pull out existing ID and continue to insert whatever else is possible
-            log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again
+            # log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again
             searchPatientItem = \
                 {   "patient_id":       patientItem["patient_id"],
                     "clinical_item_id": patientItem["clinical_item_id"],
