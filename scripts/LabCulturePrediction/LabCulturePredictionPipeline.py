@@ -87,6 +87,21 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
             "proteus_mirabilis", 
             "candida_albicans"
         ]
+
+        antibiotic_flags = ['trimethoprim_sulfamethoxazole', 'vancomycin',
+                            'penicillin', 'levofloxacin',
+                            'clindamycin', 'ceftriaxone',
+                            'erythromycin', 'ampicillin',
+                            'meropenem', 'ciprofloxacin',
+                            'cefepime', 'aztreonam',
+                            'ampicillin_sulbactam', 'piperacillin_tazobactam',
+                            'linezolid', 'oxacillin',
+                            'cefazolin', 'daptomycin'
+        ]
+
+        features_to_remove += ['%s_susc' % flag for flag in antibiotic_flags]
+        feautres_to_remove += ['%s_tested' % flag for flag in antibiotic_flags]
+        
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
             '%s.pre' % '-'.join(self._var.split())
