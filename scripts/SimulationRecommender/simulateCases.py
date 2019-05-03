@@ -47,20 +47,20 @@ def randomizeCase(x,y):
     for _ in range(50):
         a = random.sample(x, 5)
         b = random.sample(y, 4)
-        c = [] 
-        c.append("True")
+        #c = [] 
+        #c.append("True")
         output.append((a,b))
     return(output)
 
 # p1 denotes the cases represented by letters in an alphabet     
-p1 = ['a','b','c', 'd', 'e']
+cases = ['Fever B','Headache','Palpitations', 'Hematemesis', 'Shortness of Breath']
 
-# Three True and Two False list 
-p2 = [True,True, False, False]
+# TRUE or FALSE (True means recommender is turned on) 
+booleanList = [True,True, False, False]
 
 # running script: 
-t = randomizeCase(p1, p2)
-
+t = randomizeCase(cases, booleanList)
+# assumes first case recommender is on
 print t[0]
 print t[1]
 print t[2]
