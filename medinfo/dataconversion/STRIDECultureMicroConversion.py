@@ -93,9 +93,16 @@ class STRIDECultureMicroConversion:
                     row = cursor.fetchone();
                     continue
 
-            # So that we don't run into directory issues later when writing temp files
             try:
-                rowModel['antibiotic_name'] = rowModel['antibiotic_name'].replace('/', '-') 
+                # So that we don't run into directory issues later when writing temp files
+                rowModel['antibiotic_name'] = rowModel['antibiotic_name'].replace('/', '-')
+
+                # Change susceptibility features to either susc or not
+                if rowModel['suseptibility'] is not None:
+                    if rowModel['suseptibility'] == 'Susceptible' or rowModel['suseptibility'] == 'Positive':
+                        rowModel['suseptibility'] = 'Susceptible'
+                    else:
+                        rowModel['suseptibility'] = "Not_Susceptible"
             except: # When antibiotic name is none
                 pass
 
