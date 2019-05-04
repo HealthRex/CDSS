@@ -23,7 +23,8 @@ class LabCultureMatrix(FeatureMatrix):
         FeatureMatrix.__init__(self, lab_panel, num_episodes)
 
         # Parse arguments.
-        self._lab_panel = lab_panel
+        self._lab_panel = lab_panel.split()
+
         self._med_panel = [['Cefepime (Oral)', 'Cefepime (Intravenous)'],
                             ['Cefazolin (Oral)', 'Cefazolin (Intravenous)'],
                             ['Ceftriaxone (Oral)', 'Ceftriaxone (Intravenous)'],
@@ -64,13 +65,12 @@ class LabCultureMatrix(FeatureMatrix):
         # stride_order_results. To avoid this, break up the query in two.
 
         # First, get all the order_proc_ids for proc_code.
-
         query = SQLQuery()
         query.addSelect('order_proc_id')
         query.addFrom('stride_order_proc')
-        query.addWhereIn('proc_code', [self._lab_panel])
+        query.addWhereIn('proc_code', self._lab_panel)
         query.addGroupBy('order_proc_id')
-        log.debug('Querying order_proc_ids for %s...' % self._lab_panel)
+        log.debug('Querying order_proc_ids for... %s' % ','.join(self._lab_panel))
         results = DBUtil.execute(query)
         lab_order_ids = [row[0] for row in results]
 
@@ -97,7 +97,7 @@ class LabCultureMatrix(FeatureMatrix):
         query.addFrom('stride_order_proc AS sop')
         query.addFrom('stride_order_results AS sor')
         query.addWhere('sop.order_proc_id = sor.order_proc_id')
-        query.addWhereIn("proc_code", [self._lab_panel])
+        query.addWhereIn("proc_code", self._lab_panel)
         components = self._get_components_in_lab_panel()
         query.addWhereIn("base_name", components)
         query.addGroupBy('pat_id')
@@ -105,7 +105,7 @@ class LabCultureMatrix(FeatureMatrix):
         results = DBUtil.execute(query)
         order_counts = [ row[1] for row in results ]
         if len(order_counts) == 0:
-            error_msg = '0 orders for lab panel "%s."' % self._lab_panel
+            error_msg = '0 orders for lab panel %s' % ','.join(self._lab_panel)
             log.critical(error_msg)
             sys.exit('[ERROR] %s' % error_msg)
         else:
@@ -128,7 +128,7 @@ class LabCultureMatrix(FeatureMatrix):
         query = SQLQuery()
         query.addSelect('pat_id')
         query.addFrom('stride_order_proc AS sop')
-        query.addWhereIn('proc_code', [self._lab_panel])
+        query.addWhereIn('proc_code', self._lab_panel)
         query.addOrderBy('RANDOM()')
         query.setLimit(self._num_patients)
         log.debug('Querying random patient list...')
@@ -181,6 +181,19 @@ class LabCultureMatrix(FeatureMatrix):
         query.addSelect('stride_culture_micro.proc_code')
         query.addSelect('organism_name') #one for the result
 
+        # Experimenting
+        susceptibility_flags = ['Trimethoprim/Sulfamethoxazole', 'Vancomycin', 'Penicillin', 'Levofloxacin',
+                                'Clindamycin', 'Ceftriaxone', 'Erythromycin', 'Ampicillin',
+                                'Meropenem', 'Ciprofloxacin', 'Cefepime', 'Aztreonam',
+                                'Ampicillin/Sulbactam', 'Piperacillin/Tazobactam',
+                                'Linezolid', 'Oxacillin.', 'Cefazolin', 'Daptomycin']
+
+        for med in susceptibility_flags:
+
+            query.addSelect(("MAX(CASE WHEN antibiotic_name = '%s' AND (suseptibility = 'Susceptible' OR suseptibility = 'Positive') THEN 1 ELSE 0 END) AS %s_Susc" % (med, med)).replace('/','_').replace('.', ''))
+            query.addSelect(("MAX(CASE WHEN antibiotic_name = '%s' THEN 1 ELSE 0 END) as %s_tested" % (med, med)).replace('/', '_').replace('.', ''))
+
+
         # Let us look at top 10 commonly occuring bacteria
         query.addSelect("CASE WHEN organism_name IS NULL THEN 1 ELSE 0 END AS NO_BACTERIA")
         query.addSelect("CASE WHEN organism_name = 'ESCHERICHIA COLI' THEN 1 ELSE 0 END AS ESCHERICHIA_COLI")
@@ -195,13 +208,13 @@ class LabCultureMatrix(FeatureMatrix):
         
         query.addFrom('stride_culture_micro')
  
-        query.addWhereIn("stride_culture_micro.proc_code", [self._lab_panel])
-        query.addWhereIn("pat_id", random_patient_list)
-        query.addGroupBy('pat_id')
+        query.addWhereIn("stride_culture_micro.proc_code", self._lab_panel)
+        query.addWhereIn("pat_anon_id", random_patient_list)
+        query.addGroupBy('pat_anon_id')
         query.addGroupBy('shifted_order_time')
         query.addGroupBy('stride_culture_micro.proc_code')
         query.addGroupBy('organism_name')
-        query.addOrderBy('pat_id')
+        query.addOrderBy('pat_anon_id')
         query.addOrderBy('shifted_order_time')
         query.addOrderBy('stride_culture_micro.proc_code')
         query.addOrderBy('organism_name')
@@ -217,7 +230,7 @@ class LabCultureMatrix(FeatureMatrix):
         self._add_med_features()
 
         # Add lab panel order features.
-        self._factory.addClinicalItemFeatures([self._lab_panel], features="pre")
+        self._factory.addClinicalItemFeatures(self._lab_panel, features="pre")
 
         # Add lab component result features, for a variety of time deltas.
         LAB_PRE_TIME_DELTAS = [datetime.timedelta(-14)]
@@ -270,7 +283,7 @@ class LabCultureMatrix(FeatureMatrix):
         line = 'This file contains %s data rows, representing %s unique orders of' % (self._num_reported_episodes, self._num_reported_episodes)
         overview.append(line)
         # the %s lab panel across %s inpatients from Stanford hospital.
-        line = 'the %s lab panel across %s inpatients from Stanford hospital.' % (self._lab_panel, self._num_patients)
+        line = 'the %s lab panel across %s inpatients from Stanford hospital.' % (','.join(self._lab_panel), self._num_patients)
         overview.append(line)
         # Each row contains columns summarizing the patient's demographics,
         line = "Each row contains columns summarizing the patient's demographics,"
@@ -354,7 +367,7 @@ class LabCultureMatrix(FeatureMatrix):
         line = '        Glasgow Coma Scale Score, Pulse, Resp, Temp, and Urine.'
         summary.append(line)
         #   %s.[clinical_item] - orders of the lab panel of interest.\n\
-        line = '%s.[clinical_item] - orders of the lab panel of interest.' % self._lab_panel
+        line = '%s.[clinical_item] - orders of the lab panel of interest.' % ','.join(self._lab_panel)
         summary.append(line)
         #   ___.[lab_result] - lab component results.\n\
         line = '__.[lab_result] - lab component results.'
@@ -369,7 +382,7 @@ class LabCultureMatrix(FeatureMatrix):
         line = '        PHV, PO2V, PCO2V'
         summary.append(line)
         #       Also included %s panel components: %s\n\
-        line = 'Also included %s panel components: %s' % (self._lab_panel, self._lab_components)
+        line = 'Also included %s panel components: %s' % (','.join(self._lab_panel), self._lab_components)
         summary.append(line)
 
         return summary

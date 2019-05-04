@@ -382,6 +382,21 @@ function attachResultBindings(){
     state['action'] = action
     incrementCounter("ResultInteraction", state)
   })
+
+  // Recommended links
+  var recommended = $("a[href^='javascript:loadRelatedOrders']")
+  // Remove any existing listeners on recommended links
+  recommended.unbind('click')
+  recommended.on('click', function() {
+    // event.preventDefault();
+    console.log($(this).attr('href').match(/\('([^)]+)'\)/)[1])
+    // Update lastButtonClicked
+    lastButtonClicked = "Recommended"
+    var state = new Object()
+    var query = $(this).attr('href').match(/\('([^)]+)'\)/)[1] // Item being explored
+    state['searchQuery'] = query
+    incrementCounter("Recommended", state)
+  })
 }
 
 /**

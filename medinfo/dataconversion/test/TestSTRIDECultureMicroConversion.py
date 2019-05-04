@@ -49,6 +49,7 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
 -16,7,8,LABBLC2,,,,
 -17,10,10,LABBLC2,ENTEROCOCCUS FAECALIS,Penicillin,,6/8/2109 17:07
 -17,10,10,LABBLC2,ENTEROCOCCUS FAECALIS,,Intermediate,6/11/2109 17:07
+-18,11,11,LABBLC2,ENTEROCOCCUS FAECALIS,Amikacin,Positive,6/11/2111 18:07
 """
         # Parse into DB insertion object
         # DBUtil.insertFile( StringIO(dataTextStr), "stride_culture_micro", delim="   ", dateColFormats={"trtmnt_tm_begin_date": None, "trtmnt_tm_end_date": None} );
@@ -118,12 +119,13 @@ class TestSTRIDECultureMicroConversion(DBTestCase):
             """;
         expectedData = \
             [   ##### CHANGE to the actual expected data
-[-10, 1, 2, "Microculture Susceptibility General", "Clindamycin:Intermediate", "Intermediate TO Clindamycin", DBUtil.parseDateValue("9/10/2111 13:15"),],
+[-10, 1, 2, "Microculture Susceptibility General", "Clindamycin:Not_Susceptible", "Not_Susceptible TO Clindamycin", DBUtil.parseDateValue("9/10/2111 13:15"),],
 [-11, 2, 3, "Microculture Susceptibility General", "Vancomycin:Susceptible", "Susceptible TO Vancomycin", DBUtil.parseDateValue("4/26/2109 9:49"),],
-[-12, 3, 4, "Microculture Susceptibility General", "Oxacillin:Resistant", "Resistant TO Oxacillin", DBUtil.parseDateValue("4/18/2109 4:48"),],
+[-12, 3, 4, "Microculture Susceptibility General", "Oxacillin:Not_Susceptible", "Not_Susceptible TO Oxacillin", DBUtil.parseDateValue("4/18/2109 4:48"),],
 [-13, 4, 5, "Microculture Susceptibility General", "Vancomycin:Susceptible", "Susceptible TO Vancomycin", DBUtil.parseDateValue("3/28/2109 23:21"),],
 [-14, 5, 6, "Microculture Susceptibility General", "Amoxicillin-Clavulanic Acid:Susceptible", "Susceptible TO Amoxicillin-Clavulanic Acid", DBUtil.parseDateValue("6/3/2109 17:07")],
-[-15, 6, 7, "Microculture Susceptibility General", "Negative Culture", "Microculture Grew No Bacteria", DBUtil.parseDateValue("6/4/2109 17:07")]
+[-15, 6, 7, "Microculture Susceptibility General", "Negative Culture", "Microculture Grew No Bacteria", DBUtil.parseDateValue("6/4/2109 17:07")],
+[-18, 11, 11, "Microculture Susceptibility General", "Amikacin:Susceptible", "Susceptible TO Amikacin", DBUtil.parseDateValue("6/11/2111 18:07")]
 ];
         actualData = DBUtil.execute(testQuery);
         self.assertEqualTable( expectedData, actualData );
