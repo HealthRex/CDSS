@@ -129,6 +129,7 @@ class LabCultureMatrix(FeatureMatrix):
         query.addSelect('pat_id')
         query.addFrom('stride_order_proc AS sop')
         query.addWhereIn('proc_code', self._lab_panel)
+        query.addGroupBy('pat_id') # this should be a unique list of patients
         query.addOrderBy('RANDOM()')
         query.setLimit(self._num_patients)
         log.debug('Querying random patient list...')
@@ -195,7 +196,7 @@ class LabCultureMatrix(FeatureMatrix):
 
 
         # Let us look at top 10 commonly occuring bacteria
-        query.addSelect("CASE WHEN organism_name IS NULL THEN 1 ELSE 0 END AS NO_BACTERIA")
+        query.addSelect("CASE WHEN organism_name IS NULL THEN 0 ELSE 1 END AS BACTERIA_PRESENT")
         query.addSelect("CASE WHEN organism_name = 'ESCHERICHIA COLI' THEN 1 ELSE 0 END AS ESCHERICHIA_COLI")
         query.addSelect("CASE WHEN organism_name = 'STAPHYLOCOCCUS AUREUS' THEN 1 ELSE 0 END AS STAPHYLOCOCCUS_AUREUS")
         query.addSelect("CASE WHEN organism_name = 'ENTEROCOCCUS SPECIES' THEN 1 ELSE 0 END AS ENTEROCOCCUS_SPECIES")

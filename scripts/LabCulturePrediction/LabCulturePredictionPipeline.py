@@ -101,12 +101,12 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
 
         features_to_remove += ['%s_susc' % flag for flag in antibiotic_flags]
         feautres_to_remove += ['%s_tested' % flag for flag in antibiotic_flags]
-        
+
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
             '%s.pre' % '-'.join(self._var.split())
         ]
-        outcome_label = 'no_bacteria'
+        outcome_label = 'bacteria_present'
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
         percent_features_to_select = 0.05
