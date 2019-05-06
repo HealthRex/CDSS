@@ -186,7 +186,7 @@ class LabCultureMatrix(FeatureMatrix):
         # Experimenting
         susceptibility_flags = ['Trimethoprim/Sulfamethoxazole', 'Vancomycin', 'Penicillin', 'Levofloxacin',
                                 'Clindamycin', 'Ceftriaxone', 'Erythromycin', 'Ampicillin',
-                                'Meropenem', 'Ciprofloxacin', 'Cefepime', 'Aztreonam',
+                                'Meropenem', 'Ciprofloxacin', 'Cefepime', 'Aztreonam.',
                                 'Ampicillin/Sulbactam', 'Piperacillin/Tazobactam',
                                 'Linezolid', 'Oxacillin.', 'Cefazolin', 'Daptomycin']
 
