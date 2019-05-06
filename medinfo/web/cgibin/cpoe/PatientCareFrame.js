@@ -89,6 +89,19 @@ function loadNoteContent(simNoteId)
  */
 function updateTime( deltaSeconds )
 {
+    // Check if there are any checkboxes that are checked on the page
+    boxesChecked = false
+    var inputElements = document.getElementsByTagName("input");
+    for (var i = 0; i < inputElements.length; i++)
+        if (inputElements[i].type == "checkbox")
+            if (inputElements[i].checked)
+                boxesChecked = true;
+    // If boxes are checked, alert user to sign orders before updating time
+    if ( boxesChecked ) {
+      alert("Please sign any checked orders before proceeding.");
+      return;
+    }
+
     var theForm = document.forms[0];   // Assume the first and only form
     var simTimeField = theForm.elements['sim_time'];
     var simTime = parseInt(simTimeField.value)
