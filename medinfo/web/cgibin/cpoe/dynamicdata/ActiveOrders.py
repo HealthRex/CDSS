@@ -46,25 +46,45 @@ LINE_TEMPLATE_BY_ACTIVE = \
             """,
     };
 
+LINE_TEMPLATE_BY_ACTIVE_RECOMMENDER_DISABLED = \
+    {   True: """
+            <tr>
+                <td valign=top align=center><b>%(category_description.format)s</b></td>
+                <td valign=top>%(description)s</td>
+                <td valign=top align=center><input type=button value="X" onClick="discontinueOrder('%(sim_patient_order_id)s|%(clinical_item_id)s|%(name)s|%(description)s')"></td>
+            </tr>
+            """,
+        False: """
+            <tr>
+                <td valign=top align=center><b>%(category_description.format)s</b></td>
+                <td valign=top>%(description)s</td>
+                <td valign=top align=center nowrap>%(start_time.format)s<br>%(end_time.format)s</td>
+                <td valign=top align=center nowrap>
+                    <a href="javascript:discontinueOrder('%(sim_patient_order_id)s|%(clinical_item_id)s|%(name)s|%(description)s')"><img src="../../resource/cancelIcon.svg" width=12 height=12 alt="Cancel/Discontinue Order"></a>
+                </td>
+            </tr>
+            """,
+    };
+
 class ActiveOrders(BaseDynamicData):
     """Simple script to (dynamically) relay query and result data
     from the ItemRecommendation module in URL request then HTML table format.
     """
     def __init__(self):
         BaseDynamicData.__init__(self);
-        
+
         self.requestData["sim_patient_id"] = "";
         self.requestData["sim_time"] = "";
         self.requestData["loadActive"] = "false";    # Default to showing whole order history instead of just active (not inactive / completed) orders
-        
+        self.requestData["enableRecommender"] = "True";  # By default, asssume recommender is enabled
         self.requestData["activeCompleted"] = "Active";
         self.requestData["activeOrderButtonClass"] = "buttonSelected";
         self.requestData["completedOrderButtonClass"] = "";
         self.requestData["historyTime"] = "";
         self.requestData["detailTable"] = "";
-        
+
         self.addHandler("sim_patient_id", ActiveOrders.action_default.__name__);
-        
+
     def action_default(self):
         """Present currently selected set of pending clinical item orders"""
         patientId = int(self.requestData["sim_patient_id"]);
@@ -78,12 +98,14 @@ class ActiveOrders(BaseDynamicData):
 
         manager = SimManager();
         patientOrders = manager.loadPatientOrders(patientId, simTime, loadActive=loadActive);
-        
+
         lastPatientOrder = None;
         htmlLines = list();
+        # Choose appropriate line template according to whether recommender enabled
+        LINE_TEMPLATE = LINE_TEMPLATE_BY_ACTIVE if self.requestData["enableRecommender"] == "True" else LINE_TEMPLATE_BY_ACTIVE_RECOMMENDER_DISABLED
         for patientOrder in patientOrders:
             self.formatPatientOrder(patientOrder, lastPatientOrder);
-            htmlLines.append( LINE_TEMPLATE_BY_ACTIVE[loadActive] % patientOrder );
+            htmlLines.append( LINE_TEMPLATE[loadActive] % patientOrder );
             lastPatientOrder = patientOrder;
         self.requestData["detailTable"] = str.join("\n", htmlLines );
 
@@ -111,4 +133,4 @@ if __name__ == "__main__":
 if __name__.startswith("_mod_wsgi_"):
     webController = ActiveOrders()
     webController.setFilePath(__file__)
-    application = webController.wsgiHandler 
+    application = webController.wsgiHandler
