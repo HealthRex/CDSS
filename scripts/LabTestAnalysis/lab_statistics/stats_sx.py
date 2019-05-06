@@ -461,12 +461,11 @@ class Stats_Plotter():
 
             df_toshow = df.copy().drop_duplicates()
 
-            df_toshow['lab'] = df_toshow['lab'].apply(lambda x:self.lab_descriptions.get(x,x))
+            df_toshow['Lab Test'] = df_toshow['lab'].apply(lambda x:self.lab_descriptions.get(x,x))
             df_toshow['TN'] = -df_toshow['TN']
 
             df_toshow['Prev'] = df_toshow['TP'] + df_toshow['FN']
             df_toshow = df_toshow.rename(columns={
-               'lab':'Lab Test',
                 'num_test_episodes':'Count',
                                                 'TP':'TP',
                                                   'FP':'FP',
@@ -508,8 +507,8 @@ class Stats_Plotter():
                 # print df_toshow
                 df_toshow = df_toshow.rename(columns={'medicare': 'Medicare', 'chargemaster': 'Chargemaster'})
 
-                df_toshow['Medicare'] = df_toshow['Medicare'].apply(lambda x: '$%s' % x if x != '-' else x)
-                df_toshow['Chargemaster'] = df_toshow['Chargemaster'].apply(lambda x: '$%s' % str(x) if x != '-' else x)
+                df_toshow['Medicare'] = df_toshow['Medicare'].apply(lambda x: '$%s' % x if x != '' else '-')
+                df_toshow['Chargemaster'] = df_toshow['Chargemaster'].apply(lambda x: '$%s' % str(x) if x != '' else '-')
 
 
 
@@ -541,9 +540,20 @@ class Stats_Plotter():
                                                       'spec':'sens'})
                 cols_to_show = ['Lab Test', 'Vol', 'AUC', 'Prev', 'NPV', 'PPV', 'sens', 'spec', 'TN', 'FN', 'TP', 'FP']
 
+            if self.data_source == 'Stanford':
+                if self.lab_type == 'panel':
+                    labs_to_show = ['LABMGN', 'LABPHOS', 'LABBLC', 'LABBLC2', 'LABUA', 'LABUAPRN', 'LABLACWB', 'LABCAI']
+                    df_toshow[df_toshow['lab'].isin(labs_to_show)][cols_to_show].to_csv(cached_tablepath.replace('.csv','_finalshow.csv'), index=False)
+                else:
+                    labs_to_show = ['WBC', 'HGB', 'NA', 'K', 'CR']
+                    df_toshow[df_toshow['lab'].isin(labs_to_show)][cols_to_show].to_csv(
+                        cached_tablepath.replace('.csv', '_finalshow.csv'), index=False)
 
-            df_toshow[cols_to_show].to_csv(cached_tablepath.replace('.csv', '_full.csv'), index=False)
             df_toshow[cols_to_show].iloc[:20].to_csv(cached_tablepath.replace('.csv','_toshow.csv'), index=False) #.sort_values('total_vol', ascending=False)
+
+            if self.data_source == 'Stanford' and self.lab_type=='panel':
+                cols_to_show += ['Medicare', 'Chargemaster']
+            df_toshow[cols_to_show].to_csv(cached_tablepath.replace('.csv', '_full.csv'), index=False)
 
             df['all_positive_vol'] = df['all_positive'] * df['total_vol']
             df['true_positive_vol'] = df['TP'] * df['total_vol']
@@ -2242,7 +2252,7 @@ def get_AUC_transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='
         res.append(cur_AUC)
     return res
 
-from scripts.LabTestAnalysis.machine_learning import LabNormalityLearner
+from scripts.LabTestAnalysis.machine_learning import LabNormalityLearner_Legacy as LNL
 def main_transfer_model(curr_version, lab_type='component'):
     all_sites = ['Stanford', 'UMich', 'UCSF']
 
@@ -2274,7 +2284,7 @@ def main_transfer_model(curr_version, lab_type='component'):
                 '''
                 '''
                 ml_folder = ml_results_folderpath
-                LabNormalityLearner.transfer_labs(src_dataset=src, dst_dataset=dst, lab_type=lab_type,
+                LNL.transfer_labs(src_dataset=src, dst_dataset=dst, lab_type=lab_type,
                                                   cur_version=curr_version)
                 transfer_result_folderpath = ml_folder + '/data-%s-src-%s-dst-%s-%s/' \
                                              % (lab_type, src, dst, curr_version)
@@ -2336,7 +2346,7 @@ def main_transfer_model(curr_version, lab_type='component'):
     #                        output_folderpath=os.path.join('data', 'LABURIC', 'transfer_Stanford_to_UCSF'))
 
 def main_full_analysis(curr_version, inverse01=False):
-    for data_source in ['UMich', 'UCSF']: #'Stanford',
+    for data_source in ['Stanford', 'UMich', 'UCSF']: #'Stanford',
         for lab_type in ['panel', 'component']:
 
             plotter = Stats_Plotter(data_source=data_source, lab_type=lab_type, curr_version=curr_version)
@@ -2351,68 +2361,78 @@ def main_full_analysis(curr_version, inverse01=False):
             if data_source=='Stanford' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Full_Cartoon', # Figure 1
                                                                          #'Order_Intensities', # Figure 2
-                                                                         'Diagnostic_Metrics', # Table 1 & SI Table
-                                                                         'ROC',  # SI Figure
-                                                                         #'write_importantFeatures' # SI Table
+                                                                        'Diagnostic_Metrics', # Table 1 & SI Table
+                                                                         # 'ROC',  # SI Figure
+                                                                         # 'write_importantFeatures' # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'},
                     inverse01=inverse01) # TODO ['top_15', 'all_labs']
 
+
             elif data_source=='Stanford' and lab_type=='component':
-                # plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
-                #                                                          'ROC',  # SI Figure
-                #                                                          'write_importantFeatures'  # SI Table
-                #                                                          ],
-                #                                            params={'Diagnostic_Metrics': 'important_components'})  # TODO ['common_components', 'all_labs']
+                plotter.main_generate_stats_figures_tables(figs_to_plot=[
+                                                 'Diagnostic_Metrics',  # Figure 3 & SI Table
+                                                                         # 'ROC',  # SI Figure
+                                                                         # 'write_importantFeatures'  # SI Table
+                                                                         ],
+                #                                            params={'Diagnostic_Metrics': 'important_components'}
+                    inverse01=inverse01)  # TODO ['common_components', 'all_labs']
                 plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Normality_Saturations',
-                                                                         'Diagnostic_Metrics',  # Figure 3 & SI Table
-                                                                         'ROC',  # SI Figure
-                                                                         #'write_importantFeatures'  # SI Table
+                                                                         # 'Diagnostic_Metrics',  # Figure 3 & SI Table
+                                                                         # 'ROC',  # SI Figure
+                                                                         # 'write_importantFeatures'  # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'},
                                                            inverse01=inverse01)
+                quit()
 
             elif data_source=='UMich' and lab_type=='panel':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # SI Table
-                                                                         'ROC',  # SI Figure
+                plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Diagnostic_Metrics',  # SI Table
+                                                                         # 'ROC',  # SI Figure
                                                                          'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Diagnostic_Metrics': 'all_labs'})  # TODO
+                                                           params={'Diagnostic_Metrics': 'all_labs'},
+                    inverse01=inverse01)  # TODO
 
             elif data_source=='UMich' and lab_type=='component':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
-                                                                         #'ROC',  # SI Figure
-                                                                         #'write_importantFeatures'  # SI Table
+                plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Diagnostic_Metrics',  # Figure 3 & SI Table
+                                                                         # 'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Diagnostic_Metrics': 'important_components'})  # TODO
+                                                           params={'Diagnostic_Metrics': 'important_components'},
+                                                           inverse01=inverse01)  # TODO
 
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
-                                                                         #'ROC',  # SI Figure
-                                                                         #'write_importantFeatures'  # SI Table
+                plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Diagnostic_Metrics',  # Figure 3 & SI Table
+                                                                         # 'ROC',  # SI Figure
+                                                                         'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Diagnostic_Metrics': 'all_labs'})  # TODO
+                                                           params={'Diagnostic_Metrics': 'all_labs'},
+                                                           inverse01=inverse01)  # TODO
 
             elif data_source=='UCSF' and lab_type=='panel':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # SI Table
-                                                                         'ROC',  # SI Figure
+                plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Diagnostic_Metrics',  # SI Table
+                                                                         # 'ROC',  # SI Figure
                                                                          'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Diagnostic_Metrics': 'all_labs'})  # TODO
+                                                           params={'Diagnostic_Metrics': 'all_labs'},
+                    inverse01=inverse01)  # TODO
 
             elif data_source=='UCSF' and lab_type=='component':
-                plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
-                                                                         'ROC',  # SI Figure
+                plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Diagnostic_Metrics',  # Figure 3 & SI Table
+                                                                         # 'ROC',  # SI Figure
                                                                          'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Diagnostic_Metrics': 'important_components'})  # TODO
+                                                           params={'Diagnostic_Metrics': 'important_components'},
+                                                           inverse01=inverse01)  # TODO
 
                 plotter.main_generate_stats_figures_tables(figs_to_plot=['Diagnostic_Metrics',  # Figure 3 & SI Table
-                                                                         'ROC',  # SI Figure
+                                                                         # 'ROC',  # SI Figure
                                                                          'write_importantFeatures'  # SI Table
                                                                          ],
-                                                           params={'Diagnostic_Metrics': 'all_labs'})  # TODO
+                                                           params={'Diagnostic_Metrics': 'all_labs'},
+                                                           inverse01=inverse01)  # TODO
 
-    main_transfer_model(curr_version)
+    # main_transfer_model(curr_version)
 
 
 def main_one_analysis(curr_version):

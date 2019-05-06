@@ -1,11 +1,13 @@
 #!/usr/bin/python
 """
 Pipeline class for managing end to end training, testing,
-and analysis of LabCulture prediction.
+and analysis of Antibiotic Suseptibiltiy prediction.
 """
 
+import argparse
 import inspect
 import os
+import pandas as pd
 from pandas import DataFrame, Series
 from sklearn.externals import joblib
 from sklearn.metrics import make_scorer, average_precision_score
@@ -20,10 +22,11 @@ from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
 from LabCultureMatrix import LabCultureMatrix
 
-class LabCulturePredictionPipeline(SupervisedLearningPipeline):
-    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None):
+class SusceptibilityPredictionPipeline(SupervisedLearningPipeline):
+    def __init__(self, lab_panel, drug, num_episodes, use_cache=None, random_state=None):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state)
 
+        self.drug = drug
         self._build_raw_feature_matrix()
         self._build_processed_feature_matrix()
         self._train_and_analyze_predictors()
@@ -31,26 +34,74 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
     def _build_model_dump_path(self, algorithm):
         template = '%s' + '-normality-%s-model.pkl' % algorithm
         pipeline_file_name = inspect.getfile(inspect.currentframe())
-        return SupervisedLearningPipeline._build_model_dump_path(self, template, \
-            pipeline_file_name)
+
+        slugified_var = '-'.join(self._var.split())
+        model_dump_name = template % (slugified_var)
+
+        # Build path.
+        data_dir = self._fetch_data_dir_path(pipeline_file_name)
+        model_dump_path = '/'.join([data_dir, self.drug, model_dump_name])
+
+        return model_dump_path
+
 
     def _build_raw_matrix_path(self):
         template = '%s-normality-matrix-%d-episodes-raw.tab'
         pipeline_file_name = inspect.getfile(inspect.currentframe())
+
+        slugified_var = '-'.join(self._var.split())
+        raw_matrix_name = template % (slugified_var, self._num_rows)
+
+        data_dir = self._fetch_data_dir_path(pipeline_file_name)
+        drug_path = '/'.join([data_dir, self.drug])
+        if not os.path.exists(drug_path):
+            os.makedirs(drug_path)
+        raw_matrix_path = '/'.join([data_dir, self.drug, raw_matrix_name])
+
+        return raw_matrix_path
+
+    def _build_composite_raw_matrix_path(self):
+        template = '%s-normality-matrix-%d-episodes-raw.tab'
+        pipeline_file_name = inspect.getfile(inspect.currentframe())
         return SupervisedLearningPipeline._build_matrix_path(self, template, \
             pipeline_file_name)
-
+   
     def _build_raw_feature_matrix(self):
+        # This pipeline should only be run AFTER raw LabCultureMatrix has been
+        # created. To build our raw feature matrix, we load the labculture matrix
+        # into memory and filter down to rows where the antibiotic
+        # we care about was tested. 
         raw_matrix_path = self._build_raw_matrix_path()
-        matrix_class = LabCultureMatrix
-        SupervisedLearningPipeline._build_raw_feature_matrix(self, matrix_class, \
-            raw_matrix_path)
+        self._raw_matrix_params = {}
+        if os.path.exists(raw_matrix_path):
+            pass
+        else:
+            # Assert LabCultureMatrix already built
+            composite_raw_matrix_path = self._build_composite_raw_matrix_path()
+            assert os.path.exists(composite_raw_matrix_path)
+
+            # Load in LabCultureMatrix, filter on susceptibiliy tested column
+            comp_raw_matrix = pd.read_csv(composite_raw_matrix_path, sep='\t')
+            outcome_tested = '%s_tested' % self.drug
+            raw_matrix = comp_raw_matrix[comp_raw_matrix[outcome_tested] == 1]
+            
+            # Write Filtered Matrix to raw matrix path
+            raw_matix_path = self._build_raw_matrix_path()
+            raw_matrix.to_csv(raw_matrix_path, sep='\t', index=False)
+
 
     def _build_processed_matrix_path(self):
         template = '%s-normality-matrix-%d-episodes-processed.tab'
         pipeline_file_path = inspect.getfile(inspect.currentframe())
-        return SupervisedLearningPipeline._build_matrix_path(self, template, \
-            pipeline_file_path)
+
+        slugified_var = '-'.join(self._var.split())
+        processed_matrix_name = template % (slugified_var, self._num_rows)
+
+        # Build Path
+        data_dir = self._fetch_data_dir_path(pipeline_file_path)
+        processed_matrix_path = '/'.join([data_dir, self.drug, processed_matrix_name])
+
+        return processed_matrix_path
 
     def _build_processed_feature_matrix(self):
         # Define parameters for processing steps.
@@ -99,14 +150,15 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
                             'cefazolin', 'daptomycin'
         ]
 
-        features_to_remove += ['%s_susc' % flag for flag in antibiotic_flags]
+
+        features_to_remove += ['%s_susc' % flag for flag in antibiotic_flags if flag != self.drug]
         features_to_remove += ['%s_tested' % flag for flag in antibiotic_flags]
 
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
             '%s.pre' % '-'.join(self._var.split())
         ]
-        outcome_label = 'bacteria_present'
+        outcome_label = '%s_susc' % self.drug
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
         percent_features_to_select = 0.05
@@ -153,6 +205,7 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
         # Defer processing logic to SupervisedLearningPipeline.
         SupervisedLearningPipeline._build_processed_feature_matrix(self, params)
 
+
     def _train_and_analyze_predictors(self):
         log.info('Training and analyzing predictors...')
         problem = SupervisedLearningPipeline.CLASSIFICATION
@@ -174,7 +227,7 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
         for algorithm in algorithms_to_test:
             log.info('Training and analyzing %s...' % algorithm)
             # If report_dir does not exist, make it.
-            report_dir = '/'.join([data_dir, algorithm])
+            report_dir = '/'.join([data_dir, self.drug, algorithm])
             if not os.path.exists(report_dir):
                 os.makedirs(report_dir)
 
@@ -225,7 +278,7 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
                         'y_train.value_counts()', 'y_test.value_counts()'
                     ]
                 )
-                header = ['LabCulturePredictionPipeline("%s", 10000)' % self._var]
+                header = ['LabCulturePredictionPipeline("%s", 1000000)' % self._var]
                 # Write error report.
                 fm_io.write_data_frame_to_file(algorithm_report, \
                     '/'.join([report_dir, '%s-normality-prediction-report.tab' % (self._var)]), \
@@ -249,54 +302,20 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
         # Note that if there were insufficient samples to build any of the
         # algorithms, then meta_report will still be None.
         if meta_report is not None:
-            header = ['LabCulturePredictionPipeline("%s", 10000)' % self._var]
+            header = ['LabCulturePredictionPipeline("%s", 1000000)' % self._var]
             fm_io.write_data_frame_to_file(meta_report, \
                 '/'.join([data_dir, '%s-normality-prediction-report.tab' % self._var]), header)
 
+
+
+
+        
 if __name__ == '__main__':
     log.level = logging.DEBUG
-    TOP_LAB_PANELS_BY_CHARGE_VOLUME = set([
-        "LABA1C", "LABABG", "LABBLC", "LABBLC2", "LABCAI",
-        "LABCBCD", "LABCBCO", "LABHFP", "LABLAC", "LABMB",
-        "LABMETB", "LABMETC", "LABMGN", "LABNTBNP", "LABPCG3",
-        "LABPCTNI", "LABPHOS", "LABPOCGLU", "LABPT", "LABPTT",
-        "LABROMRS", "LABTNI","LABTYPSNI", "LABUA", "LABUAPRN",
-        "LABURNC", "LABVANPRL", "LABVBG"
-    ])
-    TOP_NON_PANEL_TESTS_BY_VOLUME = set([
-        "LABPT", "LABMGN", "LABPTT", "LABPHOS", "LABTNI",
-        "LABBLC", "LABBLC2", "LABCAI", "LABURNC", "LABLACWB",
-        "LABA1C", "LABHEPAR", "LABCDTPCR", "LABPCTNI", "LABPLTS",
-        "LABLAC", "LABLIPS", "LABRESP", "LABTSH", "LABHCTX",
-        "LABLDH", "LABMB", "LABK", "LABGRAM", "LABFCUL",
-        "LABNTBNP", "LABCRP", "LABFLDC", "LABSPLAC", "LABANER",
-        "LABCK", "LABESRP", "LABBLCTIP", "LABBLCSTK", "LABNA",
-        "LABFER", "LABUSPG", "LABB12", "LABURNA", "LABFT4",
-        "LABFIB", "LABURIC", "LABPALB", "LABPCCR", "LABTRFS",
-        "LABUOSM", "LABAFBD", "LABSTOBGD", "LABCSFGL", "LABCSFTP",
-        "LABNH3", "LABAFBC", "LABCMVQT", "LABCSFC", "LABUCR",
-        "LABTRIG", "LABFE",
-        # "LABNONGYN", # No base names.
-        "LABALB", "LABLIDOL",
-        "LABUPREG", "LABRETIC", "LABHAP", "LABBXTG", "LABHIVWBL"
-    ])
-    NON_PANEL_TESTS_WITH_GT_500_ORDERS = [
-        'LABA1C', 'LABAFBC', 'LABAFBD', 'LABALB', 'LABANER', 'LABB12', 'LABBLC', 'LABBLC2',
-        'LABBLCSTK', 'LABBLCTIP', 'LABBUN', 'LABBXTG', 'LABCA', 'LABCAI', 'LABCDTPCR', 'LABCK',
-        'LABCMVQT', 'LABCORT', 'LABCRP', 'LABCSFC', 'LABCSFGL', 'LABCSFTP', 'LABDIGL', 'LABESRP',
-        'LABFCUL', 'LABFE', 'LABFER', 'LABFIB', 'LABFLDC', 'LABFOL', 'LABFT4', 'LABGRAM',
-        'LABHAP', 'LABHBSAG', 'LABHCTX', 'LABHEPAR', 'LABHIVWBL', 'LABK', 'LABLAC', 'LABLACWB',
-        'LABLDH', 'LABLIDOL', 'LABLIPS', 'LABMB', 'LABMGN', 'LABNA', 'LABNH3', 'LABNONGYN',
-        'LABNTBNP', 'LABOSM', 'LABPALB', 'LABPCCG4O', 'LABPCCR', 'LABPCTNI', 'LABPHOS', 'LABPLTS',
-        'LABPROCT', 'LABPT', 'LABPTEG', 'LABPTT', 'LABRESP', 'LABRESPG', 'LABRETIC', 'LABSPLAC',
-        'LABSTLCX', 'LABSTOBGD', 'LABTNI', 'LABTRFS', 'LABTRIG', 'LABTSH', 'LABUCR', 'LABUOSM',
-        'LABUA', 'LABUAPRN', 'LABUPREG', 'LABURIC', 'LABURNA', 'LABURNC', 'LABUSPG'
-    ]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-antibiotic_name', required=True)
+    args = parser.parse_args()
 
-    # only blood and urine cultures
-    CULTURE_MICRO_ORDERS = ["LABBLC", "LABBLC2", "LABURNC"]
-
-    labs_to_test = CULTURE_MICRO_ORDERS
     panel = "LABBLC LABBLC2"
-    # for panel in labs_to_test:
-    LabCulturePredictionPipeline(panel, 1000000, use_cache=True, random_state=123456789)
+    SusceptibilityPredictionPipeline(panel, args.antibiotic_name, 1000000, use_cache=True, random_state=123456789)
+
