@@ -374,7 +374,7 @@ class SupervisedClassifier:
             self._hyperparams['scoring'] = scorer
         elif hyperparam == 'solver':
             # LOGISTIC_REGRESSION, NN
-            if self._hyperparams['algorithm'] == SupervisedClassifier.LOGISTIC_REGRESSION:
+            if self._hyperparams['algorithm'] == SupervisedClassifier.LOGISTIC_REGRESSION or self._hyperparams['algorithm'] == SupervisedClassifier.REGRESS_AND_ROUND:
                 self._hyperparams[hyperparam] = 'saga'
             elif self._hyperparams['algorithm'] == SupervisedClassifier.NN:
                 self._hyperparams[hyperparam] = 'adam'
@@ -718,21 +718,22 @@ class SupervisedClassifier:
         self._get_or_set_hyperparam('scoring')
         self._get_or_set_hyperparam('n_jobs')
 
-        self._get_or_set_hyperparam('learning_rate')
-        self._get_or_set_hyperparam('min_child_weight')
-        self._get_or_set_hyperparam('gamma')
-        self._get_or_set_hyperparam('subsample')
-        self._get_or_set_hyperparam('colsample_bytree')
-        self._get_or_set_hyperparam('max_depth')
+        '''Found that grid search does not really help, but just slow.'''
+        # self._get_or_set_hyperparam('learning_rate')
+        # self._get_or_set_hyperparam('min_child_weight')
+        # self._get_or_set_hyperparam('gamma')
+        # self._get_or_set_hyperparam('subsample')
+        # self._get_or_set_hyperparam('colsample_bytree')
+        # self._get_or_set_hyperparam('max_depth')
 
         # Build initial model.
         self._model = XGBClassifier(
-            learning_rate=self._hyperparams['learning_rate'],
-            min_child_weight=self._hyperparams['min_child_weight'],
-            gamma=self._hyperparams['gamma'],
-            subsample=self._hyperparams['subsample'],
-            colsample_bytree=self._hyperparams['colsample_bytree'],
-            max_depth=self._hyperparams['max_depth'],
+            # learning_rate=self._hyperparams['learning_rate'],
+            # min_child_weight=self._hyperparams['min_child_weight'],
+            # gamma=self._hyperparams['gamma'],
+            # subsample=self._hyperparams['subsample'],
+            # colsample_bytree=self._hyperparams['colsample_bytree'],
+            # max_depth=self._hyperparams['max_depth'],
             random_state=self._hyperparams['random_state']
         )
 
@@ -1026,4 +1027,8 @@ class SupervisedClassifier:
         return self._model.predict(X)
 
     def predict_probability(self, X):
-        return self._model.predict_proba(X)
+        if isinstance(self._model, XGBClassifier):
+            '''Resolving the incompatibility of sklearn and xgboost'''
+            return self._model.predict_proba(X, validate_features=False)
+        else:
+            return self._model.predict_proba(X)
