@@ -98,7 +98,7 @@ function updateTime( deltaSeconds )
                 boxesChecked = true;
     // If boxes are checked, alert user to sign orders before updating time
     if ( boxesChecked ) {
-      alert("Please sign any checked orders before proceeding.");
+      alert("Please sign any selected orders before proceeding.");
       return;
     }
 
