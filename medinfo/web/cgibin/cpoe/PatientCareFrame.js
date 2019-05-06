@@ -24,11 +24,19 @@ function loadOrderHistory(theForm)
     var patientId = theForm.elements["sim_patient_id"].value;
     var simTime = theForm.elements["sim_time"].value;
     var dataPage = "ActiveOrders";
+    var enableRecommender = theForm.enableRecommender.value;
     theForm.elements["currentDataPage"].value = dataPage;
+
+    // Include flag to account for when recommender is not enabled
+    enableRecommenderParam = ''
+    console.log(enableRecommender)
+    if (!enableRecommender){
+      enableRecommenderParam = '&enableRecommender=False'
+    }
 
     var resultSpace = document.getElementById('currentDataTableSpace');
     resultSpace.innerHTML = AJAX_LOADER_HTML;
-    ajaxRequest('dynamicdata/'+dataPage+'.py?loadActive=false&sim_patient_id='+patientId+'&sim_time='+simTime, function(data){ resultSpace.innerHTML = data; } );
+    ajaxRequest('dynamicdata/'+dataPage+'.py?loadActive=false&sim_patient_id='+patientId+'&sim_time='+simTime+enableRecommenderParam, function(data){ resultSpace.innerHTML = data; } );
 }
 
 /**
@@ -99,6 +107,7 @@ function selectItem(checkbox)
     var itemId = parseInt(infoChunks[0]);
     var name = infoChunks[1];
     var description = infoChunks[2];
+    var theForm = document.forms[0];   // Assume the first and only form
 
     if ( checkbox.checked )
     {
@@ -122,7 +131,12 @@ function selectItem(checkbox)
 			// Create a temporary div object to process an innerHTML segment.
 			// Avoid doing a direct newOrderSpace.innerHTML += newHTML, because will overwrite any transient contents (i.e., checkbox deselections) in the prior content
 			var div = document.createElement('div');
-			div.innerHTML =  '<input type=checkbox name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a>&nbsp;<a href="javascript:loadRelatedOrders('+itemId+')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a><br>\n';
+      // Do not show relatedOrder link when recommender not being enabled
+      innerHTML = div.innerHTML =  '<input type=checkbox name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a>&nbsp;<a href="javascript:loadRelatedOrders('+itemId+')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a><br>\n';
+      if ( !theForm.enableRecommender.value ) {
+			     innerHTML =  '<input type=checkbox name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a><br>\n';
+      }
+      div.innerHTML = innerHTML;
 			newOrderSpace.appendChild(div);
 		}
     }
@@ -233,13 +247,15 @@ function searchOrders(searchField)
     else
     {
     	var sortParam = '';
+      var enableRecommenderParam = '';
     	if ( !searchField.form.enableRecommender.value )
     	{
     		sortParam = '&sortField=item_count desc'
+        enableRecommenderParam = '&enableRecommender=False'
     	}
         var resultSpace = document.getElementById('searchResultsTableSpace');
         resultSpace.innerHTML = AJAX_LOADER_HTML;
-        ajaxRequest('dynamicdata/RelatedOrders.py?resultCount='+maxResults+'&searchStr='+searchStr+sortParam, function(data){
+        ajaxRequest('dynamicdata/RelatedOrders.py?resultCount='+maxResults+'&searchStr='+searchStr+sortParam+enableRecommenderParam, function(data){
           resultSpace.innerHTML = data;
           // Defined in Track.js
           recordNewResults('data')
@@ -258,7 +274,7 @@ function loadRelatedOrders( queryItemIdsStr )
     var theForm = document.forms[0];   // Assume the first and only form
 
     if ( !theForm.enableRecommender.value )
-    {   
+    {
         alert('Related orders / recommender functionality disabled');
         return;
     }
