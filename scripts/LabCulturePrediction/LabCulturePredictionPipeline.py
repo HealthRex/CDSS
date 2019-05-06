@@ -100,7 +100,7 @@ class LabCulturePredictionPipeline(SupervisedLearningPipeline):
         ]
 
         features_to_remove += ['%s_susc' % flag for flag in antibiotic_flags]
-        feautres_to_remove += ['%s_tested' % flag for flag in antibiotic_flags]
+        features_to_remove += ['%s_tested' % flag for flag in antibiotic_flags]
 
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
@@ -299,4 +299,4 @@ if __name__ == '__main__':
     labs_to_test = CULTURE_MICRO_ORDERS
     panel = "LABBLC LABBLC2"
     # for panel in labs_to_test:
-    LabCulturePredictionPipeline(panel, 50, use_cache=True, random_state=123456789)
+    LabCulturePredictionPipeline(panel, 1000000, use_cache=True, random_state=123456789)
