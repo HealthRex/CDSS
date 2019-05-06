@@ -37,7 +37,8 @@ class LabCultureMatrix(FeatureMatrix):
                             ['Ampicillin (Oral)', 'Ampicillin (Intravenous)'],
                             ['Metronidazole (Oral)', 'Metronidazole (Intravenous)'],
                             ['Caspofungin (Oral)', 'Caspofungin (Intravenous)']]
-        susceptibility_df = pd.read_csv('/Users/conorcorbin/repos/CDSS/Scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
+        # susceptibility_df = pd.read_csv('/Users/conorcorbin/repos/CDSS/scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
+        susceptibility_df = pd.read_csv('/home/ec2-user/CDSS/scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
         self._susceptibility_names = susceptibility_df['name'].values        
         self._num_requested_episodes = num_episodes
         self._num_reported_episodes = 0

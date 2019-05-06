@@ -374,7 +374,7 @@ class SupervisedClassifier:
             self._hyperparams['scoring'] = scorer
         elif hyperparam == 'solver':
             # LOGISTIC_REGRESSION, NN
-            if self._hyperparams['algorithm'] == SupervisedClassifier.LOGISTIC_REGRESSION:
+            if self._hyperparams['algorithm'] == SupervisedClassifier.LOGISTIC_REGRESSION or self._hyperparams['algorithm'] == SupervisedClassifier.REGRESS_AND_ROUND:
                 self._hyperparams[hyperparam] = 'saga'
             elif self._hyperparams['algorithm'] == SupervisedClassifier.NN:
                 self._hyperparams[hyperparam] = 'adam'
