@@ -186,14 +186,14 @@ class LabCultureMatrix(FeatureMatrix):
         # Experimenting
         susceptibility_flags = ['Trimethoprim/Sulfamethoxazole', 'Vancomycin', 'Penicillin', 'Levofloxacin',
                                 'Clindamycin', 'Ceftriaxone', 'Erythromycin', 'Ampicillin',
-                                'Meropenem', 'Ciprofloxacin', 'Cefepime', 'Aztreonam',
+                                'Meropenem', 'Ciprofloxacin', 'Cefepime', 'Aztreonam.',
                                 'Ampicillin/Sulbactam', 'Piperacillin/Tazobactam',
                                 'Linezolid', 'Oxacillin.', 'Cefazolin', 'Daptomycin']
 
         for med in susceptibility_flags:
-
-            query.addSelect(("MAX(CASE WHEN antibiotic_name = '%s' AND (suseptibility = 'Susceptible' OR suseptibility = 'Positive') THEN 1 ELSE 0 END) AS %s_Susc" % (med, med)).replace('/','_').replace('.', ''))
-            query.addSelect(("MAX(CASE WHEN antibiotic_name = '%s' THEN 1 ELSE 0 END) as %s_tested" % (med, med)).replace('/', '_').replace('.', ''))
+            med_col = med.replace('/', '_').replace('.', '')
+            query.addSelect("MAX(CASE WHEN antibiotic_name = '%s' AND (suseptibility = 'Susceptible' OR suseptibility = 'Positive') THEN 1 ELSE 0 END) AS %s_Susc" % (med, med_col))
+            query.addSelect("MAX(CASE WHEN antibiotic_name = '%s' THEN 1 ELSE 0 END) as %s_tested" % (med, med_col))
 
 
         # Let us look at top 10 commonly occuring bacteria
