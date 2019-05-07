@@ -3,7 +3,7 @@
 -- Direct Current Cardioversion for Afib example. No specific clinical_item/order represents the thing
 -- Category 12 = Procedures
 insert into clinical_item(clinical_item_id, clinical_item_category_id, external_id, name, description, default_recommend, analysis_status, unique_count, item_count, patient_count, encounter_count)
-  values (-100, 12, null, 'DCCV', 'DCCV Direct Current Cardioversion', 1, 1, 200, 200, 200, 200);
+  values (-100, 12, null, 'DCCV', 'Direct Current Cardioversion', 1, 1, 200, 200, 200, 200);
 
 insert into clinical_item_association(clinical_item_association_id, clinical_item_id, subsequent_item_id,
 	count_0, count_3600, count_7200, count_21600, count_43200, count_86400, count_172800, count_345600, count_604800, count_1209600, count_2592000, count_7776000, count_15552000, count_31536000, count_63072000, count_126144000, count_any, time_diff_sum, time_diff_sum_squares,
