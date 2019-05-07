@@ -144,10 +144,19 @@ function selectItem(checkbox)
 			// Create a temporary div object to process an innerHTML segment.
 			// Avoid doing a direct newOrderSpace.innerHTML += newHTML, because will overwrite any transient contents (i.e., checkbox deselections) in the prior content
 			var div = document.createElement('div');
+      // For the purpose of later analysis, get which list the original item came from and include it as a property of the new item
+      var listContaining;
+      if ($(checkbox).parents('#resultSpace1').length > 0) {
+        listContaining = 'resultSpace1'
+      } else if ($(checkbox).parents('#resultSpace2').length > 0) {
+        listContaining = 'resultSpace2'
+      } else {
+        listContaining = 'non-recommender'
+      }
+      innerHTML = div.innerHTML =  '<input type=checkbox data-list="'+listContaining+'" name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a>&nbsp;<a href="javascript:loadRelatedOrders('+itemId+')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a><br>\n';
       // Do not show relatedOrder link when recommender not being enabled
-      innerHTML = div.innerHTML =  '<input type=checkbox name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a>&nbsp;<a href="javascript:loadRelatedOrders('+itemId+')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a><br>\n';
       if ( !theForm.enableRecommender.value ) {
-			     innerHTML =  '<input type=checkbox name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a><br>\n';
+			     innerHTML =  '<input type=checkbox data-list="'+listContaining+'" name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a><br>\n';
       }
       div.innerHTML = innerHTML;
 			newOrderSpace.appendChild(div);
