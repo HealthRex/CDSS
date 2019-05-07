@@ -293,7 +293,7 @@ function storeSignedOrders(){
 
   var signedItems = []
   newSignedOrders.each(function(index){
-    signedItems.push($(this).val())
+    signedItems.push($(this).val() + '|' + $(this).attr('data-list'))
   })
 
   var currTime = Date.now()
@@ -376,6 +376,16 @@ function attachResultBindings(){
     var itemInfo = $(this).val()
     // Item info for later analysis
     state['itemInfo'] = itemInfo
+    // List container for later analysis
+    var listContaining;
+    if ($(this).parents('#resultSpace1').length > 0) {
+      listContaining = 'resultSpace1'
+    } else if ($(this).parents('#resultSpace2').length > 0) {
+      listContaining = 'resultSpace2'
+    } else {
+      listContaining = 'non-recommender'
+    }
+    state['listContaining'] = listContaining
     // Determine what action was done on result item
     var selected = $(this).prop('checked')
     var action = selected ? 'selected' : 'unselected'
