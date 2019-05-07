@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.9
--- Dumped by pg_dump version 9.6.9
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 10.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -52,7 +52,6 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 37	(User6) Chest Pain	62	Male
 36	(User6) Diabetic fatigue	26	Female
 38	(User6) DLBCL Fever	32	Male
-61	(Template) Shortness of Breath	70	Male
 \.
 
 
@@ -60,7 +59,7 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 -- Name: sim_patient_sim_patient_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 64, true);
+SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 70, true);
 
 
 --
