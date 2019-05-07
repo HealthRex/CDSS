@@ -698,7 +698,6 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 78	0	11020	\N	40	1	\N	\N
 67	0	11030	\N	352	23	\N	\N
 93	0	12040	\N	1	0.100000000000000006	\N	\N
-69	0	13010	\N	146	2	\N	\N
 89	0	13020	\N	4.5	0.200000000000000011	\N	\N
 76	0	13030	\N	96	2	\N	\N
 80	0	13040	\N	24	1	\N	\N
@@ -955,6 +954,8 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 5179	8	200	\N	\N	\N	LVEF 37% with no significant valvular abnormalities noted. RVSP 29. RAP 8.	\N
 419	33	1000129	48880	1454	\N	Neutrophil 96%	High
 420	31	1000129	48880	1462	\N	Neutrophil 93%	High
+-179	5000	13080	\N	16	\N	\N	High
+69	0	13010	\N	141	2	\N	\N
 \.
 
 
