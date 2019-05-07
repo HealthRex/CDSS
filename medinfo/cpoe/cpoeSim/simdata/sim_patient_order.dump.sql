@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.9
--- Dumped by pg_dump version 9.6.9
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 10.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -431,7 +431,6 @@ COPY public.sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id
 582	13	38	45811	1620	\N	6
 583	13	38	45919	1620	\N	6
 691	0	49	41870	0	\N	40
-810	0	61	41796	0	\N	10
 824	0	48	42197	0	\N	30
 825	0	50	41759	0	\N	5000
 \.
@@ -441,7 +440,7 @@ COPY public.sim_patient_order (sim_patient_order_id, sim_user_id, sim_patient_id
 -- Name: sim_patient_order_sim_patient_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_order_sim_patient_order_id_seq', 844, true);
+SELECT pg_catalog.setval('public.sim_patient_order_sim_patient_order_id_seq', 889, true);
 
 
 --
