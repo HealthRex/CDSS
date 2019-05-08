@@ -32,7 +32,7 @@ function saveTrackers(){
   var encoded_data = "text/json;charset=utf-8," + encodeURIComponent(data_string)
   var a = document.createElement('a');
   a.href = 'data:' + encoded_data;
-  a.download  = data['user'] + '_' + data['patient'] +'_data_v2.json';
+  a.download  = data['user'] + '_' + data['patient'] +'_data_v3.json';
   a.click()
   sessionStorage.clear()
 }
@@ -293,7 +293,7 @@ function storeSignedOrders(){
 
   var signedItems = []
   newSignedOrders.each(function(index){
-    signedItems.push($(this).val() + '|' + $(this).attr('data-list') + '|' + $(this).attr('data-query') + '|' + $(this).attr('data-search-mode'))
+    signedItems.push($(this).val() + '|' + $(this).attr('data-list') + '|' + $(this).attr('data-query') + '|' + $(this).attr('data-search-mode') + '|' + $(this).attr('data-list-idx'))
   })
 
   var currTime = Date.now()
