@@ -293,7 +293,7 @@ function storeSignedOrders(){
 
   var signedItems = []
   newSignedOrders.each(function(index){
-    signedItems.push($(this).val() + '|' + $(this).attr('data-list'))
+    signedItems.push($(this).val() + '|' + $(this).attr('data-list') + '|' + $(this).attr('data-query') + '|' + $(this).attr('data-search-mode'))
   })
 
   var currTime = Date.now()
@@ -393,19 +393,19 @@ function attachResultBindings(){
     incrementCounter("ResultInteraction", state)
   })
 
-  // Recommended links
-  var recommended = $("a[href^='javascript:loadRelatedOrders']")
-  // Remove any existing listeners on recommended links
-  recommended.unbind('click')
-  recommended.on('click', function() {
+  // Related links
+  var related = $("a[href^='javascript:loadRelatedOrders']")
+  // Remove any existing listeners on related links
+  related.unbind('click')
+  related.on('click', function() {
     // event.preventDefault();
     console.log($(this).attr('href').match(/\('([^)]+)'\)/)[1])
     // Update lastButtonClicked
-    lastButtonClicked = "Recommended"
+    lastButtonClicked = "Related"
     var state = new Object()
     var query = $(this).attr('href').match(/\('([^)]+)'\)/)[1] // Item being explored
     state['searchQuery'] = query
-    incrementCounter("Recommended", state)
+    incrementCounter("Related", state)
   })
 }
 
@@ -425,9 +425,16 @@ function recordNewResults(queryType){
   // General data list
   var dataTableView = $('#searchResultsTableSpace')
   var dataTable = $('#searchResultsTableSpace input[type="checkbox"]')
+  // Result list index (defined as hidden input with name currentRecListIndex)
+  var recListIndex = $('input[name="currentRecListIndex"]')
 
   var results = new Object()
 
+  // Store current index of results
+  var currentRecListIndex = parseInt(recListIndex.val())
+  results['listIndex'] = currentRecListIndex
+  // Update result list index for next batch of results
+  recListIndex.val(currentRecListIndex + 1)
   // If resultSpace2 and resultSpace1 present, collect lists separately
   if (queryType == 'resultSpace1'){
     // Get value of each input

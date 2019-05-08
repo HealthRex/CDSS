@@ -147,16 +147,24 @@ function selectItem(checkbox)
       // For the purpose of later analysis, get which list the original item came from and include it as a property of the new item
       var listContaining;
       if ($(checkbox).parents('#resultSpace1').length > 0) {
-        listContaining = 'resultSpace1'
+        listContaining = 'resultSpace1';
       } else if ($(checkbox).parents('#resultSpace2').length > 0) {
-        listContaining = 'resultSpace2'
+        listContaining = 'resultSpace2';
       } else {
-        listContaining = 'non-recommender'
+        listContaining = 'non-recommender';
       }
-      innerHTML = div.innerHTML =  '<input type=checkbox data-list="'+listContaining+'" name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a>&nbsp;<a href="javascript:loadRelatedOrders('+itemId+')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a><br>\n';
+      // For the purpose of later analysis, store the queryStr that resulted in item being shown and the search mode
+      var queryStr = $('input[name="currentQuery"]').val();
+      // Search mode defined in Track.js under lastButtonClicked
+
+      // Get index of current result list to append as data attribute of selected boxes
+      var recListIndex = $('input[name="currentRecListIndex"]');
+      var listIdx = parseInt(recListIndex.val());
+
+      innerHTML = div.innerHTML =  '<input type=checkbox data-list="'+listContaining+'" data-query="'+queryStr+'" data-search-mode="'+lastButtonClicked+'" data-list-idx="'+listIdx+'" name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a>&nbsp;<a href="javascript:loadRelatedOrders('+itemId+')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a><br>\n';
       // Do not show relatedOrder link when recommender not being enabled
       if ( !theForm.enableRecommender.value ) {
-			     innerHTML =  '<input type=checkbox data-list="'+listContaining+'" name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a><br>\n';
+			     innerHTML =  '<input type=checkbox data-list="'+listContaining+'" data-query="'+queryStr+'" data-search-mode="'+lastButtonClicked+'" data-list-idx="'+listIdx+'" name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a><br>\n';
       }
       div.innerHTML = innerHTML;
 			newOrderSpace.appendChild(div);
@@ -261,6 +269,8 @@ function discontinueOrder( itemInfoStr )
 function searchOrders(searchField)
 {
     var searchStr = searchField.value;
+    // Set hidden currentQuery input to searchStr
+    $('input[name="currentQuery"]').val(searchStr)
     var maxResults = parseInt(searchField.form.maxResults.value);
     if ( searchStr.trim() == "" )
     {   // Blank string, nothing to search off of.  Use related order search instead
@@ -306,7 +316,10 @@ function loadRelatedOrders( queryItemIdsStr )
 
     var itemQueryParams = 'sim_patient_id='+patientId+'&sim_time='+simTime; // Default to searching based on a specific patient record
     if ( queryItemIdsStr )
-    {   // Have a non-blank string of specific query Items to search by. Use if available
+    {
+        // Set hidden currentQuery input to queryItemId
+        $('input[name="currentQuery"]').val(queryItemIdsStr);
+        // Have a non-blank string of specific query Items to search by. Use if available
         itemQueryParams += '&queryItemIds='+queryItemIdsStr;
     }
 
@@ -342,6 +355,8 @@ function loadRelatedOrders( queryItemIdsStr )
 function searchOrderSets(searchField)
 {
     var searchStr = searchField.value;
+    // Set hidden currentQuery input to searchStr
+    $('input[name="currentQuery"]').val(searchStr)
     var resultSpace = document.getElementById('searchResultsTableSpace');
     resultSpace.innerHTML = AJAX_LOADER_HTML;
     ajaxRequest('dynamicdata/OrderSetSearch.py?searchStr='+searchStr, function(data){
@@ -357,6 +372,8 @@ function searchOrderSets(searchField)
 function searchDiagnoses(searchField)
 {
     var searchStr = searchField.value;
+    // Set hidden currentQuery input to searchStr
+    $('input[name="currentQuery"]').val(searchStr)
     var resultSpace = document.getElementById('searchResultsTableSpace');
     resultSpace.innerHTML = AJAX_LOADER_HTML;
     ajaxRequest('dynamicdata/RelatedOrders.py?sourceTables=stride_dx_list&searchStr='+searchStr, function(data){
