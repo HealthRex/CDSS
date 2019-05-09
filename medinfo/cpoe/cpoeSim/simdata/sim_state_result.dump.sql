@@ -956,6 +956,9 @@ COPY public.sim_state_result (sim_state_result_id, sim_state_id, sim_result_id, 
 -179	5000	13080	\N	16	\N	\N	High
 69	0	13010	\N	141	2	\N	\N
 76	0	13030	\N	106	2	\N	\N
+6056	0	1004200	45869	\N	\N	No intra-abdominal abnormalities noted	\N
+6057	0	1004200	49408	\N	\N	No intra-abdominal abnormalities noted	\N
+6058	0	1004200	46343	\N	\N	No intra-abdominal abnormalities noted	\N
 \.
 
 
