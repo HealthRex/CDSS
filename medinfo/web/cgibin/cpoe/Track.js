@@ -8,11 +8,16 @@ if (sessionStorage.length == 0){
   sessionStorage.setItem('resultsTracker', JSON.stringify(new Object())) // Track results that come up
   sessionStorage.setItem('signedItemsTracker', JSON.stringify(new Object())) // Track signed items
   sessionStorage.setItem('lastButtonClicked', "") // Track last clicked button to use in state of results
+  sessionStorage.setItem('listIdx', "0") // Track list index of results
   startTimer()
 }
 eventTracker = $.parseJSON(sessionStorage.getItem('eventTracker')) // Track user action events
 resultsTracker = $.parseJSON(sessionStorage.getItem('resultsTracker')) // Track results that come up
 signedItemsTracker = $.parseJSON(sessionStorage.getItem('signedItemsTracker')) // Track signed items
+listIdxTracker = parseInt(sessionStorage.getItem('listIdx')) // Index of recommendation lists
+// Store idx in appropriate input
+// console.log('loading recListIndex:' + listIdxTracker)
+
 lastButtonClicked = ""
 
 /**
@@ -32,7 +37,7 @@ function saveTrackers(){
   var encoded_data = "text/json;charset=utf-8," + encodeURIComponent(data_string)
   var a = document.createElement('a');
   a.href = 'data:' + encoded_data;
-  a.download  = data['user'] + '_' + data['patient'] +'_data_v3.json';
+  a.download  = data['user'] + '_' + data['patient'] +'_data_v4.json';
   a.click()
   sessionStorage.clear()
 }
@@ -45,6 +50,7 @@ function setTrackers(){
   sessionStorage.setItem('eventTracker', JSON.stringify(eventTracker)) // Track user action events
   sessionStorage.setItem('resultsTracker', JSON.stringify(resultsTracker)) // Track results that come up
   sessionStorage.setItem('signedItemsTracker', JSON.stringify(signedItemsTracker)) // Track signed items
+  sessionStorage.setItem('listIdx', listIdxTracker.toString()) // Track index of recommendation lists
 }
 
 /**
@@ -230,7 +236,7 @@ function attachOrderBindings(){
   })
   // Sign Orders ** Resets entire patient frame!!!
   var signOrders = $('input[type="submit"][value="Sign Orders"]')
-  signOrders.on('click', function(){
+  signOrders.on('click', function(e){
     // Update lastButtonClicked
     lastButtonClicked = "SignOrders"
     var state = new Object()
@@ -425,16 +431,15 @@ function recordNewResults(queryType){
   // General data list
   var dataTableView = $('#searchResultsTableSpace')
   var dataTable = $('#searchResultsTableSpace input[type="checkbox"]')
-  // Result list index (defined as hidden input with name currentRecListIndex)
-  var recListIndex = $('input[name="currentRecListIndex"]')
+  // Current query (either from search or from clicking related link)
+  var currentQuery = $('input[name="currentQuery"]')
 
   var results = new Object()
 
   // Store current index of results
-  var currentRecListIndex = parseInt(recListIndex.val())
-  results['listIndex'] = currentRecListIndex
+  results['listIndex'] = listIdxTracker
   // Update result list index for next batch of results
-  recListIndex.val(currentRecListIndex + 1)
+  listIdxTracker = listIdxTracker + 1
   // If resultSpace2 and resultSpace1 present, collect lists separately
   if (queryType == 'resultSpace1'){
     // Get value of each input
@@ -454,7 +459,7 @@ function recordNewResults(queryType){
 
   // Store results
   var state = new Object()
-  var searchQuery = orderSearch.val()
+  var searchQuery = currentQuery.val()
   state['searchQuery'] = searchQuery
   storeResults(results, state)
 }

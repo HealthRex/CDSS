@@ -158,8 +158,7 @@ function selectItem(checkbox)
       // Search mode defined in Track.js under lastButtonClicked
 
       // Get index of current result list to append as data attribute of selected boxes
-      var recListIndex = $('input[name="currentRecListIndex"]');
-      var listIdx = parseInt(recListIndex.val());
+      var listIdx = listIdxTracker; // Defined in Track.js
 
       innerHTML = div.innerHTML =  '<input type=checkbox data-list="'+listContaining+'" data-query="'+queryStr+'" data-search-mode="'+lastButtonClicked+'" data-list-idx="'+listIdx+'" name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a>&nbsp;<a href="javascript:loadRelatedOrders('+itemId+')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a><br>\n';
       // Do not show relatedOrder link when recommender not being enabled
