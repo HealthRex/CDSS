@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.11
--- Dumped by pg_dump version 9.6.11
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 10.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -386,3 +386,4 @@ SELECT pg_catalog.setval('public.sim_patient_state_sim_patient_state_id_seq', 46
 --
 -- PostgreSQL database dump complete
 --
+

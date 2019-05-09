@@ -1,10 +1,9 @@
-
 --
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.11
--- Dumped by pg_dump version 9.6.11
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 10.3
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -55,3 +54,4 @@ SELECT pg_catalog.setval('public.sim_user_sim_user_id_seq', 33, true);
 --
 -- PostgreSQL database dump complete
 --
+
