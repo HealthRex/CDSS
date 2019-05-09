@@ -21,7 +21,6 @@ SET row_security = off;
 
 COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_state_id, clinical_item_id, time_trigger, description) FROM stdin;
 1	14	15	\N	3600	Active bleed uncontrolled
-2	15	4	\N	1800	Bled out, coding
 3	15	14	65640	\N	Transfuse RBC temporarily restabilizes
 4	15	14	61975	\N	Transfuse RBC temporarily restabilizes
 5	14	14	65640	\N	Transfuse RBC temporarily resets state decay
@@ -114,6 +113,13 @@ COPY public.sim_state_transition (sim_state_transition_id, pre_state_id, post_st
 61	45	43	\N	0	Amiodarone not enough to stabilize. Send to worse state to avoid repeating initial history
 53	46	43	\N	0	Consult completed. Send to worse state to avoid repeating initial history
 55	42	43	\N	0	Adenosine wears off. Send to worse state to avoid repeating initial history
+-9	15	16	65702	\N	Coagulopathy corrected with FFP
+-10	15	16	44001	\N	Cogulopathy stabilized with Vitamin K
+-8	15	16	61993	\N	Coagulopathy corrected with FFP
+-21	14	16	45872	\N	Coagulopathy corrected with FFP
+-22	15	16	45872	\N	Coagulopathy corrected with FFP
+-23	14	14	50618	\N	Transfuse RBC temporarily restabilizes
+-24	15	14	50618	\N	Transfuse RBC temporarily restabilizes
 \.
 
 
