@@ -1544,11 +1544,15 @@ def output_feature_importances(labs, data_source='Stanford', lab_type='panel', c
 
     dict_panel = get_lab_descriptions(lab_type='panel', data_source=data_source)
     dict_component = get_lab_descriptions(lab_type='component', data_source=data_source)
+    dict_misc = {'last_normality':'Prior Test Negative',
+                 'AdmitDxDate':'Admit Date',
+                 'order_time':'Order Time'}
     for col in result_df.columns:
         if col == 'lab':
             continue
         result_df[col] = result_df[col].apply(lambda x: dict_panel.get(x, x))
         result_df[col] = result_df[col].apply(lambda x: dict_component.get(x, x))
+        result_df[col] = result_df[col].apply(lambda x: dict_misc.get(x, x))
 
     result_df.to_csv(result_filepath, index=False, float_format='%.2f')
 

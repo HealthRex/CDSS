@@ -700,6 +700,8 @@ class Stats_Plotter():
             lab_descriptions['LABESRP'] = 'Sedimentation Rate'
             lab_descriptions['LABCBCD'] = 'CBC w/ Diff'
             lab_descriptions['LABPTT'] = 'PTT'
+            lab_descriptions['LABHEPAR'] = 'Heparin Activity Level'
+            lab_descriptions['LABLIDOL'] = 'Lidocaine Level'
             lab_desciption = lab_descriptions.get(lab, lab)
 
             if labeling:
@@ -809,7 +811,6 @@ class Stats_Plotter():
 
             df_res.to_csv(cached_result_path, index=False)
 
-        print lab2stats
         labs_ordered = sorted(labs, key=lambda x: lab2stats[x]['< 24 hrs'], reverse=True) #< 24 hrs
 
         # fig = plt.figure(figsize=(12, 6/20.*len(labs) )) # figsize=(20, 12) figsize=(12, 8)
@@ -2377,10 +2378,10 @@ def main_full_analysis(curr_version, inverse01=False):
 
             if data_source=='Stanford' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Full_Cartoon', # Figure 1
-                                                                         # 'Order_Intensities', # Figure 2
+                                                                         'Order_Intensities', # Figure 2
                                                                         #'Diagnostic_Metrics', # Table 1 & SI Table
                                                                         # 'ROC',  # SI Figure
-                                                                         'write_importantFeatures' # SI Table
+                                                                        #  'write_importantFeatures' # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'},
                     inverse01=inverse01) # TODO ['top_15', 'all_labs']
