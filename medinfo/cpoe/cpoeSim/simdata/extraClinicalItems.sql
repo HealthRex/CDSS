@@ -40,3 +40,12 @@ insert into item_collection(item_collection_id, section, name, external_id, subg
 
 insert into item_collection_item(item_collection_item_id, item_collection_id, clinical_item_id)
   values (-100, -100, -100);
+
+
+-- Add specific abbreviations to certain clinical items
+-- Add 'Ultrasound' prefix to all items starting with US
+update clinical_item set description = CONCAT('Ultrasound - ', description) where description like 'US %';
+-- Add 'DCCV' prevfix to direct current cardioversion item
+update clinical_item set description = 'DCCV - Direct Current Cardioversion' where clinical_item_id = -100;
+-- Add '(TTE)' suffix to ECHO - TRANSTHORACIC ECHO +DOPPLER item
+update clinical_item set description = 'ECHO - TRANSTHORACIC ECHO +DOPPLER (TTE)' where clinical_item_id = 61832;

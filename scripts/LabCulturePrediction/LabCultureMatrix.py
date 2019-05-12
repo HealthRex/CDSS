@@ -37,7 +37,8 @@ class LabCultureMatrix(FeatureMatrix):
                             ['Ampicillin (Oral)', 'Ampicillin (Intravenous)'],
                             ['Metronidazole (Oral)', 'Metronidazole (Intravenous)'],
                             ['Caspofungin (Oral)', 'Caspofungin (Intravenous)']]
-        susceptibility_df = pd.read_csv('/Users/conorcorbin/repos/CDSS/Scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
+        # susceptibility_df = pd.read_csv('/Users/conorcorbin/repos/CDSS/scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
+        susceptibility_df = pd.read_csv('/home/ec2-user/CDSS/scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
         self._susceptibility_names = susceptibility_df['name'].values        
         self._num_requested_episodes = num_episodes
         self._num_reported_episodes = 0
@@ -129,6 +130,7 @@ class LabCultureMatrix(FeatureMatrix):
         query.addSelect('pat_id')
         query.addFrom('stride_order_proc AS sop')
         query.addWhereIn('proc_code', self._lab_panel)
+        query.addGroupBy('pat_id') # this should be a unique list of patients
         query.addOrderBy('RANDOM()')
         query.setLimit(self._num_patients)
         log.debug('Querying random patient list...')
@@ -184,18 +186,18 @@ class LabCultureMatrix(FeatureMatrix):
         # Experimenting
         susceptibility_flags = ['Trimethoprim/Sulfamethoxazole', 'Vancomycin', 'Penicillin', 'Levofloxacin',
                                 'Clindamycin', 'Ceftriaxone', 'Erythromycin', 'Ampicillin',
-                                'Meropenem', 'Ciprofloxacin', 'Cefepime', 'Aztreonam',
+                                'Meropenem', 'Ciprofloxacin', 'Cefepime', 'Aztreonam.',
                                 'Ampicillin/Sulbactam', 'Piperacillin/Tazobactam',
                                 'Linezolid', 'Oxacillin.', 'Cefazolin', 'Daptomycin']
 
         for med in susceptibility_flags:
-
-            query.addSelect(("MAX(CASE WHEN antibiotic_name = '%s' AND (suseptibility = 'Susceptible' OR suseptibility = 'Positive') THEN 1 ELSE 0 END) AS %s_Susc" % (med, med)).replace('/','_').replace('.', ''))
-            query.addSelect(("MAX(CASE WHEN antibiotic_name = '%s' THEN 1 ELSE 0 END) as %s_tested" % (med, med)).replace('/', '_').replace('.', ''))
+            med_col = med.replace('/', '_').replace('.', '')
+            query.addSelect("MAX(CASE WHEN antibiotic_name = '%s' AND (suseptibility = 'Susceptible' OR suseptibility = 'Positive') THEN 1 ELSE 0 END) AS %s_Susc" % (med, med_col))
+            query.addSelect("MAX(CASE WHEN antibiotic_name = '%s' THEN 1 ELSE 0 END) as %s_tested" % (med, med_col))
 
 
         # Let us look at top 10 commonly occuring bacteria
-        query.addSelect("CASE WHEN organism_name IS NULL THEN 1 ELSE 0 END AS NO_BACTERIA")
+        query.addSelect("CASE WHEN organism_name IS NULL THEN 0 ELSE 1 END AS BACTERIA_PRESENT")
         query.addSelect("CASE WHEN organism_name = 'ESCHERICHIA COLI' THEN 1 ELSE 0 END AS ESCHERICHIA_COLI")
         query.addSelect("CASE WHEN organism_name = 'STAPHYLOCOCCUS AUREUS' THEN 1 ELSE 0 END AS STAPHYLOCOCCUS_AUREUS")
         query.addSelect("CASE WHEN organism_name = 'ENTEROCOCCUS SPECIES' THEN 1 ELSE 0 END AS ENTEROCOCCUS_SPECIES")

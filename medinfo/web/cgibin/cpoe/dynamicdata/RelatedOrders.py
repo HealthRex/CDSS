@@ -36,7 +36,7 @@ CONTROLS_TEMPLATE = \
 DESCRIPTION_TEMPLATE = \
     """<a href="javascript:clickItemById(%(clinical_item_id)s)">%(description)s</a>""";
 RELATED_LINK_TEMPLATE = \
-    """&nbsp;<a href="javascript:loadRelatedOrders('%(clinical_item_id)s')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a>""";    
+    """&nbsp;<a href="javascript:loadRelatedOrders('%(clinical_item_id)s')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a>""";
 
 class RelatedOrders(BaseDynamicData):
     """Simple script to (dynamically) relay query and result data
@@ -58,6 +58,7 @@ class RelatedOrders(BaseDynamicData):
         self.requestData["excludeCategoryIds"] = "";
         self.requestData["timeDeltaMax"] = "86400"; # Look for recommendations likely within 24 hours
         self.requestData["sortField"] = "";
+        self.requestData["enableRecommender"] = "True";  # By default, asssume recommender is enabled
         self.requestData["displayFields"] = ""; #"prevalence","PPV","RR","P-YatesChi2"
         self.requestData["sortReverse"] = "True";
         self.requestData["nPreCols"] = "1";
@@ -117,7 +118,7 @@ class RelatedOrders(BaseDynamicData):
             recentItemIds = manager.recentItemIds(patientId, simTime);
 
         # Recommender Instance to test on
-        self.recommender = ItemAssociationRecommender();  
+        self.recommender = ItemAssociationRecommender();
         self.recommender.dataManager.dataCache = webDataCache;  # Allow caching of data for rapid successive queries
 
         query = RecommenderQuery();
@@ -250,7 +251,9 @@ class RelatedOrders(BaseDynamicData):
             elif col == "description":
                 htmlList.append('<td align=left>');
                 htmlList.append( DESCRIPTION_TEMPLATE % dataModel);
-                htmlList.append( RELATED_LINK_TEMPLATE % dataModel);
+                # Only include related link if recommender is enabled
+                if self.requestData['enableRecommender'] == "True":
+                    htmlList.append( RELATED_LINK_TEMPLATE % dataModel);
                 htmlList.append('</td>');
             else:
                 htmlList.append('<td align=right>%s</td>' % dataModel[col]);

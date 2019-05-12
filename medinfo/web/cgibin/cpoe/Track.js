@@ -8,11 +8,16 @@ if (sessionStorage.length == 0){
   sessionStorage.setItem('resultsTracker', JSON.stringify(new Object())) // Track results that come up
   sessionStorage.setItem('signedItemsTracker', JSON.stringify(new Object())) // Track signed items
   sessionStorage.setItem('lastButtonClicked', "") // Track last clicked button to use in state of results
+  sessionStorage.setItem('listIdx', "0") // Track list index of results
   startTimer()
 }
 eventTracker = $.parseJSON(sessionStorage.getItem('eventTracker')) // Track user action events
 resultsTracker = $.parseJSON(sessionStorage.getItem('resultsTracker')) // Track results that come up
 signedItemsTracker = $.parseJSON(sessionStorage.getItem('signedItemsTracker')) // Track signed items
+listIdxTracker = parseInt(sessionStorage.getItem('listIdx')) // Index of recommendation lists
+// Store idx in appropriate input
+// console.log('loading recListIndex:' + listIdxTracker)
+
 lastButtonClicked = ""
 
 /**
@@ -32,7 +37,7 @@ function saveTrackers(){
   var encoded_data = "text/json;charset=utf-8," + encodeURIComponent(data_string)
   var a = document.createElement('a');
   a.href = 'data:' + encoded_data;
-  a.download  = data['user'] + '_' + data['patient'] +'_data.json';
+  a.download  = data['user'] + '_' + data['patient'] +'_data_v4.json';
   a.click()
   sessionStorage.clear()
 }
@@ -45,6 +50,7 @@ function setTrackers(){
   sessionStorage.setItem('eventTracker', JSON.stringify(eventTracker)) // Track user action events
   sessionStorage.setItem('resultsTracker', JSON.stringify(resultsTracker)) // Track results that come up
   sessionStorage.setItem('signedItemsTracker', JSON.stringify(signedItemsTracker)) // Track signed items
+  sessionStorage.setItem('listIdx', listIdxTracker.toString()) // Track index of recommendation lists
 }
 
 /**
@@ -230,7 +236,7 @@ function attachOrderBindings(){
   })
   // Sign Orders ** Resets entire patient frame!!!
   var signOrders = $('input[type="submit"][value="Sign Orders"]')
-  signOrders.on('click', function(){
+  signOrders.on('click', function(e){
     // Update lastButtonClicked
     lastButtonClicked = "SignOrders"
     var state = new Object()
@@ -293,7 +299,7 @@ function storeSignedOrders(){
 
   var signedItems = []
   newSignedOrders.each(function(index){
-    signedItems.push($(this).val())
+    signedItems.push($(this).val() + '|' + $(this).attr('data-list') + '|' + $(this).attr('data-query') + '|' + $(this).attr('data-search-mode') + '|' + $(this).attr('data-list-idx'))
   })
 
   var currTime = Date.now()
@@ -376,6 +382,16 @@ function attachResultBindings(){
     var itemInfo = $(this).val()
     // Item info for later analysis
     state['itemInfo'] = itemInfo
+    // List container for later analysis
+    var listContaining;
+    if ($(this).parents('#resultSpace1').length > 0) {
+      listContaining = 'resultSpace1'
+    } else if ($(this).parents('#resultSpace2').length > 0) {
+      listContaining = 'resultSpace2'
+    } else {
+      listContaining = 'non-recommender'
+    }
+    state['listContaining'] = listContaining
     // Determine what action was done on result item
     var selected = $(this).prop('checked')
     var action = selected ? 'selected' : 'unselected'
@@ -383,19 +399,19 @@ function attachResultBindings(){
     incrementCounter("ResultInteraction", state)
   })
 
-  // Recommended links
-  var recommended = $("a[href^='javascript:loadRelatedOrders']")
-  // Remove any existing listeners on recommended links
-  recommended.unbind('click')
-  recommended.on('click', function() {
+  // Related links
+  var related = $("a[href^='javascript:loadRelatedOrders']")
+  // Remove any existing listeners on related links
+  related.unbind('click')
+  related.on('click', function() {
     // event.preventDefault();
     console.log($(this).attr('href').match(/\('([^)]+)'\)/)[1])
     // Update lastButtonClicked
-    lastButtonClicked = "Recommended"
+    lastButtonClicked = "Related"
     var state = new Object()
     var query = $(this).attr('href').match(/\('([^)]+)'\)/)[1] // Item being explored
     state['searchQuery'] = query
-    incrementCounter("Recommended", state)
+    incrementCounter("Related", state)
   })
 }
 
@@ -415,9 +431,15 @@ function recordNewResults(queryType){
   // General data list
   var dataTableView = $('#searchResultsTableSpace')
   var dataTable = $('#searchResultsTableSpace input[type="checkbox"]')
+  // Current query (either from search or from clicking related link)
+  var currentQuery = $('input[name="currentQuery"]')
 
   var results = new Object()
 
+  // Store current index of results
+  results['listIndex'] = listIdxTracker
+  // Update result list index for next batch of results
+  listIdxTracker = listIdxTracker + 1
   // If resultSpace2 and resultSpace1 present, collect lists separately
   if (queryType == 'resultSpace1'){
     // Get value of each input
@@ -437,7 +459,7 @@ function recordNewResults(queryType){
 
   // Store results
   var state = new Object()
-  var searchQuery = orderSearch.val()
+  var searchQuery = currentQuery.val()
   state['searchQuery'] = searchQuery
   storeResults(results, state)
 }
