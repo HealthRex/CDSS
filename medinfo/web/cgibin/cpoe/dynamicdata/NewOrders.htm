@@ -1,3 +1,24 @@
+    <script type="text/javascript">
+      function submitFindOrders() {
+        // Helper function for allowing refresh button to have same effect as submitting
+        // input with blank query (userful for tracking, since both are doing the
+        // the same thing)
+        var theForm = document.forms[0];   // Assume the first and only form
+
+        // If recommender not enabled, alert user (as defined in loadRelatedOrders())
+        if ( !theForm.enableRecommender.value )
+        {
+          loadRelatedOrders();
+          return;
+        }
+        // Clear search field
+        var orderSearch = $('input[type="text"][name="orderSearch"]');
+        orderSearch.val("");
+        // Submit search form
+        var findOrders = $('input[type="submit"][value="Find Orders"]');
+        findOrders.click();
+      }
+    </script>
     <table class="dataTable" cellspacing=0 cellpadding=4 style="width: 100%%">
         <tr valign=bottom>
             <th class="subheading" style="width: 80%%" align=right>
@@ -12,7 +33,7 @@
         </tr>
         <tr>
             <td class="labelCell" colspan=2>
-                New Orders
+                New Orders &nbsp;<input type=button value="Refresh" onClick="submitFindOrders()" alt="Find Related Orders">
             </td>
         </tr>
         <tr valign=top>

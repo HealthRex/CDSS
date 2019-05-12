@@ -24,11 +24,19 @@ function loadOrderHistory(theForm)
     var patientId = theForm.elements["sim_patient_id"].value;
     var simTime = theForm.elements["sim_time"].value;
     var dataPage = "ActiveOrders";
+    var enableRecommender = theForm.enableRecommender.value;
     theForm.elements["currentDataPage"].value = dataPage;
+
+    // Include flag to account for when recommender is not enabled
+    enableRecommenderParam = ''
+    console.log(enableRecommender)
+    if (!enableRecommender){
+      enableRecommenderParam = '&enableRecommender=False'
+    }
 
     var resultSpace = document.getElementById('currentDataTableSpace');
     resultSpace.innerHTML = AJAX_LOADER_HTML;
-    ajaxRequest('dynamicdata/'+dataPage+'.py?loadActive=false&sim_patient_id='+patientId+'&sim_time='+simTime, function(data){ resultSpace.innerHTML = data; } );
+    ajaxRequest('dynamicdata/'+dataPage+'.py?loadActive=false&sim_patient_id='+patientId+'&sim_time='+simTime+enableRecommenderParam, function(data){ resultSpace.innerHTML = data; } );
 }
 
 /**
@@ -81,6 +89,19 @@ function loadNoteContent(simNoteId)
  */
 function updateTime( deltaSeconds )
 {
+    // Check if there are any checkboxes that are checked on the page
+    boxesChecked = false
+    var inputElements = document.getElementsByTagName("input");
+    for (var i = 0; i < inputElements.length; i++)
+        if (inputElements[i].type == "checkbox")
+            if (inputElements[i].checked)
+                boxesChecked = true;
+    // If boxes are checked, alert user to sign orders before updating time
+    if ( boxesChecked ) {
+      alert("Please sign any selected orders before proceeding.");
+      return;
+    }
+
     var theForm = document.forms[0];   // Assume the first and only form
     var simTimeField = theForm.elements['sim_time'];
     var simTime = parseInt(simTimeField.value)
@@ -99,6 +120,7 @@ function selectItem(checkbox)
     var itemId = parseInt(infoChunks[0]);
     var name = infoChunks[1];
     var description = infoChunks[2];
+    var theForm = document.forms[0];   // Assume the first and only form
 
     if ( checkbox.checked )
     {
@@ -122,7 +144,28 @@ function selectItem(checkbox)
 			// Create a temporary div object to process an innerHTML segment.
 			// Avoid doing a direct newOrderSpace.innerHTML += newHTML, because will overwrite any transient contents (i.e., checkbox deselections) in the prior content
 			var div = document.createElement('div');
-			div.innerHTML =  '<input type=checkbox name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a>&nbsp;<a href="javascript:loadRelatedOrders('+itemId+')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a><br>\n';
+      // For the purpose of later analysis, get which list the original item came from and include it as a property of the new item
+      var listContaining;
+      if ($(checkbox).parents('#resultSpace1').length > 0) {
+        listContaining = 'resultSpace1';
+      } else if ($(checkbox).parents('#resultSpace2').length > 0) {
+        listContaining = 'resultSpace2';
+      } else {
+        listContaining = 'non-recommender';
+      }
+      // For the purpose of later analysis, store the queryStr that resulted in item being shown and the search mode
+      var queryStr = $('input[name="currentQuery"]').val();
+      // Search mode defined in Track.js under lastButtonClicked
+
+      // Get index of current result list to append as data attribute of selected boxes
+      var listIdx = listIdxTracker; // Defined in Track.js
+
+      innerHTML = div.innerHTML =  '<input type=checkbox data-list="'+listContaining+'" data-query="'+queryStr+'" data-search-mode="'+lastButtonClicked+'" data-list-idx="'+listIdx+'" name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a>&nbsp;<a href="javascript:loadRelatedOrders('+itemId+')"><img src="../../resource/graphIcon.png" width=12 height=12 alt="Find Related Orders"></a><br>\n';
+      // Do not show relatedOrder link when recommender not being enabled
+      if ( !theForm.enableRecommender.value ) {
+			     innerHTML =  '<input type=checkbox data-list="'+listContaining+'" data-query="'+queryStr+'" data-search-mode="'+lastButtonClicked+'" data-list-idx="'+listIdx+'" name="newOrderItemId" class="newOrderCheckbox" value="'+itemId+'" checked onClick="selectNewItem('+itemId+')"><a href="javascript:clickNewItemById('+itemId+')">'+description+'</a><br>\n';
+      }
+      div.innerHTML = innerHTML;
 			newOrderSpace.appendChild(div);
 		}
     }
@@ -225,6 +268,8 @@ function discontinueOrder( itemInfoStr )
 function searchOrders(searchField)
 {
     var searchStr = searchField.value;
+    // Set hidden currentQuery input to searchStr
+    $('input[name="currentQuery"]').val(searchStr)
     var maxResults = parseInt(searchField.form.maxResults.value);
     if ( searchStr.trim() == "" )
     {   // Blank string, nothing to search off of.  Use related order search instead
@@ -233,13 +278,15 @@ function searchOrders(searchField)
     else
     {
     	var sortParam = '';
+      var enableRecommenderParam = '';
     	if ( !searchField.form.enableRecommender.value )
     	{
     		sortParam = '&sortField=item_count desc'
+        enableRecommenderParam = '&enableRecommender=False'
     	}
         var resultSpace = document.getElementById('searchResultsTableSpace');
         resultSpace.innerHTML = AJAX_LOADER_HTML;
-        ajaxRequest('dynamicdata/RelatedOrders.py?resultCount='+maxResults+'&searchStr='+searchStr+sortParam, function(data){
+        ajaxRequest('dynamicdata/RelatedOrders.py?resultCount='+maxResults+'&searchStr='+searchStr+sortParam+enableRecommenderParam, function(data){
           resultSpace.innerHTML = data;
           // Defined in Track.js
           recordNewResults('data')
@@ -258,7 +305,7 @@ function loadRelatedOrders( queryItemIdsStr )
     var theForm = document.forms[0];   // Assume the first and only form
 
     if ( !theForm.enableRecommender.value )
-    {   
+    {
         alert('Related orders / recommender functionality disabled');
         return;
     }
@@ -268,7 +315,10 @@ function loadRelatedOrders( queryItemIdsStr )
 
     var itemQueryParams = 'sim_patient_id='+patientId+'&sim_time='+simTime; // Default to searching based on a specific patient record
     if ( queryItemIdsStr )
-    {   // Have a non-blank string of specific query Items to search by. Use if available
+    {
+        // Set hidden currentQuery input to queryItemId
+        $('input[name="currentQuery"]').val(queryItemIdsStr);
+        // Have a non-blank string of specific query Items to search by. Use if available
         itemQueryParams += '&queryItemIds='+queryItemIdsStr;
     }
 
@@ -304,6 +354,8 @@ function loadRelatedOrders( queryItemIdsStr )
 function searchOrderSets(searchField)
 {
     var searchStr = searchField.value;
+    // Set hidden currentQuery input to searchStr
+    $('input[name="currentQuery"]').val(searchStr)
     var resultSpace = document.getElementById('searchResultsTableSpace');
     resultSpace.innerHTML = AJAX_LOADER_HTML;
     ajaxRequest('dynamicdata/OrderSetSearch.py?searchStr='+searchStr, function(data){
@@ -319,6 +371,8 @@ function searchOrderSets(searchField)
 function searchDiagnoses(searchField)
 {
     var searchStr = searchField.value;
+    // Set hidden currentQuery input to searchStr
+    $('input[name="currentQuery"]').val(searchStr)
     var resultSpace = document.getElementById('searchResultsTableSpace');
     resultSpace.innerHTML = AJAX_LOADER_HTML;
     ajaxRequest('dynamicdata/RelatedOrders.py?sourceTables=stride_dx_list&searchStr='+searchStr, function(data){
