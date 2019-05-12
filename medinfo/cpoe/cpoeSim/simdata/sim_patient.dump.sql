@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.5
--- Dumped by pg_dump version 10.3
+-- Dumped from database version 9.6.11
+-- Dumped by pg_dump version 9.6.11
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -139,6 +139,55 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 148	zzzzzz_ph9_hematemesis	59	Male
 149	zzzzzz_ph9_palpitations	66	Female
 150	zzzzzz_ph9_shortness	70	Male
+151	zzzzzzz_kh10_chestpain	62	Male
+152	qqq1_feverb_	30	Male
+153	1_test_he	59	Male
+154	zzzzzzz_kh10_diabeticfatigue	26	Female
+155	zzzzzzz_kh10_feverb	30	Male
+156	zzzzzzz_kh10_headache	25	Female
+157	zzzzzzz_kh10_hematemesis	59	Male
+158	zzzzzzz_kh10_palpitations	66	Female
+159	zzzzzzz_kh10_shortness	70	Male
+160	zzzzzzzz_r11_chestpain	62	Male
+161	zzzzzzzz_r11_diabeticfatigue	26	Female
+162	zzzzzzzz_r11_feverb	30	Male
+163	zzzzzzzz_r11_headache	25	Female
+164	zzzzzzzz_r11_hematemesis	59	Male
+165	zzzzzzzz_r11_palpitations	66	Female
+166	zzzzzzzz_r11_shortness	70	Male
+167	Z_r12_chestpain	62	Male
+168	zzzzzzzzz_r12_chestpain	62	Male
+169	zzzzzzzzz_r12_diabeticfatigue_one	26	Female
+170	zzzzzzzzz_r12_feverb	30	Male
+171	zzzzzzzzz_r12_headache	25	Female
+172	zzzzzzzzz_r12_hematemesis	59	Male
+173	zzzzzzzzz_r12_palpitations	66	Female
+174	zzzzzzzzz_r12_shortness	70	Male
+175	zzzzzzzzzz_r13_chestpain	62	Male
+176	zzzzzzzzzz_r14_diabeticFatigue	26	Female
+177	zzzzzzzzzz_13_feverB	30	Male
+178	zzzzzzzzzz_r13_diabeticFatigue	26	Female
+179	zzzzzzzzzz_r13_headache	25	Female
+180	zzzzzzzzzz_r13_hematemesis	59	Male
+181	zzzzzzzzzz_r13_palpitations	66	Female
+182	zzzzzzzzzz_r13_shortnessBreath	70	Male
+183	palptest	66	Female
+184	zzzzzzzzzz_r14_feverB	30	Male
+185	zzzzzzzzzz_r14_headache	25	Female
+186	zzzzzzzzzz_r14_hematemesis	59	Male
+187	zzzzzzzzzz_r14_palpitations	66	Female
+188	zzzzzzzzzz_r14_shortnessBreath	70	Male
+189	zzzzzzzzzz_r14_chestPain	62	Male
+190	zzzzzzzzzz_15_chestpain	62	Male
+191	zzzzzzzzzz_15_diabeticFatigue	26	Female
+192	zzzzzzzzzz_r15_feverB	30	Male
+193	zzzzzzzzzz_r15_headache	25	Female
+194	zzzzzzzzzz_15_hematemesis	59	Male
+195	zzzzzzzzzz_r15_palpitations	66	Female
+196	zzzzzzzzzz_r15_shortnessofBreath	70	Male
+197	zzzzzzzzzz_r15_chestPain	62	Male
+198	zzzzzzzzzz_r15_diabeticFatigue	26	Female
+199	zzzzzzzzzz_r15_hematemesis	59	Male
 \.
 
 
@@ -146,7 +195,7 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 -- Name: sim_patient_sim_patient_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 150, true);
+SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 199, true);
 
 
 --
