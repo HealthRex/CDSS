@@ -1927,7 +1927,24 @@ class Stats_Plotter():
         summary_long_filename = 'summary-stats-%s-%s.csv' % ('allalgs', thres_mode)
         summary_long_filepath = os.path.join(project_stats_folderpath, summary_long_filename)
 
-        df_long[columns].to_csv(summary_long_filepath, index=False)
+        for col in ['AUC', 'AUC_baseline', 'score_thres',
+                 'TP', 'FP', 'TN', 'FN',
+                 'sens', 'spec', 'LR_p', 'LR_n', 'PPV', 'NPV']:
+            if df_long[col].dtype == df_long['lab'].dtype:
+                df_long[col] = df_long[col].apply(lambda x: stats_utils.convert_floatstr2num(x))
+
+        def handle_AUC_CI(astr):
+            strs = astr.split('.')
+            strs[1] = strs[1][:2] + strs[1][-3:]
+            strs[2] = strs[2][:2] +strs[2][-1]
+            return '.'.join(strs)
+
+        df_long['AUC_95%_CI'] = df_long['AUC_95%_CI'].apply(lambda x: handle_AUC_CI(x))
+
+        rename_alg = {'xgb':'xgboost', 'nn':'neural-nets'}
+        df_long['alg'] = df_long['alg'].apply(lambda x: rename_alg.get(x,x))
+
+        df_long[columns].to_csv(summary_long_filepath, index=False, float_format='%.2f')
 
         summary_best_filename = 'summary-stats-%s-%s.csv' % ('bestalg', thres_mode)
         summary_best_filepath = os.path.join(project_stats_folderpath, summary_best_filename)
