@@ -372,36 +372,26 @@ dc.dx_name,
 dc.icd10
 "
 
-# Creating DBI connection to Google BigQuery 1
-con <- dbConnect(
-  bigrquery::bigquery(),
-  project = "mining-clinical-decisions",
-  dataset = 'starr_datalake2018' ,
-  billing = project
-)
-
 
 data <- download_bq(project, sql)
 
 data_split <- split(data, data$string_id)
-stroke_cohort <- data
-test1 <- find_time_difference(stroke_cohort$emergencyAdmitTime, stroke_cohort$ctHeadOrderTime, stroke_cohort$jc_uid)
-View(data_split$`131003886752`)
+data <- find_time_difference(data$emergencyAdmitTime, data$ctHeadOrderTime, data$jc_uid)
 
 table_dx_name <- as.data.frame(table(data$dx_name))
 colnames(table_dx_name)
 newdata <- table_dx_name[order(-table_dx_name$Freq),] 
-View(newdata)
-test1$event <- "Er to CT Order"
 
-plot_density_difference(test1)
-
-# find diagnoses associated with ct scan 
-library(DBI)
-library(bigrquery)
-dbTableList <-dbListTables(con)
-diagnoses <- tbl(con, "diagnosis_code")
+# TO DO 
+# GET ASSOCIATIONS FOR TPA ORDER 
+# GET ASSOCIATIONS FOR CT HEAD UNDER 10 and Then Greater than 50 
+# Construct Cox Regression for TPA order as Diagnostic Procedure 
 
 
-data$pat_enc_csn_id_coded 
+
+
+
+
+
+
 
