@@ -7,3 +7,4 @@ starr/data*
 stride/data*
 scripts/LabCulturePrediction/data*
 .idea*
+venv*
