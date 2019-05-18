@@ -1,5 +1,4 @@
-## Google Cloud Platform and Quiver 
-
+## Google Cloud Platform 
 ### Purpose: 
 
  1. **Store terabytes of health data that you can query with SQL Syntax**  
@@ -34,6 +33,3 @@
 3. Install GCP credentials 
 4. Query from GCP from python scripts locally 
 
-### PART FOUR 
-1. Introduction to Quiver
-2. Saving+Sharing+Data/Scripts/Requirements to Box (PHI protected) 
