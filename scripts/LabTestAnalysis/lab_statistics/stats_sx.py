@@ -206,10 +206,10 @@ class Stats_Plotter():
                 # plt.plot(y_s[0], '-'+marker_types[k], color=l2.get_color(), markerfacecolor=l1.get_color(), label='My plots')
 
             plt.xticks(range(0, max_repeat + 1))
-            plt.xlabel('Consecutive negative tests in the past 7 days', fontsize=14)
+            plt.xlabel('Consecutive normal results in the past 7 days', fontsize=14)
             plt.tick_params('x', labelsize=15)  # 12
             plt.tick_params('y', labelsize=13)  # 10
-            plt.ylabel("Negative rate", fontsize=14)
+            plt.ylabel("Normal rate", fontsize=14)
             plt.ylim([-0.05, 1.05])
             plt.legend(fontsize=13)
             ax.yaxis.tick_right()
@@ -464,7 +464,7 @@ class Stats_Plotter():
             df_toshow['Lab Test'] = df_toshow['lab'].apply(lambda x:self.lab_descriptions.get(x,x))
             df_toshow['TN'] = -df_toshow['TN']
 
-            df_toshow['Prev'] = df_toshow['TP'] + df_toshow['FN']
+            df_toshow['Prev'] = df_toshow['TN'] + df_toshow['FP']
             df_toshow = df_toshow.rename(columns={
                 'num_test_episodes':'Count',
                                                 'TP':'TP',
@@ -822,7 +822,10 @@ class Stats_Plotter():
 
             df_res.to_csv(cached_result_path, index=False)
 
-        labs_ordered = sorted(labs, key=lambda x: lab2stats[x]['< 24 hrs'], reverse=True) #< 24 hrs
+        for lab, stats in lab2stats.items():
+            stats['total'] = float(sum(stats.values()))
+
+        labs_ordered = sorted(labs, key=lambda x: lab2stats[x]['< 24 hrs']/lab2stats[x]['total'], reverse=True) #< 24 hrs
 
         # fig = plt.figure(figsize=(12, 6/20.*len(labs) )) # figsize=(20, 12) figsize=(12, 8)
 
@@ -842,10 +845,12 @@ class Stats_Plotter():
                 time_since_last_order_binned = lab2stats[lab]
 
 
-                tot_cnt = float(sum(time_since_last_order_binned.values()))
+                # tot_cnt = float(sum(time_since_last_order_binned.values()))
                 for time, cnt in time_since_last_order_binned.items():
+                    if time == 'total':
+                        continue
                     if scale_method == 'normalize':
-                        time_since_last_order_binned[time] = cnt/tot_cnt
+                        time_since_last_order_binned[time] = cnt/time_since_last_order_binned['total']
 
                     elif scale_method == 'by_scale':
                         time_since_last_order_binned[time] = cnt*scale
@@ -2410,9 +2415,9 @@ def main_full_analysis(curr_version, inverse01=False):
 
             if data_source=='Stanford' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Full_Cartoon', # Figure 1
-                                                                         # 'Order_Intensities', # Figure 2
+                                                                         'Order_Intensities', # Figure 2
                                                                         # 'Diagnostic_Metrics', # Table 1 & SI Table
-                                                                        'ROC',  # SI Figure
+                                                                        # 'ROC',  # SI Figure
                                                                         #  'write_importantFeatures' # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'},
@@ -2426,13 +2431,14 @@ def main_full_analysis(curr_version, inverse01=False):
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'important_components'},
                     inverse01=inverse01)  # TODO ['common_components', 'all_labs']
-                plotter.main_generate_stats_figures_tables(figs_to_plot=[#'Normality_Saturations',
+                plotter.main_generate_stats_figures_tables(figs_to_plot=['Normality_Saturations',
                                                                           # 'Diagnostic_Metrics',  # Figure 3 & SI Table
                                                                          # 'ROC',  # SI Figure
                                                                          # 'write_importantFeatures'  # SI Table
                                                                          ],
                                                            params={'Diagnostic_Metrics': 'all_labs'},
                                                            inverse01=inverse01)
+                quit()
 
             elif data_source=='UMich' and lab_type=='panel':
                 plotter.main_generate_stats_figures_tables(figs_to_plot=[
