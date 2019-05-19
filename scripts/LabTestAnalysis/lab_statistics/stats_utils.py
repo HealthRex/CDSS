@@ -117,7 +117,7 @@ def prepare_subfigs(num_figs, col = 5):
     if cols_left > 0:
         row = row + 1
 
-    fig_width, fig_heights = 2.5 * col, 2 * row #8. / col * row
+    fig_width, fig_heights = 2.5 * col, 2.1 * row #8. / col * row
 
     plt.figure(figsize=(fig_width, fig_heights))
 
@@ -1097,7 +1097,7 @@ def convert_floatstr2percentage(astr):
     #     return str('%.0f' % (float(astr) * 100)) + '%'
 
 def convert_floatstr2num(astr):
-    if astr == '':
+    if astr == '' or astr == 'inf':
         return '-'
     elif astr == '1' or astr == '0':
         return astr
@@ -1110,12 +1110,14 @@ def convert_floatstr2num(astr):
         else:
             return str('%.2f' % anum)
 
-def get_lab_descriptions(lab_type, data_source='Stanford', succinct=True):
+def get_lab_descriptions(lab_type, data_source='Stanford', succinct=True, line_break_at=-1):
     code2description_filepath = os.path.join(main_folder, 'machine_learning/data_conversion',
                                              'map_%s.csv' % lab_type)
     df = pd.read_csv(code2description_filepath, keep_default_na=False)
     if succinct:
         df['description'] = df['description'].apply(lambda x: x.split(',')[0].strip())
+    if line_break_at != -1:
+        df['description'] = df['description'].apply(lambda x: x[:line_break_at] + '\n' + x[line_break_at:])
     lab_descriptions = dict(zip(df[data_source].values.tolist(), df['description'].values.tolist()))
 
     if lab_type == 'panel':
@@ -1542,7 +1544,19 @@ def output_feature_importances(labs, data_source='Stanford', lab_type='panel', c
 
         result_df.loc[len(result_df)] = cur_rec
 
-    result_df.to_csv(result_filepath, index=False)
+    dict_panel = get_lab_descriptions(lab_type='panel', data_source=data_source)
+    dict_component = get_lab_descriptions(lab_type='component', data_source=data_source)
+    dict_misc = {'last_normality':'Prior Test Negative',
+                 'AdmitDxDate':'Admit Date',
+                 'order_time':'Order Time'}
+    for col in result_df.columns:
+        if col == 'lab':
+            continue
+        result_df[col] = result_df[col].apply(lambda x: dict_panel.get(x, x))
+        result_df[col] = result_df[col].apply(lambda x: dict_component.get(x, x))
+        result_df[col] = result_df[col].apply(lambda x: dict_misc.get(x, x))
+
+    result_df.to_csv(result_filepath, index=False, float_format='%.2f')
 
 if __name__ == '__main__':
     # output_feature_importances(data_source='UCSF', lab_type='panel') # TODO: do this for UCSF...

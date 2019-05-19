@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.5
--- Dumped by pg_dump version 10.3
+-- Dumped from database version 9.6.11
+-- Dumped by pg_dump version 9.6.11
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -41,6 +41,15 @@ COPY public.sim_user (sim_user_id, name) FROM stdin;
 30	al_7
 31	gl_8
 33	phy_9
+34	kh_10
+35	rph_11
+36	
+37	
+38	r13
+39	r12
+40	mw13
+41	alice14
+42	phy15
 \.
 
 
@@ -48,7 +57,7 @@ COPY public.sim_user (sim_user_id, name) FROM stdin;
 -- Name: sim_user_sim_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_user_sim_user_id_seq', 33, true);
+SELECT pg_catalog.setval('public.sim_user_sim_user_id_seq', 42, true);
 
 
 --
