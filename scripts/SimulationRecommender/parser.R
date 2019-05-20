@@ -3,6 +3,7 @@ library(RPostgreSQL)
 library(DBI)
 library(tidyverse)
 library(dplyr)
+library(xlsx)
 # database driver connection
 drv <- dbDriver("PostgreSQL")
 
@@ -71,8 +72,6 @@ remerged_order <- merge(merged_order, ordered_clinical_item_table,
 # 
 split_state <- split(remerged_order, remerged_order$sim_state_id)
 
-#
-split_user_state <- split(split_state$`5000`, split_state$`5000`$sim_user_id) 
 
 sort(unique(remerged_order$name.x))
 
@@ -124,6 +123,11 @@ pulmonary_emolism_states <- c( "PE-COPD-LungCA",
 #  "NFever"  
 # -------------------------------------------------------------------------------
 
+neutropenic_fever_states <- c("Neutropenic Fever Treated with IVF",
+                              "Neutropenic Fever Treated with IVF + ABX",
+                              "Neutropenic Fever v2",                    
+                              "NFever")
+
 # -------------------------------------------------------------------------------
 # GIBLEED 
 # -------------------------------------------------------------------------------
@@ -132,6 +136,10 @@ pulmonary_emolism_states <- c( "PE-COPD-LungCA",
 # "EtOH-GIBleed Coag Stabilized"            
 # "EtOH-GIBleed Post-EGD"   
 # -------------------------------------------------------------------------------
+gi_bleed_states <- c( "EtOH-GIBleed Active",                     
+                      "EtOH-GIBleed Bleeding Out",               
+                      "EtOH-GIBleed Coag Stabilized",            
+                      "EtOH-GIBleed Post-EGD" )
 
 
 # -------------------------------------------------------------------------------
@@ -141,57 +149,67 @@ pulmonary_emolism_states <- c( "PE-COPD-LungCA",
 # "DKA Hyperglycemic"                       
 # "DKA Onset"
 # -------------------------------------------------------------------------------
-
-# -------------------------------------------------------------------------------
-# Meningitis 
-# -------------------------------------------------------------------------------
-# "Mening Active"                           
-# "Meningitis Adequately Treated"           
-# "Meningits Worsens"  
-# -------------------------------------------------------------------------------
-
-
-# -------------------------------------------------------------------------------
-# Neutropenic Fever 
-# -------------------------------------------------------------------------------
-# "Neutropenic Fever Treated with IVF"      
-# "Neutropenic Fever Treated with IVF + ABX"
-# "Neutropenic Fever v2"                    
-# "NFever"  
-# -------------------------------------------------------------------------------
-
-
-
-afib_df <- remerged_order %>% filter(name.x %in% afib_state)
-afib_split <- split(afib_df, afib_df$sim_state_id)
-
-# function to find unique orders for each sim state 
-
-afib.40 <- afib_split$`40` %>% select(sim_state_id, clinical_item_id, sim_user_id, sim_patient_id, description.x, name.x, description.x, description.y)
-afib.41 <- afib_split$`41` %>% select(sim_state_id, clinical_item_id, sim_user_id, sim_patient_id, description.x, name.x, description.x, description.y)
-afib.43 <- afib_split$`43` %>% select(sim_state_id, clinical_item_id, sim_user_id, sim_patient_id, description.x, name.x, description.x, description.y)
-
-unique_orders_afib_40 <- unique(afib.40$description.y)
-unique_orders_afib_41 <- unique(afib.41$description.y)
-unique_orders_afib_43 <- unique(afib.43$description.y)
-
-total_order_list <- unique(c(unique_orders_afib_40,
-                          unique_orders_afib_41,
-                          unique_orders_afib_43))
+dka_states <- c("DKA Euglycemic" ,                          
+                "DKA Hyperglycemic" ,                       
+                "DKA Onset")
 
 
 
 
 
-library(xlsx)
-write.xlsx(total_order_list, "afib_grading_doctors.xlsx", sheetName = "afib_case_orders", 
+# write a function to modularize the above 
+# expects remerged order
+state_split <- function(state_names, df){
+  return(df %>% filter(name.x %in% state_names))
+} 
+
+list_of_states <- list(gi_bleed_states, 
+                       mening_states, 
+                       pulmonary_emolism_states, 
+                       afib_states,
+                       neutropenic_fever_states)
+
+
+state_dataframe_split <- lapply(list_of_states, state_split, df = remerged_order)
+
+gi_test <- state_split(gi_bleed_states, remerged_order)
+mening_test <- state_split(mening_states, remerged_order)
+pulmonary_embolism_test <- state_split(pulmonary_emolism_states, remerged_order)
+afib_test <- state_split(afib_states, remerged_order)
+neutropenic_test <- state_split(neutropenic_fever_states, remerged_order)
+
+gi_test$case <- "gi_bleed"
+mening_test$case <- "meningitis"
+pulmonary_embolism_test$case <- "pulmonary_embolism"
+afib_test$case <- "atrial_fibrillation"
+neutropenic_test$case <- "neutropenic"
+
+df_grading_pre <- rbind(gi_test, 
+         mening_test,
+         pulmonary_embolism_test, 
+         afib_test, 
+         neutropenic_test)
+
+df_grading <- df_grading_pre %>% select(sim_state_id, clinical_item_id, sim_user_id, sim_patient_id, description.x, name.x, description.x, description.y, case)
+
+sim_state_list <- split(df_grading, df_grading$sim_state_id)
+
+unique_orders <- function(df){
+  df2 <- as.data.frame(unique(df$description.y))
+  df2$case <- as.character(unique(df$case))
+  df2$name.x <- as.character(unique(df$name.x))
+  return(df2)
+}  
+
+unique_sim_state <- lapply(sim_state_list, unique_orders)
+
+grading_data <- bind_rows(unique_sim_state)
+
+grading_data$grade <- NA
+grading_data$confidence <- NA
+grading_data$group_name <- NA
+
+write.xlsx(grading_data, "grading_doctors.xlsx", sheetName = "unique_orders_case", 
            col.names = TRUE, row.names = TRUE, append = FALSE)
 
-write.xlsx(unique_orders_afib_40, "afib_grading_doctors.xlsx", sheetName = "afib_initial", 
-           col.names = TRUE, row.names = TRUE, append = TRUE)
 
-write.xlsx(unique_orders_afib_41, "afib_grading_doctors.xlsx", sheetName = "afib_stabilized", 
-           col.names = TRUE, row.names = TRUE, append = TRUE)
-
-write.xlsx(unique_orders_afib_43, "afib_grading_doctors.xlsx", sheetName = "afib_worsened", 
-           col.names = TRUE, row.names = TRUE, append = TRUE)
