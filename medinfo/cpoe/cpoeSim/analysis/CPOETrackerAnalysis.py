@@ -60,10 +60,12 @@ class SimulationAnalyzer:
 			source = u'commonOrders'
 		elif source == 'resultSpace2':
 			source = u'specificOrders'
-		item_dict[source] = 1  # Simple boolean filler
+		elif source == 'non-recommender':
+			source = u'data'
+		item_dict['source'] = source
 		item_dict['searchQuery'] = searchQuery
 		item_dict['mode'] = mode
-		item_dict['listIndex'] = list_idx
+		item_dict['listIndex'] = int(list_idx)
 
 	def normalize_results(self):
 		"""Join all results into a single, 'flat' collection of result item dicts
@@ -82,7 +84,7 @@ class SimulationAnalyzer:
 						# If attribute is a list, then items have been found.
 						if isinstance(mode_object[instance_collection_name][attr_name], list):
 							# Store type of result [commonOrders, specificOrders, data]
-							base_result_item_dict[attr_name] = 1  # Simple boolean filler
+							base_result_item_dict['source'] = attr_name
 							# Store items for processing after all other attributes have been stored
 							items_collection = mode_object[instance_collection_name][attr_name]
 						else:
@@ -364,6 +366,7 @@ class SimulationAnalyzer:
 					break;
 			if found:
 				intersection.append(merged_dict)
+		return intersection
 
 	def get_signed_from_manual_search(self):
 		"""Get item dicts for items that were signed from manual-search results
@@ -374,8 +377,8 @@ class SimulationAnalyzer:
 		"""
 		# Define filter function for determining intersection
 		# This function checks that result item and signed item have same
-		# clinicalItemId and listIndex
-		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex']
+		# clinicalItemId, listIndex (though s_item index will be ahead), and location source
+		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex'] - 1 and r_item['source'] == s_item['source']
 
 		# Get manually-searched signed items
 		manual_search_results = self.get_manually_searched_options()
@@ -394,15 +397,15 @@ class SimulationAnalyzer:
 		"""
 		# Define filter function for determining intersection
 		# This function checks that result item and signed item have same
-		# clinicalItemId and listIndex
-		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex']
+		# clinicalItemId, listIndex (though s_item index will be ahead), and location source
+		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and (r_item['listIndex'] == s_item['listIndex'] - 1 or r_item['listIndex']+1 == s_item['listIndex'] - 1) and r_item['source'] == s_item['source']
 
 		# Get recommended signed items
 		recommended_results = self.get_recommended_options(include_related=include_related)
 		signed_from_recommended = self._result_signed_intersection(recommended_results, self.signed_orders_collections, filter_fn)
 		return signed_from_recommended
 
-	def get_signed_missed_recommended(include_related=True):
+	def get_signed_missed_recommended(self, include_related=True):
 		"""Get item dicts for items that were signed from manual-search results,
 		but had appeared previously from recommended results
 
@@ -417,15 +420,15 @@ class SimulationAnalyzer:
 		# Define filter function for determining intersection between signed
 		# items and manually-searched items
 		# This function checks that result item and signed item have same
-		# clinicalItemId and listIndex
-		filter_fn_manual = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex']
+		# clinicalItemId, listIndex (though s_item index will be ahead), and location source
+		filter_fn_manual = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex'] - 1 and r_item['source'] == s_item['source']
 		# Define filter function for determining intersection between signed
 		# items from manual search and recommomended
 		# This function checks that result item and signed item have same
 		# clinicalItemId and that the listIndex of recommended item is less
 		# than or equal to that of the signed item. This ignores
 		# results of the item that appeared after the item was already signed.
-		filter_fn_recommended = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and int(r_item['listIndex']) <= int(s_item['listIndex'])
+		filter_fn_recommended = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] <= s_item['listIndex'] - 1
 
 		# First get the manually searched signed items
 		manual_search_results = self.get_manually_searched_options()
@@ -433,7 +436,7 @@ class SimulationAnalyzer:
 		# Next get the manually searched items that also appeared previously
 		# in recommended results
 		recommended_results = self.get_recommended_options(include_related=include_related)
-		missed_items = self._result_signed_intersection(recommended_results, signed_from_manual, filter_fn)
+		missed_items = self._result_signed_intersection(recommended_results, signed_from_manual, filter_fn_recommended)
 		return missed_items
 
 	def construct_timeline(self):
@@ -500,7 +503,7 @@ def aggregate_simulation_data(data_home, output_path, append_to_existing=False, 
 	filenames = filter(lambda f: f.endswith('.json'), os.listdir(data_home))
 	# Append directory path to filenames
 	filenames = list(map(lambda f: os.path.join(data_home, f), filenames))
-	headers = ["user", "patient", "start_time", "elapsed_time", "num_clicks", "total_orders", "num_signed_in_recommended"]
+	headers = ["user", "patient", "start_time", "elapsed_time", "total_num_clicks", "num_note_clicks", "num_results_review_clicks", "recommended_options", "manual_search_options", "total_orders", "orders_from_recommender", "orders_from_manual_search", "orders_from_recommender_missed"]
 	if not append_to_existing:
 		# Create initial csv file
 		with open(output_path,'w') as out_csv:
@@ -516,13 +519,20 @@ def aggregate_simulation_data(data_home, output_path, append_to_existing=False, 
 			# Instantiate SimulationAnalyzer for current data file
 			siman = SimulationAnalyzer(filename)
 			# Add current base metrics
-			fields.append(siman.user)
-			fields.append(siman.patient)
-			fields.append(siman.start_time)
-			fields.append(siman.elapsed_time())
-			fields.append(siman.number_mouse_clicks_all())
-			fields.append(siman.total_orders())
-			fields.append(siman.number_signed_in_recommended())
+			fields.append(siman.user)  # "user"
+			fields.append(siman.patient)  # "patient"
+			fields.append(siman.start_time)  # "start_time"
+			fields.append(siman.elapsed_time())  # "elapsed_time"
+			fields.append(siman.number_mouse_clicks_all())  # "total_num_clicks"
+			# fields.append(siman.number_mouse_clicks(filters=['FindOrders']))  # "num_manual_searches"
+			fields.append(siman.number_mouse_clicks(filters=['Notes']))  # "num_note_clicks"
+			fields.append(siman.number_mouse_clicks(filters=['ResultsReview']))  # "num_results_review_clicks"
+			fields.append(len(siman.get_recommended_options()))  # "recommended_options"
+			fields.append(len(siman.get_manually_searched_options()))  # "manual_search_options"
+			fields.append(len(siman.signed_orders_collections))  # "total_orders"
+			fields.append(len(siman.get_signed_from_recommended()))  # "orders_from_recommender"
+			fields.append(len(siman.get_signed_from_manual_search()))  # "orders_from_manual_search"
+			fields.append(len(siman.get_signed_missed_recommended()))  # "orders_from_recommender_missed"
 			file_writer.writerow(fields)
 
 			# Delete SimulationAnalyzer to free any useless memory
@@ -540,19 +550,19 @@ def main(argv):
 
 	if not options.aggregate:
 		siman = SimulationAnalyzer(options.data_file)
-		# print("Total mouse clicks: ", siman.number_mouse_clicks_all())
-		# print("Click summary: ", siman.click_summary(perc=False))
-		# print("Elapsed time: ", siman.elapsed_time())
-		# print("Total signed orders: ", siman.total_orders())
-		# print("Signed order ids: ", siman.retrieve_signed_orders())
-		# print("Signed order batches:", siman.retrieve_signed_orders(batch=True))
-		# print("Total recommendations: ", siman.total_recommendations())
-		# print("Recommendation ids: ", siman.retrieve_results(search_modes=["", "FindOrders"], batch=False, search_query=""))
-		# print("Recommendation batches: ", siman.retrieve_results(search_modes=["", "FindOrders"], batch=True, search_query=""))
-		# print("Signed/Recommended overlap: ", siman.number_signed_in_recommended())
-		# print("Total results:", siman.total_search_results())
-		# print("Timeline data: ", siman.construct_timeline())
-		# print("Timeline view: ", siman.visualize_timeline(siman.construct_timeline()))
+		print("Total mouse clicks: ", siman.number_mouse_clicks_all())
+		print("Click summary: ", siman.click_summary(perc=False))
+		print("Elapsed time: ", siman.elapsed_time())
+		print("Total signed orders: ", siman.total_orders())
+		print("Signed order ids: ", siman.retrieve_signed_orders())
+		print("Signed order batches:", siman.retrieve_signed_orders(batch=True))
+		print("Total recommendations: ", siman.total_recommendations())
+		print("Recommendation ids: ", siman.retrieve_results(search_modes=["", "FindOrders"], batch=False, search_query=""))
+		print("Recommendation batches: ", siman.retrieve_results(search_modes=["", "FindOrders"], batch=True, search_query=""))
+		print("Signed/Recommended overlap: ", siman.number_signed_in_recommended())
+		print("Total results:", siman.total_search_results())
+		print("Timeline data: ", siman.construct_timeline())
+		print("Timeline view: ", siman.visualize_timeline(siman.construct_timeline()))
 	else:
 		data_home = options.data_home
 		output_path = options.output_path
