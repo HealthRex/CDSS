@@ -43,13 +43,19 @@ COPY public.sim_user (sim_user_id, name) FROM stdin;
 33	phy_9
 34	kh_10
 35	rph_11
-36	
-37	
 38	r13
 39	r12
 40	mw13
 41	alice14
 42	phy15
+43	r16
+44	r17
+45	r18
+46	r19
+47	r20
+48	r21
+49	r22
+50	r23
 \.
 
 
@@ -57,10 +63,9 @@ COPY public.sim_user (sim_user_id, name) FROM stdin;
 -- Name: sim_user_sim_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_user_sim_user_id_seq', 42, true);
+SELECT pg_catalog.setval('public.sim_user_sim_user_id_seq', 50, true);
 
 
 --
 -- PostgreSQL database dump complete
 --
-

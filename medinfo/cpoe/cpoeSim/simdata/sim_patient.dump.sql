@@ -188,6 +188,79 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 197	zzzzzzzzzz_r15_chestPain	62	Male
 198	zzzzzzzzzz_r15_diabeticFatigue	26	Female
 199	zzzzzzzzzz_r15_hematemesis	59	Male
+200	zzzzzzzzzz_r16_chestPain	62	Male
+201	zzzzzzzzzz_r16_chestPain	62	Male
+202	zzzzzzzzzz_r16_diabeticFatigue	26	Female
+203	zzzzzzzzzz_r16_feverB	30	Male
+204	zzzzzzzzzz_r16_headache	25	Female
+205	zzzzzzzzzz_r16_hematemesis	59	Male
+206	zzzzzzzzzz_r16_palpitations	66	Female
+207	zzzzzzzzzz_r16_shortnessBreath	70	Male
+208	zzzzzzzzzz_r17_chestPain	62	Male
+209	zzzzzzzzzz_r17_diabeticFatigue	26	Female
+210	zzzzzzzzzz_r17_feverB	30	Male
+211	zzzzzzzzzz_r17_headache	25	Female
+212	zzzzzzzzzz_r17_hematemesis	59	Male
+213	zzzzzzzzzz_r17_palpitations	66	Female
+214	zzzzzzzzzz_r17_shortness	70	Male
+215	zzzzzzzzzz_r18_chestPain	62	Male
+216	zzzzzzzzzz_r18_diabeticFatigue	26	Female
+217	zzzzzzzzzz_r18_feverB	30	Male
+218	zzzzzzzzzz_r18_headache	25	Female
+219	zzzzzzzzzz_r18_hematemesis	59	Male
+220	zzzzzzzzzz_r18_palpitations	66	Female
+221	zzzzzzzzzz_r18_shortnessBreath	70	Male
+222	zzzzzzzzzz_r19_chestPain	62	Male
+223	zzzzzzzzzz_r19_diabeticFatigue	26	Female
+224	zzzzzzzzz_r19_feverB	30	Male
+225	zzzzzzzzz_r19_headache	25	Female
+226	zzzzzzzzz_r19_hematemesis	59	Male
+227	zzzzzzzzzz_r19_feverB	30	Male
+228	zzzzzzzzz_r19_headache	25	Female
+229	zzzzzzzzzz_r19_headache	25	Female
+230	zzzzzzzzzz_r19_hematemesis	59	Male
+231	zzzzzzzzzz_r19_palpitations	66	Female
+232	zzzzzzzzzz_shortness_breath	70	Male
+233	zzzzzzzzzz_r19_shortnessBreath	70	Male
+234	zzzzzzzzzz_r20_chestPain	62	Male
+235	zzzzzzzzzz_r20_diabeticFatigue	26	Female
+236	zzzzzzzzzz_r20_feverB	30	Male
+237	zzzzzzzzzz_r20_headache	25	Female
+238	zzzzzzzzzz_r20_hematemesis	59	Male
+239	zzzzzzzzzz_r20_palpitations	66	Female
+240	zzzzzzzzzz_r20_shortnessBreath	70	Male
+241	palp_test	66	Female
+242	palptest2	66	Female
+243	palp_test3	66	Female
+244	zzzzzzzzzz_r21_chestPain	62	Male
+245	zzzzzzzzzz_r21_diabeticFatigue	26	Female
+246	zzzzzzzzzz_r21_feverB	30	Male
+247	zzzzzzzzzz_r21_headache	25	Female
+248	zzzzzzzzzz_r21_hematemesis	59	Male
+249	zzzzzzzzzz_r21_palpitations	66	Female
+250	zzzzzzzzzz_r21_shortnessBreath 	70	Male
+251	zzzzzzzzzz_r22_chestpain	62	Male
+252	zzzzzzzzzz_r22_diabetic_fatigue	26	Female
+253	zzzzzzzzzz_r21_feverB	30	Male
+254	zzzzzzzzzz_r21_headache	25	Female
+255	zzzzzzzzzz_r22_hematemesis	59	Male
+256	zzzzzzzzz_r22_feverB	30	Male
+257	zzzzzzzzzz_r22_feverB	30	Male
+258	zzzzzzzzzz_r22_headache	25	Female
+259	zzzzzzzzzz_r21_hematemesis	59	Male
+260	zzzzzzzzzz_r21_palpitations	66	Female
+261	zzzzzzzzzz_r22_shortnessBreath	70	Male
+262	zzzzzzzzzz_r21_palpitations	66	Female
+263	zzzzzzzzzz_r22_palpitations	66	Female
+264	testSTAR	66	Female
+265	zzzzzzzzzz_r23_chestpain	62	Male
+266	zzzzzzzzzz_r23_diabeticFatigue	26	Female
+267	zzzzzzzzzz_r23_feverB	30	Male
+268	zzzzzzzzzz_r23_headache	25	Female
+269	zzzzzzzzzz_r23_hematemesis	59	Male
+270	zzzzzzzzzz_r23_palpitations	66	Female
+271	zzzzzzzzzz_r23_shortnessBreath	70	Male
+272	testingcase_palpitations	66	Female
 \.
 
 
@@ -195,7 +268,7 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 -- Name: sim_patient_sim_patient_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 199, true);
+SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 272, true);
 
 
 --
