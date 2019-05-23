@@ -39,8 +39,8 @@ theta_function <- function(x){
   # class
   t1 = M + X/sqrt(2)
   t2 = M + X/2
-  #t3 = M + 2* sd(sample)
-  t3 = M + M/length(x)
+  t3 = M + 2* sd(sample)
+  #t3 = M + M/length(x)
   t4 = (X + M)/ 2
   
   t5 = (t1 + t2 + t3 + t4)/4 
