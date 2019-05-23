@@ -206,7 +206,6 @@ unique_orders <- function(df){
 }  
 
 unique_sim_state <- lapply(sim_state_list, unique_orders)
-
 grading_data <- bind_rows(unique_sim_state)
 
 grading_data$grade <- 1.5
@@ -251,8 +250,6 @@ remerged_grade_key <- merge(grading_data2, remerged_order,
 sim_case_split <- split(remerged_grade_key, remerged_grade_key$sim_patient_id)
 # 
 
-
-
 case_grader <- function(x){
   # accepts list of sim_patient_id 
   # purpose is to sum the results 
@@ -260,4 +257,20 @@ case_grader <- function(x){
 }
 
 graded_cases <- lapply(sim_case_split, case_grader)
+
+# ToDo's 
+
+# Project-Level: 
+  # R-coding:
+    # peer program (rocky?? or minh?) 
+    # embed testing right into functions 
+    # write methods section 
+
+# Technical Deliverables: 
+  # create a Pipeline that joins into a single wide dataframe for analysis 
+  # design clinical guideline visualization that intersects with Moore Foundation 
+
+# Nice to Haves: 
+  # improve functional programming methods for python 
+  # work with Star to develop production-level python code for extensible application
 
