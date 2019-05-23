@@ -46,6 +46,8 @@ clinical_item <- tbl(con, "clinical_item")
 sim_patient_order <- tbl(con, "sim_patient_order")
 sim_state_transition <- tbl(con, "sim_state_transition")
 sim_state <- tbl(con,"sim_state")
+sim_user <- tbl(con,"sim_user")
+
 
 # merges two tables (similar to join in sql)
 # purpose is to capture the description 
@@ -84,8 +86,8 @@ sort(unique(remerged_order$name.x))
 #--------------------------------------------------------------------------------
 
 afib_states <- c("Afib-RVR Initial", 
-                "Afib-RVR Stabilized" ,
-                "Afib-RVR Worse" )
+                 "Afib-RVR Stabilized" ,
+                 "Afib-RVR Worse" )
 
 #--------------------------------------------------------------------------------
 # meningitis 
@@ -96,8 +98,8 @@ afib_states <- c("Afib-RVR Initial",
 #--------------------------------------------------------------------------------
 
 mening_states <- c( "Mening Active",                            
-                   "Meningitis Adequately Treated",          
-                   "Meningits Worsens")
+                    "Meningitis Adequately Treated",          
+                    "Meningits Worsens")
 
 # -------------------------------------------------------------------------------
 # pulmonary embolism 
@@ -109,9 +111,9 @@ mening_states <- c( "Mening Active",
 # -------------------------------------------------------------------------------
 
 pulmonary_emolism_states <- c( "PE-COPD-LungCA",                         
-                              "PE-COPD-LungCA + Anticoagulation",      
-                              "PE-COPD-LungCA + O2",                 
-                              "PE-COPD-LungCA + O2 + Anticoagulation")
+                               "PE-COPD-LungCA + Anticoagulation",      
+                               "PE-COPD-LungCA + O2",                 
+                               "PE-COPD-LungCA + O2 + Anticoagulation")
 
 
 # -------------------------------------------------------------------------------
@@ -125,8 +127,7 @@ pulmonary_emolism_states <- c( "PE-COPD-LungCA",
 
 neutropenic_fever_states <- c("Neutropenic Fever Treated with IVF",
                               "Neutropenic Fever Treated with IVF + ABX",
-                              "Neutropenic Fever v2",                    
-                              "NFever")
+                              "Neutropenic Fever v2")
 
 # -------------------------------------------------------------------------------
 # GIBLEED 
@@ -152,10 +153,6 @@ gi_bleed_states <- c( "EtOH-GIBleed Active",
 dka_states <- c("DKA Euglycemic" ,                          
                 "DKA Hyperglycemic" ,                       
                 "DKA Onset")
-
-
-
-
 
 # write a function to modularize the above 
 # expects remerged order
@@ -185,12 +182,19 @@ afib_test$case <- "atrial_fibrillation"
 neutropenic_test$case <- "neutropenic"
 
 df_grading_pre <- rbind(gi_test, 
-         mening_test,
-         pulmonary_embolism_test, 
-         afib_test, 
-         neutropenic_test)
+                        mening_test,
+                        pulmonary_embolism_test, 
+                        afib_test, 
+                        neutropenic_test)
 
-df_grading <- df_grading_pre %>% select(sim_state_id, clinical_item_id, sim_user_id, sim_patient_id, description.x, name.x, description.x, description.y, case)
+df_grading <- df_grading_pre %>% select(sim_state_id, 
+                                        clinical_item_id, 
+                                        sim_user_id, 
+                                        sim_patient_id, 
+                                        description.x, 
+                                        name.x, description.x, 
+                                        description.y, 
+                                        case)
 
 sim_state_list <- split(df_grading, df_grading$sim_state_id)
 
@@ -205,11 +209,55 @@ unique_sim_state <- lapply(sim_state_list, unique_orders)
 
 grading_data <- bind_rows(unique_sim_state)
 
-grading_data$grade <- NA
+grading_data$grade <- 1.5
 grading_data$confidence <- NA
 grading_data$group_name <- NA
+grading_data$commentary <- NA
 
-write.xlsx(grading_data, "grading_doctors.xlsx", sheetName = "unique_orders_case", 
+grading_data2 <- grading_data[order(grading_data$name.x),]
+grading_data2$description.y <- grading_data2$`unique(df$description.y)`
+
+write.xlsx(grading_data2, "grading_doctors_v3.xlsx", sheetName = "unique_orders_case", 
            col.names = TRUE, row.names = TRUE, append = FALSE)
 
+## Actual Grading: 
+## Methods: 
+# We are creating a methodology to systematically grade physician's decision-making. We created an expert panel of physicians as consultants and 
+# "physician case developers" 
+# 
+# Code Wise: 
+# I am taking the remerged_order dataframe and splitting the results into physician_caseid_sim_state to create groupings that I will apply the grading with 
+# I believe this is an elegant design of dataframe manipulation, because it allows you to join the list of case dataframes with clinical orders 
+# 
+
+
+colnames(remerged_order)
+# can split on sim_patient_id: represents a patient that is treated 
+#sim_case_split <- split(remerged_order, remerged_order$sim_patient_id)
+
+
+# TODO MERGE on clinical item id not name.x
+# merged_order 
+#clinical_key <- df_grading %>% select(clinical_item_id,name.x) %>% unique
+
+grading_data2 %>% select(description.y, clinical_item_id)
+grading_data2$state_key <- paste0(grading_data2$description.y,"_",grading_data2$name.x)
+remerged_order$state_key <- paste0(remerged_order$description.y,"_",remerged_order$name.x)
+remerged_grade_key <- merge(grading_data2, remerged_order, 
+                   by.x="state_key", 
+                   by.y="state_key")
+
+# can split on sim_patient_id: represents a patient that is treated 
+sim_case_split <- split(remerged_grade_key, remerged_grade_key$sim_patient_id)
+# 
+
+
+
+case_grader <- function(x){
+  # accepts list of sim_patient_id 
+  # purpose is to sum the results 
+  return(sum(x$grade))
+}
+
+graded_cases <- lapply(sim_case_split, case_grader)
 
