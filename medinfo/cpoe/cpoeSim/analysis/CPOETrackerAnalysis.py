@@ -385,9 +385,9 @@ class SimulationAnalyzer:
 		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex'] - 1 and r_item['source'] == s_item['source']
 
 		# Get manually-searched signed items
-		# manual_search_results = self.get_manually_searched_options()
-		# signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collections, filter_fn=filter_fn)
-		signed_from_manual = list(filter(lambda s_item: s_item['source'] == 'data', self.signed_orders_collections))
+		manual_search_results = self.get_manually_searched_options()
+		signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collections, filter_fn=filter_fn)
+		# signed_from_manual = list(filter(lambda s_item: s_item['source'] == 'data', self.signed_orders_collections))
 		return signed_from_manual
 
 	def get_signed_from_recommended(self, include_related=True):
@@ -406,9 +406,9 @@ class SimulationAnalyzer:
 		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and (r_item['listIndex'] == s_item['listIndex'] - 1 or r_item['listIndex']+1 == s_item['listIndex'] - 1) and r_item['source'] == s_item['source']
 
 		# Get recommended signed items
-		# recommended_results = self.get_recommended_options(include_related=include_related)
-		# signed_from_recommended = self._result_signed_intersection(recommended_results, self.signed_orders_collections, filter_fn)
-		signed_from_recommended = list(filter(lambda s_item: s_item['source'] != 'data', self.signed_orders_collections))
+		recommended_results = self.get_recommended_options(include_related=include_related)
+		signed_from_recommended = self._result_signed_intersection(recommended_results, self.signed_orders_collections, filter_fn)
+		# signed_from_recommended = list(filter(lambda s_item: s_item['source'] != 'data', self.signed_orders_collections))
 		return signed_from_recommended
 
 	def get_signed_missed_recommended(self, include_related=True):

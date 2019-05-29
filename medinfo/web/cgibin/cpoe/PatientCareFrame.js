@@ -415,4 +415,9 @@ function selectOrderSet(checkbox, itemLists)
             lastSectionSubgroup = currSectionSubgroup;
         }
     }
+    // For tracking purposes, attach result bindings to orderset components and
+    // record new items as a new results list
+    // Both functions below are defined in Track.js
+    attachResultBindings();
+    recordNewResults('data');
 }
