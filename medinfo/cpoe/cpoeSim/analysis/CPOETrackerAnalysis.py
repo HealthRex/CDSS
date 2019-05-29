@@ -38,11 +38,15 @@ class SimulationAnalyzer:
 			result_item_dict (dict): dict representing item_str passed in and
 				all other global attributes of the item
 		"""
+		# print(item_str)
 		result_item_dict = dict(base_item_dict)
-		item_id, name, description = list(item_str.split('|'))
-		result_item_dict['clinicalItemId'] = item_id
-		result_item_dict['name'] = name
-		result_item_dict['description'] = description
+		attributes = list(item_str.split('|'))
+		result_item_dict['clinicalItemId'] = attributes[0]
+		result_item_dict['name'] = ""
+		result_item_dict['description'] = ""
+		if len(attributes) > 1:
+			result_item_dict['name'] = attributes[1]
+			result_item_dict['description'] = attributes[2]
 		return result_item_dict
 
 	def parse_signed_item_into_dict(self, item_dict, item_str):
@@ -381,8 +385,9 @@ class SimulationAnalyzer:
 		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex'] - 1 and r_item['source'] == s_item['source']
 
 		# Get manually-searched signed items
-		manual_search_results = self.get_manually_searched_options()
-		signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collections, filter_fn=filter_fn)
+		# manual_search_results = self.get_manually_searched_options()
+		# signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collections, filter_fn=filter_fn)
+		signed_from_manual = list(filter(lambda s_item: s_item['source'] == 'data', self.signed_orders_collections))
 		return signed_from_manual
 
 	def get_signed_from_recommended(self, include_related=True):
@@ -401,8 +406,9 @@ class SimulationAnalyzer:
 		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and (r_item['listIndex'] == s_item['listIndex'] - 1 or r_item['listIndex']+1 == s_item['listIndex'] - 1) and r_item['source'] == s_item['source']
 
 		# Get recommended signed items
-		recommended_results = self.get_recommended_options(include_related=include_related)
-		signed_from_recommended = self._result_signed_intersection(recommended_results, self.signed_orders_collections, filter_fn)
+		# recommended_results = self.get_recommended_options(include_related=include_related)
+		# signed_from_recommended = self._result_signed_intersection(recommended_results, self.signed_orders_collections, filter_fn)
+		signed_from_recommended = list(filter(lambda s_item: s_item['source'] != 'data', self.signed_orders_collections))
 		return signed_from_recommended
 
 	def get_signed_missed_recommended(self, include_related=True):
@@ -438,6 +444,27 @@ class SimulationAnalyzer:
 		recommended_results = self.get_recommended_options(include_related=include_related)
 		missed_items = self._result_signed_intersection(recommended_results, signed_from_manual, filter_fn_recommended)
 		return missed_items
+
+	def get_unique(self, collection, key_fn):
+		""""Return list of unique values, where the value of the objects in the
+		collection is determined by the key function. Note that any order
+		in the collection will not be preserved
+
+		Args:
+			collection (list): a list of objects to be filtered
+			key_fn (fn): function that takes an object from collection and
+				returns a value that will be used to consider uniqueness
+
+		Returns:
+			unique_vals (list): list of unique values extracted from collection
+		"""
+		values = list(map(key_fn, collection))
+		unique_vals = list(set(values))
+		return unique_vals
+
+	def _clinical_item_id_key_fn(self, item):
+		"""Returns clinical item value from item object"""
+		return item['clinicalItemId']
 
 	def construct_timeline(self):
 		"""Flatten trackers and order all events by timestamp"""
@@ -503,7 +530,7 @@ def aggregate_simulation_data(data_home, output_path, append_to_existing=False, 
 	filenames = filter(lambda f: f.endswith('.json'), os.listdir(data_home))
 	# Append directory path to filenames
 	filenames = list(map(lambda f: os.path.join(data_home, f), filenames))
-	headers = ["user", "patient", "start_time", "elapsed_time", "total_num_clicks", "num_note_clicks", "num_results_review_clicks", "recommended_options", "manual_search_options", "total_orders", "orders_from_recommender", "orders_from_manual_search", "orders_from_recommender_missed"]
+	headers = ["user", "patient", "start_time", "elapsed_time", "total_num_clicks", "num_note_clicks", "num_results_review_clicks", "recommended_options", "unqique_recommended_options", "manual_search_options", "total_orders", "orders_from_recommender", "orders_from_manual_search", "orders_from_recommender_missed"]
 	if not append_to_existing:
 		# Create initial csv file
 		with open(output_path,'w') as out_csv:
@@ -528,6 +555,7 @@ def aggregate_simulation_data(data_home, output_path, append_to_existing=False, 
 			fields.append(siman.number_mouse_clicks(filters=['Notes']))  # "num_note_clicks"
 			fields.append(siman.number_mouse_clicks(filters=['ResultsReview']))  # "num_results_review_clicks"
 			fields.append(len(siman.get_recommended_options()))  # "recommended_options"
+			fields.append(len(siman.get_unique(siman.get_recommended_options(), key_fn=siman._clinical_item_id_key_fn)))  # "unqique_recommended_options"
 			fields.append(len(siman.get_manually_searched_options()))  # "manual_search_options"
 			fields.append(len(siman.signed_orders_collections))  # "total_orders"
 			fields.append(len(siman.get_signed_from_recommended()))  # "orders_from_recommender"
