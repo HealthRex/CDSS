@@ -66,6 +66,7 @@ merged_order = sim_patient_order.merge(sim_state, left_on='sim_state_id', right_
 find unique clinical items from merged_order
 
 '''
+
 print("running clinical items unique")
 clinical_items_list = merged_order['clinical_item_id'].unique()
 #print(clinical_items_list)
@@ -79,13 +80,13 @@ sim_state_list = merged_order['sim_state_id'].unique()
 # creates clinical_item order key to reduce merge space:
 # RCode: ordered_clinical_item_table <- clinical_item %>% filter(clinical_item_id %in% clinical_items_list)
 ordered_clinical_item_table = clinical_item[clinical_item['clinical_item_id'].isin(clinical_items_list)]
-print(ordered_clinical_item_table)
+#print(ordered_clinical_item_table)
 
 remerged_order = merged_order.merge(ordered_clinical_item_table, left_on='clinical_item_id', right_on='clinical_item_id')
 
 # https://medium.com/analytics-vidhya/split-apply-combine-strategy-for-data-mining-4fd6e2a0cc99
 split_state = remerged_order.groupby('sim_state_id')
-print(split_state)
+# print(list(split_state))
 
 #--------------------------------------------------------------------------------
 # afib
@@ -157,3 +158,57 @@ gi_bleed_states = ["EtOH-GIBleed Active",
 dka_states = ["DKA Euglycemic" ,
                 "DKA Hyperglycemic" ,
                 "DKA Onset"]
+
+list_of_states = [gi_bleed_states,
+                       mening_states,
+                       pulmonary_emolism_states,
+                       afib_states,
+                       neutropenic_fever_states]
+print("LIST OF STATES")
+#print(list_of_states[1])
+
+
+def state_split(state_names, df):
+    df2 = df[df['name_x'].isin(state_names)]
+    return(df2)
+
+
+print(list(remerged_order.columns))
+
+
+gi_test = state_split(gi_bleed_states, remerged_order)
+mening_test = state_split(mening_states, remerged_order)
+pulmonary_embolism_test = state_split(pulmonary_emolism_states, remerged_order)
+afib_test = state_split(afib_states, remerged_order)
+neutropenic_test = state_split(neutropenic_fever_states, remerged_order)
+
+gi_test['case'] = "gi_bleed"
+mening_test['case'] = "meningitis"
+pulmonary_embolism_test['case'] = "pulmonary_embolism"
+afib_test['case'] = "atrial_fibrillation"
+neutropenic_test['case'] = "neutropenic"
+print(neutropenic_test['case'])
+
+df_grading_pre = pd.concat([gi_test,
+                        mening_test,
+                        pulmonary_embolism_test,
+                        afib_test,
+                        neutropenic_test])
+
+
+df_grading = pd.DataFrame(df_grading_pre[['sim_state_id',
+                                        'clinical_item_id',
+                                        'sim_user_id',
+                                        'sim_patient_id',
+                                        'name_x',
+                                        'description_x',
+                                        'description_y',
+                                        'case']])
+
+
+print(df_grading)
+
+#sim_state_list = list(df_grading.groupby('sim_state_name'))
+
+#print('sim_state_list')
+#print(sim_state_list)
