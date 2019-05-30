@@ -37,7 +37,7 @@ function saveTrackers(){
   var encoded_data = "text/json;charset=utf-8," + encodeURIComponent(data_string)
   var a = document.createElement('a');
   a.href = 'data:' + encoded_data;
-  a.download  = data['user'] + '_' + data['patient'] +'_data_v4.json';
+  a.download  = data['user'] + '_' + data['patient'] +'_data_v5.json';
   a.click()
   sessionStorage.clear()
 }
@@ -331,7 +331,7 @@ function trackOrders(){
   var resultInputsObserver = new MutationObserver(function(mutations) {
     attachResultBindings();
     // Record any new results
-    
+
   })
   resultInputsObserver.observe(resultsTable.get(0), {
     attributes: true,
