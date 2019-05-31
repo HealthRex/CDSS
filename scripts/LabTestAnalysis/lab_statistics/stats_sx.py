@@ -24,12 +24,8 @@ from sklearn.metrics import roc_auc_score
 import LocalEnv
 
 
-# # labs_ml_folder = stats_utils.labs_ml_folder
-# # labs_stats_folder = stats_utils.labs_stats_folder
-#
 DEFAULT_TIMELIMIT = stats_utils.DEFAULT_TIMELIMIT
 #
-
 
 main_folder = os.path.join(LocalEnv.PATH_TO_CDSS, 'scripts/LabTestAnalysis/')
 stats_results_folderpath = os.path.join(main_folder, 'lab_statistics')
@@ -54,10 +50,6 @@ from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
 STRIDE_COMPONENT_TESTS_common, UMICH_TOP_COMPONENTS_common, UCSF_TOP_COMPONENTS_common
 
 
-# all_panels = NON_PANEL_TESTS_WITH_GT_500_ORDERS
-# all_components = STRIDE_COMPONENT_TESTS
-# all_UMichs = UMICH_TOP_COMPONENTS
-# all_UCSF = UCSF_TOP_COMPONENTS
 all_algs = SupervisedClassifier.SUPPORTED_ALGORITHMS
 
 class Stats_Plotter():
@@ -66,7 +58,7 @@ class Stats_Plotter():
         self.lab_type = lab_type
 
         if data_source == 'Stanford' and lab_type == 'panel':
-            self.all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS  # [x[0] for x in labs_and_cnts]
+            self.all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS  #
         elif data_source == 'Stanford' and lab_type == 'component':
             self.all_labs = STRIDE_COMPONENT_TESTS_common#
         elif data_source == 'UMich' and lab_type == 'panel':
@@ -151,15 +143,8 @@ class Stats_Plotter():
 
                 if self.lab_type=='panel':
                     df_lab = df_lab[df_lab['order_status'] == 'Completed']
-                else:
-                    # df_lab = df_lab[df_lab['order_status'] == 'Completed']
-                    pass
 
                 cur_dict = stats_utils.get_prevweek_normal__dict(df_lab, self.lab_type)
-                # lab2stats[lab] = cur_dict
-
-                # cur_dict = lab2stats[lab]
-
 
                 normal_fractions = {}
                 record_counts = {}
@@ -232,9 +217,6 @@ class Stats_Plotter():
         df = df[df['targeted_PPV_fixTrainPPV'] == targeted_PPV]
         df = df.drop_duplicates()
 
-        # labs_and_cnts = stats_utils.get_top_labs_and_cnts('panel', top_k=50)
-        # df = df[df['lab'].isin(all_labs)] #[x[0] for x in labs_and_cnts]
-
         result_foldername = 'Fig4_Potential_Savings/'
         result_folderpath = os.path.join(statsByLab_folderpath, result_foldername)
         if not os.path.exists(result_folderpath):
@@ -270,21 +252,8 @@ class Stats_Plotter():
             df = df.sort_values('TP_cost')
             df.to_csv(data_path, index=False)
 
-        # print df.shape
         print 'Total saved money:', (df['TP_cost']).sum() * 66440./1000/3
         df = df.iloc[-20:]
-        # print df.shape
-        # quit()
-
-        # unit, scale = 'million', 10.**6
-
-
-        # if not scale_by:
-        #     scale = 1.
-        # elif scale_by == 'pat':
-        #     scale = float(stats_utils.NUM_DISTINCT_PATS)
-        # elif scale_by == 'enc':
-        #     scale = float(stats_utils.NUM_DISTINCT_ENCS)
 
         df['TP_cost'] = df['TP_cost'] * scale
         df['FP_cost'] = df['FP_cost'] * scale
@@ -292,25 +261,8 @@ class Stats_Plotter():
         df['TN_cost'] = df['TN_cost'] * scale
         df['total_cost'] = df['total_cost'] * scale
 
-        # df['total_cost'] = df['TP_cost'] + df['FP_cost']
-        # lab_descriptions['LABBLC'] = 'BLOOD CULTURE (AEROBIC & ANAEROBIC)'
-        # lab_descriptions['LABBLC2'] = 'BLOOD CULTURE (2 AEROBIC)'
-
         df['lab_description'] = df['lab'].apply(
             lambda x: self.lab_descriptions[x])
-
-        # '''
-        # Top cost volume labs (with a medicare price)
-        # '''
-        # labs_to_show = ['LABMGN', 'LABBLC', 'LABBLC2', 'LABLIDOL', 'LABK', 'LABNA', 'LABPHOS', 'LABTNI',
-        #                 'LABPROCT', 'LABURIC', 'LABLAC', 'LABUSPG', 'LABHBSAG',
-        #                 'LABLIPS', 'LABUOSM', 'LABANER', 'LABCK', 'LABPLTS',
-        #                 'LABB12', 'LABTNI',
-        #                 #'LABUPREG','LABALB',
-        #                 #'LABMB', 'LABURNC', 'LABTRIG'
-        #                 # 'LABUOSM', 'LABA1C'
-        #                 ]
-        # df = df[df['lab'].isin(labs_to_show)]
 
         '''
         Cost per 1000 pat enc, translate to annual cost
@@ -341,17 +293,10 @@ class Stats_Plotter():
         # plt.xticks(range(0, 15001, 5000))
         # plt.xlim([0,20000])
 
-
         plt.tight_layout()
         plt.savefig(fig_path)
 
         plt.show()
-
-
-
-
-
-
 
     ######################################
     '''
@@ -367,8 +312,6 @@ class Stats_Plotter():
         :return:
         '''
         print 'draw__Diagnostic_Metrics for', labs, ' with label %s...'%result_label
-        # df = pd.read_csv('data_performance_stats/best-alg-%s-summary-fix-trainPPV.csv' % self.lab_type,
-        #                  keep_default_na=False)
         labs_stats_filepath = os.path.join(statsByLab_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
 
         df = pd.read_csv(labs_stats_filepath, keep_default_na=False)
@@ -432,12 +375,8 @@ class Stats_Plotter():
 
             if result_label == 'important_components':
 
-
                 if self.data_source == 'UMich' or self.data_source == 'UCSF':
                     df['lab'] = df['lab'].apply(lambda x: map_lab(x, self.data_source, self.lab_type, map_type='from_src'))
-
-                # df = df.sort_values('predicted_normal_vol', ascending=False)
-                #     print df['lab'].values
 
                 df = df[df['lab'].isin(stats_utils.get_important_labs('component'))]
                 df['lab'] = pd.Categorical(
@@ -450,8 +389,6 @@ class Stats_Plotter():
                 pass
             else:
                 df = df.sort_values('total_vol', ascending=False)
-
-
 
             df['all_negative'] = df['TN'] + df['FN']
 
@@ -511,8 +448,6 @@ class Stats_Plotter():
                 df_toshow['Medicare'] = df_toshow['Medicare'].apply(lambda x: '$%s' % x if x != '' else '-')
                 df_toshow['Chargemaster'] = df_toshow['Chargemaster'].apply(lambda x: '$%s' % str(x) if x != '' else '-')
 
-
-
                 cols_to_show = ['Lab Test', 'Vol', 'AUC'] \
                                + numeric_cols
                                #+ ['Medicare', 'Chargemaster'] #+ ['LR+', 'LR-'] \
@@ -524,9 +459,6 @@ class Stats_Plotter():
                                 'Blood Culture (2 Aerobic)', 'Sodium', 'Lidocaine', 'Hematocrit', 'Urine Culture',
                                 'Urinalysis With Microscopic', 'Uric Acid', 'Hemoglobin A1c'
                                 ]
-                # quit()
-            # elif self.data_source == 'Stanford' and self.lab_type=='component':
-            #     cols_to_show = ['Lab Test', 'Vol', 'AUC'] + numeric_cols + ['LR+', 'LR-']
             else:
                 cols_to_show = ['Lab Test', 'AUC'] + numeric_cols #+ ['LR+', 'LR-']
 
@@ -583,7 +515,6 @@ class Stats_Plotter():
                        'all_positive_vol', 'true_positive_vol', 'all_negative_vol', 'true_negative_vol']]\
                         .to_csv(cached_tablepath, index=False, float_format='%.3f') # .sort_values('total_vol', ascending=False)\
 
-
         if not scale_by:
             scale = 1.
         elif scale_by=='pat':
@@ -594,9 +525,7 @@ class Stats_Plotter():
             scale = float(stats_utils.NUM_DISTINCT_ENCS_UCSF/1000.)
 
         if self.data_source == 'Stanford' or self.data_source == 'UCSF' or self.data_source == 'UMich': #True: #self.lab_type == 'panel':
-            # df_toplots = df_toplots.sort_values(['total_vol'], ascending=True)
             df_toplots = df_toplots.iloc[::-1]
-            # pass
         else:
             df_toplots = df_toplots.iloc[::-1]
 
@@ -615,7 +544,6 @@ class Stats_Plotter():
                     label='False Negative')
             ax.barh(df_toplot['lab'], df_toplot['true_negative_vol'] / scale, color='royalblue', alpha=1,
                     label='True Negative')
-
 
             plt.yticks([])
 
@@ -654,17 +582,11 @@ class Stats_Plotter():
                     # plt.xlim([-1.5, 1.5])
                     plt.xlim([-8000, 8000])
 
-            # handles, labels = plt.gca().get_legend_handles_labels()
-            # order = [1, 0, 3, 2]
-
-            # plt.legend([handles[idx] for idx in order], [labels[idx] for idx in order],
-            #            loc=[0.05,0.1], ncol=2, prop={'size': 12})
                 if self.data_source == 'UCSF' or self.data_source == 'Stanford' or self.data_source == 'UMich':
                     plt.xlabel('Number of orders per 1000 patient encounters', fontsize=18) #, targeting at %.0f'%(targeted_PPV*100)+'% PPV'
                 else:
                     plt.xlabel('Fraction of orders, targeting at %.0f' % (targeted_PPV * 100) + '% PPV',
                     fontsize=18)
-            #plt.ylabel('Labs', fontsize=14)
 
             plt.tick_params('x', labelsize=24)
 
@@ -685,7 +607,7 @@ class Stats_Plotter():
     '''
 
     def plot_order_intensities_barh(self, lab, time_since_last_order_binned, columns, scale,
-                                    labeling=True, lab_ind=None, to_annotate_percentages=False):
+                                    labeling=True, lab_ind=None):
 
         alphas = [1, 0.5, 0.2, 0.1]
         colors = ['black', 'blue', 'blue', 'blue']
@@ -724,23 +646,6 @@ class Stats_Plotter():
             else:
                 plt.barh([lab_desciption], pre_sum, color=colors[i], alpha=alphas[i])
 
-        tot_cnt = sum(time_since_last_order_binned.values())
-        cur_cnt = time_since_last_order_binned['< 24 hrs'] * scale
-        if to_annotate_percentages:
-
-            if cur_cnt < 400:
-                return
-            percentage = '%.0f' % (time_since_last_order_binned['< 24 hrs'] / float(tot_cnt) * 100) + '%'
-            print 'lab', lab, 'lab_ind', lab_ind
-            ax.text(cur_cnt / 2. - 100, lab_ind - 0.15, percentage, fontsize=10, fontweight='bold', color='white')
-        else:
-            '''
-            annotate legend
-            '''
-            if lab == 'LABMETB':
-                pass
-            pass
-
     def draw__Order_Intensities(self, stats_folderpath, labs,
                                 scale=1., result_label=None, scale_method = 'normalize',
                                 use_cached_fig_data=True, to_annotate_percentages=False,
@@ -773,13 +678,9 @@ class Stats_Plotter():
             -> barh
         '''
         lab2stats = {}
-        # columns = ['< 1 day', '1-3 days', '3-7 days', '> 7 days']
-        # columns = ['< 24 hrs', '[24, 72) hrs', '>= 72 hrs']
         columns = ['< 24 hrs', '[24 hrs, 3 days)', '[3 days, 1 week)', '>= 1 week']
-        # day_ranges = [[0,1], [1,4], [4,7], [7,None]]
 
         if os.path.exists(cached_result_path) and use_cached_fig_data:
-            # lab2stats = pickle.load(open(cached_result_path, 'r'))
             lab2stats_pd = pd.read_csv(cached_result_path)
             lab2stats_pd = lab2stats_pd.rename(columns={'< 1 day':'< 24 hrs',
                                                         '1-3 days':'[24 hrs, 3 days)',
@@ -788,15 +689,12 @@ class Stats_Plotter():
             lab2stats = lab2stats_pd.set_index('lab').to_dict(orient='index')
 
         else:
-            for lab in labs: #all_labs[:10][::-1]:
+            for lab in labs:
                 print 'Getting Order Intensities of lab %s..'%lab
 
                 df_lab = stats_utils.get_queried_lab(lab, self.lab_type, time_limit=DEFAULT_TIMELIMIT)
 
                 dict_lab = stats_utils.get_floored_day_to_number_orders_cnts(lab, df_lab)
-
-                # df_lab = pd.DataFrame.from_dict(dict_lab, orient='index').reset_index().rename(columns={'index': 'lab'})
-                # df_lab.to_csv(cached_result_foldername + '%s.csv'%lab, index=False)
 
                 day_counts = [0] * 4
                 tot_cnt = 0
@@ -813,14 +711,7 @@ class Stats_Plotter():
                         print "time is out of range:", time
                     tot_cnt += cnt
 
-                # The following is extremely confusing
-                # sums = [dict_lab[0], sum(dict_lab[x] for x in range(1, 4)), sum(dict_lab[x] for x in range(4, 8))]
-                # sums.append(sum(dict_lab[x] for x in dict_lab.keys()) - sum(sums))
-                # time_since_last_order_binned = {columns[_]: sums[_] for _ in range(len(columns))}
-
                 lab2stats[lab] = dict(zip(columns, day_counts))
-
-            # pickle.dump(lab2stats, open(cached_result_path, 'wb'), protocol=pickle.HIGHEST_PROTOCOL)
 
             df_res = pd.DataFrame.from_dict(lab2stats, orient='index').reset_index().rename(columns={'index':'lab'})
 
@@ -831,13 +722,9 @@ class Stats_Plotter():
 
         labs_ordered = sorted(labs, key=lambda x: lab2stats[x]['< 24 hrs']/lab2stats[x]['total'], reverse=True) #< 24 hrs
 
-        # fig = plt.figure(figsize=(12, 6/20.*len(labs) )) # figsize=(20, 12) figsize=(12, 8)
-
         labs_toplots = [labs_ordered]
-        # labs_toplots = [lab_ordered[:39], lab_ordered[39:]]
 
         for ind_toplot, labs_toplot in enumerate(labs_toplots):
-            # print 'Fig Size:', 6 + 2./20.*len(labs), 1 + 5./20.*len(labs)
             fig, ax = plt.subplots(figsize=(8, .3 + 5.7/20.*len(labs))) #5+ 3./20.*len(labs)
             # 8, 3.435 for guideline
             # 8, 6 for freq labs
@@ -849,7 +736,6 @@ class Stats_Plotter():
                 time_since_last_order_binned = lab2stats[lab]
 
 
-                # tot_cnt = float(sum(time_since_last_order_binned.values()))
                 for time, cnt in time_since_last_order_binned.items():
                     if time == 'total':
                         continue
@@ -1001,7 +887,7 @@ class Stats_Plotter():
 
 
 
-    def draw__Comparing_Savable_Fractions(statsByLab_folderpath,
+    def draw__Comparing_Savable_Fractions(self, statsByLab_folderpath,
                              target_PPV=0.95,
                              use_cache=True):
         '''
@@ -1029,7 +915,7 @@ class Stats_Plotter():
             savable_fractions_mlmodel = stats_utils.pandas2dict(df_twomethods, key='lab', val='savable_fraction_mlmodel')
         else:
 
-            labs = all_labs
+            labs = self.all_labs
 
             mlByLab_folder = statsByLab_folderpath.replace("lab_statistics", "machine_learning")
 
@@ -1201,7 +1087,7 @@ class Stats_Plotter():
                 plt.ylim([0, 500])
                 plt.xticks([])
                 plt.yticks([])
-                plt.xlabel(lab_descriptions[lab])
+                plt.xlabel(self.lab_descriptions[lab])
 
         plt.tight_layout()
 
@@ -1216,7 +1102,7 @@ class Stats_Plotter():
         return
 
 
-    def print_HosmerLemeshowTest():
+    def print_HosmerLemeshowTest(self):
         labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS
         alg = 'random-forest'  # 'regress-and-round' #'random-forest'
 
@@ -1236,14 +1122,14 @@ class Stats_Plotter():
 
 
 
-    def get_best_calibrated_labs(statsByLab_folderpath, top_k=20, worst=False):
+    def get_best_calibrated_labs(self, statsByLab_folderpath, top_k=20, worst=False):
         df_fix_train = pd.read_csv(statsByLab_folderpath + "/summary-stats-bestalg-fixTrainPPV.csv",
                                    keep_default_na=False)
         df_fix_train['abs_PPV_diff'] = (df_fix_train['targeted_PPV_fixTrainPPV'] - df_fix_train['PPV'].apply(
             lambda x: float(x) if x != '' else float('nan'))).abs()
 
         lab_diff = {}
-        for lab in all_labs:
+        for lab in self.all_labs:
             cur_tot_diff = df_fix_train[df_fix_train['lab']==lab]['abs_PPV_diff'].values.sum()
             lab_diff[lab] = cur_tot_diff
 
@@ -1259,10 +1145,10 @@ class Stats_Plotter():
         # print df_res_long
         df_res_long['abs_PPV_diff'] = df_res_long['lab'].map(lab_diff)
         df_res_long = df_res_long.rename(columns={0.80:'target 0.80', 0.90:'target 0.90', 0.95:'target 0.95', 0.99:'target 0.99'})
-        df_res_long['lab'] = df_res_long['lab'].apply(lambda x:lab_descriptions[x])
+        df_res_long['lab'] = df_res_long['lab'].apply(lambda x: self.lab_descriptions[x])
         df_res_long.sort_values('abs_PPV_diff').drop(columns=['abs_PPV_diff']).to_csv(statsByLab_folderpath+'/best_calibrated_is_worst_%s.csv'%worst, index=False)
 
-    def PPV_guideline(statsByLab_folderpath):
+    def PPV_guideline(self, statsByLab_folderpath):
 
         df_fix_train = pd.read_csv(statsByLab_folderpath + "/summary-stats-bestalg-fixTrainPPV.csv",
                                    keep_default_na=False)
@@ -1328,10 +1214,6 @@ class Stats_Plotter():
 
 
     def test(self, lab):
-        # data_file = pd.read_csv('stats_useful_data/' + '%s_Usage_2014-2016.csv' % lab)
-        # print data_file['pat_id'].values[:10]
-        # print len(list(set(data_file['pat_id'].values.tolist())))
-
         results = stats_utils.query_lab_usage__df(lab=lab,
                                                   lab_type='panel',
                                                   time_start='2014-01-01',
@@ -1507,7 +1389,7 @@ class Stats_Plotter():
 
             if predicted_normal_fraction == 0.9:
                 these_labs = df_predicted_normal['lab'].values.tolist()
-                print 'highly over-utilized labs:', [lab_descriptions[x] for x in these_labs]
+                print 'highly over-utilized labs:', [self.lab_descriptions[x] for x in these_labs]
         print zip(predicted_normal_fractions, nums_labs)
         plt.scatter(predicted_normal_fractions, nums_labs)
         plt.xlabel('Predicted normal fraction, targeting at PPV=%.2f' % targeted_PPV)
@@ -1527,8 +1409,6 @@ class Stats_Plotter():
         panels_stanford = ['LABMGN', 'LABK', 'LABNA', 'LABPHOS', 'LABURIC', 'LABTNI',
                            'LABPT', 'LABPTT', 'LABCAI', 'LABALB', 'LABTSH'
                 ]
-        # lab_map_df = pd.read_csv(os.path.join(ml_folder, 'data_conversion/map_UCSF_panel_raw2code.csv'), keep_default_na=False)
-        # panels_stanford = lab_map_df['lab'].values.tolist()
 
         if self.lab_type == 'panel':
             labs = panels_stanford
@@ -1658,8 +1538,6 @@ class Stats_Plotter():
         plt.savefig(os.path.join(statsByLab_folderpath, 'ROC_%s%s.png'%(lab,inverse_maker)))
 
         plt.clf()
-
-
 
         df = pd.read_csv(ml_folderpath + "/%s/baseline_comparisons.csv"
                          % (lab), keep_default_na=False)
@@ -2146,8 +2024,7 @@ class Stats_Plotter():
                                          to_annotate_percentages=False, include_legend=True)
 
         if 'Normality_Saturations' in figs_to_plot:
-            labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels) - set(
-                ['LABTSH', 'LABLDH']))
+            labs = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels) - set(['LABTSH', 'LABLDH']))
 
             panels_saturations = ['LABPHOS', 'LABA1C', 'LABALB', 'LABTSH', 'LABESRP'] #'LABCBCD',
 
@@ -2163,13 +2040,13 @@ class Stats_Plotter():
 
         if 'PPV_distribution' in figs_to_plot:
             # PPV_guideline(statsByDataSet_folderpath) #TODO
-            get_best_calibrated_labs(statsByDataSet_folderpath, worst=False)
+            self.get_best_calibrated_labs(statsByDataSet_folderpath, worst=False)
 
         if 'Savable_Fractions' in figs_to_plot:
-            draw__Comparing_Savable_Fractions(statsByDataSet_folderpath, target_PPV=0.95, use_cache=True)
+            self.draw__Comparing_Savable_Fractions(statsByDataSet_folderpath, target_PPV=0.95, use_cache=True)
 
         if 'Comparing_PPVs' in figs_to_plot:
-            draw__Comparing_PPVs(statsByDataSet_folderpath)
+            self.draw__Comparing_PPVs(statsByDataSet_folderpath)
 
         if 'ROC' in figs_to_plot or 'PRC' in figs_to_plot:
             '''
@@ -2215,7 +2092,7 @@ class Stats_Plotter():
             top_panels_cnts = stats_utils.get_top_labs_and_cnts(lab_type=self.lab_type, top_k=20)
             top_panels = [x[0] for x in top_panels_cnts]
             panels = list(set(labs_guideline + stats_utils.get_important_labs()) - set(labs_common_panels)) + ['LABK', 'LABNA', 'LABLIDOL'] #, 'LABCR', 'LABPTT', 'LABCAI'
-            components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA', \
+            components = ['WBC', 'HGB', 'PLT', 'NA', 'K', 'CL', 'CR', 'BUN', 'CO2', 'CA',
                           'TP', 'ALB', 'ALKP', 'TBIL', 'AST', 'ALT', 'DBIL', 'IBIL', 'PHA']
             important_components = stats_utils.get_important_labs('component')
 
@@ -2267,11 +2144,6 @@ def statistic_analysis(lab, dataset_folder):
     return roc_auc_score(direct_comparisons['actual'].values, direct_comparisons['predict'].values)
 
 def get_AUC_transfer_labs(src_dataset='Stanford', dst_dataset='UCSF', lab_type='panel', curr_version='10000-episodes'):
-    # main_pipelining(labs=['LABA1C'], data_source='testingSupervisedLearner')
-    # dataset_folder = "data-apply-Stanford-to-UCSF-10000-episodes"
-
-    # from LabNormalityPredictionPipeline import NON_PANEL_TESTS_WITH_GT_500_ORDERS, STRIDE_COMPONENT_TESTS
-
     if lab_type == 'panel':
         labs = ['LABURIC']
         # from scripts.LabTestAnalysis.machine_learning.ml_utils import map_panel_from_Stanford_to_UCSF as map_lab
@@ -2349,10 +2221,6 @@ def main_transfer_model(curr_version, lab_type='component'):
                             tmp_df[(tmp_df['lab'] == mapped_lab) & (tmp_df['fixTrainPPV'] == 0.95)]['AUC'].values[0]
                         diagonals.append(cur_AUC)
                     cur_res.append(cur_AUC)
-
-                '''
-                '''
-
 
                 col = '%s -> %s' % (src, dst)
                 all_res_dicts[col] = cur_res
@@ -2540,16 +2408,6 @@ def main_one_analysis(curr_version):
     #     plotter.plot_full_cartoon(lab='LABLDH', include_threshold_colors=False)
 
     quit()
-
-    figs_to_plot = []
-
-
-    plotter.main_generate_stats_figures_tables(figs_to_plot=figs_to_plot,
-                                               params={'Diagnostic_Metrics': 'important_components'})
-
-    # plotter.main(figs_to_plot=['Normality_Saturations'])
-    # plotter.main_generate_lab_statistics()
-
 
 
 if __name__ == '__main__':
