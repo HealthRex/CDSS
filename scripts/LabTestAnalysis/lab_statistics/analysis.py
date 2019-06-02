@@ -400,14 +400,35 @@ class Stats_Plotter():
         else:
 
             lab2cnt, lab2frac = {}, {}
+            import pickle
+            cur_cnt_folderpath = 'Normality_Saturations_Cnts'
+            if not os.path.exists(cur_cnt_folderpath):
+                os.mkdir(cur_cnt_folderpath)
+
+            def save_obj(obj, path):
+                with open(path, 'wb') as f:
+                    pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
+            def load_obj(path):
+                with open(path, 'rb') as f:
+                    return pickle.load(f)
+
             for lab in labs:
                 print 'Getting Normality Saturations for %s..' % lab
-                df_lab = stats_utils.get_queried_lab(lab, self.lab_type, time_limit=stats_utils.DEFAULT_TIMELIMIT)
 
-                if self.lab_type=='panel':
-                    df_lab = df_lab[df_lab['order_status'] == 'Completed']
+                cur_dict_name = "cur_dict_%s.pkl"%lab
+                cur_dict_path = os.path.join(cur_cnt_folderpath, cur_dict_name)
+                if not os.path.exists(cur_dict_path):
+                    df_lab = stats_utils.get_queried_lab(lab, self.lab_type, time_limit=stats_utils.DEFAULT_TIMELIMIT)
 
-                cur_dict = stats_utils.get_prevweek_normal__dict(df_lab, self.lab_type)
+                    if self.lab_type=='panel':
+                        df_lab = df_lab[df_lab['order_status'] == 'Completed']
+
+                    cur_dict = stats_utils.get_prevweek_normal__dict(df_lab, self.lab_type)
+
+                    save_obj(cur_dict, cur_dict_path)
+                else:
+                    cur_dict = load_obj(cur_dict_path)
 
                 normal_fractions = {}
                 record_counts = {}
@@ -423,8 +444,13 @@ class Stats_Plotter():
                     normal_fractions[x] = (normal_fraction)
                 lab2cnt[lab] = record_counts
                 lab2frac[lab] = normal_fractions
+
             df_cnts = pd.DataFrame.from_dict(lab2cnt, orient='index').reset_index().rename(columns={'index': 'lab'})
             df_fracs = pd.DataFrame.from_dict(lab2frac, orient='index').reset_index().rename(columns={'index': 'lab'})
+            #
+            # print df_cnts
+            # print df_fracs
+            # quit()
 
             df_cnts.to_csv(cached_result_foldername + 'lab2cnt.csv', index=False)
             df_fracs.to_csv(cached_result_foldername + 'lab2frac.csv', index=False)
