@@ -99,9 +99,10 @@ sync_environment <- "/Users/jonc101/Box Sync/Jonathan Chiang's Files/Mining-Clin
 # File Read System 
 stroke_cohort       <- fread_quiver("stroke_cohort", sync_environment)
 stroke_cohort_demo  <- fread_quiver("stroke_cohort_demo", sync_environment)
+stroke_cohort_order  <- fread_quiver("stroke_cohort_order", sync_environment)
 
 # splits patients into individual lists 
-patient_list <- split(stroke_cohort,stroke_cohort$jc_uid)
+patient_list <- split(stroke_cohort, stroke_cohort$jc_uid)
 
 # patient 1: need to convert to timevis format 
 p1 <- patient_list$JCcb69cc
@@ -183,6 +184,8 @@ find_time_difference <- function(time_start,time_end, jc_uid){
 }
 
 
+
+
 data_tables <- dbListTables(con)
 encounter <- tbl(con, "encounter")
 order_med <- tbl(con, "order_med")
@@ -249,8 +252,6 @@ remove_duplicate <- function(dt){
   dtx <- dt[!duplicated(dt), ]
   return(dtx)
 }
-
-
 
 
 aggregate_event <- function(df){
@@ -381,6 +382,153 @@ data <- find_time_difference(data$emergencyAdmitTime, data$ctHeadOrderTime, data
 table_dx_name <- as.data.frame(table(data$dx_name))
 colnames(table_dx_name)
 newdata <- table_dx_name[order(-table_dx_name$Freq),] 
+
+# STROKE ORDERS 
+
+order_med = "
+SELECT jc_uid, cast(pat_enc_csn_id_coded as string) as string_id, pat_enc_csn_id_coded, order_time_jittered, order_med_id_coded, medication_id, med_description, order_class, amb_med_disp_name, quantity, authr_prov_map_id, med_route  
+FROM `starr_datalake2018.order_med` 
+WHERE pat_enc_csn_id_coded in  (
+    select pat_enc_csn_id_coded from (
+        select 
+          op.jc_uid, op.pat_enc_csn_id_coded, 
+        admit.event_type, admit.pat_class, admit.effective_time_jittered as emergencyAdmitTime, 
+        min(opCT.order_inst_jittered) as ctHeadOrderTime,
+        om.med_description as tpaDescription, min(om.order_time_jittered) as tpaOrderTime,
+        min(mar.taken_time_jittered) as tpaAdminTime,
+        inpatient.pat_class as inptClass, min(inpatient.effective_time_jittered) as inpatientAdmitTime
+        from 
+        datalake_47618.order_proc as op, 
+        datalake_47618.adt as admit, 
+        datalake_47618.order_proc as opCT,
+        datalake_47618.order_med as om,
+        datalake_47618.mar as mar,
+        datalake_47618.adt as inpatient
+        where op.display_name like 'Patient on TPA%'
+        and op.pat_enc_csn_id_coded = admit.pat_enc_csn_id_coded
+        and op.pat_enc_csn_id_coded = opCT.pat_enc_csn_id_coded
+        and op.pat_enc_csn_id_coded = om.pat_enc_csn_id_coded
+        and op.pat_enc_csn_id_coded = inpatient.pat_enc_csn_id_coded
+        and om.order_med_id_coded = mar.order_med_id_coded
+        and admit.event_type_c = 1 -- Admission
+        and admit.pat_class_c = '112' -- Emergency Services
+        and opCT.proc_code like 'IMGCTH%' -- CT Head orders
+        and om.medication_id = 86145 -- ALTEPLASE 100mg infusion
+        and inpatient.pat_class_c = '126' -- Inpatient
+        group by 
+        op.jc_uid, op.pat_enc_csn_id_coded, 
+        admit.event_type, admit.pat_class, admit.effective_time_jittered, 
+        om.med_description,
+        inpatient.pat_class
+        order by emergencyAdmitTime)
+    )
+"
+
+data2 <- download_bq(project, order_med)
+
+order_proc = "
+SELECT jc_uid, cast(pat_enc_csn_id_coded as string) as string_id, pat_enc_csn_id_coded, order_proc_id_coded, order_type, proc_code, description, display_name, authrzing_prov_map_id, billing_prov_map_id, order_inst_jittered  
+FROM `starr_datalake2018.order_proc` 
+WHERE pat_enc_csn_id_coded in  (
+    select pat_enc_csn_id_coded from (
+          select 
+          op.jc_uid, op.pat_enc_csn_id_coded, 
+          admit.event_type, admit.pat_class, admit.effective_time_jittered as emergencyAdmitTime, 
+          min(opCT.order_inst_jittered) as ctHeadOrderTime,
+          om.med_description as tpaDescription, min(om.order_time_jittered) as tpaOrderTime,
+          min(mar.taken_time_jittered) as tpaAdminTime,
+          inpatient.pat_class as inptClass, min(inpatient.effective_time_jittered) as inpatientAdmitTime
+          from 
+          datalake_47618.order_proc as op, 
+          datalake_47618.adt as admit, 
+          datalake_47618.order_proc as opCT,
+          datalake_47618.order_med as om,
+          datalake_47618.mar as mar,
+          datalake_47618.adt as inpatient
+          where op.display_name like 'Patient on TPA%'
+          and op.pat_enc_csn_id_coded = admit.pat_enc_csn_id_coded
+          and op.pat_enc_csn_id_coded = opCT.pat_enc_csn_id_coded
+          and op.pat_enc_csn_id_coded = om.pat_enc_csn_id_coded
+          and op.pat_enc_csn_id_coded = inpatient.pat_enc_csn_id_coded
+          and om.order_med_id_coded = mar.order_med_id_coded
+          and admit.event_type_c = 1 -- Admission
+          and admit.pat_class_c = '112' -- Emergency Services
+          and opCT.proc_code like 'IMGCTH%' -- CT Head orders
+          and om.medication_id = 86145 -- ALTEPLASE 100mg infusion
+          and inpatient.pat_class_c = '126' -- Inpatient
+          group by 
+          op.jc_uid, op.pat_enc_csn_id_coded, 
+          admit.event_type, admit.pat_class, admit.effective_time_jittered, 
+          om.med_description,
+          inpatient.pat_class
+          order by emergencyAdmitTime)
+)
+"
+
+data3 <- download_bq(project, order_proc)
+
+lab_result_qry <- "
+SELECT rit_uid as jc_uid, cast(pat_enc_csn_id_coded as string) as string_id, pat_enc_csn_id_coded, order_time_jittered, proc_code, order_type, group_lab_name, lab_name, base_name, ord_value, result_flag, auth_prov_map_id, ordering_mode
+FROM `starr_datalake2018.lab_result` 
+WHERE  pat_enc_csn_id_coded in  (
+    select pat_enc_csn_id_coded from (
+select 
+op.jc_uid, op.pat_enc_csn_id_coded, 
+admit.event_type, admit.pat_class, admit.effective_time_jittered as emergencyAdmitTime, 
+min(opCT.order_inst_jittered) as ctHeadOrderTime,
+om.med_description as tpaDescription, min(om.order_time_jittered) as tpaOrderTime,
+min(mar.taken_time_jittered) as tpaAdminTime,
+inpatient.pat_class as inptClass, min(inpatient.effective_time_jittered) as inpatientAdmitTime
+from 
+datalake_47618.order_proc as op, 
+datalake_47618.adt as admit, 
+datalake_47618.order_proc as opCT,
+datalake_47618.order_med as om,
+datalake_47618.mar as mar,
+datalake_47618.adt as inpatient
+where op.display_name like 'Patient on TPA%'
+and op.pat_enc_csn_id_coded = admit.pat_enc_csn_id_coded
+and op.pat_enc_csn_id_coded = opCT.pat_enc_csn_id_coded
+and op.pat_enc_csn_id_coded = om.pat_enc_csn_id_coded
+and op.pat_enc_csn_id_coded = inpatient.pat_enc_csn_id_coded
+and om.order_med_id_coded = mar.order_med_id_coded
+and admit.event_type_c = 1 -- Admission
+and admit.pat_class_c = '112' -- Emergency Services
+and opCT.proc_code like 'IMGCTH%' -- CT Head orders
+and om.medication_id = 86145 -- ALTEPLASE 100mg infusion
+and inpatient.pat_class_c = '126' -- Inpatient
+group by 
+op.jc_uid, op.pat_enc_csn_id_coded, 
+admit.event_type, admit.pat_class, admit.effective_time_jittered, 
+om.med_description,
+inpatient.pat_class
+order by emergencyAdmitTime)
+)
+"
+
+data4 <- download_bq(project, lab_result_qry)
+
+sc_lab_result <- data4
+sc_order_proc <- data3
+sc_order_med <- data2
+
+# three lists of data
+
+sc_lab_result$encounter_id <- paste0(sc_lab_result$string_id, "_",sc_lab_result$jc_uid)
+sc_order_proc$encounter_id <- paste0(sc_order_proc$string_id, "_",sc_order_proc$jc_uid)
+sc_order_med$encounter_id <- paste0(sc_order_med$string_id, "_",sc_order_med$jc_uid)
+
+stroke_cohort$encounter_id <- paste0(stroke_cohort$pat_enc_csn_id_coded,"_", stroke_cohort$jc_uid)
+
+stroke_lab <- merge(stroke_cohort, sc_lab_result, by = "encounter_id")
+stroke_proc <- merge(stroke_cohort, sc_order_proc, by = "encounter_id")
+stroke_med <- merge(stroke_cohort, sc_order_med, by = "encounter_id")
+
+# MINI TEST:  test length
+dim(stroke_lab)[1] == dim(sc_lab_result)[1]
+dim(stroke_proc)[1] == dim(sc_order_proc)[1]
+dim(stroke_med)[1] == dim(sc_order_med)[1]
+
 
 # TO DO 
 # GET ASSOCIATIONS FOR TPA ORDER 
