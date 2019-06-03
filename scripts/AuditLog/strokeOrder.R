@@ -524,10 +524,33 @@ stroke_lab <- merge(stroke_cohort, sc_lab_result, by = "encounter_id")
 stroke_proc <- merge(stroke_cohort, sc_order_proc, by = "encounter_id")
 stroke_med <- merge(stroke_cohort, sc_order_med, by = "encounter_id")
 
+stroke_lab$lab_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_lab$tpaOrderTime) - convert_datetime(stroke_lab$order_time_jittered)) /60
+stroke_proc$proc_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_proc$tpaOrderTime) - convert_datetime(stroke_proc$order_time_jittered)) /60
+stroke_med$med_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_med$tpaOrderTime) - convert_datetime(stroke_med$order_time_jittered)) /60
+
+stroke_lab_pre <- stroke_lab %>% filter(lab_time_difference_tpaOrderTime > 0) 
+stroke_proc_pre <- stroke_proc %>% filter(proc_time_difference_tpaOrderTime > 0) 
+stroke_med_pre <- stroke_med %>% filter(med_time_difference_tpaOrderTime > 0) 
+
+
 # MINI TEST:  test length
 dim(stroke_lab)[1] == dim(sc_lab_result)[1]
 dim(stroke_proc)[1] == dim(sc_order_proc)[1]
 dim(stroke_med)[1] == dim(sc_order_med)[1]
+
+# create list where each item is a patient
+stroke_labs_list <- split(stroke_lab, stroke_lab$encounter_id)
+stroke_proc_list <- split(stroke_proc, stroke_proc$encounter_id)
+stroke_med_list <- split(stroke_med, stroke_med$encounter_id)
+
+
+
+# TODO 
+# TESTING time difference (UNIT TEST REQUIRED)
+#t1 = stroke_labs_list$`131009784135_JCdb0e75`
+#t2 = cbind(t1$tpaOrderTime, t1$order_time_jittered)
+#View(t2)
+#t1$time_difference_tpaOrderTime <- as.numeric(convert_datetime(t1$tpaOrderTime) - convert_datetime(t1$order_time_jittered)) /60
 
 
 # TO DO 
