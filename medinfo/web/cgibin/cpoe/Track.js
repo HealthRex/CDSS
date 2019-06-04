@@ -16,7 +16,7 @@ resultsTracker = $.parseJSON(sessionStorage.getItem('resultsTracker')) // Track 
 signedItemsTracker = $.parseJSON(sessionStorage.getItem('signedItemsTracker')) // Track signed items
 listIdxTracker = parseInt(sessionStorage.getItem('listIdx')) // Index of recommendation lists
 // Store idx in appropriate input
-// console.log('loading recListIndex:' + listIdxTracker)
+console.log('loading recListIndex:' + listIdxTracker)
 
 lastButtonClicked = ""
 
@@ -37,7 +37,7 @@ function saveTrackers(){
   var encoded_data = "text/json;charset=utf-8," + encodeURIComponent(data_string)
   var a = document.createElement('a');
   a.href = 'data:' + encoded_data;
-  a.download  = data['user'] + '_' + data['patient'] +'_data_v4.json';
+  a.download  = data['user'] + '_' + data['patient'] +'_data_v5.json';
   a.click()
   sessionStorage.clear()
 }
@@ -330,6 +330,8 @@ function trackOrders(){
   // Track changes to results checkboxes
   var resultInputsObserver = new MutationObserver(function(mutations) {
     attachResultBindings();
+    // Record any new results
+
   })
   resultInputsObserver.observe(resultsTable.get(0), {
     attributes: true,
