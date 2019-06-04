@@ -1,3 +1,4 @@
+
 # how to get pandas data from postgree sql using python
 import psycopg2 as pg
 import pandas.io.sql as psql
@@ -18,10 +19,15 @@ connection = pg.connect("host='localhost' dbname=stride_inpatient_2014 user=post
 #
 # ---------------------------------------------------------------------------------
 
-
-sim_patient = pd.read_sql_query('select * from sim_patient',con=connection)
+clinical_item = pd.read_sql_query('select * from clinical_item',con=connection)
 print("|_____________________|")
-print("sim_patient")
+print("clinical_item")
+print("|_____________________|")
+#print(sim_patient.head)
+
+sim_patient_order = pd.read_sql_query('select * from sim_patient_order',con=connection)
+print("|_____________________|")
+print("sim_patient_order")
 print("|_____________________|")
 #print(sim_patient.head)
 
@@ -32,104 +38,55 @@ print("|_____________________|")
 #print(sim_state.head)
 #
 
-sim_state_result = pd.read_sql_query('select * from sim_state',con=connection)
+
+sim_user = pd.read_sql_query('select * from sim_user',con=connection)
 print("|_____________________|")
-print("sim_state_result")
+print("sim_user")
+print("|_____________________|")
+#print(sim_patient.head)
+
+
+sim_state_transition = pd.read_sql_query('select * from sim_state_transition',con=connection)
+print("|_____________________|")
+print("sim_state_transition")
 print("|_____________________|")
 #print(sim_state_result.head)
 
+'''
 
-# sim_state_transition explicitly states the transition from one patient state to the next
-# indicates if patient is getting worse or better dependent on state
-
-#sim_state_transition = pd.read_sql_query('select * from sim_state_transition',con=connection)
-#print(sim_state_transition)
-
-# python merge data frames(https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.merge.html)
-# df1.merge(df2, left_on='lkey', right_on='rkey')
-
-# getting unique values in python
-# https://pandas.pydata.org/pandas-docs/version/0.23.4/generated/pandas.unique.html
-
-# pd.unique(Series(pd.Categorical(list('baabc'))))
-# gapminder_2002 = gapminder[is_2002]
-# chaining
-# gapminder_2002 = gapminder[gapminder.year == 2002]
-
-# create keys to split
-# sort the dataframe
+merge sim_patient_order and sim_state by sim_state_id
 
 '''
-#create some data with Names column
-data = pd.DataFrame({'Names': ['Joe', 'John', 'Jasper', 'Jez'] *4, 'Ob1' : np.random.rand(16), 'Ob2' : np.random.rand(16)})
-
-#create unique list of names
-UniqueNames = data.Names.unique()
-
-#create a data frame dictionary to store your data frames
-DataFrameDict = {elem : pd.DataFrame for elem in UniqueNames}
-
-for key in DataFrameDict.keys():
-    DataFrameDict[key] = data[:][data.Names == key]
-
-
-df = pd.DataFrame({'Name':list('aabbef'),
-                   'A':[4,5,4,5,5,4],
-                   'B':[7,8,9,4,2,3],
-                   'C':[1,3,5,7,1,0]}, columns = ['Name','A','B','C'])
-
-print (df)
-  Name  A  B  C
-0    a  4  7  1
-1    a  5  8  3
-2    b  4  9  5
-3    b  5  4  7
-4    e  5  2  1
-5    f  4  3  0
-
-d = dict(tuple(df.groupby('Name')))
-print (d)
-{'b':   Name  A  B  C
-2    b  4  9  5
-3    b  5  4  7, 'e':   Name  A  B  C
-4    e  5  2  1, 'a':   Name  A  B  C
-0    a  4  7  1
-1    a  5  8  3, 'f':   Name  A  B  C
-5    f  4  3  0}
-
-print (d['a'])
-  Name  A  B  C
-0    a  4  7  1
-1    a  5  8  3
+print("merging sim state and transition")
+merged_order = sim_patient_order.merge(sim_state, left_on='sim_state_id', right_on='sim_state_id')
+#print(merged_order)
 
 '''
 
+find unique clinical items from merged_order
 
 '''
 
-
-
-# finds unique clinical item list
-clinical_items_list <- unique(merged_order$clinical_item_id)
+print("running clinical items unique")
+clinical_items_list = merged_order['clinical_item_id'].unique()
+#print(clinical_items_list)
 
 # finds unique sim_state_id's
-sim_state_list <- unique(merged_order$sim_state_id)
+# RCODE:
+#   sim_state_list <- unique(merged_order$sim_state_id)
+# Python:
+sim_state_list = merged_order['sim_state_id'].unique()
 
 # creates clinical_item order key to reduce merge space:
-ordered_clinical_item_table <- clinical_item %>% filter(clinical_item_id %in% clinical_items_list)
+# RCode: ordered_clinical_item_table <- clinical_item %>% filter(clinical_item_id %in% clinical_items_list)
+ordered_clinical_item_table = clinical_item[clinical_item['clinical_item_id'].isin(clinical_items_list)]
+#print(ordered_clinical_item_table)
 
-# joins tables by clinical item id (creates a dataframe that includes clinical descriptions)
-remerged_order <- merge(merged_order, ordered_clinical_item_table,
-                        by.x="clinical_item_id",
-                        by.y="clinical_item_id")
+remerged_order = merged_order.merge(ordered_clinical_item_table, left_on='clinical_item_id', right_on='clinical_item_id')
 
-#
-split_state <- split(remerged_order, remerged_order$sim_state_id)
-
-#
-split_user_state <- split(split_state$`5000`, split_state$`5000`$sim_user_id)
-
-sort(unique(remerged_order$name.x))
+# https://medium.com/analytics-vidhya/split-apply-combine-strategy-for-data-mining-4fd6e2a0cc99
+split_state = remerged_order.groupby('sim_state_id')
+# print(list(split_state))
 
 #--------------------------------------------------------------------------------
 # afib
@@ -138,11 +95,9 @@ sort(unique(remerged_order$name.x))
 # "Afib-RVR Stabilized"
 # "Afib-RVR Worse"
 #--------------------------------------------------------------------------------
-
-afib_states <- c("Afib-RVR Initial",
+afib_states = ["Afib-RVR Initial",
                 "Afib-RVR Stabilized" ,
-                "Afib-RVR Worse" )
-
+                "Afib-RVR Worse" ]
 #--------------------------------------------------------------------------------
 # meningitis
 #--------------------------------------------------------------------------------
@@ -150,11 +105,9 @@ afib_states <- c("Afib-RVR Initial",
 # "Meningitis Adequately Treated"
 # "Meningits Worsens"
 #--------------------------------------------------------------------------------
-
-mening_states <- c( "Mening Active",
+mening_states =  ["Mening Active",
                    "Meningitis Adequately Treated",
-                   "Meningits Worsens")
-
+                   "Meningits Worsens"]
 # -------------------------------------------------------------------------------
 # pulmonary embolism
 # -------------------------------------------------------------------------------
@@ -163,13 +116,10 @@ mening_states <- c( "Mening Active",
 # "PE-COPD-LungCA + O2"
 # "PE-COPD-LungCA + O2 + Anticoagulation"
 # -------------------------------------------------------------------------------
-
-pulmonary_emolism_states <- c( "PE-COPD-LungCA",
+pulmonary_emolism_states = ["PE-COPD-LungCA",
                               "PE-COPD-LungCA + Anticoagulation",
                               "PE-COPD-LungCA + O2",
-                              "PE-COPD-LungCA + O2 + Anticoagulation")
-
-
+                              "PE-COPD-LungCA + O2 + Anticoagulation"]
 # -------------------------------------------------------------------------------
 # neutropenic fever
 # -------------------------------------------------------------------------------
@@ -178,6 +128,10 @@ pulmonary_emolism_states <- c( "PE-COPD-LungCA",
 #  "Neutropenic Fever v2"
 #  "NFever"
 # -------------------------------------------------------------------------------
+
+neutropenic_fever_states = ["Neutropenic Fever Treated with IVF",
+                              "Neutropenic Fever Treated with IVF + ABX",
+                              "Neutropenic Fever v2"]
 
 # -------------------------------------------------------------------------------
 # GIBLEED
@@ -188,8 +142,12 @@ pulmonary_emolism_states <- c( "PE-COPD-LungCA",
 # "EtOH-GIBleed Post-EGD"
 # -------------------------------------------------------------------------------
 
+gi_bleed_states = ["EtOH-GIBleed Active",
+                      "EtOH-GIBleed Bleeding Out",
+                      "EtOH-GIBleed Coag Stabilized",
+                      "EtOH-GIBleed Post-EGD" ]
 
-s# -------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # DKA
 # -------------------------------------------------------------------------------
 # "DKA Euglycemic"
@@ -197,57 +155,60 @@ s# -----------------------------------------------------------------------------
 # "DKA Onset"
 # -------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------
-# Meningitis
-# -------------------------------------------------------------------------------
-# "Mening Active"
-# "Meningitis Adequately Treated"
-# "Meningits Worsens"
-# -------------------------------------------------------------------------------
+dka_states = ["DKA Euglycemic" ,
+                "DKA Hyperglycemic" ,
+                "DKA Onset"]
+
+list_of_states = [gi_bleed_states,
+                       mening_states,
+                       pulmonary_emolism_states,
+                       afib_states,
+                       neutropenic_fever_states]
+print("LIST OF STATES")
+#print(list_of_states[1])
 
 
-# -------------------------------------------------------------------------------
-# Neutropenic Fever
-# -------------------------------------------------------------------------------
-# "Neutropenic Fever Treated with IVF"
-# "Neutropenic Fever Treated with IVF + ABX"
-# "Neutropenic Fever v2"
-# "NFever"
-# -------------------------------------------------------------------------------
+def state_split(state_names, df):
+    df2 = df[df['name_x'].isin(state_names)]
+    return(df2)
 
 
-
-afib_df <- remerged_order %>% filter(name.x %in% afib_state)
-afib_split <- split(afib_df, afib_df$sim_state_id)
-
-# function to find unique orders for each sim state
-
-afib.40 <- afib_split$`40` %>% select(sim_state_id, clinical_item_id, sim_user_id, sim_patient_id, description.x, name.x, description.x, description.y)
-afib.41 <- afib_split$`41` %>% select(sim_state_id, clinical_item_id, sim_user_id, sim_patient_id, description.x, name.x, description.x, description.y)
-afib.43 <- afib_split$`43` %>% select(sim_state_id, clinical_item_id, sim_user_id, sim_patient_id, description.x, name.x, description.x, description.y)
-
-unique_orders_afib_40 <- unique(afib.40$description.y)
-unique_orders_afib_41 <- unique(afib.41$description.y)
-unique_orders_afib_43 <- unique(afib.43$description.y)
-
-total_order_list <- unique(c(unique_orders_afib_40,
-                          unique_orders_afib_41,
-                          unique_orders_afib_43))
+print(list(remerged_order.columns))
 
 
+gi_test = state_split(gi_bleed_states, remerged_order)
+mening_test = state_split(mening_states, remerged_order)
+pulmonary_embolism_test = state_split(pulmonary_emolism_states, remerged_order)
+afib_test = state_split(afib_states, remerged_order)
+neutropenic_test = state_split(neutropenic_fever_states, remerged_order)
+
+gi_test['case'] = "gi_bleed"
+mening_test['case'] = "meningitis"
+pulmonary_embolism_test['case'] = "pulmonary_embolism"
+afib_test['case'] = "atrial_fibrillation"
+neutropenic_test['case'] = "neutropenic"
+print(neutropenic_test['case'])
+
+df_grading_pre = pd.concat([gi_test,
+                        mening_test,
+                        pulmonary_embolism_test,
+                        afib_test,
+                        neutropenic_test])
 
 
+df_grading = pd.DataFrame(df_grading_pre[['sim_state_id',
+                                        'clinical_item_id',
+                                        'sim_user_id',
+                                        'sim_patient_id',
+                                        'name_x',
+                                        'description_x',
+                                        'description_y',
+                                        'case']])
 
-library(xlsx)
-write.xlsx(total_order_list, "afib_grading_doctors.xlsx", sheetName = "afib_case_orders",
-           col.names = TRUE, row.names = TRUE, append = FALSE)
 
-write.xlsx(unique_orders_afib_40, "afib_grading_doctors.xlsx", sheetName = "afib_initial",
-           col.names = TRUE, row.names = TRUE, append = TRUE)
+print(df_grading)
 
-write.xlsx(unique_orders_afib_41, "afib_grading_doctors.xlsx", sheetName = "afib_stabilized",
-           col.names = TRUE, row.names = TRUE, append = TRUE)
+#sim_state_list = list(df_grading.groupby('sim_state_name'))
 
-write.xlsx(unique_orders_afib_43, "afib_grading_doctors.xlsx", sheetName = "afib_worsened",
-           col.names = TRUE, row.names = TRUE, append = TRUE)
-'''
+#print('sim_state_list')
+#print(sim_state_list)

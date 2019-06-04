@@ -74,9 +74,6 @@ remerged_order <- merge(merged_order, ordered_clinical_item_table,
 # 
 split_state <- split(remerged_order, remerged_order$sim_state_id)
 
-
-sort(unique(remerged_order$name.x))
-
 #--------------------------------------------------------------------------------
 # afib 
 #--------------------------------------------------------------------------------
@@ -206,17 +203,24 @@ unique_orders <- function(df){
 }  
 
 unique_sim_state <- lapply(sim_state_list, unique_orders)
+
 grading_data <- bind_rows(unique_sim_state)
 
 grading_data$grade <- 1.5
 grading_data$confidence <- NA
-grading_data$group_name <- NA
+grading_data$group_interaction <- NA
 grading_data$commentary <- NA
 
 grading_data2 <- grading_data[order(grading_data$name.x),]
 grading_data2$description.y <- grading_data2$`unique(df$description.y)`
 
-write.xlsx(grading_data2, "grading_doctors_v3.xlsx", sheetName = "unique_orders_case", 
+grading_data3 <- merge(grading_data2, sim_state, 
+                            by.x="name.x", 
+                            by.y="name") 
+grading_data4 <- grading_data3 %>% select(name.x, description.y, description, case, grade, confidence, group_interaction, commentary)
+
+
+write.xlsx(grading_data4, "grading_doctors_v5.xlsx", sheetName = "unique_orders_case", 
            col.names = TRUE, row.names = TRUE, append = FALSE)
 
 ## Actual Grading: 
@@ -229,17 +233,13 @@ write.xlsx(grading_data2, "grading_doctors_v3.xlsx", sheetName = "unique_orders_
 # I believe this is an elegant design of dataframe manipulation, because it allows you to join the list of case dataframes with clinical orders 
 # 
 
-
-colnames(remerged_order)
 # can split on sim_patient_id: represents a patient that is treated 
 #sim_case_split <- split(remerged_order, remerged_order$sim_patient_id)
-
 
 # TODO MERGE on clinical item id not name.x
 # merged_order 
 #clinical_key <- df_grading %>% select(clinical_item_id,name.x) %>% unique
 
-grading_data2 %>% select(description.y, clinical_item_id)
 grading_data2$state_key <- paste0(grading_data2$description.y,"_",grading_data2$name.x)
 remerged_order$state_key <- paste0(remerged_order$description.y,"_",remerged_order$name.x)
 remerged_grade_key <- merge(grading_data2, remerged_order, 
@@ -249,7 +249,6 @@ remerged_grade_key <- merge(grading_data2, remerged_order,
 # can split on sim_patient_id: represents a patient that is treated 
 sim_case_split <- split(remerged_grade_key, remerged_grade_key$sim_patient_id)
 # 
-
 case_grader <- function(x){
   # accepts list of sim_patient_id 
   # purpose is to sum the results 
@@ -258,19 +257,15 @@ case_grader <- function(x){
 
 graded_cases <- lapply(sim_case_split, case_grader)
 
-# ToDo's 
+## HUGE WIO 
+# TODO make into test suite 
+# - [ ] manually label the google responses: so it is up to date 
+# - [ ]  
+# - [ ]
 
-# Project-Level: 
-  # R-coding:
-    # peer program (rocky?? or minh?) 
-    # embed testing right into functions 
-    # write methods section 
 
-# Technical Deliverables: 
-  # create a Pipeline that joins into a single wide dataframe for analysis 
-  # design clinical guideline visualization that intersects with Moore Foundation 
-
-# Nice to Haves: 
-  # improve functional programming methods for python 
-  # work with Star to develop production-level python code for extensible application
+#library(googlesheets)
+#gs_auth(new_user = TRUE)
+#gs_ls()$sheet_title
+#for_gs <- gs_read(gs_title("Clinical Decision Support Interface Survey (Responses)"))
 

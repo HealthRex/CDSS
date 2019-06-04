@@ -1146,9 +1146,8 @@ labs_old_stats_folder = os.path.join(stats_results_folderpath, 'data_summary_sta
 labs_query_folder = os.path.join(stats_results_folderpath, 'query_lab_results/')
 
 def get_queried_lab(lab, lab_type, time_limit=DEFAULT_TIMELIMIT):
-
-
     lab_query_filepath = os.path.join(labs_query_folder, lab + '.csv')
+
     # print lab, 'os.path.exists(lab_query_filepath)', os.path.exists(lab_query_filepath)
     if not os.path.exists(lab_query_filepath):
         df = query_to_dataframe(lab, lab_type, lab_query_filepath=lab_query_filepath)
@@ -1414,7 +1413,7 @@ def query_to_dataframe(lab, lab_type='panel',
     df = pd.DataFrame(results, columns=columns)
     # if not os.path.exists(output_foldername):
     #     os.mkdir(output_foldername)
-    # df.to_csv(lab_query_filepath, index=False)
+    df.to_csv(lab_query_filepath, index=False)
 
     return df
 
