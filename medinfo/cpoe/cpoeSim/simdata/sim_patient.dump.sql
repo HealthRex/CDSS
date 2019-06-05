@@ -261,6 +261,37 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 270	zzzzzzzzzz_r23_palpitations	66	Female
 271	zzzzzzzzzz_r23_shortnessBreath	70	Male
 272	testingcase_palpitations	66	Female
+273	zzzzzzzzzz_r24_chestpain	62	Male
+274	zzzzzzzzzz_r24_diabetic_fatigue	26	Female
+275	zzzzzzzzzz_r24_feverB	30	Male
+276	zzzzzzzzzz_r24_headache	25	Female
+277	zzzzzzzzzz_r24_hematemesis	59	Male
+278	zzzzzzzzzz_r24_palpitations	66	Female
+279	zzzzzzzzzz_r24_shortnessBreath	70	Male
+280	zzzzzzzzzz_r25_chestpain	62	Male
+281	zzzzzzzzzz_r25_diabeticFatigue	26	Female
+282	zzzzzzzzzz_r25_feverB	30	Male
+283	zzzzzzzzzz_r25_headache	25	Female
+284	zzzzzzzzzz_R25_hematemesis	59	Male
+285	zzzzzzzzzz_r25_palpitations	66	Female
+286	zzzzzzzzzz_r25_shortnessBreath	70	Male
+287	zzzzzzzzzz_r25_hematemesis	59	Male
+288	zzzzzzzzzz_r26_chestPain	62	Male
+289	zzzzzzzzzz_r26_diabeticFatigue	26	Female
+290	zzzzzzzzz_r26_feverB	30	Male
+291	zzzzzzzzzz_r26_feverB	30	Male
+292	zzzzzzzzzz_r26_headache	25	Female
+293	zzzzzzzzzz_r26_hematemesis	59	Male
+294	zzzzzzzzzz_r26_palpitations	66	Female
+295	zzzzzzzzzz_shortnessBreath	70	Male
+296	zzzzzzzzzz_r26_shortnessBreath	70	Male
+297	zzzzzzzzzz_r27_chestPain	62	Male
+298	zzzzzzzzzz_r27_diabeticFatigue	26	Female
+299	zzzzzzzzzz_r27_feverB	30	Male
+300	zzzzzzzzzz_r27_headache	25	Female
+301	zzzzzzzzzz_r27_hematemesis	59	Male
+302	zzzzzzzzzz_r27_palpitations	66	Female
+303	zzzzzzzzzz_r27_shortnessBreath	70	Male
 \.
 
 
@@ -268,7 +299,7 @@ COPY public.sim_patient (sim_patient_id, name, age_years, gender) FROM stdin;
 -- Name: sim_patient_sim_patient_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 272, true);
+SELECT pg_catalog.setval('public.sim_patient_sim_patient_id_seq', 303, true);
 
 
 --
