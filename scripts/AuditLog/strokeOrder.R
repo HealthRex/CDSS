@@ -524,26 +524,188 @@ stroke_lab <- merge(stroke_cohort, sc_lab_result, by = "encounter_id")
 stroke_proc <- merge(stroke_cohort, sc_order_proc, by = "encounter_id")
 stroke_med <- merge(stroke_cohort, sc_order_med, by = "encounter_id")
 
+### TODO TEST 
+
 stroke_lab$lab_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_lab$tpaOrderTime) - convert_datetime(stroke_lab$order_time_jittered)) /60
 stroke_proc$proc_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_proc$tpaOrderTime) - convert_datetime(stroke_proc$order_time_jittered)) /60
 stroke_med$med_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_med$tpaOrderTime) - convert_datetime(stroke_med$order_time_jittered)) /60
+
+stroke_lab$ed_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_lab$tpaOrderTime) - convert_datetime(stroke_lab$emergencyAdmitTime)) /60
+stroke_proc$ed_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_proc$tpaOrderTime) - convert_datetime(stroke_proc$emergencyAdmitTime)) /60
+stroke_med$ed_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_med$tpaOrderTime) - convert_datetime(stroke_med$emergencyAdmitTime)) /60
+
+
+
+#check to see 12:00 time point orders 
+#sort(table(unique(stroke_lab$order_time_jittered)))
 
 stroke_lab_pre <- stroke_lab %>% filter(lab_time_difference_tpaOrderTime > 0) 
 stroke_proc_pre <- stroke_proc %>% filter(proc_time_difference_tpaOrderTime > 0) 
 stroke_med_pre <- stroke_med %>% filter(med_time_difference_tpaOrderTime > 0) 
 
-
-# MINI TEST:  test length
+# Mini Test:  test length
 dim(stroke_lab)[1] == dim(sc_lab_result)[1]
 dim(stroke_proc)[1] == dim(sc_order_proc)[1]
 dim(stroke_med)[1] == dim(sc_order_med)[1]
 
-# create list where each item is a patient
-stroke_labs_list <- split(stroke_lab, stroke_lab$encounter_id)
-stroke_proc_list <- split(stroke_proc, stroke_proc$encounter_id)
-stroke_med_list <- split(stroke_med, stroke_med$encounter_id)
+# Create List Where Each Item is a Patient
+stroke_labs_list <- split(stroke_lab_pre, stroke_lab_pre$encounter_id)
+stroke_proc_list <- split(stroke_proc_pre, stroke_proc_pre$encounter_id)
+stroke_med_list <- split(stroke_med_pre, stroke_med_pre$encounter_id)
 
 
+get_labs_before_tpa_order <- function(x){
+  num_labs_before_tpa_order = get_row(x)
+  x$num_labs_before_tpa_order <- num_labs_before_tpa_order
+  return(x)
+}
+
+get_procs_before_tpa_order <- function(x){
+  num_procs_before_tpa_order = get_row(x)
+  x$num_procs_before_tpa_order <- num_procs_before_tpa_order
+  return(x)
+}
+
+get_meds_before_tpa_order <- function(x){
+  num_meds_before_tpa_order = get_row(x)
+  x$num_meds_before_tpa_order <- num_meds_before_tpa_order
+  return(x)
+}
+
+stroke_labs_list2 <- lapply(stroke_labs_list, get_labs_before_tpa_order)
+stroke_proc_list2 <- lapply(stroke_proc_list, get_procs_before_tpa_order)
+stroke_meds_list2 <- lapply(stroke_med_list, get_meds_before_tpa_order)
+
+get_first_row <- function(df){
+  return(df[1,])
+}
+
+stroke_lab_one <- lapply(stroke_labs_list2, get_first_row)
+stroke_proc_one <- lapply(stroke_proc_list2, get_first_row)
+stroke_meds_one <- lapply(stroke_meds_list2, get_first_row)
+
+stroke_lab_df <- bind_rows(stroke_lab_one)
+stroke_proc_df <- bind_rows(stroke_proc_one)
+stroke_meds_df <- bind_rows(stroke_meds_one)
+
+stroke_proc_features <- stroke_proc_df %>% select(encounter_id, 
+                                                  num_procs_before_tpa_order)
+
+outersect <- function(x, y) {
+  sort(c(setdiff(x, y),
+         setdiff(y, x)))
+}
+
+# must account for people who recieved 0 procedures and 0 meds 
+# rbind()
+
+
+encounter_id_proc0 <- as.data.frame(outersect(stroke_lab_df$encounter_id, stroke_proc_features$encounter_id))
+colnames(encounter_id_proc0)[1] <- "encounter_id"
+encounter_id_proc0$num_procs_before_tpa_order <- 0 
+
+stroke_proc_complete <- rbind(stroke_proc_features, encounter_id_proc0)
+
+stroke_meds_features <- stroke_meds_df %>% select(encounter_id, 
+                                                  num_meds_before_tpa_order)
+
+encounter_id_meds0 <- as.data.frame(outersect(stroke_lab_df$encounter_id, stroke_meds_features$encounter_id))
+colnames(encounter_id_meds0)[1] <- "encounter_id"
+encounter_id_meds0$num_meds_before_tpa_order <- 0 
+
+stroke_meds_complete <- rbind(stroke_meds_features, encounter_id_meds0)
+
+stroke_df_pre1 <- merge(stroke_lab_df, stroke_proc_complete, by="encounter_id")
+stroke_df_ml <- merge(stroke_df_pre1, stroke_meds_complete, by="encounter_id")
+
+
+#stroke_labs_features <- stroke_lab_df %>% select(encounter_id, 
+#                                                  num_labs_before_tpa_order)
+#encounter_id_labs0 <- as.data.frame(outersect(stroke_lab_df$encounter_id, stroke_labs_features$encounter_id))
+#colnames(encounter_id_labs0)[1] <- "encounter_id"
+#encounter_id_labs0$num_labs_before_tpa_order <- 0 
+#stroke_labs_complete <- rbind(stroke_proc_features, encounter_id_labs0)
+
+#stroke_df_ml <- merge(stroke_df_pre2, stroke_labs_complete, by="encounter_id")
+
+# converting data long to wide 
+
+test = stroke_labs_list2[[1]]
+
+# x1 x2 x3 x4 (association) 
+
+# THINGS HAPPEN BEFORE: TEST: OCCURED AT MIDNIGHT: (TIMING CAVEAT)
+# Y VARIABLE (TIME BETWEEN) EXPLICIT FUNCTION TIME DIFFERENE BETWEEN
+# counts: 
+
+# BEFORE ED ADMIT (TIME BEFORE THEY REACHED)
+# Outcomes: linear regression: 
+
+# [1] lm(y1, x1,x2,x3,x4) counts with age gender demographics 
+# [2] Plots: 
+# regression trees: 
+
+# data_wide <- spread(olddata_long, condition, measurement)
+
+colnames(stroke_df_ml)
+
+fit1 <- lm(ed_time_difference_tpaOrderTime ~ num_labs_before_tpa_order, data = stroke_df_ml)
+fit2 <- lm(ed_time_difference_tpaOrderTime ~ num_procs_before_tpa_order, data = stroke_df_ml)
+fit3 <- lm(ed_time_difference_tpaOrderTime ~ num_meds_before_tpa_order, data = stroke_df_ml)
+
+summary(fit1)
+plot(stroke_df_ml$ed_time_difference_tpaOrderTime, stroke_df_ml$num_labs_before_tpa_order)
+plot(stroke_df_ml$ed_time_difference_tpaOrderTime, stroke_df_ml$num_meds_before_tpa_order)
+plot(stroke_df_ml$ed_time_difference_tpaOrderTime, stroke_df_ml$num_procs_before_tpa_order)
+
+ggplot(stroke_df_ml, aes(x = num_meds_before_tpa_order, y = ed_time_difference_tpaOrderTime)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red")
+
+ggplot(stroke_df_ml, aes(x = num_procs_before_tpa_order, y = ed_time_difference_tpaOrderTime)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red")
+
+ggplot(stroke_df_ml, aes(x = num_labs_before_tpa_order, y = ed_time_difference_tpaOrderTime)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red")
+
+stroke_df_ml %>% filter(num_labs_before_tpa_order > 1000)
+
+ml.fit <- lm(ed_time_difference_tpaOrderTime ~ num_labs_before_tpa_order + num_meds_before_tpa_order + num_procs_before_tpa_order, data=stroke_df_ml)
+
+plot()
+
+
+lab_rows <- stroke_lab_pre %>% 
+  group_by(group_lab_name) %>%
+  summarise(no_rows = length(group_lab_name)) %>% 
+  arrange(desc(no_rows))
+
+proc_rows <- stroke_proc_pre %>% 
+  group_by(med_description) %>%
+  summarise(no_rows = length(med_description))%>% 
+  arrange(desc(no_rows))
+
+med_rows <- stroke_med_pre %>% 
+  group_by(med_description)%>%
+  summarise(no_rows = length(med_description))%>% 
+  arrange(desc(no_rows))
+
+labAll_rows <- stroke_lab %>% 
+  group_by(group_lab_name) %>%
+  summarise(no_rows = length(group_lab_name)) %>% 
+  arrange(desc(no_rows))
+
+procAll_rows <- stroke_proc %>% 
+  group_by(med_description) %>%
+  summarise(no_rows = length(med_description))%>% 
+  arrange(desc(no_rows))
+
+medAll_rows <- stroke_med %>% 
+  group_by(med_description)%>%
+  summarise(no_rows = length(med_description))%>% 
+  arrange(desc(no_rows))
 
 # TODO 
 # TESTING time difference (UNIT TEST REQUIRED)
@@ -557,3 +719,7 @@ stroke_med_list <- split(stroke_med, stroke_med$encounter_id)
 # GET ASSOCIATIONS FOR TPA ORDER 
 # GET ASSOCIATIONS FOR CT HEAD UNDER 10 and Then Greater than 50 
 # Construct Cox Regression for TPA order as Diagnostic Procedure 
+
+
+
+
