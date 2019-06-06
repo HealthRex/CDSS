@@ -10,6 +10,8 @@ import csv
 class SimulationAnalyzer:
 	def __init__(self, data_file):
 		self.data_file = data_file
+		self.version = data_file.split('.')[0].split('_')[-1]  # Get tracker version from filename
+		assert(self.version in ['v4', 'v5'])
 		self.load_tracker_data()
 		self.results_collection = self.normalize_results()
 		self.signed_orders_collections = self.normalize_signed_orders()
@@ -66,10 +68,10 @@ class SimulationAnalyzer:
 			source = u'specificOrders'
 		elif source == 'non-recommender':
 			source = u'data'
-		item_dict['source'] = source
-		item_dict['searchQuery'] = searchQuery
-		item_dict['mode'] = mode
-		item_dict['listIndex'] = int(list_idx)
+		item_dict['source'] = source if source != 'undefined' else 'data'  # Quick fix for issue where order set items are not recorded correctly
+		item_dict['searchQuery'] = searchQuery  # May be undefined due to issue where order set items are not correctly recorded
+		item_dict['mode'] = mode if mode != 'undefined' else 'OrderSets'  # Quick fix for issue where order set items are not recorded correctly
+		item_dict['listIndex'] = 1000 if list_idx == 'undefined' else int(list_idx)  # Quick fix for issue where order set items are not recorded correctly - set listIndex to something arbitarily high
 
 	def normalize_results(self):
 		"""Join all results into a single, 'flat' collection of result item dicts
@@ -384,10 +386,12 @@ class SimulationAnalyzer:
 		# clinicalItemId, listIndex (though s_item index will be ahead), and location source
 		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex'] - 1 and r_item['source'] == s_item['source']
 
-		# Get manually-searched signed items
-		manual_search_results = self.get_manually_searched_options()
-		signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collections, filter_fn=filter_fn)
-		# signed_from_manual = list(filter(lambda s_item: s_item['source'] == 'data', self.signed_orders_collections))
+		if self.version == 'v5':  # version 5 of tracker correctly tracks order set items in results
+			# Get manually-searched signed items
+			manual_search_results = self.get_manually_searched_options()
+			signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collections, filter_fn=filter_fn)
+		elif self.version == 'v4':  # versions 4 of the tracker only tracks item sources in the signed orders collection
+			signed_from_manual = list(filter(lambda s_item: s_item['source'] == 'data', self.signed_orders_collections))
 		return signed_from_manual
 
 	def get_signed_from_recommended(self, include_related=True):
@@ -405,10 +409,12 @@ class SimulationAnalyzer:
 		# clinicalItemId, listIndex (though s_item index will be ahead), and location source
 		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and (r_item['listIndex'] == s_item['listIndex'] - 1 or r_item['listIndex']+1 == s_item['listIndex'] - 1) and r_item['source'] == s_item['source']
 
-		# Get recommended signed items
-		recommended_results = self.get_recommended_options(include_related=include_related)
-		signed_from_recommended = self._result_signed_intersection(recommended_results, self.signed_orders_collections, filter_fn)
-		# signed_from_recommended = list(filter(lambda s_item: s_item['source'] != 'data', self.signed_orders_collections))
+		if self.version == 'v5':  # version 5 of tracker correctly tracks order set items in results
+			# Get recommended signed items
+			recommended_results = self.get_recommended_options(include_related=include_related)
+			signed_from_recommended = self._result_signed_intersection(recommended_results, self.signed_orders_collections, filter_fn)
+		elif self.version == 'v4':  # versions 4 of the tracker only tracks item sources in the signed orders collection
+			signed_from_recommended = list(filter(lambda s_item: s_item['source'] != 'data', self.signed_orders_collections))
 		return signed_from_recommended
 
 	def get_signed_missed_recommended(self, include_related=True):
