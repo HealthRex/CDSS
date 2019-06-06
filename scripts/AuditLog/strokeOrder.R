@@ -1,3 +1,8 @@
+## TODO: 
+# write tests for handling date:times: 
+# write modules for usage in SQL
+# write modules for Python 
+
 library(bigrquery)
 library(DBI)
 library(dplyr)
@@ -5,9 +10,18 @@ library(lubridate)
 library(stringr)
 library(data.table)
 library(ggplot2)
+#library(bigrquery)
+#library(data.table)
+library(feather)
+library(reticulate)
+#library(dplyr)
+library(psych)
+library(timevis)
+#library(shiny)
 
 path <- "/Users/jonc101/Documents/Biomedical_Data_Science/gcp/gcp_read"
 setwd(path)
+#dir.create("/Users/jonc101/Documents/Biomedical_Data_Science/gcp/gcp_read/stroke_module")
 
 # Assigning GCP Project Name
 project <- "mining-clinical-decisions" # put your project ID here
@@ -21,16 +35,6 @@ con <- dbConnect(
   dataset = 'datalake_47618' ,
   billing = project
 )
-
-# libraries to read in
-library(bigrquery)
-library(data.table)
-library(feather)
-library(reticulate)
-library(dplyr)
-library(psych)
-library(timevis)
-library(shiny)
 
 # python libraries 
 pandas <- import("pandas")
@@ -389,39 +393,39 @@ order_med = "
 SELECT jc_uid, cast(pat_enc_csn_id_coded as string) as string_id, pat_enc_csn_id_coded, order_time_jittered, order_med_id_coded, medication_id, med_description, order_class, amb_med_disp_name, quantity, authr_prov_map_id, med_route  
 FROM `starr_datalake2018.order_med` 
 WHERE pat_enc_csn_id_coded in  (
-    select pat_enc_csn_id_coded from (
-        select 
-          op.jc_uid, op.pat_enc_csn_id_coded, 
-        admit.event_type, admit.pat_class, admit.effective_time_jittered as emergencyAdmitTime, 
-        min(opCT.order_inst_jittered) as ctHeadOrderTime,
-        om.med_description as tpaDescription, min(om.order_time_jittered) as tpaOrderTime,
-        min(mar.taken_time_jittered) as tpaAdminTime,
-        inpatient.pat_class as inptClass, min(inpatient.effective_time_jittered) as inpatientAdmitTime
-        from 
-        datalake_47618.order_proc as op, 
-        datalake_47618.adt as admit, 
-        datalake_47618.order_proc as opCT,
-        datalake_47618.order_med as om,
-        datalake_47618.mar as mar,
-        datalake_47618.adt as inpatient
-        where op.display_name like 'Patient on TPA%'
-        and op.pat_enc_csn_id_coded = admit.pat_enc_csn_id_coded
-        and op.pat_enc_csn_id_coded = opCT.pat_enc_csn_id_coded
-        and op.pat_enc_csn_id_coded = om.pat_enc_csn_id_coded
-        and op.pat_enc_csn_id_coded = inpatient.pat_enc_csn_id_coded
-        and om.order_med_id_coded = mar.order_med_id_coded
-        and admit.event_type_c = 1 -- Admission
-        and admit.pat_class_c = '112' -- Emergency Services
-        and opCT.proc_code like 'IMGCTH%' -- CT Head orders
-        and om.medication_id = 86145 -- ALTEPLASE 100mg infusion
-        and inpatient.pat_class_c = '126' -- Inpatient
-        group by 
-        op.jc_uid, op.pat_enc_csn_id_coded, 
-        admit.event_type, admit.pat_class, admit.effective_time_jittered, 
-        om.med_description,
-        inpatient.pat_class
-        order by emergencyAdmitTime)
-    )
+select pat_enc_csn_id_coded from (
+select 
+op.jc_uid, op.pat_enc_csn_id_coded, 
+admit.event_type, admit.pat_class, admit.effective_time_jittered as emergencyAdmitTime, 
+min(opCT.order_inst_jittered) as ctHeadOrderTime,
+om.med_description as tpaDescription, min(om.order_time_jittered) as tpaOrderTime,
+min(mar.taken_time_jittered) as tpaAdminTime,
+inpatient.pat_class as inptClass, min(inpatient.effective_time_jittered) as inpatientAdmitTime
+from 
+datalake_47618.order_proc as op, 
+datalake_47618.adt as admit, 
+datalake_47618.order_proc as opCT,
+datalake_47618.order_med as om,
+datalake_47618.mar as mar,
+datalake_47618.adt as inpatient
+where op.display_name like 'Patient on TPA%'
+and op.pat_enc_csn_id_coded = admit.pat_enc_csn_id_coded
+and op.pat_enc_csn_id_coded = opCT.pat_enc_csn_id_coded
+and op.pat_enc_csn_id_coded = om.pat_enc_csn_id_coded
+and op.pat_enc_csn_id_coded = inpatient.pat_enc_csn_id_coded
+and om.order_med_id_coded = mar.order_med_id_coded
+and admit.event_type_c = 1 -- Admission
+and admit.pat_class_c = '112' -- Emergency Services
+and opCT.proc_code like 'IMGCTH%' -- CT Head orders
+and om.medication_id = 86145 -- ALTEPLASE 100mg infusion
+and inpatient.pat_class_c = '126' -- Inpatient
+group by 
+op.jc_uid, op.pat_enc_csn_id_coded, 
+admit.event_type, admit.pat_class, admit.effective_time_jittered, 
+om.med_description,
+inpatient.pat_class
+order by emergencyAdmitTime)
+)
 "
 
 data2 <- download_bq(project, order_med)
@@ -430,38 +434,38 @@ order_proc = "
 SELECT jc_uid, cast(pat_enc_csn_id_coded as string) as string_id, pat_enc_csn_id_coded, order_proc_id_coded, order_type, proc_code, description, display_name, authrzing_prov_map_id, billing_prov_map_id, order_inst_jittered  
 FROM `starr_datalake2018.order_proc` 
 WHERE pat_enc_csn_id_coded in  (
-    select pat_enc_csn_id_coded from (
-          select 
-          op.jc_uid, op.pat_enc_csn_id_coded, 
-          admit.event_type, admit.pat_class, admit.effective_time_jittered as emergencyAdmitTime, 
-          min(opCT.order_inst_jittered) as ctHeadOrderTime,
-          om.med_description as tpaDescription, min(om.order_time_jittered) as tpaOrderTime,
-          min(mar.taken_time_jittered) as tpaAdminTime,
-          inpatient.pat_class as inptClass, min(inpatient.effective_time_jittered) as inpatientAdmitTime
-          from 
-          datalake_47618.order_proc as op, 
-          datalake_47618.adt as admit, 
-          datalake_47618.order_proc as opCT,
-          datalake_47618.order_med as om,
-          datalake_47618.mar as mar,
-          datalake_47618.adt as inpatient
-          where op.display_name like 'Patient on TPA%'
-          and op.pat_enc_csn_id_coded = admit.pat_enc_csn_id_coded
-          and op.pat_enc_csn_id_coded = opCT.pat_enc_csn_id_coded
-          and op.pat_enc_csn_id_coded = om.pat_enc_csn_id_coded
-          and op.pat_enc_csn_id_coded = inpatient.pat_enc_csn_id_coded
-          and om.order_med_id_coded = mar.order_med_id_coded
-          and admit.event_type_c = 1 -- Admission
-          and admit.pat_class_c = '112' -- Emergency Services
-          and opCT.proc_code like 'IMGCTH%' -- CT Head orders
-          and om.medication_id = 86145 -- ALTEPLASE 100mg infusion
-          and inpatient.pat_class_c = '126' -- Inpatient
-          group by 
-          op.jc_uid, op.pat_enc_csn_id_coded, 
-          admit.event_type, admit.pat_class, admit.effective_time_jittered, 
-          om.med_description,
-          inpatient.pat_class
-          order by emergencyAdmitTime)
+select pat_enc_csn_id_coded from (
+select 
+op.jc_uid, op.pat_enc_csn_id_coded, 
+admit.event_type, admit.pat_class, admit.effective_time_jittered as emergencyAdmitTime, 
+min(opCT.order_inst_jittered) as ctHeadOrderTime,
+om.med_description as tpaDescription, min(om.order_time_jittered) as tpaOrderTime,
+min(mar.taken_time_jittered) as tpaAdminTime,
+inpatient.pat_class as inptClass, min(inpatient.effective_time_jittered) as inpatientAdmitTime
+from 
+datalake_47618.order_proc as op, 
+datalake_47618.adt as admit, 
+datalake_47618.order_proc as opCT,
+datalake_47618.order_med as om,
+datalake_47618.mar as mar,
+datalake_47618.adt as inpatient
+where op.display_name like 'Patient on TPA%'
+and op.pat_enc_csn_id_coded = admit.pat_enc_csn_id_coded
+and op.pat_enc_csn_id_coded = opCT.pat_enc_csn_id_coded
+and op.pat_enc_csn_id_coded = om.pat_enc_csn_id_coded
+and op.pat_enc_csn_id_coded = inpatient.pat_enc_csn_id_coded
+and om.order_med_id_coded = mar.order_med_id_coded
+and admit.event_type_c = 1 -- Admission
+and admit.pat_class_c = '112' -- Emergency Services
+and opCT.proc_code like 'IMGCTH%' -- CT Head orders
+and om.medication_id = 86145 -- ALTEPLASE 100mg infusion
+and inpatient.pat_class_c = '126' -- Inpatient
+group by 
+op.jc_uid, op.pat_enc_csn_id_coded, 
+admit.event_type, admit.pat_class, admit.effective_time_jittered, 
+om.med_description,
+inpatient.pat_class
+order by emergencyAdmitTime)
 )
 "
 
@@ -471,7 +475,7 @@ lab_result_qry <- "
 SELECT rit_uid as jc_uid, cast(pat_enc_csn_id_coded as string) as string_id, pat_enc_csn_id_coded, order_time_jittered, proc_code, order_type, group_lab_name, lab_name, base_name, ord_value, result_flag, auth_prov_map_id, ordering_mode
 FROM `starr_datalake2018.lab_result` 
 WHERE  pat_enc_csn_id_coded in  (
-    select pat_enc_csn_id_coded from (
+select pat_enc_csn_id_coded from (
 select 
 op.jc_uid, op.pat_enc_csn_id_coded, 
 admit.event_type, admit.pat_class, admit.effective_time_jittered as emergencyAdmitTime, 
@@ -513,46 +517,51 @@ sc_order_proc <- data3
 sc_order_med <- data2
 
 # three lists of data
+sc_lab_result$encounter_id <- paste0(sc_lab_result$string_id, "_", sc_lab_result$jc_uid)
+sc_order_proc$encounter_id <- paste0(sc_order_proc$string_id, "_", sc_order_proc$jc_uid)
+sc_order_med$encounter_id  <- paste0(sc_order_med$string_id,  "_", sc_order_med$jc_uid)
 
-sc_lab_result$encounter_id <- paste0(sc_lab_result$string_id, "_",sc_lab_result$jc_uid)
-sc_order_proc$encounter_id <- paste0(sc_order_proc$string_id, "_",sc_order_proc$jc_uid)
-sc_order_med$encounter_id <- paste0(sc_order_med$string_id, "_",sc_order_med$jc_uid)
 
 stroke_cohort$encounter_id <- paste0(stroke_cohort$pat_enc_csn_id_coded,"_", stroke_cohort$jc_uid)
 
-stroke_lab <- merge(stroke_cohort, sc_lab_result, by = "encounter_id")
+stroke_lab  <- merge(stroke_cohort, sc_lab_result, by = "encounter_id")
 stroke_proc <- merge(stroke_cohort, sc_order_proc, by = "encounter_id")
-stroke_med <- merge(stroke_cohort, sc_order_med, by = "encounter_id")
+stroke_med  <- merge(stroke_cohort, sc_order_med, by = "encounter_id")
 
 ### TODO TEST 
 
-stroke_lab$lab_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_lab$tpaOrderTime) - convert_datetime(stroke_lab$order_time_jittered)) /60
+stroke_lab$lab_time_difference_tpaOrderTime   <- as.numeric(convert_datetime(stroke_lab$tpaOrderTime) - convert_datetime(stroke_lab$order_time_jittered)) /60
 stroke_proc$proc_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_proc$tpaOrderTime) - convert_datetime(stroke_proc$order_time_jittered)) /60
-stroke_med$med_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_med$tpaOrderTime) - convert_datetime(stroke_med$order_time_jittered)) /60
+stroke_med$med_time_difference_tpaOrderTime   <- as.numeric(convert_datetime(stroke_med$tpaOrderTime) - convert_datetime(stroke_med$order_time_jittered)) /60
 
-stroke_lab$ed_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_lab$tpaOrderTime) - convert_datetime(stroke_lab$emergencyAdmitTime)) /60
-stroke_proc$ed_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_proc$tpaOrderTime) - convert_datetime(stroke_proc$emergencyAdmitTime)) /60
-stroke_med$ed_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_med$tpaOrderTime) - convert_datetime(stroke_med$emergencyAdmitTime)) /60
+#stroke_lab$ed_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_lab$tpaOrderTime) - convert_datetime(stroke_lab$emergencyAdmitTime)) /60
+#stroke_proc$ed_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_proc$tpaOrderTime) - convert_datetime(stroke_proc$emergencyAdmitTime)) /60
+#stroke_med$ed_time_difference_tpaOrderTime <- as.numeric(convert_datetime(stroke_med$tpaOrderTime) - convert_datetime(stroke_med$emergencyAdmitTime)) /60
 
-
+stroke_lab$ed_time_difference  <- as.numeric(convert_datetime(stroke_lab$tpaOrderTime) - convert_datetime(stroke_lab$emergencyAdmitTime)) /60
+stroke_proc$ed_time_difference <- as.numeric(convert_datetime(stroke_proc$tpaOrderTime) - convert_datetime(stroke_proc$emergencyAdmitTime)) /60
+stroke_med$ed_time_difference  <- as.numeric(convert_datetime(stroke_med$tpaOrderTime) - convert_datetime(stroke_med$emergencyAdmitTime)) /60
 
 #check to see 12:00 time point orders 
 #sort(table(unique(stroke_lab$order_time_jittered)))
 
-stroke_lab_pre <- stroke_lab %>% filter(lab_time_difference_tpaOrderTime > 0) 
+stroke_lab_pre  <- stroke_lab  %>% filter(lab_time_difference_tpaOrderTime > 0) 
 stroke_proc_pre <- stroke_proc %>% filter(proc_time_difference_tpaOrderTime > 0) 
-stroke_med_pre <- stroke_med %>% filter(med_time_difference_tpaOrderTime > 0) 
+stroke_med_pre  <- stroke_med  %>% filter(med_time_difference_tpaOrderTime > 0) 
+
+stroke_lab_pre2  <- stroke_lab_pre  %>% filter(ed_time_difference < 0) 
+stroke_proc_pre2 <- stroke_proc_pre %>% filter(ed_time_difference < 0) 
+stroke_med_pre2  <- stroke_med_pre  %>% filter(ed_time_difference < 0) 
 
 # Mini Test:  test length
-dim(stroke_lab)[1] == dim(sc_lab_result)[1]
+dim(stroke_lab)[1]  == dim(sc_lab_result)[1]
 dim(stroke_proc)[1] == dim(sc_order_proc)[1]
-dim(stroke_med)[1] == dim(sc_order_med)[1]
+dim(stroke_med)[1]  == dim(sc_order_med)[1]
 
 # Create List Where Each Item is a Patient
 stroke_labs_list <- split(stroke_lab_pre, stroke_lab_pre$encounter_id)
 stroke_proc_list <- split(stroke_proc_pre, stroke_proc_pre$encounter_id)
-stroke_med_list <- split(stroke_med_pre, stroke_med_pre$encounter_id)
-
+stroke_med_list  <- split(stroke_med_pre, stroke_med_pre$encounter_id)
 
 get_labs_before_tpa_order <- function(x){
   num_labs_before_tpa_order = get_row(x)
@@ -580,16 +589,17 @@ get_first_row <- function(df){
   return(df[1,])
 }
 
-stroke_lab_one <- lapply(stroke_labs_list2, get_first_row)
+stroke_lab_one  <- lapply(stroke_labs_list2, get_first_row)
 stroke_proc_one <- lapply(stroke_proc_list2, get_first_row)
 stroke_meds_one <- lapply(stroke_meds_list2, get_first_row)
 
-stroke_lab_df <- bind_rows(stroke_lab_one)
+stroke_lab_df  <- bind_rows(stroke_lab_one)
 stroke_proc_df <- bind_rows(stroke_proc_one)
 stroke_meds_df <- bind_rows(stroke_meds_one)
 
-stroke_proc_features <- stroke_proc_df %>% select(encounter_id, 
-                                                  num_procs_before_tpa_order)
+stroke_proc_features <- stroke_proc_df %>% 
+  select(encounter_id, 
+         num_procs_before_tpa_order)
 
 outersect <- function(x, y) {
   sort(c(setdiff(x, y),
@@ -597,8 +607,6 @@ outersect <- function(x, y) {
 }
 
 # must account for people who recieved 0 procedures and 0 meds 
-# rbind()
-
 
 encounter_id_proc0 <- as.data.frame(outersect(stroke_lab_df$encounter_id, stroke_proc_features$encounter_id))
 colnames(encounter_id_proc0)[1] <- "encounter_id"
@@ -617,6 +625,7 @@ stroke_meds_complete <- rbind(stroke_meds_features, encounter_id_meds0)
 
 stroke_df_pre1 <- merge(stroke_lab_df, stroke_proc_complete, by="encounter_id")
 stroke_df_ml <- merge(stroke_df_pre1, stroke_meds_complete, by="encounter_id")
+
 
 
 #stroke_labs_features <- stroke_lab_df %>% select(encounter_id, 
@@ -649,15 +658,26 @@ test = stroke_labs_list2[[1]]
 
 colnames(stroke_df_ml)
 
+
+stroke_df_ml <- stroke_df_ml %>% 
+  filter(num_procs_before_tpa_order < 300) %>%
+  filter(num_meds_before_tpa_order < 300) %>%
+  filter(num_meds_before_tpa_order < 300) %>% 
+  filter(ed_time_difference_tpaOrderTime < 100) 
+  
+  
+
 fit1 <- lm(ed_time_difference_tpaOrderTime ~ num_labs_before_tpa_order, data = stroke_df_ml)
 fit2 <- lm(ed_time_difference_tpaOrderTime ~ num_procs_before_tpa_order, data = stroke_df_ml)
 fit3 <- lm(ed_time_difference_tpaOrderTime ~ num_meds_before_tpa_order, data = stroke_df_ml)
 
-summary(fit1)
+  
+#summary(fit1)
 plot(stroke_df_ml$ed_time_difference_tpaOrderTime, stroke_df_ml$num_labs_before_tpa_order)
 plot(stroke_df_ml$ed_time_difference_tpaOrderTime, stroke_df_ml$num_meds_before_tpa_order)
 plot(stroke_df_ml$ed_time_difference_tpaOrderTime, stroke_df_ml$num_procs_before_tpa_order)
 
+#View(stroke_df_ml)
 ggplot(stroke_df_ml, aes(x = num_meds_before_tpa_order, y = ed_time_difference_tpaOrderTime)) + 
   geom_point() +
   stat_smooth(method = "lm", col = "red")
@@ -670,56 +690,5 @@ ggplot(stroke_df_ml, aes(x = num_labs_before_tpa_order, y = ed_time_difference_t
   geom_point() +
   stat_smooth(method = "lm", col = "red")
 
-stroke_df_ml %>% filter(num_labs_before_tpa_order > 1000)
 
 ml.fit <- lm(ed_time_difference_tpaOrderTime ~ num_labs_before_tpa_order + num_meds_before_tpa_order + num_procs_before_tpa_order, data=stroke_df_ml)
-
-plot()
-
-
-lab_rows <- stroke_lab_pre %>% 
-  group_by(group_lab_name) %>%
-  summarise(no_rows = length(group_lab_name)) %>% 
-  arrange(desc(no_rows))
-
-proc_rows <- stroke_proc_pre %>% 
-  group_by(med_description) %>%
-  summarise(no_rows = length(med_description))%>% 
-  arrange(desc(no_rows))
-
-med_rows <- stroke_med_pre %>% 
-  group_by(med_description)%>%
-  summarise(no_rows = length(med_description))%>% 
-  arrange(desc(no_rows))
-
-labAll_rows <- stroke_lab %>% 
-  group_by(group_lab_name) %>%
-  summarise(no_rows = length(group_lab_name)) %>% 
-  arrange(desc(no_rows))
-
-procAll_rows <- stroke_proc %>% 
-  group_by(med_description) %>%
-  summarise(no_rows = length(med_description))%>% 
-  arrange(desc(no_rows))
-
-medAll_rows <- stroke_med %>% 
-  group_by(med_description)%>%
-  summarise(no_rows = length(med_description))%>% 
-  arrange(desc(no_rows))
-
-# TODO 
-# TESTING time difference (UNIT TEST REQUIRED)
-#t1 = stroke_labs_list$`131009784135_JCdb0e75`
-#t2 = cbind(t1$tpaOrderTime, t1$order_time_jittered)
-#View(t2)
-#t1$time_difference_tpaOrderTime <- as.numeric(convert_datetime(t1$tpaOrderTime) - convert_datetime(t1$order_time_jittered)) /60
-
-
-# TO DO 
-# GET ASSOCIATIONS FOR TPA ORDER 
-# GET ASSOCIATIONS FOR CT HEAD UNDER 10 and Then Greater than 50 
-# Construct Cox Regression for TPA order as Diagnostic Procedure 
-
-
-
-
