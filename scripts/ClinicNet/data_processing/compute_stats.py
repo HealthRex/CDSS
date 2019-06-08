@@ -103,7 +103,7 @@ def main(argv):
 		if opt == '-h':
                 	print('compute_stats.py -i <data_directory> -o <output_directory> [-x features_to_exclude] [-h]')
 			print('')
-			print('This script computes the mean and standard deviation of all features, except those in features_to_exclude.')
+			print('This script computes the mean and standard deviation of all features. All data is log2(x+1)-transformed except those in features_to_exclude.')
 			print('Additionally, for each response variable, the frequency (i.e. percent) of it being a non-zero value is computed.')
 			print('As a result, two output files will be generated: avg_stddev.hdf5 and freq_y.hdf5')
 			print('The input files are read from the directory <data_directory>')
