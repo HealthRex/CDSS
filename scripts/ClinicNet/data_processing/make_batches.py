@@ -51,7 +51,7 @@ def main(argv):
 	input_dir = ''
 	output_dir = ''
 	try:
-		opts, args = getopt.getopt(argv,"hs:d:i:o:be")
+		opts, args = getopt.getopt(argv,"hs:d:i:o:b:e:")
 	except getopt.GetoptError:
 		print('make_batches.py -s <shuffle_pickle_file> -i <directory_of_data_to_shuffle> -o <output_directory> [-b index_to_begin] [-e index_to_end] [-h]')
 		sys.exit(2)
