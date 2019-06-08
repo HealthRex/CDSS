@@ -8,6 +8,7 @@
 ## Getting data's statistics
 
 We want to get the means and standard deviations of each feature so we can standardize the dataset via: (x-μ)/s
+Note that prior to calculating the means and standard deviations, the data will be log2(x+1) transformed.
 Additionally, we want to get the frequencies of the response variables being non-zeroes (i.e. for each response variable, what are the percentage of non-zero values). This will be useful for weighting our loss function later on.
 
 To do this, we use the following script (the -x flag denotes which features we don't want to transform). In the output folder, two files: avg_stddev.hdf5 and freq_y.hdf5 will be generated.
