@@ -73,7 +73,7 @@ def main(argv):
 			input_dir = arg
 		elif opt == '-o':
 			output_dir = arg
-        if len(argv) < 3:
+        if len(argv) < 3 or pickle_shuffle_file == '' or input_dir == '' or output_dir == '':
                 print('make_batches.py -s <shuffle_pickle_file> -i <directory_of_data_to_shuffle> -o <output_directory> [-b index_to_begin] [-e index_to_end] [-h]')
                 sys.exit(2)
 
