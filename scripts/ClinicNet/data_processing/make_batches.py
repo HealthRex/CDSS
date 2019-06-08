@@ -50,6 +50,8 @@ def main(argv):
 	pickle_shuffle_file = ''
 	input_dir = ''
 	output_dir = ''
+	begin_index=None
+	end_index=None
 	try:
 		opts, args = getopt.getopt(argv,"hs:d:i:o:b:e:")
 	except getopt.GetoptError:
@@ -69,6 +71,10 @@ def main(argv):
 			sys.exit()
 		elif opt == '-s':
 			pickle_shuffle_file = arg
+                elif opt == '-b':
+                        begin_index = int(arg)
+                elif opt == '-e':
+                        end_index = int(arg)
 		elif opt == '-i':
 			input_dir = arg
 		elif opt == '-o':
@@ -83,8 +89,7 @@ def main(argv):
 	infile.close()
 
 	# Finally, time to write the batches to files
-	write_shuffled_batches(input_dir, output_dir, shuffled_batches)
+	write_shuffled_batches(input_dir, output_dir, shuffled_batches, begin_index, end_index)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
-
