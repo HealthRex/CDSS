@@ -110,6 +110,27 @@ umich_lab_cnt = {'WBC':5280.99347210938,
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+
+from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
+        import NON_PANEL_TESTS_WITH_GT_500_ORDERS, \
+            UCSF_TOP_PANELS, UMICH_TOP_PANELS, \
+            STRIDE_COMPONENT_TESTS_common, UMICH_TOP_COMPONENTS_common, UCSF_TOP_COMPONENTS_common
+
+def get_all_labs(data_source, lab_type):
+    if data_source == 'Stanford' and lab_type == 'panel':
+        all_labs = NON_PANEL_TESTS_WITH_GT_500_ORDERS  #
+    elif data_source == 'Stanford' and lab_type == 'component':
+        all_labs = STRIDE_COMPONENT_TESTS_common  #
+    elif data_source == 'UMich' and lab_type == 'panel':
+        all_labs = UMICH_TOP_PANELS
+    elif data_source == 'UMich' and lab_type == 'component':
+        all_labs = UMICH_TOP_COMPONENTS_common  #
+    elif data_source == 'UCSF' and lab_type == 'component':
+        all_labs = UCSF_TOP_COMPONENTS_common  #
+    elif data_source == 'UCSF' and lab_type == 'panel':
+        all_labs = UCSF_TOP_PANELS
+    return all_labs
+
 def prepare_subfigs(num_figs, col = 5):
 
     row = num_figs / col
