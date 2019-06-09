@@ -15,6 +15,8 @@ To do the conversion, run the following script where you specify the input data 
 
 Running the above command will give you something like this: "Using 2 processes for processing 58290 files divided into 360 chunks". Once it's finished running, you'll see "FINISHED" printed out and you'll see 360 .h5 files in the output folder.
 
+IMPORTANT: The HDF5 files will store the data frames as float32 types. This means we can't have any non-numeric columns (in the example above, we removed the item_date and analyze_date columns because these columns store dates in string format). Use -e to remove non-numeric columns.
+
 # Processing the Data Matrix<a name="processdatamatrix"></a>
 
 ## Getting data's statistics
