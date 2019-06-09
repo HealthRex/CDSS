@@ -1,9 +1,12 @@
 # Table of contents
-1. [Processing the Data Matrix](#processdatamatrix)
+1. [Data Preprocessing](#preprocessing)
+2. [Processing the Data Matrix](#processdatamatrix)
+
+# Data Preprocessing<a name="preprocessing"></a>
+
+## Putting the data into HDF5 files
 
 # Processing the Data Matrix<a name="processdatamatrix"></a>
-
-
 
 ## Getting data's statistics
 
