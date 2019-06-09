@@ -8,7 +8,7 @@
 
 For all the data files (that are tab-delimited in plaintext format) in a folder, we'll convert them to (partially compressed) HDF5 files so they can efficiently be loaded into python pandas data frames later on. From here on out, we'll only load data via HDF5 files.
 
-To do the conversion, run the following script where you specify the input data directory, output folder (which you should create beforehand with mkdir), the number of chunks to split the data into (this will be the number of HDF5 files we'll get), the clinical item IDs to retain for the response variables, and the features that we want to exclude altogether. Since the data will be split into multiple chunks, we can leverage multiprocessing via -p.
+To do the conversion, run the following script where you specify the input data directory, output folder (which you should create beforehand with mkdir), the number of chunks to split the data into (this will be the number of HDF5 files we'll get), the clinical item IDs to retain for the post.1d response variables, and the features that we want to exclude altogether. Since the data will be split into multiple chunks, we can leverage multiprocessing via -p.
 
 
 <pre>python2 preprocessing/make_hdf5.py -i data/train -c data/columns.txt -o data/hdf5/train -n 360 -r data/response_vars.tsv -e item_date,analyze_date -p 2</pre>
