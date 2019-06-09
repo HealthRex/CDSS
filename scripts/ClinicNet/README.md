@@ -22,4 +22,5 @@ We can kill two birds with one stone: Shuffling (randomly) the entire dataset an
 <pre>python2 data_processing/prep_batches.py -i data/hdf5/train/ -o data/train_shuffling.pickle -b 4096</pre>
 <pre>python2 data_processing/make_batches.py -s data/train_shuffling.pickle -i data/hdf5/train/ -o data/hdf5/train_shuffled/ -b 0 -e 100</pre>
 Note: The first script will print out info about the batches generated, like the following: "Read 25606920 data rows in 360 files. Created 6252 batches of size 4096."
+
 Note: For the second script, we set the -b and -e options to indicate the beginning index and the end index of the batches we want to write out. In the example above, we write out batches 0 through 99. This is because doing the entire operation at once would consume too much memory so we need to split it into chunks.
