@@ -12,7 +12,9 @@ To split our data set into train/dev/test on the basis of patients (not encounte
 
 <pre>preprocessing/data_split.sh -g ./data/unprocessed/ 70 15 15</pre>
 
-This will create a 70/15/15 split for train/dev/test sets.
+This will create a 70/15/15 split for train/dev/test sets. You'll also get some summary statistics such as: 
+"Number of patients: 57624 (total), 40336 (train), 8644 (dev), 8644 (test)"
+"Number of encounters: 83226 (total), 58290 (train), 12401 (dev), 12535 (test)"
 
 ## Putting the data into HDF5 files
 
