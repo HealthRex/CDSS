@@ -4,6 +4,16 @@
 
 # Data Preprocessing<a name="preprocessing"></a>
 
+## Splitting Data into Train/Dev/Test
+
+Now we have our dataset in one folder; all files are .txt.gz files containing tab-delimited plaintext data. Each data file should be a patient encounter with the encounter ID followed by .txt or .txt.gz in the filename. Also, in that same folder, there should be a columns.txt file specifying column names for all the fields in the data files. (Note: The fields, patient_id and encounter_id, must be present as columns in order for us to proceed).
+
+To split our data set into train/dev/test on the basis of patients (not encounters!) so that data from any single patient won't spill over across the train/dev/test sets, we run the following script (note: -g specifies our files are gzip compressed files):
+
+<pre>preprocessing/data_split.sh -g ./data/unprocessed/ 70 15 15</pre>
+
+This will create a 70/15/15 split for train/dev/test sets.
+
 ## Putting the data into HDF5 files
 
 For all the data files (that are tab-delimited in plaintext format) in a folder, we'll convert them to (partially compressed) HDF5 files so they can efficiently be loaded into python pandas data frames later on. From here on out, we'll only load data via HDF5 files.
