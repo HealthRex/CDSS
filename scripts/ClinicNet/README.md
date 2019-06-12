@@ -1,7 +1,7 @@
 # Table of contents
 1. [Data Preprocessing](#preprocessing)
 2. [Processing the Data Matrix](#processdatamatrix)
-
+3. [Model and Tuning](#model)
 # Data Preprocessing<a name="preprocessing"></a>
 
 ## Splitting Data into Train/Dev/Test
@@ -50,3 +50,8 @@ We can kill two birds with one stone: Shuffling (randomly) the entire dataset an
 Note: The first script will print out info about the batches generated, like the following: "Read 25606920 data rows in 360 files. Created 6252 batches of size 4096."
 
 Note: For the second script, we set the -b and -e options to indicate the beginning index and the end index of the batches we want to write out. In the example above, we write out batches 0 through 99. This is because doing the entire operation at once would consume too much memory so we need to split it into chunks.
+
+
+# Model and tuning <a name="processdatamatrix"></a>
+
+
