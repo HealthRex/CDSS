@@ -54,4 +54,9 @@ Note: For the second script, we set the -b and -e options to indicate the beginn
 
 # Model and tuning <a name="processdatamatrix"></a>
 
+## Data generator
+Located in utils/datagenerator.py. Shuffles files, then shuffles rows within each file, then loads in batches one by one. Used for training the network.
+
+## 
+
 
