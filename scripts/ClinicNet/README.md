@@ -49,7 +49,7 @@ Note: For the second script, we set the -b and -e options to indicate the beginn
 
 We want to get the means and standard deviations of each feature so we can standardize the dataset via: (x-μ)/s
 Note that prior to calculating the means and standard deviations, the data will be log2(x+1) transformed.
-Additionally, we want to get the frequencies of the response variables being non-zeroes (i.e. for each response variable, what are the percentage of non-zero values). This will be useful for weighting our loss function later on.
+Additionally, we want to get the frequencies of the response variables being non-zeroes (i.e. for each response variable, what are the percentage of non-zero values). This will be useful for weighting our loss function later on. Finally, we want to build a covariance matrix for principal components analysis (PCA).
 
 To do this, we use the following script (the -x flag denotes which features we don't want to transform and we use -n to specify we'll only going to use 626 files, which is just 10% of the 6252 training data files, for average and covariance computation; we also specify data/tmp as our tmp directory that the script utilizes for caching and we specify 24 processors). In the output folder (which we should create via mkdir), two files: <b>avg_stddev.hdf5</b> and <b>freq_y.hdf5</b> will be generated.
 
