@@ -11,10 +11,15 @@ class SimulationAnalyzer:
 	def __init__(self, data_file):
 		self.data_file = data_file
 		self.version = data_file.split('.')[0].split('_')[-1]  # Get tracker version from filename
-		assert(self.version in ['v4', 'v5'])
+		# assert(self.version in ['v4', 'v5'])
 		self.load_tracker_data()
 		self.results_collection = self.normalize_results()
-		self.signed_orders_collections = self.normalize_signed_orders()
+		# If using older version of tracker data, will need to parse signed collection
+		# differently
+		if self.version in ['v4', 'v5']:
+			self.signed_orders_collection = self.normalize_signed_orders()
+		else:
+			self.signed_orders_collection = self.normalize_signed_orders_older()
 
 	def load_tracker_data(self):
 		with open(self.data_file, 'r') as fp:
@@ -103,6 +108,49 @@ class SimulationAnalyzer:
 					results.append(result_item_dict)
 		return results
 
+
+	def normalize_signed_orders_older(self):
+		"""
+		Map signed items from older version of tracker data to their corresponding
+		result items.
+
+		Returns:
+			signed_orders (list): list of signed order item dicts.
+				Note that these item dicts will not contain some of the attributes
+				found in the item dicts returned by `normalize_signed_orders`
+		"""
+		signed_orders = []
+		# Construct signed order clinical ids set and signed order tuples
+		signed_orders_id_set = set()
+		signed_orders_tuples = []
+		for timestamp in self.signed_item_tracker_data:
+			for item_str in self.signed_item_tracker_data[timestamp]:
+				signed_orders_id_set.add(item_str)
+				signed_orders_tuples.append((int(timestamp), item_str))
+
+		# Filter out result items that do not correspond to items signed
+		filtered_results = list(filter(lambda r: r['clinicalItemId'] in signed_orders_id_set, self.results_collection))
+		# For each signed item, find most likely result item
+		for signed_order in signed_orders_tuples:
+			# For each result item that has the same clinical id as the current
+			# signed order AND a store_time < the signed_time of the current item,
+			# compute timestamp delta (signed_time - store_time).
+			min_delta = float('inf')
+			best_result = None
+			for potential_result in list(filter(lambda r: r['clinicalItemId'] == signed_order[1] and r['storeTime'] < signed_order[0], filtered_results)):
+				delta = signed_order[0] - potential_result['storeTime']
+				if delta < min_delta:
+					min_delta = delta
+					best_result = potential_result
+
+			# Map current signed item to result item with smallest delta
+			signed_item_dict = dict(potential_result)
+			signed_item_dict['signedTime'] = signed_order[0]
+			signed_orders.append(signed_item_dict)
+
+		return signed_orders
+
+
 	def normalize_signed_orders(self):
 		"""Join all signed items into a single, 'flat' colleciton of signed item dicts
 
@@ -113,7 +161,7 @@ class SimulationAnalyzer:
 		for timestamp in self.signed_item_tracker_data:
 			for item_str in self.signed_item_tracker_data[timestamp]:
 				signed_item_dict = dict()
-				signed_item_dict['timestamp_signed'] = timestamp
+				signed_item_dict['signedTime'] = timestamp
 				self.parse_signed_item_into_dict(signed_item_dict, item_str)
 				signed_orders.append(signed_item_dict)
 
@@ -383,15 +431,16 @@ class SimulationAnalyzer:
 		"""
 		# Define filter function for determining intersection
 		# This function checks that result item and signed item have same
-		# clinicalItemId, listIndex (though s_item index will be ahead), and location source
+		# clinicalItemId, listIndex (though s_item index will be ahead), and location source        r_item listIndex starts from 1, but s_item listIndex starts from 0
 		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex'] - 1 and r_item['source'] == s_item['source']
 
 		if self.version == 'v5':  # version 5 of tracker correctly tracks order set items in results
 			# Get manually-searched signed items
 			manual_search_results = self.get_manually_searched_options()
-			signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collections, filter_fn=filter_fn)
-		elif self.version == 'v4':  # versions 4 of the tracker only tracks item sources in the signed orders collection
-			signed_from_manual = list(filter(lambda s_item: s_item['source'] == 'data', self.signed_orders_collections))
+			signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collection, filter_fn=filter_fn)
+		# elif self.version == 'v4':  # versions 4 of the tracker only tracks item sources in the signed orders collection
+		else:
+			signed_from_manual = list(filter(lambda s_item: s_item['source'] == 'data', self.signed_orders_collection))
 		return signed_from_manual
 
 	def get_signed_from_recommended(self, include_related=True):
@@ -412,9 +461,10 @@ class SimulationAnalyzer:
 		if self.version == 'v5':  # version 5 of tracker correctly tracks order set items in results
 			# Get recommended signed items
 			recommended_results = self.get_recommended_options(include_related=include_related)
-			signed_from_recommended = self._result_signed_intersection(recommended_results, self.signed_orders_collections, filter_fn)
-		elif self.version == 'v4':  # versions 4 of the tracker only tracks item sources in the signed orders collection
-			signed_from_recommended = list(filter(lambda s_item: s_item['source'] != 'data', self.signed_orders_collections))
+			signed_from_recommended = self._result_signed_intersection(recommended_results, self.signed_orders_collection, filter_fn)
+		# elif self.version == 'v4':  # versions 4 of the tracker only tracks item sources in the signed orders collection
+		else:
+			signed_from_recommended = list(filter(lambda s_item: s_item['source'] != 'data', self.signed_orders_collection))
 		return signed_from_recommended
 
 	def get_signed_missed_recommended(self, include_related=True):
@@ -434,6 +484,8 @@ class SimulationAnalyzer:
 		# This function checks that result item and signed item have same
 		# clinicalItemId, listIndex (though s_item index will be ahead), and location source
 		filter_fn_manual = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex'] - 1 and r_item['source'] == s_item['source']
+		# For older versions of tracker data:
+		filter_fn_manual_older = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['storeTime'] == s_item['storeTime'] and r_item['source'] == s_item['source']
 		# Define filter function for determining intersection between signed
 		# items from manual search and recommomended
 		# This function checks that result item and signed item have same
@@ -441,14 +493,22 @@ class SimulationAnalyzer:
 		# than or equal to that of the signed item. This ignores
 		# results of the item that appeared after the item was already signed.
 		filter_fn_recommended = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] <= s_item['listIndex'] - 1
+		# For older versions of tracker data:
+		filter_fn_recommended_older = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['storeTime'] <= s_item['storeTime']
 
 		# First get the manually searched signed items
 		manual_search_results = self.get_manually_searched_options()
-		signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collections, filter_fn=filter_fn_manual)
+		if self.version in ['v4', 'v5']:
+			signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collection, filter_fn=filter_fn_manual)
+		else:
+			signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collection, filter_fn=filter_fn_manual_older)
 		# Next get the manually searched items that also appeared previously
 		# in recommended results
 		recommended_results = self.get_recommended_options(include_related=include_related)
-		missed_items = self._result_signed_intersection(recommended_results, signed_from_manual, filter_fn_recommended)
+		if self.version in ['v4', 'v5']:
+			missed_items = self._result_signed_intersection(recommended_results, signed_from_manual, filter_fn_recommended)
+		else:
+			missed_items = self._result_signed_intersection(recommended_results, signed_from_manual, filter_fn_recommended_older)
 		return missed_items
 
 	def get_unique(self, collection, key_fn):
@@ -563,7 +623,7 @@ def aggregate_simulation_data(data_home, output_path, append_to_existing=False, 
 			fields.append(len(siman.get_recommended_options()))  # "recommended_options"
 			fields.append(len(siman.get_unique(siman.get_recommended_options(), key_fn=siman._clinical_item_id_key_fn)))  # "unqique_recommended_options"
 			fields.append(len(siman.get_manually_searched_options()))  # "manual_search_options"
-			fields.append(len(siman.signed_orders_collections))  # "total_orders"
+			fields.append(len(siman.signed_orders_collection))  # "total_orders"
 			fields.append(len(siman.get_signed_from_recommended()))  # "orders_from_recommender"
 			fields.append(len(siman.get_signed_from_manual_search()))  # "orders_from_manual_search"
 			fields.append(len(siman.get_signed_missed_recommended()))  # "orders_from_recommender_missed"
