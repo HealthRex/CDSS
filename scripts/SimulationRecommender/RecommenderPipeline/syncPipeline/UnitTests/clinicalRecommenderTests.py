@@ -7,6 +7,7 @@ import os
 from helper import *
 from configuration import *
 
+# checks to see if paths have folders
 class TestBoxConnection(unittest.TestCase):
     def test_recommender_path(self):
         self.assertTrue(len(os.listdir(recommender_path))> 0)
@@ -30,54 +31,29 @@ class TestDataConnection(unittest.TestCase):
         self.assertTrue(len(clinical_item) == 45979)
 
 # TODO
+class TestTracker(unittest.TestCase):
+    # only checks folders are available
+    def check_tracker_path(self):
+        self.assertTrue(len(os.listdir(tracker_data))> 0)
+        # checks to see if proper folders are in directory
+    def check_tracker_data_path(self):
+        self.assertTrue('v4_data' in os.listdir(tracker_data))
+    def check_tracker_output_path(self):
+        self.assertTrue('tracker_output' in os.listdir(tracker_data))
+
+# TODO
 class TestPhysicianGrading(unittest.TestCase):
 
     def test_upper(self):
         self.assertEqual('foo'.upper(), 'FOO')
 
-    def test_isupper(self):
-        self.assertTrue('FOO'.isupper())
-        self.assertFalse('Foo'.isupper())
 
-    def test_split(self):
-        s = 'hello world'
-        self.assertEqual(s.split(), ['hello', 'world'])
-        # check that s.split fails when the separator is not a string
-        with self.assertRaises(TypeError):
-            s.split(2)
-
-# TODO
-class TestTracker(unittest.TestCase):
-
-    def test_upper(self):
-        self.assertEqual('foo'.upper(), 'FOO')
-
-    def test_isupper(self):
-        self.assertTrue('FOO'.isupper())
-        self.assertFalse('Foo'.isupper())
-
-    def test_split(self):
-        s = 'hello world'
-        self.assertEqual(s.split(), ['hello', 'world'])
-        # check that s.split fails when the separator is not a string
-        with self.assertRaises(TypeError):
-            s.split(2)
 # TODO
 class TestDataMerges(unittest.TestCase):
 
     def test_upper(self):
         self.assertEqual('foo'.upper(), 'FOO')
 
-    def test_isupper(self):
-        self.assertTrue('FOO'.isupper())
-        self.assertFalse('Foo'.isupper())
-
-    def test_split(self):
-        s = 'hello world'
-        self.assertEqual(s.split(), ['hello', 'world'])
-        # check that s.split fails when the separator is not a string
-        with self.assertRaises(TypeError):
-            s.split(2)
 
 if __name__ == '__main__':
     unittest.main()
