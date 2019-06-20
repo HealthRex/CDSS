@@ -58,7 +58,7 @@ To do this, we use the following script (the -x flag denotes which features we d
 ## Feature selection
 
 Need to mkdir data/hdf5/train_feature_selected/
-<pre>python2 data_processing/feature_selection.py -i data/hdf5/train_shuffled/ -o data/hdf5/train_feature_selected/ -s data/statistics/train/ -t 0.01 -r patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date,analyze_date,item_date.month,item_date.hour</pre>
+<pre>python3 data_processing/feature_selection.py -i data/hdf5/train_shuffled/ -o data/hdf5/train_feature_selected/ -s data/statistics/train/ -t 0.01 -r patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date,analyze_date,item_date.month,item_date.hour</pre>
 5214 features out of 24875 to be removed (SD threshold: 0.01)
 
 # Model and tuning <a name="processdatamatrix"></a>
