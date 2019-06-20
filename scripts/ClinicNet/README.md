@@ -55,6 +55,10 @@ To do this, we use the following script (the -x flag denotes which features we d
 
 <pre>python3 data_processing/compute_stats.py -p 24 -i data/hdf5/train_shuffled/ -o data/statistics/train/ -x patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date.month,item_date.month.sin,item_date.month.cos,item_date.hour,item_date.hour.sin,item_date.hour.cos -t data/tmp -n 626</pre>
 
+## Feature selection
+
+<pre>python2 data_processing/feature_selection.py -i data/hdf5/train/ -o data/hdf5/train_feature_selected/ -s data/statistics/train/ -t 0.01 -r patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date,analyze_date,item_date.month,item_date.hour -p 42</pre>
+
 
 # Model and tuning <a name="processdatamatrix"></a>
 
