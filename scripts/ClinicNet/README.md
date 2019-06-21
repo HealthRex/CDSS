@@ -67,6 +67,13 @@ To run PCA, we read in a covariance matrix and get its eigenvalues & eigenvector
 <pre>python3 utils/pca.py -i data/statistics/train/covar_featureselected.hdf5 -o data/eig.pickle</pre>
 Following this, we can do the analysis and create scree plots via the notebook: <b>plotPCA.ipynb</b>
 
+Here is some of the notebook's output:
+<ul>
+  <li>Number of PCs selected based on Kaiser's rule (eigenvalue > 1): 4632</li>
+  <li>Variance explained by PC1: 3.6%; Variance explained by PC4632: 0.00509%</li>
+  <li>Cumulative variance explained for PC4632: 82.2%</li>
+</ul>
+
 # Model and tuning <a name="processdatamatrix"></a>
 
 ## Data generator
