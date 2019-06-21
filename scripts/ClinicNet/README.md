@@ -61,6 +61,12 @@ To remove very low variance features, run the following script where you specify
 <pre>python3 data_processing/feature_selection.py -i data/hdf5/train_shuffled/ -o data/hdf5/train_feature_selected/ -s data/statistics/train/ -t 0.01 -r patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date,analyze_date,item_date.month,item_date.hour</pre>
 Running the script above tells us that 5214 features out of 24875 were removed, leaving 19661 features remaining. This script also outputs new statistics files (with the features removed) in the statistis directory for the data.
 
+## Principal Component Analysis (PCA)
+
+To run PCA, we read in a covariance matrix and get its eigenvalues & eigenvectors (stored in an output pickle file):
+<pre>python3 utils/pca.py -i data/statistics/train/covar_featureselected.hdf5 -o data/eig.pickle</pre>
+Following this, we can do the analysis and create scree plots via the notebook: <b>plotPCA.ipynb</b>
+
 # Model and tuning <a name="processdatamatrix"></a>
 
 ## Data generator
