@@ -357,7 +357,7 @@ class Stats_Plotter():
             plt.tick_params('y', labelsize=13) #10
 
         if result_label != 'labs_guideline':
-            plt.xlabel('Number of orders per 1000 patient encounters', fontsize=14) #'Order number between 2014/07-2017/06'
+            plt.xlabel('Number of orders per 100 patient encounters', fontsize=14) #'Order number between 2014/07-2017/06'
 
         if include_legend:
             plt.legend(prop={'size': 12})
@@ -917,15 +917,15 @@ def main_full_analysis(figs_to_plot, curr_version, inverse01=False):
     Stanford Component Normality_Saturations.
     '''
     if 2 in figs_to_plot:
-        scale = 1. / stats_utils.NUM_DISTINCT_ENCS * 1000
+        scale = 1. / stats_utils.NUM_DISTINCT_ENCS * 100
 
         '''Figure 2.1'''
         labs_cnts_order_1day = stats_database.TOP_PANELS_AND_COUNTS_IN_1DAY[:20]
         labs_order_1day = [x[0] for x in labs_cnts_order_1day]
         plotter = Stats_Plotter(data_source='Stanford', lab_type='panel', curr_version=curr_version)
-        # plotter.draw__Order_Intensities(labs=labs_order_1day, result_label='labs_order_1day',
-        #                              scale=scale, use_cached_fig_data=True, scale_method='by_scale',
-        #                              include_legend=True)
+        plotter.draw__Order_Intensities(labs=labs_order_1day, result_label='labs_order_1day',
+                                     scale=scale, use_cached_fig_data=True, scale_method='by_scale',
+                                     include_legend=True)
 
         '''Figure 2.2'''
         # labs_guideline = ['LABESRP', 'LABALB', 'LABA1C', 'LABTSH', 'LABCRP', 'LABYCP', 'LABLIPS', 'LABAGALA', 'LABNTBNP']
@@ -934,8 +934,8 @@ def main_full_analysis(figs_to_plot, curr_version, inverse01=False):
         #                              include_legend=False)
 
         '''Figure 2.3'''
-        plotter = Stats_Plotter(data_source='Stanford', lab_type='component', curr_version=curr_version)
-        plotter.draw__Normality_Saturations(labs=['WBC', 'HGB', 'NA', 'K', 'CR'], use_cached_fig_data=True)
+        # plotter = Stats_Plotter(data_source='Stanford', lab_type='component', curr_version=curr_version)
+        # plotter.draw__Normality_Saturations(labs=['WBC', 'HGB', 'NA', 'K', 'CR'], use_cached_fig_data=True)
 
     if 3 in figs_to_plot:
 
@@ -963,5 +963,5 @@ def main_full_analysis(figs_to_plot, curr_version, inverse01=False):
 
 if __name__ == '__main__':
     curr_version = '10000-episodes-lastnormal'
-    figs_to_plot = [2]
+    figs_to_plot = [4]
     main_full_analysis(figs_to_plot, curr_version=curr_version, inverse01=True)
