@@ -1,12 +1,9 @@
 # gradingRecommenderTests.py
 import unittest
-import psycopg2 as pg
-import pandas.io.sql as psql
 import pandas as pd
 import numpy as np
 import os
 from helper import *
-from configuration import *
 
 # Create Three Groups
 print('--------------------------------------------------------------------------------------------------------------------------------------')
