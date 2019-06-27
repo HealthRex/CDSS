@@ -125,6 +125,36 @@ def get_covar(num_processes=1, num_files=None):
 	running_N -= 1 # Bessel's correction
 	return (running_sum_squared_diff / float(running_N))
 
+# Note: Not parallelized
+def get_stddev(num_files=None):
+	files_list = os.listdir(data_dir)
+	random.shuffle(files_list)
+	if not (num_files is None):
+		files_list = files_list[0:num_files]
+	running_sum_squared_diff = None
+	running_N = 0
+	for f in files_list:
+		print(f)
+		data_x = pd.read_hdf(data_dir + "/" + f, 'data_x', mode='r')
+		data_x = data_x.fillna(0)
+		cols_to_transform = data_x.columns
+		if not (exclude_cols_transformation is None):
+			cols_to_transform = data_x.columns.difference(exclude_cols_transformation)
+		if not (transformation is None):
+			data_x[cols_to_transform] = transformation(data_x[cols_to_transform])
+		running_N += data_x.shape[0]
+		data_x -= average
+		data_x = data_x**2
+		current_sum_squared_diff = data_x.sum(axis=0, skipna=True)
+		if running_sum_squared_diff is None:
+			running_sum_squared_diff = current_sum_squared_diff
+		else:
+			running_sum_squared_diff = running_sum_squared_diff.add(current_sum_squared_diff)
+		del data_x
+		gc.collect()
+	running_N -= 1 # Bessel's correction
+	return (running_sum_squared_diff / float(running_N))**(0.5)
+
 def get_freq_y():
 	files_list = os.listdir(data_dir)
 	files_list.sort()
@@ -163,15 +193,16 @@ def main(argv):
 	global exclude_cols_transformation
 	exclude_cols_transformation = None
 	num_processes = 0
+	skipcov = False
 	num_files = None
 	try:
-		opts, args = getopt.getopt(argv,"hi:o:x:p:t:n:")
+		opts, args = getopt.getopt(argv,"hi:o:x:p:t:n:s")
 	except getopt.GetoptError:
-		print('compute_stats.py -i <data_directory> -o <output_directory> [-x features_to_exclude] [-p num_processes] [-t temp_dir] [-n num_files] [-h]')
+		print('compute_stats.py -i <data_directory> -o <output_directory> [-x features_to_exclude] [-p num_processes] [-t temp_dir] [-n num_files] [-s] [-h]')
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
-			print('compute_stats.py -i <data_directory> -o <output_directory> [-x features_to_exclude] [-p num_processes] [-t temp_dir] [-n num_files] [-h]')
+			print('compute_stats.py -i <data_directory> -o <output_directory> [-x features_to_exclude] [-p num_processes] [-t temp_dir] [-n num_files] [-s] [-h]')
 			print('')
 			print('This script computes the mean, covariance, and standard deviation of all features. All data is log2(x+1)-transformed except those in features_to_exclude.')
 			print('Additionally, for each response variable, the frequency (i.e. percent) of it being a non-zero value is computed.')
@@ -181,6 +212,7 @@ def main(argv):
 			print('Use num_processes to specify the number of processes to use for multiprocessing.')
 			print('Use temp_dir to specify a different temp folder than the default.')
 			print('Use num_files to limit how many files in the directory to read from (for computation tractability purposes); the data between files should all be shuffled beforehand.')
+			print('Specify the -s option to skip computation of the covariance matrix')
 			sys.exit()
 		elif opt == '-x':
 			exclude_cols_transformation = arg.split(',')
@@ -194,8 +226,10 @@ def main(argv):
                         tempfile.tempdir = arg # Change default temp directory
 		elif opt == '-n':
 			num_files = int(arg)
+		elif opt == '-s':
+			skipcov = True
 	if len(argv) < 2 or data_dir == '' or output_dir == '':
-                print('compute_stats.py -i <data_directory> -o <output_directory> [-x features_to_exclude] [-p num_processes] [-t temp_dir] [-n num_files] [-h]')
+                print('compute_stats.py -i <data_directory> -o <output_directory> [-x features_to_exclude] [-p num_processes] [-t temp_dir] [-n num_files] [-s] [-h]')
                 sys.exit(2)
 
 	# Configure multiprocessing
@@ -205,23 +239,30 @@ def main(argv):
 
 	# Get the average
 	output_file = output_dir + "/" + output_avg_stddev_filename
-	avg = get_average(num_processes, num_files)
-	avg.to_hdf(output_file, key='avg', mode='w')
+	#avg = get_average(num_processes, num_files)
+	#avg.to_hdf(output_file, key='avg', mode='w')
+	avg = pd.read_hdf(output_file, key='avg')
 	global average
 	average = avg
 	print("FINISHED AVERAGE")
-	# Get the covariance matrix
-	output_file = output_dir + "/" + output_covar_filename
-	covar = get_covar(num_processes, num_files)
-	covar_df = pd.DataFrame(covar, columns=avg.keys(), index=avg.keys()) # Convert to dataframe
-	covar_df.to_hdf(output_file, key='covar', mode='w', complevel=1) # We'll use some compression for this large matrix
-	del covar_df # Free up memory
-	print("FINISHED COVARIANCE")
-	# Get the standard deviation
-	output_file = output_dir + "/" + output_avg_stddev_filename
-	stt = pd.Series(np.diagonal(covar)**0.5, index=avg.keys()) # No attribute columns
-	stt.to_hdf(output_file, key='sd')
-	print("FINISHED STANDARD DEVIATION")
+	if not skipcov:
+		# Get the covariance matrix
+		output_file = output_dir + "/" + output_covar_filename
+		covar = get_covar(num_processes, num_files)
+		covar_df = pd.DataFrame(covar, columns=avg.keys(), index=avg.keys()) # Convert to dataframe
+		covar_df.to_hdf(output_file, key='covar', mode='w', complevel=1) # We'll use some compression for this large matrix
+		del covar_df # Free up memory
+		print("FINISHED COVARIANCE")
+		# Get the standard deviation
+		output_file = output_dir + "/" + output_avg_stddev_filename
+		stt = pd.Series(np.diagonal(covar)**0.5, index=avg.keys()) # No attribute columns
+		stt.to_hdf(output_file, key='sd')
+		print("FINISHED STANDARD DEVIATION")
+	else:
+		# Calculate SD without the covariance matrix
+		stt = get_stddev(num_files)
+		output_file = output_dir + "/" + output_avg_stddev_filename
+		stt.to_hdf(output_file, key='sd')
 	# Get the frequencies
 	output_file = output_dir + "/" + output_freq_y_filename
 	freq_y = get_freq_y() # Response variable files are small so no need for multiprocessing
@@ -230,3 +271,4 @@ def main(argv):
 
 if __name__ == "__main__":
    main(sys.argv[1:])
+
