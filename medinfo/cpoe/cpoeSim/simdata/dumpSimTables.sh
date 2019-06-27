@@ -14,6 +14,9 @@ pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER -a -F p -x -O -t sim_order_result_ma
 pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER -a -F p -x -O -t sim_state_transition -f sim_state_transition.dump.sql $DB_DSN
 pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER -a -F p -x -O -t sim_state -f sim_state.dump.sql $DB_DSN
 
+# Sim Grading Key
+pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER -a -F p -x -O -t sim_grading_key -f sim_grading_key.dump.sql $DB_DSN
+
 # Specific user records
 pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER -a -F p -x -O -t sim_patient -f sim_patient.dump.sql $DB_DSN
 pg_dump -h $DB_HOST -p $DB_PORT -U $DB_USER -a -F p -x -O -t sim_patient_state -f sim_patient_state.dump.sql $DB_DSN

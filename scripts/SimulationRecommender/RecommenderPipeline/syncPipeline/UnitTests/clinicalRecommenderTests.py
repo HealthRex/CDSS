@@ -41,19 +41,5 @@ class TestTracker(unittest.TestCase):
     def check_tracker_output_path(self):
         self.assertTrue('tracker_output' in os.listdir(tracker_data))
 
-# TODO
-class TestPhysicianGrading(unittest.TestCase):
-
-    def test_upper(self):
-        self.assertEqual('foo'.upper(), 'FOO')
-
-
-# TODO
-class TestDataMerges(unittest.TestCase):
-
-    def test_upper(self):
-        self.assertEqual('foo'.upper(), 'FOO')
-
-
 if __name__ == '__main__':
     unittest.main()
