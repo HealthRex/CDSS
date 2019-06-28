@@ -754,6 +754,27 @@ class SimManager:
             if not extConn:
                 conn.close();
 
+    def gradeCases(self, simPatientIds, simGradingKeyId, conn=None):
+        """Given the identifiers for a bunch of simulated physician-patient case
+        records, and the identifier for a particular grading key to use,
+        calculate what grade each case what get based on the choices made
+        and return a dictionary of case grades (keyed by the case ID).
+        """
+        # Step 1 - Query the database to pull out the case information for each simulated patient
+            # Should be able to reuse the loadPatientOrders method
+        # Step 2 - Query out the grading key based on the given identifier
+            # Above two steps could be functions themselves. The latter definitely needs a new one, cause it doesn't exist yet
+        # Step 3 - Loop through each case and calculate each grade (basically run gradeCaseByDataframe)
+        # Return dictionary of results
+        raise NotImplementedError();
+
+    def gradeCaseByDataframe(self, simPatientDF, simGradingKeyDF):
+        """Given a dataframe that captures all of the clinical order choices
+        from a simulated physician-patient case, and a dataframe with
+        the grading key to decide what orders are worth what points,
+        calculate and return the total points earned for this case.
+        """
+        raise NotImplementedError();
 
 class ClinicalItemQuery:
     """Struct to capture query elements for clinical item / order instances"""
