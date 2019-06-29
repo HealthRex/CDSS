@@ -20,11 +20,12 @@ from medinfo.dataconversion.FeatureMatrix import FeatureMatrix
 
 import pdb
 class MRSAMatrix(FeatureMatrix):
-    def __init__(self, lab_panel, num_episodes, random_state=None):
+    def __init__(self, lab_panel, lab_features, num_episodes, random_state=None):
         FeatureMatrix.__init__(self, lab_panel, num_episodes)
 
         # Parse arguments.
-        self._lab_panel = lab_panel.split()
+        self._lab_panel = lab_panel
+        self._lab_features = lab_features
 
         self._med_panel = [['Cefepime (Oral)', 'Cefepime (Intravenous)'],
                             ['Cefazolin (Oral)', 'Cefazolin (Intravenous)'],
@@ -38,8 +39,8 @@ class MRSAMatrix(FeatureMatrix):
                             ['Ampicillin (Oral)', 'Ampicillin (Intravenous)'],
                             ['Metronidazole (Oral)', 'Metronidazole (Intravenous)'],
                             ['Caspofungin (Oral)', 'Caspofungin (Intravenous)']]
-        susceptibility_df = pd.read_csv('/Users/conorcorbin/repos/CDSS/scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
-        # susceptibility_df = pd.read_csv('/home/ec2-user/CDSS/scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
+        # susceptibility_df = pd.read_csv('/Users/conorcorbin/repos/CDSS/scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
+        susceptibility_df = pd.read_csv('/home/ec2-user/CDSS/scripts/LabCulturePrediction/Susceptibility_Feature_Names.csv')
         self._susceptibility_names = susceptibility_df['name'].values        
         self._num_requested_episodes = num_episodes
         self._num_reported_episodes = 0
@@ -59,88 +60,6 @@ class MRSAMatrix(FeatureMatrix):
         # Build matrix.
         FeatureMatrix._build_matrix(self)
 
-    def _get_components_in_lab_panel(self):
-        # Initialize DB connection.
-        cursor = self._connection.cursor()
-
-        # Doing a single query results in a sequential scan through
-        # stride_order_results. To avoid this, break up the query in two.
-
-        # First, get all the order_proc_ids for proc_code.
-        query = SQLQuery()
-        query.addSelect('order_proc_id')
-        query.addFrom('stride_order_proc')
-        query.addWhereIn('proc_code', self._lab_panel)
-        query.addGroupBy('order_proc_id')
-        log.debug('Querying order_proc_ids for... %s' % ','.join(self._lab_panel))
-        results = DBUtil.execute(query)
-        lab_order_ids = [row[0] for row in results]
-
-        # Second, get all base_names from those orders.
-        query = SQLQuery()
-        query.addSelect('base_name')
-        query.addFrom('stride_order_results')
-        query.addWhereIn('order_proc_id', lab_order_ids)
-        query.addGroupBy('base_name')
-        log.debug('Querying base_names for order_proc_ids...')
-        results = DBUtil.execute(query)
-        components = [row[0] for row in results]
-
-        return components
-
-    def _get_average_orders_per_patient(self):
-        # Initialize DB cursor.
-        cursor = self._connection.cursor()
-
-        # Get average number of results for this lab test per patient.
-        query = SQLQuery()
-        query.addSelect('pat_id')
-        query.addSelect('COUNT(sop.order_proc_id) AS num_orders')
-        query.addFrom('stride_order_proc AS sop')
-        query.addFrom('stride_order_results AS sor')
-        query.addWhere('sop.order_proc_id = sor.order_proc_id')
-        query.addWhereIn("proc_code", self._lab_panel)
-        components = self._get_components_in_lab_panel()
-        query.addWhereIn("base_name", components)
-        query.addGroupBy('pat_id')
-        log.debug('Querying median orders per patient...')
-        results = DBUtil.execute(query)
-        order_counts = [ row[1] for row in results ]
-        if len(order_counts) == 0:
-            error_msg = '0 orders for lab panel %s' % ','.join(self._lab_panel)
-            log.critical(error_msg)
-            sys.exit('[ERROR] %s' % error_msg)
-        else:
-            return numpy.median(order_counts)
-
-    def _get_random_patient_list(self):
-        # Initialize DB cursor.
-        cursor = self._connection.cursor()
-
-        # Get average number of results for this lab test per patient.
-        avg_orders_per_patient = self._get_average_orders_per_patient()
-        log.info('avg_orders_per_patient: %s' % avg_orders_per_patient)
-        # Based on average # of results, figure out how many patients we'd
-        # need to get for a feature matrix of requested size.
-        self._num_patients = int(numpy.max([self._num_requested_episodes / \
-            avg_orders_per_patient, 1]))
-
-        # Get numPatientsToQuery random patients who have gotten test.
-        # TODO(sbala): Have option to feed in a seed for the randomness.
-        query = SQLQuery()
-        query.addSelect('pat_id')
-        query.addFrom('stride_order_proc AS sop')
-        query.addWhereIn('proc_code', self._lab_panel)
-        query.addGroupBy('pat_id') # this should be a unique list of patients
-        query.addOrderBy('RANDOM()')
-        query.setLimit(self._num_patients)
-        log.debug('Querying random patient list...')
-        results = DBUtil.execute(query)
-
-        # Get patient list.
-        random_patient_list = [ row[0] for row in results ]
-
-        return random_patient_list
 
     def _query_patient_episodes(self):
         log.info('Querying patient episodes...')
@@ -148,37 +67,7 @@ class MRSAMatrix(FeatureMatrix):
         cursor = self._connection.cursor()
 
         # Build parameters for query.
-        # self._lab_components = self._get_components_in_lab_panel()
-        # random_patient_list = self._get_random_patient_list()
-
-        #print("RANDOM PATIENT LIST", random_patient_list)
-
-        # Build SQL query for list of patient episodes.
-        # Note that for 2008-2014 data, result_flag can take on any of the
-        # following values:  High, Low, High Panic, Low Panic,
-        # Low Off-Scale, Negative, Positive, Resistant, Susceptible, Abnormal, *
-        # (NONE): Only 27 lab components can have this flag. None has this
-        #           value for more than 5 results, so ignore it.
-        # *: Only 10 lab components can have this flag. Only 6 have it for
-        #           >10 tests, and each of them is a microbiology test for which
-        #           a flag is less meaningful, e.g. Gram Stain, AFB culture.
-        # Susceptible: Only 15 lab components can have this flag. All of those
-        #           only have this value for 2 results, so ignore it.
-        # Resistant: Only 1 lab component can have this flag. Only two results
-        #           have this value, so ignore it.
-        # Abnormal: 1462 lab components can have this flag. Many (e.g. UBLOOD)
-        #           have this value for thousands of results, so include it.
-        # Negative: Only 10 lab components can have this flag, and all for
-        #           less than 5 results, so ignore it.
-        # Positive: Only 3 lab components can have this flag, and all for
-        #           only 1 result, so ignore it.
-        # Low Off-Scale: Only 1 lab component can have this flag, and only for
-        #           3 results, so ignore it.
-        # Low Panic: 1401 lab components can have this flag, many core
-        #           metabolic components. Include it.
-        # High Panic: 8084 lab components can have this flag, many core
-        #           metabolic components. Include it.
-        query = SQLQuery()
+        
         query = """SELECT DISTINCT ON(labels.pat_id, labels.pat_enc_csn_id)
                     labels.pat_id,
                     labels.pat_enc_csn_id,
@@ -242,21 +131,14 @@ class MRSAMatrix(FeatureMatrix):
 
     def _add_features(self):
         # Add past susceptibility readings
-        # self._add_susc_features()
+        self._add_susc_features()
 
         # Add past antibiotic use as features
-        # self._add_med_features()
+        self._add_med_features()
 
         # Add lab panel order features.
-        self._factory.addClinicalItemFeatures(self._lab_panel, features="pre")
-
-        # # Add lab component result features, for a variety of time deltas.
-        # LAB_PRE_TIME_DELTAS = [datetime.timedelta(-14)]
-        # LAB_POST_TIME_DELTA = datetime.timedelta(0)
-        # log.info('Adding lab component features...')
-        # for pre_time_delta in LAB_PRE_TIME_DELTAS:
-        #     log.info('\t%s' % pre_time_delta)
-        #     self._factory.addLabResultFeatures(self._lab_components, False, pre_time_delta, LAB_POST_TIME_DELTA)
+        for panel in self._lab_features:
+            self._factory.addClinicalItemFeatures([panel], features="pre")
 
         FeatureMatrix._add_features(self, index_time_col='order_time')
 
@@ -402,7 +284,7 @@ class MRSAMatrix(FeatureMatrix):
         #       Also included %s panel components: %s\n\
         # line = 'Also included %s panel components: %s' % (','.join(self._lab_panel), self._lab_components)
         # summary.append(line
-        
+
         return summary
 
 if __name__ == "__main__":

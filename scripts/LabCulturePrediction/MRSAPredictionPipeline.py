@@ -10,6 +10,7 @@ from pandas import DataFrame, Series
 from sklearn.externals import joblib
 from sklearn.metrics import make_scorer, average_precision_score
 import logging
+import sys
 
 from medinfo.common.Util import log
 from medinfo.ml.FeatureSelector import FeatureSelector
@@ -21,13 +22,13 @@ from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
 from MRSAMatrix import MRSAMatrix
 
 class MRSAPredictionPipeline(SupervisedLearningPipeline):
-    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None):
+    def __init__(self, lab_panel, microcultures,  num_episodes, use_cache=None, random_state=None):
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state)
 
+        self.panel = microcultures
         self._build_raw_feature_matrix()
-        pdb.set_trace()
-        # self._build_processed_feature_matrix()
-        # self._train_and_analyze_predictors()
+        self._build_processed_feature_matrix()
+        self._train_and_analyze_predictors()
 
     def _build_model_dump_path(self, algorithm):
         template = '%s' + '-MRSA-%s-model.pkl' % algorithm
@@ -44,8 +45,26 @@ class MRSAPredictionPipeline(SupervisedLearningPipeline):
     def _build_raw_feature_matrix(self):
         raw_matrix_path = self._build_raw_matrix_path()
         matrix_class = MRSAMatrix
-        SupervisedLearningPipeline._build_raw_feature_matrix(self, matrix_class, \
-            raw_matrix_path)
+        params = None
+        if params is None:
+            self._raw_matrix_params = {}
+        else:
+            self._raw_matrix_params = params
+        if os.path.exists(raw_matrix_path) and not self._flush_cache:
+            pass
+        else:
+            # Each matrix class may have a custom set of parameters which should
+            # be passed on directly to matrix_class, but we expect them to have
+            # at least 1 primary variables and # of rows.
+            # Ensure that random_state is [-1, 1]
+            random_state = float(self._random_state)/float(sys.maxint)
+            if self._isLabNormalityPredictionPipeline:
+                matrix = matrix_class(self._var, self.panel, self._num_rows, random_state=random_state,
+                                  isLabPanel=self._isLabPanel, timeLimit=self._timeLimit,
+                                      notUsePatIds=self.notUsePatIds)
+            else:
+                matrix = matrix_class(self._var, self.panel, self._num_rows, random_state=random_state)
+            matrix.write_matrix(raw_matrix_path)
 
     def _build_processed_matrix_path(self):
         template = '%s-MRSA-matrix-%d-episodes-processed.tab'
@@ -274,6 +293,6 @@ if __name__ == '__main__':
     CULTURE_MICRO_ORDERS = ["LABBLC", "LABBLC2", "LABURNC"]
 
     labs_to_test = CULTURE_MICRO_ORDERS
-    panel = "LABBLC LABBLC2"
+    panel = NON_PANEL_TESTS_WITH_GT_500_ORDERS
     # for panel in labs_to_test:
-    MRSAPredictionPipeline(panel, 1000000, use_cache=True, random_state=123456789)
+    MRSAPredictionPipeline("Microcultures", panel, 1000000, use_cache=True, random_state=123456789)
