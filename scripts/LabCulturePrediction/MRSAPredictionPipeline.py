@@ -82,7 +82,7 @@ class MRSAPredictionPipeline(SupervisedLearningPipeline):
         }
 
         features_to_remove = [
-            'pat_id', 'order_time', 'pat_enc_csn_id'
+            'pat_id', 'order_time', 'pat_enc_csn_id',
             'proc_code', 'abnormal_panel', 'Birth.pre',
             'Male.preTimeDays', 'Female.preTimeDays',
             'RaceWhiteHispanicLatino.preTimeDays',
@@ -100,9 +100,9 @@ class MRSAPredictionPipeline(SupervisedLearningPipeline):
 
         features_to_keep = [
             # Keep the # of times it's been ordered in past, even if low info.
-            '%s.pre' % '-'.join(self._var.split())
+            "LABBLC.pre" # placeholder - one element at least needed for pipeline to function - weird
         ]
-        outcome_label = 'MRSA_PRESENT'
+        outcome_label = 'mrsa_present'
         selection_problem = FeatureSelector.CLASSIFICATION
         selection_algorithm = FeatureSelector.RECURSIVE_ELIMINATION
         percent_features_to_select = 0.05
