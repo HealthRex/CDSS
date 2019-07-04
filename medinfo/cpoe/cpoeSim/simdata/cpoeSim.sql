@@ -167,6 +167,29 @@ ALTER TABLE sim_patient_order ADD COLUMN sim_state_id BIGINT NOT NULL DEFAULT 0;
 ALTER TABLE sim_patient_order ADD CONSTRAINT sim_patient_order_state_fkey FOREIGN KEY (sim_state_id) REFERENCES sim_state(sim_state_id);
 
 
+-- Track how many points different sim_patient_orders (clinical_items) should be worth in different
+--	simulation scenarios (sim_patient_ids).
+CREATE TABLE sim_grading_key
+(
+	sim_grading_key_id SERIAL NOT NULL,
+	sim_grader_id TEXT NOT NULL, -- Doesn't actually point to another table, but just use to uniquely identify who is giving these grades
+	sim_state_id BIGINT NOT NULL,
+	clinical_item_id BIGINT NOT NULL, 
+	score INTEGER NOT NULL,
+	confidence INTEGER,
+	group_name TEXT,
+	comment TEXT
+);
+ALTER TABLE sim_grading_key ADD CONSTRAINT sim_grading_key_pkey PRIMARY KEY (sim_grading_key_id);
+--ALTER TABLE sim_grading_key ADD CONSTRAINT sim_grading_key_sim_grader_fkey FOREIGN KEY.... Not actually using a separate sim_grader table, but could consider adding later if complex enough data structure
+ALTER TABLE sim_grading_key ADD CONSTRAINT sim_grading_key_sim_state_fkey FOREIGN KEY (sim_state_id) REFERENCES sim_state(sim_state_id);
+ALTER TABLE sim_grading_key ADD CONSTRAINT sim_grading_key_clinical_item_fkey FOREIGN KEY (clinical_item_id) REFERENCES clinical_item(clinical_item_id);
+CREATE INDEX index_sim_grading_key_sim_state ON sim_grading_key(sim_state_id);	
+CREATE INDEX index_sim_grading_key_clinical_item ON sim_grading_key(clinical_item_id);
+
+
+
+
 -- Populate sim_order_result_map and sim_result with existing data based on queries like below
 
 -- select 
