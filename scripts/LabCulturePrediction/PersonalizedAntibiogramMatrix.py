@@ -129,7 +129,7 @@ class PersonalizedAntibiogramMatrix(FeatureMatrix):
                     AND
                     organism_name in ('ESCHERICHIA COLI', 'KLEBSIELLA PNEUMONIAE', 'PSEUDOMONAS AERUGINOSA', 'PROTEUS MIRABILIS')
                 GROUP BY pat_id, pat_enc_csn_anon_id, shifted_order_time, order_proc_anon_id, organism_name, proc_code
-                ORDER BY pat_id, pat_enc_csn_anon_id, shifted_order_times
+                ORDER BY pat_id, pat_enc_csn_anon_id, shifted_order_time
                 """
         self._num_reported_episodes = FeatureMatrix._query_patient_episodes(self, query, pat_id_col='pat_id', index_time_col='shifted_order_time')
 
