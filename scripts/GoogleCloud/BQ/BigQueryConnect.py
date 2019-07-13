@@ -15,6 +15,7 @@ from google.cloud.exceptions import NotFound
 from typing import List
 from pathlib import Path
 import re
+import pandas
 
 
 class BigQueryConnect():
@@ -224,3 +225,11 @@ class BigQueryConnect():
                 schema_fields.append(bigquery.SchemaField(column, bq_type, mode=mode))
 
         return schema_fields
+
+    def get_row_count(self, full_table_name: str) -> int:
+
+        query_job = self.client.query('SELECT COUNT(*) FROM ' + full_table_name, location='US')
+        results = query_job.result()
+        results_list = [row for row in results]
+
+        return results_list[0][0]
