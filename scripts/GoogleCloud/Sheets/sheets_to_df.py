@@ -14,13 +14,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import pandas as pd
 
-# If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-
-# The ID and range of a sample spreadsheet.
-SPREADSHEET_ID = '1O8bGdYbopA5w6jhWHS65xAhkHMdrJ_Y_zGMN03JkAuY'
-RANGE_NAME = 'From Responses 1!A2:R'
-
 class GoogleSheetsConnect:
     '''
     modified from Google Sheets API example
