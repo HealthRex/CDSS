@@ -35,6 +35,7 @@ SQL Queries and Databases
 
 == Preconditions ==
 - Access to run queries on a SQL database, for example, Google BigQuery hosted copy of STARR datalake
+- Review basic SQL syntax: https://www.w3schools.com/sql/default.asp
 
 == Workshop Steps ==
 - Data Tables in Databases in Database Servers
