@@ -6,11 +6,12 @@ Test First Development
 - Test First Development example
 - Python command-line processing tips
     - Data pipes (stdin, stdout, stderr)
+- Further reading:
+  http://agiledata.org/essays/tdd.html
 
 == Preconditions ==
 - Python *2.7* installed and executable from command-line / terminal
 - Git installed so able to download / clone code repository
-
 
 == Workshop Steps ==
 - Download copy of the code repository
