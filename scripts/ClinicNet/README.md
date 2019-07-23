@@ -60,7 +60,7 @@ To do this, we use the following script (the -x flag denotes which features we d
 
 To remove very low variance features, run the following script where you specify the directory of the data you want to remove features from, the output directory (which you should create with mkdir beforehand), and the statistics directory corresponding to the statistics for the data. Below, we specify a standard deviation threshold of 0.01 (such that all features with a standard deviation below 0.01 will be removed) and we also specify a list of features we want to remove anyway.
 <pre>python3 data_processing/feature_selection.py -i data/hdf5/train_shuffled/ -o data/hdf5/train_feature_selected/ -s data/statistics/train/ -t 0.01 -r patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date,analyze_date,item_date.month,item_date.hour</pre>
-Running the script above tells us that 5214 features out of 24875 were removed, leaving 19661 features remaining. This script also outputs new statistics files (with the features removed) in the statistis directory for the data.
+Running the script above tells us that 5214 features out of 24875 were removed, leaving 19661 features remaining. This script also outputs new statistics files (with the features removed) in the statistics directory for the data.
 
 ## Principal Component Analysis (PCA)
 
