@@ -12,10 +12,17 @@ import sys, getopt
 def feature_selection_worker(fname):
 	print(fname)
 	data_x = pd.read_hdf(data_dir + "/" + fname, 'data_x', mode='r')
+	data_r = None
+	if not (manually_remove is None):
+		r_columns = list(set(manually_remove) & set(list(data_x.columns)))
+		data_r = data_x.loc[:,r_columns]
 	data_x = data_x.drop(features_to_remove, axis=1)
 	data_y = pd.read_hdf(data_dir + "/" + fname, 'data_y', mode='r')
 	data_x.to_hdf(output_dir + "/" + fname, 'data_x', complevel=1, mode='w')
 	data_y.to_hdf(output_dir + "/" + fname, 'data_y', complevel=1)
+	if not (data_r is None):
+		data_r.to_hdf(output_dir + "/" + fname, 'data_r', complevel=1)
+		del data_r
 	del data_x
 	del data_y
 	gc.collect()
@@ -36,6 +43,7 @@ def main(argv):
 	global output_dir
 	global features_to_remove
 	global data_dir
+	global manually_remove
 	data_dir = ''
 	stats_dir = ''
 	output_dir = ''
