@@ -37,10 +37,11 @@ IMPORTANT: The HDF5 files will store the data frames as float32 types. This mean
 We can kill two birds with one stone: Shuffling (randomly) the entire dataset and putting the shuffled data into equally sized batches. We have to run two scripts. The first does the batch assignments (e.g. below, we make batches of size 4096 using the entire dataset) and produces a pickle file as output. The second takes the pickle file (containing the batch assignments) and uses it write out the batches (each batch being one file) to a specified folder (which we should create via mkdir).
 <pre>python2 data_processing/prep_batches.py -i data/hdf5/train/ -o data/train_shuffling.pickle -b 4096</pre>
 <pre>python2 data_processing/make_batches.py -s data/train_shuffling.pickle -i data/hdf5/train/ -o data/hdf5/train_shuffled/ -b 0 -e 100</pre>
-Note: The first script will print out info about the batches generated. Here was the output obtained when the command was run on the training set data and subsequently, on the dev set data:
+Note: The first script will print out info about the batches generated. Here was the output obtained when the command was run on the training set data and subsequently, on the dev set and test set data:
 <ul>
   <li>Training set data: "Read 25606920 data rows in 360 files. Created 6252 batches of size 4096."</li>
   <li>Dev set data: "Read 5539705 data rows in 120 files. Created 1353 batches of size 4096"</li>
+  <li>Test set data: "Read 5481460 data rows in 360 files. Created 1339 batches of size 4096"</li>
 </ul>
 
 Note: For the second script, we set the -b and -e options to indicate the beginning index and the end index of the batches we want to write out. In the example above, we write out batches 0 through 99. This is because doing the entire operation at once would consume too much memory so we need to split it into chunks.
