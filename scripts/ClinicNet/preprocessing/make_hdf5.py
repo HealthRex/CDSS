@@ -13,16 +13,24 @@ import sys, getopt
 # Everything is stored with as the float32 data type
 ## (Therefore, any non-numerical columns need to not be present in columns_line_exclude_responses)
 def load_in_data(files_list):
-	global columns_line, columns_line_exclude_responses, hdf5_dir, files_dir
+	global columns_line, columns_line_exclude_responses, hdf5_dir, files_dir, save_features
 	rand_identifier = random.randint(1,9999999)
 	hdf5_file = hdf5_dir + '/{}.h5'.format(rand_identifier)
 	data_x = None
 	data_y = None
+	data_s = None
 	for i in range(len(files_list)):
 		f = files_list[i]
 		if i%10==0:
 			print(str(i) + ": " + f) # Which iteration we're currently on
 		subdata = pd.read_table(files_dir + "/" + f, sep = '\t', header=None, names=columns_line, usecols=columns_line_exclude_responses, dtype='float32', na_values='None')
+		subdata_save = None
+		if not (save_features is None):
+			subdata_save = pd.read_table(files_dir + "/" + f, sep = '\t', header=None, names=columns_line, usecols=save_features, na_values='None')
+			if data_s is None:
+				data_s = subdata_save
+			else:
+				data_s = data_s.append(subdata_save)
 		colNames_y = subdata.columns[subdata.columns.str.contains(pat = '.post.1d')] 
 		colNames_x = subdata.columns[~subdata.columns.str.contains(pat = '.post.1d')] 
 		if data_x is None:
@@ -35,9 +43,12 @@ def load_in_data(files_list):
 			data_y = data_y.append(subdata.loc[:,colNames_y])            
 	data_x.to_hdf(hdf5_file, key='data_x', mode='w', complevel=1)
 	data_y.to_hdf(hdf5_file, key='data_y', mode='a', complevel=1)
+	if not (data_s is None):
+		data_s.to_hdf(hdf5_file, key='data_s', mode='a', complevel=1)
 
 def main(argv):
 	# Read in command line arguments:
+	global save_features
 	input_dir = ''
 	columns_file=''
 	output_dir = ''
@@ -45,10 +56,11 @@ def main(argv):
 	relevant_response_columns_file = ''
 	exclude_cols = []
 	num_processes = 0
+	save_features = None
 	try:
-		opts, args = getopt.getopt(argv,"hi:c:o:n:r:e:p:")
+		opts, args = getopt.getopt(argv,"hi:c:o:n:r:e:p:s:")
 	except getopt.GetoptError:
-		print('make_hdf5.py -i <data_directory> -c <columns_file> -o <output_directory> [-n num_split] [-r response_var_file] [-e exclude_features] [-p num_processes] [-h]')
+		print('make_hdf5.py -i <data_directory> -c <columns_file> -o <output_directory> [-n num_split] [-r response_var_file] [-e exclude_features] [-p num_processes] [-s save_features] [-h]')
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
@@ -61,22 +73,25 @@ def main(argv):
 			print('We can specify a response_var_file which is a tab-separated-values file containing a column named clinical_item_id, which has all the clinical item ID numbers we want to retain in the final HDF5 files for the response variable')
 			print('Important: Because the data frame stored in the HDF5 file will be float32 format, it is necessary to get rid of features that are non-numerical')
 			print('To get rid of certain features, specify exclude_features as the feature names separated by commas')
+			print('To save certain features (i.e. to not convert them to float32), specify save_features as the feature names separated by commas')
 			print('Each HDF5 file produced will receive a random numerical ID for its filename.')
 			sys.exit()
-                elif opt == '-p':
-                        num_processes = int(arg)
-                elif opt == '-r':
-                        relevant_response_columns_file = arg
-                elif opt == '-e':
-                        exclude_cols = arg.split(',')
+		elif opt == '-p':
+			num_processes = int(arg)
+		elif opt == '-r':
+			relevant_response_columns_file = arg
+		elif opt == '-e':
+			exclude_cols = arg.split(',')
+		elif opt == '-s':
+			save_features = arg.split(',')
 		elif opt == '-n':
 			num_split = int(arg)
 		elif opt == '-i':
 			input_dir = arg
 		elif opt == '-o':
 			output_dir = arg
-                elif opt == '-c':
-                        columns_file = arg
+		elif opt == '-c':
+			columns_file = arg
 	if len(argv) < 3 or columns_file == '' or input_dir == '' or output_dir == '':
                 print('make_hdf5.py -i <data_directory> -c <columns_file> -o <output_directory> [-n num_split] [-r response_var_file] [-e exclude_features] [-p num_processes] [-h]')
 		sys.exit(2)
