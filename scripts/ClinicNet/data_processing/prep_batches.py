@@ -16,7 +16,6 @@ def get_shuffled_batches(data_dir, batch_size, num_data_rows):
 	files_list = os.listdir(data_dir)
 	files_list.sort()
 	data_x = None
-	data_y = None
 	if batch_size is None:
 		batch_size = num_data_rows
 
