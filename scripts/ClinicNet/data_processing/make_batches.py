@@ -21,10 +21,16 @@ def write_shuffled_batches(data_dir, output_dir, batch_dicts, index_begin=None, 
 		index_end = num_batches
 	batch_data_x = [None for i in range(num_batches)] # Stores our final data frames (x)
 	batch_data_y = [None for i in range(num_batches)] # Stores our final data frames (y)
+	batch_data_s = [None for i in range(num_batches)] # Stores our final data frames (s)
 	for f in files_list:
 		print(f)
 		data_x = pd.read_hdf(data_dir + "/" + f, 'data_x', mode='r')
 		data_y = pd.read_hdf(data_dir + "/" + f, 'data_y', mode='r')
+		data_s = None
+		try:
+			data_s = pd.read_hdf(data_dir + "/" + f, 'data_s', mode='r')
+		except KeyError:
+			data_s = None
 		for i in range(index_begin,index_end):
 			if f in batch_dicts[i].keys():
 				if batch_data_x[i] is None:
@@ -35,15 +41,23 @@ def write_shuffled_batches(data_dir, output_dir, batch_dicts, index_begin=None, 
 					batch_data_y[i] = data_y.iloc[batch_dicts[i][f]]
 				else:
 					batch_data_y[i] = batch_data_y[i].append(data_y.iloc[batch_dicts[i][f]])
+				if batch_data_s[i] is None and not (data_s is None):
+					batch_data_s[i] = data_s.iloc[batch_dicts[i][f]]
+				elif not (data_s is None):
+					batch_data_s[i] = batch_data_s[i].append(data_s.iloc[batch_dicts[i][f]])
 		# Free up some memory:
 		del data_x
 		del data_y
+		del data_s
 		gc.collect()
 	for i in range(index_begin,index_end):
 		print("Writing batch {} to file".format(i))
 		hdf5_file = output_dir + "/" + str(i) + ".h5"
 		batch_data_x[i].to_hdf(hdf5_file, key='data_x', mode='w', complevel=1)
 		batch_data_y[i].to_hdf(hdf5_file, key='data_y', mode='a', complevel=1)
+		if not (all(v is None for v in batch_data_s)):
+			batch_data_s[i].to_hdf(hdf5_file, key='data_s', mode='a', complevel=1)
+
 
 def main(argv):
 	# Read in command line arguments:
