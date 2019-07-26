@@ -24,6 +24,8 @@ def load_in_data(files_list):
 		if i%10==0:
 			print(str(i) + ": " + f) # Which iteration we're currently on
 		subdata = pd.read_table(files_dir + "/" + f, sep = '\t', header=None, names=columns_line, usecols=columns_line_exclude_responses, dtype='float32', na_values='None')
+		if not (use_subset_name is None) and not (use_subset_values is None):
+			subdata_subset = pd.read_table(files_dir + "/" + f, sep = '\t', header=None, names=columns_line, usecols=list(use_subset_name), dtype='float32', na_values='None')
 		subdata_save = None
 		if not (save_features is None):
 			subdata_save = pd.read_table(files_dir + "/" + f, sep = '\t', header=None, names=columns_line, usecols=save_features, na_values='None')
@@ -49,6 +51,8 @@ def load_in_data(files_list):
 def main(argv):
 	# Read in command line arguments:
 	global save_features
+	global use_subset_name
+	global use_subset_values
 	input_dir = ''
 	columns_file=''
 	output_dir = ''
@@ -57,14 +61,16 @@ def main(argv):
 	exclude_cols = []
 	num_processes = 0
 	save_features = None
+	use_subset_name = None
+	use_subset_values = None
 	try:
-		opts, args = getopt.getopt(argv,"hi:c:o:n:r:e:p:s:")
+		opts, args = getopt.getopt(argv,"hi:c:o:n:r:e:p:s:u:")
 	except getopt.GetoptError:
-		print('make_hdf5.py -i <data_directory> -c <columns_file> -o <output_directory> [-n num_split] [-r response_var_file] [-e exclude_features] [-p num_processes] [-s save_features] [-h]')
+		print('make_hdf5.py -i <data_directory> -c <columns_file> -o <output_directory> [-n num_split] [-r response_var_file] [-e exclude_features] [-p num_processes] [-s save_features] [-u use_subset] [-h]')
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
-	                print('make_hdf5.py -i <data_directory> -c <columns_file> -o <output_directory> [-n num_split] [-r response_var_file] [-e exclude_features] [-p num_processes] [-h]')
+	                print('make_hdf5.py -i <data_directory> -c <columns_file> -o <output_directory> [-n num_split] [-r response_var_file] [-e exclude_features] [-p num_processes] [-s save_features] [-u use_subset] [-h]')
 			print('')
 			print('This script converts the data (stored in tab-delimited plaintext files in <data_directory>) into HDF5 files which will be stored in <output_directory>')
 			print('We specify a tab-delimited file, <columns_file>, containing the column names of each column in the tab-delimited plaintext data files')
@@ -74,6 +80,8 @@ def main(argv):
 			print('Important: Because the data frame stored in the HDF5 file will be float32 format, it is necessary to get rid of features that are non-numerical')
 			print('To get rid of certain features, specify exclude_features as the feature names separated by commas')
 			print('To save certain features (i.e. to not convert them to float32), specify save_features as the feature names separated by commas')
+			print('To only save a subset of rows for which a certain feature has values matching those specified in a separate file, use the -u option as follows: column_name:file_name')
+			print('For an example of the -u option, if we only wanted to select patient IDs that exist in a file called ids.txt, we would use -u patient_id:ids.txt')
 			print('Each HDF5 file produced will receive a random numerical ID for its filename.')
 			sys.exit()
 		elif opt == '-p':
@@ -92,8 +100,12 @@ def main(argv):
 			output_dir = arg
 		elif opt == '-c':
 			columns_file = arg
+		elif opt == '-u':
+			use_subset = arg.split(':')
+			use_subset_name = use_subset[0]
+			use_subset_values = [line.strip() for line in open(use_subset[1])]
 	if len(argv) < 3 or columns_file == '' or input_dir == '' or output_dir == '':
-                print('make_hdf5.py -i <data_directory> -c <columns_file> -o <output_directory> [-n num_split] [-r response_var_file] [-e exclude_features] [-p num_processes] [-h]')
+                print('make_hdf5.py -i <data_directory> -c <columns_file> -o <output_directory> [-n num_split] [-r response_var_file] [-e exclude_features] [-p num_processes] [-s save_features] [-u use_subset] [-h]')
 		sys.exit(2)
 
 	# Set up globals (since multiprocessing.Pool(...) doesn't handle multiple arguments)
