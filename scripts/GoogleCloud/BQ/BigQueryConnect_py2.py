@@ -1,5 +1,5 @@
 '''
-TODO: This is written for py3, pause on this for now and use _py2 version
+TODO: fix fstrings for py2
 TODO: stream_csv_to_table method not functional
 
 connect to BQ using json token
@@ -15,8 +15,8 @@ from google.cloud import bigquery
 #from google.cloud import storage
 from google.cloud.exceptions import NotFound
 
-from typing import List
-from pathlib import Path
+from medinfo.dataconversion.Util import log
+
 import re
 import pandas
 import time
@@ -31,7 +31,7 @@ class BigQueryConnect():
         self.client = bigquery.Client()
         assert self.client is not None, 'Did not connect to BQ, check credentials env(GOOGLE_APPLICATION_CREDENTIALS)'
 
-    def create_new_dataset(self, dataset_id: str) -> None:
+    def create_new_dataset(self, dataset_id):
         '''
         https://cloud.google.com/bigquery/docs/datasets#create-dataset
 
@@ -44,16 +44,18 @@ class BigQueryConnect():
         try:
             # Check if the dataset with specified ID already exists
             self.client.get_dataset(dataset_ref)
-            print(f'Dataset {dataset_id} already exists! Skipping create operation.')
+            log.info('Dataset {} already exists! Skipping create operation.'.format(dataset_id))
+            #print(f'Dataset {dataset_id} already exists! Skipping create operation.')
         except NotFound:
             # Construct a full Dataset object to send to the API.
             dataset = bigquery.Dataset(dataset_ref)
             dataset.location = 'US'
             dataset = self.client.create_dataset(dataset)  # API request
-            print(f'Dataset {dataset.dataset_id} created successfully project: {self.client.project}.')
+            log.info('Dataset {} created successfully project: {}.'.format(dataset.dataset_id, self.client.project))
+            #print(f'Dataset {dataset.dataset_id} created successfully project: {self.client.project}.')
 
-    def create_new_table_from_schema(self, dataset_id: str, table_id: str,
-                                     schema: List[bigquery.SchemaField]) -> None:
+    def create_new_table_from_schema(self, dataset_id, table_id,
+                                     schema):
         '''
         https://cloud.google.com/bigquery/docs/tables#create-table
 
@@ -72,17 +74,23 @@ class BigQueryConnect():
 
         try:
             self.client.get_table(table_ref)
-            print(f'Table {table_id} in dataset {dataset_id} already exists! Skipping create operation.')
+            #print(f'Table {table_id} in dataset {dataset_id} already exists! Skipping create operation.')
         except NotFound:
             # Construct a full Table object to send to the API.
             table = bigquery.Table(table_ref, schema=schema)
             table = self.client.create_table(table)  # API request
+            log.info('''
+                    Table {} in dataset {}
+                    created successfully project: {}.
+                    '''.format(table.table_id, dataset_id, self.client.project))
+            '''
             print(
                 f'Table {table.table_id} in dataset {dataset_id}'
                 f'created successfully project: {self.client.project}.'
             )
+            '''
 
-    def _stream_csv_to_table(self, dataset_id: str, table_id: str, csv_path: str, batch_size: int = 1000):
+    def _stream_csv_to_table(self, dataset_id, table_id, csv_path, batch_size = 1000):
         '''
         FYI: Streaming is NOT free :)
         https://cloud.google.com/bigquery/pricing#streaming_pricing
@@ -114,8 +122,8 @@ class BigQueryConnect():
                 errors = self.client.insert_rows(table, rows_to_insert)  # API request
                 assert errors == []
 
-    def load_csv_to_table(self, dataset_id: str, table_id: str, csv_path: str, auto_detect_schema: bool = True,
-                          schema: List[bigquery.SchemaField] = [], skip_rows: int = 0) -> None:
+    def load_csv_to_table(self, dataset_id, table_id, csv_path, auto_detect_schema = True,
+                          schema = [], skip_rows = 0):
         '''
         TODO: add functionality for optional schema input
         TODO: what happens if dataset does not exist?
@@ -167,7 +175,8 @@ class BigQueryConnect():
                 job_config=job_config,
             )  # API request
 
-        print('Uploading table... ')
+        log.info('Uploading table... ')
+        #print('Uploading table... ')
         try:
             load_table_job.result() # Wait for load to complete
         except:
@@ -175,14 +184,20 @@ class BigQueryConnect():
             return errors
         #print(load_table_job.error_result)
         table = self.client.get_table(table_ref)
-
+        log.info('''
+                {} rows loaded into 
+                table {} in dataset {}
+                in project: {}.
+                '''.format(load_table_job.output_rows, table.table_id, dataset_id, self.client.project))
+        '''
         print(
             f'{load_table_job.output_rows} rows loaded into '
             f'table {table.table_id} in dataset {dataset_id} '
             f'in project: {self.client.project}.'
         )
+        '''
 
-    def read_table_types(self, table_types_path: str) -> List[bigquery.SchemaField]:
+    def read_table_types(self, table_types_path):
         '''
         reads in lines, deliminited by "|", e.g.:
         <column name> | <data type> | <collation> | <nullable> | <default>
@@ -230,7 +245,7 @@ class BigQueryConnect():
 
         return schema_fields
 
-    def get_row_count(self, full_table_name: str) -> int:
+    def get_row_count(self, full_table_name):
 
         query_job = self.client.query('SELECT COUNT(*) FROM ' + full_table_name, location='US')
         results = query_job.result()
@@ -238,8 +253,8 @@ class BigQueryConnect():
 
         return results_list[0][0]
 
-    def queryBQ(self, query_str: str, location: str ='US', batch_mode: bool = False, dry_run: bool = False,
-                verbose: bool = False) -> bigquery.job.QueryJob:
+    def queryBQ(self, query_str, query_params=None, location ='US', batch_mode = False, dry_run = False,
+                verbose = False):
 
         job_config = bigquery.QueryJobConfig()
         job_config.dry_run = dry_run
@@ -248,15 +263,20 @@ class BigQueryConnect():
             # Run at batch priority, which won't count toward concurrent rate limit.
             job_config.priority = bigquery.QueryPriority.BATCH
 
+        if query_params:
+            job_config.query_parameters = query_params
+
         query_job = self.client.query(query_str, location=location, job_config=job_config)
 
         if batch_mode: # wait until job is done
             while query_job.state != 'DONE':
                 query_job = self.client.get_job(query_job.job_id, location=location)
-                print("Job {} is currently in state {}".format(query_job.job_id, query_job.state))
+                log.info('Job {} is currently in state {}'.format(query_job.job_id, query_job.state))
+                #print('Job {} is currently in state {}'.format(query_job.job_id, query_job.state))
                 time.sleep(5)
 
         if verbose:
-            print("This query will process {} bytes.".format(query_job.total_bytes_processed))
+            log.info('This query will process {} bytes.'.format(query_job.total_bytes_processed))
+            #print('This query will process {} bytes.'.format(query_job.total_bytes_processed))
 
         return query_job
