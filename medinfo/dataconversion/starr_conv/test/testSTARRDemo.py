@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from medinfo.dataconv_starr.STARRDemographicsConversion import STARRDemographicsConversion
+from medinfo.dataconversion.starr_conv.STARRDemographicsConversion import STARRDemographicsConversion
 
 '''
 setup credentials: export GOOGLE_APPLICATION_CREDENTIALS='<path to json>'
