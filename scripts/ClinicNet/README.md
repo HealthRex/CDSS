@@ -77,7 +77,7 @@ Here is some of the notebook's output:
 
 ## Processing the Data Matrix for Order Set Prediction
 
-Now, we focus on the task of processing the data matrix for predicting order set usage.
+Now, we focus on the task of processing the data matrix for predicting order set usage. The following script formats the data's response variable to be whether each order set was used 1 day after each given item. You specify the input data directory, output folder (which you should create beforehand with mkdir), patient_orderset_mapping_file (HDF5 file specified via -m), and patient_itemdate_mapping_file (HDF5 file specified via -d). We can leverage multiprocessing via -p. The patient_orderset_mapping_file contains a data frame of order set items with columns being patient_id, patient_item_id, external_id (the order set ID), and item_date (the order set item date as nanoseconds since epoch). The patient_itemdate_mapping_file contains a data frame of patient items with columns being item_date (as nanoseconds since epoch) and patient_item_id. Only the data rows that have at least one post-one-day order set usage are retained unless the flag -a is used in which case all data rows will be retained.
 
 <pre>python data_processing/make_order_set_responses.py -i data/hdf5/dev2/ -o data/hdf5/dev2_order_set/ -m ./queried/patient_item_id_to_order_set_ID_matches.hdf5 -d ./queried/patientitemid_itemdate.hdf5</pre>
 
