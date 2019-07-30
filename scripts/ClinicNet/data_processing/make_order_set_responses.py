@@ -1,3 +1,5 @@
+# Takes HDF5 data files, extracts order set usage, and formats the data's response variable to be whether each order set was used 1 day after a given item
+
 import pandas as pd
 import numpy as np
 import os
