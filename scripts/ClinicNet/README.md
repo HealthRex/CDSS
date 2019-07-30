@@ -75,6 +75,12 @@ Here is some of the notebook's output:
   <li>Cumulative variance explained for PC4632: 82.2%</li>
 </ul>
 
+## Processing the Data Matrix for Order Set Prediction
+
+Now, we focus on the task of processing the data matrix for predicting order set usage.
+
+<pre>python data_processing/make_order_set_responses.py -i data/hdf5/dev2/ -o data/hdf5/dev2_order_set/ -m ./queried/patient_item_id_to_order_set_ID_matches.hdf5 -d ./queried/patientitemid_itemdate.hdf5</pre>
+
 # Model and tuning <a name="processdatamatrix"></a>
 
 ## Data generator
