@@ -1,4 +1,6 @@
-# Takes HDF5 data files, extracts order set usage, and formats the data's response variable to be whether each order set was used 1 day after a given item
+# Takes HDF5 data files, extracts order set usage, and 
+# formats the data's response variable to be whether
+# each order set was used 1 day after a given item
 
 import pandas as pd
 import numpy as np
@@ -6,8 +8,6 @@ import os
 import gc
 import sys, getopt
 import multiprocessing
-
-#python data_processing/make_order_set_responses.py -i data/hdf5/dev2/ -o data/hdf5/dev2_order_set/ -m ./queried/patient_item_id_to_order_set_ID_matches.hdf5 -d ./queried/patientitemid_itemdate.hdf5 
 
 def make_order_set_data(f):
 	data_s = pd.read_hdf(data_dir + "/" + f, 'data_s')
