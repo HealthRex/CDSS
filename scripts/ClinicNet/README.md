@@ -84,7 +84,7 @@ Now, we focus on the task of processing the data matrix for predicting order set
 # Model and tuning <a name="processdatamatrix"></a>
 
 ## Data generator
-Located in utils/datagenerator.py. Shuffles files, then shuffles rows within each file, then loads in batches one by one. Used for training the network.
+Located in clinicnet_model/utils/datagenerator.py. Shuffles files, then shuffles rows within each file, then loads in batches one by one. Used for training the network.
 
 ## 
 
