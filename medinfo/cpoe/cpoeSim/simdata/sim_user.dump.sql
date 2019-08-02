@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.11
--- Dumped by pg_dump version 9.6.11
+-- Dumped from database version 9.3.11
+-- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -43,8 +43,6 @@ COPY public.sim_user (sim_user_id, name) FROM stdin;
 33	phy_9
 34	kh_10
 35	rph_11
-36	
-37	
 38	r13
 39	r12
 40	mw13
@@ -63,9 +61,7 @@ COPY public.sim_user (sim_user_id, name) FROM stdin;
 53	r26
 54	r27
 55	LisaShieh
-56	
 57	JH
-58	
 59	sp28
 60	ms29
 61	km30
