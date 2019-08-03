@@ -50,6 +50,9 @@ class FeatureMatrixFactory:
         self._patientItemTimeColumn = None
         self.timestampColumn = None
 
+        self._isLabPanel = True if LocalEnv.LAB_TYPE == 'panel' else 'component'
+        self._labTypeCol = 'proc_code' if self._isLabPanel else 'base_name'
+
         self.patientsProcessed = None
 
         if not PID: # Allow checking existing tmp files
@@ -223,7 +226,7 @@ class FeatureMatrixFactory:
     '''
     New version, adapt to the new split_by_patient pipeline
     '''
-    def obtain_baseline_results(self, raw_matrix_path, random_state, isLabPanel=True, isHoldOut=False):
+    def obtain_baseline_results(self, raw_matrix_path, random_state, isHoldOut=False):
         from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
         fm_io = FeatureMatrixIO()
 
@@ -233,15 +236,13 @@ class FeatureMatrixFactory:
         get prevalence from the train set
         '''
         processed_matrix_train = fm_io.read_file_to_data_frame(processed_matrix_path.replace('-matrix', '-train-matrix'))
-        if isLabPanel:
+        if self._isLabPanel:
             y_label = 'all_components_normal'
         else:
             y_label = 'component_normal'
 
         prevalence = float(processed_matrix_train[y_label].values.sum())/float(processed_matrix_train.shape[0])
 
-        '''
-        '''
         processed_matrix_test = fm_io.read_file_to_data_frame(processed_matrix_path.replace('-matrix', '-test-matrix'))
         pats_test = set(processed_matrix_test['pat_id'].values.tolist())
         raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
@@ -262,79 +263,6 @@ class FeatureMatrixFactory:
         # os.rename(baseline_filepath, baseline_filepath.replace('baseline_comparisons', 'baseline_comparisons_prev')) # existing ones
         baseline_comparisons.to_csv(baseline_filepath)
 
-
-    '''
-    Old version, compatible to the previous split_by_episode pipeline
-    '''
-    def obtain_baseline_results_(self, raw_matrix_path, random_state, isLabPanel=True, isHoldOut=False):
-        # Step1: group by pat_id
-        # Step2: For each group, obtain predicts
-        #   Step 2.1: order by order_time
-        #   Step 2.2: Obtain
-
-        import pandas as pd
-        pd.set_option('display.width', 300)
-        pd.set_option('display.max_column', 10)
-
-        from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
-        fm_io = FeatureMatrixIO()
-        raw_matrix = fm_io.read_file_to_data_frame(raw_matrix_path)
-
-        episode_cnt = raw_matrix.shape[0]
-
-        if isLabPanel:
-            ylabel = 'all_components_normal'
-        else:
-            ylabel = 'component_normal'
-
-        raw_matrix_dict = raw_matrix[['pat_id', 'order_time', ylabel]].to_dict('records')
-
-        X = range(episode_cnt)
-        from sklearn.model_selection import train_test_split
-        X_train, X_test = train_test_split(X, random_state=random_state) #
-
-        actual_cnt_1 = 0
-        actual_cnt_0 = 0
-
-        episode_groups_dict = {}
-        episode_ind = 0
-        for episode_dict in raw_matrix_dict:
-            if episode_ind in X_test:
-                if episode_dict['pat_id'] in episode_groups_dict:
-                    episode_groups_dict[episode_dict['pat_id']].append(episode_dict)
-                else:
-                    episode_groups_dict[episode_dict['pat_id']] = [episode_dict]
-            else:
-                if int(episode_dict[ylabel]) == 1:
-                    actual_cnt_1 += 1
-                else:
-                    actual_cnt_0 += 1
-            episode_ind += 1
-
-        # Calc the prevalence from training data
-        prevalence_1 = float(actual_cnt_1)/float(actual_cnt_1+actual_cnt_0)
-
-        baseline_comparisons = pd.DataFrame(columns=['actual', 'predict'])
-
-        for pat_id in episode_groups_dict:
-            #   Step 2.1: order by order_time
-            newlist = sorted(episode_groups_dict[pat_id], key=lambda k: k['order_time'])
-
-            newlist[0]['predict'] = prevalence_1
-            baseline_comparisons = baseline_comparisons.append({'actual':newlist[0][ylabel],
-                                         'predict':newlist[0]['predict']}, ignore_index=True)
-
-            for i in range(1,len(newlist)):
-                newlist[i]['predict'] = newlist[i-1][ylabel]
-                baseline_comparisons = baseline_comparisons.append({'actual': newlist[i][ylabel],
-                                             'predict': newlist[i]['predict']}, ignore_index=True)
-
-        baseline_folder = '/'.join(raw_matrix_path.split('/')[:-1])
-
-        if not isHoldOut:
-            baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons.csv'))
-        else:
-            baseline_comparisons.to_csv(os.path.join(baseline_folder, 'baseline_comparisons_holdout.csv'))
 
     def _getPatientEpisodeByIndexTimeById(self):
         """
@@ -966,17 +894,6 @@ class FeatureMatrixFactory:
 
         colNames = ["%s AS pat_id"%pat_col, "flo_meas_id", "flowsheet_name", \
             "flowsheet_value", "shifted_dt_tm"]
-        # query = SQLQuery()
-        # for col in colNames:
-        #     query.addSelect(col)
-        # if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-        #     query.addFrom("stride_flowsheet")
-        # elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-        #     query.addFrom("vitals")
-        # query.addWhereIn("flowsheet_name", flowsheetBaseNames)
-        # query.addWhereIn(pat_col, patientIds)
-        # query.addOrderBy(pat_col)
-        # query.addOrderBy("shifted_dt_tm")
 
         query_str = "SELECT "
         for colName in colNames:
@@ -987,6 +904,8 @@ class FeatureMatrixFactory:
             query_str += " FROM stride_flowsheet "
         elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
             query_str += " FROM vitals "
+        # Note that UMich does not have vitals info
+
         query_str += " WHERE flowsheet_name IN ("
         for flowsheetBaseName in flowsheetBaseNames:
             query_str += "'" + flowsheetBaseName + "',"
@@ -1000,11 +919,8 @@ class FeatureMatrixFactory:
 
         query_str += " ORDER BY %s, shifted_dt_tm" % pat_col
 
-        # print query_str
         log.debug(query_str)
 
-        # results = DBUtil.connection().cursor().execute(query_str).fetchall()
-        # print results
         cur = DBUtil.connection().cursor()
         cur.execute(query_str)
 
@@ -1200,10 +1116,8 @@ class FeatureMatrixFactory:
                 query.addSelect(column)
             query.addFrom("stride_order_results AS sor, stride_order_proc AS sop")
             query.addWhere("sor.order_proc_id = sop.order_proc_id")
-            if isLabPanel:
-                query.addWhereIn("proc_code", labNames)
-            else:
-                query.addWhereIn("base_name", labNames)
+
+            query.addWhereIn(self._labTypeCol, labNames)
 
             query.addWhereIn("pat_id", patientIds)
             query.addOrderBy("pat_id")
@@ -1220,12 +1134,7 @@ class FeatureMatrixFactory:
                 query_str += column + ","
             query_str = query_str[:-1] + " FROM labs "
 
-            if isLabPanel:
-                clinicalItemType = 'proc_code'
-            else:
-                clinicalItemType = 'base_name'
-
-            query_str += "WHERE %s IN (" % (clinicalItemType)
+            query_str += "WHERE %s IN (" % (self._labTypeCol)
             for labName in labNames:
                 query_str += "'%s'," % labName
             query_str = query_str[:-1] + ") "
@@ -1473,42 +1382,6 @@ class FeatureMatrixFactory:
                                                          clinicalItemTime='diagnose_time',
                                                          label="Comorbidity."+disease,
                                                          features=features)
-        # TODO: Figure out the best way to handle UMich
-        # icd9prefixesByDisease = dict()
-        # for row in self.loadMapData("CharlsonComorbidity-ICD9CM"):
-        #     (disease, icd9prefix) = (row["charlson"], row["icd9cm"])
-        #     if disease not in icd9prefixesByDisease:
-        #         icd9prefixesByDisease[disease] = list()
-        #     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-        #         icd9prefixesByDisease[disease].append("^ICD9." + icd9prefix)
-        #     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-        #         icd9prefixesByDisease[disease].append(icd9prefix)
-        #
-        # '''
-        # Solution:
-        # For ICD9, map the whole code
-        # For ICD10, only map the prefix
-        # '''
-        # if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-        #     for row in self.loadMapData("CharlsonComorbidity-ICD10"):
-        #         (disease, icd10prefix) = (row["charlson"], row["icd10"])
-        #         if disease not in icd9prefixesByDisease:
-        #             icd9prefixesByDisease[disease] = list()
-        #         # icd9prefixesByDisease[disease].append(icd10prefix)
-        #
-        # for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
-        #     disease = disease.translate(None, " ()-/")  # Strip off punctuation
-        #     log.debug('Adding %s comorbidity features...' % disease)
-        #     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-        #         self.addClinicalItemFeatures(icd9prefixes, operator="~*", \
-        #                                      label="Comorbidity." + disease, features=features)
-        #     elif LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-        #         self.addClinicalItemFeatures_UMich(icd9prefixes,
-        #                                            tableName='diagnoses',
-        #                                            clinicalItemType='diagnose_code',
-        #                                            clinicalItemTime='diagnose_time',
-        #                                            label="Comorbidity." + disease,
-        #                                            features=features)
 
     def addTreatmentTeamFeatures(self, features=None):
         """
@@ -1655,44 +1528,3 @@ class FeatureMatrixFactory:
 
     def getNumRows(self):
         return self._numRows
-
-    def queryAllRaces(self):
-        '''
-        In case that not all data are accessible for us beforehand,
-        we need to do a first "peek" of all possible Races.
-
-        Returns:
-
-        '''
-        if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
-            RACE_FEATURES = [
-                "RaceWhiteHispanicLatino", "RaceWhiteNonHispanicLatino",
-                "RaceHispanicLatino", "RaceBlack", "RaceAsian",
-                "RacePacificIslander", "RaceNativeAmerican",
-                "RaceOther", "RaceUnknown"
-            ]
-            return RACE_FEATURES
-        else:
-            RACE_FEATURES = ['Caucasian', 'Unknown', 'African American',
-                             'American Indian or Alaska Native', 'Patient Refused',
-                             'Native Hawaiian and Other Pacific Islander',
-                             'Other', 'Middle Eastern', 'Hispanic', 'Multi Racial',
-                             'Asian - Pacific Islander', 'Asian']
-
-            # query = SQLQuery()
-            # query.addSelect("DISTINCT RaceName")
-            # query.addFrom("demographics")
-            # results = DBUtil.execute(query)
-            # results = [x[0] for x in results]
-            # results = [x if x else 'Unknown' for x in results]
-            return RACE_FEATURES
-
-    # def queryAllTeams(self):
-    #     if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-    #         query = SQLQuery()
-    #         query.addSelect("DISTINCT RaceName")
-    #         query.addFrom("demographics")
-    #         results = DBUtil.execute(query)
-    #         results = [x[0] for x in results]
-    #         # results = [x if x else 'Unknown' for x in results]
-    #         return results
