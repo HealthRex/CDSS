@@ -42,8 +42,7 @@ class SupervisedLearningPipeline:
     REGRESSION = 'regression'
 
     def __init__(self, variable, num_data_points, use_cache=None, random_state=None,
-                 isLabPanel=True, timeLimit=None, holdOut=False,
-                 isLabNormalityPredictionPipeline=False):
+                 timeLimit=None, notUsePatIds=()):
         # Process arguments.
         self._var = variable
         self._num_rows = num_data_points
@@ -57,10 +56,8 @@ class SupervisedLearningPipeline:
         self._added_features = list()
         self._random_state = random_state
 
-        self._isLabNormalityPredictionPipeline = isLabNormalityPredictionPipeline
-        self._isLabPanel = isLabPanel
         self._timeLimit = timeLimit
-        self._holdOut = holdOut
+        self._notUsePatIds = notUsePatIds
         self.feat2imputed_dict = {}
 
         '''
@@ -117,10 +114,8 @@ class SupervisedLearningPipeline:
         parent_dir_list = app_dir.split('/')
 
         if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-            if self._isLabPanel:
-                parent_dir_list.append('data-panel')
-            else:
-                parent_dir_list.append('data-component')
+            # For running both standalone (called "panel" here)/component in 1 click
+            parent_dir_list.append('data-%s' % LocalEnv.LAB_TYPE)
         else:
             parent_dir_list.append('data')
         parent_dir_list.append(self._var)
@@ -147,10 +142,9 @@ class SupervisedLearningPipeline:
             # at least 1 primary variables and # of rows.
             # Ensure that random_state is [-1, 1]
             random_state = float(self._random_state)/float(sys.maxint)
-            if self._isLabNormalityPredictionPipeline:
+            if self._timeLimit or self._notUsePatIds:
                 matrix = matrix_class(self._var, self._num_rows, random_state=random_state,
-                                  isLabPanel=self._isLabPanel, timeLimit=self._timeLimit,
-                                      notUsePatIds=self.notUsePatIds)
+                                  timeLimit=self._timeLimit, notUsePatIds=self._notUsePatIds)
             else:
                 matrix = matrix_class(self._var, self._num_rows, random_state=random_state)
             matrix.write_matrix(raw_matrix_path)
@@ -616,84 +610,11 @@ class SupervisedLearningPipeline:
         analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
         analyzer.write_report(report_path, ci=0.95)
 
-
-    # sx
-    def _analyze_predictor_traindata(self, dest_dir, pipeline_prefix):
+    def _analyze_predictor_traindata(self, dest_dir):
         analyzer = ClassifierAnalyzer(self._predictor, self._X_train, self._y_train)
-        train_label = 'traindata'
-
-        # Build names for output plots and report.
-        direct_comparisons_name = 'direct_comparisons_train.csv' #'%s-direct-compare-results-%s.csv' % (pipeline_prefix, train_label)
-        precision_at_k_plot_name = '%s-precision-at-k-plot-%s.png' % (pipeline_prefix, train_label)
-        precision_recall_plot_name = '%s-precision-recall-plot-%s.png' % (pipeline_prefix, train_label)
-        roc_plot_name = '%s-roc-plot-%s.png' % (pipeline_prefix, train_label)
-        report_name = '%s-report-%s.tab' % (pipeline_prefix, train_label)
-
-        # Build paths.
+        direct_comparisons_name = 'direct_comparisons_train.csv'
         direct_comparisons_path = '/'.join([dest_dir, direct_comparisons_name])
         log.debug('direct_comparisons_path: %s' % direct_comparisons_path)
-        precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
-        log.debug('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
-        precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
-        log.debug('precision_recall_plot_path: %s' % precision_recall_plot_path)
-        roc_plot_path = '/'.join([dest_dir, roc_plot_name])
-        log.debug('roc_plot_path: %s' % roc_plot_path)
-        report_path = '/'.join([dest_dir, report_name])
-        log.debug('report_path: %s' % report_path)
-
-        # Build plot titles.
-        roc_plot_title = 'ROC (%s)' % pipeline_prefix
-        precision_recall_plot_title = 'Precision-Recall (%s)' % pipeline_prefix
-        precision_at_k_plot_title = 'Precision @K (%s)' % pipeline_prefix
-
-        # Write output.
         analyzer.output_direct_comparisons(direct_comparisons_path)
-        # analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
-        # analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
-        # analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
-        # analyzer.write_report(report_path, ci=0.95)
 
 
-    def _analyze_predictor_holdoutset(self, dest_dir, pipeline_prefix):
-        slugified_var = '-'.join(self._var.split())
-        holdout_path = dest_dir + '/../' + '%s-normality-matrix-%d-episodes-processed-holdout.tab'%(slugified_var, self._num_rows)
-        fm_io = FeatureMatrixIO()
-        processed_matrix = fm_io.read_file_to_data_frame(holdout_path)
-        if self._isLabPanel:
-            y_holdout = pd.DataFrame(processed_matrix.pop('all_components_normal'))
-        else:
-            y_holdout = pd.DataFrame(processed_matrix.pop('component_normal'))
-        X_holdout = processed_matrix
-        analyzer = ClassifierAnalyzer(self._predictor, X_holdout, y_holdout)
-        train_label = 'holdoutset'
-
-        # Build names for output plots and report.
-        direct_comparisons_name = '%s-direct-compare-results-%s.csv' % (pipeline_prefix, train_label)
-        precision_at_k_plot_name = '%s-precision-at-k-plot-%s.png' % (pipeline_prefix, train_label)
-        precision_recall_plot_name = '%s-precision-recall-plot-%s.png' % (pipeline_prefix, train_label)
-        roc_plot_name = '%s-roc-plot-%s.png' % (pipeline_prefix, train_label)
-        report_name = '%s-report-%s.tab' % (pipeline_prefix, train_label)
-
-        # Build paths.
-        direct_comparisons_path = '/'.join([dest_dir, direct_comparisons_name])
-        log.debug('direct_comparisons_path: %s' % direct_comparisons_path)
-        precision_at_k_plot_path = '/'.join([dest_dir, precision_at_k_plot_name])
-        log.debug('precision_at_k_plot_path: %s' % precision_at_k_plot_path)
-        precision_recall_plot_path = '/'.join([dest_dir, precision_recall_plot_name])
-        log.debug('precision_recall_plot_path: %s' % precision_recall_plot_path)
-        roc_plot_path = '/'.join([dest_dir, roc_plot_name])
-        log.debug('roc_plot_path: %s' % roc_plot_path)
-        report_path = '/'.join([dest_dir, report_name])
-        log.debug('report_path: %s' % report_path)
-
-        # Build plot titles.
-        roc_plot_title = 'ROC (%s)' % pipeline_prefix
-        precision_recall_plot_title = 'Precision-Recall (%s)' % pipeline_prefix
-        precision_at_k_plot_title = 'Precision @K (%s)' % pipeline_prefix
-
-        # Write output.
-        analyzer.output_direct_comparisons(direct_comparisons_path)
-        analyzer.plot_roc_curve(roc_plot_title, roc_plot_path)
-        analyzer.plot_precision_recall_curve(precision_recall_plot_title, precision_recall_plot_path)
-        analyzer.plot_precision_at_k_curve(precision_at_k_plot_title, precision_at_k_plot_path)
-        analyzer.write_report(report_path, ci=0.95)
