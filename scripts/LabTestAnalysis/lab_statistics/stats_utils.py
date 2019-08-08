@@ -108,7 +108,7 @@ umich_lab_cnt = {'WBC':5280.99347210938,
 # if not os.path.exists(labs_stats_folder):
 #     os.mkdir(labs_stats_folder)
 import matplotlib
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 from scripts.LabTestAnalysis.machine_learning.LabNormalityPredictionPipeline \
@@ -138,7 +138,7 @@ def prepare_subfigs(num_figs, col = 5):
     if cols_left > 0:
         row = row + 1
 
-    fig_width, fig_heights = 2.5 * col, 2.1 * row #8. / col * row
+    fig_width, fig_heights = 2.1 * col, 2.1 * row #8. / col * row
 
     plt.figure(figsize=(fig_width, fig_heights))
 
@@ -1577,6 +1577,8 @@ def output_feature_importances(labs, data_source='Stanford', lab_type='panel', c
         result_df[col] = result_df[col].apply(lambda x: dict_misc.get(x, x))
 
     result_df.to_csv(result_filepath, index=False, float_format='%.2f')
+
+
 
 if __name__ == '__main__':
     # output_feature_importances(data_source='UCSF', lab_type='panel') # TODO: do this for UCSF...

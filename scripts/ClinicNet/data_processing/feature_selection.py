@@ -14,8 +14,16 @@ def feature_selection_worker(fname):
 	data_x = pd.read_hdf(data_dir + "/" + fname, 'data_x', mode='r')
 	data_x = data_x.drop(features_to_remove, axis=1)
 	data_y = pd.read_hdf(data_dir + "/" + fname, 'data_y', mode='r')
+	data_s = None
+	try:
+		data_s = pd.read_hdf(data_dir + "/" + fname, 'data_s', mode='r')
+	except KeyError:
+		data_s = None
 	data_x.to_hdf(output_dir + "/" + fname, 'data_x', complevel=1, mode='w')
 	data_y.to_hdf(output_dir + "/" + fname, 'data_y', complevel=1)
+	if not (data_s is None):
+		data_s.to_hdf(output_dir + "/" + fname, 'data_s', complevel=1)
+		del data_s
 	del data_x
 	del data_y
 	gc.collect()
