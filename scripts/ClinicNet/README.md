@@ -20,14 +20,14 @@ This will create a 70/15/15 split for train/dev/test sets. You'll also get some 
 
 For all the data files (that are tab-delimited in plaintext format) in a folder, we'll convert them to (partially compressed) HDF5 files so they can efficiently be loaded into python pandas data frames later on. From here on out, we'll only load data via HDF5 files.
 
-To do the conversion, run the following script where you specify the input data directory, output folder (which you should create beforehand with mkdir), the number of chunks to split the data into (this will be the number of HDF5 files we'll get), the clinical item IDs to retain for the post.1d response variables, and the features that we want to exclude altogether. Since the data will be split into multiple chunks, we can leverage multiprocessing via -p.
+To do the conversion, run the following script where you specify the input data directory, output folder (which you should create beforehand with mkdir), the number of chunks to split the data into (this will be the number of HDF5 files we'll get), the clinical item IDs to retain for the post.1d response variables, the features that we want to exclude altogether (-e), and the features that we want to save in their raw form (-s). Since the data will be split into multiple chunks, we can leverage multiprocessing via -p.
 
 
-<pre>python2 preprocessing/make_hdf5.py -i data/unprocessed/train -c data/columns.txt -o data/hdf5/train -n 360 -r data/response_vars.tsv -e item_date,analyze_date -p 2</pre>
+<pre>python2 preprocessing/make_hdf5.py -i data/unprocessed/train -c data/columns.txt -o data/hdf5/train -n 360 -r data/response_vars.tsv -e item_date,analyze_date -s patient_id,patient_item_id,encounter_id,clinical_item_id -p 2</pre>
 
 Running the above command will give you something like this: "Using 2 processes for processing 58290 files divided into 360 chunks". Once it's finished running, you'll see "FINISHED" printed out and you'll see 360 .h5 files in the output folder. In each HDF5 file, two data frames: data_x and data_y (for the feature matrix and response variables, respectively) are stored.
 
-IMPORTANT: The HDF5 files will store the data frames as float32 types. This means we can't have any non-numeric columns (in the example above, we removed the item_date and analyze_date columns because these columns store dates in string format). Use -e to remove non-numeric columns.
+IMPORTANT: The HDF5 files will store the data frames as float32 types. This means we can't have any non-numeric columns (in the example above, we removed the item_date and analyze_date columns because these columns store dates in string format). Use -e to remove non-numeric columns. Beware that large integers lose precision when casted to float32 -- therefore, large numbers (such as patient IDs) are best stored separately by specifying the -s option.
 
 # Processing the Data Matrix<a name="processdatamatrix"></a>
 
@@ -37,10 +37,11 @@ IMPORTANT: The HDF5 files will store the data frames as float32 types. This mean
 We can kill two birds with one stone: Shuffling (randomly) the entire dataset and putting the shuffled data into equally sized batches. We have to run two scripts. The first does the batch assignments (e.g. below, we make batches of size 4096 using the entire dataset) and produces a pickle file as output. The second takes the pickle file (containing the batch assignments) and uses it write out the batches (each batch being one file) to a specified folder (which we should create via mkdir).
 <pre>python2 data_processing/prep_batches.py -i data/hdf5/train/ -o data/train_shuffling.pickle -b 4096</pre>
 <pre>python2 data_processing/make_batches.py -s data/train_shuffling.pickle -i data/hdf5/train/ -o data/hdf5/train_shuffled/ -b 0 -e 100</pre>
-Note: The first script will print out info about the batches generated. Here was the output obtained when the command was run on the training set data and subsequently, on the dev set data:
+Note: The first script will print out info about the batches generated. Here was the output obtained when the command was run on the training set data and subsequently, on the dev set and test set data:
 <ul>
   <li>Training set data: "Read 25606920 data rows in 360 files. Created 6252 batches of size 4096."</li>
   <li>Dev set data: "Read 5539705 data rows in 120 files. Created 1353 batches of size 4096"</li>
+  <li>Test set data: "Read 5481460 data rows in 360 files. Created 1339 batches of size 4096"</li>
 </ul>
 
 Note: For the second script, we set the -b and -e options to indicate the beginning index and the end index of the batches we want to write out. In the example above, we write out batches 0 through 99. This is because doing the entire operation at once would consume too much memory so we need to split it into chunks.
@@ -59,7 +60,7 @@ To do this, we use the following script (the -x flag denotes which features we d
 
 To remove very low variance features, run the following script where you specify the directory of the data you want to remove features from, the output directory (which you should create with mkdir beforehand), and the statistics directory corresponding to the statistics for the data. Below, we specify a standard deviation threshold of 0.01 (such that all features with a standard deviation below 0.01 will be removed) and we also specify a list of features we want to remove anyway.
 <pre>python3 data_processing/feature_selection.py -i data/hdf5/train_shuffled/ -o data/hdf5/train_feature_selected/ -s data/statistics/train/ -t 0.01 -r patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date,analyze_date,item_date.month,item_date.hour</pre>
-Running the script above tells us that 5214 features out of 24875 were removed, leaving 19661 features remaining. This script also outputs new statistics files (with the features removed) in the statistis directory for the data.
+Running the script above tells us that 5214 features out of 24875 were removed, leaving 19661 features remaining. This script also outputs new statistics files (with the features removed) in the statistics directory for the data.
 
 ## Principal Component Analysis (PCA)
 
@@ -74,11 +75,18 @@ Here is some of the notebook's output:
   <li>Cumulative variance explained for PC4632: 82.2%</li>
 </ul>
 
+## Processing the Data Matrix for Order Set Prediction
+
+Now, we focus on the task of processing the data matrix for predicting order set usage. The following script formats the data's response variable to be whether each order set was used 1 day after each given item. You specify the input data directory, output folder (which you should create beforehand with mkdir), patient_orderset_mapping_file (HDF5 file specified via -m), and patient_itemdate_mapping_file (HDF5 file specified via -d). We can leverage multiprocessing via -p. The patient_orderset_mapping_file contains a data frame of order set items with columns being patient_id, patient_item_id, external_id (the order set ID), and item_date (the order set item date as nanoseconds since epoch). The patient_itemdate_mapping_file contains a data frame of patient items with columns being item_date (as nanoseconds since epoch) and patient_item_id. Only the data rows that have at least one post-one-day order set usage are retained unless the flag -a is used in which case all data rows will be retained.
+
+<pre>python data_processing/make_order_set_responses.py -i data/hdf5/dev2/ -o data/hdf5/dev2_order_set/ -m ./queried/patient_item_id_to_order_set_ID_matches.hdf5 -d ./queried/patientitemid_itemdate.hdf5</pre>
+
 # Model and tuning <a name="processdatamatrix"></a>
 
 ## Data generator
-Located in utils/datagenerator.py. Shuffles files, then shuffles rows within each file, then loads in batches one by one. Used for training the network.
+Located in clinicnet_model/utils/datagenerator.py. Shuffles files, then shuffles rows within each file, then loads in batches one by one. Used for training the network.
 
-## 
+## Training and Tuning
+We use run_clinicnet.py and run_logistic.py to train and tune our models. Here you can set parameters of interest for testing purposes, and a test_mode is available if trying to test without validating on the validation set. Learning rate is decreased every epoch if loss appears to stop decreasing. We use train_network.sh to continue training the network from callbacks saved after every 1 million rows of data. (For delaney: right now it only trains 2 epochs at a time before memory error, so I have set the script to re run every two epochs in train_network.sh. For the new dataset you should change a couple of things 1) learning rate should manually be decreased if learnning seems to no longer be around (you might also want to adjust decay, which is found in the initialization of the NAdam). 2) number of hidden units to 2/3 * input+ output size 3) change the weight used for weighted binary cross entropy (not sure what the best value is here, but will need to play around w it depending on number of output features. For the individual order set task it is 7 4) change dev/train generator.  When training logistic, u can just used SGD optimizer w default values and let it train until it stops increasing in f1 (which should be rather quickly) .
 
 
