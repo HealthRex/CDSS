@@ -14,7 +14,7 @@ from medinfo.dataconversion.Util import log
 
 from google.cloud import bigquery
 
-SOURCE_TABLE = "stride_patient"
+SOURCE_TABLE = 'starr_datalake2018.demographic'
 
 UNSPECIFIED_RACE_ETHNICITY = ("Unknown","Other")
 HISPANIC_LATINO_ETHNICITY = "HISPANIC/LATINO"
@@ -37,6 +37,7 @@ RACE_MAPPINGS = \
         "BLACK, HISPANIC": "Black",
         "Black, non-Hispanic": "Black",
         "BLACK, NON-HISPANIC": "Black",
+        "Native American": "Native American",
         "NATIVE AMERICAN, HISPANIC": "Native American",
         "Native American, non-Hispanic": "Native American",
         "NATIVE AMERICAN, NON-HISPANIC": "Native American",
@@ -49,6 +50,7 @@ RACE_MAPPINGS = \
         "OTHER, HISPANIC": "Hispanic/Latino",
         "Other, non-Hispanic": "Other",
         "OTHER, NON-HISPANIC": "Other",
+        "Pacific Islander": "Pacific Islander",
         "Pacific Islander, non-Hispanic": "Pacific Islander",
         "PACIFIC ISLANDER, NON-HISPANIC": "Pacific Islander",
         "Patient Refused": "Unknown",
@@ -67,7 +69,7 @@ RACE_MAPPINGS = \
     }
 
 class STARRDemographicsConversion:
-    """Data conversion module to take STRIDE provided patient demographics data
+    """Data conversion module to take STARR provided patient demographics data
     into the structured data tables to facilitate subsequent analysis.
 
     Capturing death date for now as an event.
