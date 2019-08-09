@@ -89,6 +89,8 @@ When doing this for the train, dev, and test sets, we get:
   <li>Dev set data: "Read 3671312 data rows in 360 files. Created 897 batches of size 4096"</li>
   <li>Test set data: "Read 3657826 data rows in 360 files. Created 894 batches of size 4096"</li>
 </ul>
+Then, like before, we do (for training set):
+<pre>python2 data_processing/make_batches.py -s data/train2_order_set_shuffling.pickle -i data/hdf5/train2_order_set/ -o data/hdf5/train2_shuffled/ -b 0 -e 100</pre>
 
 # Model and tuning <a name="processdatamatrix"></a>
 
