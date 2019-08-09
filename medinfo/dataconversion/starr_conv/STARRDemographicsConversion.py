@@ -2,6 +2,7 @@
 
 import sys, os
 import time
+from itertools import islice
 from datetime import datetime
 from medinfo.common.Util import ProgressDots
 from medinfo.db import DBUtil
@@ -87,6 +88,173 @@ class STARRDemographicsConversion:
         self.categoryBySourceDescr = dict()
         self.clinicalItemByCategoryIdExtId = dict()
 
+    def convertItemsByBatch(self, patientIdsFile, batchSize=10000, tempDir='/tmp/', removeCsvs=True, datasetId='starr_datalake2018', skipFirstLine=True):
+        # split pat ids into blocks
+        # for each split
+            # convert to local postgres db
+            # dump local postgres db to csv
+            # upload csv to BQ clinical item
+            # clean up
+
+        log.info('Batch size is %s \n\n' % batchSize)
+
+        def getBatch(file, num_lines):
+            return [line.strip() for line in islice(file, num_lines)]
+
+        with open(patientIdsFile, 'r') as f:
+            if skipFirstLine: firstLine = f.readline()
+            idsBatch = getBatch(f, batchSize)
+            batchCounter = 0
+            while idsBatch:
+                log.info('Processing batch %s' % batchCounter)
+                log.info('Batch %s contains ids %s to %s' % (batchCounter, (batchSize*batchCounter+1), (batchSize*(batchCounter+1))) )
+
+                self.convertSourceItems(idsBatch)
+
+                self.dumpPatientItemToCsv(tempDir, batchCounter)
+
+                self.uploadPatientItemCsvToBQ(tempDir, batchCounter, datasetId)
+
+                if removeCsvs:
+                    self.removePatientItemCsv(tempDir, batchCounter)
+
+                self.removePatientItemAddedLines()
+
+                log.info('Finished with batch %s \n\n' % batchCounter)
+                idsBatch = getBatch(f, batchSize)
+                batchCounter += 1
+
+        self.dumpClinicalTablesToCsv(tempDir)
+        self.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
+        self.removeClinicalTablesCsv(tempDir)
+        self.removeClinicalTablesAddedLines()
+
+
+
+    def dumpPatientItemToCsv(self, tempDir, batchCounter):
+        log.info('Dumping patient_item for batch %s to CSV' % batchCounter)
+
+        DBUtil.execute \
+                (
+                '''
+                COPY patient_item TO '%s/%s_patient_item.csv' DELIMITER ',' CSV;
+                ''' % (tempDir, batchCounter)
+            )
+
+    def dumpClinicalTablesToCsv(self, tempDir):
+        log.info('Dumping clinical_item and clinical_item_category to CSV')
+
+        DBUtil.execute \
+            (
+                '''
+                COPY clinical_item TO '%s/clinical_item.csv' DELIMITER ',' CSV;
+                ''' % tempDir
+            )
+
+        DBUtil.execute \
+                (
+                '''
+                COPY clinical_item_category TO '%s/clinical_item_category.csv' DELIMITER ',' CSV;
+                ''' % tempDir
+            )
+
+
+    def uploadPatientItemCsvToBQ(self, tempDir, batchCounter, datasetId):
+        log.info('Uploading patient_item CSV to BQ dataset %s for batch %s' % (datasetId, batchCounter) )
+        patient_item_schema = [bigquery.SchemaField('patient_item_id', 'INT64', 'REQUIRED', None, ()),
+                               bigquery.SchemaField('external_id', 'INT64', 'NULLABLE', None, ()),
+                               bigquery.SchemaField('patient_id', 'INT64', 'REQUIRED', None, ()),
+                               bigquery.SchemaField('clinical_item_id', 'INT64', 'REQUIRED', None, ()),
+                               bigquery.SchemaField('item_date', 'TIMESTAMP', 'REQUIRED', None, ()),
+                               bigquery.SchemaField('analyze_date', 'TIMESTAMP', 'NULLABLE', None, ()),
+                               bigquery.SchemaField('encounter_id', 'INT64', 'NULLABLE', None, ()),
+                               bigquery.SchemaField('text_value', 'STRING', 'NULLABLE', None, ()),
+                               bigquery.SchemaField('num_value', 'FLOAT64', 'NULLABLE', None, ()),
+                               bigquery.SchemaField('source_id', 'INT64', 'NULLABLE', None, ())]
+
+        self.bqconn.load_csv_to_table(datasetId, 'patient_item',
+                                      tempDir + '/' + str(batchCounter) + '_patient_item.csv', skip_rows=0,
+                                      append_to_table=True)
+                                      # auto_detect_schema=False, schema=patient_item_schema)
+
+    def uploadClinicalTablesCsvToBQ(self, tempDir, datasetId):
+        log.info('Uploading clinical_item and clinical_item_category CSVs to BQ dataset %s' % datasetId )
+        clinical_item_category_schema = [
+            bigquery.SchemaField('clinical_item_category_id', 'INT64', 'REQUIRED', None, ()),
+            bigquery.SchemaField('source_table', 'STRING', 'REQUIRED', None, ()),
+            bigquery.SchemaField('description', 'STRING', 'NULLABLE', None, ()),
+            bigquery.SchemaField('default_recommend', 'INT64', 'NULLABLE', None, ())]
+
+        self.bqconn.load_csv_to_table(datasetId, 'clinical_item_category', tempDir + '/clinical_item_category.csv',
+                                      skip_rows=0, append_to_table=True)
+                                      # auto_detect_schema=False, schema=clinical_item_category_schema)
+
+        clinical_item_schema = [bigquery.SchemaField('clinical_item_id', 'INT64', 'REQUIRED', None, ()),
+                                bigquery.SchemaField('clinical_item_category_id', 'INT64', 'REQUIRED', None, ()),
+                                bigquery.SchemaField('external_id', 'INT64', 'NULLABLE', None, ()),
+                                bigquery.SchemaField('name', 'STRING', 'REQUIRED', None, ()),
+                                bigquery.SchemaField('description', 'STRING', 'NULLABLE', None, ()),
+                                bigquery.SchemaField('default_recommend', 'INT64', 'NULLABLE', None, ()),
+                                bigquery.SchemaField('item_count', 'FLOAT64', 'NULLABLE', None, ()),
+                                bigquery.SchemaField('patient_count', 'FLOAT64', 'NULLABLE', None, ()),
+                                bigquery.SchemaField('encounter_count', 'FLOAT64', 'NULLABLE', None, ()),
+                                bigquery.SchemaField('analysis_status', 'INT64', 'NULLABLE', None, ()),
+                                bigquery.SchemaField('outcome_interest', 'INT64', 'NULLABLE', None, ())]
+        self.bqconn.load_csv_to_table(datasetId, 'clinical_item', tempDir + '/clinical_item.csv',
+                                      skip_rows=0, append_to_table=True)
+                                      # auto_detect_schema=False, schema=clinical_item_schema)
+
+    def removePatientItemCsv(self, tempDir, batchCounter):
+        log.info('Removing patient_item CSV for batch %s' % batchCounter)
+        if os.path.exists(tempDir + '/' + str(batchCounter) + '_patient_item.csv'):
+            os.remove(tempDir + '/' + str(batchCounter) + '_patient_item.csv')
+        else:
+            print(tempDir + '/' + str(batchCounter) + '_patient_item.csv does not exist')
+
+    def removeClinicalTablesCsv(self, tempDir):
+        log.info('Removing clinical_item and clinical_item_category CSVs')
+        if os.path.exists(tempDir + '/clinical_item.csv'):
+            os.remove(tempDir + '/clinical_item.csv')
+        else:
+            print(tempDir + '/clinical_item.csv does not exist')
+
+        if os.path.exists(tempDir + '/clinical_item_category.csv'):
+            os.remove(tempDir + '/clinical_item_category.csv')
+        else:
+            print(tempDir + '/clinical_item_category.csv does not exist')
+
+
+    def removePatientItemAddedLines(self):
+        """delete added records"""
+        log.info('Removing patient_item added lines in PSQL DB')
+
+        DBUtil.execute \
+            ("""delete from patient_item 
+                    where clinical_item_id in 
+                    (   select clinical_item_id
+                        from clinical_item as ci, clinical_item_category as cic
+                        where ci.clinical_item_category_id = cic.clinical_item_category_id
+                        and cic.source_table = '%s'
+                    );
+                    """ % SOURCE_TABLE
+             )
+
+    def removeClinicalTablesAddedLines(self):
+        """delete added records"""
+        log.info('Removing clinical_item and clinical_item_category added lines in PSQL DB')
+
+        DBUtil.execute \
+            ("""delete from clinical_item 
+                    where clinical_item_category_id in 
+                    (   select clinical_item_category_id 
+                        from clinical_item_category 
+                        where source_table = '%s'
+                    );
+                    """ % SOURCE_TABLE
+             )
+        DBUtil.execute("delete from clinical_item_category where source_table = '%s';" % SOURCE_TABLE)
+
+
     def convertSourceItems(self, patientIds=None):
         """Primary run function to process the contents of the stride_patient
         table and convert them into equivalent patient_item, clinical_item, and clinical_item_category entries.
@@ -94,7 +262,7 @@ class STARRDemographicsConversion:
 
         patientIds - If provided, only process items for patient IDs matching those provided
         """
-        log.info("Conversion for patients: %s" % patientIds)
+        log.info("Conversion for patients starting with: %s, %s total" % (patientIds[:5], len(patientIds)) )
         progress = ProgressDots()
 
         with self.connFactory.connection() as conn:

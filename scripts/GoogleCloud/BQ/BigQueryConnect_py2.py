@@ -123,7 +123,7 @@ class BigQueryConnect():
                 assert errors == []
 
     def load_csv_to_table(self, dataset_id, table_id, csv_path, auto_detect_schema = True,
-                          schema = [], skip_rows = 0):
+                          schema = [], skip_rows = 0, append_to_table=False):
         '''
         TODO: add functionality for optional schema input
         TODO: what happens if dataset does not exist?
@@ -154,17 +154,20 @@ class BigQueryConnect():
         job_config = bigquery.LoadJobConfig()
         job_config.source_format = bigquery.SourceFormat.CSV
         # https://cloud.google.com/bigquery/docs/loading-data-cloud-storage-csv#overwriting_a_table_with_csv_data
-        job_config.write_disposition = bigquery.WriteDisposition.WRITE_EMPTY
         job_config.skip_leading_rows = skip_rows
         job_config.quote_character = '\"'
 
-        if auto_detect_schema:
-            assert schema == [], 'Auto-detect is False, but schema is specified'
-            job_config.autodetect = True
-        else:
-            job_config.autodetect = False
-            assert schema != [], 'Auto-detect is False, but no schema specified'
-            job_config.schema = schema
+
+        if not append_to_table:
+            job_config.write_disposition = bigquery.WriteDisposition.WRITE_EMPTY
+
+            if auto_detect_schema:
+                assert schema == [], 'Auto-detect is False, but schema is specified'
+                job_config.autodetect = True
+            else:
+                job_config.autodetect = False
+                assert schema != [], 'Auto-detect is False, but no schema specified'
+                job_config.schema = schema
 
 
         with open(csv_path, 'rb') as csv_file:
@@ -181,6 +184,7 @@ class BigQueryConnect():
             load_table_job.result() # Wait for load to complete
         except:
             errors = load_table_job.errors
+            log.error(errors)
             return errors
         #print(load_table_job.error_result)
         table = self.client.get_table(table_ref)
