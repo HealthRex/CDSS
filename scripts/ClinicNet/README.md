@@ -79,7 +79,20 @@ Here is some of the notebook's output:
 
 Now, we focus on the task of processing the data matrix for predicting order set usage. The following script formats the data's response variable to be whether each order set was used 1 day after each given item. You specify the input data directory, output folder (which you should create beforehand with mkdir), patient_orderset_mapping_file (HDF5 file specified via -m), and patient_itemdate_mapping_file (HDF5 file specified via -d). We can leverage multiprocessing via -p. The patient_orderset_mapping_file contains a data frame of order set items with columns being patient_id, patient_item_id, external_id (the order set ID), and item_date (the order set item date as nanoseconds since epoch). The patient_itemdate_mapping_file contains a data frame of patient items with columns being item_date (as nanoseconds since epoch) and patient_item_id. Only the data rows that have at least one post-one-day order set usage are retained unless the flag -a is used in which case all data rows will be retained.
 
-<pre>python data_processing/make_order_set_responses.py -i data/hdf5/dev2/ -o data/hdf5/dev2_order_set/ -m ./queried/patient_item_id_to_order_set_ID_matches.hdf5 -d ./queried/patientitemid_itemdate.hdf5</pre>
+<pre>python data_processing/make_order_set_responses.py -i data/hdf5/train/ -o data/hdf5/train2_order_set/ -m ./queried/patient_item_id_to_order_set_ID_matches.hdf5 -d ./queried/patientitemid_itemdate.hdf5</pre>
+
+The output of the script above tells us there are 610 order sets.
+
+Afterwards, we just proceed like we did with the other task. We shuffle the data into batches first:
+<pre>python2 data_processing/prep_batches.py -i data/hdf5/train2_order_set/ -o data/train2_order_set_shuffling.pickle -b 4096</pre>
+When doing this for the train, dev, and test sets, we get:
+<ul>
+  <li>Training set data: "Read 16961751 data rows in 360 files. Created 4142 batches of size 4096."</li>
+  <li>Dev set data: "Read 3671312 data rows in 360 files. Created 897 batches of size 4096"</li>
+  <li>Test set data: "Read 3657826 data rows in 360 files. Created 894 batches of size 4096"</li>
+</ul>
+Then, like before, we do (for training set):
+<pre>python2 data_processing/make_batches.py -s data/train2_order_set_shuffling.pickle -i data/hdf5/train2_order_set/ -o data/hdf5/train2_shuffled/ -b 0 -e 100</pre>
 
 # Model and tuning <a name="processdatamatrix"></a>
 
