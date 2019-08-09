@@ -1,6 +1,4 @@
-# Takes HDF5 data files, extracts order set usage, and 
-# formats the data's response variable to be whether
-# each order set was used 1 day after a given item
+# Takes HDF5 data files, extracts order set usage, and formats the data's response variable to be whether each order set was used 1 day after a given item
 
 import pandas as pd
 import numpy as np
@@ -13,8 +11,8 @@ def make_order_set_data(f):
 	data_s = pd.read_hdf(data_dir + "/" + f, 'data_s')
 	data_s = data_s.reset_index(drop=True)
 	num_rows = len(data_s.index)
-	data_s = data_s.merge(all_item_dates, on='patient_item_id', how='inner')
-	assert num_rows == len(data_s.index)
+	data_s = data_s.reset_index().merge(all_item_dates, on='patient_item_id', how='inner').set_index('index')
+	del data_s.index.name
 	num_cols = len(data_s.columns)
 	# Remove all patients who have no order sets:
 	data_s = data_s[data_s['patient_id'].isin(list(mapping.keys()))]
@@ -48,7 +46,7 @@ def make_order_set_data(f):
 	data_s = data_s[data_s['patient_item_id'].isin(final_patient_items)]
 	data_x = data_x.loc[data_x.index.isin(data_s.index),:]
 	assert len(data_x.index) == len(data_s.index)
-	S1 = data_s.iloc[:,:num_cols] #TODO (not five)
+	S1 = data_s.iloc[:,:num_cols]
 	S2 = data_s.iloc[:,num_cols:]
 	# Write to output files:
 	data_x.to_hdf(output_dir + "/" + f, key='data_x', mode='w', complevel=1)
