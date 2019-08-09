@@ -81,6 +81,8 @@ Now, we focus on the task of processing the data matrix for predicting order set
 
 <pre>python data_processing/make_order_set_responses.py -i data/hdf5/train/ -o data/hdf5/train2_order_set/ -m ./queried/patient_item_id_to_order_set_ID_matches.hdf5 -d ./queried/patientitemid_itemdate.hdf5</pre>
 
+The output of the script above tells us there are 610 order sets.
+
 Afterwards, we just proceed like we did with the other task. We shuffle the data into batches first:
 <pre>python2 data_processing/prep_batches.py -i data/hdf5/train2_order_set/ -o data/train2_order_set_shuffling.pickle -b 4096</pre>
 When doing this for the train, dev, and test sets, we get:
