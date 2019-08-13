@@ -27,19 +27,19 @@ import prepareData_NonSTRIDE
 import pickle
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
-    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None, isLabPanel=True,
+    def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None,
                  timeLimit=None, notUsePatIds=None, holdOut=False, pat_batch_ind=None, includeLastNormality=True):
-        self.notUsePatIds = notUsePatIds
+        # self.notUsePatIds = notUsePatIds
         self.pat_batch_ind = pat_batch_ind
+        self._holdOut = holdOut
         self.usedPatIds = []
         SupervisedLearningPipeline.__init__(self, lab_panel, num_episodes, use_cache, random_state,
-                                            isLabPanel, timeLimit, holdOut,
-                                            isLabNormalityPredictionPipeline=True)
+                                            timeLimit, notUsePatIds)
         # TODO: naming of lab_panel
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
 
-        if self._isLabPanel:
+        if LocalEnv.LAB_TYPE == 'panel':
             self.ylabel = 'all_components_normal'
         else:
             self.ylabel = 'component_normal'
@@ -412,7 +412,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
                 pipeline_prefix = '%s-normality-prediction-%s' % (self._var, algorithm)
 
                 SupervisedLearningPipeline._analyze_predictor(self, report_dir, pipeline_prefix)
-                SupervisedLearningPipeline._analyze_predictor_traindata(self, report_dir, pipeline_prefix)
+                SupervisedLearningPipeline._analyze_predictor_traindata(self, report_dir)
 
                 # continue # Do not generate stats results here...
 
@@ -591,15 +591,15 @@ if __name__ == '__main__':
 
         if LocalEnv.LAB_TYPE == 'panel':
             for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
-                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True,
-                                               timeLimit=(None, None), notUsePatIds=None, holdOut=False)
+                LabNormalityPredictionPipeline(panel, 500, use_cache=True, random_state=123456789,
+                                               timeLimit=None, notUsePatIds=None, holdOut=False)
                 # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl'%panel, 'r'))
                 # LabNormalityPredictionPipeline(panel, 2000, use_cache=True, random_state=123456789, isLabPanel=True,
                 #                                timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
         else:
             for component in STRIDE_COMPONENT_TESTS:
                 print 'start %s...'%component
-                LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+                LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789)
                 # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
                 # LabNormalityPredictionPipeline(component, 2000, use_cache=True, random_state=123456789, isLabPanel=False,
                 #                            timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
@@ -649,7 +649,7 @@ if __name__ == '__main__':
                     notUsePatIds = []
                     for pat_batch_ind in range(10000/pat_batch_size): #10000
                         cur_pipe = LabNormalityPredictionPipeline(panel, pat_batch_size, use_cache=False, random_state=123456789,
-                                                       isLabPanel=True, notUsePatIds=notUsePatIds, pat_batch_ind=pat_batch_ind)
+                                                       notUsePatIds=notUsePatIds, pat_batch_ind=pat_batch_ind)
                         notUsePatIds += cur_pipe.usedPatIds
             except Exception as e:
                 log.info(e)
@@ -659,13 +659,13 @@ if __name__ == '__main__':
             print "processing %s..."%component
             try:
                 if not pat_batch_mode:
-                    LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789, isLabPanel=False)
+                    LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789)
                 else:
                     pat_batch_size = 500
                     notUsePatIds = []
                     for pat_batch_ind in range(10000/pat_batch_size): #10000
                         cur_pipe = LabNormalityPredictionPipeline(component, pat_batch_size, use_cache=False, random_state=123456789,
-                                                       isLabPanel=False, notUsePatIds=notUsePatIds, pat_batch_ind=pat_batch_ind)
+                                                       notUsePatIds=notUsePatIds, pat_batch_ind=pat_batch_ind)
                         notUsePatIds += cur_pipe.usedPatIds
             except Exception as e:
                 log.info(e)
@@ -696,12 +696,12 @@ if __name__ == '__main__':
         if LocalEnv.LAB_TYPE == 'panel':
             for panel in UCSF_TOP_PANELS:
                 print 'Now processing %s'%panel
-                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789, isLabPanel=True)
+                LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789)
 
         else:
             for component in UCSF_TOP_COMPONENTS:
                 try:
-                    LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789, isLabPanel=False)
+                    LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789)
                 except SystemExit as se:
                     log.info(se)
                 except Exception as e:
