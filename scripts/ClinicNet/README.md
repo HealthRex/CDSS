@@ -91,8 +91,12 @@ When doing this for the train, dev, and test sets, we get:
   <li>Dev set data: "Read 3671312 data rows in 360 files. Created 897 batches of size 4096"</li>
   <li>Test set data: "Read 3657826 data rows in 360 files. Created 894 batches of size 4096"</li>
 </ul>
-Then, like before, we do (for training set):
+Then, like before, we do (e.g. for training set):
 <pre>python2 data_processing/make_batches.py -s data/train2_order_set_shuffling.pickle -i data/hdf5/train2_order_set/ -o data/hdf5/train2_shuffled/ -b 0 -e 100</pre>
+
+Finally, we perform feature selection as follows (example below for training set):
+<pre>python3 data_processing/feature_selection.py -i data/hdf5/train2_shuffled/ -o data/hdf5/train2_feature_selected/ -s data/statistics/train/ -t 0.01 -r patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date,analyze_date,item_date.month,item_date.hour</pre>
+(Note: We use the same statistics file as used for the previous task since this data is still a subset of the data used for the previous task, so we'll use the same averages, standard deviations, covariances, etc. computed previously)
 
 # Model and tuning <a name="processdatamatrix"></a>
 
