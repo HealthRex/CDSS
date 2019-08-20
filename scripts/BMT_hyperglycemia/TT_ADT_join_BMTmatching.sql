@@ -9,3 +9,4 @@
         ORDER BY ADT.pat_service DESC
         
  -- Inner joins the ADT and treatment team tables on patient encounters where both service is BMT and primary team is BMT
+ -- 6637 unique encounters
