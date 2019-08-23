@@ -2,4 +2,4 @@ SELECT count(distinct(pat_enc_csn_id_coded)) FROM `mining-clinical-decisions.sta
 
 WHERE name = "Primary Team" AND prov_name LIKE "%BMT%"
 
--- Count = 7484 distinct patinet encounters out of 7786 total patient encounters with BMT as a primary team
+-- Count = 7484 distinct patient encounters out of 7786 total patient encounters with BMT as a primary team
