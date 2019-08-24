@@ -17,7 +17,7 @@ from google.cloud import bigquery
 
 SOURCE_TABLE = 'starr_datalake2018.demographic'
 
-UNSPECIFIED_RACE_ETHNICITY = ("Unknown","Other")
+UNSPECIFIED_RACE_ETHNICITY = ("Unknown", "Other")
 HISPANIC_LATINO_ETHNICITY = "HISPANIC/LATINO"
 RACE_MAPPINGS = \
     {
@@ -69,16 +69,17 @@ RACE_MAPPINGS = \
         HISPANIC_LATINO_ETHNICITY: "Hispanic/Latino"
     }
 
+
 class STARRDemographicsConversion:
     """Data conversion module to take STARR provided patient demographics data
     into the structured data tables to facilitate subsequent analysis.
 
     Capturing death date for now as an event.
     """
-    connFactory = None # Allow specification of alternative DB connection source
+    connFactory = None  # Allow specification of alternative DB connection source
 
-    categoryBySourceDescr = None   # Local cache to track the clinical item category table contents
-    clinicalItemByCategoryIdExtId = None   # Local cache to track clinical item table contents
+    categoryBySourceDescr = None  # Local cache to track the clinical item category table contents
+    clinicalItemByCategoryIdExtId = None  # Local cache to track clinical item table contents
 
     def __init__(self):
         """Default constructor"""
@@ -88,13 +89,14 @@ class STARRDemographicsConversion:
         self.categoryBySourceDescr = dict()
         self.clinicalItemByCategoryIdExtId = dict()
 
-    def convertItemsByBatch(self, patientIdsFile, batchSize=10000, tempDir='/tmp/', removeCsvs=True, datasetId='starr_datalake2018', skipFirstLine=True):
+    def convertItemsByBatch(self, patientIdsFile, batchSize=10000, tempDir='/tmp/', removeCsvs=True,
+                            datasetId='starr_datalake2018', skipFirstLine=True, startBatch=0):
         # split pat ids into blocks
         # for each split
-            # convert to local postgres db
-            # dump local postgres db to csv
-            # upload csv to BQ clinical item
-            # clean up
+        # convert to local postgres db
+        # dump local postgres db to csv
+        # upload csv to BQ clinical item
+        # clean up
 
         log.info('Batch size is %s \n\n' % batchSize)
 
@@ -105,9 +107,16 @@ class STARRDemographicsConversion:
             if skipFirstLine: firstLine = f.readline()
             idsBatch = getBatch(f, batchSize)
             batchCounter = 0
+
+            while batchCounter < startBatch:
+                idsBatch = getBatch(f, batchSize)
+                batchCounter += 1
+
             while idsBatch:
                 log.info('Processing batch %s' % batchCounter)
-                log.info('Batch %s contains ids %s to %s' % (batchCounter, (batchSize*batchCounter+1), (batchSize*(batchCounter+1))) )
+                log.info('Batch %s contains ids %s to %s' % (
+                    batchCounter, (batchSize * batchCounter + 1),
+                    min((batchSize * (batchCounter + 1)), batchSize * batchCounter + len(idsBatch))))
 
                 self.convertSourceItems(idsBatch)
 
@@ -124,12 +133,11 @@ class STARRDemographicsConversion:
                 idsBatch = getBatch(f, batchSize)
                 batchCounter += 1
 
-        self.dumpClinicalTablesToCsv(tempDir)
-        self.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
-        self.removeClinicalTablesCsv(tempDir)
-        self.removeClinicalTablesAddedLines()
-
-
+        #self.dumpClinicalTablesToCsv(tempDir)
+        #self.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
+        #self.removeClinicalTablesCsv(tempDir)
+        # Keep clinical items
+        #self.removeClinicalTablesAddedLines()
 
     def dumpPatientItemToCsv(self, tempDir, batchCounter):
         log.info('Dumping patient_item for batch %s to CSV' % batchCounter)
@@ -145,7 +153,7 @@ class STARRDemographicsConversion:
         log.info('Dumping clinical_item and clinical_item_category to CSV')
 
         DBUtil.execute \
-            (
+                (
                 '''
                 COPY clinical_item TO '%s/clinical_item.csv' DELIMITER ',' CSV;
                 ''' % tempDir
@@ -158,9 +166,8 @@ class STARRDemographicsConversion:
                 ''' % tempDir
             )
 
-
     def uploadPatientItemCsvToBQ(self, tempDir, batchCounter, datasetId):
-        log.info('Uploading patient_item CSV to BQ dataset %s for batch %s' % (datasetId, batchCounter) )
+        log.info('Uploading patient_item CSV to BQ dataset %s for batch %s' % (datasetId, batchCounter))
         patient_item_schema = [bigquery.SchemaField('patient_item_id', 'INT64', 'REQUIRED', None, ()),
                                bigquery.SchemaField('external_id', 'INT64', 'NULLABLE', None, ()),
                                bigquery.SchemaField('patient_id', 'INT64', 'REQUIRED', None, ()),
@@ -175,10 +182,10 @@ class STARRDemographicsConversion:
         self.bqconn.load_csv_to_table(datasetId, 'patient_item',
                                       tempDir + '/' + str(batchCounter) + '_patient_item.csv', skip_rows=0,
                                       append_to_table=True)
-                                      # auto_detect_schema=False, schema=patient_item_schema)
+        # auto_detect_schema=False, schema=patient_item_schema)
 
     def uploadClinicalTablesCsvToBQ(self, tempDir, datasetId):
-        log.info('Uploading clinical_item and clinical_item_category CSVs to BQ dataset %s' % datasetId )
+        log.info('Uploading clinical_item and clinical_item_category CSVs to BQ dataset %s' % datasetId)
         clinical_item_category_schema = [
             bigquery.SchemaField('clinical_item_category_id', 'INT64', 'REQUIRED', None, ()),
             bigquery.SchemaField('source_table', 'STRING', 'REQUIRED', None, ()),
@@ -187,7 +194,7 @@ class STARRDemographicsConversion:
 
         self.bqconn.load_csv_to_table(datasetId, 'clinical_item_category', tempDir + '/clinical_item_category.csv',
                                       skip_rows=0, append_to_table=True)
-                                      # auto_detect_schema=False, schema=clinical_item_category_schema)
+        # auto_detect_schema=False, schema=clinical_item_category_schema)
 
         clinical_item_schema = [bigquery.SchemaField('clinical_item_id', 'INT64', 'REQUIRED', None, ()),
                                 bigquery.SchemaField('clinical_item_category_id', 'INT64', 'REQUIRED', None, ()),
@@ -202,7 +209,7 @@ class STARRDemographicsConversion:
                                 bigquery.SchemaField('outcome_interest', 'INT64', 'NULLABLE', None, ())]
         self.bqconn.load_csv_to_table(datasetId, 'clinical_item', tempDir + '/clinical_item.csv',
                                       skip_rows=0, append_to_table=True)
-                                      # auto_detect_schema=False, schema=clinical_item_schema)
+        # auto_detect_schema=False, schema=clinical_item_schema)
 
     def removePatientItemCsv(self, tempDir, batchCounter):
         log.info('Removing patient_item CSV for batch %s' % batchCounter)
@@ -222,7 +229,6 @@ class STARRDemographicsConversion:
             os.remove(tempDir + '/clinical_item_category.csv')
         else:
             print(tempDir + '/clinical_item_category.csv does not exist')
-
 
     def removePatientItemAddedLines(self):
         """delete added records"""
@@ -254,7 +260,6 @@ class STARRDemographicsConversion:
              )
         DBUtil.execute("delete from clinical_item_category where source_table = '%s';" % SOURCE_TABLE)
 
-
     def convertSourceItems(self, patientIds=None):
         """Primary run function to process the contents of the stride_patient
         table and convert them into equivalent patient_item, clinical_item, and clinical_item_category entries.
@@ -262,7 +267,7 @@ class STARRDemographicsConversion:
 
         patientIds - If provided, only process items for patient IDs matching those provided
         """
-        log.info("Conversion for patients starting with: %s, %s total" % (patientIds[:5], len(patientIds)) )
+        log.info("Conversion for patients starting with: %s, %s total" % (patientIds[:5], len(patientIds)))
         progress = ProgressDots()
 
         with self.connFactory.connection() as conn:
@@ -286,7 +291,8 @@ class STARRDemographicsConversion:
         matching those IDs.
         """
         # Column headers to query for that map to respective fields in analysis table
-        headers = ["rit_uid","birth_date_jittered","gender","death_date_jittered","canonical_race","canonical_ethnicity"]
+        headers = ["rit_uid", "birth_date_jittered", "gender", "death_date_jittered", "canonical_race",
+                   "canonical_ethnicity"]
 
         # TODO need to fix for BQ SQL
         '''
@@ -312,7 +318,8 @@ class STARRDemographicsConversion:
             print(query)
             print(query_params)
 
-        query_job = self.bqconn.queryBQ(str(query), query_params=query_params, location='US', batch_mode=False, verbose=True)
+        query_job = self.bqconn.queryBQ(str(query), query_params=query_params, location='US', batch_mode=False,
+                                        verbose=True)
 
         if debug:
             for row in query_job:
@@ -321,32 +328,31 @@ class STARRDemographicsConversion:
         for row in query_job:  # API request - fetches results
             # Row values can be accessed by field name or index
             # assert row[0] == row.name == row["name"]
-            rowModel = RowItemModel( row.values(), headers )
+            rowModel = RowItemModel(row.values(), headers)
 
             if rowModel["birth_date_jittered"] is None:
                 # Blank values, doesn't make sense.  Skip it
                 log.warning(rowModel)
             else:
                 # Record birth at resolution of year
-                rowModel["itemDate"] = datetime(rowModel["birth_date_jittered"].year,1,1)
+                rowModel["itemDate"] = datetime(rowModel["birth_date_jittered"].year, 1, 1)
                 rowModel["name"] = "Birth"
                 rowModel["description"] = "Birth Year"
                 yield rowModel
 
                 # Record another at resolution of decade
                 decade = (rowModel["birth_date_jittered"].year / 10) * 10
-                rowModel["itemDate"] = datetime(rowModel["birth_date_jittered"].year,1,1)
+                rowModel["itemDate"] = datetime(rowModel["birth_date_jittered"].year, 1, 1)
                 rowModel["name"] = "Birth%ds" % decade
                 rowModel["description"] = "Birth Decade %ds" % decade
                 yield rowModel
 
                 # Summarize race and ethnicity information into single field of interest
                 raceEthnicity = self.summarizeRaceEthnicity(rowModel)
-                rowModel["itemDate"] = datetime(rowModel["birth_date_jittered"].year,1,1)
-                rowModel["name"] = "Race"+(raceEthnicity.translate(None," ()-/"))   # Strip off punctuation
+                rowModel["itemDate"] = datetime(rowModel["birth_date_jittered"].year, 1, 1)
+                rowModel["name"] = "Race" + (raceEthnicity.translate(None, " ()-/"))  # Strip off punctuation
                 rowModel["description"] = "Race/Ethnicity: %s" % raceEthnicity
                 yield rowModel
-
 
                 gender = rowModel["gender"].title()
                 rowModel["name"] = gender
@@ -361,17 +367,17 @@ class STARRDemographicsConversion:
 
             progress.Update()
 
-
     def summarizeRaceEthnicity(self, rowModel):
         """Given row model with patient information, return a single string to summarize the patient's race and ethnicity information"""
         raceEthnicity = RACE_MAPPINGS[rowModel["canonical_race"]]
         if raceEthnicity in UNSPECIFIED_RACE_ETHNICITY and rowModel["canonical_ethnicity"] == HISPANIC_LATINO_ETHNICITY:
-            raceEthnicity = RACE_MAPPINGS[HISPANIC_LATINO_ETHNICITY]   # Use Hispanic/Latino as basis if no other information
-        if raceEthnicity.find("%s") >= 0:    # Found replacement string.  Look to ethnicity for more information
+            raceEthnicity = RACE_MAPPINGS[
+                HISPANIC_LATINO_ETHNICITY]  # Use Hispanic/Latino as basis if no other information
+        if raceEthnicity.find("%s") >= 0:  # Found replacement string.  Look to ethnicity for more information
             if rowModel["canonical_ethnicity"] == HISPANIC_LATINO_ETHNICITY:
                 raceEthnicity = raceEthnicity % RACE_MAPPINGS[HISPANIC_LATINO_ETHNICITY]
             else:
-                raceEthnicity = raceEthnicity % ("Non-"+RACE_MAPPINGS[HISPANIC_LATINO_ETHNICITY])
+                raceEthnicity = raceEthnicity % ("Non-" + RACE_MAPPINGS[HISPANIC_LATINO_ETHNICITY])
         return raceEthnicity
 
     def categoryFromSourceItem(self, sourceItem, conn):
@@ -385,7 +391,7 @@ class STARRDemographicsConversion:
                       "description": "Demographics",
                       }
                      )
-            
+
             (categoryId, isNew) = DBUtil.findOrInsertItem("clinical_item_category", category, conn=conn)
             category["clinical_item_category_id"] = categoryId
             self.categoryBySourceDescr[categoryKey] = category
