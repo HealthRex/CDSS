@@ -2,6 +2,8 @@
 
 import sys, os
 import time
+import csv
+
 from itertools import islice
 from datetime import datetime
 from medinfo.common.Util import ProgressDots
@@ -9,9 +11,8 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 from medinfo.db.Model import RowItemModel
 
-from scripts.GoogleCloud.BQ.BigQueryConnect_py2 import BigQueryConnect
-
 from medinfo.dataconversion.Util import log
+from medinfo.db.bigquery import bigQueryUtil
 
 from google.cloud import bigquery
 
@@ -83,7 +84,8 @@ class STARRDemographicsConversion:
 
     def __init__(self):
         """Default constructor"""
-        self.bqconn = BigQueryConnect()
+        self.bqConn = bigQueryUtil.connection()
+        self.bqClient = bigQueryUtil.BigQueryClient()
         self.connFactory = DBUtil.ConnectionFactory();  # Default connection source
 
         self.categoryBySourceDescr = dict()
@@ -133,11 +135,11 @@ class STARRDemographicsConversion:
                 idsBatch = getBatch(f, batchSize)
                 batchCounter += 1
 
-        #self.dumpClinicalTablesToCsv(tempDir)
-        #self.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
-        #self.removeClinicalTablesCsv(tempDir)
-        # Keep clinical items
-        #self.removeClinicalTablesAddedLines()
+        # TODO, these tables are not particularly large, might not need to upload and clear right away
+        self.dumpClinicalTablesToCsv(tempDir)
+        self.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
+        self.removeClinicalTablesCsv(tempDir)
+        self.removeClinicalTablesAddedLines()
 
     def dumpPatientItemToCsv(self, tempDir, batchCounter):
         log.info('Dumping patient_item for batch %s to CSV' % batchCounter)
@@ -145,7 +147,7 @@ class STARRDemographicsConversion:
         DBUtil.execute \
                 (
                 '''
-                COPY patient_item TO '%s/%s_patient_item.csv' DELIMITER ',' CSV;
+                COPY patient_item TO '%s/%s_patient_item.csv' DELIMITER ',' CSV HEADER;
                 ''' % (tempDir, batchCounter)
             )
 
@@ -155,14 +157,14 @@ class STARRDemographicsConversion:
         DBUtil.execute \
                 (
                 '''
-                COPY clinical_item TO '%s/clinical_item.csv' DELIMITER ',' CSV;
+                COPY clinical_item TO '%s/clinical_item.csv' DELIMITER ',' CSV HEADER;
                 ''' % tempDir
             )
 
         DBUtil.execute \
                 (
                 '''
-                COPY clinical_item_category TO '%s/clinical_item_category.csv' DELIMITER ',' CSV;
+                COPY clinical_item_category TO '%s/clinical_item_category.csv' DELIMITER ',' CSV HEADER;
                 ''' % tempDir
             )
 
@@ -179,23 +181,30 @@ class STARRDemographicsConversion:
                                bigquery.SchemaField('num_value', 'FLOAT64', 'NULLABLE', None, ()),
                                bigquery.SchemaField('source_id', 'INT64', 'NULLABLE', None, ())]
 
-        self.bqconn.load_csv_to_table(datasetId, 'patient_item',
-                                      tempDir + '/' + str(batchCounter) + '_patient_item.csv', skip_rows=0,
-                                      append_to_table=True)
+        csv_path = tempDir + '/' + str(batchCounter) + '_patient_item.csv'
+
+        bigQueryUtil.headerChecker(csv_path, [sf.name for sf in patient_item_schema])
+
+        self.bqClient.load_csv_to_table(datasetId, 'patient_item', csv_path, skip_rows=1, append_to_table=True)
         # auto_detect_schema=False, schema=patient_item_schema)
 
     def uploadClinicalTablesCsvToBQ(self, tempDir, datasetId):
-        log.info('Uploading clinical_item and clinical_item_category CSVs to BQ dataset %s' % datasetId)
+        log.info('Uploading clinical_item_category CSV to BQ dataset %s' % datasetId)
         clinical_item_category_schema = [
             bigquery.SchemaField('clinical_item_category_id', 'INT64', 'REQUIRED', None, ()),
             bigquery.SchemaField('source_table', 'STRING', 'REQUIRED', None, ()),
             bigquery.SchemaField('description', 'STRING', 'NULLABLE', None, ()),
             bigquery.SchemaField('default_recommend', 'INT64', 'NULLABLE', None, ())]
 
-        self.bqconn.load_csv_to_table(datasetId, 'clinical_item_category', tempDir + '/clinical_item_category.csv',
-                                      skip_rows=0, append_to_table=True)
+        clinical_item_category_csv_path = tempDir + '/clinical_item_category.csv'
+
+        bigQueryUtil.headerChecker(clinical_item_category_csv_path, [sf.name for sf in clinical_item_category_schema])
+
+        self.bqClient.load_csv_to_table(datasetId, 'clinical_item_category', clinical_item_category_csv_path,
+                                      skip_rows=1, append_to_table=True)
         # auto_detect_schema=False, schema=clinical_item_category_schema)
 
+        log.info('Uploading clinical_item CSV to BQ dataset %s' % datasetId)
         clinical_item_schema = [bigquery.SchemaField('clinical_item_id', 'INT64', 'REQUIRED', None, ()),
                                 bigquery.SchemaField('clinical_item_category_id', 'INT64', 'REQUIRED', None, ()),
                                 bigquery.SchemaField('external_id', 'INT64', 'NULLABLE', None, ()),
@@ -207,8 +216,13 @@ class STARRDemographicsConversion:
                                 bigquery.SchemaField('encounter_count', 'FLOAT64', 'NULLABLE', None, ()),
                                 bigquery.SchemaField('analysis_status', 'INT64', 'NULLABLE', None, ()),
                                 bigquery.SchemaField('outcome_interest', 'INT64', 'NULLABLE', None, ())]
-        self.bqconn.load_csv_to_table(datasetId, 'clinical_item', tempDir + '/clinical_item.csv',
-                                      skip_rows=0, append_to_table=True)
+
+        clinical_item_csv_path = tempDir + '/clinical_item.csv'
+
+        bigQueryUtil.headerChecker(clinical_item_csv_path, [sf.name for sf in clinical_item_schema])
+
+        self.bqClient.load_csv_to_table(datasetId, 'clinical_item', clinical_item_csv_path,
+                                      skip_rows=1, append_to_table=True)
         # auto_detect_schema=False, schema=clinical_item_schema)
 
     def removePatientItemCsv(self, tempDir, batchCounter):
@@ -294,7 +308,6 @@ class STARRDemographicsConversion:
         headers = ["rit_uid", "birth_date_jittered", "gender", "death_date_jittered", "canonical_race",
                    "canonical_ethnicity"]
 
-        # TODO need to fix for BQ SQL
         '''
         query = SQLQuery()
         for header in headers:
@@ -307,7 +320,7 @@ class STARRDemographicsConversion:
         query = '''
                 SELECT rit_uid,birth_date_jittered,gender,death_date_jittered,canonical_race,canonical_ethnicity
                 FROM starr_datalake2018.demographic as dem
-                WHERE dem.rit_uid IN UNNEST(@pat_ids)
+                WHERE dem.rit_uid IN UNNEST(@pat_ids);
                 '''
 
         query_params = [
@@ -318,12 +331,8 @@ class STARRDemographicsConversion:
             print(query)
             print(query_params)
 
-        query_job = self.bqconn.queryBQ(str(query), query_params=query_params, location='US', batch_mode=False,
+        query_job = self.bqClient.queryBQ(str(query), query_params=query_params, location='US', batch_mode=False,
                                         verbose=True)
-
-        if debug:
-            for row in query_job:
-                print(row)
 
         for row in query_job:  # API request - fetches results
             # Row values can be accessed by field name or index
