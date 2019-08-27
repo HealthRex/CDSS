@@ -124,9 +124,8 @@ class BigQueryClient:
 
     def _stream_csv_to_table(self, dataset_id, table_id, csv_path, batch_size = 1000):
         '''
-        FYI: Streaming is NOT free :)
+        FYI: Streaming is NOT free
         https://cloud.google.com/bigquery/pricing#streaming_pricing
-        TODO: 06/03/2019 NOT TESTED, DO NOT USE THIS FUNCTION
 
         :param dataset_id: dataset name
         :param table_id: table name
@@ -157,9 +156,6 @@ class BigQueryClient:
     def load_csv_to_table(self, dataset_id, table_id, csv_path, auto_detect_schema = True,
                           schema = [], skip_rows = 0, append_to_table=False):
         '''
-        TODO: add functionality for optional schema input
-        TODO: what happens if dataset does not exist?
-
         :param dataset_id: dataset name
         :param table_id: table name
         :param csv_path: path to exported csv file
