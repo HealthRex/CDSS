@@ -86,7 +86,7 @@ class STARRDemographicsConversion:
         """Default constructor"""
         self.bqConn = bigQueryUtil.connection()
         self.bqClient = bigQueryUtil.BigQueryClient()
-        self.connFactory = DBUtil.ConnectionFactory();  # Default connection source
+        self.connFactory = DBUtil.ConnectionFactory()  # Default connection source
 
         self.categoryBySourceDescr = dict()
         self.clinicalItemByCategoryIdExtId = dict()
@@ -123,6 +123,8 @@ class STARRDemographicsConversion:
                 self.convertSourceItems(idsBatch)
 
                 self.dumpPatientItemToCsv(tempDir, batchCounter)
+
+                self.bqClient.reconnect_client() #refresh bq client connection
 
                 self.uploadPatientItemCsvToBQ(tempDir, batchCounter, datasetId)
 

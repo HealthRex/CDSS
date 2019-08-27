@@ -548,7 +548,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
         bqCursor = self.bqConn.cursor()
         bqCursor.execute(testQuery)
         actualData = [row.values() for row in bqCursor.fetchall()]
-        print('actual data %s' % actualData)
+        #print('actual data %s' % actualData)
         self.assertEqualTable(expectedData, actualData)
 
 
