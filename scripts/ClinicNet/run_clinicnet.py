@@ -29,9 +29,8 @@ if not os.path.exists('{}{}'.format(PATH,NOW)):
     print('making dir since DNE')
     os.makedirs('{}{}'.format(PATH,NOW))
 if NUM_EPOCH_START == 0:
-    shutil.copy(__file__, '{}{}/script_ran.py'.format(PATH,NOW)) # useful for documentation purposes
+    shutil.copy(__file__, '{}{}/script_ran.py'.format(PATH,NOW))
 
-# TO LOAD CHANGEE 1) num_epochs 2) setState 3) file where you save the history 4) set to load model 5 place save model) 
 if tf.test.is_gpu_available():
     print("GPU detected")
 else:
@@ -40,16 +39,9 @@ else:
 
 
           
-# get weights for loss function
+# get class weights for loss function if performing binary_crossentropy with class weights
 path = '/badvolume/home/ec2-user/cs230/scripts/data/statistics/train2/freq_y.hdf5'
 weights = pd.read_hdf(path)
-          
-# path = '/badvolume/home/ec2-user/cs230/scripts/data/hdf5/train_shuffled/0.h5'
-# f = pd.read_hdf(path, 'data_y')
-# if np.sum(f.columns.values != weights.index.values) == 0:
-#     del f
-# else:
-#     print('error in class weight ordering')# check to make sure sorted same way
 
 class_weight = dict(zip(np.arange(0, len(weights)),1/(weights.values+0.0001)))
           
@@ -60,14 +52,7 @@ from sklearn.metrics import precision_recall_fscore_support as pr
           
 # useful classes and functions for later 
 
-# def weighted_binary_crossentropy(useless_1, useless_2):
-#     zero_weight = 1
-#     one_weight = 7
 def weighted_binary_crossentropy(y_true, y_pred):
-
-    # Original binary crossentropy (see losses.py):
-    # K.mean(K.binary_crossentropy(y_true, y_pred), axis=-1)
-
     # Calculate the binary crossentropy
     zero_weight = 1
     one_weight = pw
@@ -90,15 +75,6 @@ def binary_accuracy_V2(y_true, y_pred):
     y_pred_edited = y_pred[:,2:]
     return K.mean(K.equal(y_true, K.round(y_pred)))
 
-def weighted_crossentropy(class_weights):
-   
-    def loss(y_true, y_pred):
-        #epsilon = _to_tensor(10^-8, y_pred.dtype.base_dtype)
-        #y_pred = tf.clip_by_value(y_pred, epsilon, 1. - epsilon)
-        #y_pred = tf.clip_by_value(y_pred, 0.000001, 0.999999)
-        return - tf.reduce_sum(tf.multiply(y_true * tf.log(y_pred), class_weights))
-
-    return loss
 
 def f1(y_true, y_pred):
     K.set_epsilon(1e-05)
@@ -177,45 +153,9 @@ def flattenMatrix(mat):
         flattened.extend(actual_vals)
     return flattened
 
-def calculateF1ScoreOnly(y_true, y_pred):
-    #actual = flattenMatrix(y_true)
-    #predicted = flattenMatrix(y_pred)
-    actual_binary = [1 if x > 0 else 0 for x in y_true]
-    predicted_binary = [1 if x > 0 else 0 for x in y_pred]
-    bPrecis, bRecall, bFscore, bSupport = pr(actual_binary, predicted_binary, average='binary')
-    return bFscore
-
-def calculateF1Score(y_true, y_pred):
-    actual = flattenMatrix(y_true)
-    predicted = flattenMatrix(y_pred)
-    #actual_binary = [1 if x > 0 else 0 for x in actual]
-    #predicted_binary = [1 if x > 0 else 0 for x in predicted]
-    y_true2 = np.reshape(y_true, (y_true.shape[0]*y_true.shape[1],-1))
-    y_pred2 = np.reshape(y_pred, (y_pred.shape[0]*y_pred.shape[1],-1))
-    bPrecis, bRecall, bFscore, bSupport = pr(y_true2, y_pred2, average='binary')
-    return bPrecis, bRecall, bFscore
           
 from sklearn.metrics import roc_curve, auc
 
-# # Compute ROC curve and ROC area for each class
-# def auroc_py(y_true,y_pred):
-# '''
-# too slow
-# '''
-#     fpr = dict()
-#     tpr = dict()
-#     roc_auc = dict()
-#     for i in range(1639):
-#         fpr[i], tpr[i], _ = roc_curve(y_true[:, i], y_pred[:, i])
-#         roc_auc[i] = auc(fpr[i], tpr[i])
-
-#     # Compute micro-average ROC curve and ROC area
-#     fpr["micro"], tpr["micro"], _ = roc_curve(y_true.numpy().ravel(), y_pred.numpy().ravel())
-#     roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
-#     return roc_auc['micro']
-
-# def auroc(y_true, y_pred):
-# #     return tf.py_function(auroc_py, (y_true, y_pred), tf.double)
 
 def auc(y_true, y_pred):
     auc = tf.keras.metrics.AUC(y_true, y_pred)[1]
