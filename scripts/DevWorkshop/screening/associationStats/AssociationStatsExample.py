@@ -11,7 +11,21 @@ The file represents a large data file tracking individual doctors by "npi" (ID n
 along with the drugs they prescribed, identified by "generic_name"
 and total prescriptions by "total_claim_count".
 
-Below is a Python-based template for addressing this counting problem. 
+Design and implement application code in this class to
+Scan through the input data file of who prescribed which drugs,
+and determine which other "drug B's" are also prescribed
+for those who prescribe drug A.
+
+Return a list of 2-ples with non-zero values below, sorted in descending order
+    - Number of prescribers prescribing drugs A and B ("Support")
+    - Generic name of drug B
+
+HINT:
+- Data assumed to already be sorted in order by prescriber npi unique identifier
+- zipfile package facilitates reading from ZIP files
+- csv.DictReader can facilitate reading over tab-delimited file
+
+
 Create a respective unit test script/program that verifies correct functionality of your program.
 Complete the code implementation below such that results can be calculated from the command-line. For example, running
 
@@ -36,8 +50,8 @@ Should result in output similar to...
 
 """
 import sys, os;
-import csv;
 import zipfile;
+import csv;
 
 class AssociationStatsExample:
     """Application module with example functions to implement and test.
@@ -46,50 +60,15 @@ class AssociationStatsExample:
         """Initialization constructor"""
         pass;
         
-    def drugAssociationStatsByZipFile(self, zipFilename, drugA):
-        """Open up a ZIP file by the given name and find the first .txt file contained within to open and 
-        then run the drugAssociationStats method based on that inFile and drugA description.
-        """
-        ###################### START CODE HERE ########################
-        ###################### START CODE HERE ########################
-        ###################### START CODE HERE ########################
-        ###################### START CODE HERE ########################
-        inFile = None #???;
-        ###################### END CODE HERE ########################
-        ###################### END CODE HERE ########################
-        ###################### END CODE HERE ########################
-        ###################### END CODE HERE ########################
-
-        return self.drugAssociationStats(inFile, drugA);
-
+    ###################### START CODE HERE ########################
+    ###################### START CODE HERE ########################
+    ###################### START CODE HERE ########################
+    ###################### START CODE HERE ########################
     
-    def drugAssociationStats(self, inFile, drugA):
-        """
-        Scan through the input data file of who prescribed which drugs,
-        and determine which other "drug B's" are also prescribed
-        for those who prescribe drug A.
-
-        Return a list of 2-ples with non-zero values below, sorted in descending order
-            - Number of prescribers prescribing drugs A and B ("Support")
-            - Generic name of drug B
-
-        inFile - File handle over the input tab delimited file. 
-            HINT: Data assumed to already be sorted in order by prescriber npi unique identifier.
-        drugA - Generic name for a drug of interest
-        """
-        ###################### START CODE HERE ########################
-        ###################### START CODE HERE ########################
-        ###################### START CODE HERE ########################
-        ###################### START CODE HERE ########################
-        
-        # Recommend using csv.DictReader to facilitate reading over tab-delimited file
-
-        ###################### END CODE HERE ########################
-        ###################### END CODE HERE ########################
-        ###################### END CODE HERE ########################
-        ###################### END CODE HERE ########################
-
-        return None;
+    ###################### END CODE HERE ########################
+    ###################### END CODE HERE ########################
+    ###################### END CODE HERE ########################
+    ###################### END CODE HERE ########################
 
 if __name__ == "__main__":
     # Command-line execution should start here and attempt to run the primary function and print results to the console
@@ -97,6 +76,5 @@ if __name__ == "__main__":
     drugA = sys.argv[2];
     
     instance = AssociationStatsExample();
-    for (support, drugB) in instance.drugAssociationStatsByZipFile( zipFilename, drugA ):
+    for (support, drugB) in #????:
         print (support, drugB);
-
