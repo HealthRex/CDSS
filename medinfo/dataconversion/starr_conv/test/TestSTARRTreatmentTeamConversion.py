@@ -25,6 +25,7 @@ from medinfo.dataconversion.starr_conv.STARRTreatmentTeamConversion import STARR
 
 from google.cloud import bigquery
 from medinfo.db.bigquery import bigQueryUtil
+from medinfo.dataconversion.starr_conv import STARRUtil
 import LocalEnv
 
 TEST_SOURCE_TABLE = 'starr_datalake2018.treatment_team'
@@ -42,8 +43,9 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         log.info("Sourcing from BigQuery DB")
         ClinicalItemDataLoader.build_clinical_item_psql_schemata()
 
-        self.bqConn = bigQueryUtil.connection()
         self.converter = STARRTreatmentTeamConversion()  # Instance to test on
+        self.bqConn = self.converter.bqConn
+        self.starrUtil = STARRUtil.StarrCommonUtils(self.converter.bqClient)
 
     def tearDown(self):
         """Restore state from any setUp or test steps"""
@@ -82,7 +84,9 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         log.debug("Run the conversion process...")
         convOptions = ConversionOptions()
         convOptions.startDate = TEST_START_DATE
-        self.converter.convertSourceItems(convOptions)
+        #self.converter.convertSourceItems(convOptions)
+        tempDir = '/tmp'
+        self.converter.convertAndUpload(convOptions, tempDir=tempDir, datasetId=TEST_DEST_DATASET)
 
         # Just query back for the same data, de-normalizing the data back to a general table
         testQuery = \
@@ -108,17 +112,10 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
                 pi.external_id desc, ci.external_id desc
             """ % (TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_SOURCE_TABLE)
 
-        #TODO move this to main script
-        tempDir, batchCounter, datasetId = '/tmp', 0, TEST_DEST_DATASET
-        self.converter.dumpPatientItemToCsv(tempDir, batchCounter)
-        self.converter.bqClient.reconnect_client()  # refresh bq client connection
-        self.converter.uploadPatientItemCsvToBQ(tempDir, batchCounter, datasetId)
-        self.converter.removePatientItemCsv(tempDir, batchCounter)
-        self.converter.removePatientItemAddedLines()
-        self.converter.dumpClinicalTablesToCsv(tempDir)
-        self.converter.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
-        self.converter.removeClinicalTablesCsv(tempDir)
-        self.converter.removeClinicalTablesAddedLines()
+        self.starrUtil.dumpClinicalTablesToCsv(tempDir)
+        self.starrUtil.uploadClinicalTablesCsvToBQ(tempDir, TEST_DEST_DATASET)
+        self.starrUtil.removeClinicalTablesCsv(tempDir)
+        self.starrUtil.removeClinicalTablesAddedLines(TEST_SOURCE_TABLE)
 
         expectedData = \
             [(2709560, 13914107, 131260688793, u'Treatment Team', None, u'RN', u'Registered Nurse',
@@ -217,7 +214,7 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         bqCursor = self.bqConn.cursor()
         bqCursor.execute(testQuery)
         actualData = [row.values() for row in bqCursor.fetchall()]
-        print('actual data %s' % actualData)
+        #print('actual data %s' % actualData)
         self.assertEqualTable(expectedData, actualData)
 
     def _test_dataConversion_aggregate(self):
