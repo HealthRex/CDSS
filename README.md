@@ -3,7 +3,7 @@
 
 Review the Wiki (https://github.com/HealthRex/CDSS/wiki) for Starter Notes on using some of the common data sources and codebase as well as general lab/group infrastructure.
 
-Code is made freely available for academic use. For questions about usage, email stanford [dot] healthrex [at] gmail [dot] com.
+Code is made freely available for academic use. For commercial use or other questions, email stanford [dot] healthrex [at] gmail [dot] com.
 
 Suggested citation: Chen, J. H., Podchiyska, T. & Altman, R. B. Journal of the American Medical Informatics Association ocv091 (2016). doi:10.1093/jamia/ocv091
 
@@ -13,6 +13,7 @@ General Guidelines for Code Repo:
 * Try to promote reusable components to the medinfo core application modules.
 
 Broad description of core application directories
+* medinfo/scripts/DevWorkshop - Assorted tutorials and screening programs to learn and practice core technical skills.
 * medinfo/analysis - General purpose analysis and data manipulation modules, not specific to any type of project. For example, serially calculating t-tests, list rank similarity measures, ROC plots, precision-recall curves, SQL-like manipulation functions for CSV / TSV files.
 * medinfo/common - General purpose computing utilities, such as calculating different 2x2 contingency stats, adding progress trackers to long processes.
 * medinfo/cpoe - More project specific applications related to Computerized Physician Order Entry projects, implementing different approaches to clinical order recommendations and evaluating/analyzing them with different experiments on historical data. Application code for clinical case simulations for users to interact with.
