@@ -8,6 +8,9 @@ python -m unittest discover -v -s <directoryName> -p "Test*.py"
 import unittest
 import logging
 
+import os
+
+# if __name__ == "__main__":
 # Set logging level.
 log = logging.getLogger("CDSS")
 log.setLevel(logging.CRITICAL)
