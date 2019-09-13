@@ -35,3 +35,5 @@ try:
 except:
     HOSTNAME = 'localhost'
     IP_ADDR = '127.0.0.1'
+
+LAB_TYPE = "panel"  # can be panel, component or mixed
