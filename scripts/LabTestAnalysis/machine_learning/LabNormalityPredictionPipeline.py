@@ -11,6 +11,7 @@ from sklearn.externals import joblib
 from sklearn.metrics import make_scorer, average_precision_score
 import logging
 
+from medinfo.common.Env import LAB_TYPE
 from medinfo.common.Util import log
 from medinfo.ml.FeatureSelector import FeatureSelector
 from medinfo.dataconversion.FeatureMatrixTransform import FeatureMatrixTransform
@@ -39,7 +40,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         self._factory = FeatureMatrixFactory()
         self._build_raw_feature_matrix()
 
-        if LocalEnv.LAB_TYPE == 'panel':
+        if LAB_TYPE == 'panel':
             self.ylabel = 'all_components_normal'
         else:
             self.ylabel = 'component_normal'
@@ -589,7 +590,7 @@ if __name__ == '__main__':
 
     if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
 
-        if LocalEnv.LAB_TYPE == 'panel':
+        if LAB_TYPE == 'panel':
             for panel in NON_PANEL_TESTS_WITH_GT_500_ORDERS:
                 LabNormalityPredictionPipeline(panel, 500, use_cache=True, random_state=123456789,
                                                timeLimit=None, notUsePatIds=None, holdOut=False)
@@ -693,7 +694,7 @@ if __name__ == '__main__':
                                                USE_CACHED_DB=USE_CACHED_DB,
                                   test_mode=False) #TODO
 
-        if LocalEnv.LAB_TYPE == 'panel':
+        if LAB_TYPE == 'panel':
             for panel in UCSF_TOP_PANELS:
                 print 'Now processing %s'%panel
                 LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789)

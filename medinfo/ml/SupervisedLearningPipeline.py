@@ -25,6 +25,7 @@ import sys
 from sklearn.model_selection import train_test_split
 from sklearn.utils.validation import column_or_1d
 
+from medinfo.common.Env import LAB_TYPE
 from medinfo.common.Util import log
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.dataconversion.FeatureMatrixTransform import FeatureMatrixTransform
@@ -115,7 +116,7 @@ class SupervisedLearningPipeline:
 
         if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
             # For running both standalone (called "panel" here)/component in 1 click
-            parent_dir_list.append('data-%s' % LocalEnv.LAB_TYPE)
+            parent_dir_list.append('data-%s' % LAB_TYPE)
         else:
             parent_dir_list.append('data')
         parent_dir_list.append(self._var)
