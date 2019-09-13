@@ -34,8 +34,9 @@ var DRUG_LIST =
         'Ampicillin-Sulbactam',
         'Ticarcillin',
         'Ticarcillin-Clavulanate',
-        'Piperacillin-Tazobactam',
         'Piperacillin',
+        'Piperacillin-Tazobactam',
+        'Ceftolozane-Tazobactam',
         'Doripenem',
         'Ertapenem',
         'Imipenem',
@@ -157,6 +158,7 @@ var PROPERTIES_BY_DRUG =
         'Ticarcillin-Clavulanate': ['Anti-Pseudomonal Penicillin'],
         'Piperacillin-Tazobactam': ['Anti-Pseudomonal Penicillin'],
         'Piperacillin': ['Anti-Pseudomonal Penicillin'],
+        'Ceftolozane-Tazobactam': ['Anti-Pseudomonal Penicillin'],
         'Doripenem': ['Carbapenem'],
         'Ertapenem': ['Carbapenem'],
         'Imipenem': ['Carbapenem'],
@@ -181,6 +183,7 @@ var PROPERTIES_BY_DRUG =
         'Ceftaroline': ['Cephalosporin (IV) Gen 3+'],
         'Ceftazidime': ['Cephalosporin (IV) Gen 3+'],
         'Cefepime': ['Cephalosporin (IV) Gen 3+'],
+        'Ceftolozane-Tazobactam': ['Cephalosporin (IV) Gen 3+'],
         'Cefadroxil': ['Cephalosporin (PO) Gen 1','Oral Available'],
         'Cephalexin': ['Cephalosporin (PO) Gen 1','Oral Available'],
         'Cefaclor/Loracarbef': ['Cephalosporin (PO) Gen 2','Oral Available'],
@@ -7576,8 +7579,6 @@ SENSITIVITY_DATA_PER_SOURCE["2018 Stanford Health Care (SHC)"] =
     '96\tStreptococcus Group B (agalactiae)\tLevofloxacin',
     '251\tStreptococcus viridans Group\tNumber Tested',
     '82\tStreptococcus viridans Group\tPenicillin G',
-    //TODO values 17 and 1 are missing for column "Penicillin and Ampicillin" %I and %R, resp.
-    //     They aren't entered here as they're missing also in 2016 SHC table above.
     '100\tStreptococcus viridans Group\tCeftriaxone',
     '100\tStreptococcus viridans Group\tVancomycin',
     '59\tStreptococcus viridans Group\tErythromycin',
@@ -7591,13 +7592,10 @@ SENSITIVITY_DATA_PER_SOURCE["2018 Stanford Health Care (SHC)"] =
     '90\tStreptococcus pneumoniae\tClindamycin',
     '87\tStreptococcus pneumoniae\tMeropenem',
     '84\tStreptococcus pneumoniae\tTMP-SMX',
-    '56\tStreptococcus pneumoniae\tDoxycycline', //TODO is this correct?
-    '56\tStreptococcus pneumoniae\tGentamicin', //TODO is this correct?
+    '56\tStreptococcus pneumoniae\tDoxycycline',
     '100\tStreptococcus pneumoniae\tMoxifloxacin',
     '943\tEnterococcus (unspeciated)\tNumber Tested',
     '91\tEnterococcus (unspeciated)\tPenicillin G',
-    //TODO value 9 is missing for column "Penicillin and Ampicillin" %R.
-    //     It isn't entered here as it's missing also in 2016 SHC table above.
     '92\tEnterococcus (unspeciated)\tVancomycin',
     '25\tEnterococcus (unspeciated)\tDoxycycline',
     '96\tEnterococcus (unspeciated)\tNitrofurantoin (uncomplicated UTI)',
@@ -7612,8 +7610,6 @@ SENSITIVITY_DATA_PER_SOURCE["2018 Stanford Health Care (SHC)"] =
     '99\tEnterococcus faecalis\tLinezolid',
     '136\tEnterococcus faecium\tNumber Tested',
     '22\tEnterococcus faecium\tPenicillin G',
-    //TODO value 78 is missing for column "Penicillin and Ampicillin" %R.
-    //     It isn't entered here as it's missing also in 2016 SHC table above.
     '38\tEnterococcus faecium\tVancomycin',
     '94\tEnterococcus faecium\tGentamicin',
     '48\tEnterococcus faecium\tStreptomycin',
@@ -7666,7 +7662,7 @@ SENSITIVITY_DATA_PER_SOURCE["2018 Stanford Health Care (SHC)"] =
     '70\tAcinetobacter\tCiprofloxacin',
     '75\tAcinetobacter\tLevofloxacin',
     '75\tAcinetobacter\tTMP-SMX',
-    '10\tBurkholderia cepacia\tNumber Tested',  //TODO written as 'Burkholderia cepacia complex', but so is Citrobacter freundii in 2016 SHC, so keeping as is
+    '10\tBurkholderia cepacia\tNumber Tested',
     '90\tBurkholderia cepacia\tCeftazidime',
     '80\tBurkholderia cepacia\tMinocycline',
     '70\tBurkholderia cepacia\tMeropenem',
@@ -7858,7 +7854,7 @@ SENSITIVITY_DATA_PER_SOURCE["2018 Stanford Health Care (SHC)"] =
     '85\tPseudomonas aeruginosa\tLevofloxacin',
     '165\tPseudomonas aeruginosa CF mucoid\tNumber Tested',
     '89\tPseudomonas aeruginosa CF mucoid\tPiperacillin-Tazobactam',
-    '96\tPseudomonas aeruginosa CF mucoid\tCeftolozane-Tazobactam',     //TODO check if this is correct? (in the table wraps Cefazolin and Ceftriaxone)
+    '96\tPseudomonas aeruginosa CF mucoid\tCeftolozane-Tazobactam',
     '81\tPseudomonas aeruginosa CF mucoid\tCefepime',
     '84\tPseudomonas aeruginosa CF mucoid\tAztreonam',
     '79\tPseudomonas aeruginosa CF mucoid\tImipenem',
@@ -7869,7 +7865,7 @@ SENSITIVITY_DATA_PER_SOURCE["2018 Stanford Health Care (SHC)"] =
     '61\tPseudomonas aeruginosa CF mucoid\tLevofloxacin',
     '109\tPseudomonas aeruginosa CF non-mucoid\tNumber Tested',
     '72\tPseudomonas aeruginosa CF non-mucoid\tPiperacillin-Tazobactam',
-    '92\tPseudomonas aeruginosa CF non-mucoid\tCeftolozane-Tazobactam',     //TODO check if this is correct? (in the table wraps Cefazolin and Ceftriaxone)
+    '92\tPseudomonas aeruginosa CF non-mucoid\tCeftolozane-Tazobactam',
     '72\tPseudomonas aeruginosa CF non-mucoid\tCefepime',
     '72\tPseudomonas aeruginosa CF non-mucoid\tAztreonam',
     '63\tPseudomonas aeruginosa CF non-mucoid\tImipenem',
@@ -7909,7 +7905,7 @@ SENSITIVITY_DATA_PER_SOURCE["2018 Stanford Health Care (SHC)"] =
 
     '1772\tStaphylococcus aureus (all)\tNumber Tested',
     '78\tStaphylococcus aureus (all)\tNafcillin/Oxacillin',
-    '78\tStaphylococcus aureus (all)\tCefazolin',       //TODO In the table it's written as '1st generation Cephems' but since the same situation is with 2016 SHC, keeping as is here
+    '78\tStaphylococcus aureus (all)\tCefazolin',
     '100\tStaphylococcus aureus (all)\tVancomycin',
     '58\tStaphylococcus aureus (all)\tErythromycin',
     '74\tStaphylococcus aureus (all)\tClindamycin',
@@ -8009,8 +8005,6 @@ SENSITIVITY_DATA_PER_SOURCE["2018 Stanford Health Care (SHC)"] =
     '100\tGram Positive Cocci (anaerobes)\tMetronidazole',
 
 
-
-    //TODO here, in both tables, the values denote 'Susceptible' and not 'Resistant' as in 2016 SHC above. Also left commented table and formatting (missing newline between tables) as is.
     '49\tCampylobacter\tNumber Tested',
     '61\tCampylobacter\tCiprofloxacin',
     '55\tCampylobacter\tDoxycycline',
@@ -8022,5 +8016,5 @@ SENSITIVITY_DATA_PER_SOURCE["2018 Stanford Health Care (SHC)"] =
     // '96\tM tuberculosis\tPyrazinamide',
 ].join('\n');
 
-DEFAULT_SOURCE = "2016 Stanford Health Care (SHC)";     //TODO left default source as is
+DEFAULT_SOURCE = "2018 Stanford Health Care (SHC)";
 SENSITIVITY_DATA_PER_SOURCE["default"] = SENSITIVITY_DATA_PER_SOURCE[DEFAULT_SOURCE];
