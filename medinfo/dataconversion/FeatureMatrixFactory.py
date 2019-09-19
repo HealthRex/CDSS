@@ -19,6 +19,7 @@ import os
 import time
 
 from Const import SENTINEL_RESULT_VALUE
+from medinfo.common.Env import LAB_TYPE
 from medinfo.common.Const import NULL_STRING
 from medinfo.cpoe.Const import SECONDS_PER_DAY, DELTA_NAME_BY_DAYS
 from medinfo.db import DBUtil
@@ -50,7 +51,7 @@ class FeatureMatrixFactory:
         self._patientItemTimeColumn = None
         self.timestampColumn = None
 
-        self._isLabPanel = True if LocalEnv.LAB_TYPE == 'panel' else 'component'
+        self._isLabPanel = True if LAB_TYPE == 'panel' else 'component'
         self._labTypeCol = 'proc_code' if self._isLabPanel else 'base_name'
 
         self.patientsProcessed = None
