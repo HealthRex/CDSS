@@ -13,9 +13,11 @@ from medinfo.common.test.Util import MedInfoTestCase
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 
+import os
+
 CLINICAL_ITEM_ID = 'clinical_item_id'
 ITEM_COUNTS = 'item_counts'
-
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class LabStats(object):
 	def _getClinicalItemCounts(self):
@@ -65,22 +67,22 @@ class LabStats(object):
 
 		# Get counts of items from patient_item
 		if queryDB: self._getClinicalItemCounts()
-		df_item_counts = pd.read_csv('data_summary_stats/item_counts.csv')
+		df_item_counts = pd.read_csv(THIS_DIR + '/data_summary_stats/item_counts.csv')
 
 		# Get labs
 		if queryDB: self._getLabs()
-		df_labs = pd.read_csv('data_summary_stats/labs.csv')
+		df_labs = pd.read_csv(THIS_DIR + '/data_summary_stats/labs.csv')
 
 		# Join labs with counts
 		df_labs = pd.merge(df_labs, df_item_counts, on=CLINICAL_ITEM_ID)
 
 		# Get billing codes
-		df_billing_codes = pd.DataFrame(pd.read_csv('data_summary_stats/billing_codes.csv', dtype='string'))
+		df_billing_codes = pd.DataFrame(pd.read_csv(THIS_DIR + '/data_summary_stats/billing_codes.csv', dtype='string'))
 		df_billing_codes = df_billing_codes[['name', 'order_code_description', 'billing_code']]
 		df_billing_codes['name'] = df_billing_codes['name'].apply(lambda x: 'LAB' + str(x))
 
 		# Get prices
-		df_chargemaster = pd.DataFrame(pd.read_csv('data_summary_stats/chargemaster.csv', dtype='string'))
+		df_chargemaster = pd.DataFrame(pd.read_csv(THIS_DIR + '/data_summary_stats/chargemaster.csv', dtype='string'))
 		df_chargemaster = df_chargemaster[['billing_code', 'price', 'price_description']]
 		df_chargemaster['price'] = df_chargemaster['price'].apply(lambda x: float(x.replace(',','')))
 
