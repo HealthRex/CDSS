@@ -137,11 +137,11 @@ class STARRDemographicsConversion:
                 idsBatch = getBatch(f, batchSize)
                 batchCounter += 1
 
-        # TODO, these tables are not particularly large, might not need to upload and clear right away
-        self.dumpClinicalTablesToCsv(tempDir)
-        self.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
-        self.removeClinicalTablesCsv(tempDir)
-        self.removeClinicalTablesAddedLines()
+        # For now keep the clinical_* tables, upload them them once all tables have been converted
+        # self.dumpClinicalTablesToCsv(tempDir)
+        # self.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
+        # self.removeClinicalTablesCsv(tempDir)
+        # self.removeClinicalTablesAddedLines()
 
     def dumpPatientItemToCsv(self, tempDir, batchCounter):
         log.info('Dumping patient_item for batch %s to CSV' % batchCounter)
