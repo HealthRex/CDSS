@@ -23,8 +23,8 @@ from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader
 
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel
-
 from medinfo.dataconversion.starr_conv.STARRDemographicsConversion import STARRDemographicsConversion
+from expectedData import STARRExpectedData
 
 from google.cloud import bigquery
 from medinfo.db.bigquery import bigQueryUtil
@@ -463,87 +463,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
                 pi.patient_id desc, ci.name
             """ % (TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_SOURCE_TABLE)
 
-        expectedData = \
-            [(None, 15350146, None, u'Demographics', None, u'Birth', u'Birth Year',
-              datetime(2007, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 15350146, None, u'Demographics', None, u'Birth2000s', u'Birth Decade 2000s',
-        datetime(2007, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 15350146, None, u'Demographics', None, u'Female', u'Female Gender',
-        datetime(2007, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 15350146, None, u'Demographics', None, u'RaceAsian', u'Race/Ethnicity: Asian',
-        datetime(2007, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 15246036, None, u'Demographics', None, u'Birth', u'Birth Year',
-        datetime(2008, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 15246036, None, u'Demographics', None, u'Birth2000s', u'Birth Decade 2000s',
-        datetime(2008, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 15246036, None, u'Demographics', None, u'Male', u'Male Gender',
-        datetime(2008, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 15246036, None, u'Demographics', None, u'RaceWhiteNonHispanicLatino',
-        u'Race/Ethnicity: White (Non-Hispanic/Latino)', datetime(2008, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14701588, None, u'Demographics', None, u'Birth', u'Birth Year',
-        datetime(1949, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14701588, None, u'Demographics', None, u'Birth1940s', u'Birth Decade 1940s',
-        datetime(1949, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14701588, None, u'Demographics', None, u'Female', u'Female Gender',
-        datetime(1949, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14701588, None, u'Demographics', None, u'RaceOther', u'Race/Ethnicity: Other',
-        datetime(1949, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14354559, None, u'Demographics', None, u'Birth', u'Birth Year',
-        datetime(1954, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14354559, None, u'Demographics', None, u'Birth1950s', u'Birth Decade 1950s',
-        datetime(1954, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14354559, None, u'Demographics', None, u'Female', u'Female Gender',
-        datetime(1954, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14354559, None, u'Demographics', None, u'RaceWhiteNonHispanicLatino',
-        u'Race/Ethnicity: White (Non-Hispanic/Latino)', datetime(1954, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14283443, None, u'Demographics', None, u'Birth', u'Birth Year',
-        datetime(2007, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14283443, None, u'Demographics', None, u'Birth2000s', u'Birth Decade 2000s',
-        datetime(2007, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14283443, None, u'Demographics', None, u'Male', u'Male Gender',
-        datetime(2007, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14283443, None, u'Demographics', None, u'RaceUnknown', u'Race/Ethnicity: Unknown',
-        datetime(2007, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14259737, None, u'Demographics', None, u'Birth', u'Birth Year',
-        datetime(1946, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14259737, None, u'Demographics', None, u'Birth1940s', u'Birth Decade 1940s',
-        datetime(1946, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14259737, None, u'Demographics', None, u'Male', u'Male Gender',
-        datetime(1946, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14259737, None, u'Demographics', None, u'RaceWhiteNonHispanicLatino',
-        u'Race/Ethnicity: White (Non-Hispanic/Latino)', datetime(1946, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14259046, None, u'Demographics', None, u'Birth', u'Birth Year',
-        datetime(1929, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14259046, None, u'Demographics', None, u'Birth1920s', u'Birth Decade 1920s',
-        datetime(1929, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14259046, None, u'Demographics', None, u'Female', u'Female Gender',
-        datetime(1929, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14259046, None, u'Demographics', None, u'RaceWhiteNonHispanicLatino',
-        u'Race/Ethnicity: White (Non-Hispanic/Latino)', datetime(1929, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14257909, None, u'Demographics', None, u'Birth', u'Birth Year',
-        datetime(2018, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14257909, None, u'Demographics', None, u'Birth2010s', u'Birth Decade 2010s',
-        datetime(2018, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14257909, None, u'Demographics', None, u'Female', u'Female Gender',
-        datetime(2018, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 14257909, None, u'Demographics', None, u'RaceUnknown', u'Race/Ethnicity: Unknown',
-        datetime(2018, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 13734401, None, u'Demographics', None, u'Birth', u'Birth Year',
-        datetime(1994, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 13734401, None, u'Demographics', None, u'Birth1990s', u'Birth Decade 1990s',
-        datetime(1994, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 13734401, None, u'Demographics', None, u'Male', u'Male Gender',
-        datetime(1994, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 13734401, None, u'Demographics', None, u'RaceAsian', u'Race/Ethnicity: Asian',
-        datetime(1994, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 13484358, None, u'Demographics', None, u'Birth', u'Birth Year',
-        datetime(1958, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 13484358, None, u'Demographics', None, u'Birth1950s', u'Birth Decade 1950s',
-        datetime(1958, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 13484358, None, u'Demographics', None, u'Female', u'Female Gender',
-        datetime(1958, 1, 1, 0, 0, tzinfo=pytz.UTC)), (
-        None, 13484358, None, u'Demographics', None, u'RaceWhiteNonHispanicLatino',
-        u'Race/Ethnicity: White (Non-Hispanic/Latino)', datetime(1958, 1, 1, 0, 0, tzinfo=pytz.UTC))]
+        expectedData = STARRExpectedData().demographics_expected
 
         bqCursor = self.bqConn.cursor()
         bqCursor.execute(testQuery)
