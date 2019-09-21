@@ -12,6 +12,41 @@ class StarrCommonUtils:
         self.bqClient = bqClient
         self.pgConn = pgConn
 
+    @staticmethod
+    def convertPatIdToSTRIDE(starr_pat_id):
+        return int(starr_pat_id[2:], 16)
+
+    '''
+    BigQuery SQL conversion e.g.
+    https://stackoverflow.com/questions/46664776
+    
+    CREATE TEMP FUNCTION HexToInt(hex_string STRING) AS (
+      IFNULL(SAFE_CAST(CONCAT('0x', REPLACE(hex_string, ' ', '')) AS INT64), 0)
+    );
+    
+    SELECT HexToInt(SUBSTR('JCcdf815', 3));
+    '''
+
+    @staticmethod
+    def convertPatIdToSTARR(stride_pat_id):
+        return 'JC' + hex(stride_pat_id)[2:]
+
+    '''
+    BigQuery SQL conversion e.g.
+    https://stackoverflow.com/questions/51600209
+    
+    CREATE TEMP FUNCTION IntToHex(x INT64) AS (
+      LTRIM(
+      (SELECT STRING_AGG(FORMAT('%02x', x >> (byte * 8) & 0xff), 
+                         '' ORDER BY byte DESC)
+       FROM UNNEST(GENERATE_ARRAY(0, 7)) AS byte),
+      '0'
+      )
+    );
+    
+    SELECT CONCAT('JC', IntToHex(13498389));
+    '''
+
     def dumpPatientItemToCsv(self, tempDir, batchCounter=999):
         log.info('Dumping patient_item for batch %s to CSV' % batchCounter)
 

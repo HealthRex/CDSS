@@ -26,6 +26,7 @@ from medinfo.dataconversion.starr_conv.STARRTreatmentTeamConversion import STARR
 from google.cloud import bigquery
 from medinfo.db.bigquery import bigQueryUtil
 from medinfo.dataconversion.starr_conv import STARRUtil
+from expectedData import STARRExpectedData
 import LocalEnv
 
 TEST_SOURCE_TABLE = 'starr_datalake2018.treatment_team'
@@ -117,99 +118,7 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         self.starrUtil.removeClinicalTablesCsv(tempDir)
         self.starrUtil.removeClinicalTablesAddedLines(TEST_SOURCE_TABLE)
 
-        expectedData = \
-            [(2709560, 13914107, 131260688793, u'Treatment Team', None, u'RN', u'Registered Nurse',
-              datetime(2018, 12, 30, 15, 26, tzinfo=pytz.UTC)), (
-        2708067, 14717649, 131255744783, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 57, tzinfo=pytz.UTC)), (
-        2701717, 13398957, 131259891113, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 33, tzinfo=pytz.UTC)), (
-        2697065, 14677354, 131261130103, u'Treatment Team', None, u'NA', u'Nursing Assistant',
-        datetime(2018, 12, 30, 15, 18, tzinfo=pytz.UTC)), (
-        2655524, 14296268, 131260909852, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 30, tzinfo=pytz.UTC)), (
-        2648197, 14045374, 131260898062, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 57, tzinfo=pytz.UTC)), (
-        2638232, 15416902, 131260891850, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 2, tzinfo=pytz.UTC)), (
-        2622278, 14210699, 131260810435, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 20, tzinfo=pytz.UTC)), (
-        2582352, 13390259, 131261195711, u'Treatment Team', None, u'PR', u'Primary Resident',
-        datetime(2018, 12, 30, 15, 7, tzinfo=pytz.UTC)), (
-        2135397, 14945301, 131260435164, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 30, tzinfo=pytz.UTC)), (
-        2127105, 15246271, 131261363409, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 52, tzinfo=pytz.UTC)), (
-        2119040, 14313125, 131259375857, u'Treatment Team', None, u'RCP', u'Respiratory Care Practitioner',
-        datetime(2018, 12, 30, 15, 27, tzinfo=pytz.UTC)), (
-        2107282, 13677667, 131260808224, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 4, tzinfo=pytz.UTC)), (
-        2107282, 13869166, 131260810202, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 8, tzinfo=pytz.UTC)), (
-        2107208, 13356701, 131260466149, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 17, tzinfo=pytz.UTC)), (
-        2106448, 13842159, 131260466853, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 9, tzinfo=pytz.UTC)), (
-        2106448, 14076737, 131261181450, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 9, tzinfo=pytz.UTC)), (
-        2106448, 14777007, 131259626685, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 9, tzinfo=pytz.UTC)), (
-        2103328, 14314915, 131260296016, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 6, tzinfo=pytz.UTC)), (
-        2103300, 14299576, 131260524806, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 0, tzinfo=pytz.UTC)), (
-        1667159, 14929896, 131259037994, u'Treatment Team', None, u'RCP', u'Respiratory Care Practitioner',
-        datetime(2018, 12, 30, 15, 54, tzinfo=pytz.UTC)), (
-        1667159, 13398957, 131259891113, u'Treatment Team', None, u'RCP', u'Respiratory Care Practitioner',
-        datetime(2018, 12, 30, 15, 54, tzinfo=pytz.UTC)), (
-        1667159, 14720679, 131260033006, u'Treatment Team', None, u'RCP', u'Respiratory Care Practitioner',
-        datetime(2018, 12, 30, 15, 54, tzinfo=pytz.UTC)), (
-        1652569, 14856290, 131261100608, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 7, tzinfo=pytz.UTC)), (
-        1639251, 14621193, 131255530644, u'Treatment Team', None, u'NA', u'Nursing Assistant',
-        datetime(2018, 12, 30, 15, 9, tzinfo=pytz.UTC)), (
-        1639251, 14210699, 131260810435, u'Treatment Team', None, u'NA', u'Nursing Assistant',
-        datetime(2018, 12, 30, 15, 28, tzinfo=pytz.UTC)), (
-        1599073, 14394017, 131258601774, u'Treatment Team', None, u'RCP', u'Respiratory Care Practitioner',
-        datetime(2018, 12, 30, 15, 59, tzinfo=pytz.UTC)), (
-        497047, 14370277, 131260817905, u'Treatment Team', None, u'RCP', u'Respiratory Care Practitioner',
-        datetime(2018, 12, 30, 15, 48, tzinfo=pytz.UTC)), (
-        417814, 14278493, 131259045304, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 3, tzinfo=pytz.UTC)), (
-        398084, 13872813, 131258837268, u'Treatment Team', None, u'RCP', u'Respiratory Care Practitioner',
-        datetime(2018, 12, 30, 15, 34, tzinfo=pytz.UTC)), (
-        333937, 14251162, 131261147644, u'Treatment Team', None, u'RCP', u'Respiratory Care Practitioner',
-        datetime(2018, 12, 30, 15, 51, tzinfo=pytz.UTC)), (
-        287862, 15059389, 131260312121, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 15, tzinfo=pytz.UTC)), (
-        287862, 14399592, 131259550746, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 15, tzinfo=pytz.UTC)), (
-        287028, 13779004, 131260180787, u'Treatment Team', None, u'RCP', u'Respiratory Care Practitioner',
-        datetime(2018, 12, 30, 15, 57, tzinfo=pytz.UTC)), (
-        264215, 15484450, 131261127832, u'Treatment Team', None, u'CCA', u'Cross Cover Attending',
-        datetime(2018, 12, 30, 15, 6, tzinfo=pytz.UTC)), (
-        227605, 14601216, 131259919868, u'Treatment Team', None, u'NA', u'Nursing Assistant',
-        datetime(2018, 12, 30, 15, 0, tzinfo=pytz.UTC)), (
-        227605, 15232402, 131260565278, u'Treatment Team', None, u'NA', u'Nursing Assistant',
-        datetime(2018, 12, 30, 15, 12, tzinfo=pytz.UTC)), (
-        227605, 13665097, 131260385738, u'Treatment Team', None, u'NA', u'Nursing Assistant',
-        datetime(2018, 12, 30, 15, 10, tzinfo=pytz.UTC)), (
-        209156, 13744608, 131260688501, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 52, tzinfo=pytz.UTC)), (
-        14184, 13388609, 131259880179, u'Treatment Team', None, u'RCP', u'Respiratory Care Practitioner',
-        datetime(2018, 12, 30, 16, 0, tzinfo=pytz.UTC)), (
-        12932, 14647360, 131259360262, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 3, tzinfo=pytz.UTC)), (
-        12694, 15167216, 131261072213, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 21, tzinfo=pytz.UTC)), (
-        10386, 14268873, 131260253920, u'Treatment Team', None, u'NA', u'Nursing Assistant',
-        datetime(2018, 12, 30, 15, 5, tzinfo=pytz.UTC)), (
-        9107, 14261525, 131260818663, u'Treatment Team', None, u'RN', u'Registered Nurse',
-        datetime(2018, 12, 30, 15, 5, tzinfo=pytz.UTC)), (
-        8293, 14125153, 131259837513, u'Treatment Team', None, u'LVN', u'Licensed Vocational Nurse',
-        datetime(2018, 12, 30, 15, 21, tzinfo=pytz.UTC)), (
-        8293, 13577716, 131261117326, u'Treatment Team', None, u'LVN', u'Licensed Vocational Nurse',
-        datetime(2018, 12, 30, 15, 24, tzinfo=pytz.UTC))]
+        expectedData = STARRExpectedData().treatmentteam_expected
 
         bqCursor = self.bqConn.cursor()
         bqCursor.execute(testQuery)
