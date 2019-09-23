@@ -126,42 +126,6 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         #print('actual data %s' % actualData)
         self.assertEqualTable(expectedData, actualData)
 
-    def _test_dataConversion_aggregate(self):
-        # Run the data conversion on the same data and look for expected records
-        log.debug("Run the conversion process...")
-        convOptions = ConversionOptions()
-        convOptions.startDate = TEST_START_DATE
-        convOptions.aggregate = True
-        self.converter.convertSourceItems(convOptions)
-
-        # Just query back for the same data, de-normalizing the data back to a general table
-        testQuery = \
-            """
-            select 
-                pi.external_id as pi_external_id,
-                pi.patient_id,
-                pi.encounter_id,
-                cic.description as cic_description,
-                ci.external_id as ci_external_id,
-                ci.name,
-                ci.description as ci_description,
-                pi.item_date
-            from
-                %s.patient_item as pi,
-                %s.clinical_item as ci,
-                %s.clinical_item_category as cic
-            where
-                pi.clinical_item_id = ci.clinical_item_id and
-                ci.clinical_item_category_id = cic.clinical_item_category_id and
-                cic.source_table = '%s'
-            order by
-                pi.external_id desc, ci.external_id desc
-            """ % (TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_SOURCE_TABLE)
-        expectedData = \
-            []
-        actualData = DBUtil.execute(testQuery)
-        self.assertEqualTable(expectedData, actualData)
-
 
 def suite():
     """Returns the suite of tests to run for this test class / module.
