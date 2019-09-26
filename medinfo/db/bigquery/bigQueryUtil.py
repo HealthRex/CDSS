@@ -57,7 +57,6 @@ class BigQueryClient:
 
     def __init__(self):
         self.client = bigquery.Client()
-        log.info('Did not connect to BQ, check credentials env(GOOGLE_APPLICATION_CREDENTIALS)')
         assert self.client is not None, 'Did not connect to BQ, check credentials env(GOOGLE_APPLICATION_CREDENTIALS)'
 
     def reconnect_client(self):
@@ -191,7 +190,7 @@ class BigQueryClient:
             job_config.write_disposition = bigquery.WriteDisposition.WRITE_EMPTY
 
             if auto_detect_schema:
-                assert schema == [], 'Auto-detect is False, but schema is specified'
+                assert schema == [], 'Auto-detect is True, but schema is specified'
                 job_config.autodetect = True
             else:
                 job_config.autodetect = False
@@ -309,7 +308,8 @@ class BigQueryClient:
                 time.sleep(5)
 
         if verbose:
-            log.info('This query will process {} bytes.'.format(query_job.total_bytes_processed))
+            log.info('This query will process {} bytes:'.format(query_job.total_bytes_processed))   # TODO (nodir) always None - query isn't processed yet
+            log.info('Query: ' + query_str)
             #print('This query will process {} bytes.'.format(query_job.total_bytes_processed))
 
         return query_job
