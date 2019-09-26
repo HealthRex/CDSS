@@ -95,7 +95,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
             test_data_row = self.generate_test_data_row(curr_row, random_period(), patient_id)
             self.test_data.append(test_data_row)
 
-            # prepare expected data from required batch
+            # prepare expected data starting from requested batch
             if curr_row >= self.STARTING_BATCH * self.BATCH_SIZE:
                 self.generate_expected_data_rows(test_data_row, self.expected_data)
 
