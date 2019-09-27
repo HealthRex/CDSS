@@ -205,6 +205,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
         log.info("Purge test records from the database")
 
         os.remove(self.pat_id_csv)
+        os.remove(self.test_data_csv)
 
         DBUtil.execute(
             """delete from patient_item 
