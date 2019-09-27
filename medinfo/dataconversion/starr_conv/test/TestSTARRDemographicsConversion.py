@@ -74,7 +74,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
 
     def setUp(self):
         """Prepare state for test cases"""
-        log.setLevel(logging.DEBUG)
+        log.setLevel(logging.INFO)  # without this no logs are printed
 
         DBTestCase.setUp(self)
         ClinicalItemDataLoader.build_clinical_item_psql_schemata()
