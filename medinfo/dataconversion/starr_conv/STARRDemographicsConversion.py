@@ -307,7 +307,8 @@ class STARRDemographicsConversion:
         query = '''
                 SELECT rit_uid,birth_date_jittered,gender,death_date_jittered,canonical_race,canonical_ethnicity
                 FROM %s as dem
-                WHERE dem.rit_uid IN UNNEST(@pat_ids);
+                WHERE dem.rit_uid IN UNNEST(@pat_ids)
+                ORDER BY rit_uid;
                 ''' % SOURCE_TABLE
 
         query_params = [
@@ -321,12 +322,17 @@ class STARRDemographicsConversion:
         query_job = self.bqClient.queryBQ(str(query), query_params=query_params, location='US', batch_mode=False,
                                           verbose=True)
 
+        previous_rit_uid = None
         rows_fetched = 0
         for row in query_job:  # API request - fetches results
             rows_fetched += 1
             # Row values can be accessed by field name or index
             # assert row[0] == row.name == row["name"]
             rowModel = RowItemModel(row.values(), headers)
+
+            # skip this record if we already processed this rit_uid
+            if rowModel["rit_uid"] == previous_rit_uid:
+                continue
 
             if rowModel["birth_date_jittered"] is None:
                 # Blank values, doesn't make sense.  Skip it
@@ -363,39 +369,40 @@ class STARRDemographicsConversion:
                     rowModel["itemDate"] = rowModel["death_date_jittered"]
                     yield rowModel
 
+            previous_rit_uid = rowModel["rit_uid"]
+
             progress.Update()
 
         log.debug("fetched {} rows".format(rows_fetched))
 
     def summarizeRaceEthnicity(self, canonical_race, canonical_ethnicity):
         """Given row model with patient information, return a single string to summarize the patient's race and ethnicity information"""
-        raceEthnicity = RACE_MAPPINGS[canonical_race]
-        if raceEthnicity in UNSPECIFIED_RACE_ETHNICITY and canonical_ethnicity == HISPANIC_LATINO_ETHNICITY:
-            raceEthnicity = RACE_MAPPINGS[
+        race_ethnicity = RACE_MAPPINGS[canonical_race]
+        if race_ethnicity in UNSPECIFIED_RACE_ETHNICITY and canonical_ethnicity == HISPANIC_LATINO_ETHNICITY:
+            race_ethnicity = RACE_MAPPINGS[
                 HISPANIC_LATINO_ETHNICITY]  # Use Hispanic/Latino as basis if no other information
-        if raceEthnicity.find("%s") >= 0:  # Found replacement string.  Look to ethnicity for more information
+        if race_ethnicity.find("%s") >= 0:  # Found replacement string.  Look to ethnicity for more information
             if canonical_ethnicity == HISPANIC_LATINO_ETHNICITY:
-                raceEthnicity = raceEthnicity % RACE_MAPPINGS[HISPANIC_LATINO_ETHNICITY]
+                race_ethnicity = race_ethnicity % RACE_MAPPINGS[HISPANIC_LATINO_ETHNICITY]
             else:
-                raceEthnicity = raceEthnicity % ("Non-" + RACE_MAPPINGS[HISPANIC_LATINO_ETHNICITY])
-        return raceEthnicity
+                race_ethnicity = race_ethnicity % ("Non-" + RACE_MAPPINGS[HISPANIC_LATINO_ETHNICITY])
+        return race_ethnicity
 
     def categoryFromSourceItem(self, conn):
         # Load or produce a clinical_item_category record model for the given sourceItem
-        categoryKey = (SOURCE_TABLE, "Demographics")
-        if categoryKey not in self.categoryBySourceDescr:
+        category_key = (SOURCE_TABLE, "Demographics")
+        if category_key not in self.categoryBySourceDescr:
             # Category does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             category = \
-                RowItemModel \
-                    ({
-                        "source_table": SOURCE_TABLE,
-                        "description": "Demographics",
-                    })
+                RowItemModel({
+                    "source_table": SOURCE_TABLE,
+                    "description": "Demographics",
+                })
 
             (categoryId, isNew) = DBUtil.findOrInsertItem("clinical_item_category", category, conn=conn)
             category["clinical_item_category_id"] = categoryId
-            self.categoryBySourceDescr[categoryKey] = category
-        return self.categoryBySourceDescr[categoryKey]
+            self.categoryBySourceDescr[category_key] = category
+        return self.categoryBySourceDescr[category_key]
 
     def clinicalItemFromSourceItem(self, sourceItem, category, conn):
         # Load or produce a clinical_item record model for the given sourceItem
@@ -403,13 +410,12 @@ class STARRDemographicsConversion:
         if clinicalItemKey not in self.clinicalItemByCategoryIdExtId:
             # Clinical Item does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             clinicalItem = \
-                RowItemModel \
-                    ({"clinical_item_category_id": category["clinical_item_category_id"],
-                      "external_id": None,
-                      "name": sourceItem["name"],
-                      "description": sourceItem["description"],
-                      }
-                     )
+                RowItemModel({
+                    "clinical_item_category_id": category["clinical_item_category_id"],
+                    "external_id": None,
+                    "name": sourceItem["name"],
+                    "description": sourceItem["description"],
+                })
             (clinicalItemId, isNew) = DBUtil.findOrInsertItem("clinical_item", clinicalItem, conn=conn)
             clinicalItem["clinical_item_id"] = clinicalItemId
             self.clinicalItemByCategoryIdExtId[clinicalItemKey] = clinicalItem
@@ -432,4 +438,4 @@ class STARRDemographicsConversion:
             DBUtil.execute(insert_query, insert_params, conn=conn)
         except conn.IntegrityError, err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
-            log.info(err);
+            log.warn(err)
