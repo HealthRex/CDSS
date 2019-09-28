@@ -32,5 +32,6 @@ LOCAL_TEST_DB_PARAM["UID"] = 'testuid'
 LOCAL_TEST_DB_PARAM["PWD"] = 'testpwd'
 
 PATH_TO_CDSS = "/foo/bar/CDSS"; # Directory where this file is contained in
+PATH_TO_GCP_TOKEN = "/foo/bar/google-cloud-platform-token.json"
 
 TEST_RUNNER_VERBOSITY = 2
