@@ -429,7 +429,7 @@ class STARRDemographicsConversion:
                 "patient_id": int(sourceItem["rit_uid"][2:], 16),
                 "encounter_id": None,
                 "clinical_item_id": clinicalItem["clinical_item_id"],
-                "item_date": str(sourceItem["itemDate"])
+                "item_date": str(sourceItem["itemDate"])      # without str(), the time is being converted in postgres
             })
         insert_query = DBUtil.buildInsertQuery("patient_item", patient_item.keys())
         insert_params = patient_item.values()
