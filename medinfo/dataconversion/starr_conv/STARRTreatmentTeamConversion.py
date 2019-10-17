@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys, os
 import time
+import re
+
 from datetime import datetime
 from optparse import OptionParser
 from medinfo.common.Util import stdOpen, ProgressDots
@@ -158,7 +160,7 @@ class STARRTreatmentTeamConversion:
             rowModel["description"] = teamName
 
         if rowModel["trtmnt_tm_begin_dt_jittered"] is None:
-            # Don't know how to use event information with a timestamp
+            # Don't know how to use event information without a timestamp
             pass
 
         return rowModel
@@ -285,10 +287,17 @@ class STARRTreatmentTeamConversion:
         return self.clinicalItemByCompositeKey[clinicalItemKey]
 
     def patientItemFromSourceItem(self, sourceItem, clinicalItem, conn):
+        # some prov_map_id values are NULL in starr_datalake2018
+        if sourceItem["prov_map_id"] is not None:
+            # prov_map_id starts with letters, we're interested only in number parts
+            external_id = int(re.sub("[A-Z]+(\\d+)", "\\1", sourceItem["prov_map_id"]), 16)
+        else:
+            external_id = None
+
         # Produce a patient_item record model for the given sourceItem
         patientItem = \
             RowItemModel({
-                "external_id": int(sourceItem["prov_map_id"][2:], 16),
+                "external_id": external_id,
                 "patient_id": int(sourceItem["rit_uid"][2:], 16),
                 "encounter_id": sourceItem["pat_enc_csn_id_coded"],
                 "clinical_item_id": clinicalItem["clinical_item_id"],
