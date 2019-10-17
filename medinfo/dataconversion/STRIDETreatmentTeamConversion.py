@@ -92,8 +92,7 @@ class STRIDETreatmentTeamConversion:
         row = cursor.fetchone();
         while row is not None:
             rowModel = RowItemModel( row, headers );
-            for normalizedModel in self.normalizeRowModel(rowModel, convOptions, conn=conn):
-                yield normalizedModel; # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
+            yield self.normalizeRowModel(rowModel, convOptions)  # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
             row = cursor.fetchone();
 
         # Slight risk here.  Normally DB connection closing should be in finally of a try block,
@@ -103,33 +102,26 @@ class STRIDETreatmentTeamConversion:
         if not extConn:
             conn.close();
 
-    def normalizeRowModel(self, rowModel, convOptions, conn=None):
+    def normalizeRowModel(self, rowModel, convOptions):
         """Given a rowModel of data, normalize it further.
         Specifically, look for aggregate data items (e.g., multiple Gen Med treatment teams, report as one)
         """
-        extConn = conn is not None;
-        if not extConn:
-            conn = self.connFactory.connection();
-
         (teamAcronym, teamName) = self.cleanName(rowModel["treatment_team"], convOptions);
         (provAcronym, provName) = self.cleanName(rowModel["prov_name"], convOptions, keyPrefixes=KEY_PROVIDER_PREFIXES);
         provName = provName.title();
 
-        rowModel["code"] = teamAcronym;
-        rowModel["description"] = teamName;
-
         if provAcronym != "":
             rowModel["code"] = "%s (%s)" % (provAcronym, teamAcronym);
             rowModel["description"] = "%s (%s)" % (provName, teamName);
+        else:
+            rowModel["code"] = teamAcronym;
+            rowModel["description"] = teamName;
 
         if rowModel["trtmnt_tm_begin_date"] is None:
             # Don't know how to use event information with a timestamp
             pass;
 
-        yield rowModel;
-
-        if not extConn:
-            conn.close();
+        return rowModel;
 
     def cleanName(self, inputName, convOptions, keyPrefixes=None):
         """Given an input name (e.g., treatment team or provider)
@@ -157,32 +149,32 @@ class STRIDETreatmentTeamConversion:
                 if chunk[-1] == ",":    # Strip any commass
                     chunk = chunk[:-1];
 
-                if convOptions.aggregate and i == 0 and chunk in (TEAM_PREFIXES):
-                   # Aggregating mixed records, so just use batch team prefix if exists
-                   acronymList.append(chunk[0]);
-                   wordList.append(chunk);
-                   break;
+                if convOptions.aggregate and i == 0 and chunk in TEAM_PREFIXES:
+                    # Aggregating mixed records, so just use batch team prefix if exists
+                    acronymList.append(chunk[0]);
+                    wordList.append(chunk);
+                    break
                 elif convOptions.aggregate and chunk.upper() in SUB_LABEL_WORDS:
                     # Sub label word not interested when aggregating data, so just ignore it
-                    pass;
+                    continue
                 elif convOptions.aggregate and len(chunk) == 1:
                     # A short number or letter sub-label, ignore if aggregating
-                    pass;
+                    continue
                 elif convOptions.aggregate and len(chunk) <= 2 and (chunk[0].isdigit() or chunk[-1].isdigit()):
                     # A short number or letter sub-label, ignore if aggregating
-                    pass;
+                    continue
                 elif len(chunk) <= 2 and not chunk[0].isalnum() and not chunk[-1].isalnum():
                     # Short non-alphanumeric sequence, probably punctuation
-                    pass;
+                    continue
                 elif not chunk[0].isalnum() and len(chunk) >1 and chunk[1].isdigit():
                     # Probably just a pager/phone number
-                    pass;
+                    continue
                 elif len(chunk) > 1 and chunk[0].isdigit() and chunk[-1].isdigit():
                     # Looks like a number, probably pager or phone.  Don't include
-                    pass;
+                    continue
                 elif chunk in DISCARD_WORDS:
                     # Probably just pager link, not interested
-                    pass;
+                    continue
                 else:
                     if chunk[0].isalnum():
                         acronymList.append(chunk[0])
