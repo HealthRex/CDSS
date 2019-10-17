@@ -59,7 +59,6 @@ class STARRTreatmentTeamConversion:
         """
         Wrapper around primary run function, does conversion locally and uploads to BQ
         No batching done for treatment team since converted table is small
-        TODO (nodir) treatment team table is about 4 times longer than demographic table (but less columns), unless we're converting only a subset
         """
         conn = self.connFactory.connection()
         starrUtil = STARRUtil.StarrCommonUtils(self.bqClient)
@@ -74,11 +73,11 @@ class STARRTreatmentTeamConversion:
         starrUtil.removePatientItemAddedLines(SOURCE_TABLE)
 
         # For now keep the clinical_* tables, upload them them once all tables have been converted
-        # starrUtil.dumpClinicalTablesToCsv(tempDir)
-        # starrUtil.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
-        # if removeCsvs:
-        #     starrUtil.removeClinicalTablesCsv(tempDir)
-        # starrUtil.removeClinicalTablesAddedLines(SOURCE_TABLE)
+        starrUtil.dumpClinicalTablesToCsv(tempDir)
+        starrUtil.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
+        if removeCsvs:
+            starrUtil.removeClinicalTablesCsv(tempDir)
+        starrUtil.removeClinicalTablesAddedLines(SOURCE_TABLE)
 
     def convertSourceItems(self, convOptions, conn=None):
         """Primary run function to process the contents of the raw source

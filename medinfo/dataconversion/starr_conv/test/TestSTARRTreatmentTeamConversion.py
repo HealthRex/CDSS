@@ -689,11 +689,6 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
                 pi.external_id desc, ci.external_id desc
             """ % (TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_SOURCE_TABLE)
 
-        self.starrUtil.dumpClinicalTablesToCsv(temp_dir)
-        self.starrUtil.uploadClinicalTablesCsvToBQ(temp_dir, TEST_DEST_DATASET)
-        self.starrUtil.removeClinicalTablesCsv(temp_dir)
-        self.starrUtil.removeClinicalTablesAddedLines(TEST_SOURCE_TABLE)
-
         bq_cursor = self.bqConn.cursor()
         bq_cursor.execute(test_query)
         actual_data = [row.values() for row in bq_cursor.fetchall()]
