@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 import sys, os
-import time
-import csv
 
 from itertools import islice
 from datetime import datetime
@@ -127,7 +125,7 @@ class STARRDemographicsConversion:
                 self.convertSourceItems(ids_batch)
                 self.dumpPatientItemToCsv(tempDir, batch_counter)
 
-                self.bqClient.reconnect_client() #refresh bq client connection
+                self.bqClient.reconnect_client()    # refresh bq client connection
                 self.uploadPatientItemCsvToBQ(tempDir, batch_counter, datasetId)
 
                 if removeCsvs:
