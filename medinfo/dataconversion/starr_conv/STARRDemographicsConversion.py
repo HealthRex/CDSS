@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 import sys, os
-import time
-import csv
 
 from itertools import islice
 from datetime import datetime
@@ -127,7 +125,7 @@ class STARRDemographicsConversion:
                 self.convertSourceItems(ids_batch)
                 self.dumpPatientItemToCsv(tempDir, batch_counter)
 
-                self.bqClient.reconnect_client() #refresh bq client connection
+                self.bqClient.reconnect_client()    # refresh bq client connection
                 self.uploadPatientItemCsvToBQ(tempDir, batch_counter, datasetId)
 
                 if removeCsvs:
@@ -429,7 +427,7 @@ class STARRDemographicsConversion:
                 "patient_id": int(sourceItem["rit_uid"][2:], 16),
                 "encounter_id": None,
                 "clinical_item_id": clinicalItem["clinical_item_id"],
-                "item_date": str(sourceItem["itemDate"])
+                "item_date": str(sourceItem["itemDate"])      # without str(), the time is being converted in postgres
             })
         insert_query = DBUtil.buildInsertQuery("patient_item", patient_item.keys())
         insert_params = patient_item.values()
