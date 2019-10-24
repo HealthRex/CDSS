@@ -754,27 +754,61 @@ class SimManager:
             if not extConn:
                 conn.close();
 
-    def gradeCases(self, simPatientIds, simGradingKeyId, conn=None):
+    def grade_cases(self, sim_patient_ids, sim_grader_id, conn=None):
         """Given the identifiers for a bunch of simulated physician-patient case
         records, and the identifier for a particular grading key to use,
-        calculate what grade each case what get based on the choices made
+        calculate what grade each case would get based on the choices made
         and return a dictionary of case grades (keyed by the case ID).
         """
-        # Step 1 - Query the database to pull out the case information for each simulated patient
-            # Should be able to reuse the loadPatientOrders method
-        # Step 2 - Query out the grading key based on the given identifier
-            # Above two steps could be functions themselves. The latter definitely needs a new one, cause it doesn't exist yet
-        # Step 3 - Loop through each case and calculate each grade (basically run gradeCaseByDataframe)
-        # Return dictionary of results
-        raise NotImplementedError();
+        grades = []
+        for sim_patient_id in sim_patient_ids:
+            case_grade = self.grade_case(sim_patient_id, sim_grader_id)
+            case_grade["total_score"] = 0 if case_grade["total_score"] is None else case_grade["total_score"]
+            case_grade["sim_patient_id"] = sim_patient_id
+            case_grade["sim_grader_id"] = sim_grader_id
+            grades.append(case_grade)
 
-    def gradeCaseByDataframe(self, simPatientDF, simGradingKeyDF):
-        """Given a dataframe that captures all of the clinical order choices
-        from a simulated physician-patient case, and a dataframe with
-        the grading key to decide what orders are worth what points,
-        calculate and return the total points earned for this case.
+        return grades
+
+    def grade_case(self, sim_patient_id, sim_grader_id, conn=None):
+        """Given a simulated physician-patient case (sim_patient_id)
+        and the grader identifier, calculate and return the total
+        points earned for this case.
         """
-        raise NotImplementedError();
+        ext_conn = True
+        if conn is None:
+            conn = self.connFactory.connection()
+            ext_conn = False
+        try:
+            inner_query = SQLQuery()
+            inner_query.addSelect("score")
+            inner_query.addSelect("rank() over ("
+                                  "   partition by coalesce(group_name, sim_patient_order_id::text)"
+                                  "   order by sim_patient_order_id"
+                                  ")")
+            inner_query.addFrom("sim_patient_order spo")
+            inner_query.addJoin("sim_grading_key sgk",
+                                "sgk.clinical_item_id = spo.clinical_item_id"
+                                " and sgk.sim_state_id = spo.sim_state_id")
+            inner_query.addWhereEqual("sgk.sim_grader_id", sim_grader_id)
+            inner_query.addWhereEqual("spo.sim_patient_id", sim_patient_id)
+            inner_query.addWhereNotEqual("spo.sim_user_id", 0)  # 0 = ignore 'Default user', sets up initial cases
+            inner_query.addOrderBy("relative_time_start")
+            inner_query.addOrderBy("sim_patient_order_id")
+
+            query = SQLQuery()
+            query.addSelect("sum(score) as total_score")
+            query.addFrom("(" + str(inner_query) + ") as ranked_groups")
+            query.addWhereEqual("ranked_groups.rank", 1)    # count only first order in the same group
+
+            query_params = inner_query.getParams() + query.getParams()
+            data_table = DBUtil.execute(query, query_params, includeColumnNames=True, conn=conn)
+            data_models = modelListFromTable(data_table)
+            return data_models[0]
+
+        finally:
+            if not ext_conn:
+                conn.close()
 
 class ClinicalItemQuery:
     """Struct to capture query elements for clinical item / order instances"""
@@ -799,7 +833,16 @@ class ClinicalItemQuery:
             self.resultCount = int(paramDict["resultCount"]);
         if "sortField" in paramDict:
             self.sortField = paramDict["sortField"];
-        
+
+
 if __name__ == "__main__":
-    instance = SimManager();
-    instance.main(sys.argv);
+    sim_manager = SimManager()
+    # instance.main(sys.argv)
+    query = SQLQuery()
+    query.addSelect("distinct sim_patient_id")
+    query.addFrom("sim_patient")
+
+    patients = DBUtil.execute(query)
+    patients = [patient[0] for patient in patients]
+    grades = sim_manager.grade_cases(patients, "Jonathan Chen")
+    print(sorted(filter(lambda grade: grade["total_score"] > 0, grades), key=lambda grade: grade["sim_patient_id"]))
