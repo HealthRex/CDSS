@@ -36,21 +36,22 @@ class RowItemModel(dict):
         dict.__init__(self);
         self.update(initData,dataKeys)
 
-    def update(self,initData=None,dataKeys=None):
+    def update(self, initData=None, dataKeys=None):
         """Same like the constructor but can do at any time to update (overwrite)
         or extend the data already in the model.
         """
-        if initData != None:
-            if dataKeys != None:
+        if initData is not None:
+            if dataKeys is not None:
                 # Have both initData and dataKeys.  Expect these to be lists of data and names / keys
-                for key, value in zip(dataKeys,initData):
+                for key, value in zip(dataKeys, initData):
                     self[key] = value
             else:
                 # Only have initData, expect this to be a dictionary.  Copy over contents
                 for key, value in initData.iteritems():
                     self[key] = value
+        return self
 
-    def valuesByName(self,columnNames):
+    def valuesByName(self, columnNames):
         """Return the values in the dictionary as a list.  Unlike the basic
         dict.values() method, can provide a list of columnNames to only return
         the values keyed by the names provided in that list, and in that order.
