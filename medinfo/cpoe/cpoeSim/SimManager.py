@@ -760,55 +760,78 @@ class SimManager:
         calculate what grade each case would get based on the choices made
         and return a dictionary of case grades (keyed by the case ID).
         """
-        grades = []
-        for sim_patient_id in sim_patient_ids:
-            case_grade = self.grade_case(sim_patient_id, sim_grader_id)
-            case_grade["total_score"] = 0 if case_grade["total_score"] is None else case_grade["total_score"]
-            case_grade["sim_patient_id"] = sim_patient_id
-            case_grade["sim_grader_id"] = sim_grader_id
-            grades.append(case_grade)
-
-        return grades
-
-    def grade_case(self, sim_patient_id, sim_grader_id, conn=None):
-        """Given a simulated physician-patient case (sim_patient_id)
-        and the grader identifier, calculate and return the total
-        points earned for this case.
-        """
         ext_conn = True
         if conn is None:
             conn = self.connFactory.connection()
             ext_conn = False
         try:
+            # Inner query retrieves physician-patient cases with ranking group_names (to later select first)
+            # per case for specified cases. Each NULL group_name is treated as a separate group by assigning it
+            # sim_patient_order_id. It also omits Default user (sim_user_id = 0) from grading.
             inner_query = SQLQuery()
             inner_query.addSelect("score")
-            inner_query.addSelect("rank() over ("
-                                  "   partition by coalesce(group_name, sim_patient_order_id::text)"
-                                  "   order by sim_patient_order_id"
+            inner_query.addSelect("rank() over ("   # ranks rows incrementally in the same group
+                                  "    partition by coalesce(group_name, sim_patient_order_id::text), sim_patient_id"
+                                  "    order by sim_patient_order_id"
                                   ")")
+            inner_query.addSelect("sim_user_id")
+            inner_query.addSelect("sim_patient_id")
             inner_query.addFrom("sim_patient_order spo")
             inner_query.addJoin("sim_grading_key sgk",
                                 "sgk.clinical_item_id = spo.clinical_item_id"
-                                " and sgk.sim_state_id = spo.sim_state_id")
+                                "    and sgk.sim_state_id = spo.sim_state_id")
             inner_query.addWhereEqual("sgk.sim_grader_id", sim_grader_id)
-            inner_query.addWhereEqual("spo.sim_patient_id", sim_patient_id)
             inner_query.addWhereNotEqual("spo.sim_user_id", 0)  # 0 = ignore 'Default user', sets up initial cases
+            inner_query.addWhereIn("spo.sim_patient_id", sim_patient_ids)
             inner_query.addOrderBy("relative_time_start")
             inner_query.addOrderBy("sim_patient_order_id")
 
+            # Outer query sums the score per patient case and selects most graded physician for the case.
+            # Theoretically, it isn't necessarily the most active physician for the case since his orders
+            # might have been dropped by selecting only the first record within group_name group.
             query = SQLQuery()
             query.addSelect("sum(score) as total_score")
+            query.addSelect("sim_patient_id")
+            query.addSelect("mode() within group ("         # mode() selects most frequent value within group
+                            "    order by sim_user_id"
+                            ") as most_graded_user_id")
             query.addFrom("(" + str(inner_query) + ") as ranked_groups")
             query.addWhereEqual("ranked_groups.rank", 1)    # count only first order in the same group
+            query.addGroupBy("sim_patient_id")
 
             query_params = inner_query.getParams() + query.getParams()
-            data_table = DBUtil.execute(query, query_params, includeColumnNames=True, conn=conn)
-            data_models = modelListFromTable(data_table)
-            return data_models[0]
+            grades_table = DBUtil.execute(query, query_params, includeColumnNames=True, conn=conn)
+            grades_model = modelListFromTable(grades_table)
+
+            # get most active users for the cases
+            most_active_user_query = SQLQuery()
+            most_active_user_query.addSelect("sim_patient_id")
+            most_active_user_query.addSelect("mode() within group ("
+                                             "    order by sim_user_id"
+                                             ") as most_active_user_id")
+            most_active_user_query.addFrom("sim_patient_order")
+            most_active_user_query.addWhereNotEqual("sim_user_id", 0)   # ignore Default user
+            most_active_user_query.addWhereIn("sim_patient_id", sim_patient_ids)
+            most_active_user_query.addGroupBy("sim_patient_id")
+            most_active_user_query.addOrderBy("sim_patient_id")
+
+            most_active_user_table = DBUtil.execute(most_active_user_query, includeColumnNames=True, conn=conn)
+            most_active_user_model = modelListFromTable(most_active_user_table)
+
+            # combine results
+            zipped_grades = zip(grades_model, most_active_user_model)
+            complete_grades = {
+                zipped_grade[0]["sim_patient_id"]: zipped_grade[0].update(zipped_grade[1])
+                for zipped_grade
+                in zipped_grades
+            }
+
+            return complete_grades
 
         finally:
             if not ext_conn:
                 conn.close()
+
 
 class ClinicalItemQuery:
     """Struct to capture query elements for clinical item / order instances"""
@@ -837,7 +860,8 @@ class ClinicalItemQuery:
 
 if __name__ == "__main__":
     sim_manager = SimManager()
-    # instance.main(sys.argv)
+
+    # Print grading on all patient cases
     query = SQLQuery()
     query.addSelect("distinct sim_patient_id")
     query.addFrom("sim_patient")
@@ -845,4 +869,5 @@ if __name__ == "__main__":
     patients = DBUtil.execute(query)
     patients = [patient[0] for patient in patients]
     grades = sim_manager.grade_cases(patients, "Jonathan Chen")
-    print(sorted(filter(lambda grade: grade["total_score"] > 0, grades), key=lambda grade: grade["sim_patient_id"]))
+    print(grades)
+    print("length: " + str(len(grades)))
