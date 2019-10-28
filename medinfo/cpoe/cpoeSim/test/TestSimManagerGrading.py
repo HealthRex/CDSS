@@ -52,6 +52,7 @@ class TestSimManagerGrading(DBTestCase):
 1;Jonathan Chen
 2;User 2
 3;User 3
+4;User 4
 """
         # Parse into DB insertion object
         DBUtil.insertFile(StringIO(clinical_item_str), "sim_user", delim=";")
@@ -62,6 +63,9 @@ class TestSimManagerGrading(DBTestCase):
 2;Patient Two;50;Female
 3;Patient Three;60;Male
 4;Patient Four;70;Female
+5;Patient Five;80;Male
+6;Patient Six;90;Female
+7;Patient Seven;100;Male
 """
         # Parse into DB insertion object
         DBUtil.insertFile(StringIO(sim_patient_str), "sim_patient", delim=";")
@@ -96,6 +100,15 @@ class TestSimManagerGrading(DBTestCase):
 13;3;3;3;3;3
 14;1;4;1;1;2
 15;1;4;2;2;3
+16;2;5;1;1;3
+17;2;5;2;2;4
+18;3;6;4;1;1
+19;3;6;4;2;2
+20;3;6;4;3;3
+21;4;7;5;1;1
+22;4;7;5;2;2
+23;4;7;5;3;3
+24;4;7;5;4;4
 """
         # Parse into DB insertion object
         DBUtil.insertFile(StringIO(sim_patient_order_str), "sim_patient_order", delim=";")
@@ -109,6 +122,15 @@ Jonathan Chen;4;4;1;
 Jonathan Chen;5;5;1;g5
 Jonathan Chen;6;6;1;
 Jonathan Chen;7;7;1;g7
+Jonathan Chen;3;1;1;g8
+Jonathan Chen;4;2;1;g8
+Jonathan Chen;1;4;-1000;
+Jonathan Chen;2;4;10;
+Jonathan Chen;3;4;2000;
+Jonathan Chen;1;5;-1000;g9
+Jonathan Chen;2;5;-1;
+Jonathan Chen;3;5;0;g10
+Jonathan Chen;3;5;-500;
 """
         # Parse into DB insertion object
         DBUtil.insertFile(StringIO(sim_grading_key_str), "sim_grading_key", delim=";")
@@ -120,7 +142,7 @@ Jonathan Chen;7;7;1;g7
     def test_gradeCases(self):
         # Give the application ID of some simulated patient test cases and the name
         #   of a grading key and just verify that it produces the expected results
-        sim_patient_ids = [1, 2, 3, 4, 5]
+        sim_patient_ids = [1, 2, 3, 4, 5, 6, 7, 8]
         sim_grading_key_id = "Jonathan Chen"
         expected_grades_by_patient_id = {
             1: {
@@ -142,7 +164,25 @@ Jonathan Chen;7;7;1;g7
                 "most_active_user_id": 3
             },
             # 4: No grading available for the existing case
-            # 5: Case doesn't exist
+            5: {
+                "total_score": 1,   # Scores in the same group g8 are counted only once
+                "sim_patient_id": 5,
+                "most_graded_user_id": 2,
+                "most_active_user_id": 2
+            },
+            6: {
+                "total_score": 1010,    # Non-uniform scores (i.e., not all scores = 1)
+                "sim_patient_id": 6,
+                "most_graded_user_id": 3,
+                "most_active_user_id": 3
+            },
+            7: {
+                "total_score": -1501,   # All negative and one 0 score results in negative score
+                "sim_patient_id": 7,
+                "most_graded_user_id": 4,
+                "most_active_user_id": 4
+            }
+            # 8: Case doesn't exist
         }
         actual_grades_by_patient_id = self.manager.grade_cases(sim_patient_ids, sim_grading_key_id)
         self.assertEquals(expected_grades_by_patient_id, actual_grades_by_patient_id)
