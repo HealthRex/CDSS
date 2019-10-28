@@ -817,13 +817,16 @@ class SimManager:
 
             most_active_user_table = DBUtil.execute(most_active_user_query, includeColumnNames=True, conn=conn)
             most_active_user_model = modelListFromTable(most_active_user_table)
+            # make a dict by sim_patient_id out of results - will be used for combining
+            most_active_user_dict = {
+                most_active_user["sim_patient_id"]: most_active_user
+                for most_active_user in most_active_user_model
+            }
 
             # combine results
-            zipped_grades = zip(grades_model, most_active_user_model)
             complete_grades = {
-                zipped_grade[0]["sim_patient_id"]: zipped_grade[0].update(zipped_grade[1])
-                for zipped_grade
-                in zipped_grades
+                grade["sim_patient_id"]: grade.update(most_active_user_dict[grade["sim_patient_id"]])
+                for grade in grades_model
             }
 
             return complete_grades
