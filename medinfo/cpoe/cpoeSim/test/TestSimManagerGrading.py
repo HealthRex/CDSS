@@ -171,7 +171,7 @@ Jonathan Chen;3;5;-500;
                 "most_active_user_id": 2
             },
             6: {
-                "total_score": 1010,
+                "total_score": 1010,    # Non-uniform scores (i.e., not all scores = 1)
                 "sim_patient_id": 6,
                 "most_graded_user_id": 3,
                 "most_active_user_id": 3
