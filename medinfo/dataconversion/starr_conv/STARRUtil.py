@@ -35,7 +35,7 @@ class StarrCommonUtils:
 
     @staticmethod
     def convertPatIdToSTARR(stride_pat_id):
-        return 'JC' + hex(stride_pat_id)[2:]
+        return 'JC' + hex(stride_pat_id)
 
     '''
     BigQuery SQL conversion e.g.
