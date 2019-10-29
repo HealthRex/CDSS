@@ -227,25 +227,27 @@ def execute( query, parameters=None, includeColumnNames=False, incTypeCodes=Fals
     is NOT supplied.  
     """
     # Look for an explicitly specified external connection
-    extConn = ( conn is not None );
+    extConn = conn is not None
     if conn is None:
         # If no specific connection object provided, look for a connection factory
         #   to produce one
         if connFactory is not None:
-            conn = connFactory.connection();
+            conn = connFactory.connection()
         else:
             # No connection or factory specified, just fall back on default connection then
-            conn = connection();
-    
-    if parameters is None:
-        parameters = ();
+            conn = connection()
 
-    cur  = conn.cursor()
+    cur = conn.cursor()
     
-    if isinstance(query,SQLQuery):
-        parameters = tuple(query.getParams());
-        query = str(query);
-    
+    if isinstance(query, SQLQuery):
+        if parameters is None:
+            parameters = tuple(query.getParams())
+        else:
+            parameters = tuple(parameters)
+        query = str(query)
+    elif parameters is None:
+        parameters = ()
+
     #log.debug(parameterizeQueryString(query,parameters));
 
     returnValue = None    

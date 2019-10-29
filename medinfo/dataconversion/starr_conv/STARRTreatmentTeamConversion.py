@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys, os
 import time
+import re
+
 from datetime import datetime
 from optparse import OptionParser
 from medinfo.common.Util import stdOpen, ProgressDots
@@ -24,8 +26,8 @@ CATEGORY_TEMPLATE = "Treatment Team"
 KEY_PROVIDER_PREFIXES = ("TT ", "CON ")  # Name Prefixes indicating a special (team) provider
 
 TEAM_PREFIXES = ("Primary", "Consulting")
-ADDITIONAL_PRIMARY_PROVIDERS = (
-    "Nurse Practitioner", "Physician's Assistant")  # Provider types to also count as "Primary" team
+ADDITIONAL_PRIMARY_PROVIDERS = ("Nurse Practitioner", "Physician's Assistant",
+                                "Physician Assistant")  # Provider types to also count as "Primary" team
 
 # Words to discard from team labels, such as pager and phones
 DISCARD_WORDS = ("PAGER", "PGR", "PRG", "SPECTRAS")
@@ -39,6 +41,10 @@ class STARRTreatmentTeamConversion:
     """Data conversion module to take STARR data
     into the structured data analysis tables to facilitate subsequent analysis.
     """
+
+    # Column headers to query for that map to respective fields in analysis table
+    HEADERS = ['prov_map_id', 'rit_uid', 'pat_enc_csn_id_coded', 'trtmnt_tm_begin_dt_jittered',
+               'trtmnt_tm_end_dt_jittered', 'name', 'prov_name']
 
     def __init__(self):
         """Default constructor"""
@@ -58,7 +64,7 @@ class STARRTreatmentTeamConversion:
         starrUtil = STARRUtil.StarrCommonUtils(self.bqClient)
         self.convertSourceItems(convOptions, conn)
 
-        batchCounter = 99999
+        batchCounter = 99999    # TODO (nodir) why not 0?
         starrUtil.dumpPatientItemToCsv(tempDir, batchCounter)
         self.bqClient.reconnect_client()  # refresh bq client connection
         starrUtil.uploadPatientItemCsvToBQ(tempDir, datasetId, batchCounter)
@@ -67,11 +73,11 @@ class STARRTreatmentTeamConversion:
         starrUtil.removePatientItemAddedLines(SOURCE_TABLE)
 
         # For now keep the clinical_* tables, upload them them once all tables have been converted
-        # starrUtil.dumpClinicalTablesToCsv(tempDir)
-        # starrUtil.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
-        # if removeCsvs:
-        #     starrUtil.removeClinicalTablesCsv(tempDir)
-        # starrUtil.removeClinicalTablesAddedLines(SOURCE_TABLE)
+        starrUtil.dumpClinicalTablesToCsv(tempDir)
+        starrUtil.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
+        if removeCsvs:
+            starrUtil.removeClinicalTablesCsv(tempDir)
+        starrUtil.removeClinicalTablesAddedLines(SOURCE_TABLE)
 
     def convertSourceItems(self, convOptions, conn=None):
         """Primary run function to process the contents of the raw source
@@ -89,37 +95,26 @@ class STARRTreatmentTeamConversion:
             conn = self.connFactory.connection()
 
         try:
-            # Next round for medications directly from order_med table not addressed in medmix
-            for sourceItem in self.querySourceItems(convOptions, progress=progress, conn=conn):
-                self.convertSourceItem(sourceItem, conn=conn)
+            # Next round for medications directly from order_med table not addressed in medmix  TODO (nodir) seems like an unrelated comment?
+            category = self.categoryFromSourceItem(conn)
+            for sourceItem in self.querySourceItems(convOptions):
+                log.debug('sourceItem: {}'.format(sourceItem))
+                self.convertSourceItem(category, sourceItem, conn=conn)
                 progress.Update()
 
         finally:
             conn.close()
+
         progress.PrintStatus()
 
-    def querySourceItems(self, convOptions, progress=None, conn=None):
+    def querySourceItems(self, convOptions):
         """Query the database for list of all source clinical items (medications, etc.)
         and yield the results one at a time.  If startDate provided, only return items whose
-        occurence date is on or after that date.
+        occurrence date is on or after that date.
         """
-        extConn = conn is not None
-        if not extConn:
-            conn = self.connFactory.connection()
-
-        # Column headers to query for that map to respective fields in analysis table
-        headers = ['prov_map_id', 'rit_uid', 'pat_enc_csn_id_coded', 'trtmnt_tm_begin_dt_jittered',
-                   'trtmnt_tm_end_dt_jittered', 'name', 'prov_name']
-
-        # headers = ["stride_treatment_team_id", "pat_id", "pat_enc_csn_id_coded", "trtmnt_tm_begin_date", "trtmnt_tm_end_date",
-        #            "treatment_team", "prov_name"];
-
         # TODO need to figure out how to pass date to query in BQ using SQLQuery object
-        query = '''
-                        SELECT prov_map_id, rit_uid, pat_enc_csn_id_coded, trtmnt_tm_begin_dt_jittered, 
-                        trtmnt_tm_end_dt_jittered, name, prov_name
-                        FROM starr_datalake2018.treatment_team
-                        '''
+        query = "SELECT {} FROM {}".format(', '.join(self.HEADERS), SOURCE_TABLE)
+
         if convOptions.startDate is not None:
             query += ' WHERE trtmnt_tm_begin_dt_jittered >= @startDate '
         if convOptions.endDate is not None:
@@ -144,42 +139,32 @@ class STARRTreatmentTeamConversion:
                                           verbose=True)
 
         for row in query_job:  # API request - fetches results
-            rowModel = RowItemModel(row.values(), headers)
-            #print(rowModel)
-            for normalizedModel in self.normalizeRowModel(rowModel, convOptions, conn=conn):
-                yield normalizedModel  # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
+            rowModel = RowItemModel(row.values(), self.HEADERS)
+            log.debug("rowModel: {}".format(rowModel))
+            yield self.normalizeRowModel(rowModel, convOptions)  # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
 
-        if not extConn:
-            conn.close()
-
-    def normalizeRowModel(self, rowModel, convOptions, conn=None):
+    def normalizeRowModel(self, rowModel, convOptions):
         """Given a rowModel of data, normalize it further.
         Specifically, look for aggregate data items (e.g., multiple Gen Med treatment teams, report as one)
         """
-        extConn = conn is not None
-        if not extConn:
-            conn = self.connFactory.connection()
-
         (teamAcronym, teamName) = self.cleanName(rowModel["name"], convOptions)
         (provAcronym, provName) = self.cleanName(rowModel["prov_name"], convOptions, keyPrefixes=KEY_PROVIDER_PREFIXES)
         provName = provName.title()
 
-        rowModel["code"] = teamAcronym
-        rowModel["description"] = teamName
-
         if provAcronym != "":
             rowModel["code"] = "%s (%s)" % (provAcronym, teamAcronym)
             rowModel["description"] = "%s (%s)" % (provName, teamName)
+        else:
+            rowModel["code"] = teamAcronym
+            rowModel["description"] = teamName
 
         if rowModel["trtmnt_tm_begin_dt_jittered"] is None:
-            # Don't know how to use event information with a timestamp
+            # Don't know how to use event information without a timestamp
             pass
 
-        yield rowModel
+        return rowModel
 
-        if not extConn:
-            conn.close()
-
+    # TODO (nodir) is it possible to separate the logic for team and provider?
     def cleanName(self, inputName, convOptions, keyPrefixes=None):
         """Given an input name (e.g., treatment team or provider)
         Return a 2-ple (acronym, cleaned) with an acronym version
@@ -203,35 +188,35 @@ class STARRTreatmentTeamConversion:
             wordList = list()
             chunks = inputName.split()
             for i, chunk in enumerate(chunks):
-                if chunk[-1] == ",":  # Strip any commass
+                if chunk[-1] == ",":  # Strip any commas
                     chunk = chunk[:-1]
 
-                if convOptions.aggregate and i == 0 and chunk in (TEAM_PREFIXES):
+                if convOptions.aggregate and i == 0 and chunk in TEAM_PREFIXES:
                     # Aggregating mixed records, so just use batch team prefix if exists
                     acronymList.append(chunk[0])
                     wordList.append(chunk)
                     break
                 elif convOptions.aggregate and chunk.upper() in SUB_LABEL_WORDS:
                     # Sub label word not interested when aggregating data, so just ignore it
-                    pass
+                    continue
                 elif convOptions.aggregate and len(chunk) == 1:
                     # A short number or letter sub-label, ignore if aggregating
-                    pass
+                    continue
                 elif convOptions.aggregate and len(chunk) <= 2 and (chunk[0].isdigit() or chunk[-1].isdigit()):
                     # A short number or letter sub-label, ignore if aggregating
-                    pass
+                    continue
                 elif len(chunk) <= 2 and not chunk[0].isalnum() and not chunk[-1].isalnum():
                     # Short non-alphanumeric sequence, probably punctuation
-                    pass
+                    continue
                 elif not chunk[0].isalnum() and len(chunk) > 1 and chunk[1].isdigit():
                     # Probably just a pager/phone number
-                    pass
+                    continue
                 elif len(chunk) > 1 and chunk[0].isdigit() and chunk[-1].isdigit():
                     # Looks like a number, probably pager or phone.  Don't include
-                    pass
+                    continue
                 elif chunk in DISCARD_WORDS:
                     # Probably just pager link, not interested
-                    pass
+                    continue
                 else:
                     if chunk[0].isalnum():
                         acronymList.append(chunk[0])
@@ -247,26 +232,26 @@ class STARRTreatmentTeamConversion:
 
         return (acronym, cleanedName)
 
-    def convertSourceItem(self, sourceItem, conn=None):
+    def convertSourceItem(self, category, sourceItem, conn=None):
         """Given an individual sourceItem record, produce / convert it into an equivalent
         item record in the analysis database.
         """
         extConn = conn is not None
         if not extConn:
             conn = self.connFactory.connection()
+
         try:
-            # Normalize sourceItem data into hierachical components (category -> clinical_item -> patient_item).
+            # Normalize sourceItem data into hierarchical components (category -> clinical_item -> patient_item).
             #   Relatively small / finite number of categories and clinical_items, so these should only have to be instantiated
             #   in a first pass, with subsequent calls just yielding back in memory cached copies
-            category = self.categoryFromSourceItem(sourceItem, conn=conn)
             clinicalItem = self.clinicalItemFromSourceItem(sourceItem, category, conn=conn)
-            patientItem = self.patientItemFromSourceItem(sourceItem, clinicalItem, conn=conn)
+            ignoredPatientItem = self.patientItemFromSourceItem(sourceItem, clinicalItem, conn=conn)
 
         finally:
             if not extConn:
                 conn.close()
 
-    def categoryFromSourceItem(self, sourceItem, conn):
+    def categoryFromSourceItem(self, conn):
         # Load or produce a clinical_item_category record model for the given sourceItem
         #   In this case, always Medication
         categoryDescription = CATEGORY_TEMPLATE
@@ -274,11 +259,10 @@ class STARRTreatmentTeamConversion:
         if categoryKey not in self.categoryBySourceDescr:
             # Category does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             category = \
-                RowItemModel \
-                    ({"source_table": SOURCE_TABLE,
-                      "description": categoryDescription,
-                      }
-                     )
+                RowItemModel({
+                    "source_table": SOURCE_TABLE,
+                    "description": categoryDescription,
+                })
             (categoryId, isNew) = DBUtil.findOrInsertItem("clinical_item_category", category, conn=conn)
             category["clinical_item_category_id"] = categoryId
             self.categoryBySourceDescr[categoryKey] = category
@@ -290,43 +274,51 @@ class STARRTreatmentTeamConversion:
         if clinicalItemKey not in self.clinicalItemByCompositeKey:
             # Clinical Item does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             clinicalItem = \
-                RowItemModel \
-                    ({"clinical_item_category_id": category["clinical_item_category_id"],
-                      "external_id": None,
-                      "name": sourceItem["code"],
-                      "description": sourceItem["description"],
-                      }
-                     )
+                RowItemModel({
+                    "clinical_item_category_id": category["clinical_item_category_id"],
+                    "external_id": None,
+                    "name": sourceItem["code"],
+                    "description": sourceItem["description"],
+                })
             (clinicalItemId, isNew) = DBUtil.findOrInsertItem("clinical_item", clinicalItem, conn=conn)
             clinicalItem["clinical_item_id"] = clinicalItemId
             self.clinicalItemByCompositeKey[clinicalItemKey] = clinicalItem
         return self.clinicalItemByCompositeKey[clinicalItemKey]
 
     def patientItemFromSourceItem(self, sourceItem, clinicalItem, conn):
+        # some prov_map_id values are NULL in starr_datalake2018
+        if sourceItem["prov_map_id"] is not None:
+            # prov_map_id starts with letters, we're interested only in number parts
+            external_id = int(re.sub("[A-Z]+(\\d+)", "\\1", sourceItem["prov_map_id"]), 16)
+        else:
+            external_id = None
+
         # Produce a patient_item record model for the given sourceItem
         patientItem = \
-            RowItemModel \
-                ({"external_id": int(sourceItem["prov_map_id"][2:], 16),
-                  "patient_id": int(sourceItem["rit_uid"][2:], 16),
-                  "encounter_id": sourceItem["pat_enc_csn_id_coded"],
-                  "clinical_item_id": clinicalItem["clinical_item_id"],
-                  "item_date": sourceItem["trtmnt_tm_begin_dt_jittered"],
-                  }
-                 )
+            RowItemModel({
+                "external_id": external_id,
+                "patient_id": int(sourceItem["rit_uid"][2:], 16),
+                "encounter_id": sourceItem["pat_enc_csn_id_coded"],
+                "clinical_item_id": clinicalItem["clinical_item_id"],
+                "item_date": str(sourceItem["trtmnt_tm_begin_dt_jittered"])  # without str(), the time is being converted in postgres
+            })
+
         insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys())
         insertParams = patientItem.values()
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute(insertQuery, insertParams, conn=conn)
+            # Retrieve id of just inserted row
             patientItem["patient_item_id"] = DBUtil.execute(DBUtil.identityQuery("patient_item"), conn=conn)[0][0]
         except conn.IntegrityError, err:
             # If turns out to be a duplicate, okay, pull out existing ID and continue to insert whatever else is possible
             log.info(err)  # Lookup just by the composite key components to avoid attempting duplicate insertion again
-            searchPatientItem = \
-                {"patient_id": patientItem["patient_id"],
-                 "clinical_item_id": patientItem["clinical_item_id"],
-                 "item_date": patientItem["item_date"],
-                 }
+
+            searchPatientItem = {
+                "patient_id": patientItem["patient_id"],
+                "clinical_item_id": patientItem["clinical_item_id"],
+                "item_date": patientItem["item_date"],
+            }
             (patientItem["patient_item_id"], isNew) = DBUtil.findOrInsertItem("patient_item", searchPatientItem,
                                                                               conn=conn)
         return patientItem

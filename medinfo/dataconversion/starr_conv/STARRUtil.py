@@ -1,4 +1,10 @@
+import csv
 import os
+import pytz
+import random
+import time
+
+from datetime import datetime
 
 from medinfo.db import DBUtil
 from medinfo.dataconversion.Util import log
@@ -46,6 +52,50 @@ class StarrCommonUtils:
     
     SELECT CONCAT('JC', IntToHex(13498389));
     '''
+
+    @staticmethod
+    def random_period():
+        start_date = random.randint(1, int(time.time()))
+        end_date = random.randint(start_date, int(time.time()))
+        return datetime.fromtimestamp(start_date, pytz.UTC), datetime.fromtimestamp(end_date, pytz.UTC)
+
+    @staticmethod
+    def dump_test_data_to_csv(header, test_data, csv_file):
+        with open(csv_file, 'wb') as test_data_file:
+            csv_writer = csv.writer(test_data_file)
+            csv_writer.writerow(header)
+            csv_writer.writerows(test_data)
+
+    '''
+    Retrieves schema for given table from the given BQ client.
+    It is possible to filter out only required fields.
+    The resulting schema, in this case, will be sorted according to the filter order.
+    '''
+    def get_schema_filtered(self, dataset, table, fields_to_keep_in_schema):
+        schema = self.bqClient.client.get_table(
+            self.bqClient.client.dataset(dataset, 'mining-clinical-decisions').table(table)
+        ).schema
+
+        if fields_to_keep_in_schema:
+            # filter out only fields we need
+            schema = list(filter(lambda field: field.name in fields_to_keep_in_schema, schema))
+            # sort schema fields according to the header
+            schema.sort(key=lambda field: fields_to_keep_in_schema.index(field.name))
+
+        return schema
+
+    def upload_csv_to_bigquery(self, schema_dataset, schema_table, dest_dataset, dest_table, csv_file,
+                               schema_fields=None):
+        schema = self.get_schema_filtered(schema_dataset, schema_table, schema_fields)
+
+        self.bqClient.load_csv_to_table(
+            dest_dataset,
+            dest_table,
+            csv_file,
+            False,
+            schema,
+            1
+        )
 
     def dumpPatientItemToCsv(self, tempDir, batchCounter=999):
         log.info('Dumping patient_item for batch %s to CSV' % batchCounter)

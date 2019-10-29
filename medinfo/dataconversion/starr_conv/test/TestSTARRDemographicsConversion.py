@@ -45,12 +45,6 @@ LANGUAGE = [None, 'English', 'Chinese', 'French', 'Russian', 'Arabic', 'Spanish'
 PAT_STATUS = [None, 'Alive', 'Deceased']
 
 
-def random_period():
-    start_date = random.randint(1, int(time.time()))
-    end_date = random.randint(start_date, int(time.time()))
-    return datetime.fromtimestamp(start_date, pytz.UTC), datetime.fromtimestamp(end_date, pytz.UTC)
-
-
 class TestSTARRDemographicsConversion(DBTestCase):
     TEST_DATA_SIZE = 50
     BATCH_SIZE = 10
@@ -71,6 +65,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
 
     bqConn = bigQueryUtil.connection()
     converter = STARRDemographicsConversion.STARRDemographicsConversion()  # Instance to test on
+    starrUtil = StarrCommonUtils(converter.bqClient)
 
     def setUp(self):
         """Prepare state for test cases"""
@@ -84,15 +79,16 @@ class TestSTARRDemographicsConversion(DBTestCase):
 
         log.info("Generating test source data")
         self.generate_test_and_expected_data(self.TEST_DATA_SIZE)
-        self.dump_test_data_to_csv(self.test_data_csv)
-        self.upload_test_data_csv_to_bigquery()
+        self.starrUtil.dump_test_data_to_csv(self.header, self.test_data, self.test_data_csv)
+        self.starrUtil.upload_csv_to_bigquery('starr_datalake2018', 'demographic',
+                                              'test_dataset', 'starr_demographic', self.test_data_csv)
         self.dump_patient_ids_to_test_to_csv(self.pat_id_csv)
 
     def generate_test_and_expected_data(self, test_data_size):
         for curr_row in range(test_data_size):
             patient_id = 'JC' + format(curr_row, '06')
             self.patientIds.append(patient_id)
-            test_data_row = self.generate_test_data_row(curr_row, random_period(), patient_id)
+            test_data_row = self.generate_test_data_row(curr_row, StarrCommonUtils.random_period(), patient_id)
             self.test_data.append(test_data_row)
 
             # prepare expected data starting from requested batch
@@ -100,27 +96,6 @@ class TestSTARRDemographicsConversion(DBTestCase):
                 self.generate_expected_data_rows(test_data_row, self.expected_data)
 
         self.expected_data.sort(key=lambda tup: (-tup[1], tup[5]))  # patient_id desc, name asc
-
-    def dump_test_data_to_csv(self, test_data_csv):
-        with open(test_data_csv, 'wb') as test_data_file:
-            csv_writer = csv.writer(test_data_file)
-            csv_writer.writerow(self.header)
-            csv_writer.writerows(self.test_data)
-
-    def upload_test_data_csv_to_bigquery(self):
-        big_query_client = bigQueryUtil.BigQueryClient()
-        schema = big_query_client.client.get_table(
-            big_query_client.client.dataset('starr_datalake2018', 'mining-clinical-decisions').table('demographic')
-        ).schema
-
-        big_query_client.load_csv_to_table(
-            TEST_SOURCE_TABLE.split('.')[0],
-            TEST_SOURCE_TABLE.split('.')[1],
-            self.test_data_csv,
-            False,
-            schema,
-            1
-        )
 
     def dump_patient_ids_to_test_to_csv(self, pat_id_csv):
         with open(pat_id_csv, 'wb') as f:
