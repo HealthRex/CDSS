@@ -1,6 +1,6 @@
 '''
 create a BigQuery connection object
-    need to set PATH_TO_GCP_TOKEN in LocalEnv
+Setup credentials in environment variable GOOGLE_APPLICATION_CREDENTIALS (See LocalEnv)
 
 client object methods
     connect to BQ using json token
@@ -17,15 +17,11 @@ from google.cloud.exceptions import NotFound
 from google.cloud.bigquery import dbapi
 
 from medinfo.dataconversion.Util import log
-import LocalEnv
 
 import re
 import time
 import os
 import csv
-
-PATH_TO_GCP_TOKEN = LocalEnv.PATH_TO_GCP_TOKEN
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = PATH_TO_GCP_TOKEN
 
 def connection( client=None ):
     '''

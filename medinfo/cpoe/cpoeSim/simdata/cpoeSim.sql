@@ -174,6 +174,7 @@ CREATE TABLE sim_grading_key
 	sim_grading_key_id SERIAL NOT NULL,
 	sim_grader_id TEXT NOT NULL, -- Doesn't actually point to another table, but just use to uniquely identify who is giving these grades
 	sim_state_id BIGINT NOT NULL,
+	sim_case_name TEXT,	-- In theory could trace back to origin state from transitions instead of this manual marker. But convenient denormalization.
 	clinical_item_id BIGINT NOT NULL, 
 	score INTEGER NOT NULL,
 	confidence INTEGER,

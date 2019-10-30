@@ -4,6 +4,7 @@ need a delete list to remove from GCP after testing (do this in web GUI)
 import os
 import unittest
 import csv
+import tempfile;
 
 from medinfo.dataconversion.test.Const import RUNNER_VERBOSITY
 from medinfo.dataconversion.Util import log
@@ -15,7 +16,7 @@ from google.cloud import bigquery
 
 TEST_DEST_DATASET = 'test_dataset'
 TEST_TABLE_ID = 'unittest_bigQueryUtil'
-TMP_DIR = '/tmp'
+TMP_DIR = tempfile.gettempdir();
 
 class test_bigQueryUtil(MedInfoTestCase):
 

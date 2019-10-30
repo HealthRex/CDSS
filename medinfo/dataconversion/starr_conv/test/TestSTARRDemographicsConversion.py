@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Test case for respective module in application package
-Setup credentials in LocalEnv.PATH_TO_GCP_TOKEN='<path to json>'
+Setup credentials in environment variable GOOGLE_APPLICATION_CREDENTIALS (See LocalEnv)
 """
 
 import string
@@ -12,6 +12,7 @@ import pytz
 import random
 import time
 import logging
+import tempfile;
 
 from datetime import datetime
 import unittest
@@ -28,12 +29,9 @@ from medinfo.db.Model import SQLQuery, RowItemModel
 from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader
 
 from medinfo.db.bigquery import bigQueryUtil
-import LocalEnv
-
 
 TEST_SOURCE_TABLE = 'test_dataset.starr_demographic'
 TEST_DEST_DATASET = 'test_dataset'
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = LocalEnv.PATH_TO_GCP_TOKEN
 
 GENDER = ['Male', 'Female', 'Unknown']
 RACE = ['Black', 'White', 'Asian', 'Other', 'Unknown', 'Pacific Islander', 'Native American']
@@ -60,8 +58,8 @@ class TestSTARRDemographicsConversion(DBTestCase):
     test_data = []
     expected_data = []
 
-    test_data_csv = '/tmp/test_starr_demographic_dummy_data.csv'
-    pat_id_csv = '/tmp/tmp_test_pat_id.csv'
+    test_data_csv = tempfile.gettempdir() + '/test_starr_demographic_dummy_data.csv'
+    pat_id_csv = tempfile.gettempdir() + '/tmp_test_pat_id.csv'
 
     bqConn = bigQueryUtil.connection()
     converter = STARRDemographicsConversion.STARRDemographicsConversion()  # Instance to test on
