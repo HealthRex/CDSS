@@ -4,6 +4,7 @@
 import sys, os
 import logging
 import random
+import tempfile;
 
 import unittest
 
@@ -20,11 +21,9 @@ from medinfo.db.Model import SQLQuery, RowItemModel
 
 from medinfo.dataconversion.starr_conv import STARRTreatmentTeamConversion
 from medinfo.dataconversion.starr_conv import STARRUtil
-import LocalEnv
 
 TEST_SOURCE_TABLE = 'test_dataset.starr_treatment_team'
 TEST_DEST_DATASET = 'test_dataset'
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = LocalEnv.PATH_TO_GCP_TOKEN
 
 NAME_TO_ACRONYM = {
     'Intern': 'I',
@@ -540,7 +539,7 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
     test_data = []
     expected_data = []
 
-    test_data_csv = '/tmp/test_starr_treatment_team_dummy_data.csv'
+    test_data_csv = tempfile.gettempdir() + '/test_starr_treatment_team_dummy_data.csv'
 
     def setUp(self):
         log.setLevel(logging.INFO)  # without this no logs are printed
@@ -662,7 +661,7 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         log.debug("Run the conversion process...")
         conv_options = STARRTreatmentTeamConversion.ConversionOptions()
         conv_options.aggregate = aggregation
-        temp_dir = '/tmp'
+        temp_dir = tempfile.gettempdir();
         self.converter.convertAndUpload(conv_options, tempDir=temp_dir, datasetId=TEST_DEST_DATASET)
 
         # Just query back for the same data, de-normalizing the data back to a general table
