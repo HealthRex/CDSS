@@ -10,10 +10,11 @@ import os
 import csv
 import pytz
 import random
-import time
 import logging
 
 from datetime import datetime
+from datetime import date
+from datetime import time
 import unittest
 
 from medinfo.dataconversion.starr_conv import STARRDemographicsConversion
@@ -81,7 +82,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
         self.generate_test_and_expected_data(self.TEST_DATA_SIZE)
         self.starrUtil.dump_test_data_to_csv(self.header, self.test_data, self.test_data_csv)
         self.starrUtil.upload_csv_to_bigquery('starr_datalake2018', 'demographic',
-                                              'test_dataset', 'starr_demographic', self.test_data_csv)
+                                              'test_dataset', 'starr_demographic', self.test_data_csv, self.header)
         self.dump_patient_ids_to_test_to_csv(self.pat_id_csv)
 
     def generate_test_and_expected_data(self, test_data_size):
@@ -104,9 +105,11 @@ class TestSTARRDemographicsConversion(DBTestCase):
 
     @staticmethod
     def generate_test_data_row(curr_row, lifespan, patient_id):
+        import time     # required to get current timestamp - it is here to not clash with datetime.time
+
         return (patient_id,
-                lifespan[0],
-                [None, lifespan[1]][random.randint(0, 1)],
+                date.fromtimestamp(lifespan[0]),
+                [None, date.fromtimestamp(lifespan[1])][random.randint(0, 1)],
                 GENDER[random.randint(0, len(GENDER) - 1)],
                 RACE[random.randint(0, len(RACE) - 1)],
                 ETHNICITY[random.randint(0, len(ETHNICITY) - 1)],
@@ -116,7 +119,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
                 [None, 'N', 'Y'][random.randint(0, 2)],
                 ''.join(random.choice(string.ascii_uppercase) for _ in range(10)),
                 'SS' + format(curr_row, '07'),
-                datetime.fromtimestamp(random.randint(1, int(time.time())), pytz.utc),
+                date.fromtimestamp(random.randint(1, int(time.time()))),
                 random.randint(150, 210),
                 random.randint(50, 150),
                 random.randint(18, 24),
@@ -172,7 +175,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
         death_list = list(birth_list)
         death_list[5] = "Death"
         death_list[6] = "Death Date"
-        death_list[7] = row[2]
+        death_list[7] = datetime.combine(row[2], time.min).replace(tzinfo=pytz.UTC)
         return tuple(death_list)
 
     def tearDown(self):
