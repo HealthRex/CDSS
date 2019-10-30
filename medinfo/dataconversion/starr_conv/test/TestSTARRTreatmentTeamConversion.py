@@ -3,8 +3,11 @@
 
 import sys, os
 import logging
+import pytz
 import random
 import tempfile;
+
+from datetime import datetime
 
 import unittest
 
@@ -572,8 +575,8 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         return ('SS' + format(curr_row, '07'),
                 patient_id,
                 curr_row,
-                treatment_period[0],
-                treatment_period[1],
+                datetime.fromtimestamp(treatment_period[0]),
+                datetime.fromtimestamp(treatment_period[1]),
                 NAME_TO_ACRONYM.keys()[random.randint(0, len(NAME_TO_ACRONYM) - 1)],
                 PROV_TO_CLEAN_ACRONYM.keys()[random.randint(0, len(PROV_TO_CLEAN_ACRONYM) - 1)])
 
@@ -589,7 +592,7 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
                                         else PROV_TO_CLEAN_ACRONYM[row[6]][1] + ' (' + NAME_TO_ACRONYM[row[5]] + ')',
                 row[5].strip() if PROV_TO_CLEAN_ACRONYM[row[6]][1] == ''
                                else PROV_TO_CLEAN_ACRONYM[row[6]][0].title() + ' (' + row[5].strip() + ')',
-                row[3]
+                row[3].replace(tzinfo=pytz.UTC)
             )
         else:
             expected_row = (
@@ -604,7 +607,7 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
                 AGGR_NAME_TO_ACRONYM[row[5]][0]
                     if AGGR_PROV_TO_CLEAN_ACRONYM[row[6]][1] == ''
                     else AGGR_PROV_TO_CLEAN_ACRONYM[row[6]][0].title() + ' (' + AGGR_NAME_TO_ACRONYM[row[5]][0] + ')',
-                row[3]
+                row[3].replace(tzinfo=pytz.UTC)
             )
 
         expected_data.append(expected_row)
