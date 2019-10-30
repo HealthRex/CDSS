@@ -4,8 +4,6 @@ import pytz
 import random
 import time
 
-from datetime import datetime
-
 from medinfo.db import DBUtil
 from medinfo.dataconversion.Util import log
 from medinfo.db.bigquery import bigQueryUtil
@@ -57,7 +55,7 @@ class StarrCommonUtils:
     def random_period():
         start_date = random.randint(1, int(time.time()))
         end_date = random.randint(start_date, int(time.time()))
-        return datetime.fromtimestamp(start_date, pytz.UTC), datetime.fromtimestamp(end_date, pytz.UTC)
+        return start_date, end_date
 
     @staticmethod
     def dump_test_data_to_csv(header, test_data, csv_file):
