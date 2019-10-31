@@ -12,6 +12,7 @@
 #
 # Other variables which are likely to vary between dev environments should
 # be added to this template file, then be given default values via setup.sh.
+import os
 
 BOX_CLIENT_ID = "BOX_API_CLIENT_ID"
 BOX_CLIENT_SECRET = "BOX_API_CLIENT_SECRET"
