@@ -2,10 +2,14 @@
 """Test case for respective module in application package"""
 
 import unittest
+from io import BytesIO  # for Python 3 use StringIO
 from cStringIO import StringIO
 
+import json
+import csv
 from Const import RUNNER_VERBOSITY
-from Util import log
+from medinfo.common.Const import COMMENT_TAG, VALUE_DELIM
+from Util import log, captured_output
 from medinfo.cpoe.cpoeSim.SimManager import SimManager
 from medinfo.db import DBUtil
 from medinfo.db.test.Util import DBTestCase
@@ -135,6 +139,53 @@ Jonathan Chen;3;5;-500;
         # Parse into DB insertion object
         DBUtil.insertFile(StringIO(sim_grading_key_str), "sim_grading_key", delim=";")
 
+        self.expected_grades_by_patient_id = [
+            {
+                "total_score": 6,   # Default user (id = 0) is ignored and NULL group_names are counted separately
+                "sim_patient_id": 1,
+                "most_graded_user_id": 1,
+                "most_active_user_id": 1,
+                "sim_grader_id": "Jonathan Chen"
+            },
+            {
+                "total_score": 1,   # Ungraded (clinical_item_id, sim_state_id) keys are omitted from summation
+                "sim_patient_id": 2,
+                "most_graded_user_id": 2,   # Most graded user is User 2 (even though most active is User 3)
+                "most_active_user_id": 3,
+                "sim_grader_id": "Jonathan Chen"
+            },
+            {
+                "total_score": 3,
+                "sim_patient_id": 3,
+                "most_graded_user_id": 3,   # Most graded user is the most active one
+                "most_active_user_id": 3,
+                "sim_grader_id": "Jonathan Chen"
+            },
+            # 4: No grading available for the existing case
+            {
+                "total_score": 1,   # Scores in the same group g8 are counted only once
+                "sim_patient_id": 5,
+                "most_graded_user_id": 2,
+                "most_active_user_id": 2,
+                "sim_grader_id": "Jonathan Chen"
+            },
+            {
+                "total_score": 1010,    # Non-uniform scores (i.e., not all scores = 1)
+                "sim_patient_id": 6,
+                "most_graded_user_id": 3,
+                "most_active_user_id": 3,
+                "sim_grader_id": "Jonathan Chen"
+            },
+            {
+                "total_score": -1501,   # All negative and one 0 score results in negative score
+                "sim_patient_id": 7,
+                "most_graded_user_id": 4,
+                "most_active_user_id": 4,
+                "sim_grader_id": "Jonathan Chen"
+            }
+            # 8: Case doesn't exist
+        ]
+
     def tearDown(self):
         """Restore state from any setUp or test steps"""
         DBTestCase.tearDown(self)
@@ -144,48 +195,50 @@ Jonathan Chen;3;5;-500;
         #   of a grading key and just verify that it produces the expected results
         sim_patient_ids = [1, 2, 3, 4, 5, 6, 7, 8]
         sim_grading_key_id = "Jonathan Chen"
-        expected_grades_by_patient_id = {
-            1: {
-                "total_score": 6,   # Default user (id = 0) is ignored and NULL group_names are counted separately
-                "sim_patient_id": 1,
-                "most_graded_user_id": 1,
-                "most_active_user_id": 1
-            },
-            2: {
-                "total_score": 1,   # Ungraded (clinical_item_id, sim_state_id) keys are omitted from summation
-                "sim_patient_id": 2,
-                "most_graded_user_id": 2,   # Most graded user is User 2 (even though most active is User 3)
-                "most_active_user_id": 3
-            },
-            3: {
-                "total_score": 3,
-                "sim_patient_id": 3,
-                "most_graded_user_id": 3,   # Most graded user is the most active one
-                "most_active_user_id": 3
-            },
-            # 4: No grading available for the existing case
-            5: {
-                "total_score": 1,   # Scores in the same group g8 are counted only once
-                "sim_patient_id": 5,
-                "most_graded_user_id": 2,
-                "most_active_user_id": 2
-            },
-            6: {
-                "total_score": 1010,    # Non-uniform scores (i.e., not all scores = 1)
-                "sim_patient_id": 6,
-                "most_graded_user_id": 3,
-                "most_active_user_id": 3
-            },
-            7: {
-                "total_score": -1501,   # All negative and one 0 score results in negative score
-                "sim_patient_id": 7,
-                "most_graded_user_id": 4,
-                "most_active_user_id": 4
-            }
-            # 8: Case doesn't exist
-        }
         actual_grades_by_patient_id = self.manager.grade_cases(sim_patient_ids, sim_grading_key_id)
-        self.assertEquals(expected_grades_by_patient_id, actual_grades_by_patient_id)
+        self.assertEquals(self.expected_grades_by_patient_id, actual_grades_by_patient_id)
+
+    def test_commandLine(self):
+        argv = ["SimManager.py", "-p", "1,2,3,4,5,6", "-g", "Jonathan Chen"]
+        with captured_output() as (out, err):
+            self.manager.main(argv)
+
+        actual_output = out.getvalue()
+
+        actual_comment_line, output_csv = actual_output.split("\n", 1)
+
+        # verify comment line
+        expected_comment_line = COMMENT_TAG + " " + json.dumps({"argv": argv})
+        self.assertEquals(expected_comment_line, actual_comment_line)
+
+        # verify csv
+        actual_output_csv = StringIO(output_csv)
+        reader = csv.DictReader(actual_output_csv)
+        # verify header
+        self.assertEqualList(sorted(self.expected_grades_by_patient_id[0].keys()), sorted(reader.fieldnames))
+
+        # verify lines
+        for line_num, actual_grade in enumerate(reader):
+            expected_grade_str_values = {k: str(v) for k, v in self.expected_grades_by_patient_id[line_num].iteritems()}
+            self.assertEqual(expected_grade_str_values, actual_grade)
+
+    def test_commandLine_no_patientIds(self):
+        argv = ["SimManager.py", "-g", "Jonathan Chen"]
+        self.verify_error_message_for_argv(argv, "No patient cases given. Nothing to grade. Exiting.")
+
+    def test_commandLine_no_graderIds(self):
+        argv = ["SimManager.py", "-p", "1"]
+        self.verify_error_message_for_argv(argv, "No graders given. Cannot grade patient cases. Exiting.")
+
+    def verify_error_message_for_argv(self, argv, expected_error_message):
+        with self.assertRaises(SystemExit) as cm:   # capture sys.exit() in the tested class
+            with captured_output() as (out, err):
+                self.manager.main(argv)
+
+        actual_output = out.getvalue()
+        self.assertEqual(expected_error_message, actual_output.split("\n", 1)[0])
+
+        self.assertIsNone(cm.exception.code)    # we can verify exception code here
 
 
 def suite():
