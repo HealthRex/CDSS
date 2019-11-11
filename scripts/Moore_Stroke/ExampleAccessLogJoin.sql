@@ -1,7 +1,7 @@
 select mg.name, count(distinct jc_uid) as patientCount, count(*) accessCount
 from
 (
-  select datetime_diff(datetime(al.access_time_jittered,'US/Pacific'), cohort.tpaAdminTime, MINUTE) as accessTimeDiff, 
+  select datetime_diff(al.access_time_jittered, cohort.tpaAdminTime, MINUTE) as accessTimeDiff, 
     *
   from
   (
@@ -39,11 +39,11 @@ from
       inpatient.pat_class
     order by emergencyAdmitTime
   ) as cohort
-  join `starr_testing.shc_access_log_de` as al on cohort.jc_uid  = al.rit_uid 
-where datetime_diff(datetime(al.access_time_jittered,'US/Pacific'), cohort.tpaAdminTime, MINUTE) >= -360 
-  and datetime_diff(datetime(al.access_time_jittered,'US/Pacific'), cohort.tpaAdminTime, MINUTE) < 0
+  join `starr_access_log.shc_access_log_de` as al on cohort.jc_uid  = al.rit_uid 
+where datetime_diff(al.access_time_jittered, cohort.tpaAdminTime, MINUTE) >= -360 
+  and datetime_diff(al.access_time_jittered, cohort.tpaAdminTime, MINUTE) < 0
 ) as cohortAccessLog
-join `starr_testing.access_log_metric` as alm using (metric_id)
-join `starr_testing.zc_metric_group` as mg using (metric_group_c)
+join `starr_access_log.access_log_metric` as alm using (metric_id)
+join `starr_access_log.zc_metric_group` as mg using (metric_group_c)
 group by mg.name
 order by patientCount desc
