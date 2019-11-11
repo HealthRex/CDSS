@@ -844,7 +844,6 @@ class SimManager:
 
     def main(self, argv):
         """Main method, callable from command line"""
-        # TODO patient_ids to grade as input from file or command line, grader_id as command line as list
         usage_str = "usage: %prog [options] [<outputFile>]\n" \
                     "   <outputFile> JSON file with the grading results. Leave blank or specify '-' to send to stdout."
         parser = OptionParser(usage=usage_str)
