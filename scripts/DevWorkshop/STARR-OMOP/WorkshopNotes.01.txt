@@ -84,9 +84,6 @@ Example: SynPUF is synthetic patient dataset based on CMS claims
 Stanford Research IT adapted this into OMOP common data model (v5.3) to explore that structure
 Patient IDs continuity across time / insurance plan, unlike Optum/Truven that will change ID if patient switches insurance.
 
-Lots of "Concept IDs" in OMOP data. Concept table is like "one true code table" to lookup all data types (gender, ethnicity, meds, diagnoses, essentially anything). Persistent concept ID index across versions so don't clobber prior versions.
-
-
 Why CDM - Common Data Model?
 - No single observational databases captures all clinical events equally well (e.g., EMR and claims databases serve different purposes, so capture different data emphasis)
 - Research results from disparate data sources need to be compared and contrasted
@@ -106,6 +103,13 @@ Why CDM - Common Data Model?
   concept_relationship and concept_ancestor as well
     Sometimes loops in ancestors as well? But mostly a tree.
 - Patient centric data model, so only tries to capture things that happen to patient, not workflow/process. Essentially everything needs a patient_id column. Cancelled orders will be dropped if wasn't executed on patient.
+- Lots of "Concept IDs" in OMOP data. Concept table is like "one true code table" to lookup all data types (gender, ethnicity, meds, diagnoses, essentially anything). Persistent concept ID index across versions so don't clobber prior versions.
+  - Major data/table types
+  	- Condition: Basically diagnoses from problem lists, etc.
+  	- Procedure: 
+  	- Measurement: Mostly LOINC codes. Values with units, including vitals? Many concept operators, values as concepts, etc.
+  	- Drug exposure: Distinguish prescription vs. dispense vs. administration. Latter usually only available for inpatient MAR.
+
 
 
 Google Cloud SDK (requires Python)

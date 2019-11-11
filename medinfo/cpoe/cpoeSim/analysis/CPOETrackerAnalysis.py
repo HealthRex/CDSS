@@ -130,6 +130,9 @@ class SimulationAnalyzer:
 
 		# Filter out result items that do not correspond to items signed
 		filtered_results = list(filter(lambda r: r['clinicalItemId'] in signed_orders_id_set, self.results_collection))
+
+		if not filtered_results:  # seems to work for v2
+			filtered_results = list(filter(lambda r: r['clinicalItemId'] in [so.split('|')[0] for so in signed_orders_id_set], self.results_collection))
 		# For each signed item, find most likely result item
 		for signed_order in signed_orders_tuples:
 			# For each result item that has the same clinical id as the current
@@ -143,10 +146,18 @@ class SimulationAnalyzer:
 					min_delta = delta
 					best_result = potential_result
 
+			if not best_result:  # seems to work for v2
+				for potential_result in list(filter(lambda r: r['clinicalItemId'] == signed_order[1].split('|')[0] and r['storeTime'] < signed_order[0], filtered_results)):
+					delta = signed_order[0] - potential_result['storeTime']
+					if delta < min_delta:
+						min_delta = delta
+						best_result = potential_result
+
 			# Map current signed item to result item with smallest delta
-			signed_item_dict = dict(potential_result)
-			signed_item_dict['signedTime'] = signed_order[0]
-			signed_orders.append(signed_item_dict)
+			if best_result:
+				signed_item_dict = dict(best_result)
+				signed_item_dict['signedTime'] = signed_order[0]
+				signed_orders.append(signed_item_dict)
 
 		return signed_orders
 
@@ -666,7 +677,6 @@ def main(argv):
 			append_to_existing = True
 			source_path = options.source_path
 		aggregate_simulation_data(data_home, output_path, append_to_existing=append_to_existing, source_path=source_path)
-
 
 
 if __name__ == '__main__':
