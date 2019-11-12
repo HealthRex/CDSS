@@ -110,12 +110,12 @@ Recommended to save time during workshop:
     >>> cursor.execute(query);
     >>> results = cursor.fetchall();
     >>> for row in results:
-    ...   print row;
+    ...   print( row );
 
     Or if you prefer Pandas dataframes
     >>> import pandas as pd;
     >>> resultsDF = pd.read_sql_query(query, conn);
-    >>> print resultsDF;
+    >>> print( resultsDF );
 
 
 == See Also ==
