@@ -8,7 +8,7 @@ Accessing GoogleCloud BigQuery within Virtual Private Cloud
 - Access Control requests
 - Web GUI access to BigQuery databases
 - Virtual Private Network connection into PHI secure Virtual Private Cloud
-- Python API access to BigQuery databases
+- Programmatic (Python) API access to BigQuery databases
 
 == Preconditions ==
 - Know how to run command line programs and set environment variables
@@ -72,7 +72,7 @@ Recommended to save time during workshop:
   Try refreshing your web browser to reconnect through the web GUI to the BigQuery project database again.
   You can continue to do any regular work in the meantime, though technically any internet traffic you're conducting is not being sent direct. It is being encrypted and sent through the Stanford secure network first and then relayed on to the actual websites or email servers you're trying to reach. This allows your computer now to mimic being within the secured virtual private network.
 
-- Python API access to BigQuery databases (Google Cloud SDK)
+- Programmatic (Python) API access to BigQuery databases (Google Cloud SDK)
   You will need to create a local JSON key file to identify yourself in your (Python) programs if you want them to access these secured databases.
 
   - Find, download and run the respective Google Cloud SDK installer for your system from the link below. 
@@ -83,8 +83,8 @@ Recommended to save time during workshop:
     gcloud init
 
   - Run the Google Cloud application authentication
-    This will should spawn a web browser (or create a web link you can use) to login as a specific user 
-    After completing the above, it should report a message that it created a JSON key file in a local directory (recommend you rename it to something that includes your user name, and store it in a place you will remember).
+    This should spawn a web browser (or create a web link you can use) to login as a specific user 
+    After completing the above, go back to your command terminal and it should report a message that it created a JSON key file in a local directory (recommend you rename it to something that includes your user name, and store it in a place you will remember).
 
     gcloud auth application-default login
 
@@ -94,8 +94,9 @@ Recommended to save time during workshop:
 
   - Create a local environment variable to tell the Google Cloud libraries where to find the key file
     Python code in medinfo tree can just import LocalEnv.py that can set the environment variable at runtime
-    Mac/Linux: export GOOGLE_APPLICATION_CREDENTIALS="[PathToKeyFile]"
+    Mac/Linux: export GOOGLE_APPLICATION_CREDENTIALS=[PathToKeyFile]
     Windows(cmd): set GOOGLE_APPLICATION_CREDENTIALS=[PathToKeyFile] 
+       (Replace [PathToKeyFile] with the location of the JSON key file created in the prior step)
 
   - Try connecting to a secured project BigQuery database and query for some data
     
