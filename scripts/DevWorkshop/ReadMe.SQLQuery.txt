@@ -131,6 +131,9 @@ SQL Queries and Databases
         LIMIT 100
 
       * And occurred in the year 2016
+        There are many datetime specific functions (e.g., DATEDIFF), but these are often not standardized across SQL implementations
+	E.g., Alternative implementation to below could use EXTRACT(YEAR FROM order_time_jittered) = 2016.
+	https://cloud.google.com/bigquery/docs/reference/standard-sql/date_functions
 
         SELECT
           *
