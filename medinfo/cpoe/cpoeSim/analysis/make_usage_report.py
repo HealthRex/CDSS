@@ -25,13 +25,13 @@ def make_usage_report(data_home, graders, out_file):
     csv = csv.sort_values(['user', 'sim_case', 'sim_patient_id'])
 
     # output (without row numbers)
-    columns_order = ['user', 'sim_case', 'sim_patient_id', 'patient', 'recommenderOn', 'elapsed_time', 'total_num_clicks',
-                     'num_note_clicks', 'num_results_review_clicks', 'recommended_options',
-                     'unique_recommended_options', 'manual_search_options', 'total_orders', 'orders_from_recommender',
-                     'orders_from_manual_search', 'orders_from_recommender_missed',
-                     'ratioOrdersFromRecommenderVsUniqueRecommenderOptions',
-                     'ratioOrdersFromManualSearchVsManualSearchOptions', 'ratioOrdersFromRecommenderVsTotalOrders',
-                     'ratioOrdersFromManualSearchVsTotalOrders'] + grade_columns_names
+    columns_order = ['user', 'sim_case', 'sim_patient_id'] + grade_columns_names \
+                    + ['recommenderOn', 'elapsed_time', 'total_num_clicks', 'num_note_clicks',
+                       'num_results_review_clicks', 'recommended_options', 'unique_recommended_options',
+                       'manual_search_options', 'total_orders', 'orders_from_recommender', 'orders_from_manual_search',
+                       'orders_from_recommender_missed', 'ratioOrdersFromRecommenderVsUniqueRecommenderOptions',
+                       'ratioOrdersFromManualSearchVsManualSearchOptions', 'ratioOrdersFromRecommenderVsTotalOrders',
+                       'ratioOrdersFromManualSearchVsTotalOrders']
     csv.to_csv(out_file, index=False, columns=columns_order)
 
 
