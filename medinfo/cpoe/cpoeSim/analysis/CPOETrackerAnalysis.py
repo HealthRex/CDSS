@@ -607,7 +607,7 @@ def aggregate_simulation_data(data_home, output_path, append_to_existing=False, 
 	filenames = filter(lambda f: f.endswith('.json'), os.listdir(data_home))
 	# Append directory path to filenames
 	filenames = list(map(lambda f: os.path.join(data_home, f), filenames))
-	headers = ["user", "patient", "start_time", "elapsed_time", "total_num_clicks", "num_note_clicks", "num_results_review_clicks", "recommended_options", "unqique_recommended_options", "manual_search_options", "total_orders", "orders_from_recommender", "orders_from_manual_search", "orders_from_recommender_missed"]
+	headers = ["user", "patient", "start_time", "elapsed_time", "total_num_clicks", "num_note_clicks", "num_results_review_clicks", "recommended_options", "unique_recommended_options", "manual_search_options", "total_orders", "orders_from_recommender", "orders_from_manual_search", "orders_from_recommender_missed"]
 	if not append_to_existing:
 		# Create initial csv file
 		with open(output_path,'w') as out_csv:
@@ -632,7 +632,7 @@ def aggregate_simulation_data(data_home, output_path, append_to_existing=False, 
 			fields.append(siman.number_mouse_clicks(filters=['Notes']))  # "num_note_clicks"
 			fields.append(siman.number_mouse_clicks(filters=['ResultsReview']))  # "num_results_review_clicks"
 			fields.append(len(siman.get_recommended_options()))  # "recommended_options"
-			fields.append(len(siman.get_unique(siman.get_recommended_options(), key_fn=siman._clinical_item_id_key_fn)))  # "unqique_recommended_options"
+			fields.append(len(siman.get_unique(siman.get_recommended_options(), key_fn=siman._clinical_item_id_key_fn)))  # "unique_recommended_options"
 			fields.append(len(siman.get_manually_searched_options()))  # "manual_search_options"
 			fields.append(len(siman.signed_orders_collection))  # "total_orders"
 			fields.append(len(siman.get_signed_from_recommended()))  # "orders_from_recommender"
