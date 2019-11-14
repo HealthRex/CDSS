@@ -96,7 +96,7 @@ def add_grades_to(csv, graders):
     return csv, grade_columns_ordered
 
 
-if __name__ == "__main__":
+def main(argv):
     """Main method, callable from command line"""
     usage_str = "usage: %prog [options] <inputJsonDataFolder> <outputFile>\n" \
                 "   <outputFile> CSV file with the usage report."
@@ -104,21 +104,22 @@ if __name__ == "__main__":
     parser = OptionParser(usage=usage_str)
     parser.add_option("-g", "--graders", dest="graders", help="Comma-separated list of graders to use for grading")
 
-    (options, args) = parser.parse_args(sys.argv[1:])
+    (options, args) = parser.parse_args(argv[1:])
 
-    log.info("Starting: " + str.join(" ", sys.argv))
+    log.info("Starting: " + str.join(" ", argv))
     timer = time.time()
-    summary_data = {"argv": sys.argv}
+    summary_data = {"argv": argv}
 
     grader_ids = set()
-    if not options.graders:     # graders is a mandatory parameter
+    if not options.graders:  # graders is a mandatory parameter
         print("No graders given. Cannot grade patient cases. Exiting.\n")
         parser.print_help()
         sys.exit()
     else:
         grader_ids.update(options.graders.split(VALUE_DELIM))
 
-    if len(args) < 2:   # we need input and output files given
+    if len(args) < 2:  # we need input and output files given
+        print("Given parameters are not enough. Exiting.\n")
         parser.print_help()
         sys.exit()
 
@@ -132,3 +133,7 @@ if __name__ == "__main__":
 
     timer = time.time() - timer
     log.info("%.3f seconds to complete", timer)
+
+
+if __name__ == "__main__":
+    main(sys.argv)
