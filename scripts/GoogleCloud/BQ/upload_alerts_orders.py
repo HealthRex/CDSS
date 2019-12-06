@@ -9,12 +9,13 @@ import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
 from medinfo.db.bigquery import bigQueryUtil
 from google.cloud import bigquery
 
-CSV_FILE_PREFIX = 'c:\\=== WORK ===\\=== Stanford ===\\alerts_tables\\jc_alerts_orders_reformatted_quotes_escaped_'
+CSV_FILE_PREFIX = '/path/to/jc_alerts_orders_1125_head_tail_removed_reformatted_quotes_escaped_'
 DATASET_NAME = 'alert_2019'
 TABLE_NAME = 'alerts_orders'
 TABLE_SCHEMA = [bigquery.SchemaField('anon_id', 'STRING', 'REQUIRED', None, ()),
-                bigquery.SchemaField('alt_id', 'INT64', 'REQUIRED', None, ()),
-                bigquery.SchemaField('order_id', 'INT64', 'NULLABLE', None, ()),
+                bigquery.SchemaField('alt_id_coded', 'INT64', 'REQUIRED', None, ()),
+                bigquery.SchemaField('order_id_coded', 'INT64', 'NULLABLE', None, ()),
+                bigquery.SchemaField('alt_csn_id_coded', 'INT64', 'REQUIRED', None, ()),
                 bigquery.SchemaField('med_alerts_actn_c', 'INT64', 'NULLABLE', None, ()),
                 bigquery.SchemaField('med_alerts_actn_c_name', 'STRING', 'NULLABLE', None, ()),
                 bigquery.SchemaField('medication_id', 'INT64', 'NULLABLE', None, ()),
@@ -25,26 +26,34 @@ def load_alert_table(csv_path):
     assert 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ, 'GOOGLE_APPLICATION_CREDENTIALS is not set.'
 
     bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
-                                schema=TABLE_SCHEMA, skip_rows=1)
+                                schema=TABLE_SCHEMA, skip_rows=0)
 
 
 if __name__ == '__main__':
     logging.basicConfig()
 
     '''
+    CSV remove SQL commands head and tail:
+    tail -n +45 jc_alerts_orders_1125.csv | head -n -1 > jc_alerts_orders_1125_head_tail_removed.csv
+    
+    CSV check line nums are as expected:
+    wc -l jc_alerts_orders_1125_head_tail_removed.csv
+    
     CSV cleanup command:
-    cat jc_alerts_orders.csv | sed -e 's/\(".*"\),"\(.*\)","\(.*\)","\(.*\)",\(".*"\),"\(.*\)",\(".*"\)/\1,\2,\3,\4,\5,\6,\7/g' > jc_alerts_orders_reformatted.csv
+    cat jc_alerts_orders_1125_head_tail_removed.csv | sed -e 's/^\(".*"\),"\(.*\)","\(.*\)","\(.*\)","\(.*\)",\(".*"\),"\(.*\)",\(".*"\)$/\1,\2,\3,\4,\5,\6,\7,\8/g' > jc_alerts_orders_1125_head_tail_removed_reformatted.csv
     
     CSV escape quotes command:
-    cat jc_alerts_orders_reformatted.csv | sed 's/\([^",]\)"\([^",]\)/\1""\2/g' > jc_alerts_orders_reformatted_quotes_escaped.csv
+    cat jc_alerts_orders_1125_head_tail_removed_reformatted.csv | sed 's/\([^",]\)"\([^",]\)/\1""\2/g' > jc_alerts_orders_1125_head_tail_removed_reformatted_quotes_escaped.csv
      
     file needs to be split:
     split -l 2000000 jc_<TABLE_NAME>_reformatted.csv jc_<TABLE_NAME>_reformatted_
 
     example of above:
-    split -l 2000000 jc_alerts_orders_reformatted_quotes_escaped.csv jc_alerts_orders_reformatted_quotes_escaped_
+    split -l 2000000 jc_alerts_orders_1125_head_tail_removed_reformatted_quotes_escaped.csv jc_alerts_orders_1125_head_tail_removed_reformatted_quotes_escaped_
     
-    remove last line which is an SQL exit command
+    Not required now, but first record was skipped as it was supposed to be a header row, but CSV didn't have a header row.
+    Adding it back:
+    insert into alert_2019.alerts_orders values ("JCcc93cf",2165068,308185221,35612541,NULL,"",19256,"LIPITOR 10 MG PO TABS");
     '''
     upload = input('Upload? ("y"/"n"): ')
     bq_client = bigQueryUtil.BigQueryClient()
@@ -63,5 +72,5 @@ if __name__ == '__main__':
     print('Done')
 
     '''
-    expecting 107,202,194 lines from original table
+    expecting 107,202,355 lines from original table
     '''
