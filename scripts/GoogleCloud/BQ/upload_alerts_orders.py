@@ -9,13 +9,14 @@ import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
 from medinfo.db.bigquery import bigQueryUtil
 from google.cloud import bigquery
 
-CSV_FILE_PREFIX = '/path/to/jc_alerts_orders_1125_head_tail_removed_reformatted_quotes_escaped_'
+CSV_FILE_PREFIX = '/path/to/jc_alerts_orders_120619_head_tail_removed_reformatted_quotes_escaped_'
 DATASET_NAME = 'alert_2019'
 TABLE_NAME = 'alerts_orders'
 TABLE_SCHEMA = [bigquery.SchemaField('anon_id', 'STRING', 'REQUIRED', None, ()),
                 bigquery.SchemaField('alt_id_coded', 'INT64', 'REQUIRED', None, ()),
                 bigquery.SchemaField('order_id_coded', 'INT64', 'NULLABLE', None, ()),
                 bigquery.SchemaField('alt_csn_id_coded', 'INT64', 'REQUIRED', None, ()),
+                bigquery.SchemaField('line', 'INT64', 'REQUIRED', None, ()),
                 bigquery.SchemaField('med_alerts_actn_c', 'INT64', 'NULLABLE', None, ()),
                 bigquery.SchemaField('med_alerts_actn_c_name', 'STRING', 'NULLABLE', None, ()),
                 bigquery.SchemaField('medication_id', 'INT64', 'NULLABLE', None, ()),
@@ -34,26 +35,22 @@ if __name__ == '__main__':
 
     '''
     CSV remove SQL commands head and tail:
-    tail -n +45 jc_alerts_orders_1125.csv | head -n -1 > jc_alerts_orders_1125_head_tail_removed.csv
+    tail -n +3 jc_alerts_orders_120619.csv | head -n -1 > jc_alerts_orders_120619_head_tail_removed.csv
     
     CSV check line nums are as expected:
-    wc -l jc_alerts_orders_1125_head_tail_removed.csv
+    wc -l jc_alerts_orders_120619_head_tail_removed.csv
     
     CSV cleanup command:
-    cat jc_alerts_orders_1125_head_tail_removed.csv | sed -e 's/^\(".*"\),"\(.*\)","\(.*\)","\(.*\)","\(.*\)",\(".*"\),"\(.*\)",\(".*"\)$/\1,\2,\3,\4,\5,\6,\7,\8/g' > jc_alerts_orders_1125_head_tail_removed_reformatted.csv
+    cat jc_alerts_orders_120619_head_tail_removed.csv | sed -e 's/^\(".*"\),"\(.*\)","\(.*\)","\(.*\)","\(.*\)","\(.*\)",\(".*"\),"\(.*\)",\(".*"\)$/\1,\2,\3,\4,\5,\6,\7,\8,\9/g' > jc_alerts_orders_120619_head_tail_removed_reformatted.csv
     
     CSV escape quotes command:
-    cat jc_alerts_orders_1125_head_tail_removed_reformatted.csv | sed 's/\([^",]\)"\([^",]\)/\1""\2/g' > jc_alerts_orders_1125_head_tail_removed_reformatted_quotes_escaped.csv
+    cat jc_alerts_orders_120619_head_tail_removed_reformatted.csv | sed 's/\([^",]\)"\([^",]\)/\1""\2/g' > jc_alerts_orders_120619_head_tail_removed_reformatted_quotes_escaped.csv
      
     file needs to be split:
     split -l 2000000 jc_<TABLE_NAME>_reformatted.csv jc_<TABLE_NAME>_reformatted_
 
     example of above:
-    split -l 2000000 jc_alerts_orders_1125_head_tail_removed_reformatted_quotes_escaped.csv jc_alerts_orders_1125_head_tail_removed_reformatted_quotes_escaped_
-    
-    Not required now, but first record was skipped as it was supposed to be a header row, but CSV didn't have a header row.
-    Adding it back:
-    insert into alert_2019.alerts_orders values ("JCcc93cf",2165068,308185221,35612541,NULL,"",19256,"LIPITOR 10 MG PO TABS");
+    split -l 2000000 jc_alerts_orders_120619_head_tail_removed_reformatted_quotes_escaped.csv jc_alerts_orders_120619_head_tail_removed_reformatted_quotes_escaped_
     '''
     upload = input('Upload? ("y"/"n"): ')
     bq_client = bigQueryUtil.BigQueryClient()
@@ -72,5 +69,5 @@ if __name__ == '__main__':
     print('Done')
 
     '''
-    expecting 107,202,355 lines from original table
+    expecting 107,202,804 lines from original table
     '''
