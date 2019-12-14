@@ -2,7 +2,6 @@ from google.cloud import bigquery
 import pandas as pd
 import os
 
-import pdb
 client = bigquery.Client()
 
 def featurize_lab_orders(query):
@@ -35,12 +34,12 @@ def featurize_med_orders(query):
         lambda x: '_'.join([x.med_description, x.order_class]), axis=1)
 
     df_meds = df_med_features[['pat_enc_csn_id_coded',
-                               'medication_id',
+                               'med_description',
                                'order_med_id_coded']].drop_duplicates().groupby(
-                               ['pat_enc_csn_id_coded', 'medication_id']).agg(
+                               ['pat_enc_csn_id_coded', 'med_description']).agg(
                                'count').reset_index().rename(columns={
                                'order_med_id_coded' : 'values',
-                               'medication_id' : 'features'})
+                               'med_description' : 'features'})
     return df_meds
 
 
@@ -51,12 +50,12 @@ def featurize_imaging_orders(query):
     query_job = client.query(query)
     df_imaging_features = query_job.result().to_dataframe()
     df_images = df_imaging_features[['pat_enc_csn_id_coded',
-                                     'proc_code',
+                                     'description',
                                      'order_proc_id_coded']].drop_duplicates().groupby(
-                                     ['pat_enc_csn_id_coded', 'proc_code']).agg(
+                                     ['pat_enc_csn_id_coded', 'description']).agg(
                                      'count').reset_index().rename(columns={
                                      'order_proc_id_coded' : 'values',
-                                     'proc_code' : 'features'})
+                                     'description' : 'features'})
 
     return df_images
 
@@ -69,12 +68,12 @@ def featurize_microbiology_orders(query):
     query_job = client.query(query)
     df_micro_features = query_job.result().to_dataframe()
     df_micro = df_micro_features[['pat_enc_csn_id_coded',
-                                  'proc_code',
+                                  'description',
                                   'order_proc_id_coded']].drop_duplicates().groupby(
-                                  ['pat_enc_csn_id_coded', 'proc_code']).agg(
+                                  ['pat_enc_csn_id_coded', 'description']).agg(
                                   'count').reset_index().rename(columns={
                                   'order_proc_id_coded' : 'values',
-                                  'proc_code' : 'features'})
+                                  'description' : 'features'})
 
     return df_micro
 
@@ -86,12 +85,12 @@ def featurize_procedure_orders(query):
     df_proc_features = query_job.result().to_dataframe()
 
     df_proc = df_proc_features[['pat_enc_csn_id_coded',
-                                'proc_code',
+                                'description',
                                 'order_proc_id_coded']].drop_duplicates().groupby(
-                                ['pat_enc_csn_id_coded', 'proc_code']).agg(
+                                ['pat_enc_csn_id_coded', 'description']).agg(
                                 'count').reset_index().rename(columns={
                                 'order_proc_id_coded' : 'values',
-                                'proc_code' : 'features'})
+                                'description' : 'features'})
 
     return df_proc
 
@@ -104,10 +103,10 @@ def featurize_dx_codes(query):
     df_dx = df_dx_features[['pat_enc_csn_id_coded',
                             'dx_name',
                             'dx_id']].drop_duplicates().groupby(
-                            ['pat_enc_csn_id_coded', 'dx_id']).agg(
+                            ['pat_enc_csn_id_coded', 'dx_name']).agg(
                             'count').reset_index().rename(columns={
-                            'dx_name' : 'values',
-                            'dx_id' : 'features'})
+                            'dx_id' : 'values',
+                            'dx_name' : 'features'})
 
     return df_dx
 
@@ -127,6 +126,10 @@ def featurize_demographics(query):
                        'age', 'gender',
                        'canonical_race',
                        'canonical_ethnicity']]
+    df_demo['canonical_ethnicity'] = df_demo['canonical_ethnicity'].apply(
+        lambda x: 'Unknown Ethnicity' if x == 'Unknown' else x)
+    df_demo['canonical_race'] = df_demo['canonical_race'].apply(
+        lambda x: 'Unknown Race' if x == 'Unknown' else x)
     df_demo = pd.concat([df_demo,
                          pd.get_dummies(df_demo.gender),
                          pd.get_dummies(df_demo.canonical_race),
@@ -143,8 +146,8 @@ def featurize_demographics(query):
     return df_demo
 
 
-def featurize_cohort(out_file = './feature_matrix.csv', dx_codes = True,
-                     lab_orders = True, image_orders = True,
+def featurize_cohort(out_file = './data/feature_matrix.csv', dx_codes = True,
+                     lab_orders = True, image_orders = True, med_orders = True,
                      procedure_orders = True, micro_orders = True, demos=True):
     """
     Featurize Cohort, return and save long form dataframe
@@ -182,6 +185,12 @@ def featurize_cohort(out_file = './feature_matrix.csv', dx_codes = True,
             query = file.read()
         data_frames.append(featurize_microbiology_orders(query))
 
+    if med_orders:
+        f = os.path.join(sql_path, 'MedFeatures.sql')
+        with open(f, 'r') as file:
+            query = file.read()
+        data_frames.append(featurize_med_orders(query))
+
     if demos:
         f = os.path.join(sql_path, 'DemographicFeatures.sql')
         with open(f, 'r') as file:
@@ -194,11 +203,6 @@ def featurize_cohort(out_file = './feature_matrix.csv', dx_codes = True,
     return feature_matrix
 
 if __name__ == "__main__":
-    df = featurize_cohort(demos=False,
-                          lab_orders = False,
-                          image_orders = False,
-                          procedure_orders = False,
-                          micro_orders = False)
-    pdb.set_trace()
+    df = featurize_cohort()
 
 
