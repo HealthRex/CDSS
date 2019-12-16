@@ -1,4 +1,3 @@
-
 --
 -- Glucose lab values by person
 SELECT rit_uid, pat_enc_csn_id_coded, lab_name, ord_value, ord_num_value, taken_time_jittered, result_time_jittered FROM `mining-clinical-decisions.starr_datalake2018.lab_result` 
