@@ -4825,6 +4825,101 @@ COPY public.sim_grading_key (sim_grading_key_id, sim_grader_id, sim_state_id, si
 12317	Post-Panel Consolidation	10	pulmonary_embolism	50200	10	1	CXR	\N
 12318	Post-Panel Consolidation	10	pulmonary_embolism	45801	10	1	CXR	\N
 12319	Post-Panel Consolidation	11	pulmonary_embolism	45801	10	1	CXR	\N
+12320	Post-Panel Consolidation	40	atrial_fibrillation	48871	0	0	\N	\N
+12321	Post-Panel Consolidation	43	atrial_fibrillation	44389	-4	1	\N	\N
+12322	Post-Panel Consolidation	43	atrial_fibrillation	61832	7	0	Echo	\N
+12323	Post-Panel Consolidation	41	atrial_fibrillation	44250	8	0	Anticoaguation	Match heparin
+12324	Post-Panel Consolidation	40	atrial_fibrillation	44276	5	1	\N	Match midazolam
+12325	Post-Panel Consolidation	41	atrial_fibrillation	45778	1	1	\N	\N
+12326	Post-Panel Consolidation	41	atrial_fibrillation	45770	5	1	INR	Merge with INR just to represent checking coags
+12327	Post-Panel Consolidation	14	gi_bleed	45932	5	0	Hepatitis Panel	\N
+12328	Post-Panel Consolidation	4	gi_bleed	45793	10	1	CBC	Assume was GI Bleed case
+12329	Post-Panel Consolidation	4	gi_bleed	49481	10	1	GI EGD	Assume was GI Bleed case
+12330	Post-Panel Consolidation	14	gi_bleed	46072	-5	0	CT Abdomen	Treat all CT Abd/Pelvis orders as comparable for simplicity, so why different scores? Weird cirrhosis diagnostic, but maybe people are looking for bleeding vessel?
+12331	Post-Panel Consolidation	16	gi_bleed	45852	-5	0	CT Abdomen	Treat all CT Abd/Pelvis orders as comparable for simplicity, so why different scores? Weird cirrhosis diagnostic, but maybe people are looking for bleeding vessel?
+12332	Post-Panel Consolidation	4	gi_bleed	46286	7	1	Coags	Assume GI Bleed case
+12333	Post-Panel Consolidation	2	gi_bleed	46286	7	1	Coags	\N
+12334	Post-Panel Consolidation	2	gi_bleed	45784	0	0	\N	Post-stabilization is fine, but ignore as process order?
+12335	Post-Panel Consolidation	4	gi_bleed	45872	9	1	FFP	Assume GI Bleed case
+12336	Post-Panel Consolidation	14	gi_bleed	45918	2	1	Lactate	\N
+12337	Post-Panel Consolidation	16	gi_bleed	62144	0	1	\N	\N
+12338	Post-Panel Consolidation	2	gi_bleed	45806	2	1	\N	\N
+12339	Post-Panel Consolidation	14	gi_bleed	44294	0	1	\N	Not relevant to anything?
+12340	Post-Panel Consolidation	14	gi_bleed	48815	0	1	\N	Largely irrelevant in acute setting
+12341	Post-Panel Consolidation	2	gi_bleed	45787	0	1	\N	Process order
+12342	Post-Panel Consolidation	4	gi_bleed	62171	0	1	\N	Active bleeding, probably not right time for para, though SBP always to consider?
+12343	Post-Panel Consolidation	2	gi_bleed	45776	0	1	\N	Process order
+12344	Post-Panel Consolidation	4	gi_bleed	45927	10	1	RBC	Assume GI Bleed case
+12345	Post-Panel Consolidation	4	gi_bleed	45877	8	0	Coagulopathy Correction	Assume GI Bleed case
+12346	Post-Panel Consolidation	4	gi_bleed	61993	8	0	Coagulopathy Correction	Assume GI Bleed case
+12347	Post-Panel Consolidation	4	gi_bleed	45748	10	1	Transfuse RBC	Assume GI Bleed case
+12348	Post-Panel Consolidation	4	gi_bleed	61975	10	1	Transfuse RBC	Assume GI Bleed case
+12349	Post-Panel Consolidation	16	gi_bleed	45869	6	1	US Abdomen	\N
+12350	Post-Panel Consolidation	14	gi_bleed	49408	6	1	US Abdomen	\N
+12351	Post-Panel Consolidation	16	gi_bleed	49408	6	1	US Abdomen	\N
+12352	Post-Panel Consolidation	16	gi_bleed	46343	6	1	US Abdomen	\N
+12353	Post-Panel Consolidation	2	gi_bleed	44001	7	1	Coagulopathy Correction	\N
+12354	Post-Panel Consolidation	14	gi_bleed	46018	0	1	\N	\N
+12355	Post-Panel Consolidation	2	gi_bleed	45818	0	1	\N	\N
+12356	Post-Panel Consolidation	30	meningitis	48603	0	1	\N	Not relevant to test?
+12357	Post-Panel Consolidation	30	meningitis	61853	0	1	\N	Not relevant to test?
+12358	Post-Panel Consolidation	31	meningitis	50841	0	1	\N	\N
+12359	Post-Panel Consolidation	30	meningitis	44626	0	1	\N	Nothing specific being treated? Lyme?
+12360	Post-Panel Consolidation	30	meningitis	61843	0	1	\N	\N
+12361	Post-Panel Consolidation	30	meningitis	46160	0	1	\N	Process order
+12362	Post-Panel Consolidation	30	meningitis	49142	1	1	\N	Common meningitis cause, okay to review
+12363	Post-Panel Consolidation	31	meningitis	46103	0	1	\N	\N
+12364	Post-Panel Consolidation	30	meningitis	50425	0	1	\N	Too specific for meningitis eval
+12365	Post-Panel Consolidation	30	meningitis	44230	9	0	\N	Should be dexamethasone, but give credit for steroids (mostly matter of dosing)
+12366	Post-Panel Consolidation	31	meningitis	45918	5	1	Lactate	\N
+12367	Post-Panel Consolidation	30	meningitis	44586	9	0	\N	Should be dexamethasone, but give credit for steroids (mostly matter of dosing)
+12368	Post-Panel Consolidation	31	meningitis	44641	2	1	\N	Symptomatic management
+12369	Post-Panel Consolidation	31	meningitis	46065	-3	0	CT Head	Unnecessary head imaging, consistent with head CT?
+12370	Post-Panel Consolidation	30	meningitis	45750	0	1	\N	Process order
+12371	Post-Panel Consolidation	30	meningitis	44216	0	1	\N	Symptom management? Not vomiting anyway
+12372	Post-Panel Consolidation	30	meningitis	45802	0	1	\N	Process order
+12373	Post-Panel Consolidation	30	meningitis	48561	5	1	Pregnancy Test	\N
+12374	Post-Panel Consolidation	31	meningitis	44198	5	1	IVF	\N
+12375	Post-Panel Consolidation	30	meningitis	45782	0	1	\N	No specific indication of urinary infection
+12376	Post-Panel Consolidation	30	meningitis	48519	0	1	\N	\N
+12377	Post-Panel Consolidation	5001	neutropenic	45901	10	1	Blood Cultures	\N
+12378	Post-Panel Consolidation	5001	neutropenic	45752	10	1	Blood Cultures	\N
+12379	Post-Panel Consolidation	5003	neutropenic	45919	6	1	Blood Gas	\N
+12380	Post-Panel Consolidation	5001	neutropenic	45788	8	1	CBC	\N
+12381	Post-Panel Consolidation	5000	neutropenic	35733	0	-1	\N	Doesn't cover Pseudomonas, but would cover most other things?
+12382	Post-Panel Consolidation	5003	neutropenic	49207	0	1	\N	Process / Consult
+12383	Post-Panel Consolidation	5003	neutropenic	48711	0	1	\N	Wrong type of isolation
+12384	Post-Panel Consolidation	5002	neutropenic	49054	5	1	\N	\N
+12385	Post-Panel Consolidation	5003	neutropenic	45918	10	1	Lactate	\N
+12386	Post-Panel Consolidation	5000	neutropenic	45918	10	1	Lactate	\N
+12387	Post-Panel Consolidation	5000	neutropenic	45894	0	1	\N	No symptoms for pancreatitis?
+12388	Post-Panel Consolidation	5001	neutropenic	45771	10	1	Metabolic Panel	\N
+12389	Post-Panel Consolidation	5001	neutropenic	48960	8	1	\N	\N
+12390	Post-Panel Consolidation	5003	neutropenic	45853	0	1	\N	Not relevant? No hx or sx of CHF
+12391	Post-Panel Consolidation	5000	neutropenic	61823	0	1	\N	Process order
+12392	Post-Panel Consolidation	5000	neutropenic	45802	0	1	\N	Process order
+12393	Post-Panel Consolidation	5003	neutropenic	52757	0	1	\N	Process order
+12394	Post-Panel Consolidation	5002	neutropenic	62023	6	1	Respiratory Virus Screen	\N
+12395	Post-Panel Consolidation	5001	neutropenic	44198	10	1	IVF	\N
+12396	Post-Panel Consolidation	5001	neutropenic	45751	6	1	UA + Culture	\N
+12397	Post-Panel Consolidation	5002	neutropenic	45751	6	1	UA + Culture	\N
+12398	Post-Panel Consolidation	5001	neutropenic	45782	6	1	UA + Culture	\N
+12399	Post-Panel Consolidation	5001	neutropenic	45818	10	1	CXR	\N
+12400	Post-Panel Consolidation	11	pulmonary_embolism	61982	0	1	\N	Process
+12401	Post-Panel Consolidation	10	pulmonary_embolism	44315	4	1	Aspirin	\N
+12402	Post-Panel Consolidation	8	pulmonary_embolism	44240	0	1	\N	Not ACS anyway? Type 2 NSTEMI?
+12403	Post-Panel Consolidation	11	pulmonary_embolism	45760	7	1	Blood Gas	\N
+12404	Post-Panel Consolidation	8	pulmonary_embolism	65695	0	0	\N	Override, neutralize non-procedural consults
+12405	Post-Panel Consolidation	11	pulmonary_embolism	49207	0	1	\N	Consult
+12406	Post-Panel Consolidation	11	pulmonary_embolism	45811	2	1	\N	\N
+12407	Post-Panel Consolidation	10	pulmonary_embolism	44211	7	1	Nebs	\N
+12408	Post-Panel Consolidation	10	pulmonary_embolism	46020	7	1	Blood Gas	\N
+12409	Post-Panel Consolidation	11	pulmonary_embolism	44299	6	1	Antibiotics-CAP	\N
+12410	Post-Panel Consolidation	11	pulmonary_embolism	45914	6	1	Troponin	\N
+12411	Post-Panel Consolidation	8	pulmonary_embolism	45776	0	1	\N	Override, process
+12412	Post-Panel Consolidation	11	pulmonary_embolism	45830	0	0	\N	\N
+12413	Post-Panel Consolidation	10	pulmonary_embolism	44198	0	1	IVF	\N
+12414	Post-Panel Consolidation	10	pulmonary_embolism	45766	0	1	\N	Process
 \.
 
 
@@ -4832,7 +4927,7 @@ COPY public.sim_grading_key (sim_grading_key_id, sim_grader_id, sim_state_id, si
 -- Name: sim_grading_key_sim_grading_key_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_grading_key_sim_grading_key_id_seq', 12319, true);
+SELECT pg_catalog.setval('public.sim_grading_key_sim_grading_key_id_seq', 12414, true);
 
 
 --
