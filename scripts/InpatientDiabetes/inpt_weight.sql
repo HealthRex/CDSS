@@ -7,7 +7,7 @@ ORDER BY num_value1 DESC
 LIMIT 1000
 
 --
--- Weights converted from ?oz to kg for pts who received insulin
+-- Weights converted from oz to kg for pts who received insulin
 SELECT rit_uid, row_disp_name, meas_value, num_value1, (num_value1*0.028) AS KG, num_value2, recorded_time_jittered FROM `som-nero-phi-jonc101.starr_datalake2018.flowsheet`
 -- SELECT (num_value1*0.028) AS KG, count(meas_value) as count  FROM `som-nero-phi-jonc101.starr_datalake2018.flowsheet` 
 WHERE rit_uid IN (select jc_uid from `som-nero-phi-jonc101.starr_datalake2018.mar` WHERE order_med_id_coded in --patient received subQ insulin
@@ -83,7 +83,7 @@ AND num_value1 IS NOT NULL --numeric value exists
 AND (flow.num_value1*0.028) > 45 -- wt > 45kg (99lbs)
 AND DATE_DIFF(DATE(flow.recorded_time_jittered), (dem.birth_date_jittered), YEAR) >= 18 -- ADULTS ONLY
 AND dem.recent_wt_in_kgs != 0 -- recent wt not equal zero (there are no pts with recent wt = 0 but if I don't do this the percent returns an error)
-AND ((dem.recent_wt_in_kgs-(flow.num_value1*0.028))/dem.recent_wt_in_kgs) < 0.5 -- Difference between flowsheet wt and last recorded wt <50%
+AND ((dem.recent_wt_in_kgs-(flow.num_value1*0.028))/dem.recent_wt_in_kgs) < 0.5 -- Pt did not > double in wt 
 ORDER BY wt_diff_percent desc
 
 
