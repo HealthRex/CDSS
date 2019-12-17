@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.3.11
+-- Dumped from database version 9.6.9
 -- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
@@ -2928,6 +2928,7 @@ COPY public.sim_grading_key (sim_grading_key_id, sim_grader_id, sim_state_id, si
 8784	Panel Consensus	5000	neutropenic	62023	6	\N	\N	\N
 9273	Lisa Shieh	5000	neutropenic	62023	5	3	\N	\N
 9819	Andre Kumar	5000	neutropenic	62023	3	2	Respiratory Viral Panel	\N
+8796	Panel Consensus	5000	neutropenic	45782	6	\N	\N	\N
 10143	Jonathan Chen	5000	neutropenic	62023	2	3	Respiratory Virus Screen	\N
 8020	Jason Hom	5002	neutropenic	63923	10	5	\N	\N
 8785	Panel Average	5002	neutropenic	63923	6	\N	\N	\N
@@ -3007,7 +3008,6 @@ COPY public.sim_grading_key (sim_grading_key_id, sim_grader_id, sim_state_id, si
 9546	Panel Average	5003	neutropenic	45782	4	\N	\N	\N
 9832	Jonathan Chen	5003	neutropenic	45782	3	4	UA	\N
 9833	Lisa Shieh	5003	neutropenic	45782	3	3	\N	\N
-8796	Panel Consensus	5000	neutropenic	45782	6	\N	\N	\N
 9289	Andre Kumar	5000	neutropenic	45782	5	5	Urine Culture	\N
 9290	Jason Hom	5000	neutropenic	45782	5	4	\N	\N
 9613	Panel Average	5000	neutropenic	45782	3	\N	\N	\N
@@ -3447,6 +3447,7 @@ COPY public.sim_grading_key (sim_grading_key_id, sim_grader_id, sim_state_id, si
 7522	Jason Hom	40	atrial_fibrillation	49251	10	5	\N	\N
 7523	Jason Hom	43	atrial_fibrillation	49251	10	5	\N	\N
 7524	Jason Hom	43	atrial_fibrillation	61323	10	5	\N	\N
+10958	Lisa Shieh	11	pulmonary_embolism	62023	0	3	\N	\N
 7525	Andre Kumar	40	atrial_fibrillation	-100	10	5	Cardioversion	\N
 7526	Jason Hom	40	atrial_fibrillation	-100	10	5	\N	\N
 7527	Jonathan Chen	40	atrial_fibrillation	-100	10	5	\N	\N
@@ -3889,7 +3890,6 @@ COPY public.sim_grading_key (sim_grading_key_id, sim_grader_id, sim_state_id, si
 9595	Panel Average	11	pulmonary_embolism	62023	4	\N	\N	\N
 9910	Jonathan Chen	11	pulmonary_embolism	62023	3	4	Respiratory Virus Screen	\N
 10374	Andre Kumar	11	pulmonary_embolism	62023	1	4	Respiratory Viral Panel	\N
-10958	Lisa Shieh	11	pulmonary_embolism	62023	0	3	\N	\N
 8201	Jason Hom	10	pulmonary_embolism	63923	10	5	\N	\N
 8863	Panel Average	10	pulmonary_embolism	63923	6	\N	\N	\N
 9415	Lisa Shieh	10	pulmonary_embolism	63923	5	3	\N	\N
@@ -3984,6 +3984,942 @@ COPY public.sim_grading_key (sim_grading_key_id, sim_grader_id, sim_state_id, si
 8332	Panel Average	11	pulmonary_embolism	45801	8	\N	\N	\N
 8431	Jonathan Chen	11	pulmonary_embolism	45801	8	4	CXR	\N
 9429	Andre Kumar	11	pulmonary_embolism	45801	5	4	Imaging	\N
+11479	Post-Panel Consolidation	40	atrial_fibrillation	35968	0	0	\N	Negative points seems too severe here. Anti-arrhythmic can be option in unstable Afib if awaiting or failed DCCV. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1861334/
+11480	Post-Panel Consolidation	43	atrial_fibrillation	35968	0	0	\N	Negative points seems too severe here. Anti-arrhythmic can be option in unstable Afib if awaiting or failed DCCV. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1861334/
+11481	Post-Panel Consolidation	43	atrial_fibrillation	44352	0	0	\N	Negative points seems too severe here. Anti-arrhythmic can be option in unstable Afib if awaiting or failed DCCV. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1861334/
+11482	Post-Panel Consolidation	40	atrial_fibrillation	45887	3	0	\N	Why different per initial vs. worse state?
+11483	Post-Panel Consolidation	43	atrial_fibrillation	45887	3	0	\N	Why different per initial vs. worse state?
+11484	Post-Panel Consolidation	40	atrial_fibrillation	62176	7	0	Echo	\N
+11485	Post-Panel Consolidation	43	atrial_fibrillation	62176	7	0	Echo	Okay for workup, but not while unstable?
+11486	Post-Panel Consolidation	40	atrial_fibrillation	45963	-4	0	TEEcho	Not while unstable
+11487	Post-Panel Consolidation	43	atrial_fibrillation	45963	-4	0	TEEcho	\N
+11488	Post-Panel Consolidation	41	atrial_fibrillation	61832	7	0	Echo	\N
+11489	Post-Panel Consolidation	40	atrial_fibrillation	61832	7	0	Echo	Good for Afib workup, but less points if doing it while unstable?
+11490	Post-Panel Consolidation	40	atrial_fibrillation	44004	0	0	\N	\N
+11491	Post-Panel Consolidation	41	atrial_fibrillation	44004	0	0	\N	Positive points for furosemide here, but negative points for initial state. But also give negative points for giving IV Fluids?
+11492	Post-Panel Consolidation	43	atrial_fibrillation	44004	0	0	\N	\N
+11493	Post-Panel Consolidation	16	gi_bleed	45858	-5	0	CT Abdomen	Treat all CT Abd/Pelvis orders as comparable for simplicity, so why different scores? Weird cirrhosis diagnostic, but maybe people are looking for bleeding vessel?
+11494	Post-Panel Consolidation	14	gi_bleed	45852	-5	0	CT Abdomen	Treat all CT Abd/Pelvis orders as comparable for simplicity, so why different scores? Weird cirrhosis diagnostic, but maybe people are looking for bleeding vessel?
+11495	Post-Panel Consolidation	2	gi_bleed	49836	-5	0	CT Abdomen	Treat all CT Abd/Pelvis orders as comparable for simplicity, so why different scores? Weird cirrhosis diagnostic, but maybe people are looking for bleeding vessel?
+11496	Post-Panel Consolidation	30	meningitis	45983	-3	0	CT Head	\N
+11497	Post-Panel Consolidation	31	meningitis	45983	-3	0	CT Head	Gave -3 points if CT head before treatment, but what about after treatment?
+11498	Post-Panel Consolidation	30	meningitis	50241	-3	0	CT Head	\N
+11499	Post-Panel Consolidation	40	atrial_fibrillation	45977	0	0	\N	Standard Process
+11500	Post-Panel Consolidation	41	atrial_fibrillation	45977	0	0	\N	Standard Process
+11501	Post-Panel Consolidation	40	atrial_fibrillation	45919	1	0	Blood Gas	Override for consistency with others
+11502	Post-Panel Consolidation	41	atrial_fibrillation	45793	6	0	CBC	Override for consistency with other choices across states
+11503	Post-Panel Consolidation	40	atrial_fibrillation	50400	0	0	\N	\N
+11504	Post-Panel Consolidation	43	atrial_fibrillation	50400	0	0	\N	\N
+11505	Post-Panel Consolidation	40	atrial_fibrillation	49251	0	0	\N	Override, neutralize non-procedure consults
+11506	Post-Panel Consolidation	41	atrial_fibrillation	49251	0	0	\N	Override, neutralize non-procedure consults
+11507	Post-Panel Consolidation	43	atrial_fibrillation	49251	0	0	\N	Override, neutralize non-procedure consults
+11508	Post-Panel Consolidation	40	atrial_fibrillation	45811	2	0	\N	Override, excess points for non-action
+11509	Post-Panel Consolidation	43	atrial_fibrillation	45811	2	0	\N	Override, excess points for non-action
+11510	Post-Panel Consolidation	40	atrial_fibrillation	46160	0	0	\N	Standard process
+11511	Post-Panel Consolidation	40	atrial_fibrillation	44297	3	0	\N	Override, less point differential for initial vs. worse state
+11512	Post-Panel Consolidation	40	atrial_fibrillation	44359	8	0	Anticoagulation	Override consistent points
+11513	Post-Panel Consolidation	41	atrial_fibrillation	44359	8	0	Anticoagulation	Override consistent points
+11514	Post-Panel Consolidation	40	atrial_fibrillation	46183	0	0	\N	Override, standard process after heparin order
+11515	Post-Panel Consolidation	40	atrial_fibrillation	63714	0	0	\N	Override, standard process after heparin order
+11516	Post-Panel Consolidation	43	atrial_fibrillation	61837	3	0	Lipids	\N
+11517	Post-Panel Consolidation	41	atrial_fibrillation	45763	7	0	Metabolic Panel	\N
+11518	Post-Panel Consolidation	40	atrial_fibrillation	45864	0	0	Oxygen	Override, no hypoxia?
+11519	Post-Panel Consolidation	40	atrial_fibrillation	45900	0	0	Oxygen	Override, no hypoxia?
+11520	Post-Panel Consolidation	40	atrial_fibrillation	61823	0	0	\N	Override, standard process
+11521	Post-Panel Consolidation	40	atrial_fibrillation	46090	0	0	\N	Override, embedded in CBC or part of Heparin protocol
+11522	Post-Panel Consolidation	40	atrial_fibrillation	45955	3	0	Lactate	Override to match lactate order
+11523	Post-Panel Consolidation	43	atrial_fibrillation	45955	3	0	Lactate	Override to match lactate order
+11524	Post-Panel Consolidation	43	atrial_fibrillation	49995	5	0	Cardiology	Override, treat same as Cardiology consult
+11525	Post-Panel Consolidation	40	atrial_fibrillation	60178	3	0	Anticoagulation-Oral	Oral admin, is this too slow, and so should be worth less points?
+11526	Post-Panel Consolidation	41	atrial_fibrillation	60178	3	0	Anticoagulation-Oral	Oral admin, is this too slow, and so should be worth less points?
+11527	Post-Panel Consolidation	43	atrial_fibrillation	60178	3	0	Anticoagulation-Oral	Oral admin, is this too slow, and so should be worth less points?
+11528	Post-Panel Consolidation	40	atrial_fibrillation	63725	3	0	Lactate	Override for consistency
+11529	Post-Panel Consolidation	40	atrial_fibrillation	45818	3	0	\N	Override to match Portable CXR, since this can be a portable order too
+11530	Post-Panel Consolidation	43	atrial_fibrillation	45818	3	0	\N	Override to match Portable CXR, since this can be a portable order too
+11531	Post-Panel Consolidation	15	gi_bleed	45932	5	0	Hepatitis Panel	Override to match panel
+11532	Post-Panel Consolidation	16	gi_bleed	45814	0	0	\N	Override, standard process
+11533	Post-Panel Consolidation	14	gi_bleed	61982	0	0	\N	Override, standard process
+11534	Post-Panel Consolidation	15	gi_bleed	61982	0	0	\N	Override, standard process
+11535	Post-Panel Consolidation	15	gi_bleed	44275	8	0	IVF	Override to match panel grade
+11536	Post-Panel Consolidation	14	gi_bleed	48513	2	0	\N	Override, consistencu with Indirect Bilirubin
+11537	Post-Panel Consolidation	15	gi_bleed	45823	10	0	Type and Screen	Override, match panel, though this seems like too much for what will likely be part of standard tranfusion process orders
+11538	Post-Panel Consolidation	14	gi_bleed	44439	8	0	IVF	Override to match panel grade
+11539	Post-Panel Consolidation	15	gi_bleed	44439	8	0	IVF	Override to match panel grade
+11540	Post-Panel Consolidation	15	gi_bleed	50400	0	0	\N	Neutralize consults
+11541	Post-Panel Consolidation	15	gi_bleed	61323	2	0	\N	Override for consistency and avoid excess points for worse state compensation
+11542	Post-Panel Consolidation	14	gi_bleed	49207	0	0	\N	Override, standard process
+11543	Post-Panel Consolidation	14	gi_bleed	46160	0	0	\N	Override, standard process
+11544	Post-Panel Consolidation	14	gi_bleed	63759	10	0	RBC	Override, seems typo on score?
+11545	Post-Panel Consolidation	15	gi_bleed	71083	0	0	\N	Override, non-specific process / consult
+11546	Post-Panel Consolidation	2	gi_bleed	45771	9	0	Metabolic Panel	\N
+11547	Post-Panel Consolidation	15	gi_bleed	45832	7	0	Intubation	?Mechanical ventilation? Airway protection?
+11548	Post-Panel Consolidation	14	gi_bleed	63725	2	0	Lactate	Override to match others
+11549	Post-Panel Consolidation	14	gi_bleed	61993	8	0	Coagulopathy Correction	\N
+11550	Post-Panel Consolidation	15	gi_bleed	61993	8	0	Coagulopathy Correction	\N
+11551	Post-Panel Consolidation	16	gi_bleed	61993	8	0	Coagulopathy Correction	\N
+11552	Post-Panel Consolidation	14	gi_bleed	45870	0	0	Troponin	Hemodynamic stability assessment?
+11553	Post-Panel Consolidation	14	gi_bleed	50372	0	0	\N	Override, standard process
+11554	Post-Panel Consolidation	30	meningitis	56492	5	0	Pain Control	Minor points for symptom control?
+11555	Post-Panel Consolidation	31	meningitis	56492	5	0	Pain Control	Minor points for symptom control?
+11556	Post-Panel Consolidation	33	meningitis	44281	5	0	Pain Control	Minor points for symptom control?
+11557	Post-Panel Consolidation	30	meningitis	44310	5	0	Pain Control	Minor points for symptom control?
+11558	Post-Panel Consolidation	31	meningitis	44310	5	0	Pain Control	Minor points for symptom control?
+11559	Post-Panel Consolidation	31	meningitis	61864	5	0	HIV Test	Override, match other HIV tests
+11560	Post-Panel Consolidation	30	meningitis	45966	7	0	CBC	\N
+11561	Post-Panel Consolidation	31	meningitis	48880	5	0	\N	Panel of CSF tests, should get point for each? Adds up to more than value of antibiotics
+11562	Post-Panel Consolidation	31	meningitis	48980	0	0	\N	Override, neutralize non-procedure consults
+11563	Post-Panel Consolidation	33	meningitis	48980	0	0	\N	Override, neutralize non-procedure consults
+11564	Post-Panel Consolidation	31	meningitis	49207	0	0	\N	Override, standard process
+11565	Post-Panel Consolidation	31	meningitis	49083	1	0	\N	Late to be drawing culture if already got antibiotics
+11566	Post-Panel Consolidation	30	meningitis	44237	0	0	\N	Mix of scores, as doesn't penetrate CNS. Leave as 0 for ambiguous, not directly harmful
+11567	Post-Panel Consolidation	30	meningitis	44252	0	0	\N	Mix of scores, as doesn't penetrate CNS. Leave as 0 for ambiguous, not directly harmful
+11568	Post-Panel Consolidation	31	meningitis	48577	5	0	\N	\N
+11569	Post-Panel Consolidation	30	meningitis	46006	0	0	\N	Override, let be subsumed by Culture + Gram Stain order
+11570	Post-Panel Consolidation	33	meningitis	46006	0	0	\N	Override, let be subsumed by Culture + Gram Stain order
+11571	Post-Panel Consolidation	33	meningitis	49109	7	0	HSV CSF	\N
+11572	Post-Panel Consolidation	30	meningitis	48954	0	0	\N	Standard process
+11573	Post-Panel Consolidation	30	meningitis	50510	5	0	\N	Reasonable, though not standard guidelines to check
+11574	Post-Panel Consolidation	30	meningitis	63811	0	0	\N	Override, let points be from respective test orders
+11575	Post-Panel Consolidation	31	meningitis	63811	0	0	\N	Override, let points be from respective test orders
+11576	Post-Panel Consolidation	33	meningitis	63811	0	0	\N	Override, let points be from respective test orders
+11577	Post-Panel Consolidation	30	meningitis	62167	0	0	\N	Override, let points be from respective test orders
+11578	Post-Panel Consolidation	33	meningitis	62167	0	0	\N	Override, let points be from respective test orders
+11579	Post-Panel Consolidation	30	meningitis	45798	5	0	Pregnancy Test	\N
+11580	Post-Panel Consolidation	31	meningitis	49020	5	0	\N	\N
+11581	Post-Panel Consolidation	30	meningitis	45759	5	0	Coags	Override, match DIC screen
+11582	Post-Panel Consolidation	30	meningitis	45770	5	0	Coags	Override, match DIC screen
+11583	Post-Panel Consolidation	31	meningitis	62103	5	0	HIV Test	\N
+11584	Post-Panel Consolidation	30	meningitis	48586	0	0	\N	\N
+11585	Post-Panel Consolidation	30	meningitis	45801	3	0	CXR	General workup for fever/infection, though symptoms not suggestive of pneumonia
+11586	Post-Panel Consolidation	5000	neutropenic	56492	4	0	Acetaminophen	\N
+11587	Post-Panel Consolidation	5003	neutropenic	44281	4	0	Acetaminophen	\N
+11588	Post-Panel Consolidation	5000	neutropenic	48829	0	0	\N	\N
+11589	Post-Panel Consolidation	5003	neutropenic	45901	10	0	Blood Cultures	Less points if after antibiotics? May not be able to reliably distinguish if batch order
+11590	Post-Panel Consolidation	5003	neutropenic	45752	10	0	Blood Cultures	Less points if after antibiotics? May not be able to reliably distinguish if batch order
+11591	Post-Panel Consolidation	5003	neutropenic	44439	10	0	IVF	\N
+11592	Post-Panel Consolidation	5002	neutropenic	45793	8	0	CBC	Override for consistency with panel
+11593	Post-Panel Consolidation	5003	neutropenic	45793	8	0	CBC	\N
+11594	Post-Panel Consolidation	5003	neutropenic	45788	8	0	CBC	\N
+11595	Post-Panel Consolidation	5002	neutropenic	45966	8	0	CBC	\N
+11596	Post-Panel Consolidation	5003	neutropenic	48980	0	0	\N	Neutralize non-procedure consults
+11597	Post-Panel Consolidation	5002	neutropenic	49228	0	0	\N	Neutralize non-procedure consults
+11598	Post-Panel Consolidation	5003	neutropenic	49054	5	0	\N	Neutropenic, not droplet isolation. Override to match panel. Could be on initial isolation pending viral screen
+11599	Post-Panel Consolidation	5000	neutropenic	45806	3	0	\N	Match panel
+11600	Post-Panel Consolidation	5003	neutropenic	45806	3	0	\N	Match panel
+11601	Post-Panel Consolidation	5003	neutropenic	45763	10	0	Metabolic Panel	Match panel
+11602	Post-Panel Consolidation	5003	neutropenic	45771	10	0	Metabolic Panel	Match panel
+11603	Post-Panel Consolidation	5003	neutropenic	45955	10	0	Lactate	Match panel
+11604	Post-Panel Consolidation	5000	neutropenic	45759	4	0	Coags	Match panel
+11605	Post-Panel Consolidation	5003	neutropenic	45759	4	0	Coags	Match panel
+11606	Post-Panel Consolidation	5000	neutropenic	45770	4	0	Coags	Match panel
+11607	Post-Panel Consolidation	5003	neutropenic	45770	4	0	Coags	Match panel
+11608	Post-Panel Consolidation	5003	neutropenic	62023	6	0	Respiratory Virus Screen	Match panel
+11609	Post-Panel Consolidation	5003	neutropenic	63923	6	0	Respiratory Virus Screen	Match panel
+11610	Post-Panel Consolidation	5002	neutropenic	63725	10	0	Lactate	Match panel
+11611	Post-Panel Consolidation	5003	neutropenic	45995	3	0	\N	Match panel
+11612	Post-Panel Consolidation	10	pulmonary_embolism	45977	0	0	\N	Override, standard process
+11613	Post-Panel Consolidation	11	pulmonary_embolism	45977	0	0	\N	Override, standard process
+11614	Post-Panel Consolidation	11	pulmonary_embolism	45814	0	0	\N	Override, standard process
+11615	Post-Panel Consolidation	10	pulmonary_embolism	46309	7	0	Nebs	Match panel
+11616	Post-Panel Consolidation	11	pulmonary_embolism	46309	7	0	Nebs	Match panel
+11617	Post-Panel Consolidation	10	pulmonary_embolism	44349	7	0	Nebs	Match panel
+11618	Post-Panel Consolidation	11	pulmonary_embolism	44349	7	0	Nebs	Match panel
+11619	Post-Panel Consolidation	10	pulmonary_embolism	60175	7	0	Nebs	Match panel
+11620	Post-Panel Consolidation	11	pulmonary_embolism	60175	7	0	Nebs	Match panel
+11621	Post-Panel Consolidation	12	pulmonary_embolism	60175	7	0	Nebs	Match panel
+11622	Post-Panel Consolidation	10	pulmonary_embolism	47146	4	0	Aspirin	Match panel
+11623	Post-Panel Consolidation	8	pulmonary_embolism	44206	4	0	Aspirin	\N
+11624	Post-Panel Consolidation	8	pulmonary_embolism	45793	10	0	CBC	Match panel, though seems high
+11625	Post-Panel Consolidation	12	pulmonary_embolism	45793	10	0	CBC	Match panel, though seems high
+11626	Post-Panel Consolidation	8	pulmonary_embolism	45788	10	0	CBC	Match panel, though seems high
+11627	Post-Panel Consolidation	10	pulmonary_embolism	65695	0	0	\N	Override, neutralize non-procedural consults
+11628	Post-Panel Consolidation	11	pulmonary_embolism	65695	0	0	\N	Override, neutralize non-procedural consults
+11629	Post-Panel Consolidation	12	pulmonary_embolism	61323	0	0	\N	Override, neutralize non-procedural consults. Patient wouldn't qualify for ICU transfer?
+11630	Post-Panel Consolidation	12	pulmonary_embolism	48502	4	0	Biopsy	Consult, but maybe thinking about IR procedure. Not necessary for initial PE treatment, but maybe thinking about biopsy already
+11631	Post-Panel Consolidation	10	pulmonary_embolism	49207	0	0	\N	Override, neutralize non-procedural consults
+11632	Post-Panel Consolidation	11	pulmonary_embolism	49228	0	0	\N	Override, neutralize non-procedural consults
+11633	Post-Panel Consolidation	8	pulmonary_embolism	49228	0	0	\N	Override, neutralize non-procedural consults
+11634	Post-Panel Consolidation	11	pulmonary_embolism	49073	7	0	CT Chest	Override, still offer points, as CT Chest order details could allow specification of PE / contrast protocol
+11635	Post-Panel Consolidation	8	pulmonary_embolism	46008	2	0	NPO	Override for consistency with other NPO orders
+11636	Post-Panel Consolidation	12	pulmonary_embolism	45866	7	0	\N	Match panel
+11637	Post-Panel Consolidation	10	pulmonary_embolism	62176	6	0	Echo	Match panel
+11638	Post-Panel Consolidation	11	pulmonary_embolism	62176	6	0	Echo	Match panel
+11639	Post-Panel Consolidation	11	pulmonary_embolism	46183	0	0	\N	Override, just count primary anticoagulation order
+11640	Post-Panel Consolidation	10	pulmonary_embolism	49301	7	0	Blood Gas	Match panel
+11641	Post-Panel Consolidation	8	pulmonary_embolism	45806	5	0	\N	Match panel
+11642	Post-Panel Consolidation	10	pulmonary_embolism	45806	5	0	\N	Match panel
+11643	Post-Panel Consolidation	12	pulmonary_embolism	45806	5	0	\N	Match panel
+11644	Post-Panel Consolidation	8	pulmonary_embolism	45771	10	0	Metabolic Panel	\N
+11645	Post-Panel Consolidation	12	pulmonary_embolism	45771	10	0	Metabolic Panel	\N
+11646	Post-Panel Consolidation	11	pulmonary_embolism	46090	0	0	\N	Override, embed to heparin order
+11647	Post-Panel Consolidation	11	pulmonary_embolism	45776	0	0	\N	Override, process
+11648	Post-Panel Consolidation	10	pulmonary_embolism	45770	10	0	Coags	Match panel. Monitor in prep for anticoagulation?
+11649	Post-Panel Consolidation	12	pulmonary_embolism	45770	10	0	Coags	\N
+11650	Post-Panel Consolidation	12	pulmonary_embolism	45857	0	0	\N	Override, process order for actual nebs medication order
+11651	Post-Panel Consolidation	10	pulmonary_embolism	45830	0	0	\N	Override, process order for actual nebs medication order
+11652	Post-Panel Consolidation	12	pulmonary_embolism	45830	0	0	\N	Override, process order for actual nebs medication order
+11653	Post-Panel Consolidation	11	pulmonary_embolism	46179	5	0	Respiratory Culture	\N
+11654	Post-Panel Consolidation	10	pulmonary_embolism	62023	5	0	Respiratory Virus Screen	\N
+11655	Post-Panel Consolidation	12	pulmonary_embolism	62023	5	0	Respiratory Virus Screen	\N
+11656	Post-Panel Consolidation	12	pulmonary_embolism	45870	6	0	Troponin	\N
+11657	Post-Panel Consolidation	11	pulmonary_embolism	65672	4	0	DVT US	Could be good early diagnosis, but here the diagnosis of PE has likely already been made given on anticoag. So not sure what the point of adding on DVT US. They'll find DVT, but already diagnosed PE anyway.
+11658	Post-Panel Consolidation	11	pulmonary_embolism	65656	4	0	DVT US	Could be good early diagnosis, but here the diagnosis of PE has likely already been made given on anticoag. So not sure what the point of adding on DVT US. They'll find DVT, but already diagnosed PE anyway.
+11659	Post-Panel Consolidation	11	pulmonary_embolism	65692	4	0	DVT US	Could be good early diagnosis, but here the diagnosis of PE has likely already been made given on anticoag. So not sure what the point of adding on DVT US. They'll find DVT, but already diagnosed PE anyway.
+11660	Post-Panel Consolidation	8	pulmonary_embolism	46113	0	0	\N	Process?
+11661	Post-Panel Consolidation	43	atrial_fibrillation	46605	0	1	\N	Irregular rhythm, so adenosine not so relevant
+11662	Post-Panel Consolidation	41	atrial_fibrillation	65641	0	1	\N	Standard Process
+11663	Post-Panel Consolidation	41	atrial_fibrillation	47146	2	1	Aspirin	\N
+11664	Post-Panel Consolidation	40	atrial_fibrillation	44206	2	1	Aspirin	\N
+11665	Post-Panel Consolidation	41	atrial_fibrillation	44206	2	1	Aspirin	\N
+11666	Post-Panel Consolidation	43	atrial_fibrillation	44206	2	1	Aspirin	\N
+11667	Post-Panel Consolidation	43	atrial_fibrillation	44315	1	1	Aspirin	\N
+11668	Post-Panel Consolidation	41	atrial_fibrillation	44240	2	1	\N	\N
+11669	Post-Panel Consolidation	43	atrial_fibrillation	45901	1	1	\N	\N
+11670	Post-Panel Consolidation	40	atrial_fibrillation	41870	0	1	\N	\N
+11671	Post-Panel Consolidation	40	atrial_fibrillation	45827	8	1	\N	\N
+11672	Post-Panel Consolidation	41	atrial_fibrillation	45827	8	1	\N	\N
+11673	Post-Panel Consolidation	40	atrial_fibrillation	45793	6	1	CBC	\N
+11674	Post-Panel Consolidation	43	atrial_fibrillation	45793	6	1	CBC	\N
+11675	Post-Panel Consolidation	40	atrial_fibrillation	45788	6	1	CBC	\N
+11676	Post-Panel Consolidation	41	atrial_fibrillation	45788	6	1	CBC	\N
+11677	Post-Panel Consolidation	41	atrial_fibrillation	65695	0	1	\N	\N
+11678	Post-Panel Consolidation	43	atrial_fibrillation	61323	6	1	\N	\N
+11679	Post-Panel Consolidation	40	atrial_fibrillation	50098	-5	1	CT Head	\N
+11680	Post-Panel Consolidation	40	atrial_fibrillation	45983	-5	1	CT Head	\N
+11681	Post-Panel Consolidation	40	atrial_fibrillation	49965	-5	1	CT Head	\N
+11682	Post-Panel Consolidation	40	atrial_fibrillation	-100	10	1	\N	\N
+11683	Post-Panel Consolidation	43	atrial_fibrillation	-100	10	1	\N	\N
+11684	Post-Panel Consolidation	40	atrial_fibrillation	44353	-2	1	\N	\N
+11685	Post-Panel Consolidation	41	atrial_fibrillation	45824	1	1	\N	\N
+11686	Post-Panel Consolidation	41	atrial_fibrillation	45811	2	1	\N	\N
+11687	Post-Panel Consolidation	40	atrial_fibrillation	46674	-4	1	\N	\N
+11688	Post-Panel Consolidation	43	atrial_fibrillation	46674	-4	1	\N	\N
+11689	Post-Panel Consolidation	40	atrial_fibrillation	35846	-8	1	\N	\N
+11690	Post-Panel Consolidation	43	atrial_fibrillation	35846	-9	1	\N	\N
+11691	Post-Panel Consolidation	43	atrial_fibrillation	44393	-8	1	\N	\N
+11692	Post-Panel Consolidation	43	atrial_fibrillation	44251	-8	1	\N	\N
+11693	Post-Panel Consolidation	40	atrial_fibrillation	44204	-2	1	\N	\N
+11694	Post-Panel Consolidation	43	atrial_fibrillation	45941	2	1	\N	\N
+11695	Post-Panel Consolidation	40	atrial_fibrillation	45866	9	1	\N	\N
+11696	Post-Panel Consolidation	41	atrial_fibrillation	45866	5	1	\N	Okay to have less points here, to emphasize missed opportunity initially?
+11697	Post-Panel Consolidation	43	atrial_fibrillation	45866	9	1	\N	\N
+11698	Post-Panel Consolidation	43	atrial_fibrillation	44248	-8	1	\N	\N
+11699	Post-Panel Consolidation	43	atrial_fibrillation	44297	2	1	\N	\N
+11700	Post-Panel Consolidation	40	atrial_fibrillation	46230	-2	1	\N	\N
+11701	Post-Panel Consolidation	40	atrial_fibrillation	50343	0	1	\N	\N
+11702	Post-Panel Consolidation	41	atrial_fibrillation	45797	3	1	\N	\N
+11703	Post-Panel Consolidation	43	atrial_fibrillation	44359	8	1	Anticoagulation	\N
+11704	Post-Panel Consolidation	40	atrial_fibrillation	49301	1	1	Blood Gas	\N
+11705	Post-Panel Consolidation	40	atrial_fibrillation	45888	1	1	Blood Gas	\N
+11706	Post-Panel Consolidation	43	atrial_fibrillation	48732	1	1	Blood Gas	\N
+11707	Post-Panel Consolidation	40	atrial_fibrillation	45942	5	1	INR	\N
+11708	Post-Panel Consolidation	40	atrial_fibrillation	45838	6	1	Troponin	\N
+11709	Post-Panel Consolidation	40	atrial_fibrillation	62151	3	1	Lactate	\N
+11710	Post-Panel Consolidation	41	atrial_fibrillation	62151	2	1	Lactate	\N
+11711	Post-Panel Consolidation	41	atrial_fibrillation	46011	3	1	Lipids	\N
+11712	Post-Panel Consolidation	41	atrial_fibrillation	61837	3	1	Lipids	\N
+11713	Post-Panel Consolidation	40	atrial_fibrillation	45806	6	1	\N	\N
+11714	Post-Panel Consolidation	41	atrial_fibrillation	45806	6	1	\N	\N
+11715	Post-Panel Consolidation	40	atrial_fibrillation	45763	7	1	Metabolic Panel	\N
+11716	Post-Panel Consolidation	40	atrial_fibrillation	45771	7	1	Metabolic Panel	\N
+11717	Post-Panel Consolidation	41	atrial_fibrillation	45771	7	1	Metabolic Panel	\N
+11718	Post-Panel Consolidation	43	atrial_fibrillation	45771	7	1	Metabolic Panel	\N
+11719	Post-Panel Consolidation	40	atrial_fibrillation	44327	-8	1	\N	\N
+11720	Post-Panel Consolidation	41	atrial_fibrillation	44005	4	1	\N	\N
+11721	Post-Panel Consolidation	40	atrial_fibrillation	44000	5	1	\N	\N
+11722	Post-Panel Consolidation	43	atrial_fibrillation	44000	4	1	\N	\N
+11723	Post-Panel Consolidation	40	atrial_fibrillation	44294	2	1	\N	\N
+11724	Post-Panel Consolidation	41	atrial_fibrillation	45792	0	1	\N	\N
+11725	Post-Panel Consolidation	43	atrial_fibrillation	45792	-1	1	\N	\N
+11726	Post-Panel Consolidation	43	atrial_fibrillation	44241	0	1	\N	Trying to relieve preload?
+11727	Post-Panel Consolidation	43	atrial_fibrillation	44256	0	1	\N	Trying to relieve preload?
+11728	Post-Panel Consolidation	40	atrial_fibrillation	48628	0	1	\N	\N
+11729	Post-Panel Consolidation	40	atrial_fibrillation	46081	0	1	\N	\N
+11730	Post-Panel Consolidation	40	atrial_fibrillation	50235	0	1	\N	Not a respiratory issue?
+11731	Post-Panel Consolidation	43	atrial_fibrillation	50235	0	1	\N	Not respiratory issue, but maybe thinking manage preload with pulmonary pressure?
+11732	Post-Panel Consolidation	43	atrial_fibrillation	36086	0	1	Vasopressor	Adding vasopressor on while hypotensive from negative inotrope?
+11733	Post-Panel Consolidation	40	atrial_fibrillation	45853	5	1	\N	\N
+11734	Post-Panel Consolidation	41	atrial_fibrillation	45853	5	1	\N	\N
+11735	Post-Panel Consolidation	43	atrial_fibrillation	45853	5	1	\N	\N
+11736	Post-Panel Consolidation	40	atrial_fibrillation	45787	0	1	\N	\N
+11737	Post-Panel Consolidation	41	atrial_fibrillation	45787	0	1	\N	\N
+11738	Post-Panel Consolidation	40	atrial_fibrillation	48822	0	1	Oxygen	\N
+11739	Post-Panel Consolidation	43	atrial_fibrillation	48822	0	1	Oxygen	\N
+11740	Post-Panel Consolidation	43	atrial_fibrillation	45900	0	1	Oxygen	\N
+11741	Post-Panel Consolidation	43	atrial_fibrillation	43993	0	1	Vasopressor	\N
+11742	Post-Panel Consolidation	40	atrial_fibrillation	45778	1	1	\N	\N
+11743	Post-Panel Consolidation	43	atrial_fibrillation	45778	1	1	\N	\N
+11744	Post-Panel Consolidation	40	atrial_fibrillation	45914	6	1	Troponin	\N
+11745	Post-Panel Consolidation	43	atrial_fibrillation	46185	1	1	Blood Gas	\N
+11746	Post-Panel Consolidation	40	atrial_fibrillation	46067	3	1	Metabolic Panel	\N
+11747	Post-Panel Consolidation	43	atrial_fibrillation	46000	0	1	\N	\N
+11748	Post-Panel Consolidation	40	atrial_fibrillation	45759	5	1	INR	\N
+11749	Post-Panel Consolidation	41	atrial_fibrillation	45759	5	1	INR	\N
+11750	Post-Panel Consolidation	43	atrial_fibrillation	45759	5	1	INR	\N
+11751	Post-Panel Consolidation	40	atrial_fibrillation	45776	0	1	\N	\N
+11752	Post-Panel Consolidation	41	atrial_fibrillation	45776	0	1	\N	\N
+11753	Post-Panel Consolidation	40	atrial_fibrillation	45770	5	1	INR	Merge with INR just to represent checking coags
+11754	Post-Panel Consolidation	43	atrial_fibrillation	45770	5	1	INR	Merge with INR just to represent checking coags
+11755	Post-Panel Consolidation	40	atrial_fibrillation	44312	0	1	\N	\N
+11756	Post-Panel Consolidation	40	atrial_fibrillation	44198	-2	1	\N	\N
+11757	Post-Panel Consolidation	43	atrial_fibrillation	44198	-2	1	\N	\N
+11758	Post-Panel Consolidation	40	atrial_fibrillation	45870	6	1	Troponin	\N
+11759	Post-Panel Consolidation	41	atrial_fibrillation	45870	6	1	Troponin	\N
+11760	Post-Panel Consolidation	43	atrial_fibrillation	45870	6	1	Troponin	\N
+11761	Post-Panel Consolidation	40	atrial_fibrillation	62105	7	1	\N	\N
+11762	Post-Panel Consolidation	41	atrial_fibrillation	62105	7	1	\N	\N
+11763	Post-Panel Consolidation	40	atrial_fibrillation	45945	0	1	\N	\N
+11764	Post-Panel Consolidation	43	atrial_fibrillation	45945	0	1	\N	\N
+11765	Post-Panel Consolidation	40	atrial_fibrillation	65656	-1	1	DVT US	\N
+11766	Post-Panel Consolidation	41	atrial_fibrillation	65656	-1	1	DVT US	\N
+11767	Post-Panel Consolidation	40	atrial_fibrillation	65692	-1	1	DVT US	\N
+11768	Post-Panel Consolidation	41	atrial_fibrillation	65692	-1	1	DVT US	\N
+11769	Post-Panel Consolidation	41	atrial_fibrillation	45751	0	1	\N	\N
+11770	Post-Panel Consolidation	40	atrial_fibrillation	46236	2	1	\N	EtOH as part of Afib eval?
+11771	Post-Panel Consolidation	41	atrial_fibrillation	45818	3	1	\N	\N
+11772	Post-Panel Consolidation	40	atrial_fibrillation	50200	3	1	\N	\N
+11773	Post-Panel Consolidation	41	atrial_fibrillation	50200	3	1	\N	\N
+11774	Post-Panel Consolidation	40	atrial_fibrillation	45801	-3	1	\N	\N
+11775	Post-Panel Consolidation	43	atrial_fibrillation	45801	-3	1	\N	\N
+11776	Post-Panel Consolidation	14	gi_bleed	44281	-1	1	\N	\N
+11777	Post-Panel Consolidation	2	gi_bleed	48829	1	1	\N	\N
+11778	Post-Panel Consolidation	14	gi_bleed	44416	0	1	\N	Acetaminophen overdose, non-specific hepatitis treatment?
+11779	Post-Panel Consolidation	2	gi_bleed	65641	0	1	\N	\N
+11780	Post-Panel Consolidation	14	gi_bleed	65641	0	1	\N	\N
+11781	Post-Panel Consolidation	16	gi_bleed	65641	0	1	\N	\N
+11782	Post-Panel Consolidation	15	gi_bleed	48744	0	1	\N	Probably want complete hepatic panel, so give points there
+11783	Post-Panel Consolidation	14	gi_bleed	46136	0	1	\N	\N
+11784	Post-Panel Consolidation	15	gi_bleed	46136	0	1	\N	\N
+11785	Post-Panel Consolidation	2	gi_bleed	46136	0	1	\N	\N
+11786	Post-Panel Consolidation	15	gi_bleed	63723	0	1	\N	\N
+11787	Post-Panel Consolidation	14	gi_bleed	50962	-4	1	\N	Mistaken test. Wasted, but not directly harmful?
+11788	Post-Panel Consolidation	15	gi_bleed	46245	2	1	\N	\N
+11789	Post-Panel Consolidation	14	gi_bleed	45901	0	1	\N	\N
+11790	Post-Panel Consolidation	14	gi_bleed	45752	0	1	\N	\N
+11791	Post-Panel Consolidation	14	gi_bleed	45760	0	1	Blood Gas	\N
+11792	Post-Panel Consolidation	15	gi_bleed	45919	0	1	Blood Gas	\N
+11793	Post-Panel Consolidation	14	gi_bleed	45823	10	1	Type and Screen	\N
+11794	Post-Panel Consolidation	14	gi_bleed	44290	8	1	IVF	\N
+11795	Post-Panel Consolidation	15	gi_bleed	44290	8	1	IVF	\N
+11796	Post-Panel Consolidation	15	gi_bleed	45887	0	1	\N	\N
+11797	Post-Panel Consolidation	2	gi_bleed	45887	0	1	\N	\N
+11798	Post-Panel Consolidation	14	gi_bleed	45793	10	1	CBC	\N
+11799	Post-Panel Consolidation	15	gi_bleed	45793	10	1	CBC	\N
+11800	Post-Panel Consolidation	16	gi_bleed	45793	10	1	CBC	\N
+11801	Post-Panel Consolidation	2	gi_bleed	45793	10	1	CBC	\N
+11802	Post-Panel Consolidation	14	gi_bleed	45788	10	1	CBC	\N
+11803	Post-Panel Consolidation	15	gi_bleed	45788	10	1	CBC	\N
+11804	Post-Panel Consolidation	2	gi_bleed	45788	10	1	CBC	\N
+11805	Post-Panel Consolidation	15	gi_bleed	44255	0	1	\N	Not reliable to cover Gram negative enterics (e.g., E coli)
+11806	Post-Panel Consolidation	15	gi_bleed	44637	5	1	Antibiotics	\N
+11807	Post-Panel Consolidation	14	gi_bleed	45060	2	1	Antibiotics	\N
+11808	Post-Panel Consolidation	15	gi_bleed	45060	2	1	Antibiotics	\N
+11809	Post-Panel Consolidation	14	gi_bleed	35733	10	1	Antibiotics	\N
+11810	Post-Panel Consolidation	15	gi_bleed	35733	10	1	Antibiotics	\N
+11811	Post-Panel Consolidation	16	gi_bleed	35733	10	1	Antibiotics	\N
+11812	Post-Panel Consolidation	2	gi_bleed	35733	10	1	Antibiotics	\N
+11813	Post-Panel Consolidation	2	gi_bleed	44249	7	1	Antibiotics	Reasonable empiric choice for GNRs
+11814	Post-Panel Consolidation	14	gi_bleed	62027	0	1	\N	\N
+11815	Post-Panel Consolidation	2	gi_bleed	63720	5	1	Hepatitis Panel	\N
+11816	Post-Panel Consolidation	14	gi_bleed	49481	10	1	GI EGD	\N
+11817	Post-Panel Consolidation	15	gi_bleed	49481	10	1	GI EGD	\N
+11818	Post-Panel Consolidation	16	gi_bleed	49481	10	1	GI EGD	\N
+11819	Post-Panel Consolidation	14	gi_bleed	61323	2	1	\N	\N
+11820	Post-Panel Consolidation	16	gi_bleed	61323	0	1	\N	\N
+11821	Post-Panel Consolidation	14	gi_bleed	49867	0	1	\N	Not DIC, more total coagulant deficiency
+11822	Post-Panel Consolidation	2	gi_bleed	50737	-5	1	\N	\N
+11823	Post-Panel Consolidation	14	gi_bleed	48871	0	1	\N	\N
+11824	Post-Panel Consolidation	14	gi_bleed	46286	7	1	Coags	\N
+11825	Post-Panel Consolidation	16	gi_bleed	46286	7	1	Coags	\N
+11826	Post-Panel Consolidation	14	gi_bleed	45811	8	1	\N	\N
+11827	Post-Panel Consolidation	15	gi_bleed	45811	8	1	\N	\N
+11828	Post-Panel Consolidation	14	gi_bleed	45941	0	1	\N	\N
+11829	Post-Panel Consolidation	14	gi_bleed	45866	2	1	\N	\N
+11830	Post-Panel Consolidation	15	gi_bleed	45866	2	1	\N	\N
+11831	Post-Panel Consolidation	2	gi_bleed	61832	0	1	\N	\N
+11832	Post-Panel Consolidation	15	gi_bleed	46160	0	1	\N	\N
+11833	Post-Panel Consolidation	15	gi_bleed	46078	0	1	\N	\N
+11834	Post-Panel Consolidation	15	gi_bleed	63759	10	1	RBC	\N
+11835	Post-Panel Consolidation	14	gi_bleed	46028	4	1	\N	\N
+11836	Post-Panel Consolidation	14	gi_bleed	45872	9	1	FFP	\N
+11837	Post-Panel Consolidation	15	gi_bleed	45872	9	1	FFP	\N
+11838	Post-Panel Consolidation	16	gi_bleed	45872	9	1	FFP	\N
+11839	Post-Panel Consolidation	14	gi_bleed	44237	6	1	Antibiotics	A bit overkill, but would cover GNRs
+11840	Post-Panel Consolidation	14	gi_bleed	48724	5	1	\N	\N
+11841	Post-Panel Consolidation	14	gi_bleed	45948	5	1	\N	\N
+11842	Post-Panel Consolidation	15	gi_bleed	45948	5	1	\N	\N
+11843	Post-Panel Consolidation	15	gi_bleed	45891	10	1	CBC	\N
+11844	Post-Panel Consolidation	15	gi_bleed	46051	10	1	CBC	\N
+11845	Post-Panel Consolidation	15	gi_bleed	46068	0	1	\N	\N
+11846	Post-Panel Consolidation	14	gi_bleed	45910	7	1	Metabolic Panel	\N
+11847	Post-Panel Consolidation	2	gi_bleed	62029	0	1	\N	Covered in hepatitis panel?
+11848	Post-Panel Consolidation	14	gi_bleed	65649	4	1	\N	\N
+11849	Post-Panel Consolidation	15	gi_bleed	62022	7	1	Intubation	\N
+11850	Post-Panel Consolidation	14	gi_bleed	45942	8	1	Coags	\N
+11851	Post-Panel Consolidation	15	gi_bleed	45838	0	1	Troponin	\N
+11852	Post-Panel Consolidation	14	gi_bleed	48954	10	1	IV Access	Standard process that can be hard to distinguish, but include for particular relevance in this case
+11853	Post-Panel Consolidation	15	gi_bleed	44978	0	1	\N	Peri-procedure sedation???
+11854	Post-Panel Consolidation	14	gi_bleed	62151	2	1	Lactate	\N
+11855	Post-Panel Consolidation	15	gi_bleed	62151	2	1	Lactate	\N
+11856	Post-Panel Consolidation	16	gi_bleed	62151	2	1	Lactate	\N
+11857	Post-Panel Consolidation	15	gi_bleed	46289	-2	1	Lactulose	\N
+11858	Post-Panel Consolidation	15	gi_bleed	44302	-2	1	Lactulose	\N
+11859	Post-Panel Consolidation	15	gi_bleed	44593	-2	1	Lactulose	\N
+11860	Post-Panel Consolidation	14	gi_bleed	45903	0	1	\N	Hemolytic anemia eval?
+11861	Post-Panel Consolidation	14	gi_bleed	62144	0	1	\N	\N
+11862	Post-Panel Consolidation	14	gi_bleed	45894	0	1	\N	\N
+11863	Post-Panel Consolidation	15	gi_bleed	45806	2	1	\N	\N
+11864	Post-Panel Consolidation	14	gi_bleed	63745	0	1	\N	\N
+11865	Post-Panel Consolidation	15	gi_bleed	63745	0	1	\N	\N
+11866	Post-Panel Consolidation	14	gi_bleed	45763	8	1	Metabolic Panel	\N
+11867	Post-Panel Consolidation	15	gi_bleed	45763	8	1	Metabolic Panel	\N
+11868	Post-Panel Consolidation	2	gi_bleed	45763	8	1	Metabolic Panel	\N
+11869	Post-Panel Consolidation	14	gi_bleed	45771	9	1	Metabolic Panel	\N
+11870	Post-Panel Consolidation	15	gi_bleed	45771	9	1	Metabolic Panel	\N
+11871	Post-Panel Consolidation	15	gi_bleed	45792	0	1	\N	\N
+11872	Post-Panel Consolidation	14	gi_bleed	45785	0	1	\N	\N
+11873	Post-Panel Consolidation	15	gi_bleed	36086	5	1	Vasopressors	\N
+11874	Post-Panel Consolidation	14	gi_bleed	51110	0	1	\N	Largely irrelevant in acute setting
+11875	Post-Panel Consolidation	14	gi_bleed	46451	-2	1	\N	\N
+11876	Post-Panel Consolidation	15	gi_bleed	46451	-2	1	\N	\N
+11877	Post-Panel Consolidation	14	gi_bleed	43996	10	1	\N	\N
+11878	Post-Panel Consolidation	15	gi_bleed	43996	10	1	\N	\N
+11879	Post-Panel Consolidation	16	gi_bleed	43996	10	1	\N	\N
+11880	Post-Panel Consolidation	2	gi_bleed	43996	10	1	\N	\N
+11881	Post-Panel Consolidation	15	gi_bleed	46449	-2	1	\N	\N
+11882	Post-Panel Consolidation	14	gi_bleed	44216	2	1	\N	\N
+11883	Post-Panel Consolidation	14	gi_bleed	45868	8	1	\N	\N
+11884	Post-Panel Consolidation	14	gi_bleed	48822	0	1	Oxygen	No specific hypoxia in case
+11885	Post-Panel Consolidation	14	gi_bleed	45900	0	1	Oxygen	No specific hypoxia in case
+11886	Post-Panel Consolidation	14	gi_bleed	44219	10	1	\N	\N
+11887	Post-Panel Consolidation	15	gi_bleed	44219	10	1	\N	\N
+11888	Post-Panel Consolidation	16	gi_bleed	44219	10	1	\N	\N
+11889	Post-Panel Consolidation	15	gi_bleed	44236	0	1	\N	\N
+11890	Post-Panel Consolidation	14	gi_bleed	44236	0	1	\N	Mistake, should be giving oral med while vomiting blood
+11891	Post-Panel Consolidation	15	gi_bleed	62171	0	1	\N	Active bleeding, probably not right time for para, though SBP always to consider?
+11892	Post-Panel Consolidation	14	gi_bleed	61823	10	1	IV Access	\N
+11893	Post-Panel Consolidation	15	gi_bleed	61823	10	1	IV Access	\N
+11894	Post-Panel Consolidation	14	gi_bleed	45802	10	1	IV Access	\N
+11895	Post-Panel Consolidation	15	gi_bleed	43993	3	1	Vasopressors	\N
+11896	Post-Panel Consolidation	15	gi_bleed	45778	4	1	\N	\N
+11897	Post-Panel Consolidation	2	gi_bleed	45778	4	1	\N	\N
+11898	Post-Panel Consolidation	14	gi_bleed	45875	0	1	Platelets	\N
+11899	Post-Panel Consolidation	15	gi_bleed	45875	0	1	Platelets	\N
+11900	Post-Panel Consolidation	15	gi_bleed	45955	2	1	Lactate	\N
+11901	Post-Panel Consolidation	14	gi_bleed	50267	0	1	\N	\N
+11902	Post-Panel Consolidation	15	gi_bleed	44292	0	1	\N	Pre-procedure sedation?
+11903	Post-Panel Consolidation	14	gi_bleed	49904	-2	1	\N	\N
+11904	Post-Panel Consolidation	14	gi_bleed	45759	8	1	Coags	\N
+11905	Post-Panel Consolidation	15	gi_bleed	45759	8	1	Coags	\N
+11906	Post-Panel Consolidation	16	gi_bleed	45759	8	1	Coags	\N
+11907	Post-Panel Consolidation	2	gi_bleed	45759	8	1	Coags	\N
+11908	Post-Panel Consolidation	14	gi_bleed	45770	8	1	Coags	\N
+11909	Post-Panel Consolidation	15	gi_bleed	45770	8	1	Coags	\N
+11910	Post-Panel Consolidation	2	gi_bleed	45770	8	1	Coags	\N
+11911	Post-Panel Consolidation	2	gi_bleed	62103	0	1	\N	\N
+11912	Post-Panel Consolidation	14	gi_bleed	45927	10	1	RBC	\N
+11913	Post-Panel Consolidation	15	gi_bleed	45927	10	1	RBC	\N
+11914	Post-Panel Consolidation	16	gi_bleed	45927	10	1	RBC	\N
+11915	Post-Panel Consolidation	2	gi_bleed	45927	10	1	RBC	\N
+11916	Post-Panel Consolidation	15	gi_bleed	44424	0	1	\N	\N
+11917	Post-Panel Consolidation	14	gi_bleed	49173	0	1	\N	?Intoxication not really active issue
+11918	Post-Panel Consolidation	14	gi_bleed	44198	8	1	IVF	\N
+11919	Post-Panel Consolidation	15	gi_bleed	44198	8	1	IVF	\N
+11920	Post-Panel Consolidation	15	gi_bleed	44441	0	1	\N	?Pre-intubation for airway protection?
+11921	Post-Panel Consolidation	14	gi_bleed	45877	8	1	Coagulopathy Correction	\N
+11922	Post-Panel Consolidation	15	gi_bleed	45877	8	1	Coagulopathy Correction	\N
+11923	Post-Panel Consolidation	16	gi_bleed	45877	8	1	Coagulopathy Correction	\N
+11924	Post-Panel Consolidation	14	gi_bleed	65702	8	1	Coagulopathy Correction	\N
+11925	Post-Panel Consolidation	15	gi_bleed	65702	8	1	Coagulopathy Correction	\N
+11926	Post-Panel Consolidation	16	gi_bleed	65702	8	1	Coagulopathy Correction	\N
+11927	Post-Panel Consolidation	14	gi_bleed	65646	0	1	Transfuse Platelets	\N
+11928	Post-Panel Consolidation	15	gi_bleed	65646	0	1	Transfuse Platelets	\N
+11929	Post-Panel Consolidation	15	gi_bleed	45956	0	1	Transfuse Platelets	\N
+11930	Post-Panel Consolidation	14	gi_bleed	45956	0	1	Transfuse Platelets	Not sure necessary or appropriate to transfuse platelets given observed counts not low?
+11997	Post-Panel Consolidation	33	meningitis	48880	5	1	\N	\N
+11931	Post-Panel Consolidation	15	gi_bleed	61976	0	1	Transfuse Platelets	Not sure necessary or appropriate to transfuse platelets given observed counts not low?
+11932	Post-Panel Consolidation	14	gi_bleed	61975	10	1	Transfuse RBC	\N
+11933	Post-Panel Consolidation	15	gi_bleed	61975	10	1	Transfuse RBC	\N
+11934	Post-Panel Consolidation	16	gi_bleed	61975	10	1	Transfuse RBC	\N
+11935	Post-Panel Consolidation	14	gi_bleed	45748	10	1	Transfuse RBC	\N
+11936	Post-Panel Consolidation	15	gi_bleed	45748	10	1	Transfuse RBC	\N
+11937	Post-Panel Consolidation	14	gi_bleed	65640	10	1	Transfuse RBC	\N
+11938	Post-Panel Consolidation	15	gi_bleed	65640	10	1	Transfuse RBC	\N
+11939	Post-Panel Consolidation	16	gi_bleed	65640	10	1	Transfuse RBC	\N
+11940	Post-Panel Consolidation	2	gi_bleed	65640	10	1	Transfuse RBC	\N
+11941	Post-Panel Consolidation	14	gi_bleed	50581	0	1	\N	\N
+11942	Post-Panel Consolidation	15	gi_bleed	50581	0	1	\N	\N
+11943	Post-Panel Consolidation	14	gi_bleed	50618	10	1	Transfuse RBC	\N
+11944	Post-Panel Consolidation	15	gi_bleed	50618	10	1	Transfuse RBC	\N
+11945	Post-Panel Consolidation	14	gi_bleed	45945	10	1	Type and Screen	\N
+11946	Post-Panel Consolidation	15	gi_bleed	45945	10	1	Type and Screen	\N
+11947	Post-Panel Consolidation	14	gi_bleed	45869	6	1	US Abdomen	\N
+11948	Post-Panel Consolidation	2	gi_bleed	45869	6	1	US Abdomen	\N
+11949	Post-Panel Consolidation	2	gi_bleed	49408	6	1	US Abdomen	\N
+11950	Post-Panel Consolidation	14	gi_bleed	46343	6	1	US Abdomen	\N
+11951	Post-Panel Consolidation	2	gi_bleed	46343	6	1	US Abdomen	\N
+11952	Post-Panel Consolidation	14	gi_bleed	45969	10	1	GI EGD	\N
+11953	Post-Panel Consolidation	15	gi_bleed	45969	10	1	GI EGD	\N
+11954	Post-Panel Consolidation	16	gi_bleed	45969	10	1	GI EGD	\N
+11955	Post-Panel Consolidation	14	gi_bleed	45873	0	1	\N	\N
+11956	Post-Panel Consolidation	14	gi_bleed	46348	0	1	\N	\N
+11957	Post-Panel Consolidation	14	gi_bleed	44001	7	1	Coagulopathy Correction	\N
+11958	Post-Panel Consolidation	15	gi_bleed	44001	7	1	Coagulopathy Correction	\N
+11959	Post-Panel Consolidation	16	gi_bleed	44001	7	1	Coagulopathy Correction	\N
+11960	Post-Panel Consolidation	15	gi_bleed	44404	7	1	Coagulopathy Correction	\N
+11961	Post-Panel Consolidation	16	gi_bleed	44404	7	1	Coagulopathy Correction	\N
+11962	Post-Panel Consolidation	14	gi_bleed	44382	-2	1	\N	\N
+11963	Post-Panel Consolidation	15	gi_bleed	44382	-2	1	\N	\N
+11964	Post-Panel Consolidation	14	gi_bleed	46096	0	1	\N	\N
+11965	Post-Panel Consolidation	14	gi_bleed	45818	0	1	CXR	\N
+11966	Post-Panel Consolidation	15	gi_bleed	45818	0	1	CXR	\N
+11967	Post-Panel Consolidation	14	gi_bleed	50200	0	1	CXR	Irrelevant diagnostic?
+11968	Post-Panel Consolidation	14	gi_bleed	45801	0	1	CXR	\N
+11969	Post-Panel Consolidation	30	meningitis	44281	5	1	Pain Control	\N
+11970	Post-Panel Consolidation	31	meningitis	44281	5	1	Pain Control	\N
+11971	Post-Panel Consolidation	30	meningitis	44278	5	1	Pain Control	\N
+11972	Post-Panel Consolidation	30	meningitis	48829	0	1	\N	Irrelevant diagnostics. Probably trying to order medicine
+11973	Post-Panel Consolidation	30	meningitis	44615	0	1	\N	\N
+11974	Post-Panel Consolidation	31	meningitis	44615	0	1	\N	\N
+11975	Post-Panel Consolidation	33	meningitis	44615	0	1	\N	\N
+11976	Post-Panel Consolidation	30	meningitis	48770	0	1	\N	Low yield
+11977	Post-Panel Consolidation	33	meningitis	48770	0	1	\N	Low yield
+11978	Post-Panel Consolidation	30	meningitis	44595	0	1	\N	\N
+11979	Post-Panel Consolidation	31	meningitis	44595	0	1	\N	\N
+11980	Post-Panel Consolidation	33	meningitis	44595	0	1	\N	\N
+11981	Post-Panel Consolidation	30	meningitis	46093	5	1	Pregnancy Test	\N
+11982	Post-Panel Consolidation	30	meningitis	45901	10	1	Blood Culture	\N
+11983	Post-Panel Consolidation	31	meningitis	45901	10	1	Blood Culture	\N
+11984	Post-Panel Consolidation	33	meningitis	45901	10	1	Blood Culture	\N
+11985	Post-Panel Consolidation	30	meningitis	45752	10	1	Blood Culture	\N
+11986	Post-Panel Consolidation	31	meningitis	45752	10	1	Blood Culture	\N
+11987	Post-Panel Consolidation	33	meningitis	45752	10	1	Blood Culture	\N
+11988	Post-Panel Consolidation	30	meningitis	44290	5	1	IVF	\N
+11989	Post-Panel Consolidation	30	meningitis	44439	5	1	IVF	\N
+11990	Post-Panel Consolidation	30	meningitis	45793	7	1	CBC	\N
+11991	Post-Panel Consolidation	30	meningitis	45788	7	1	CBC	\N
+11992	Post-Panel Consolidation	33	meningitis	36210	5	1	Antibiotics	\N
+11993	Post-Panel Consolidation	30	meningitis	35733	10	1	Antibiotics	\N
+11994	Post-Panel Consolidation	31	meningitis	35733	10	1	Antibiotics	\N
+11995	Post-Panel Consolidation	33	meningitis	35733	5	1	Antibiotics	\N
+11996	Post-Panel Consolidation	30	meningitis	48880	10	1	\N	\N
+11998	Post-Panel Consolidation	30	meningitis	50930	0	1	\N	Wrong order. Synovial fluid not CSF
+11999	Post-Panel Consolidation	30	meningitis	49079	0	1	\N	\N
+12000	Post-Panel Consolidation	33	meningitis	48603	0	1	\N	Not relevant to test?
+12001	Post-Panel Consolidation	33	meningitis	61973	0	1	\N	Not relevant to test?
+12002	Post-Panel Consolidation	33	meningitis	48752	0	1	\N	Not relevant to test?
+12003	Post-Panel Consolidation	33	meningitis	61826	0	1	\N	\N
+12004	Post-Panel Consolidation	30	meningitis	61826	0	1	\N	Not relevant to test?
+12005	Post-Panel Consolidation	31	meningitis	49649	0	1	\N	\N
+12006	Post-Panel Consolidation	33	meningitis	49594	0	1	\N	\N
+12007	Post-Panel Consolidation	30	meningitis	49594	0	1	\N	No good indication
+12008	Post-Panel Consolidation	30	meningitis	49083	10	1	\N	\N
+12009	Post-Panel Consolidation	33	meningitis	49083	5	1	\N	\N
+12010	Post-Panel Consolidation	30	meningitis	50692	4	1	\N	\N
+12011	Post-Panel Consolidation	30	meningitis	48871	0	1	\N	\N
+12012	Post-Panel Consolidation	30	meningitis	44017	10	1	\N	\N
+12013	Post-Panel Consolidation	31	meningitis	44017	10	1	\N	\N
+12014	Post-Panel Consolidation	33	meningitis	44017	9	1	\N	\N
+12015	Post-Panel Consolidation	33	meningitis	35969	-5	1	\N	\N
+12016	Post-Panel Consolidation	30	meningitis	46286	5	1	Coags	\N
+12017	Post-Panel Consolidation	30	meningitis	45811	2	1	\N	\N
+12018	Post-Panel Consolidation	30	meningitis	49054	6	1	\N	\N
+12019	Post-Panel Consolidation	31	meningitis	49054	6	1	\N	\N
+12020	Post-Panel Consolidation	30	meningitis	45866	0	1	\N	\N
+12021	Post-Panel Consolidation	31	meningitis	45866	0	1	\N	\N
+12022	Post-Panel Consolidation	33	meningitis	63761	1	1	\N	Common meningitis cause, okay to review
+12023	Post-Panel Consolidation	33	meningitis	49142	1	1	\N	Common meningitis cause, okay to review
+12024	Post-Panel Consolidation	30	meningitis	46103	0	1	\N	\N
+12025	Post-Panel Consolidation	30	meningitis	50685	0	1	\N	Mostly irrelevant STD testing?
+12026	Post-Panel Consolidation	30	meningitis	48577	10	1	\N	\N
+12027	Post-Panel Consolidation	33	meningitis	48577	10	1	\N	Doesn't match CSF cell count pattern of less points if delayed to worsened?
+12028	Post-Panel Consolidation	30	meningitis	42197	0	1	\N	\N
+12029	Post-Panel Consolidation	30	meningitis	49109	7	1	HSV CSF	\N
+12030	Post-Panel Consolidation	30	meningitis	62011	0	1	\N	Not the right screening test for HIV
+12031	Post-Panel Consolidation	30	meningitis	63767	7	1	HSV CSF	\N
+12032	Post-Panel Consolidation	31	meningitis	63767	7	1	HSV CSF	\N
+12033	Post-Panel Consolidation	33	meningitis	63767	7	1	HSV CSF	\N
+12034	Post-Panel Consolidation	30	meningitis	44319	2	1	Pain Control	\N
+12035	Post-Panel Consolidation	30	meningitis	48732	0	1	\N	Blood gases?
+12036	Post-Panel Consolidation	30	meningitis	62151	5	1	Lactate	\N
+12037	Post-Panel Consolidation	31	meningitis	62151	5	1	Lactate	\N
+12038	Post-Panel Consolidation	33	meningitis	62151	5	1	Lactate	\N
+12039	Post-Panel Consolidation	30	meningitis	45918	5	1	Lactate	\N
+12040	Post-Panel Consolidation	33	meningitis	45918	5	1	Lactate	\N
+12041	Post-Panel Consolidation	33	meningitis	50510	5	1	\N	\N
+12042	Post-Panel Consolidation	30	meningitis	45763	5	1	Metabolic Panel	\N
+12043	Post-Panel Consolidation	30	meningitis	45771	5	1	Metabolic Panel	\N
+12044	Post-Panel Consolidation	31	meningitis	44199	0	1	\N	Symptomatic management
+12045	Post-Panel Consolidation	31	meningitis	45792	0	1	\N	\N
+12046	Post-Panel Consolidation	30	meningitis	45792	0	1	\N	\N
+12047	Post-Panel Consolidation	30	meningitis	61852	0	1	\N	\N
+12048	Post-Panel Consolidation	30	meningitis	61823	0	1	\N	\N
+12049	Post-Panel Consolidation	31	meningitis	49334	0	1	\N	Irrelevant?
+12050	Post-Panel Consolidation	30	meningitis	46090	0	1	\N	\N
+12051	Post-Panel Consolidation	30	meningitis	45955	5	1	Lactate	\N
+12052	Post-Panel Consolidation	33	meningitis	49134	5	1	Pregnancy Test	\N
+12053	Post-Panel Consolidation	30	meningitis	62042	2	1	\N	\N
+12054	Post-Panel Consolidation	30	meningitis	49020	10	1	\N	\N
+12055	Post-Panel Consolidation	33	meningitis	49020	5	1	\N	\N
+12056	Post-Panel Consolidation	31	meningitis	45776	0	1	\N	Process
+12057	Post-Panel Consolidation	30	meningitis	62103	5	1	HIV Test	\N
+12058	Post-Panel Consolidation	33	meningitis	62103	5	1	HIV Test	\N
+12059	Post-Panel Consolidation	30	meningitis	48728	0	1	\N	\N
+12060	Post-Panel Consolidation	31	meningitis	48728	0	1	\N	\N
+12061	Post-Panel Consolidation	30	meningitis	63923	3	1	\N	\N
+12062	Post-Panel Consolidation	30	meningitis	63725	5	1	Lactate	\N
+12063	Post-Panel Consolidation	31	meningitis	63725	5	1	Lactate	\N
+12064	Post-Panel Consolidation	30	meningitis	44198	5	1	IVF	\N
+12065	Post-Panel Consolidation	33	meningitis	44198	5	1	IVF	\N
+12066	Post-Panel Consolidation	30	meningitis	46131	0	1	\N	\N
+12067	Post-Panel Consolidation	30	meningitis	45751	0	1	\N	\N
+12068	Post-Panel Consolidation	33	meningitis	45751	0	1	\N	\N
+12069	Post-Panel Consolidation	30	meningitis	45873	0	1	\N	\N
+12070	Post-Panel Consolidation	31	meningitis	45873	0	1	\N	\N
+12071	Post-Panel Consolidation	30	meningitis	43997	10	1	\N	\N
+12072	Post-Panel Consolidation	31	meningitis	43997	10	1	\N	\N
+12073	Post-Panel Consolidation	33	meningitis	43997	5	1	\N	\N
+12074	Post-Panel Consolidation	33	meningitis	48486	2	1	Vancomycin Level	Okay to check followup leels
+12075	Post-Panel Consolidation	30	meningitis	45972	2	1	Vancomycin Level	Okay to check followup leels
+12076	Post-Panel Consolidation	33	meningitis	45972	2	1	Vancomycin Level	Okay to check followup leels
+12077	Post-Panel Consolidation	33	meningitis	48519	0	1	\N	\N
+12078	Post-Panel Consolidation	33	meningitis	48529	0	1	\N	\N
+12079	Post-Panel Consolidation	30	meningitis	63735	0	1	\N	\N
+12080	Post-Panel Consolidation	30	meningitis	45766	0	1	\N	\N
+12081	Post-Panel Consolidation	30	meningitis	50654	0	1	\N	\N
+12082	Post-Panel Consolidation	33	meningitis	50654	0	1	\N	\N
+12083	Post-Panel Consolidation	30	meningitis	45818	3	1	CXR	\N
+12084	Post-Panel Consolidation	31	meningitis	45818	3	1	CXR	\N
+12085	Post-Panel Consolidation	33	meningitis	45818	3	1	CXR	\N
+12086	Post-Panel Consolidation	5002	neutropenic	44281	4	1	Acetaminophen	\N
+12087	Post-Panel Consolidation	5000	neutropenic	44281	4	1	Acetaminophen	\N
+12088	Post-Panel Consolidation	5002	neutropenic	65641	0	1	\N	Process
+12089	Post-Panel Consolidation	5000	neutropenic	48775	0	1	\N	\N
+12090	Post-Panel Consolidation	5002	neutropenic	46157	10	1	Blood Cultures	\N
+12091	Post-Panel Consolidation	5002	neutropenic	46291	10	1	Blood Cultures	\N
+12092	Post-Panel Consolidation	5002	neutropenic	45901	10	1	Blood Cultures	\N
+12093	Post-Panel Consolidation	5000	neutropenic	45901	10	1	Blood Cultures	\N
+12094	Post-Panel Consolidation	5002	neutropenic	45752	10	1	Blood Cultures	\N
+12095	Post-Panel Consolidation	5000	neutropenic	45752	10	1	Blood Cultures	\N
+12096	Post-Panel Consolidation	5000	neutropenic	45760	6	1	Blood Gas	\N
+12097	Post-Panel Consolidation	5003	neutropenic	44395	10	1	IVF	\N
+12098	Post-Panel Consolidation	5000	neutropenic	44290	10	1	IVF	\N
+12099	Post-Panel Consolidation	5002	neutropenic	45788	8	1	CBC	\N
+12100	Post-Panel Consolidation	5000	neutropenic	45788	8	1	CBC	\N
+12101	Post-Panel Consolidation	5000	neutropenic	45966	8	1	CBC	\N
+12102	Post-Panel Consolidation	5002	neutropenic	36210	10	1	Anti-Pseudomonas	\N
+12103	Post-Panel Consolidation	5000	neutropenic	36210	10	1	Anti-Pseudomonas	\N
+12104	Post-Panel Consolidation	5003	neutropenic	36210	10	1	Anti-Pseudomonas	\N
+12105	Post-Panel Consolidation	5002	neutropenic	50547	0	1	\N	Consult
+12106	Post-Panel Consolidation	5002	neutropenic	48980	0	1	\N	Consult
+12107	Post-Panel Consolidation	5003	neutropenic	49228	0	1	\N	Consult
+12108	Post-Panel Consolidation	5002	neutropenic	48711	0	1	\N	Wrong type of isolation
+12109	Post-Panel Consolidation	5000	neutropenic	48532	0	1	\N	\N
+12110	Post-Panel Consolidation	5003	neutropenic	46286	5	1	Coags	\N
+12111	Post-Panel Consolidation	5003	neutropenic	48686	2	1	\N	\N
+12112	Post-Panel Consolidation	5000	neutropenic	48686	2	1	\N	\N
+12113	Post-Panel Consolidation	5003	neutropenic	46004	0	1	\N	\N
+12114	Post-Panel Consolidation	5003	neutropenic	45811	0	1	\N	Unnecessary?
+12115	Post-Panel Consolidation	5000	neutropenic	49054	5	1	\N	\N
+12116	Post-Panel Consolidation	5002	neutropenic	45866	4	1	\N	\N
+12117	Post-Panel Consolidation	5003	neutropenic	45866	4	1	\N	\N
+12118	Post-Panel Consolidation	5000	neutropenic	45866	4	1	\N	\N
+12119	Post-Panel Consolidation	5000	neutropenic	46160	0	1	\N	Process
+12120	Post-Panel Consolidation	5000	neutropenic	41759	0	1	\N	Presenting symptom
+12121	Post-Panel Consolidation	5002	neutropenic	45225	7	1	\N	Reduce hospitalized neutropenic time
+12122	Post-Panel Consolidation	5002	neutropenic	44237	10	1	Anti-Pseudomonas	\N
+12123	Post-Panel Consolidation	5000	neutropenic	44237	10	1	Anti-Pseudomonas	\N
+12124	Post-Panel Consolidation	5002	neutropenic	44252	10	1	Anti-Pseudomonas	\N
+12125	Post-Panel Consolidation	5002	neutropenic	46006	0	1	\N	\N
+12126	Post-Panel Consolidation	5000	neutropenic	46020	2	1	\N	\N
+12127	Post-Panel Consolidation	5002	neutropenic	62151	10	1	Lactate	\N
+12128	Post-Panel Consolidation	5003	neutropenic	62151	10	1	Lactate	\N
+12129	Post-Panel Consolidation	5000	neutropenic	62151	10	1	Lactate	\N
+12130	Post-Panel Consolidation	5000	neutropenic	45903	2	1	\N	\N
+12131	Post-Panel Consolidation	5002	neutropenic	45806	3	1	\N	\N
+12132	Post-Panel Consolidation	5002	neutropenic	45763	10	1	Metabolic Panel	\N
+12133	Post-Panel Consolidation	5000	neutropenic	45763	10	1	Metabolic Panel	\N
+12134	Post-Panel Consolidation	5002	neutropenic	45771	10	1	Metabolic Panel	\N
+12135	Post-Panel Consolidation	5000	neutropenic	45771	10	1	Metabolic Panel	\N
+12136	Post-Panel Consolidation	5002	neutropenic	45792	2	1	\N	\N
+12137	Post-Panel Consolidation	5003	neutropenic	45792	2	1	\N	\N
+12138	Post-Panel Consolidation	5002	neutropenic	48960	8	1	\N	\N
+12139	Post-Panel Consolidation	5003	neutropenic	48960	8	1	\N	\N
+12140	Post-Panel Consolidation	5000	neutropenic	48960	8	1	\N	\N
+12141	Post-Panel Consolidation	5000	neutropenic	44420	0	1	\N	Symptom management
+12142	Post-Panel Consolidation	5000	neutropenic	45900	0	1	\N	Irrelevant
+12143	Post-Panel Consolidation	5003	neutropenic	45778	0	1	\N	\N
+12144	Post-Panel Consolidation	5002	neutropenic	50554	0	1	\N	Irrelevant
+12145	Post-Panel Consolidation	5003	neutropenic	50554	0	1	\N	Irrelevant
+12146	Post-Panel Consolidation	5000	neutropenic	45955	10	1	Lactate	\N
+12147	Post-Panel Consolidation	5000	neutropenic	46000	0	1	\N	\N
+12148	Post-Panel Consolidation	5002	neutropenic	45759	4	1	Coags	\N
+12149	Post-Panel Consolidation	5002	neutropenic	45770	4	1	Coags	\N
+12150	Post-Panel Consolidation	5000	neutropenic	45890	0	1	\N	\N
+12151	Post-Panel Consolidation	5000	neutropenic	62023	6	1	Respiratory Virus Screen	\N
+12152	Post-Panel Consolidation	5002	neutropenic	63923	6	1	Respiratory Virus Screen	\N
+12153	Post-Panel Consolidation	5000	neutropenic	63923	6	1	Respiratory Virus Screen	\N
+12154	Post-Panel Consolidation	5003	neutropenic	63725	10	1	Lactate	\N
+12155	Post-Panel Consolidation	5000	neutropenic	63725	10	1	Lactate	\N
+12156	Post-Panel Consolidation	5002	neutropenic	44198	10	1	IVF	\N
+12157	Post-Panel Consolidation	5003	neutropenic	44198	10	1	IVF	\N
+12158	Post-Panel Consolidation	5000	neutropenic	44198	10	1	IVF	\N
+12159	Post-Panel Consolidation	5000	neutropenic	45945	1	1	\N	Anticipating transfusions, but not needed now
+12160	Post-Panel Consolidation	5000	neutropenic	45995	3	1	\N	\N
+12161	Post-Panel Consolidation	5000	neutropenic	45751	6	1	UA + Culture	\N
+12162	Post-Panel Consolidation	5000	neutropenic	45873	6	1	UA + Culture	\N
+12163	Post-Panel Consolidation	5002	neutropenic	45782	6	1	UA + Culture	\N
+12164	Post-Panel Consolidation	5003	neutropenic	45782	6	1	UA + Culture	\N
+12165	Post-Panel Consolidation	5000	neutropenic	45782	6	1	UA + Culture	\N
+12166	Post-Panel Consolidation	5002	neutropenic	43997	2	1	\N	\N
+12167	Post-Panel Consolidation	5003	neutropenic	43997	2	1	\N	\N
+12168	Post-Panel Consolidation	5000	neutropenic	43997	2	1	\N	\N
+12169	Post-Panel Consolidation	5000	neutropenic	45972	2	1	\N	\N
+12170	Post-Panel Consolidation	5002	neutropenic	63735	0	1	\N	\N
+12171	Post-Panel Consolidation	5003	neutropenic	63735	0	1	\N	\N
+12172	Post-Panel Consolidation	5000	neutropenic	45766	0	1	\N	Process
+12173	Post-Panel Consolidation	5002	neutropenic	45818	10	1	CXR	\N
+12174	Post-Panel Consolidation	5003	neutropenic	45818	10	1	CXR	\N
+12175	Post-Panel Consolidation	5000	neutropenic	45818	10	1	CXR	\N
+12176	Post-Panel Consolidation	5002	neutropenic	45801	10	1	CXR	\N
+12177	Post-Panel Consolidation	5000	neutropenic	45801	10	1	CXR	\N
+12178	Post-Panel Consolidation	11	pulmonary_embolism	65641	0	1	\N	Process
+12179	Post-Panel Consolidation	10	pulmonary_embolism	44330	7	1	Nebs	\N
+12180	Post-Panel Consolidation	11	pulmonary_embolism	44330	7	1	Nebs	\N
+12181	Post-Panel Consolidation	11	pulmonary_embolism	44595	0	1	\N	Weird antibiotic choice?
+12182	Post-Panel Consolidation	10	pulmonary_embolism	44206	4	1	Aspirin	\N
+12183	Post-Panel Consolidation	11	pulmonary_embolism	44206	4	1	Aspirin	\N
+12184	Post-Panel Consolidation	8	pulmonary_embolism	46551	0	1	\N	\N
+12185	Post-Panel Consolidation	10	pulmonary_embolism	35849	6	1	Azithromycin	\N
+12186	Post-Panel Consolidation	12	pulmonary_embolism	35849	6	1	Azithromycin	\N
+12187	Post-Panel Consolidation	11	pulmonary_embolism	35849	6	1	Azithromycin	\N
+12188	Post-Panel Consolidation	10	pulmonary_embolism	44388	6	1	Azithromycin	\N
+12189	Post-Panel Consolidation	11	pulmonary_embolism	44388	6	1	Azithromycin	\N
+12190	Post-Panel Consolidation	11	pulmonary_embolism	45901	5	1	Blood Cultures	\N
+12191	Post-Panel Consolidation	11	pulmonary_embolism	45752	5	1	Blood Cultures	\N
+12192	Post-Panel Consolidation	10	pulmonary_embolism	45760	7	1	Blood Gas	\N
+12193	Post-Panel Consolidation	12	pulmonary_embolism	45760	7	1	Blood Gas	\N
+12194	Post-Panel Consolidation	10	pulmonary_embolism	45919	5	1	Blood Gas	\N
+12195	Post-Panel Consolidation	12	pulmonary_embolism	45919	5	1	Blood Gas	\N
+12196	Post-Panel Consolidation	11	pulmonary_embolism	45919	5	1	Blood Gas	\N
+12197	Post-Panel Consolidation	10	pulmonary_embolism	44439	0	1	IVF	\N
+12198	Post-Panel Consolidation	10	pulmonary_embolism	45793	10	1	CBC	\N
+12199	Post-Panel Consolidation	11	pulmonary_embolism	45793	10	1	CBC	\N
+12200	Post-Panel Consolidation	10	pulmonary_embolism	45788	10	1	CBC	\N
+12201	Post-Panel Consolidation	11	pulmonary_embolism	45788	10	1	CBC	\N
+12202	Post-Panel Consolidation	10	pulmonary_embolism	35733	6	1	\N	\N
+12203	Post-Panel Consolidation	11	pulmonary_embolism	35733	6	1	\N	\N
+12204	Post-Panel Consolidation	11	pulmonary_embolism	45892	0	1	\N	Superceded by troponin if needed at all
+12205	Post-Panel Consolidation	10	pulmonary_embolism	49251	0	1	\N	\N
+12206	Post-Panel Consolidation	11	pulmonary_embolism	49251	0	1	\N	\N
+12207	Post-Panel Consolidation	10	pulmonary_embolism	61323	0	1	\N	Consult
+12208	Post-Panel Consolidation	11	pulmonary_embolism	61323	0	1	\N	Consult
+12209	Post-Panel Consolidation	12	pulmonary_embolism	49207	0	1	\N	Consult
+12210	Post-Panel Consolidation	11	pulmonary_embolism	50509	0	1	\N	\N
+12211	Post-Panel Consolidation	10	pulmonary_embolism	48522	10	1	CT Chest	\N
+12212	Post-Panel Consolidation	11	pulmonary_embolism	48522	10	1	CT Chest	\N
+12213	Post-Panel Consolidation	10	pulmonary_embolism	45762	7	1	CT Chest	\N
+12214	Post-Panel Consolidation	11	pulmonary_embolism	45762	7	1	CT Chest	\N
+12215	Post-Panel Consolidation	10	pulmonary_embolism	48676	10	1	CT Chest	\N
+12216	Post-Panel Consolidation	11	pulmonary_embolism	48676	10	1	CT Chest	\N
+12217	Post-Panel Consolidation	10	pulmonary_embolism	48871	5	1	D-Dimer	\N
+12218	Post-Panel Consolidation	11	pulmonary_embolism	48871	5	1	D-Dimer	\N
+12219	Post-Panel Consolidation	10	pulmonary_embolism	48532	5	1	D-Dimer	\N
+12220	Post-Panel Consolidation	11	pulmonary_embolism	48532	5	1	D-Dimer	\N
+12221	Post-Panel Consolidation	10	pulmonary_embolism	44017	5	1	Corticosteroids	Main issue is PE, but could reasonably say it's triggering a COPD exacerbation as well
+12222	Post-Panel Consolidation	10	pulmonary_embolism	45811	2	1	NPO	\N
+12223	Post-Panel Consolidation	12	pulmonary_embolism	45811	2	1	NPO	\N
+12224	Post-Panel Consolidation	10	pulmonary_embolism	49054	5	1	\N	\N
+12225	Post-Panel Consolidation	10	pulmonary_embolism	45866	7	1	\N	\N
+12226	Post-Panel Consolidation	11	pulmonary_embolism	45866	7	1	\N	\N
+12227	Post-Panel Consolidation	10	pulmonary_embolism	61832	6	1	Echo	\N
+12228	Post-Panel Consolidation	11	pulmonary_embolism	61832	6	1	Echo	\N
+12229	Post-Panel Consolidation	8	pulmonary_embolism	61832	6	1	Echo	\N
+12230	Post-Panel Consolidation	10	pulmonary_embolism	46160	0	1	\N	Process
+12231	Post-Panel Consolidation	11	pulmonary_embolism	46160	0	1	\N	Process
+12232	Post-Panel Consolidation	11	pulmonary_embolism	44250	10	1	Anticoagulation	\N
+12233	Post-Panel Consolidation	11	pulmonary_embolism	61978	-5	1	\N	\N
+12234	Post-Panel Consolidation	10	pulmonary_embolism	44004	0	1	\N	\N
+12235	Post-Panel Consolidation	11	pulmonary_embolism	44004	0	1	\N	\N
+12236	Post-Panel Consolidation	11	pulmonary_embolism	45797	1	1	\N	\N
+12237	Post-Panel Consolidation	10	pulmonary_embolism	46438	10	1	Anticoagulation	\N
+12238	Post-Panel Consolidation	10	pulmonary_embolism	44359	10	1	Anticoagulation	\N
+12239	Post-Panel Consolidation	11	pulmonary_embolism	44359	10	1	Anticoagulation	\N
+12240	Post-Panel Consolidation	10	pulmonary_embolism	46183	0	1	\N	Just count of part heparin protocol
+12241	Post-Panel Consolidation	10	pulmonary_embolism	63714	0	1	\N	Just count of part heparin protocol
+12242	Post-Panel Consolidation	11	pulmonary_embolism	63714	0	1	\N	Just count of part heparin protocol
+12243	Post-Panel Consolidation	8	pulmonary_embolism	49301	7	1	Blood Gas	\N
+12244	Post-Panel Consolidation	10	pulmonary_embolism	45838	6	1	Troponin	\N
+12245	Post-Panel Consolidation	10	pulmonary_embolism	62151	5	1	Lactate	\N
+12246	Post-Panel Consolidation	10	pulmonary_embolism	62144	0	1	\N	Not sure?
+12247	Post-Panel Consolidation	11	pulmonary_embolism	61837	0	1	\N	\N
+12248	Post-Panel Consolidation	10	pulmonary_embolism	44213	0	1	\N	Like asthma exacerbation treatment?
+12249	Post-Panel Consolidation	11	pulmonary_embolism	45806	5	1	\N	Not sure why so much points?
+12250	Post-Panel Consolidation	10	pulmonary_embolism	45763	10	1	Metabolic Panel	\N
+12251	Post-Panel Consolidation	11	pulmonary_embolism	45763	10	1	Metabolic Panel	\N
+12252	Post-Panel Consolidation	10	pulmonary_embolism	45771	10	1	Metabolic Panel	\N
+12253	Post-Panel Consolidation	11	pulmonary_embolism	45771	10	1	Metabolic Panel	\N
+12254	Post-Panel Consolidation	10	pulmonary_embolism	44586	5	1	Corticosteroids	\N
+12255	Post-Panel Consolidation	11	pulmonary_embolism	44586	5	1	Corticosteroids	\N
+12256	Post-Panel Consolidation	11	pulmonary_embolism	45792	4	1	\N	\N
+12257	Post-Panel Consolidation	11	pulmonary_embolism	44228	4	1	\N	\N
+12258	Post-Panel Consolidation	11	pulmonary_embolism	48628	0	1	\N	\N
+12259	Post-Panel Consolidation	11	pulmonary_embolism	46081	0	1	\N	\N
+12260	Post-Panel Consolidation	10	pulmonary_embolism	50235	0	1	NIPPV	\N
+12261	Post-Panel Consolidation	12	pulmonary_embolism	50235	0	1	NIPPV	\N
+12262	Post-Panel Consolidation	10	pulmonary_embolism	45853	6	1	\N	\N
+12263	Post-Panel Consolidation	11	pulmonary_embolism	45853	6	1	\N	\N
+12264	Post-Panel Consolidation	10	pulmonary_embolism	45750	2	1	\N	Process?
+12265	Post-Panel Consolidation	11	pulmonary_embolism	45787	0	1	\N	Process
+12266	Post-Panel Consolidation	11	pulmonary_embolism	51290	10	1	Oxygen	\N
+12267	Post-Panel Consolidation	10	pulmonary_embolism	51290	10	1	Oxygen	\N
+12268	Post-Panel Consolidation	10	pulmonary_embolism	45864	10	1	Oxygen	\N
+12269	Post-Panel Consolidation	12	pulmonary_embolism	45864	10	1	Oxygen	\N
+12270	Post-Panel Consolidation	10	pulmonary_embolism	48822	10	1	Oxygen	\N
+12271	Post-Panel Consolidation	12	pulmonary_embolism	48822	10	1	Oxygen	\N
+12272	Post-Panel Consolidation	10	pulmonary_embolism	45900	10	1	Oxygen	\N
+12273	Post-Panel Consolidation	12	pulmonary_embolism	45900	10	1	Oxygen	\N
+12274	Post-Panel Consolidation	10	pulmonary_embolism	46090	0	1	\N	Heparin protocol
+12275	Post-Panel Consolidation	10	pulmonary_embolism	45914	6	1	Troponin	\N
+12276	Post-Panel Consolidation	10	pulmonary_embolism	50773	7	1	Blood Gas	\N
+12277	Post-Panel Consolidation	10	pulmonary_embolism	50503	5	1	Blood Gas	\N
+12278	Post-Panel Consolidation	10	pulmonary_embolism	45955	5	1	Blood Gas	\N
+12279	Post-Panel Consolidation	11	pulmonary_embolism	45955	5	1	Blood Gas	\N
+12280	Post-Panel Consolidation	8	pulmonary_embolism	50267	0	1	\N	\N
+12281	Post-Panel Consolidation	10	pulmonary_embolism	44011	5	1	Corticosteroids	\N
+12282	Post-Panel Consolidation	11	pulmonary_embolism	44011	5	1	Corticosteroids	\N
+12283	Post-Panel Consolidation	11	pulmonary_embolism	62042	5	1	\N	\N
+12284	Post-Panel Consolidation	10	pulmonary_embolism	45759	10	1	Coags	\N
+12285	Post-Panel Consolidation	11	pulmonary_embolism	45759	10	1	Coags	\N
+12286	Post-Panel Consolidation	8	pulmonary_embolism	45759	10	1	Coags	\N
+12287	Post-Panel Consolidation	8	pulmonary_embolism	49268	0	1	\N	\N
+12288	Post-Panel Consolidation	11	pulmonary_embolism	45770	10	1	Coags	\N
+12289	Post-Panel Consolidation	8	pulmonary_embolism	45770	10	1	Coags	\N
+12290	Post-Panel Consolidation	11	pulmonary_embolism	63730	0	1	\N	Not for acute TB even if that was the diagnosis?
+12291	Post-Panel Consolidation	8	pulmonary_embolism	62175	4	1	\N	For biopsy?
+12292	Post-Panel Consolidation	10	pulmonary_embolism	46030	0	1	NIPPV	\N
+12293	Post-Panel Consolidation	11	pulmonary_embolism	46030	0	1	NIPPV	\N
+12294	Post-Panel Consolidation	10	pulmonary_embolism	45921	10	1	Oxygen	\N
+12295	Post-Panel Consolidation	12	pulmonary_embolism	45921	10	1	Oxygen	\N
+12296	Post-Panel Consolidation	11	pulmonary_embolism	45921	10	1	Oxygen	\N
+12297	Post-Panel Consolidation	11	pulmonary_embolism	46336	0	1	\N	Override, process order
+12298	Post-Panel Consolidation	11	pulmonary_embolism	48544	5	1	Respiratory Culture	\N
+12299	Post-Panel Consolidation	11	pulmonary_embolism	62023	5	1	Respiratory Virus Screen	\N
+12300	Post-Panel Consolidation	10	pulmonary_embolism	63923	5	1	Respiratory Virus Screen	\N
+12301	Post-Panel Consolidation	11	pulmonary_embolism	63923	5	1	Respiratory Virus Screen	\N
+12302	Post-Panel Consolidation	11	pulmonary_embolism	60178	10	1	Anticoagulation	\N
+12303	Post-Panel Consolidation	12	pulmonary_embolism	60178	10	1	Anticoagulation	\N
+12304	Post-Panel Consolidation	10	pulmonary_embolism	41796	0	1	\N	Presenting Symptom Diagnosis
+12305	Post-Panel Consolidation	12	pulmonary_embolism	44198	0	1	IVF	\N
+12306	Post-Panel Consolidation	8	pulmonary_embolism	44313	0	1	\N	Nebs, but this is more for long term use
+12307	Post-Panel Consolidation	10	pulmonary_embolism	45870	6	1	Troponin	\N
+12308	Post-Panel Consolidation	11	pulmonary_embolism	45870	6	1	Troponin	\N
+12309	Post-Panel Consolidation	8	pulmonary_embolism	45870	6	1	Troponin	\N
+12310	Post-Panel Consolidation	11	pulmonary_embolism	45945	0	1	\N	\N
+12311	Post-Panel Consolidation	8	pulmonary_embolism	65672	4	1	DVT US	\N
+12312	Post-Panel Consolidation	11	pulmonary_embolism	45751	0	1	\N	\N
+12313	Post-Panel Consolidation	10	pulmonary_embolism	45751	0	1	\N	\N
+12314	Post-Panel Consolidation	11	pulmonary_embolism	45911	0	1	\N	Process
+12315	Post-Panel Consolidation	10	pulmonary_embolism	45818	10	1	CXR	\N
+12316	Post-Panel Consolidation	11	pulmonary_embolism	45818	10	1	CXR	\N
+12317	Post-Panel Consolidation	10	pulmonary_embolism	50200	10	1	CXR	\N
+12318	Post-Panel Consolidation	10	pulmonary_embolism	45801	10	1	CXR	\N
+12319	Post-Panel Consolidation	11	pulmonary_embolism	45801	10	1	CXR	\N
+12320	Post-Panel Consolidation	40	atrial_fibrillation	48871	0	0	\N	\N
+12321	Post-Panel Consolidation	43	atrial_fibrillation	44389	-4	1	\N	\N
+12322	Post-Panel Consolidation	43	atrial_fibrillation	61832	7	0	Echo	\N
+12323	Post-Panel Consolidation	41	atrial_fibrillation	44250	8	0	Anticoaguation	Match heparin
+12324	Post-Panel Consolidation	40	atrial_fibrillation	44276	5	1	\N	Match midazolam
+12325	Post-Panel Consolidation	41	atrial_fibrillation	45778	1	1	\N	\N
+12326	Post-Panel Consolidation	41	atrial_fibrillation	45770	5	1	INR	Merge with INR just to represent checking coags
+12327	Post-Panel Consolidation	14	gi_bleed	45932	5	0	Hepatitis Panel	\N
+12328	Post-Panel Consolidation	4	gi_bleed	45793	10	1	CBC	Assume was GI Bleed case
+12329	Post-Panel Consolidation	4	gi_bleed	49481	10	1	GI EGD	Assume was GI Bleed case
+12330	Post-Panel Consolidation	14	gi_bleed	46072	-5	0	CT Abdomen	Treat all CT Abd/Pelvis orders as comparable for simplicity, so why different scores? Weird cirrhosis diagnostic, but maybe people are looking for bleeding vessel?
+12331	Post-Panel Consolidation	16	gi_bleed	45852	-5	0	CT Abdomen	Treat all CT Abd/Pelvis orders as comparable for simplicity, so why different scores? Weird cirrhosis diagnostic, but maybe people are looking for bleeding vessel?
+12332	Post-Panel Consolidation	4	gi_bleed	46286	7	1	Coags	Assume GI Bleed case
+12333	Post-Panel Consolidation	2	gi_bleed	46286	7	1	Coags	\N
+12334	Post-Panel Consolidation	2	gi_bleed	45784	0	0	\N	Post-stabilization is fine, but ignore as process order?
+12335	Post-Panel Consolidation	4	gi_bleed	45872	9	1	FFP	Assume GI Bleed case
+12336	Post-Panel Consolidation	14	gi_bleed	45918	2	1	Lactate	\N
+12337	Post-Panel Consolidation	16	gi_bleed	62144	0	1	\N	\N
+12338	Post-Panel Consolidation	2	gi_bleed	45806	2	1	\N	\N
+12339	Post-Panel Consolidation	14	gi_bleed	44294	0	1	\N	Not relevant to anything?
+12340	Post-Panel Consolidation	14	gi_bleed	48815	0	1	\N	Largely irrelevant in acute setting
+12341	Post-Panel Consolidation	2	gi_bleed	45787	0	1	\N	Process order
+12342	Post-Panel Consolidation	4	gi_bleed	62171	0	1	\N	Active bleeding, probably not right time for para, though SBP always to consider?
+12343	Post-Panel Consolidation	2	gi_bleed	45776	0	1	\N	Process order
+12344	Post-Panel Consolidation	4	gi_bleed	45927	10	1	RBC	Assume GI Bleed case
+12345	Post-Panel Consolidation	4	gi_bleed	45877	8	0	Coagulopathy Correction	Assume GI Bleed case
+12346	Post-Panel Consolidation	4	gi_bleed	61993	8	0	Coagulopathy Correction	Assume GI Bleed case
+12347	Post-Panel Consolidation	4	gi_bleed	45748	10	1	Transfuse RBC	Assume GI Bleed case
+12348	Post-Panel Consolidation	4	gi_bleed	61975	10	1	Transfuse RBC	Assume GI Bleed case
+12349	Post-Panel Consolidation	16	gi_bleed	45869	6	1	US Abdomen	\N
+12350	Post-Panel Consolidation	14	gi_bleed	49408	6	1	US Abdomen	\N
+12351	Post-Panel Consolidation	16	gi_bleed	49408	6	1	US Abdomen	\N
+12352	Post-Panel Consolidation	16	gi_bleed	46343	6	1	US Abdomen	\N
+12353	Post-Panel Consolidation	2	gi_bleed	44001	7	1	Coagulopathy Correction	\N
+12354	Post-Panel Consolidation	14	gi_bleed	46018	0	1	\N	\N
+12355	Post-Panel Consolidation	2	gi_bleed	45818	0	1	\N	\N
+12356	Post-Panel Consolidation	30	meningitis	48603	0	1	\N	Not relevant to test?
+12357	Post-Panel Consolidation	30	meningitis	61853	0	1	\N	Not relevant to test?
+12358	Post-Panel Consolidation	31	meningitis	50841	0	1	\N	\N
+12359	Post-Panel Consolidation	30	meningitis	44626	0	1	\N	Nothing specific being treated? Lyme?
+12360	Post-Panel Consolidation	30	meningitis	61843	0	1	\N	\N
+12361	Post-Panel Consolidation	30	meningitis	46160	0	1	\N	Process order
+12362	Post-Panel Consolidation	30	meningitis	49142	1	1	\N	Common meningitis cause, okay to review
+12363	Post-Panel Consolidation	31	meningitis	46103	0	1	\N	\N
+12364	Post-Panel Consolidation	30	meningitis	50425	0	1	\N	Too specific for meningitis eval
+12365	Post-Panel Consolidation	30	meningitis	44230	9	0	\N	Should be dexamethasone, but give credit for steroids (mostly matter of dosing)
+12366	Post-Panel Consolidation	31	meningitis	45918	5	1	Lactate	\N
+12367	Post-Panel Consolidation	30	meningitis	44586	9	0	\N	Should be dexamethasone, but give credit for steroids (mostly matter of dosing)
+12368	Post-Panel Consolidation	31	meningitis	44641	2	1	\N	Symptomatic management
+12369	Post-Panel Consolidation	31	meningitis	46065	-3	0	CT Head	Unnecessary head imaging, consistent with head CT?
+12370	Post-Panel Consolidation	30	meningitis	45750	0	1	\N	Process order
+12371	Post-Panel Consolidation	30	meningitis	44216	0	1	\N	Symptom management? Not vomiting anyway
+12372	Post-Panel Consolidation	30	meningitis	45802	0	1	\N	Process order
+12373	Post-Panel Consolidation	30	meningitis	48561	5	1	Pregnancy Test	\N
+12374	Post-Panel Consolidation	31	meningitis	44198	5	1	IVF	\N
+12375	Post-Panel Consolidation	30	meningitis	45782	0	1	\N	No specific indication of urinary infection
+12376	Post-Panel Consolidation	30	meningitis	48519	0	1	\N	\N
+12377	Post-Panel Consolidation	5001	neutropenic	45901	10	1	Blood Cultures	\N
+12378	Post-Panel Consolidation	5001	neutropenic	45752	10	1	Blood Cultures	\N
+12379	Post-Panel Consolidation	5003	neutropenic	45919	6	1	Blood Gas	\N
+12380	Post-Panel Consolidation	5001	neutropenic	45788	8	1	CBC	\N
+12381	Post-Panel Consolidation	5000	neutropenic	35733	0	-1	\N	Doesn't cover Pseudomonas, but would cover most other things?
+12382	Post-Panel Consolidation	5003	neutropenic	49207	0	1	\N	Process / Consult
+12383	Post-Panel Consolidation	5003	neutropenic	48711	0	1	\N	Wrong type of isolation
+12384	Post-Panel Consolidation	5002	neutropenic	49054	5	1	\N	\N
+12385	Post-Panel Consolidation	5003	neutropenic	45918	10	1	Lactate	\N
+12386	Post-Panel Consolidation	5000	neutropenic	45918	10	1	Lactate	\N
+12387	Post-Panel Consolidation	5000	neutropenic	45894	0	1	\N	No symptoms for pancreatitis?
+12388	Post-Panel Consolidation	5001	neutropenic	45771	10	1	Metabolic Panel	\N
+12389	Post-Panel Consolidation	5001	neutropenic	48960	8	1	\N	\N
+12390	Post-Panel Consolidation	5003	neutropenic	45853	0	1	\N	Not relevant? No hx or sx of CHF
+12391	Post-Panel Consolidation	5000	neutropenic	61823	0	1	\N	Process order
+12392	Post-Panel Consolidation	5000	neutropenic	45802	0	1	\N	Process order
+12393	Post-Panel Consolidation	5003	neutropenic	52757	0	1	\N	Process order
+12394	Post-Panel Consolidation	5002	neutropenic	62023	6	1	Respiratory Virus Screen	\N
+12395	Post-Panel Consolidation	5001	neutropenic	44198	10	1	IVF	\N
+12396	Post-Panel Consolidation	5001	neutropenic	45751	6	1	UA + Culture	\N
+12397	Post-Panel Consolidation	5002	neutropenic	45751	6	1	UA + Culture	\N
+12398	Post-Panel Consolidation	5001	neutropenic	45782	6	1	UA + Culture	\N
+12399	Post-Panel Consolidation	5001	neutropenic	45818	10	1	CXR	\N
+12400	Post-Panel Consolidation	11	pulmonary_embolism	61982	0	1	\N	Process
+12401	Post-Panel Consolidation	10	pulmonary_embolism	44315	4	1	Aspirin	\N
+12402	Post-Panel Consolidation	8	pulmonary_embolism	44240	0	1	\N	Not ACS anyway? Type 2 NSTEMI?
+12403	Post-Panel Consolidation	11	pulmonary_embolism	45760	7	1	Blood Gas	\N
+12404	Post-Panel Consolidation	8	pulmonary_embolism	65695	0	0	\N	Override, neutralize non-procedural consults
+12405	Post-Panel Consolidation	11	pulmonary_embolism	49207	0	1	\N	Consult
+12406	Post-Panel Consolidation	11	pulmonary_embolism	45811	2	1	\N	\N
+12407	Post-Panel Consolidation	10	pulmonary_embolism	44211	7	1	Nebs	\N
+12408	Post-Panel Consolidation	10	pulmonary_embolism	46020	7	1	Blood Gas	\N
+12409	Post-Panel Consolidation	11	pulmonary_embolism	44299	6	1	Antibiotics-CAP	\N
+12410	Post-Panel Consolidation	11	pulmonary_embolism	45914	6	1	Troponin	\N
+12411	Post-Panel Consolidation	8	pulmonary_embolism	45776	0	1	\N	Override, process
+12412	Post-Panel Consolidation	11	pulmonary_embolism	45830	0	0	\N	\N
+12413	Post-Panel Consolidation	10	pulmonary_embolism	44198	0	1	IVF	\N
+12414	Post-Panel Consolidation	10	pulmonary_embolism	45766	0	1	\N	Process
 \.
 
 
@@ -3991,7 +4927,7 @@ COPY public.sim_grading_key (sim_grading_key_id, sim_grader_id, sim_state_id, si
 -- Name: sim_grading_key_sim_grading_key_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.sim_grading_key_sim_grading_key_id_seq', 11478, true);
+SELECT pg_catalog.setval('public.sim_grading_key_sim_grading_key_id_seq', 12414, true);
 
 
 --
