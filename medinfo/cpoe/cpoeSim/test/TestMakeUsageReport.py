@@ -1,5 +1,6 @@
 import unittest
 import mock
+import os
 
 from Const import RUNNER_VERBOSITY
 from medinfo.db.test.Util import DBTestCase
@@ -93,9 +94,25 @@ class TestMakeUsageReport(DBTestCase):
         # Parse into DB insertion object
         DBUtil.insertFile(StringIO(sim_grading_key_str), "sim_grading_key", delim=";")
 
+        # Prepare survey file
+        self.survey_csv = tempfile.NamedTemporaryFile(delete=False)
+        self.survey_csv.write("Physician User Name,resident" + os.linesep +
+                              "Jonathan Chen,1")
+        self.survey_csv.flush()
+
     def tearDown(self):
         """Restore state from any setUp or test steps"""
         DBTestCase.tearDown(self)
+
+        # delete temporary survey file
+        self.survey_csv.close()
+        os.remove(self.survey_csv.name)
+
+        # delete output csv
+        try:
+            os.remove(tempfile.gettempdir() + os.pathsep + 'tmp.csv')
+        except OSError:
+            pass
 
     def test_not_enough_args(self, mock_aggregate_simulation_data):
         # setup
@@ -141,6 +158,19 @@ class TestMakeUsageReport(DBTestCase):
             self.assertTrue('grade ({})'.format(argv[3].split(',')[1]) in output.fieldnames)
             # assert more columns than original + grade columns
             self.assertGreater(len(output.fieldnames), len(header) + 2)
+
+    def test_resident_column_is_present(self, mock_aggregate_simulation_data):
+        # setup
+        output_filename = tempfile.gettempdir() + '/tmp.csv'
+        argv = ['make_usage_report.py', '../analysis/sim_data', '-s', self.survey_csv.name, '-g', 'Jonathan Chen', output_filename]
+
+        # test
+        make_usage_report.main(argv)
+
+        # verify
+        with open(output_filename) as output_file:
+            output = csv.DictReader(output_file)
+            self.assertTrue('resident' in output.fieldnames)
 
     def verify_error_message_for_argv(self, argv, expected_error_message):
         with self.assertRaises(SystemExit) as cm:   # capture sys.exit() in the tested class
