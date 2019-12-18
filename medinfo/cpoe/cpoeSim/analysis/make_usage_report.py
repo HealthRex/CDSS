@@ -13,16 +13,13 @@ from medinfo.db.Model import SQLQuery
 from medinfo.cpoe.cpoeSim.SimManager import SimManager
 
 
-def make_usage_report(data_home, graders, out_file):
+def make_usage_report(data_home, graders, out_file, survey_file=None):
     aggregate_simulation_data(data_home, output_path=out_file)
     csv = pd.read_csv(out_file)
 
     add_calculated_fields_to(csv)
     csv = add_sim_case_column_to(csv)
     csv, grade_columns_names = add_grades_to(csv, graders)
-
-    # sort by user, sim_case, sim_patient_id combo
-    csv = csv.sort_values(['user', 'sim_case', 'sim_patient_id'])
 
     # output (without row numbers)
     columns_order = ['user', 'sim_case', 'sim_patient_id'] + grade_columns_names \
@@ -32,6 +29,13 @@ def make_usage_report(data_home, graders, out_file):
                        'orders_from_recommender_missed', 'ratioOrdersFromRecommenderVsUniqueRecommenderOptions',
                        'ratioOrdersFromManualSearchVsManualSearchOptions', 'ratioOrdersFromRecommenderVsTotalOrders',
                        'ratioOrdersFromManualSearchVsTotalOrders']
+
+    if survey_file:
+        csv = add_resident_column(columns_order, csv, survey_file)
+
+    # sort by user, sim_case, sim_patient_id combo
+    csv = csv.sort_values(['user', 'sim_case', 'sim_patient_id'])
+
     csv.to_csv(out_file, index=False, columns=columns_order)
 
 
@@ -96,6 +100,23 @@ def add_grades_to(csv, graders):
     return csv, grade_columns_ordered
 
 
+def add_resident_column(columns_order, csv, survey_file):
+    survey_responses = pd.read_csv(survey_file)
+    # retrieve sim_user_ids
+    query = SQLQuery()
+    query.addSelect("sim_user_id")
+    query.addSelect("name")
+    query.addFrom("sim_user")
+    query.addWhereIn("name", survey_responses['Physician User Name'])
+    user_ids = DBUtil.execute(query)
+    survey_responses = pd.merge(survey_responses, pd.DataFrame(user_ids, columns=['sim_user_id', 'name']),
+                                left_on='Physician User Name', right_on='name')
+    csv = pd.merge(csv, survey_responses,
+                   left_on='user', right_on='sim_user_id')
+    columns_order.insert(1, 'resident')
+    return csv
+
+
 def main(argv):
     """Main method, callable from command line"""
     usage_str = "usage: %prog [options] <inputJsonDataFolder> <outputFile>\n" \
@@ -103,6 +124,7 @@ def main(argv):
 
     parser = OptionParser(usage=usage_str)
     parser.add_option("-g", "--graders", dest="graders", help="Comma-separated list of graders to use for grading")
+    parser.add_option("-s", "--survey", dest="survey_file", help="Path to a survey CSV file (used for adding 'resident' column)")
 
     (options, args) = parser.parse_args(argv[1:])
 
@@ -118,6 +140,10 @@ def main(argv):
     else:
         grader_ids.update(options.graders.split(VALUE_DELIM))
 
+    survey_file = None
+    if options.survey_file:
+        survey_file = options.survey_file
+
     if len(args) < 2:  # we need input and output files given
         print("Given parameters are not enough. Exiting.\n")
         parser.print_help()
@@ -129,7 +155,7 @@ def main(argv):
     # Print comment line with arguments to allow for deconstruction later as well as extra results
     print(COMMENT_TAG, json.dumps(summary_data))
 
-    make_usage_report(input_folder, grader_ids, output_filename)
+    make_usage_report(input_folder, grader_ids, output_filename, survey_file)
 
     timer = time.time() - timer
     log.info("%.3f seconds to complete", timer)
