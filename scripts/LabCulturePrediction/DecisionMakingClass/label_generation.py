@@ -1,6 +1,8 @@
 import pandas as pd
 
 def collapse_labels(arr):
+    """ TODO **** This function is wrong when infection has two or more bugs
+    """
     """If anything in arr is 3 (ie contradiction encountered in labelling function),
          then label is unknown -1.
        else If anything in arr is -1, label is unknown -1

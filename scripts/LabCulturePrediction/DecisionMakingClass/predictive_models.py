@@ -30,7 +30,7 @@ def fit_baseline_models(x_train, labels_train,
         y_train = labels_train[drug]
         y_test = labels_test[drug]
 
-        rf = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf = RandomForestClassifier(n_estimators=1000, random_state=42)
         rf.fit(x_train, y_train)
     
         predictions = rf.predict_proba(x_test)
