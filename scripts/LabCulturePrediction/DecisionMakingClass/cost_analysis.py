@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from sklearn.metrics import roc_auc_score
-from random import random
+from random import random, randint
 
 from UtilityModel import UtilityModel
 
@@ -23,7 +23,7 @@ def read_model_outputs(data, model_dir):
     for drug in drugs:
         prediction_file = os.path.join(model_dir, drug, 'predictions.csv')
         with open(prediction_file, 'r') as f:
-            data['p_of_c_' + drug] = np.array([float(prob.split(',')[1].rstrip()) + random() / 1000
+            data['p_of_c_' + drug] = np.array([float(prob.split(',')[1].rstrip()) +  random() / 1000
                                                      for prob in f])
     return data
 
@@ -155,20 +155,32 @@ if __name__ == '__main__':
     # Filter encounters by what meds were ordered
     data = filter_encounters_by_med_order(data)
 
+    # Test this out
+    # data['p_of_c_cefazolin'] = data.apply(lambda x: x.p_of_c_cefazolin if x.p_of_c_cefazolin <= \
+    #                                 x.p_of_c_ceftriaxone else x.p_of_c_ceftriaxone, axis=1)
+    # data['p_of_c_ceftriaxone'] = data.apply(lambda x: x.p_of_c_ceftriaxone if x.p_of_c_ceftriaxone <= \
+    #                                 x.p_of_c_cefepime else x.p_of_c_cefepime, axis=1)
+
     # Get Flag For Whether patients were adequately covered 
     data['clin_covered'] = data.apply(compute_clin_covered_flag, axis=1)
 
-    data = data.head(18)
+    data = data.head(1530)
+
     umodel = UtilityModel(data=data,
-                          C_meropenem = 0,
-                          C_vancomycin= 0,
-                          C_piptazo= 0,
+                          C_meropenem = -10,
+                          C_vancomycin= -10,
+                          C_piptazo= 5,
                           C_cefepime= 0,
-                          C_ceftriaxone= 0,
-                          C_cefazolin= 0)
+                          C_ceftriaxone= 5,
+                          C_cefazolin= 2,
+                          C_vanc_meropenem=-10,
+                          C_vanc_piptazo = 0,
+                          C_vanc_cefepime=0,
+                          C_vanc_ceftriaxone=0)
+
     data['alg_meds'] = data.apply(umodel.compute_best_action, axis=1)
 
     # Get Flag for Whether alg covered pateints adequately 
     data['alg_covered'] = data.apply(compute_alg_covered_flag, axis=1)
-    
+
     umodel.fit_drug_parameters()

@@ -13,7 +13,7 @@ def fit_baseline_models(x_train, labels_train,
                         x_test, labels_test):
     """
     Fits first pass random forest models to each drug combo
-    No hyperparamter tuning (trees == 100, features = sqrt)
+    No hyperparamter tuning (trees == 1000, features = sqrt)
     Prints AUROC with CIs
     Saves y_hats and trained model to output directory 
     """
