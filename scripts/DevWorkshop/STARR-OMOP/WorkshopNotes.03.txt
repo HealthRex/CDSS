@@ -96,3 +96,9 @@ Flowsheets
 - Massive size, 4B rows, bottleneck for processing. Generic catch all that should go through more breakdown, but right now just gets dropped into Observation JSONs.
 - Trying to run de-id pipeline on flowsheet hits bottleneck, as BigQuery default limits processing to 10TB per day
 
+
+
+
+For more additions or reidentification customization, probably need custom cuts of the datalake in future. But would still benefit of being in OMOP and notes extract form, etc.
+
+
