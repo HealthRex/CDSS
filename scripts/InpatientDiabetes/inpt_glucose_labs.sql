@@ -20,3 +20,19 @@ AND lab_name = "Glucose by Meter"
 AND UPPER(ordering_mode) = 'INPATIENT' AND ord_num_value BETWEEN 0 AND 9999998
 AND ord_num_value BETWEEN 80 AND 200
 order by rit_uid, taken_time_jittered, result_time_jittered 
+
+--
+-- Creatinine
+SELECT rit_uid, pat_enc_csn_id_coded, lab_name, ord_num_value, taken_time_jittered    FROM `mining-clinical-decisions.datalake_47618.lab_result` 
+WHERE (lab_name) LIKE "Creatinine, Ser/Plas" --most common creatinine order
+AND ord_num_value != 9999999
+AND taken_time_jittered IS NOT null
+
+--
+-- Patient encounters with AKI/CKD
+SELECT rit_uid, pat_enc_csn_id_coded, lab_name, ord_num_value, taken_time_jittered    FROM `mining-clinical-decisions.datalake_47618.lab_result` as lab
+WHERE (lab_name) LIKE "Creatinine, Ser/Plas" --most common creatinine order
+AND ord_num_value != 9999999
+AND taken_time_jittered IS NOT null
+AND ord_num_value > 2 -- patient with AKI/CKD, rough approximation 
+
