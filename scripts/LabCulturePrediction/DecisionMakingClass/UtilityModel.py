@@ -32,7 +32,7 @@ class UtilityModel():
         treatment based on expected utility.
         """
 
-        drugs = ['cefazolin', 'ceftriaxone', 'cefepime', 
+        drugs = ['ceftriaxone', 'cefepime', 
                  'piptazo', 'vancomycin', 'vanc_ceftriaxone',
                  'vanc_cefepime', 'vanc_piptazo',
                  'meropenem', 'vanc_meropenem']
@@ -114,8 +114,6 @@ class UtilityModel():
         self.drug_cost['piptazo'] = vars[2]
         self.drug_cost['cefepime'] = vars[3]
         self.drug_cost['ceftriaxone'] = vars[4]
-        self.drug_cost['cefazolin'] = vars[5]
-
 
         self.data['alg_meds'] = self.data.apply(self.compute_best_action, axis=1)
 
@@ -134,17 +132,16 @@ class UtilityModel():
 
 
     def f_new(self, vars):
-        self.drug_cost['cefazolin'] = vars[0]
-        self.drug_cost['ceftriaxone'] = vars[1]
-        self.drug_cost['cefepime'] = vars[2]
-        self.drug_cost['piptazo'] = vars[3]
-        self.drug_cost['vancomycin'] = vars[4]
-        self.drug_cost['meropenem'] = vars[5]
+        self.drug_cost['ceftriaxone'] = vars[0]
+        self.drug_cost['cefepime'] = vars[1]
+        self.drug_cost['piptazo'] = vars[2]
+        self.drug_cost['vancomycin'] = vars[3]
+        self.drug_cost['meropenem'] = vars[4]
 
-        self.drug_cost['vanc_meropenem'] = vars[6]
-        self.drug_cost['vanc_piptazo'] = vars[7]
-        self.drug_cost['vanc_cefepime'] = vars[8]
-        self.drug_cost['vanc_ceftriaxone'] = vars[9]
+        self.drug_cost['vanc_meropenem'] = vars[5]
+        self.drug_cost['vanc_piptazo'] = vars[6]
+        self.drug_cost['vanc_cefepime'] = vars[7]
+        self.drug_cost['vanc_ceftriaxone'] = vars[8]
 
         self.data['alg_meds'] = self.data.apply(self.compute_best_action, axis=1)
 
@@ -157,7 +154,7 @@ class UtilityModel():
         #          'vancomycin cefepime', 'vancomycin piperacillin-tazobactam',
         #          'meropenem', 'vancomcyin meropenem']
 
-        drugs = ['cefazolin', 'ceftriaxone', 'cefepime',
+        drugs = ['ceftriaxone', 'cefepime',
                  'piperacillin-tazobactam', 'vancomycin',
                  'meropenem', 'vancomycin meropenem',
                  'vancomycin piperacillin-tazobactam',
@@ -167,15 +164,14 @@ class UtilityModel():
         for i, drug in enumerate(drugs):
             count = len(self.data[self.data['alg_meds'] == drug])
             print("Count %s: %f" % (drug, count))
-            if drug == 'meropenem' or drug == 'vancomycin meropenem':
+
+            if (drug == 'meropenem' or drug == 'vancomycin meropenem') and \
+                (count > self.n[drug]) :
                 equations.append(np.power(count - self.n[drug], 4))
             else:
                 equations.append(np.square(count - self.n[drug]))
         print()
         print()
-
-        total_cost = 0
-
         # for key in ['cefazolin', 'ceftriaxone', 'cefepime',
         #             'piptazo', 'vancomycin', 'meropenem']:
         #     total_cost += self.drug_cost[key]
@@ -192,34 +188,13 @@ class UtilityModel():
 
 
 
-
-
-    def fit_drug_parameters(self,
-                            n_meropenem=-2,
-                            n_vanc=-2,
-                            n_piptazo=-2,
-                            n_cefepime=-2,
-                            n_ceftriaxone=-2,
-                            n_cefazolin=-2):
+    def fit_drug_parameters(self, n):
         """ This function solves a system of equations to fit cost values
             for each of the six antibiotics. 
         """
 
-        self.n = {}
-        self.n['vancomycin meropenem'] = 0
-        self.n['vancomycin piperacillin-tazobactam'] = 500
-        self.n['vancomycin'] = 0
-        self.n['piperacillin-tazobactam'] = 200
-        self.n['cefepime'] = 50
-        self.n['ceftriaxone'] = 500
-        self.n['cefazolin'] = 200
-        self.n['vancomycin cefepime'] = 50
-        self.n['vancomycin ceftriaxone'] = 30
-        self.n['meropenem'] = 0
-
-        pdb.set_trace()
-        drug_costs = basinhopping(self.f_new, (self.drug_cost['cefazolin'],
-                                         self.drug_cost['ceftriaxone'],
+        self.n = n
+        drug_costs = basinhopping(self.f_new, (self.drug_cost['ceftriaxone'],
                                          self.drug_cost['cefepime'],
                                          self.drug_cost['piptazo'],
                                          self.drug_cost['vancomycin'],
@@ -227,32 +202,25 @@ class UtilityModel():
                                          self.drug_cost['vanc_meropenem'],
                                          self.drug_cost['vanc_piptazo'],
                                          self.drug_cost['vanc_cefepime'],
-                                         self.drug_cost['vanc_ceftriaxone']), T=1000, niter=1000)
+                                         self.drug_cost['vanc_ceftriaxone']), T=1000, niter=10)
         
 
-        self.drug_cost['cefazolin'] = drug_costs['x'][0]
-        self.drug_cost['ceftriaxone'] = drug_costs['x'][1]
-        self.drug_cost['cefepime'] = drug_costs['x'][2]
-        self.drug_cost['piptazo'] = drug_costs['x'][3]
-        self.drug_cost['vancomycin'] = drug_costs['x'][4]
-        self.drug_cost['meropenem'] = drug_costs['x'][5]    
+        self.drug_cost['ceftriaxone'] = drug_costs['x'][0]
+        self.drug_cost['cefepime'] = drug_costs['x'][1]
+        self.drug_cost['piptazo'] = drug_costs['x'][2]
+        self.drug_cost['vancomycin'] = drug_costs['x'][3]
+        self.drug_cost['meropenem'] = drug_costs['x'][4]    
+
+        self.drug_cost['vanc_meropenem'] = drug_costs['x'][5]
+        self.drug_cost['vanc_piptazo'] = drug_costs['x'][6]
+        self.drug_cost['vanc_cefepime'] = drug_costs['x'][7]
+        self.drug_cost['vanc_ceftriaxone'] = drug_costs['x'][8]
 
         self.data['alg_meds'] = self.data.apply(self.compute_best_action, axis=1)
         print(self.data.groupby('alg_meds').count())
-        pdb.set_trace()
-        # self.drug_cost['meropenem'] = drug_costs['x'][0]
-        # self.drug_cost['vancomycin'] = drug_costs['x'][1]
-        # self.drug_cost['piptazo'] = drug_costs['x'][2]
-        # self.drug_cost['cefepime'] = drug_costs['x'][3]
-        # self.drug_cost['ceftriaxone'] = drug_costs['x'][4]
-        # self.drug_cost['cefazolin'] = drug_costs['x'][5]
 
+        return self.data
+        
 
-        # self.C_meropenem = drug_costs[0]
-        # self.C_vancomycin = drug_costs[1]
-        # self.C_piptazo = drug_costs[2]
-        # self.C_cefepime = drug_costs[3]
-        # self.C_ceftriaxone = drug_costs[4]
-        # self.C_cefazolin = drug_costs[5]
 
 
