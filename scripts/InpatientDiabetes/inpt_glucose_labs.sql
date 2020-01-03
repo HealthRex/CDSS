@@ -48,7 +48,7 @@ AND lab_name = "Glucose by Meter"
 AND UPPER(ordering_mode) = 'INPATIENT' AND ord_num_value BETWEEN 0 AND 9999998
 -- Checking BG by range 
 	--    AND ord_num_value BETWEEN 80 AND 200 -- at goal
-	--  AND ord_num_value < 70 -- hypogelyceia
+	--  AND ord_num_value < 70 -- hypoglycemia
  	-- AND ord_num_value > 200 -- hyperglycemia
 
 AND pat_enc_csn_id_coded IN (SELECT DISTINCT(mar.pat_enc_csn_id_coded) FROM `som-nero-phi-jonc101.starr_datalake2018.mar` as mar
