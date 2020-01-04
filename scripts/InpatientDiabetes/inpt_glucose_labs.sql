@@ -91,9 +91,9 @@ AND pat_enc_csn_id_coded IN (SELECT DISTINCT(mar.pat_enc_csn_id_coded) FROM `som
        ) 
   --     */
        
-    AND mar.taken_time_jittered BETWEEN "2018-01-01T00:00:00" AND "2018-12-31T23:59:59"       -- Date range
+    
 )
 
-
+AND taken_time_jittered BETWEEN "2015-01-01T00:00:00" AND "2015-12-31T23:59:59"      -- Date range
 
 
