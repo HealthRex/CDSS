@@ -1,9 +1,11 @@
 import time
+import sys
+startdata = sys.argv[1]
  
 def sleeper():
     while True:
         # Get user input
-        num = input('How long to wait: ')
+        num = startdata
  
         # Try to convert it to a float
         try:
