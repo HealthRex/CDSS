@@ -12,34 +12,29 @@ Google Cloud and Compute Instance Setup
         to keep running in background while logged off
     - (nohup command &> logFile &)
 
+
+[ ] 
+[ ] 
+
+
 == Preconditions ==
 - Google Stanford Account with VPN setup 
 - Project Permissions 
 - Service Account with Access Permissions to BigQuery Databases 
 
 == Workshop Steps ==
-- Login to the Google Cloud Platform and then find Compute Engine in leftside dropdown 
-
 === Version A - Starting from blank Compute Engine and Connecting to BigQuery ===
+- Login to the Google Cloud Platform
+  - Make sure connected as your stanford.edu account
+  - Pick the correct GCP Project (e.g., som-nero-phi-jonc101 or Mining-Clinical-Decisions depending on access needed)
+  (See prior workshop on VBPN access if needed)
 
-- Startup / Restore an RDS (Relational Database Server) Instance
-	Under VM instances select CREATE INSTANCE
-
-	- Actions > Restore Snapshot
-		Most default options are fine
-		- DB Instance Class
-			Specify how "big" a server you want. For testing, N1 series is good enough
-		- DB Instance Identifier
-			Specify a unique name so you will be able to track the instance you created
-		- Availability Zone
-			Specific choice is not as important as being consistent 
-			(Keep all your spawned servers in the same area to minimize network latency and security risks). 
-			I've usually been using "us-east-1c."
+- Go to Compute Engine section in leftside dropdown 
 
 - Startup a Compute VM Instance
 	These are general purpose (Linux) servers that can basically do whatever you want them to 
-	(Including running relational databases, if you don't need the convenience of the RDS setup).
 	
+    - Click on Create Instance button in top bar...
 	- Launch Instance
 		- Pick the Compute VM Image to start from
 			Compute Instances is also possible here if you did a lot of custom configuration, 
@@ -63,13 +58,19 @@ Google Cloud and Compute Instance Setup
             Under service account there should be a dropdown of different APIs 
             you can access. Subsequently the API you select 
             should have your IAM role access determined (read, write)
-	- Firewall
-		By default all incoming traffic from outside a network is blocked. 
-        - Starting an Instance
-            Once you create your instance you select the instance and hit Start 
+
+
+???????????Vs. Having users upload login JSON key to identify themselves???????
+???????Especially because som-nero-phi-jonc101 project, we don't have owner access to create API accounts anyway....
+?????Would probably then be good for people to know about SCP file uploads as well?????
+????THis probably means as a precondition, that they've already done the GoogleCloud-VPC Access Key workshop so they'll have they're own JSON ????
+
 		- SSH Connection
             Once you start the compute instance, you may remote access with SSH.  
             I typically use 'Open in browser  window' (may not be  best practice) 
+
+        	[[[[[[[[[[[[[[Figure out option for connecting with any SSH client]]]]]]]]]]]]]]
+
 
 		- Install Libraries and Dependencies / Package Managers
             Installs  Dependencies: Python/Bigquery
@@ -94,12 +95,19 @@ Google Cloud and Compute Instance Setup
             13 mkdir results
             14 mkdir log
 
+
+            [[[[[ Figure out what is minimum necessary dependency installation to just make demo process work]]]]]
+        	[[[[[ See if simpler git install so doesn't require so much download and install ]]]]]
+
 	- Download Copy of Application Code Repository
 		    `git clone https://github.com/HealthRex/CDSS.git`
 	    
 	- Run Script for Reading Data from BigQuery 
             in your virtual environment: run this script from CDSS repo
                 `python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read.py`
+
+[[[[[[[[[[[Clarify if some kind of access crediential was necessary to make this step work]]]]]]]]]]]
+
         - Passing SQL Arguments to Read Data from BigQuery 
             in your virtual environment: run this script from CDSS repo
                 'python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read_arg.py SELECT jc_uid, order_type, description FROM datalake_47618_sample.order_proc'
@@ -109,6 +117,10 @@ On GCP Linux Server:
 
 - Run the process again, but do so in the background
 	`nohup python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read.py &> log/progress.log &`
+
+
+[[[[[[[[[[[[Add back example where the compute/query process takes a while, adding back option parser and time delay between results]]]]]]]]]]]]
+[[[[[[[[[[[That way people can learn about running a process in the background...]]]]]]]]]]]
 
 	Above will run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup"). 
 	So you can start a long process and just let the server continue to work on it, 
