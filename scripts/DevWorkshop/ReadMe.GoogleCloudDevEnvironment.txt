@@ -53,7 +53,8 @@ Google Cloud and Compute Instance Setup
 		- Subnet / Availability Zone
 			As above, pick a consistent zone so all of your servers spawn in the same place
 		- Add Storage
-			Can be customized in 'Machine type' dropdown under custom. Otherwise select a compute instance that 			    fulfills your needs  
+			Can be customized in 'Machine type' dropdown under custom. 
+			Otherwise select a compute instance that fulfills your needs  
         - Boot Disk
             Allows you to change the Operating System 
 	- **Identify and API access**
@@ -110,7 +111,10 @@ On GCP Linux Server:
 	`nohup python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read.py &> log/progress.log &`
 
 	Above will run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup"). 
-	So you can start a long process and just let the server continue to work on it, without requiring you to keep your 	   (laptop) client computer logged in.  Any error messages, progress indicators, or other text that you normally see in 	 the console window will be redirected (&>) to the specified log file (log/progress.log)
+	So you can start a long process and just let the server continue to work on it, 
+	without requiring you to keep your (laptop) client computer logged in.  
+	Any error messages, progress indicators, or other text that you normally see in the console 
+	window will be redirected (&>) to the specified log file (log/progress.log)
 
 - Check on the progress of the process you have running in the background
     `ps -u`
@@ -122,10 +126,14 @@ On GCP Linux Server:
 	`top`
 		Running monitor of all the most intensive processes running on the server
 		Overall reporting can track how much total free memory (RAM) the server still has available, 
-		and how much processor (CPU) is being used. Helpful when trying to gauge the bottleneck for intensive 			processes 
-		(need more processors or need more RAM?). Note that total CPU load can be >100% for servers with multiple 		   CPUs. 
-		The whole point of using a multi-processor server is that you should run multiple simultaneous (parallel) 		  processes
-		to take advantage of extra CPUs working for you. You can't make a single process run at 200% speed with two 		    CPUs,but you can break up the work into two separate tasks, and have each running at 100% on separate CPUs.
+		and how much processor (CPU) is being used. Helpful when trying to gauge the bottleneck for 
+		intensive processes (need more processors or need more RAM?). 
+		Note that total CPU load can be >100% for servers with multiple CPUs. 
+		The whole point of using a multi-processor server is that you 
+		should run multiple simultaneous (parallel) processes
+		to take advantage of extra CPUs working for you. 
+		You can't make a single process run at 200% speed with two CPUs, 
+		but you can break up the work into two separate tasks, and have each running at 100% on separate CPUs.
 		Beware that the multiple processors are both using the same shared memory (RAM), so if you have a process
 		that uses a lot of RAM, parallelizing the process will also multiply the amount of total RAM needed.
 		
@@ -134,6 +142,7 @@ On GCP Linux Server:
 	`cat log/process.log`
 		Show the output of the redirected console output from your application process
 	`tail -f log/process.log`
-		Show just the last few lines of the redirected console output, and continue watching it until Ctrl+C to abort.
+		Show just the last few lines of the redirected console output, 
+		and continue watching it until Ctrl+C to abort.
 		(Ctrl+C will abort the "tail" monitoring process, not the original application process.)
 
