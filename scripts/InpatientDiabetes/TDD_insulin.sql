@@ -1,3 +1,5 @@
+-- TDD by day by patient. Insulin not pumps or U500 or rare. Patient without AKI during that encounter. 
+
 SELECT mar.jc_uid, (SUM(CAST(mar.sig AS float64))) as TDD, DATE(mar.taken_time_jittered) as date FROM `som-nero-phi-jonc101.starr_datalake2018.mar` as mar 
   LEFT JOIN `som-nero-phi-jonc101.starr_datalake2018.order_med` as medord on mar.order_med_id_coded=medord.order_med_id_coded 
   WHERE mar.order_med_id_coded in 
