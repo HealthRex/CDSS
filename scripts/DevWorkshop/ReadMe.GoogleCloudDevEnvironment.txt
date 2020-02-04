@@ -3,7 +3,7 @@ Google Cloud and Compute Instance Setup
 
 == Learning Goals ==
 - Setting up Google Cloud Compute Instances
-    - SSH remote connections + public-private key security
+    - SSH GCloud
     - Setting up Linux Instance
 - Running queries on Linux server
     - Process management to allow process to keep running in background while logged off
@@ -57,13 +57,27 @@ Google Cloud and Compute Instance Setup
     
 -- ACCESSING YOUR  INSTANCE: 
 
-    - Access with SSH/Browser 
+    - Access with SSH/Browser
+    	- Click ssh on the right of your instance name 
 
-    - Access with gcloud 
+    - Access with gcloud/SSH 
+    	- Precondition: 
+		-  requires gcloud installation (see devworkshop) 
+	- Access on SSH 
+		1) gcloud init 
+		2) pick configuration (typically 1) 
+		3) choose  account (stanford account) 
+		4) pick a cloud project (mining-clinical-decisions)
+		5) gcloud compute ssh name-instance 
+		6) select region associated with instance 
+		
+    	- scp a file 
+		- 'gcloud compute scp ~/Downloads/your_file.txt \instance-name:~/your_file.txt'
+			(where instance-name is the name of your instance)  
         
 	- SSH Connection
             Once you start the compute instance, you may remote access with SSH.  
-            'Open in browser  window'  
+            'Open in browser window'  
 
 	- Install Libraries and Dependencies / Package Managers
             Installs  Dependencies: Python/Bigquery
