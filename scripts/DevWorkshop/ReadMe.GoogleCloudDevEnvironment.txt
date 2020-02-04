@@ -33,18 +33,17 @@ Google Cloud and Compute Instance Setup
             - Handling failures
                 - must choose different regions if using multiple instances to avoid outages
             - Decreased Network Latency 
-                - choose a region close by 
-
+                - Choose a region close by 
 		- Choose an Instance Type
 			For testing purposes we can use n1-standard  
             		With heavy computing, you can pick a server with more CPUs and more RAM.
-		- Machine Configuration
-			Most defaults are fine.
-		- Series
-			As above, pick a consistent zone so all of your servers spawn in the same place
-		- Machine type
-			Can be customized in 'Machine type' dropdown under custom. 
-			Otherwise select a compute instance that fulfills your needs  
+	 - Machine Configuration
+		- Most defaults are fine.
+	 - Series
+		- As above, pick a consistent zone so all of your servers spawn in the same place
+	 - Machine type
+		Can be customized in 'Machine type' dropdown under custom. 
+		Otherwise select a compute instance that fulfills your needs  
         - Boot Disk
             Allows you to change the Operating System 
 	- **Identify and API access**
@@ -53,7 +52,6 @@ Google Cloud and Compute Instance Setup
             Under service account there should be a dropdown of different APIs 
             you can access. Subsequently the API you select 
             should have your IAM role access determined (read, write)
-    - Firewall 
     - Create 
         - then you can create your  instace
     
@@ -63,19 +61,17 @@ Google Cloud and Compute Instance Setup
 
     - Access with gcloud 
         
-		- SSH Connection
+	- SSH Connection
             Once you start the compute instance, you may remote access with SSH.  
-            I typically use 'Open in browser  window' (may not be  best practice) 
+            'Open in browser  window'  
 
-		- Install Libraries and Dependencies / Package Managers
+	- Install Libraries and Dependencies / Package Managers
             Installs  Dependencies: Python/Bigquery
-            Creates Directory 
             Creates  Virtual Environment
             Installs Python dependencies in virtual environment 
             Install  Git for  Version Control 
-                For  steps 6 and 7 you may change the name of your bq project
 
-	        1  sudo apt update
+	    1  sudo apt update
             2  sudo apt install python3 python3-dev python3-venv
             3  wget https://bootstrap.pypa.io/get-pip.py
             4  sudo python get-pip.py
