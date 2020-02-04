@@ -4,18 +4,10 @@ Google Cloud and Compute Instance Setup
 == Learning Goals ==
 - Setting up Google Cloud Compute Instances
     - SSH remote connections + public-private key security
-    - Snapshot management
-    - Elastic compute scales + hourly billing
-    - Setting up Linux server dev environment from scratch / base image
-- Running batch queries on Linux server
-    - Process management to allow for multiple parallel queries or allow process 
-        to keep running in background while logged off
+    - Setting up Linux Instance
+- Running queries on Linux server
+    - Process management to allow process to keep running in background while logged off
     - (nohup command &> logFile &)
-
-
-[ ] 
-[ ] 
-
 
 == Preconditions ==
 - Google Stanford Account with VPN setup 
@@ -26,28 +18,31 @@ Google Cloud and Compute Instance Setup
 === Version A - Starting from blank Compute Engine and Connecting to BigQuery ===
 - Login to the Google Cloud Platform
   - Make sure connected as your stanford.edu account
-  - Pick the correct GCP Project (e.g., som-nero-phi-jonc101 or Mining-Clinical-Decisions depending on access needed)
-  (See prior workshop on VBPN access if needed)
+  - Pick the correct GCP Project - Mining-Clinical-Decisions depending on access needed)
+  (See prior workshop on VPN access if needed)
 
-- Go to Compute Engine section in leftside dropdown 
+- Select "VM instances" under "Compute Engine" section in leftside dropdown under "COMPUTE"
 
-- Startup a Compute VM Instance
-	These are general purpose (Linux) servers that can basically do whatever you want them to 
-	
-    - Click on Create Instance button in top bar...
+- Startup a Compute VM Instance	
+    - Click on Create Instance button in top bar under header 
 	- Launch Instance
-		- Pick the Compute VM Image to start from
+		- Name:
 			Compute Instances is also possible here if you did a lot of custom configuration, 
 			but here we want to illustrate how to get going from a "blank" instance
+        - Region
+            - Handling failures
+                - must choose different regions if using multiple instances to avoid outages
+            - Decreased Network Latency 
+                - choose a region close by 
+
 		- Choose an Instance Type
-			For testing purposes, a f1-micro instance should again be good enough. 
-            		I've been using n1-standard. If subsequently going to be doing some heavy computing, 
-            		then pick a server with more CPUs and more RAM.
-		- Configure Instance Details
+			For testing purposes we can use n1-standard  
+            		With heavy computing, you can pick a server with more CPUs and more RAM.
+		- Machine Configuration
 			Most defaults are fine.
-		- Subnet / Availability Zone
+		- Series
 			As above, pick a consistent zone so all of your servers spawn in the same place
-		- Add Storage
+		- Machine type
 			Can be customized in 'Machine type' dropdown under custom. 
 			Otherwise select a compute instance that fulfills your needs  
         - Boot Disk
@@ -58,19 +53,19 @@ Google Cloud and Compute Instance Setup
             Under service account there should be a dropdown of different APIs 
             you can access. Subsequently the API you select 
             should have your IAM role access determined (read, write)
+    - Firewall 
+    - Create 
+        - then you can create your  instace
+    
+-- ACCESSING YOUR  INSTANCE: 
 
+    - Access with SSH/Browser 
 
-???????????Vs. Having users upload login JSON key to identify themselves???????
-???????Especially because som-nero-phi-jonc101 project, we don't have owner access to create API accounts anyway....
-?????Would probably then be good for people to know about SCP file uploads as well?????
-????THis probably means as a precondition, that they've already done the GoogleCloud-VPC Access Key workshop so they'll have they're own JSON ????
-
+    - Access with gcloud 
+        
 		- SSH Connection
             Once you start the compute instance, you may remote access with SSH.  
             I typically use 'Open in browser  window' (may not be  best practice) 
-
-        	[[[[[[[[[[[[[[Figure out option for connecting with any SSH client]]]]]]]]]]]]]]
-
 
 		- Install Libraries and Dependencies / Package Managers
             Installs  Dependencies: Python/Bigquery
@@ -80,33 +75,24 @@ Google Cloud and Compute Instance Setup
             Install  Git for  Version Control 
                 For  steps 6 and 7 you may change the name of your bq project
 
-	    1  sudo apt update
+	        1  sudo apt update
             2  sudo apt install python3 python3-dev python3-venv
             3  wget https://bootstrap.pypa.io/get-pip.py
             4  sudo python get-pip.py
-            5  mkdir bq_project
-            6  cd bq_project/
-            7  python3 -m venv venv
-            8  source venv/bin/activate
-            9  pip install google-cloud-storage
-            10 pip install google-cloud-bigquery
-            11 pip install pandas
-            12 sudo apt install git-all
-            13 mkdir results
-            14 mkdir log
-
-
-            [[[[[ Figure out what is minimum necessary dependency installation to just make demo process work]]]]]
-        	[[[[[ See if simpler git install so doesn't require so much download and install ]]]]]
-
+            5  python3 -m venv venv
+            6  source venv/bin/activate
+            7  pip install google-cloud-bigquery
+            8  pip install pandas
+            9  sudo apt install git
+            10 mkdir results
+            11 mkdir log
+	    
 	- Download Copy of Application Code Repository
 		    `git clone https://github.com/HealthRex/CDSS.git`
 	    
 	- Run Script for Reading Data from BigQuery 
             in your virtual environment: run this script from CDSS repo
                 `python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read.py`
-
-[[[[[[[[[[[Clarify if some kind of access crediential was necessary to make this step work]]]]]]]]]]]
 
         - Passing SQL Arguments to Read Data from BigQuery 
             in your virtual environment: run this script from CDSS repo
@@ -116,11 +102,7 @@ Google Cloud and Compute Instance Setup
 On GCP Linux Server:
 
 - Run the process again, but do so in the background
-	`nohup python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read.py &> log/progress.log &`
-
-
-[[[[[[[[[[[[Add back example where the compute/query process takes a while, adding back option parser and time delay between results]]]]]]]]]]]]
-[[[[[[[[[[[That way people can learn about running a process in the background...]]]]]]]]]]]
+	`nohup python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read.py &> log/progress.log`
 
 	Above will run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup"). 
 	So you can start a long process and just let the server continue to work on it, 
@@ -157,4 +139,3 @@ On GCP Linux Server:
 		Show just the last few lines of the redirected console output, 
 		and continue watching it until Ctrl+C to abort.
 		(Ctrl+C will abort the "tail" monitoring process, not the original application process.)
-
