@@ -15,7 +15,7 @@ Google Cloud and Compute Instance Setup
 - Service Account with Access Permissions to BigQuery Databases 
 
 == Workshop Steps ==
-=== Version A - Starting from blank Compute Engine and Connecting to BigQuery ===
+=== Starting from blank Compute Engine and Connecting to BigQuery ===
 - Login to the Google Cloud Platform
   - Make sure connected as your stanford.edu account
   - Pick the correct GCP Project - Mining-Clinical-Decisions depending on access needed)
@@ -27,25 +27,35 @@ Google Cloud and Compute Instance Setup
     - Click on Create Instance button in top bar under header 
 	- Launch Instance
 		- Name:
-			Compute Instances is also possible here if you did a lot of custom configuration, 
+			????Compute Instances is also possible here if you did a lot of custom configuration, 
 			but here we want to illustrate how to get going from a "blank" instance
+			((((Can create off a prior image, but here show example of starting from blank))))
+			????
+			???Could name it after yourself and purpose, so know to keep track and delete later???
         - Region
-            - Handling failures
-                - must choose different regions if using multiple instances to avoid outages
+            ???
             - Decreased Network Latency 
-                - Choose a region close by 
-		- Choose an Instance Type
+                - Choose a region close by to reduce latency, but more important is just to be consistent (e.g., us-west1-b)
+            ????- Handling failures
+                - must choose different regions if using multiple instances to avoid outages
+                ((((This would be more if building a large fault-tolerant system that shoudl keep running even if some parts go down))))
+                ???
+		 - Zone???
+			- As above, pick a consistent zone so all of your servers spawn in the same place
+		 - Machine type
+			Can be customized in 'Machine type' dropdown under custom. 
+			Otherwise select a compute instance that fulfills your needs  
+
 			For testing purposes we can use n1-standard  
             		With heavy computing, you can pick a server with more CPUs and more RAM.
-	 - Machine Configuration
-		- Most defaults are fine.
-	 - Series
-		- As above, pick a consistent zone so all of your servers spawn in the same place
-	 - Machine type
-		Can be customized in 'Machine type' dropdown under custom. 
-		Otherwise select a compute instance that fulfills your needs  
         - Boot Disk
             Allows you to change the Operating System 
+            ???Later show option to store a compute engine snapshot and restore here???
+
+	 - Machine Configuration
+		- Most defaults are fine.
+		???Not sure what specific this is referring to???
+
 	- **Identify and API access**
 	    - Select 'mining-clinical-dev' in dropdown. This gives read/view access and create job access  
 		    This is the most important for accessing BigQuery. You should have 
@@ -57,63 +67,77 @@ Google Cloud and Compute Instance Setup
         - then you can create your  instance
     
 -- ACCESSING YOUR  INSTANCE: 
+	???Different options to establish an SSH terminal connection to the compute instance / server:...
+	???What's the relative advantage/disadvantage of each of these???
 
     - Access with SSH/Browser
     	- Click ssh on the right of your instance name 
 
     - Access with gcloud/SSH 
+
+    ???????????????????????????????????????
+    ???????????????????????????????????????
+    ???????????????????????????????????????
+    ???????????????????????????????????????
+    ???????????????????????????????????????
     	- Precondition: 
 		-  requires gcloud installation (see devworkshop) 
-	- Access on SSH 
-		1) gcloud init 
-		2) pick configuration (typically 1) 
-		3) choose  account (stanford account) 
-		4) pick a cloud project (mining-clinical-decisions)
-		5) gcloud compute ssh name-instance 
-		6) select region associated with instance 
-		
-    	- scp a file 
-		- 'gcloud compute scp ~/Downloads/your_file.txt \instance-name:~/your_file.txt'
-			(where instance-name is the name of your instance)  
+		- Access on SSH 
+			1) gcloud init 
+			2) pick configuration (typically 1) 
+			3) choose  account (stanford account) 
+			4) pick a cloud project (mining-clinical-decisions)
+			5) gcloud compute ssh name-instance 
+			6) select region associated with instance 
+			
+	    	- scp a file 
+			- 'gcloud compute scp ~/Downloads/your_file.txt \instance-name:~/your_file.txt'
+				(where instance-name is the name of your instance)  
         
-	- SSH Connection
+	- SSH Connection ???Redundant with prior step
             Once you start the compute instance, you may remote access with SSH.  
             'Open in browser window'  
 
 	- Install Libraries and Dependencies / Package Managers
             Installs  Dependencies: Python/Bigquery
-            Creates  Virtual Environment
+            -- Creates  Virtual Environment ???Remove unless pseicifcally necessary to minimize number of steps and dependencies to keep track of
             Installs Python dependencies in virtual environment 
             Install  Git for  Version Control 
 
-	    1  sudo apt update
-            2  sudo apt install python3 python3-dev python3-venv
-            3  wget https://bootstrap.pypa.io/get-pip.py
-            4  sudo python get-pip.py
-            5  python3 -m venv venv
-            6  source venv/bin/activate
-            7  pip install google-cloud-bigquery
-            8  pip install pandas
-            9  sudo apt install git
-            10 mkdir results
-            11 mkdir log
+	    sudo apt update
+		sudo apt install git
+		sudo apt install python3 python3-dev python3-venv
+		wget https://bootstrap.pypa.io/get-pip.py
+		sudo python get-pip.py
+		-- python3 -m venv venv
+		-- source venv/bin/activate
+		pip install google-cloud-bigquery
+		pip install pandas
+		-- mkdir results
+		-- mkdir log
 	    
 	- Download Copy of Application Code Repository
 		    `git clone https://github.com/HealthRex/CDSS.git`
 	    
 	- Run Script for Reading Data from BigQuery 
             in your virtual environment: run this script from CDSS repo
+            ????Add some description of what people should expect, what is it this example is doing????
                 `python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read.py`
 
         - Passing SQL Arguments to Read Data from BigQuery 
             in your virtual environment: run this script from CDSS repo
                 'python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read_arg.py SELECT jc_uid, order_type, description FROM datalake_47618_sample.order_proc'
 
+            ???Looking more for examples where can import modules from medinfo rather just local scripts... Really best example would be to update DBUtil interface so can work in this interface as well....????
+
 == Testing and Running (Batch) Processes ==
 On GCP Linux Server:
 
+????Add- Run a long script first... run sleeper example, but change it so it's a for loop that just prints a line or dot every 1 second, so people can see what it looks like and see that it's not idling, but it will take a long time to finish
+
+
 - Run the process again, but do so in the background
-	`nohup python3 -u CDSS/scripts/DevWorkshop/GoogleCloudPlatform/sleeper_1000.py  &> log/progress.log 
+	`nohup python3 -u CDSS/scripts/DevWorkshop/GoogleCloudPlatform/sleeper_1000.py  &> log/progress.log &
 `
 	Above will run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup"). 
 	So you can start a long process and just let the server continue to work on it, 
@@ -150,3 +174,8 @@ On GCP Linux Server:
 		Show just the last few lines of the redirected console output, 
 		and continue watching it until Ctrl+C to abort.
 		(Ctrl+C will abort the "tail" monitoring process, not the original application process.)
+
+
+Section on running serial and parallel processes using simple scripts.
+Then snapshoting the server and restarting it or reconfiguring it to use multiple CPUs and RAM.
+
