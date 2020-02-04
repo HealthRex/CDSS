@@ -98,8 +98,8 @@ Google Cloud and Compute Instance Setup
 On GCP Linux Server:
 
 - Run the process again, but do so in the background
-	`nohup python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read.py &> log/progress.log`
-
+	`nohup python3 -u CDSS/scripts/DevWorkshop/GoogleCloudPlatform/sleeper_1000.py  &> log/progress.log 
+`
 	Above will run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup"). 
 	So you can start a long process and just let the server continue to work on it, 
 	without requiring you to keep your (laptop) client computer logged in.  
