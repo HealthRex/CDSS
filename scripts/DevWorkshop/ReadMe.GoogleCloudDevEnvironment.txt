@@ -47,13 +47,14 @@ Google Cloud and Compute Instance Setup
         - Boot Disk
             Allows you to change the Operating System 
 	- **Identify and API access**
-	    This is the most important for accessing BigQuery. You should have 
-            access to a service account that has the BQ enabled. 
-            Under service account there should be a dropdown of different APIs 
-            you can access. Subsequently the API you select 
-            should have your IAM role access determined (read, write)
+	    - Select 'mining-clinical-dev' in dropdown. This gives read/view access and create job access  
+		    This is the most important for accessing BigQuery. You should have 
+		    access to a service account that has the BQ enabled. 
+		    Under service account there should be a dropdown of different APIs 
+		    you can access. Subsequently the API you select 
+		    should have your IAM role access determined (read, write)
     - Create 
-        - then you can create your  instace
+        - then you can create your  instance
     
 -- ACCESSING YOUR  INSTANCE: 
 
