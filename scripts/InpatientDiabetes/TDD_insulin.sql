@@ -33,7 +33,7 @@ ORDER BY mar.jc_uid, date
 
 -- 
 -- Average BG on days when every BG between 100-180
-SELECT a.rit_uid, DATE(a.taken_time_jittered) as date, AVG(a.ord_num_value) as avg_bg  FROM `som-nero-phi-jonc101.starr_datalake2018.lab_result` as a 
+SELECT a.rit_uid, DATE(a.taken_time_jittered) as date  FROM `som-nero-phi-jonc101.starr_datalake2018.lab_result` as a 
 
 WHERE UPPER(a.lab_name) LIKE '%GLUCOSE%' 
 AND a.lab_name = "Glucose by Meter"
@@ -70,7 +70,7 @@ AND a.pat_enc_csn_id_coded IN (SELECT DISTINCT(mar.pat_enc_csn_id_coded) FROM `s
 
 GROUP BY a.rit_uid, date
 
-EXCEPT DISTINCT SELECT b.rit_uid, DATE(b.taken_time_jittered) as date, AVG(b.ord_num_value) as avg_bg  FROM `som-nero-phi-jonc101.starr_datalake2018.lab_result` as b
+EXCEPT DISTINCT SELECT b.rit_uid, DATE(b.taken_time_jittered) as date FROM `som-nero-phi-jonc101.starr_datalake2018.lab_result` as b
 WHERE UPPER(b.lab_name) LIKE '%GLUCOSE%' 
 AND b.lab_name = "Glucose by Meter"
 AND UPPER(b.ordering_mode) = 'INPATIENT' AND b.ord_num_value BETWEEN 0 AND 9999998
