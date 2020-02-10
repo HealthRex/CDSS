@@ -9,9 +9,9 @@ import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
 from medinfo.db.bigquery import bigQueryUtil
 from google.cloud import bigquery
 
-CSV_FILE_PREFIX = '/path/to/jc_alert_history_reformatted_missed_contact_dates_fixed_'
+CSV_FILE_PREFIX = '/path/to/alert_history_012420_'
 DATASET_NAME = 'alert_2019'
-TABLE_NAME = 'alert_history'
+TABLE_NAME = 'alert_history_20200124'
 FINAL_TABLE_SCHEMA = [bigquery.SchemaField('anon_id', 'STRING', 'REQUIRED', None, ()),
                       bigquery.SchemaField('alt_id_jittered', 'INT64', 'REQUIRED', None, ()),
                       bigquery.SchemaField('alt_csn_id_coded', 'INT64', 'REQUIRED', None, ()),
@@ -62,18 +62,11 @@ if __name__ == '__main__':
     logging.basicConfig()
 
     '''
-    CSV dates are in MM-DD-YYYY format, but bigquery requires YYYY-MM-DD:
-    cat jc_alert_history.csv | sed -e 's/\(.*\)\([0-9][0-9]\)-\([0-9][0-9]\)-\([0-9]\{4\}\)\(.*\)\([0-9][0-9]\)-\([0-9][0-9]\)-\([0-9]\{4\}\)\(.*\)/\1\4-\2-\3\5\8-\6-\7\9/g' > jc_alert_history_reformatted.csv
-    
-    CSV contact_date only rows conversion:
-    cat jc_alert_history_reformatted.csv | sed -e 's/^\(.*\)\([0-9][0-9]\)-\([0-9][0-9]\)-\([0-9]\{4\}\)\(.*\)$/\1\4-\2-\3\5/g' > jc_alert_history_reformatted_missed_contact_dates_fixed.csv
+    - removed heading and trailing lines in vim
+    - added header line
     
     split every 2 mln lines:
-    split -l 2000000 jc_alert_history_reformatted_missed_contact_dates_fixed.csv jc_alert_history_reformatted_missed_contact_dates_fixed_
-    
-    
-    Remove last line:
-    tail -n +1 jc_alert_history_reformatted_missed_contact_dates_fixed_df | head -n -1 > jc_alert_history_reformatted_missed_contact_dates_fixed_df2 
+    split -l 2000000 alert_history_012420.csv alert_history_012420_
     '''
 
     upload = input('Upload? ("y"/"n"): ')
@@ -94,13 +87,13 @@ if __name__ == '__main__':
     print('Done')
 
     '''
-    expecting 167,059,744 lines from original table
+    expecting 167,058,216 lines from original table
     '''
 
     '''
     Conversion script in SQL:
 create or replace 
-table alert_2019.alert_history
+table alert_2019.alert_history_20200124
 as
 select * except(
     alt_id_jittered_s,
@@ -121,5 +114,5 @@ case when shown_place_c_s = '' then NULL else cast(shown_place_c_s as INT64) end
 case when patient_dep_id_s = '' then NULL else cast(patient_dep_id_s as INT64) end as patient_dep_id,
 cast(contact_date_time as DATE) as contact_date,
 timestamp(alt_action_inst, 'America/Los_Angeles') as alt_action_inst_utc
-from alert_2019.alert_history;
+from alert_2019.alert_history_20200124;
     '''
