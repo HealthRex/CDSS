@@ -1,11 +1,12 @@
 
 -- 
 -- Patients receiving 1-100u per dose inpatient subQ insulin that is not a pump, U500, or a rare order (<25 orders in dataset)
--- Verified that dose was given, dose 1-100
+-- Verified that dose was given, dose 1-100, insulins as expected when removing pumps, partial units, insulins ordered <25x
+-- If ORDER BY units DESC, top 10 rows should be 98-95U and time 2012 (1) & 2011 (10)
 
 WITH inpt_insulin_given AS (
 
-SELECT mar.jc_uid, mar.pat_enc_csn_id_coded, mar.sig as units, mar.mar_action, medord.med_description, mar.route, medord.medication_id, medord.sig, mar.taken_time_jittered as instructions FROM `som-nero-phi-jonc101.starr_datalake2018.mar` as mar 
+SELECT mar.jc_uid, mar.pat_enc_csn_id_coded, mar.sig as units, mar.mar_action, medord.med_description, mar.route, medord.medication_id, mar.taken_time_jittered FROM `som-nero-phi-jonc101.starr_datalake2018.mar` as mar 
   LEFT JOIN `som-nero-phi-jonc101.starr_datalake2018.order_med` as medord on mar.order_med_id_coded=medord.order_med_id_coded 
   WHERE mar.order_med_id_coded in 
   (SELECT medord2.order_med_id_coded FROM `som-nero-phi-jonc101.starr_datalake2018.order_med` as medord2
@@ -29,3 +30,4 @@ SELECT mar.jc_uid, mar.pat_enc_csn_id_coded, mar.sig as units, mar.mar_action, m
     AND mar.sig NOT LIKE "%.%" -- removes any partial unit injections (assumed to be pump)
     AND mar.infusion_rate IS NULL -- infusion_rate assumed to signify pump pt
   )
+
