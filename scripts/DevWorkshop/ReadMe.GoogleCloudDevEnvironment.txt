@@ -34,23 +34,37 @@ Google Cloud and Compute Instance Setup
             - Decreased Network Latency
                 - Choose a region close by to reduce latency, but more important is just to be consistent (e.g., us-west1-b)
   		 - Zone
-    			- As above, pick a consistent zone so all of your servers spawn in the same place
-		 - Machine type
-			  Can be customized in 'Machine type' dropdown under custom.
-			  Otherwise select a compute instance that fulfills your needs
+    		    - As above, pick a consistent zone so all of your servers spawn in the same place
+	- Machine type
+	     Can be customized in 'Machine type' dropdown under custom.
+             Otherwise select a compute instance that fulfills your needs
+	     - select n1-standard1 for workshop.
+	     - different machines types cost different amounts based on compute  power  (ram, processor, etc)
 
-			For testing purposes we can use n1-standard
-            		With heavy computing, you can pick a server with more CPUs and more RAM.
+		For testing purposes we can use n1-standard
+            	With heavy computing, you can pick a server with more CPUs and more RAM
         - Boot Disk
             Allows you to change the Operating System
-            ???Later show option to store a compute engine snapshot and restore here???
-   - Series
-     - select N1 for  workshop
-     - type of server processor
-	 - Machine Type
-		- select n1-standard1 for workshop.
-		- different machines types cost different amounts based on compute  power  (ram, processor, etc)
+        
+	OPTIONAL: 
+          Store a compute engine snapshot and restore 
+              - Under Compute Engine (left) Go to disks (dropdown)
+              - Go to create snapshot
+                - you  will see a dropdown of your Instances
+                - on the right you will see actions
+                  - hit  "Create Snapshot"
+                  - name your snapshot (i.e based on your vm instance)
+                  - source  disk represents the  vm you are  snapshotting
+              - then make snapshot from that  instance
+              - Under Compute  Engine (left)  go to snapshot
+                - here we can  create an instance with more/less/same  compute as  before with the  same file  directories as  			  your instance
+                - steps will be the same as creating an instance
 
+     - Series
+     	- select N1 for  workshop
+     	- type of server processor
+     
+	
 	- **Identify and API access**
 	    - Select 'mining-clinical-dev' in dropdown. This gives read/view access and create job access
 		    This is the most important for accessing BigQuery. You should have
@@ -62,16 +76,20 @@ Google Cloud and Compute Instance Setup
         - then you can create your instance
 
 -- ACCESSING YOUR  INSTANCE:
-	???Different options to establish an SSH terminal connection to the compute instance / server:...
-	???What's the relative advantage/disadvantage of each of these???
+
+  -  Gcloud SSH versus Browser:
+     - SSH key is an access credential in the SSH protocol for VM/instances  (like a login/password)
 
     - Access with SSH/Browser
-    	- Click ssh on the right of your instance name
-    	????Includes file upload/download tools???
+      - Click ssh on the right of your instance name
+      - Can Download and upload files with GUI
+      - No other installation required (very convenient)
+      - Connecting may be  a little slower depending on  number of vms and identifying ssh keys 
 
     - Access with gcloud/SSH
       - You may use gcloud instead of the SSH browser provided on the google console window. This allows you to use
         the terminal on your system.
+      - automatic generation of ssh keys 
 
     - Precondition:
   		- requires gcloud installation (see devworkshop)
@@ -90,7 +108,7 @@ Google Cloud and Compute Instance Setup
 
 	- Install Libraries and Dependencies / Package Managers
             Installs  Dependencies: Python/Bigquery
-            Installs Python dependencies in virtual environment
+            Installs Python dependencies 
             Install  Git for  Version Control
 
     	  sudo apt update
@@ -102,9 +120,13 @@ Google Cloud and Compute Instance Setup
     		pip install pandas
 
 	- Download Copy of Application Code Repository
-		git clone https://github.com/HealthRex/CDSS.git
+		    git clone https://github.com/HealthRex/CDSS.git
 
-	- Run Script for Reading Data from BigQuery
+  - Export PythonPath to use medinfo module (linux)
+       export PYTHONPATH=/[your_directory]/CDSS/
+       (can use 'pwd' to get path attributes)
+
+	- Run Sample Scripts for Reading Data from BigQuery
             in your virtual environment: run this script from CDSS repo
             the script makes a connection to sample datalake, makes a big query job that reads from the order_proc table
             and converts it to a dataframe
@@ -113,8 +135,6 @@ Google Cloud and Compute Instance Setup
         - Passing SQL Arguments to Read Data from BigQuery
             in your virtual environment: run this script from CDSS repo
                 python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read_arg.py SELECT jc_uid, order_type, description FROM datalake_47618_sample.order_proc
-
-            ???Looking more for examples where can import modules from medinfo rather just local scripts... Really best example would be to update DBUtil interface so can work in this interface as well....????
 
 == Testing and Running (Batch) Processes ==
 On GCP Linux Server:
@@ -125,7 +145,11 @@ On GCP Linux Server:
   Any error messages, progress indicators, or other text that you normally see in the console
   window will be redirected (&>) to the specified log file (log/progress.log)
 
-    nohup python3 -u CDSS/scripts/DevWorkshop/GoogleCloudPlatform/sleep_loop.py  &> log/progress.log &
+  - First run this command to see the expected print
+      python3 -u CDSS/scripts/DevWorkshop/GoogleCloudPlatform/sleep_loop.py
+        - then ctrl c to exit out
+  - This will run the nohup if you decided to exit out of console  (vm instance remains active)
+      nohup python3 -u CDSS/scripts/DevWorkshop/GoogleCloudPlatform/sleep_loop.py  &> log/progress.log &
 `
 - Check on the progress of the process you have running in the background
     `ps -u`
@@ -158,5 +182,11 @@ On GCP Linux Server:
 		(Ctrl+C will abort the "tail" monitoring process, not the original application process.)
 
 
-Section on running serial and parallel processes using simple scripts.
-Then snapshotting the server and restarting it or reconfiguring it to use multiple CPUs and RAM.
+- Section on running serial and parallel processes using simple scripts.
+
+- Running a batch script in  the background 
+	If you have a series of python scripts  you  would like to run in the  background  you can create a bash script  and  follow a similar  template  as 'batch_read.sh' 
+	This would  be effective for reads that you may have to do step by step (1,000,000 rows at a time) 
+
+  	cd /[PATH_TO_DIRECTORY]/CDSS/scripts/DevWorkshop/GoogleCloudPlatform/batch
+  	bash ./batch_read.sh
