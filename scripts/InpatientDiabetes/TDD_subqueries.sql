@@ -28,7 +28,7 @@ WITH inpt_insulin_given AS (
       AND mar.sig IS NOT NULL 
       AND mar.sig NOT LIKE "%.%" -- removes any partial unit injections (assumed to be pump)
       AND mar.infusion_rate IS NULL -- infusion_rate assumed to signify pump pt
-    )
+    ),
 
 --
 -- Pt encounters with creatinine > 2 (will use to exclude hospitalizations where pt had Cr > 2)
@@ -40,3 +40,4 @@ cr_over_2 AS (
       AND taken_time_jittered IS NOT null
       AND ord_num_value > 2
       )
+
