@@ -32,6 +32,7 @@ WITH inpt_insulin_given AS (
 
 --
 -- Pt encounters with creatinine > 2 (will use to exclude hospitalizations where pt had Cr > 2)
+-- If DISTINCT pt encounters & ORDER BY pt encounter, top 5 will end in 6-6-6-0-9
 
 cr_over_2 AS (
   SELECT lab.pat_enc_csn_id_coded FROM `som-nero-phi-jonc101.starr_datalake2018.lab_result` as lab -- patient encounters with creatinine >2 
@@ -39,5 +40,19 @@ cr_over_2 AS (
       AND ord_num_value != 9999999
       AND taken_time_jittered IS NOT null
       AND ord_num_value > 2
-      )
+      ),
+
+-- patient + date where BG <100 or >180
+-- Date 10 should be 9/24, Date 76 should be 3/17
+
+days_outofrange AS (
+  SELECT b.rit_uid, DATE(b.taken_time_jittered) as date FROM `som-nero-phi-jonc101.starr_datalake2018.lab_result` as b
+    WHERE UPPER(b.lab_name) LIKE '%GLUCOSE%' 
+    AND b.lab_name = "Glucose by Meter"
+    AND UPPER(b.ordering_mode) = 'INPATIENT' AND b.ord_num_value BETWEEN 0 AND 9999998
+    AND b.ord_num_value NOT BETWEEN 100 AND 180 
+
+  GROUP BY b.rit_uid, date
+  ORDER BY rit_uid, date
+  ),
 
