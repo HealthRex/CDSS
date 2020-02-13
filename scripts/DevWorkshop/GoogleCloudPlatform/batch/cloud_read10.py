@@ -3,6 +3,7 @@ from medinfo.db.bigquery import bigQueryUtil
 import datetime
 import pandas
 import sys 
+import time
 
 bq_client = bigQueryUtil.BigQueryClient()
 a1 = sys.argv[0]
@@ -12,5 +13,6 @@ query1 = bq_client.queryBQ(sql1)
 df = query1.to_dataframe()
 
 for row_index,row in df.iterrows():
-   print('\nrow number:',row_index, '\n-------------')
-   print(row)
+   print '\nrow number:',row_index, '\n-------------' 
+   time.sleep(1)
+   print row
