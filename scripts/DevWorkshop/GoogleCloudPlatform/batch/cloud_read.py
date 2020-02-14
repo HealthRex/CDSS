@@ -24,5 +24,5 @@ df = query1.to_dataframe()
 
 for row_index,row in df.iterrows():
    print '\nrow number:',row_index, '\n-------------' 
-   time.sleep(a1)
+   time.sleep(float(a1))
    print row
