@@ -4,7 +4,7 @@ import os
 import logging
 import itertools
 import string
-import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
+#import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
 
 from medinfo.db.bigquery import bigQueryUtil
 from google.cloud import bigquery
@@ -22,14 +22,18 @@ from google.cloud import bigquery
 # [15] "EFFECTIVE_TIME_JITTERED" "AUTH_LNKED_PROV_MAP_ID"
 # [17] "COSIGN_PROV_MAP_ID"      "DATA_SOURCE"
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]='FOO.json'
+
 
 # /Users/jonc101/Downloads/
-CSV_FILE_PREFIX = '/path/to/alert_history_012420_'
+CSV_FILE_PREFIX = '/Users/jonc101/Downloads/lpch_clinical_note_meta_121619.csv'
+csv_path = '/Users/jonc101/Downloads/lpch_clinical_note_meta_121619.csv'
+
 DATASET_NAME = 'lpch'
-TABLE_NAME = 'alert_history_20200124'
+TABLE_NAME = 'clinical_note_meta'
 FINAL_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', None, ()),
                       bigquery.SchemaField('PAT_ENC_CSN_ID_CODED', 'STRING', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('FILING_DATE_JITTERED', 'DATETIME', 'REQUIRED', None, ()),
+                      bigquery.SchemaField('FILING_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
                       bigquery.SchemaField('NOTE_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
                       bigquery.SchemaField('ACTIVITY_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
                       bigquery.SchemaField('AUTHOR_PROV_MAP_ID', 'INT64', 'NULLABLE', None, ()),
@@ -50,7 +54,7 @@ FINAL_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', None
 # So upload everything as string and process in bigquery - this will take care of string to int and datetime to date conversions
 UPLOAD_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', None, ()),
                       bigquery.SchemaField('PAT_ENC_CSN_ID_CODED', 'STRING', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('FILING_DATE_JITTERED', 'DATETIME', 'REQUIRED', None, ()),
+                      bigquery.SchemaField('FILING_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
                       bigquery.SchemaField('NOTE_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
                       bigquery.SchemaField('ACTIVITY_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
                       bigquery.SchemaField('AUTHOR_PROV_MAP_ID', 'STRING', 'NULLABLE', None, ()),
@@ -71,7 +75,7 @@ UPLOAD_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', Non
 def load_alert_table(csv_path):
     assert 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ, 'GOOGLE_APPLICATION_CREDENTIALS is not set.'
 
-    bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
+    bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=True,
                                 schema=UPLOAD_TABLE_SCHEMA, skip_rows=1)
 
 
@@ -85,21 +89,12 @@ if __name__ == '__main__':
     split every 2 mln lines:
     split -l 2000000 alert_history_012420.csv alert_history_012420_
     '''
-
     upload = input('Upload? ("y"/"n"): ')
     bq_client = bigQueryUtil.BigQueryClient()
     if upload == 'Y' or upload == 'y':
-        print('uploading {}aa'.format(CSV_FILE_PREFIX))
-        load_alert_table(CSV_FILE_PREFIX + 'aa')
-        for fn in ([x + y for x, y in itertools.product('a', string.ascii_lowercase[1:])] +
-                   [x + y for x, y in itertools.product('b', string.ascii_lowercase)] +
-                   [x + y for x, y in itertools.product('c', string.ascii_lowercase)] +
-                   [x + y for x, y in itertools.product('d', string.ascii_lowercase[:6])]):
-            print('uploading {}'.format(CSV_FILE_PREFIX + fn))
-            bq_client.reconnect_client()
-            bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, CSV_FILE_PREFIX + fn,
-                                        auto_detect_schema=False,
-                                        schema=None, skip_rows=0, append_to_table=True)
+        bq_client.reconnect_client()
+        bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
+                                    schema=UPLOAD_TABLE_SCHEMA, skip_rows=1)
 
     print('Done')
 
