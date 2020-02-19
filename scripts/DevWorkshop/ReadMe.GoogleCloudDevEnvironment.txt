@@ -88,11 +88,7 @@ Google Cloud and Compute Instance Setup
   				5) select region associated with instance
 	  			6) gcloud compute ssh <name-instance>
 
-    - How to upload and download files to your compute instance (i.e., SCP)
-    	- Using SSH/Web Browser client
-    		- Top right corner of window has a Gear icon with a Upload and Download file option
-    		???Worth explaining or offering a concrete example, because people will get confused on what path to specify when trying to download a file.
-    		(e.g., specifying home directory: "/home/yourUserName/fileName")
+
 
     	- Using gcloud / command-line
 		      gcloud compute scp yourLocalFile.txt <instance-name>:/home/yourID/yourRemoteFileCopy.txt
@@ -116,15 +112,21 @@ Google Cloud and Compute Instance Setup
             - Installs Python dependencies
             - Install  Git for  Version Control
 
-    	  sudo apt update
-    		sudo apt install git
-    		wget https://bootstrap.pypa.io/get-pip.py
-    		sudo python get-pip.py
-    		pip install google-cloud-bigquery
-    		pip install pandas
+        sudo apt update
+        sudo apt install git
+        wget https://bootstrap.pypa.io/get-pip.py
+        sudo python get-pip.py
+        pip install google-cloud-bigquery
+        pip install pandas
 
 	- Download Copy of Application Code Repository
 		    git clone https://github.com/HealthRex/CDSS.git
+
+  - How to upload and download files to your compute instance (i.e., SCP)
+  	- Using SSH/Web Browser client
+  		- Top right corner of window has a Gear icon with a Upload and Download file option
+      - ("/home/yourUserName/CDSS/scripts/DevWorkshop/ReadMe.GoogleCloudDevEnvironment.txt")
+
 
   - Python Modules and Exporting PythonPath to use medinfo module (linux)
 
@@ -159,7 +161,7 @@ On GCP Linux Server:
         python sleep_loop.py 10
 
   - Run the command again, but with a different option, where it will take a long time
-    and you will want to hit Ctrl+C after starting to finish...???
+    and you will want to hit Ctrl+C after starting to finish
 
         python sleep_loop.py 1000
 
