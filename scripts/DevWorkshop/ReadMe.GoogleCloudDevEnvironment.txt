@@ -90,11 +90,6 @@ Google Cloud and Compute Instance Setup
 
 
 
-    	- Using gcloud / command-line
-		      gcloud compute scp yourLocalFile.txt <instance-name>:/home/yourID/yourRemoteFileCopy.txt
-
-            (where instance-name is the name of your instance)
-
 	- Install Libraries and Dependencies / Package Managers
 
       - The following steps ensure that you have the proper packages installed in python as well the proper
@@ -123,22 +118,32 @@ Google Cloud and Compute Instance Setup
 		    git clone https://github.com/HealthRex/CDSS.git
 
   - How to upload and download files to your compute instance (i.e., SCP)
+    	????Teaching point here is, how do you get files uploaded and downloaded from the compute instance.  Use both the web GUI And the command-line options as examples???
+
   	- Using SSH/Web Browser client
+  		???More relevant than downloading files, would be show how to upload and download???
   		- Top right corner of window has a Gear icon with a Upload and Download file option
       - ("/home/yourUserName/CDSS/scripts/DevWorkshop/ReadMe.GoogleCloudDevEnvironment.txt")
 
 
-  - Python Modules and Exporting PythonPath to use medinfo module (linux)
+    - Using gcloud / command-line
+	      gcloud compute scp yourLocalFile.txt <instance-name>:/home/yourID/yourRemoteFileCopy.txt
 
+         (where instance-name is the name of your instance)
+
+
+  - Python Modules and Exporting PythonPath to use medinfo module (linux)
+      - Python code uses "import" of code packages and modules to reuse components, but then your Python interpreter needs to know where to find these modules...
       - The import statement combines two operations; it searches for the named module, then it binds the results of that search to a name in the local scope.
       - When a module is first imported, Python searches for the module in the current path and if found, it creates a module object 1, initializing it.
       - If the named module cannot be found, a ModuleNotFoundError is raised.
       - Python can look for modules in the PYTHONPATH
       - use (can use 'pwd' to get path attributes [your_directory])
+            ???Make clear that this is a shell command (as opposed to Python interpeter command)
 
             export PYTHONPATH=/[your_directory]/CDSS/
 
-      - then type in 'python' in the command line to open the python shell
+      - then type 'python' of 'python3' in the command line to open the Python interpreter depending on which version of Python being used
              python
       - import medinfo to confirm you can import the CDSS modules
              >>> import medinfo
@@ -217,15 +222,14 @@ On GCP Linux Server:
 
 - Running a batch script in the background
   	- If you have a series of python scripts you would like to run in the background you can create a shell script of
-      python scripts.
-    - This would be effective for reads that you may have to do step by step (1,000,000 rows at a time).
+      python programs you want to run.
     - We will be using cloud_read.py which is a python script that converts a sql query from BigQuery into rows of output
       on the command line. It accepts three arguments that you can change.
     - First change the directory
 
   	   cd batch/
 
-    - the first argument is the time in seconds (1)
+    - the first argument is the delay time in seconds (1) between result outputs
     - the second argument is the letter to query (a)
     - the third argument is the number of rows to output (5)
 
