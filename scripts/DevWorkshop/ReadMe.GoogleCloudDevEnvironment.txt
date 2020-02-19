@@ -101,19 +101,20 @@ Google Cloud and Compute Instance Setup
 
 	- Install Libraries and Dependencies / Package Managers
 
-    The following steps ensure that you have the proper packages installed in python as well the proper
-    linux dependencies installed. Unix based operating systems use 'sudo' commands as a superuser command.
-    This means that your command acts as the admin and may require a password to use. 'apt' acts a  command
-    line interface for linux distribution commands. Typically system wide installations or changes
-    will be prefaced by  'sudo apt ...'
+      - The following steps ensure that you have the proper packages installed in python as well the proper
+          linux dependencies installed.
+      - Unix based operating systems use 'sudo' commands as a superuser command.
+          This means that your command acts as the admin and may require a password to use.
+      - 'apt' acts a  command line interface for linux distribution commands. Typically system wide installations or changes
+          will be prefaced by  'sudo apt ...'
       - 'git' acts as the way to communicate with out repository to maintain our code.
       - 'pip' is the python package manager command and helps to install python modules
       - 'pandas' is a very popular python package used to manage dataframes in a more user friendly way,
           which is helpful for interfacing with tabular EHR data in a python and analytical environment
 
-            Installs Dependencies: Python/Bigquery
-            Installs Python dependencies
-            Install  Git for  Version Control
+            - Installs Dependencies: Python/Bigquery
+            - Installs Python dependencies
+            - Install  Git for  Version Control
 
     	  sudo apt update
     		sudo apt install git
@@ -125,53 +126,58 @@ Google Cloud and Compute Instance Setup
 	- Download Copy of Application Code Repository
 		    git clone https://github.com/HealthRex/CDSS.git
 
-  - Export PythonPath to use medinfo module (linux)
+  - Python Modules and Exporting PythonPath to use medinfo module (linux)
 
-The import statement combines two operations; it searches for the named module, then it binds the results of that search to a name in the local scope.
-When a module is first imported, Python searches for the module in the current path and if found, it creates a module object 1, initializing it.
-If the named module cannot be found, a ModuleNotFoundError is raised. Python can look for modules in the PYTHONPATH once you set it like  above.
+      - The import statement combines two operations; it searches for the named module, then it binds the results of that search to a name in the local scope.
+      - When a module is first imported, Python searches for the module in the current path and if found, it creates a module object 1, initializing it.
+      - If the named module cannot be found, a ModuleNotFoundError is raised.
+      - Python can look for modules in the PYTHONPATH
+      - use (can use 'pwd' to get path attributes [your_directory])
 
-  	??? Worth a little explanation here about how Python finds local code modules and packages to import.
-  	There is also a teaching opportunity here about use of environment variables, like the PYTHONPATH to have people access and setup their dev environment...
-  	Try copying back from AWS Dev starter workshop
-  	???
-       export PYTHONPATH=/[your_directory]/CDSS/
-       (can use 'pwd' to get path attributes)
+            export PYTHONPATH=/[your_directory]/CDSS/
 
-       >>> import medinfo
-       this confirms you can import the CDSS modules
-       >>> quit()
-       to exit python
-       Now you can change your directory to the devworkshop in our repo
+      - then type in 'python' in the command line to open the python shell
+             python
+      - import medinfo to confirm you can import the CDSS modules
+             >>> import medinfo
 
-        cd CDSS/scripts/DevWorkshop/GoogleCloudPlatform
+      - Exit out of python shell
+             >>> quit()
+
+      - Change your directory to the devworkshop in our repo
+
+            cd CDSS/scripts/DevWorkshop/GoogleCloudPlatform
 
 
 == Testing and Running (Batch) Processes ==
 On GCP Linux Server:
 
 
-  - First run this command to see the expected print. It will just print out a progress indicator every second
-    for N iterations. (This should print out a progress indicator and finish after 10 seconds)
+  - First run this command to see the expected print.
+  - Prints out a progress indicator every second for N iterations. (This should print out a progress indicator and finish after 10 seconds)
 
-      python sleep_loop.py 10
+        python sleep_loop.py 10
 
   - Run the command again, but with a different option, where it will take a long time
     and you will want to hit Ctrl+C after starting to finish...???
-      python sleep_loop.py 1000
-       (This should print out a progress indicator and would finish after 1000 seconds,
-       but you can just Ctrl+C to quit it, while we now examine how you might manage long compute processes)
+
+        python sleep_loop.py 1000
+
+  - (This should print out a progress indicator and would finish after 1000 seconds, but you can just Ctrl+C to quit it,
+     while we now examine how you might manage long compute processes)
 
 
-- Run this next version of the command, but run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup").
-  So you can start a long process and just let the server continue to work on it,
-  without requiring you to keep your (laptop) client computer logged in.
-  Any error messages, progress indicators, or other text that you normally see in the console
-  window will be redirected (&>) to the specified log file (progress.log)
+- Running Background Processes
+
+  - Run this next version of the command, but run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup").
+  - So you can start a long process and just let the server continue to work on it, without requiring you to keep your (laptop) client computer logged in.
+  - Any error messages, progress indicators, or other text that you normally see in the console window will be redirected (&>)
+    to the specified log file (progress.log)
 
       nohup python -u sleep_loop.py 1000 &> progress.log &
 
-- to see progress.log updates use the 'cat' command which in this case can display text files on screen
+  - to see progress.log updates use the 'cat' command which in this case can display text files on screen
+
       cat progress.log
 
 - Check on the progress of the process you have running in the background
@@ -208,10 +214,12 @@ On GCP Linux Server:
 - Section on running serial and parallel processes using simple scripts.
 
 - Running a batch script in the background
-  	If you have a series of python scripts  you  would like to run in the  background you can create a shell script of
-    python scripts. This would be effective for reads that you may have to do step by step (1,000,000 rows at a time).
-    We will be using cloud_read.py which is a python script that converts a sql query from BigQuery into rows of output
-    on the command line. It accepts three arguments that you can change.
+  	- If you have a series of python scripts you would like to run in the background you can create a shell script of
+      python scripts.
+    - This would be effective for reads that you may have to do step by step (1,000,000 rows at a time).
+    - We will be using cloud_read.py which is a python script that converts a sql query from BigQuery into rows of output
+      on the command line. It accepts three arguments that you can change.
+    - First change the directory
 
   	   cd batch/
 
@@ -221,24 +229,21 @@ On GCP Linux Server:
 
         python cloud_read.py 1 a 5
 
-    Feel free to change the arguments and see how the output changes
+    - Feel free to change the arguments and see how the output changes
 
-    Then you can run 'cloud_write.py' which is a script that creates a python batch file.
-    The 'cloud_write.py' creates a shell script. A shell script is a computer program that runs
-    on the command line interpreter.
+    - Then you can run 'cloud_write.py' which is a script that creates a python batch file.
+    - The 'cloud_write.py' creates a shell script (A shell script is a computer program that runs on the command line interpreter)
 
-      python cloud_write.py
+        python cloud_write.py
 
-    The cloud_log.sh file that is created is a shell script that includes
-    batch python scripts, that builds off of the cloud_read.py. It outputs the first 100 rows of med descriptions, for each letter
-    of the alphabet, giving 26 different log files.
+    - The cloud_log.sh file that is created is a shell script that includes batch python scripts, that builds off of the cloud_read.py
+    - It outputs the first 100 rows of med descriptions, for each letter  of the alphabet, giving 26 different log files.
 
       bash cloud_log.sh
 
-    The cloud_log.sh file gives a template for writing scripts or programs that may a take a long time to run,
-    that you can run in the background, while recording the progress and outputs as they occur. If a process
-    is taking too long or your dataset increases in size. You may think about increasing your compute on the instance.
-    This may take a little more examination on what is bottlenecking your code.
+    - The cloud_log.sh file gives a template for writing scripts or programs that may a take a long time to run,
+    - runs in the background, while recording the progress and outputs as they occur.
+    - If a process is taking too long or your dataset increases in size. You may think about increasing your compute on the instance.
 
 - SNAPSHOTS
   	OPTIONAL LEARNING (Useful when you need more/less compute or want to backup your VM):
