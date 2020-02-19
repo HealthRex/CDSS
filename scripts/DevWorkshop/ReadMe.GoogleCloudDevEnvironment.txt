@@ -10,6 +10,7 @@ Google Cloud and Compute Instance Setup
     - (nohup command &> logFile &)
 - Parallel and Batch Processes
     - Importing medinfo
+    - Shell Scripting
 
 == Preconditions ==
 - Google Stanford Account with VPN setup
@@ -38,7 +39,7 @@ Google Cloud and Compute Instance Setup
      - Series
      	- select N1 for  workshop
      	- type of server processor
-     
+
      - Machine type
 	     Can be customized in 'Machine type' dropdown under custom.
              Otherwise select a compute instance that fulfills your needs
@@ -49,36 +50,15 @@ Google Cloud and Compute Instance Setup
             	With heavy computing, you can pick a server with more CPUs and more RAM
         - Boot Disk
             Allows you to change the Operating System
-        
-	OPTIONAL: 
-          ??? Define / describe what a snapshot / image is
-          Store a compute engine snapshot and restore 
-              - Under Compute Engine (left) Go to disks (dropdown)
-              - Go to create snapshot
-                - you  will see a dropdown of your Instances
-                - on the right you will see actions
-                  - hit  "Create Snapshot"
-                  - name your snapshot (i.e based on your vm instance)
-                  - source  disk represents the  vm you are  snapshotting
-              - then make snapshot from that  instance
-              - Under Compute  Engine (left)  go to snapshot
-                - here we can  create an instance with more/less/same  compute as  before with the  same file  directories as  			  your instance
-                - steps will be the same as creating an instance
 
-
-	
-	- **Identity and API access**
+	- Identity and API access
 	    - Select 'mining-clinical-dev' in dropdown. This gives read/view access and create job access
 		    This is the most important for accessing BigQuery. You should have
 		    access to a service account that has the BQ enabled.
-		    (	???Explain sErvice account is a permissions method to enable compute instances to access BigQuery databases without requiring individual login key file (thought that is an option to). For further information... what is an IAM role and API...
+		    (Service accounts are different levels of permissions to access data in bigquery
+        is a permissions method to enable compute instances to access BigQuery databases
+        without requiring individual login key file (though that is an option too).
 
-		    	???Skip or otherwise replace this, because may not work in the som-nero-phi-jonc101 environment anyway. Users can't acceess IAM page, and may have to use an alternative to API service accounts unless SRCC offers alternative
-
-			    Under service account there should be a dropdown of different APIs
-			    you can access. Subsequently the API you select
-			    should have your IAM role access determined (read, write)
-			)
     - Create
         - then you can create your instance
 
@@ -91,21 +71,21 @@ Google Cloud and Compute Instance Setup
       - Click ssh on the right of your instance name
       - Can Download and upload files with GUI
       - No other installation required (very convenient)
-      - Connecting may be  a little slower depending on  number of vms and identifying ssh keys 
+      - Connecting may be  a little slower depending on  number of vms and identifying ssh keys
 
     - Access with gcloud/SSH
       - You may use gcloud instead of the SSH browser provided on the google console window. This allows you to use
         the terminal on your system.
-      - automatic generation of ssh keys 
+      - automatic generation of ssh keys
 
 	    - Precondition:
-	  		- requires gcloud installation (see devworkshop???Change to specific name or a link to the other workshop???)
+	  		- requires gcloud installation (see GoogleCloudDevEnvironment.txt devworkshop)
 	  		- Access on SSH
 	  			1) gcloud init
-				2) pick configuration (typically 1)
-				3) choose  account (stanford account)
-				4) pick a cloud project (mining-clinical-decisions)
-				5) select region associated with instance
+  				2) pick configuration (typically 1)
+  				3) choose  account (stanford account)
+  				4) pick a cloud project (mining-clinical-decisions)
+  				5) select region associated with instance
 	  			6) gcloud compute ssh <name-instance>
 
     - How to upload and download files to your compute instance (i.e., SCP)
@@ -114,23 +94,31 @@ Google Cloud and Compute Instance Setup
     		???Worth explaining or offering a concrete example, because people will get confused on what path to specify when trying to download a file.
     		(e.g., specifying home directory: "/home/yourUserName/fileName")
 
-    	- Using gcloud / command-line 
-		gcloud compute scp yourLocalFile.txt <instance-name>:/home/yourID/yourRemoteFileCopy.txt
+    	- Using gcloud / command-line
+		      gcloud compute scp yourLocalFile.txt <instance-name>:/home/yourID/yourRemoteFileCopy.txt
 
             (where instance-name is the name of your instance)
 
 	- Install Libraries and Dependencies / Package Managers
-		(???Make descriptions a little more self-sufficient so that a user could in theory go through the entire workshop by themselves, without external guidance. For example, here separate what the intent of the step is, why it's necessary, and then call out what the explicit command line execution steps to enter...???
 
-		???Worth a brief blurb to explain to uninitiated users, what is sudo, apt, git, PIP, pandas???)
-            Installs  Dependencies: Python/Bigquery
-            Installs Python dependencies 
+    The following steps ensure that you have the proper packages installed in python as well the proper
+    linux dependencies installed. Unix based operating systems use 'sudo' commands as a superuser command.
+    This means that your command acts as the admin and may require a password to use. 'apt' acts a  command
+    line interface for linux distribution commands. Typically system wide installations or changes
+    will be prefaced by  'sudo apt ...'
+      - 'git' acts as the way to communicate with out repository to maintain our code.
+      - 'pip' is the python package manager command and helps to install python modules
+      - 'pandas' is a very popular python package used to manage dataframes in a more user friendly way,
+          which is helpful for interfacing with tabular EHR data in a python and analytical environment
+
+            Installs Dependencies: Python/Bigquery
+            Installs Python dependencies
             Install  Git for  Version Control
 
     	  sudo apt update
     		sudo apt install git
     		wget https://bootstrap.pypa.io/get-pip.py
-    		sudo python3 get-pip.py
+    		sudo python get-pip.py
     		pip install google-cloud-bigquery
     		pip install pandas
 
@@ -138,6 +126,11 @@ Google Cloud and Compute Instance Setup
 		    git clone https://github.com/HealthRex/CDSS.git
 
   - Export PythonPath to use medinfo module (linux)
+
+The import statement combines two operations; it searches for the named module, then it binds the results of that search to a name in the local scope.
+When a module is first imported, Python searches for the module in the current path and if found, it creates a module object 1, initializing it.
+If the named module cannot be found, a ModuleNotFoundError is raised. Python can look for modules in the PYTHONPATH once you set it like  above.
+
   	??? Worth a little explanation here about how Python finds local code modules and packages to import.
   	There is also a teaching opportunity here about use of environment variables, like the PYTHONPATH to have people access and setup their dev environment...
   	Try copying back from AWS Dev starter workshop
@@ -145,30 +138,29 @@ Google Cloud and Compute Instance Setup
        export PYTHONPATH=/[your_directory]/CDSS/
        (can use 'pwd' to get path attributes)
 
-       ???Next examples should actually import modules from the code tree to illustrate and confirm that works...???
+       >>> import medinfo
+       this confirms you can import the CDSS modules
+       >>> quit()
+       to exit python
+       Now you can change your directory to the devworkshop in our repo
 
-	- Run Sample Scripts for Reading Data from BigQuery
-            in your virtual environment: run this script from CDSS repo
-            the script makes a connection to sample datalake ???Define where this came from???, makes a big query job that reads from the order_proc table
-            and converts it to and prints out a dataframe
-                python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read.py
+        cd CDSS/scripts/DevWorkshop/GoogleCloudPlatform
 
-        - Passing SQL Arguments to Read Data from BigQuery
-            in your virtual environment: run this script from CDSS repo
-                python3 CDSS/scripts/DevWorkshop/GoogleCloudPlatform/instance_read_arg.py SELECT jc_uid, order_type, description FROM datalake_47618_sample.order_proc
 
 == Testing and Running (Batch) Processes ==
 On GCP Linux Server:
 
-  ????Add command line option to sleep_loop to illustrate able to input, and lead with example that dodes not require Ctrl+C to exit...??
-  ???Earlier, I would tell peoiple to "cd" to the GoogleCLoudPlatform devworkshop folder, so they don't have to retype that every time...???
-  - First run this command to see the expected print. It will just print out a progress indicator every second for N iterations.
-      python3 -u CDSS/scripts/DevWorkshop/GoogleCloudPlatform/sleep_loop.py 10
-       (This should print out a progress indicator and finish after 10 seconds)
 
-  - Run the command again, but with a different option, where it will take a long time and you will want to hit Ctrl+C after starting to finish...???
-      python3 -u CDSS/scripts/DevWorkshop/GoogleCloudPlatform/sleep_loop.py 1000
-       (This should print out a progress indicator and would finish after 1000 seconds, but you can just Ctrl+C to quit it, while we now examine how you might manage long compute processes)
+  - First run this command to see the expected print. It will just print out a progress indicator every second
+    for N iterations. (This should print out a progress indicator and finish after 10 seconds)
+
+      python sleep_loop.py 10
+
+  - Run the command again, but with a different option, where it will take a long time
+    and you will want to hit Ctrl+C after starting to finish...???
+      python sleep_loop.py 1000
+       (This should print out a progress indicator and would finish after 1000 seconds,
+       but you can just Ctrl+C to quit it, while we now examine how you might manage long compute processes)
 
 
 - Run this next version of the command, but run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup").
@@ -177,7 +169,10 @@ On GCP Linux Server:
   Any error messages, progress indicators, or other text that you normally see in the console
   window will be redirected (&>) to the specified log file (progress.log)
 
-      nohup python3 -u sleep_loop.py 1000 &> progress.log &
+      nohup python -u sleep_loop.py 1000 &> progress.log &
+
+- to see progress.log updates use the 'cat' command which in this case can display text files on screen
+      cat progress.log
 
 - Check on the progress of the process you have running in the background
     `ps -u`
@@ -212,22 +207,54 @@ On GCP Linux Server:
 
 - Section on running serial and parallel processes using simple scripts.
 
-- Running a batch script in  the background 
-	If you have a series of python scripts  you  would like to run in the  background  you can create a bash script  and  follow a similar  template  as 'batch_read.sh' 
-	This would  be effective for reads that you may have to do step by step (1,000,000 rows at a time) 
+- Running a batch script in the background
+  	If you have a series of python scripts  you  would like to run in the  background you can create a shell script of
+    python scripts. This would be effective for reads that you may have to do step by step (1,000,000 rows at a time).
+    We will be using cloud_read.py which is a python script that converts a sql query from BigQuery into rows of output
+    on the command line. It accepts three arguments that you can change.
 
-  	cd /[PATH_TO_DIRECTORY]/CDSS/scripts/DevWorkshop/GoogleCloudPlatform/batch
-  	bash ./batch_read.sh
+  	   cd batch/
 
+    - the first argument is the time in seconds (1)
+    - the second argument is the letter to query (a)
+    - the third argument is the number of rows to output (5)
 
-?????Instead of instance_read, and sleeper_loop, and cloud_read....
-?????Make a single little program, "ExampleQueryApp" (GCP version)
-Functions it should have are:
-- Takes command line argument of a pause duration (default to 0 seconds) between outputting results
-- Takes command line argument of a order description prefix 
-- Needs to take another commandline argument which specifies what file to output to
-- It should then query an example database in GCP BigQuery (e.g., starr_datalake2018)
-  Look for the top 100 order_med med_descriptions whose description starts with the given prefix
-  Then output each of those descriptions found and their count, output by printing to output file one line at a time.
-      Pausing for the pause duration (i.e., sleep) between each result output print
-  
+        python cloud_read.py 1 a 5
+
+    Feel free to change the arguments and see how the output changes
+
+    Then you can run 'cloud_write.py' which is a script that creates a python batch file.
+    The 'cloud_write.py' creates a shell script. A shell script is a computer program that runs
+    on the command line interpreter.
+
+      python cloud_write.py
+
+    The cloud_log.sh file that is created is a shell script that includes
+    batch python scripts, that builds off of the cloud_read.py. It outputs the first 100 rows of med descriptions, for each letter
+    of the alphabet, giving 26 different log files.
+
+      bash cloud_log.sh
+
+    The cloud_log.sh file gives a template for writing scripts or programs that may a take a long time to run,
+    that you can run in the background, while recording the progress and outputs as they occur. If a process
+    is taking too long or your dataset increases in size. You may think about increasing your compute on the instance.
+    This may take a little more examination on what is bottlenecking your code.
+
+- SNAPSHOTS
+  	OPTIONAL LEARNING (Useful when you need more/less compute or want to backup your VM):
+            provide a mechanism to create one or a series of persistent disk backups,
+            each at a specific point-in-time. Snapshots are stored as differential captures of the actual data on a persistent disk,
+            using storage space efficiently.
+
+            Store a compute engine snapshot and restore
+                - Under Compute Engine (left) Go to disks (dropdown)
+                - Go to create snapshot
+                  - you  will see a dropdown of your Instances
+                  - on the right you will see actions
+                    - hit  "Create Snapshot"
+                    - name your snapshot (i.e based on your vm instance)
+                    - source  disk represents the  vm you are  snapshotting
+                - then make snapshot from that  instance
+                - Under Compute  Engine (left)  go to snapshot
+                  - here we can  create an instance with more/less/same  compute as  before with the  same file  directories as  			  your instance
+                  - steps will be the same as creating an instance
