@@ -1,0 +1,157 @@
+
+Cohort of patients where subQ, inpatient insulin was ordered and given (>0 units), attempting to exclude pump insulin, excluding any insulin ordered <10x total in the dataset, and excluding any patient encounters in which the creatinine rose >2 
+
+	Number of insulin doses recorded as given & 0 units: 123
+	Number of unique patients: 39083 
+		- 39087 when dose of insulin given 0 or greater
+	Number of unique patient encounters: 61973 
+		- 61979 when dose of insulin given 0 or greater
+
+	Number of unique insulin orders: 192049
+	Number of insulin doses given where units > 0: 1014575
+		- Number of insulin doses marked as given (including 0 units given): 1014698
+	Range of insulin doses: 1 (exlcuded anything <1)- 50000 (incorrectly recorded heparin) --> Will exclude doses > 100 (Church & Haines 2016, can't absorb more than ~80U)
+
+	Excluding U-500 insulin:
+		Number of doses: 1014542
+		Number of unique patients: 39082
+		Number of unique encounters: 61972
+
+	Excluding single doses >100:
+		Number of doses: 1014221
+		Number of unique patients:39077
+		Number of unique encounters: 61947
+
+	Number of patient encounters for which short-acting insulin was ordered: 19041
+	Number of pt encounters for which "scale" alone was ordered: 10175 (16.4%) 
+		-- note that this is only after 2015, other "scale" will have to be found in orderset data
+	Percent of pt encounters in which (1-100u) insulin was given & Cr < 2 for which ISS was ordered: 19041/61947 = 30.73%
+	Number of pt encounters for which NPH was ordered: 12788
+	Number of pt encounters for which Glargine was ordered: 10238
+	Number of pt encounters for which Detemir was ordered: 3320
+	Number of pt encounters for which Degludec was ordered: 49
+
+	Number of patient encounters for which basal was NOT ordered: 38031 (61.39%)
+
+	Max date: 12/30/2018
+	Min date: 03/26/2008
+
+Average BG of patient cohort: 164
+Average BG of patients who weren't ordered for basal: 152
+
+2008: 3/26-12/31/2008
+	Number of patient encounters for which basal was NOT ordered: 2772 
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 3536
+	Percent of pt encounters with no basal: 78.39%
+
+	Number of pt encounters with "scale" alone ordered: 0
+
+2009: 
+	Number of patient encounters for which basal was NOT ordered: 4022
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 5459
+	Percent of pt encounters with no basal: 73.68%
+
+	Number of pt encounters with "scale" alone ordered: 0
+
+2010:
+	Number of patient encounters for which basal was NOT ordered: 3621
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 5126
+	Percent of pt encounters with no basal: 70.64%
+
+	Number of pt encounters with "scale" alone ordered: 0
+
+2011:
+	Number of patient encounters for which basal was NOT ordered: 3667
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 5233
+	Percent of pt encounters with no basal: 70.01%
+
+	Number of pt encounters with "scale" alone ordered: 0
+
+2012:
+	Number of patient encounters for which basal was NOT ordered: 3567
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 5403
+	Percent of pt encounters with no basal: 66.02%
+
+	Number of pt encounters with "scale" alone ordered: 0
+
+2013:
+	Number of patient encounters for which basal was NOT ordered: 3386
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 5730
+	Percent of pt encounters with no basal: 59.10%
+
+	Number of pt encounters with "scale" alone ordered: 0
+
+2014:
+	Number of patient encounters for which basal was NOT ordered: 3307
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 5870
+	Percent of pt encounters with no basal: 56.34%
+
+	Number of pt encounters with "scale" alone ordered: 0
+
+2015:
+	Number of patient encounters for which basal was NOT ordered: 3162
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 5816
+	Percent of pt encounters with no basal: 54.37%
+
+	Number of pt encounters with "scale" alone ordered: 652
+
+2016:
+ 	Number of patient encounters for which basal was NOT ordered: 3346
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 6199
+	Percent of pt encounters with no basal: 53.98%
+
+	Number of pt encounters with "scale" alone ordered: 3126
+
+	Total no of BG checks w/ basal: 97564
+	Total no of BGs 80-200 w/basal: 66982
+	No of BGs <70 w/basal: 1071
+	No of BGs >200 w/basal: 28470
+
+	Total no of BG checks no basal:  52077
+	Total no of BGs 80-200 no basal: 42345
+	No of BGs <70 no basal: 247
+	No of BGs >200 no basal: 9019
+
+2017:
+	Number of patient encounters for which basal was NOT ordered: 3585
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 6559
+	Percent of pt encounters with no basal: 54.66%
+
+	Number of pt encounters with "scale" alone ordered: 3366
+
+	Total no of BG checks: 183078
+
+	Total no of BG checks w/ basal: 116447
+	Total no of BGs 80-200 w/basal: 80676
+	No of BGs <70 w/basal: 1154
+	No of BGs >200 w/basal: 33425
+
+	Total no of BG checks no basal:  59841
+	Total no of BGs 80-200 no basal: 48763
+	No of BGs <70 no basal: 308
+	No of BGs >200 no basal: 10204
+
+2018:
+ 	Number of patient encounters for which basal was NOT ordered: 3968
+	Number of pt encounters where insulin was given (excluding pumps and rare orders) and without AKI: 7553
+	Percent of pt encounters with no basal: 52.54%
+
+	Number of pt encounters with "scale" alone ordered: 3113
+
+	Average BG total: 172
+	Average BG no basal: 157
+
+	
+	Total no of BG checks w/ basal:  120183
+	Total no of BGs 80-200 w/basal: 80141
+	No of BGs <70 w/basal: 1327
+	No of BGs >200 w/basal: 37426
+
+	Total no of BG checks no basal:  61200
+	Total no of BGs 80-200 no basal: 50204
+	No of BGs <70 no basal: 277
+	No of BGs >200 no basal: 10132
+
+
+
+

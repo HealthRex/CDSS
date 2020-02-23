@@ -9,8 +9,37 @@ import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
 from medinfo.db.bigquery import bigQueryUtil
 from google.cloud import bigquery
 
+# files names:
+
+# [1] "lpch_clinical_note_meta_121619.csv"
+# [2] "lpch_demographics_121119.csv"
+# [3] "lpch_diagnosis_101119.csv"
+# [4] "lpch_drg_code.csv"
+# [5] "lpch_lab_result_121219.csv"
+# [6] "lpch_mar_121319.csv"
+# [7] "lpch_ndc_code.csv"
+# [8] "lpch_order_med_121319.csv"
+# [9] "lpch_path_report_meta.csv"
+# [10] "lpch_procedure_101219.csv"
+# [11] "lpch_radiology_meta.csv"
+
+# table names
+
+# lpch_clinical_note_meta
+# lpch_demographics
+# lpch_diagnosis
+# lpch_drg_code
+# lpch_lab_result
+# lpch_mar
+# lpch_ndc_code
+# lpch_order_med_121319
+# lpch_path_report_meta
+# lpch_procedure
+# lpch_radiology_meta
+
+# /Users/jonc101/Downloads/
 CSV_FILE_PREFIX = '/path/to/alert_history_012420_'
-DATASET_NAME = 'alert_2019'
+DATASET_NAME = 'lpch'
 TABLE_NAME = 'alert_history_20200124'
 FINAL_TABLE_SCHEMA = [bigquery.SchemaField('anon_id', 'STRING', 'REQUIRED', None, ()),
                       bigquery.SchemaField('alt_id_jittered', 'INT64', 'REQUIRED', None, ()),
@@ -64,7 +93,7 @@ if __name__ == '__main__':
     '''
     - removed heading and trailing lines in vim
     - added header line
-    
+
     split every 2 mln lines:
     split -l 2000000 alert_history_012420.csv alert_history_012420_
     '''
@@ -92,7 +121,7 @@ if __name__ == '__main__':
 
     '''
     Conversion script in SQL:
-create or replace 
+create or replace
 table alert_2019.alert_history_20200124
 as
 select * except(
