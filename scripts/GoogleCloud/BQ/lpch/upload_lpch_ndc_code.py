@@ -9,46 +9,51 @@ import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
 from medinfo.db.bigquery import bigQueryUtil
 from google.cloud import bigquery
 
+# files names:
+
+# [7] "lpch_ndc_code.csv"
+
+# [1] "MEDICATION_ID"    "LINE"             "NDC_CODE"
+# [4] "NDC_ID"           "NDC_FORMAT"       "RAW_11_DIGIT_NDC"
+# [7] "MFG_LONG_NAME"    "MFG_CODE"         "PACKAGE_SIZE"
+# [10] "MED_UNIT_C"       "UNIT"             "SIMPLE_GENERIC_C"
+# [13] "SIMPLE_GENERIC"   "DATA_SOURCE"
+
+# /Users/jonc101/Downloads/
 CSV_FILE_PREFIX = '/path/to/alert_history_012420_'
-DATASET_NAME = 'alert_2019'
+DATASET_NAME = 'lpch'
 TABLE_NAME = 'alert_history_20200124'
-FINAL_TABLE_SCHEMA = [bigquery.SchemaField('anon_id', 'STRING', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('alt_id_jittered', 'INT64', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('alt_csn_id_coded', 'INT64', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('alt_status_c', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('alt_status_c_name', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('was_shown_c', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('was_shown_c_name', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('bpa_trgr_action_c', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('bpa_trgr_action_c_name', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('shown_place_c', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('shown_place_c_name', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('contact_date', 'DATE', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('alt_action_inst', 'DATETIME', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('user_id', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('patient_dep_id', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('department_name', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('alt_group_info', 'STRING', 'NULLABLE', None, ())]
+FINAL_TABLE_SCHEMA = [bigquery.SchemaField('MEDICATION_ID', 'STRING', 'REQUIRED', None, ()),
+                      bigquery.SchemaField('LINE', 'INT64', 'REQUIRED', None, ()),
+                      bigquery.SchemaField('NDC_CODE', 'INT64', 'REQUIRED', None, ()),
+                      bigquery.SchemaField('NDC_ID', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('NDC_FORMAT', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('RAW_11_DIGIT_NDC', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('MFG_LONG_NAME', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('MFG_CODE', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('PACKAGE_SIZE', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('MED_UNIT_C', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('UNIT', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('SIMPLE_GENERIC_C', 'DATE', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('SIMPLE_GENERIC', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('DATA_SOURCE', 'STRING', 'NULLABLE', None, ())]
 
 # Final schema is what we want at the end, however, regexp used to process the csv can't handle matching more than 9 fragments (\1 - \9).
 # So upload everything as string and process in bigquery - this will take care of string to int and datetime to date conversions
-UPLOAD_TABLE_SCHEMA = [bigquery.SchemaField('anon_id', 'STRING', 'REQUIRED', None, ()),
-                       bigquery.SchemaField('alt_id_jittered_s', 'STRING', 'REQUIRED', None, ()),
-                       bigquery.SchemaField('alt_csn_id_coded_s', 'STRING', 'REQUIRED', None, ()),
-                       bigquery.SchemaField('alt_status_c_s', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('alt_status_c_name', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('was_shown_c_s', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('was_shown_c_name', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('bpa_trgr_action_c_s', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('bpa_trgr_action_c_name', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('shown_place_c_s', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('shown_place_c_name', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('contact_date_time', 'DATETIME', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('alt_action_inst', 'DATETIME', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('user_id', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('patient_dep_id_s', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('department_name', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('alt_group_info', 'STRING', 'NULLABLE', None, ())]
+UPLOAD_TABLE_SCHEMA = [bigquery.SchemaField('MEDICATION_ID', 'STRING', 'REQUIRED', None, ()),
+                      bigquery.SchemaField('LINE', 'INT64', 'REQUIRED', None, ()),
+                      bigquery.SchemaField('NDC_CODE', 'INT64', 'REQUIRED', None, ()),
+                      bigquery.SchemaField('NDC_ID', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('NDC_FORMAT', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('RAW_11_DIGIT_NDC', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('MFG_LONG_NAME', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('MFG_CODE', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('PACKAGE_SIZE', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('MED_UNIT_C', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('UNIT', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('SIMPLE_GENERIC_C', 'DATE', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('SIMPLE_GENERIC', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('DATA_SOURCE', 'STRING', 'NULLABLE', None, ())]
 
 
 def load_alert_table(csv_path):
@@ -64,7 +69,7 @@ if __name__ == '__main__':
     '''
     - removed heading and trailing lines in vim
     - added header line
-    
+
     split every 2 mln lines:
     split -l 2000000 alert_history_012420.csv alert_history_012420_
     '''
@@ -92,7 +97,7 @@ if __name__ == '__main__':
 
     '''
     Conversion script in SQL:
-create or replace 
+create or replace
 table alert_2019.alert_history_20200124
 as
 select * except(
