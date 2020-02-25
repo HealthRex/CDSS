@@ -118,7 +118,6 @@ Google Cloud and Compute Instance Setup
 		    git clone https://github.com/HealthRex/CDSS.git
 
   - How to upload and download files to your compute instance (i.e., SCP)
-    	????Teaching point here is, how do you get files uploaded and downloaded from the compute instance.
       Use both the web GUI And the command-line options as examples???
 
   	- Using SSH/Web Browser client
@@ -143,7 +142,6 @@ Google Cloud and Compute Instance Setup
       - If the named module cannot be found, a ModuleNotFoundError is raised.
       - Python can look for modules in the PYTHONPATH
       - use (can use 'pwd' to get path attributes [your_directory])
-            ???Make clear that this is a shell command (as opposed to Python interpeter command)
 
             export PYTHONPATH=/[your_directory]/CDSS/
 
