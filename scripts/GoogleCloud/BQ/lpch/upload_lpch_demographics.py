@@ -4,7 +4,7 @@ import os
 import logging
 import itertools
 import string
-import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
+#import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
 
 from medinfo.db.bigquery import bigQueryUtil
 from google.cloud import bigquery
@@ -23,59 +23,57 @@ from google.cloud import bigquery
 # [17] "CHARLSON_SCORE"           "N_HOSPITALIZATIONS"
 # [19] "DAYS_IN_HOSPITAL"
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]='/Users/jonc101/Downloads/Mining Clinical Decisions-58be3d782c5b.json'
+
 
 # /Users/jonc101/Downloads/
-CSV_FILE_PREFIX = '/path/to/alert_history_012420_'
+CSV_FILE_PREFIX = '/Users/jonc101/Downloads/lpch_demographics_121119.csv'
+csv_path = '/Users/jonc101/Downloads/lpch_demographics_121119.csv'
+
 DATASET_NAME = 'lpch'
-TABLE_NAME = 'alert_history_20200124'
+TABLE_NAME = 'demographics'
 FINAL_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('BIRTH_DATE_JITTERED', 'DATETIME', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('DEATH_DATE_JITTERED', 'DATETIME', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('GENDER', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('BIRTH_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('DEATH_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('GENDER', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('PRIMARY_RACE', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('ETHNICITY', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('ETHNICITY', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('MARITAL_STATUS', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('RELIGION', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('RELIGION', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('LANGUAGE', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('INTRPTR_NEEDED_YN', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('INTRPTR_NEEDED_YN', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('INSURANCE_PAYOR_NAME', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('CUR_PCP_PROV_MAP_ID', 'DATE', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('CUR_PCP_PROV_MAP_ID', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('RECENT_CONF_ENC_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('RECENT_HT_IN_CMS', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('RECENT_WT_IN_KGS', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('BMI', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('CHARLSON_SCORE', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('N_HOSPITALIZATIONS', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('DAYS_IN_HOSPITAL', 'STRING', 'NULLABLE', None, ())]
+                      bigquery.SchemaField('RECENT_HT_IN_CMS', 'FLOAT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('RECENT_WT_IN_KGS', 'FLOAT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('BMI', 'FLOAT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('CHARLSON_SCORE', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('N_HOSPITALIZATIONS', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('DAYS_IN_HOSPITAL', 'INT64', 'NULLABLE', None, ())]
 
 # Final schema is what we want at the end, however, regexp used to process the csv can't handle matching more than 9 fragments (\1 - \9).
 # So upload everything as string and process in bigquery - this will take care of string to int and datetime to date conversions
 UPLOAD_TABLE_SCHEMA =[bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('BIRTH_DATE_JITTERED', 'DATETIME', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('DEATH_DATE_JITTERED', 'DATETIME', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('GENDER', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('BIRTH_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('DEATH_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('GENDER', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('PRIMARY_RACE', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('ETHNICITY', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('ETHNICITY', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('MARITAL_STATUS', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('RELIGION', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('RELIGION', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('LANGUAGE', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('INTRPTR_NEEDED_YN', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('INTRPTR_NEEDED_YN', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('INSURANCE_PAYOR_NAME', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('CUR_PCP_PROV_MAP_ID', 'DATE', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('CUR_PCP_PROV_MAP_ID', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('RECENT_CONF_ENC_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
                       bigquery.SchemaField('RECENT_HT_IN_CMS', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('RECENT_WT_IN_KGS', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('RECENT_WT_IN_KGS', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('BMI', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('CHARLSON_SCORE', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('N_HOSPITALIZATIONS', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('DAYS_IN_HOSPITAL', 'STRING', 'NULLABLE', None, ())]
 
-
-def load_alert_table(csv_path):
-    assert 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ, 'GOOGLE_APPLICATION_CREDENTIALS is not set.'
-
-    bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
-                                schema=UPLOAD_TABLE_SCHEMA, skip_rows=1)
 
 
 if __name__ == '__main__':
@@ -92,20 +90,11 @@ if __name__ == '__main__':
     upload = input('Upload? ("y"/"n"): ')
     bq_client = bigQueryUtil.BigQueryClient()
     if upload == 'Y' or upload == 'y':
-        print('uploading {}aa'.format(CSV_FILE_PREFIX))
-        load_alert_table(CSV_FILE_PREFIX + 'aa')
-        for fn in ([x + y for x, y in itertools.product('a', string.ascii_lowercase[1:])] +
-                   [x + y for x, y in itertools.product('b', string.ascii_lowercase)] +
-                   [x + y for x, y in itertools.product('c', string.ascii_lowercase)] +
-                   [x + y for x, y in itertools.product('d', string.ascii_lowercase[:6])]):
-            print('uploading {}'.format(CSV_FILE_PREFIX + fn))
-            bq_client.reconnect_client()
-            bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, CSV_FILE_PREFIX + fn,
-                                        auto_detect_schema=False,
-                                        schema=None, skip_rows=0, append_to_table=True)
+        bq_client.reconnect_client()
+        bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
+                                    schema=FINAL_TABLE_SCHEMA, skip_rows=1)
 
     print('Done')
-
     '''
     expecting 167,058,216 lines from original table
     '''

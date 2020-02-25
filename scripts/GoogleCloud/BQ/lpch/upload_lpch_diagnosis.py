@@ -4,7 +4,7 @@ import os
 import logging
 import itertools
 import string
-import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
+#import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
 
 from medinfo.db.bigquery import bigQueryUtil
 from google.cloud import bigquery
@@ -29,72 +29,71 @@ from google.cloud import bigquery
 
 
 
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]='/Users/jonc101/Downloads/Mining Clinical Decisions-58be3d782c5b.json'
+
+
 # /Users/jonc101/Downloads/
-CSV_FILE_PREFIX = '/path/to/alert_history_012420_'
+CSV_FILE_PREFIX = '/Users/jonc101/Downloads/lpch_diagnosis_101119.csv'
+csv_path = '/Users/jonc101/Downloads/lpch_diagnosis_101119.csv'
+
 DATASET_NAME = 'lpch'
-TABLE_NAME = 'alert_history_20200124'
-FINAL_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('LINE', 'INT64', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('PAT_ENC_CSN_ID_CODED', 'INT64', 'REQUIRED', None, ()),
+TABLE_NAME = 'diagnosis'
+FINAL_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('LINE', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('PAT_ENC_CSN_ID_CODED', 'INT64', 'NULLABLE', None, ()),
                       bigquery.SchemaField('DX_ID', 'INT64', 'NULLABLE', None, ()),
                       bigquery.SchemaField('DX_NAME', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('ICD9', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('ICD9', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('ICD10', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('START_DATE_JITTERED', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('NOTED_DATE_JITTERED', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('HX_DATE_OF_ENTRY_JITTERED', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('RESOLVED_DATE_JITTERED', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('END_DATE_JITTERED', 'DATE', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('PERF_PROV_MAP_ID', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('START_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('NOTED_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('HX_DATE_OF_ENTRY_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('RESOLVED_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('END_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('PERF_PROV_MAP_ID', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('BILLING_PROV_MAP_ID', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('ENTRY_PROV_MAP_ID', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('DEPT_ID', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('ENTRY_PROV_MAP_ID', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('DEPT_ID', 'INT64', 'NULLABLE', None, ()),
                       bigquery.SchemaField('PRIMARY', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('CHRONIC', 'DATE', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('PRINCIPAL', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('CHRONIC', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('PRINCIPAL', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('HOSPITAL_PL', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('PROBLEM_STATUS', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('PROBLEM_STATUS', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('ED', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('POA', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('PRESENT_ON_ADM', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('SOURCE', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('SOURCE', 'INT64', 'NULLABLE', None, ()),
                       bigquery.SchemaField('DATA_SOURCE', 'STRING', 'NULLABLE', None, ())]
 
 # Final schema is what we want at the end, however, regexp used to process the csv can't handle matching more than 9 fragments (\1 - \9).
 # So upload everything as string and process in bigquery - this will take care of string to int and datetime to date conversions
-UPLOAD_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('LINE', 'INT64', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('PAT_ENC_CSN_ID_CODED', 'INT64', 'REQUIRED', None, ()),
-                      bigquery.SchemaField('DX_ID', 'INT64', 'NULLABLE', None, ()),
+UPLOAD_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('LINE', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('PAT_ENC_CSN_ID_CODED', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('DX_ID', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('DX_NAME', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('ICD9', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('ICD9', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('ICD10', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('START_DATE_JITTERED', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('NOTED_DATE_JITTERED', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('HX_DATE_OF_ENTRY_JITTERED', 'INT64', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('RESOLVED_DATE_JITTERED', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('END_DATE_JITTERED', 'DATE', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('PERF_PROV_MAP_ID', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('START_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('NOTED_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('HX_DATE_OF_ENTRY_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('RESOLVED_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('END_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('PERF_PROV_MAP_ID', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('BILLING_PROV_MAP_ID', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('ENTRY_PROV_MAP_ID', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('ENTRY_PROV_MAP_ID', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('DEPT_ID', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('PRIMARY', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('CHRONIC', 'DATE', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('PRINCIPAL', 'DATETIME', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('CHRONIC', 'STRING', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('PRINCIPAL', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('HOSPITAL_PL', 'STRING', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('PROBLEM_STATUS', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('PROBLEM_STATUS', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('ED', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('POA', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('PRESENT_ON_ADM', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('SOURCE', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('DATA_SOURCE', 'STRING', 'NULLABLE', None, ())]
 
-
-def load_alert_table(csv_path):
-    assert 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ, 'GOOGLE_APPLICATION_CREDENTIALS is not set.'
-
-    bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
-                                schema=UPLOAD_TABLE_SCHEMA, skip_rows=1)
 
 
 if __name__ == '__main__':
@@ -111,20 +110,11 @@ if __name__ == '__main__':
     upload = input('Upload? ("y"/"n"): ')
     bq_client = bigQueryUtil.BigQueryClient()
     if upload == 'Y' or upload == 'y':
-        print('uploading {}aa'.format(CSV_FILE_PREFIX))
-        load_alert_table(CSV_FILE_PREFIX + 'aa')
-        for fn in ([x + y for x, y in itertools.product('a', string.ascii_lowercase[1:])] +
-                   [x + y for x, y in itertools.product('b', string.ascii_lowercase)] +
-                   [x + y for x, y in itertools.product('c', string.ascii_lowercase)] +
-                   [x + y for x, y in itertools.product('d', string.ascii_lowercase[:6])]):
-            print('uploading {}'.format(CSV_FILE_PREFIX + fn))
-            bq_client.reconnect_client()
-            bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, CSV_FILE_PREFIX + fn,
-                                        auto_detect_schema=False,
-                                        schema=None, skip_rows=0, append_to_table=True)
+        bq_client.reconnect_client()
+        bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
+                                    schema=FINAL_TABLE_SCHEMA, skip_rows=1)
 
-    print('Done')
-
+    #print('Done')
     '''
     expecting 167,058,216 lines from original table
     '''
