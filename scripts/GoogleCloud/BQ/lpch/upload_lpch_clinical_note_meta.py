@@ -22,8 +22,7 @@ from google.cloud import bigquery
 # [15] "EFFECTIVE_TIME_JITTERED" "AUTH_LNKED_PROV_MAP_ID"
 # [17] "COSIGN_PROV_MAP_ID"      "DATA_SOURCE"
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]='FOO.json'
-
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]='/Users/jonc101/Downloads/Mining Clinical Decisions-58be3d782c5b.json'
 
 # /Users/jonc101/Downloads/
 CSV_FILE_PREFIX = '/Users/jonc101/Downloads/lpch_clinical_note_meta_121619.csv'
@@ -36,7 +35,7 @@ FINAL_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', None
                       bigquery.SchemaField('FILING_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
                       bigquery.SchemaField('NOTE_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
                       bigquery.SchemaField('ACTIVITY_DATE_JITTERED', 'DATETIME', 'NULLABLE', None, ()),
-                      bigquery.SchemaField('AUTHOR_PROV_MAP_ID', 'INT64', 'NULLABLE', None, ()),
+                      bigquery.SchemaField('AUTHOR_PROV_MAP_ID', 'STRING', 'NULLABLE', None, ()),
                       bigquery.SchemaField('EFFECTIVE_DEPT_ID', 'INT64', 'NULLABLE', None, ()),
                       bigquery.SchemaField('NOTE_STATUS_C', 'INT64', 'NULLABLE', None, ()),
                       bigquery.SchemaField('NOTE_STATUS', 'STRING', 'NULLABLE', None, ()),
@@ -72,11 +71,6 @@ UPLOAD_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', Non
                       bigquery.SchemaField('DATA_SOURCE', 'STRING', 'NULLABLE', None, ())]
 
 
-def load_alert_table(csv_path):
-    assert 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ, 'GOOGLE_APPLICATION_CREDENTIALS is not set.'
-
-    bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=True,
-                                schema=UPLOAD_TABLE_SCHEMA, skip_rows=1)
 
 
 if __name__ == '__main__':
@@ -94,7 +88,7 @@ if __name__ == '__main__':
     if upload == 'Y' or upload == 'y':
         bq_client.reconnect_client()
         bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
-                                    schema=UPLOAD_TABLE_SCHEMA, skip_rows=1)
+                                    schema=FINAL_TABLE_SCHEMA, skip_rows=1)
 
     print('Done')
 
