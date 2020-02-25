@@ -118,12 +118,16 @@ Google Cloud and Compute Instance Setup
 		    git clone https://github.com/HealthRex/CDSS.git
 
   - How to upload and download files to your compute instance (i.e., SCP)
-    	????Teaching point here is, how do you get files uploaded and downloaded from the compute instance.  Use both the web GUI And the command-line options as examples???
+    	????Teaching point here is, how do you get files uploaded and downloaded from the compute instance.
+      Use both the web GUI And the command-line options as examples???
 
   	- Using SSH/Web Browser client
   		???More relevant than downloading files, would be show how to upload and download???
   		- Top right corner of window has a Gear icon with a Upload and Download file option
-      - ("/home/yourUserName/CDSS/scripts/DevWorkshop/ReadMe.GoogleCloudDevEnvironment.txt")
+  		- To download specify your path and file you wish to download: for example:
+        - ("/home/yourUserName/CDSS/scripts/DevWorkshop/ReadMe.GoogleCloudDevEnvironment.txt")
+  		- To upload:
+    		- select 'Upload file' and select the file you wish to upload.This will upload to your current directory
 
 
     - Using gcloud / command-line
@@ -237,15 +241,15 @@ On GCP Linux Server:
 
     - Feel free to change the arguments and see how the output changes
 
-    - Then you can run 'cloud_write.py' which is a script that creates a python batch file.
-    - The 'cloud_write.py' creates a shell script (A shell script is a computer program that runs on the command line interpreter)
+    - Then you can run 'cloudDriverScript.py' which is a script that creates a python batch file.
+    - The 'cloudDriverScript.py' creates a shell script (A shell script is a computer program that runs on the command line interpreter)
 
-        python cloud_write.py
+        python cloudDriverScript.py
 
     - The cloud_log.sh file that is created is a shell script that includes batch python scripts, that builds off of the cloud_read.py
     - It outputs the first 100 rows of med descriptions, for each letter  of the alphabet, giving 26 different log files.
 
-      bash cloud_log.sh
+      bash cloud_driver.sh
 
     - The cloud_log.sh file gives a template for writing scripts or programs that may a take a long time to run,
     - runs in the background, while recording the progress and outputs as they occur.
@@ -267,5 +271,6 @@ On GCP Linux Server:
                     - source  disk represents the  vm you are  snapshotting
                 - then make snapshot from that  instance
                 - Under Compute  Engine (left)  go to snapshot
-                  - here we can  create an instance with more/less/same  compute as  before with the  same file  directories as  			  your instance
+                  - here we can  create an instance with more/less/same  compute as  before with the  same file  directories as
+                       your instance
                   - steps will be the same as creating an instance
