@@ -69,7 +69,7 @@ class StarrCommonUtils:
     It is possible to filter out only required fields.
     The resulting schema, in this case, will be sorted according to the filter order.
     '''
-    def get_schema_filtered(self, dataset, table, fields_to_keep_in_schema):
+    def get_schema_filtered(self, dataset, table, fields_to_keep_in_schema=None):
         schema = self.bqClient.client.get_table(
             self.bqClient.client.dataset(dataset, 'mining-clinical-decisions').table(table)
         ).schema
@@ -95,32 +95,127 @@ class StarrCommonUtils:
             1
         )
 
-    def dumpPatientItemToCsv(self, tempDir, batchCounter=999):
-        log.info('Dumping patient_item for batch %s to CSV' % batchCounter)
+    def dumpPatientItemCollectionLinkToCsv(self, tempDir, batchCounter=999):
+        log.info('Dumping patient_item_collection_link for batch {} to CSV'.format(batchCounter))
 
-        DBUtil.execute \
-                (
+        DBUtil.execute(
                 '''
-                COPY patient_item TO '%s/%s_patient_item.csv' DELIMITER ',' CSV HEADER;
-                ''' % (tempDir, batchCounter), conn=self.pgConn
-            )
+                COPY patient_item_collection_link TO '{}/{}_patient_item_collection_link.csv' DELIMITER ',' CSV HEADER;
+                '''.format(tempDir, batchCounter), conn=self.pgConn
+        )
+
+    def dumpItemCollectionTablesToCsv(self, tempDir):
+        log.info('Dumping item_collection_item and item_collection to CSV')
+
+        DBUtil.execute(
+                '''
+                COPY item_collection_item TO '{}/item_collection_item.csv' DELIMITER ',' CSV HEADER;
+                '''.format(tempDir), conn=self.pgConn
+        )
+
+        DBUtil.execute(
+                '''
+                COPY item_collection TO '{}/item_collection.csv' DELIMITER ',' CSV HEADER;
+                '''.format(tempDir), conn=self.pgConn
+        )
+
+    def uploadPatientItemCollectionLinkCsvToBQ(self, tempDir, datasetId, batchCounter=999):
+        log.info('Uploading patient_item CSV to BQ dataset {} for batch {}'.format(datasetId, batchCounter))
+        patient_item_collection_link_schema = self.get_schema_filtered('clinical_item2018',
+                                                                       'patient_item_collection_link')
+
+        csv_path = tempDir + '/' + str(batchCounter) + '_patient_item_collection_link.csv'
+
+        bigQueryUtil.headerChecker(csv_path, [sf.name for sf in patient_item_collection_link_schema])
+
+        self.bqClient.load_csv_to_table(datasetId, 'patient_item_collection_link', csv_path, skip_rows=1,
+                                        append_to_table=True, auto_detect_schema=False,
+                                        schema=patient_item_collection_link_schema)
+
+    def uploadItemCollectionTablesCsvToBQ(self, tempDir, datasetId):
+        log.info('Uploading item_collection CSV to BQ dataset {}'.format(datasetId))
+        item_collection_schema = self.get_schema_filtered('clinical_item2018', 'item_collection')
+
+        item_collection_csv_path = tempDir + '/item_collection.csv'
+
+        bigQueryUtil.headerChecker(item_collection_csv_path, [sf.name for sf in item_collection_schema])
+
+        self.bqClient.load_csv_to_table(datasetId, 'item_collection', item_collection_csv_path, skip_rows=1,
+                                        append_to_table=True, auto_detect_schema=False, schema=item_collection_schema)
+
+        log.info('Uploading item_collection_item CSV to BQ dataset {}'.format(datasetId))
+        item_collection_item_schema = self.get_schema_filtered('clinical_item2018', 'item_collection_item')
+
+        item_collection_item_csv_path = tempDir + '/item_collection_item.csv'
+
+        bigQueryUtil.headerChecker(item_collection_item_csv_path, [sf.name for sf in item_collection_item_schema])
+
+        self.bqClient.load_csv_to_table(datasetId, 'item_collection_item', item_collection_item_csv_path, skip_rows=1,
+                                        append_to_table=True, auto_detect_schema=False,
+                                        schema=item_collection_item_schema)
+
+    def removePatientItemCollectionLinkCsv(self, temp_dir, batchCounter=999):
+        log.info('Removing patient_item_collection_link CSV for batch {}'.format(batchCounter))
+        self.remove_file(temp_dir + '/' + str(batchCounter) + '_patient_item_collection_link.csv')
+
+    def removeItemCollectionTablesCsv(self, temp_dir):
+        log.info('Removing item_collection and item_collection_item CSVs')
+        self.remove_file(temp_dir + '/item_collection.csv')
+        self.remove_file(temp_dir + '/item_collection_item.csv')
+
+    def removePatientItemCollectionLinkAddedLines(self):
+        """delete added records"""
+        log.info('Removing patient_item_collection_link added lines in PSQL DB')
+
+        DBUtil.execute(
+            """delete from patient_item_collection_link
+                where item_collection_item_id in
+                (   select item_collection_item_id
+                    from item_collection_item as ici, item_collection as ic
+                    where ici.item_collection_id = ic.item_collection_id
+                    and ic.external_id < 0
+                );
+                """, conn=self.pgConn
+        )
+
+    def removeItemCollectionTablesAddedLines(self):
+        """delete added records"""
+        log.info('Removing item_collection_item and item_collection added lines in PSQL DB')
+
+        DBUtil.execute(
+            """delete from item_collection_item
+                where item_collection_id in
+                (   select item_collection_id
+                    from item_collection as ic
+                    where ic.external_id < 0
+                );
+                """, conn=self.pgConn
+         )
+        DBUtil.execute("delete from item_collection where external_id < 0;", conn=self.pgConn)
+
+    def dumpPatientItemToCsv(self, tempDir, batchCounter=999):
+        log.info('Dumping patient_item for batch {} to CSV'.format(batchCounter))
+
+        DBUtil.execute(
+                '''
+                COPY patient_item TO '{}/{}_patient_item.csv' DELIMITER ',' CSV HEADER;
+                '''.format(tempDir, batchCounter), conn=self.pgConn
+        )
 
     def dumpClinicalTablesToCsv(self, tempDir):
         log.info('Dumping clinical_item and clinical_item_category to CSV')
 
-        DBUtil.execute \
-                (
+        DBUtil.execute(
                 '''
-                COPY clinical_item TO '%s/clinical_item.csv' DELIMITER ',' CSV HEADER;
-                ''' % tempDir, conn=self.pgConn
-            )
+                COPY clinical_item TO '{}/clinical_item.csv' DELIMITER ',' CSV HEADER;
+                '''.format(tempDir), conn=self.pgConn
+        )
 
-        DBUtil.execute \
-                (
+        DBUtil.execute(
                 '''
-                COPY clinical_item_category TO '%s/clinical_item_category.csv' DELIMITER ',' CSV HEADER;
-                ''' % tempDir, conn=self.pgConn
-            )
+                COPY clinical_item_category TO '{}/clinical_item_category.csv' DELIMITER ',' CSV HEADER;
+                '''.format(tempDir), conn=self.pgConn
+        )
 
     def uploadPatientItemCsvToBQ(self, tempDir, datasetId, batchCounter=999):
         log.info('Uploading patient_item CSV to BQ dataset %s for batch %s' % (datasetId, batchCounter))
@@ -179,51 +274,49 @@ class StarrCommonUtils:
                                         skip_rows=1, append_to_table=True)
         # auto_detect_schema=False, schema=clinical_item_schema)
 
-    def removePatientItemCsv(self, tempDir, batchCounter=999):
-        log.info('Removing patient_item CSV for batch %s' % batchCounter)
-        if os.path.exists(tempDir + '/' + str(batchCounter) + '_patient_item.csv'):
-            os.remove(tempDir + '/' + str(batchCounter) + '_patient_item.csv')
-        else:
-            print(tempDir + '/' + str(batchCounter) + '_patient_item.csv does not exist')
+    def removePatientItemCsv(self, temp_dir, batchCounter=999):
+        log.info('Removing patient_item CSV for batch {}'.format(batchCounter))
+        self.remove_file(temp_dir + '/' + str(batchCounter) + '_patient_item.csv')
 
-    def removeClinicalTablesCsv(self, tempDir):
+    def removeClinicalTablesCsv(self, temp_dir):
         log.info('Removing clinical_item and clinical_item_category CSVs')
-        if os.path.exists(tempDir + '/clinical_item.csv'):
-            os.remove(tempDir + '/clinical_item.csv')
-        else:
-            print(tempDir + '/clinical_item.csv does not exist')
+        self.remove_file(temp_dir + '/clinical_item.csv')
+        self.remove_file(temp_dir + '/clinical_item_category.csv')
 
-        if os.path.exists(tempDir + '/clinical_item_category.csv'):
-            os.remove(tempDir + '/clinical_item_category.csv')
+    @staticmethod
+    def remove_file(file_path):
+        if os.path.exists(file_path):
+            os.remove(file_path)
         else:
-            print(tempDir + '/clinical_item_category.csv does not exist')
+            print('{} does not exist'.format(file_path))
 
     def removePatientItemAddedLines(self, source_table):
         """delete added records"""
         log.info('Removing patient_item added lines in PSQL DB')
 
-        DBUtil.execute \
-            ("""delete from patient_item 
-                    where clinical_item_id in 
-                    (   select clinical_item_id
-                        from clinical_item as ci, clinical_item_category as cic
-                        where ci.clinical_item_category_id = cic.clinical_item_category_id
-                        and cic.source_table = '%s'
-                    );
-                    """ % source_table, conn=self.pgConn
-             )
+        DBUtil.execute(
+            """delete from patient_item 
+                where clinical_item_id in 
+                (   select clinical_item_id
+                    from clinical_item as ci, clinical_item_category as cic
+                    where ci.clinical_item_category_id = cic.clinical_item_category_id
+                    and cic.source_table = '{}'
+                );
+                """.format(source_table), conn=self.pgConn
+        )
 
     def removeClinicalTablesAddedLines(self, source_table):
         """delete added records"""
         log.info('Removing clinical_item and clinical_item_category added lines in PSQL DB')
 
-        DBUtil.execute \
-            ("""delete from clinical_item 
-                    where clinical_item_category_id in 
-                    (   select clinical_item_category_id 
-                        from clinical_item_category 
-                        where source_table = '%s'
-                    );
-                    """ % source_table, conn=self.pgConn
-             )
-        DBUtil.execute("delete from clinical_item_category where source_table = '%s';" % source_table, conn=self.pgConn)
+        DBUtil.execute(
+            """delete from clinical_item 
+                where clinical_item_category_id in 
+                (   select clinical_item_category_id 
+                    from clinical_item_category 
+                    where source_table = '{}'
+                );
+                """.format(source_table), conn=self.pgConn
+         )
+        DBUtil.execute("delete from clinical_item_category where source_table = '{}';".format(source_table),
+                       conn=self.pgConn)
