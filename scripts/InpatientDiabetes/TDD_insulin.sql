@@ -365,7 +365,7 @@ patientDatesTotalDailyDoseSubQInsulinNoAKI AS
   AND CAST(mar.sig AS float64) < 100 --set maximum insulin at 100 to minimize recording errors
   AND mar.sig IS NOT NULL
   --******* TEST CODE
-  AND mar.jc_uid IN ('JCcb65e1', 'JCcb65ee', 'JCcb6601', 'JCcb6e1b', 'JCcb6e75')
+  ---AND mar.jc_uid IN ('JCcb65e1', 'JCcb65ee', 'JCcb6601', 'JCcb6e1b', 'JCcb6e75')
   -- Exclude other types of insulin don't want to capture
   AND mar.pat_enc_csn_id_coded IN 
     (SELECT pat_enc_csn_id_coded FROM `som-nero-phi-jonc101.starr_datalake2018.order_med`
