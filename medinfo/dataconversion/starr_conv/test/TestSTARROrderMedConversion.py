@@ -1254,10 +1254,10 @@ class TestSTARROrderMedConversion(DBTestCase):
         for joined_test_data_row in joined_test_data:
             self.generate_expected_data_rows(joined_test_data_row[0], joined_test_data_row[1], rxcuiDataByMedId, conv_options)
 
-        # pi.external_id desc, ci.external_id desc
+        # pi.external_id desc, ci.external_id desc, pi.encounter_id, ci.external_id desc
         self.expected_data.sort(key=lambda tup: (-tup[0], tup[1], tup[2], -tup[4]))
 
-        # pi.external_id, ci.external_id (medication_id)
+        # pi.external_id, ci.external_id (medication_id), cic.description, ci.name, ci.description, ic.external_id (protocol_id)
         self.expected_orderset_data.sort(key=lambda tup: (tup[0], tup[1], tup[2], tup[3], tup[4], tup[5]))
 
     def left_join_ordermed_and_orderset_data(self):
