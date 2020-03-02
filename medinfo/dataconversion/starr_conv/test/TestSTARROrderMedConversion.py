@@ -1258,7 +1258,7 @@ class TestSTARROrderMedConversion(DBTestCase):
         self.expected_data.sort(key=lambda tup: (-tup[0], tup[1], tup[2], -tup[4]))
 
         # pi.external_id, ci.external_id (medication_id)
-        self.expected_orderset_data.sort(key=lambda tup: (tup[0], tup[1], tup[2], tup[3], tup[4]))
+        self.expected_orderset_data.sort(key=lambda tup: (tup[0], tup[1], tup[2], tup[3], tup[4], tup[5]))
 
     def left_join_ordermed_and_orderset_data(self):
         joined_test_data = []
@@ -1541,7 +1541,7 @@ class TestSTARROrderMedConversion(DBTestCase):
                 picl.item_collection_item_id = ici.item_collection_item_id and
                 ici.item_collection_id = ic.item_collection_id
             order by
-                pi.external_id, ci.external_id, cic.description, ci.name, ci.description
+                pi.external_id, ci.external_id, cic.description, ci.name, ci.description, ic.external_id
             """.format(TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_DEST_DATASET, TEST_DEST_DATASET,
                        TEST_DEST_DATASET, TEST_SOURCE_TABLE)
 
