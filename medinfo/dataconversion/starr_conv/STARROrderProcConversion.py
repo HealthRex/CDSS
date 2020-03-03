@@ -122,11 +122,11 @@ class STARROrderProcConversion:
 
         # Column headers to query for that map to respective fields in analysis table
         queryHeaders = ["op.order_proc_id_coded", "jc_uid", "op.pat_enc_csn_id_coded", "op.order_type", "op.proc_id",
-                        "op.proc_code", "description", "order_time_jittered", "protocol_id", "protocol_name",
-                        "ss_section_id", "ss_section_name", "ss_sg_key", "ss_sg_name"]
+                        "op.proc_code", "description", "order_time_jittered", "ordering_mode", "protocol_id",
+                        "protocol_name", "ss_section_id", "ss_section_name", "ss_sg_key", "ss_sg_name"]
         headers = ["order_proc_id_coded", "jc_uid", "pat_enc_csn_id_coded", "order_type", "proc_id",
-                   "proc_code", "description", "order_time_jittered", "protocol_id", "protocol_name",
-                   "ss_section_id", "ss_section_name", "ss_sg_key", "ss_sg_name"]
+                   "proc_code", "description", "order_time_jittered", "ordering_mode", "protocol_id",
+                   "protocol_name", "ss_section_id", "ss_section_name", "ss_sg_key", "ss_sg_name"]
 
         # TODO original query - need to figure out how to pass date to query in BQ using SQLQuery object
         # query = SQLQuery()
@@ -145,7 +145,6 @@ class STARROrderProcConversion:
             .format(', '.join(queryHeaders), SOURCE_TABLE, ORDERSET_TABLE)
 
         query += " where order_time_jittered is not null"    # Rare cases of "comment" orders with no date/time associated
-        query += " and instantiated_time_jittered is null"
         query += " and (stand_interval is NULL or stand_interval not like '%PRN')"    # Ignore PRN orders to simplify somewhat
         if startDate is not None:
             query += " and order_time_jittered >= @startDate"
@@ -215,13 +214,13 @@ class STARROrderProcConversion:
 
     def categoryFromSourceItem(self, sourceItem, conn):
         # Load or produce a clinical_item_category record model for the given sourceItem
-        categoryKey = (SOURCE_TABLE, sourceItem["order_type"])
+        categoryKey = (SOURCE_TABLE, sourceItem["order_type"], sourceItem["ordering_mode"])
         if categoryKey not in self.categoryBySourceDescr:
             # Category does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             category = RowItemModel(
                 {
                     "source_table":  SOURCE_TABLE,
-                    "description":  sourceItem["order_type"],
+                    "description":  "{} ({})".format(sourceItem["order_type"], sourceItem["ordering_mode"])
                 }
             )
             (categoryId, isNew) = DBUtil.findOrInsertItem("clinical_item_category", category, conn=conn)
@@ -285,7 +284,7 @@ class STARROrderProcConversion:
 
     def itemCollectionFromSourceItem(self, sourceItem, conn):
         sourceItem["ss_section_identifier"] = sourceItem["ss_section_id"] if sourceItem["ss_section_id"] is not None \
-                                                                          else sourceItem["ss_section_name"]
+                                                                          else sourceItem["ss_section_name"].lower()
 
         collectionKey = "%(protocol_id)d-%(ss_section_identifier)s-%(ss_sg_key)s" % sourceItem
         if collectionKey not in self.itemCollectionByKeyStr:
