@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys, os
+import tempfile
 import time
 import re
 
@@ -11,8 +12,6 @@ from medinfo.db.Model import SQLQuery
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList, RowItemFieldComparator
 
 from medinfo.dataconversion.Util import log
-from medinfo.dataconversion.Const import TEMPLATE_MEDICATION_ID, TEMPLATE_MEDICATION_PREFIX
-from medinfo.dataconversion.Const import COLLECTION_TYPE_ORDERSET
 from medinfo.dataconversion.Env import DATE_FORMAT
 
 from medinfo.db.bigquery import bigQueryUtil
@@ -55,7 +54,7 @@ class STARRTreatmentTeamConversion:
         self.categoryBySourceDescr = dict()  # Local cache to track the clinical item category table contents
         self.clinicalItemByCompositeKey = dict()  # Local cache to track clinical item table contents
 
-    def convertAndUpload(self, convOptions, tempDir='/tmp/', removeCsvs=True, datasetId='starr_datalake2018'):
+    def convertAndUpload(self, convOptions, tempDir=tempfile.gettempdir(), removeCsvs=True, datasetId='starr_datalake2018'):
         """
         Wrapper around primary run function, does conversion locally and uploads to BQ
         No batching done for treatment team since converted table is small

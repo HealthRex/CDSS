@@ -1379,6 +1379,11 @@ class TestSTARROrderProcConversion(DBTestCase):
         STARROrderProcConversion.SOURCE_TABLE = TEST_SOURCE_TABLE
         STARROrderProcConversion.ORDERSET_TABLE = TEST_ORDERSET_TABLE
 
+        log.warn("Removing test tables, if they exist: {} and {}".format(TEST_SOURCE_TABLE, TEST_ORDERSET_TABLE))
+        bq_cursor = self.bqConn.cursor()
+        bq_cursor.execute('DROP TABLE IF EXISTS {};'.format(TEST_SOURCE_TABLE))
+        bq_cursor.execute('DROP TABLE IF EXISTS {};'.format(TEST_ORDERSET_TABLE))
+
     def generate_test_and_expected_data(self, test_data_size):
         self.generate_orderproc_and_orderset_data(test_data_size)
 

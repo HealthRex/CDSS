@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
+import tempfile
 import time
 from datetime import datetime
 from optparse import OptionParser
@@ -55,7 +56,7 @@ class STARROrderProcConversion:
         self.itemCollectionByKeyStr = dict()                    # Local cache to track item collections
         self.itemCollectionItemByCollectionIdItemId = dict()    # Local cache to track item collection items
 
-    def convertAndUpload(self, startDate=None, endDate=None, tempDir='/tmp/', removeCsvs=True, target_dataset_id='starr_datalake2018'):
+    def convertAndUpload(self, startDate=None, endDate=None, tempDir=tempfile.gettempdir(), removeCsvs=True, target_dataset_id='starr_datalake2018'):
         """
         Wrapper around primary run function, does conversion locally and uploads to BQ
         No batching done for treatment team since converted table is small
