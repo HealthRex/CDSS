@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys, os
+import tempfile
 
 from itertools import islice
 from datetime import datetime
@@ -8,6 +9,7 @@ from medinfo.common.Util import ProgressDots
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 from medinfo.db.Model import RowItemModel
+from medinfo.dataconversion.starr_conv import STARRUtil
 
 from medinfo.dataconversion.Util import log
 from medinfo.db.bigquery import bigQueryUtil
@@ -18,55 +20,54 @@ SOURCE_TABLE = 'starr_datalake2018.demographic'
 
 UNSPECIFIED_RACE_ETHNICITY = ("Unknown", "Other")
 HISPANIC_LATINO_ETHNICITY = "HISPANIC/LATINO"
-RACE_MAPPINGS = \
-    {
-        None: "Unknown",
-        "": "Unknown",
-        "American Indian or Alaska Native": "Native American",
-        "AMERICAN INDIAN OR ALASKA NATIVE": "Native American",
-        "ASIAN - HISTORICAL CONV": "Asian",
-        "Asian": "Asian",
-        "ASIAN": "Asian",
-        "ASIAN, HISPANIC": "Asian",
-        "Asian, non-Hispanic": "Asian",
-        "ASIAN, NON-HISPANIC": "Asian",
-        "Black": "Black",
-        "Black or African American": "Black",
-        "BLACK OR AFRICAN AMERICAN": "Black",
-        "Black, Hispanic": "Black",
-        "BLACK, HISPANIC": "Black",
-        "Black, non-Hispanic": "Black",
-        "BLACK, NON-HISPANIC": "Black",
-        "Native American": "Native American",
-        "NATIVE AMERICAN, HISPANIC": "Native American",
-        "Native American, non-Hispanic": "Native American",
-        "NATIVE AMERICAN, NON-HISPANIC": "Native American",
-        "Native Hawaiian or Other Pacific Islander": "Pacific Islander",
-        "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER": "Pacific Islander",
-        "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER ": "Pacific Islander",
-        "Other": "Other",
-        "OTHER": "Other",
-        "Other, Hispanic": "Hispanic/Latino",
-        "OTHER, HISPANIC": "Hispanic/Latino",
-        "Other, non-Hispanic": "Other",
-        "OTHER, NON-HISPANIC": "Other",
-        "Pacific Islander": "Pacific Islander",
-        "Pacific Islander, non-Hispanic": "Pacific Islander",
-        "PACIFIC ISLANDER, NON-HISPANIC": "Pacific Islander",
-        "Patient Refused": "Unknown",
-        "PATIENT REFUSED": "Unknown",
-        "Race and Ethnicity Unknown": "Unknown",
-        "RACE AND ETHNICITY UNKNOWN": "Unknown",
-        "Unknown": "Unknown",
-        "UNKNOWN": "Unknown",
-        "White": "White (%s)",
-        "WHITE": "White (%s)",  # Subset by ethnicity Hispanic/Latino
-        "White, Hispanic": "White (Hispanic/Latino)",
-        "WHITE, HISPANIC": "White (Hispanic/Latino)",
-        "White, non-Hispanic": "White (Non-Hispanic/Latino)",
-        "WHITE, NON-HISPANIC": "White (Non-Hispanic/Latino)",
-        HISPANIC_LATINO_ETHNICITY: "Hispanic/Latino"
-    }
+RACE_MAPPINGS = {
+    None: "Unknown",
+    "": "Unknown",
+    "American Indian or Alaska Native": "Native American",
+    "AMERICAN INDIAN OR ALASKA NATIVE": "Native American",
+    "ASIAN - HISTORICAL CONV": "Asian",
+    "Asian": "Asian",
+    "ASIAN": "Asian",
+    "ASIAN, HISPANIC": "Asian",
+    "Asian, non-Hispanic": "Asian",
+    "ASIAN, NON-HISPANIC": "Asian",
+    "Black": "Black",
+    "Black or African American": "Black",
+    "BLACK OR AFRICAN AMERICAN": "Black",
+    "Black, Hispanic": "Black",
+    "BLACK, HISPANIC": "Black",
+    "Black, non-Hispanic": "Black",
+    "BLACK, NON-HISPANIC": "Black",
+    "Native American": "Native American",
+    "NATIVE AMERICAN, HISPANIC": "Native American",
+    "Native American, non-Hispanic": "Native American",
+    "NATIVE AMERICAN, NON-HISPANIC": "Native American",
+    "Native Hawaiian or Other Pacific Islander": "Pacific Islander",
+    "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER": "Pacific Islander",
+    "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER ": "Pacific Islander",
+    "Other": "Other",
+    "OTHER": "Other",
+    "Other, Hispanic": "Hispanic/Latino",
+    "OTHER, HISPANIC": "Hispanic/Latino",
+    "Other, non-Hispanic": "Other",
+    "OTHER, NON-HISPANIC": "Other",
+    "Pacific Islander": "Pacific Islander",
+    "Pacific Islander, non-Hispanic": "Pacific Islander",
+    "PACIFIC ISLANDER, NON-HISPANIC": "Pacific Islander",
+    "Patient Refused": "Unknown",
+    "PATIENT REFUSED": "Unknown",
+    "Race and Ethnicity Unknown": "Unknown",
+    "RACE AND ETHNICITY UNKNOWN": "Unknown",
+    "Unknown": "Unknown",
+    "UNKNOWN": "Unknown",
+    "White": "White (%s)",
+    "WHITE": "White (%s)",  # Subset by ethnicity Hispanic/Latino
+    "White, Hispanic": "White (Hispanic/Latino)",
+    "WHITE, HISPANIC": "White (Hispanic/Latino)",
+    "White, non-Hispanic": "White (Non-Hispanic/Latino)",
+    "WHITE, NON-HISPANIC": "White (Non-Hispanic/Latino)",
+    HISPANIC_LATINO_ETHNICITY: "Hispanic/Latino"
+}
 
 
 class STARRDemographicsConversion:
@@ -86,10 +87,12 @@ class STARRDemographicsConversion:
         self.bqClient = bigQueryUtil.BigQueryClient()
         self.connFactory = DBUtil.ConnectionFactory()  # Default connection source
 
+        self.starrUtil = STARRUtil.StarrCommonUtils(self.bqClient)
+
         self.categoryBySourceDescr = dict()
         self.clinicalItemByCategoryIdExtId = dict()
 
-    def convertItemsByBatch(self, patientIdsFile, batchSize=10000, tempDir='/tmp/', removeCsvs=True,
+    def convertItemsByBatch(self, patientIdsFile, batchSize=10000, tempDir=tempfile.gettempdir(), removeCsvs=True,
                             datasetId='starr_datalake2018', skipFirstLine=True, startBatch=0):
         # split pat ids into blocks
         # for each split
@@ -123,141 +126,25 @@ class STARRDemographicsConversion:
                 ))
 
                 self.convertSourceItems(ids_batch)
-                self.dumpPatientItemToCsv(tempDir, batch_counter)
+                self.starrUtil.dumpPatientItemToCsv(tempDir, batch_counter)
 
                 self.bqClient.reconnect_client()    # refresh bq client connection
-                self.uploadPatientItemCsvToBQ(tempDir, batch_counter, datasetId)
+                self.starrUtil.uploadPatientItemCsvToBQ(tempDir, datasetId, batch_counter)
 
                 if removeCsvs:
-                    self.removePatientItemCsv(tempDir, batch_counter)
+                    self.starrUtil.removePatientItemCsv(tempDir, batch_counter)
 
-                self.removePatientItemAddedLines()
+                self.starrUtil.removePatientItemAddedLines(SOURCE_TABLE)
 
                 log.info('Finished with batch %s \n\n' % batch_counter)
                 ids_batch = get_batch(f, batchSize)
                 batch_counter += 1
 
         # For now keep the clinical_* tables, upload them once all tables have been converted
-        self.dumpClinicalTablesToCsv(tempDir)
-        self.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
-        self.removeClinicalTablesCsv(tempDir)
-        self.removeClinicalTablesAddedLines()
-
-    def dumpPatientItemToCsv(self, tempDir, batchCounter):
-        log.info('Dumping patient_item for batch %s to CSV' % batchCounter)
-
-        DBUtil.execute(
-            '''
-            COPY patient_item TO '%s/%s_patient_item.csv' DELIMITER ',' CSV HEADER;
-            ''' % (tempDir, batchCounter)
-        )
-
-    def dumpClinicalTablesToCsv(self, tempDir):
-        log.info('Dumping clinical_item and clinical_item_category to CSV')
-
-        DBUtil.execute(
-            '''
-            COPY clinical_item TO '%s/clinical_item.csv' DELIMITER ',' CSV HEADER;
-            ''' % tempDir
-        )
-
-        DBUtil.execute(
-            '''
-            COPY clinical_item_category TO '%s/clinical_item_category.csv' DELIMITER ',' CSV HEADER;
-            ''' % tempDir
-        )
-
-    def uploadPatientItemCsvToBQ(self, tempDir, batchCounter, datasetId):
-        log.info('Uploading patient_item CSV to BQ dataset %s for batch %s' % (datasetId, batchCounter))
-
-        patient_item_schema = self.bqClient.client.get_table(
-                self.bqClient.client.dataset('clinical_item2018', 'mining-clinical-decisions').table('patient_item')
-        ).schema
-
-        csv_path = tempDir + '/' + str(batchCounter) + '_patient_item.csv'
-
-        bigQueryUtil.headerChecker(csv_path, [sf.name for sf in patient_item_schema])
-
-        self.bqClient.load_csv_to_table(datasetId, 'patient_item', csv_path, skip_rows=1, append_to_table=True)
-        # auto_detect_schema=False, schema=patient_item_schema)
-
-    def uploadClinicalTablesCsvToBQ(self, tempDir, datasetId):
-        log.info('Uploading clinical_item_category CSV to BQ dataset %s' % datasetId)
-        clinical_item_category_schema = self.bqClient.client.get_table(
-                self.bqClient.client.dataset('clinical_item2018', 'mining-clinical-decisions')
-                    .table('clinical_item_category')
-        ).schema
-
-        clinical_item_category_csv_path = tempDir + '/clinical_item_category.csv'
-
-        bigQueryUtil.headerChecker(clinical_item_category_csv_path, [sf.name for sf in clinical_item_category_schema])
-
-        self.bqClient.load_csv_to_table(datasetId, 'clinical_item_category', clinical_item_category_csv_path,
-                                        skip_rows=1, append_to_table=True)
-        # auto_detect_schema=False, schema=clinical_item_category_schema)
-
-        log.info('Uploading clinical_item CSV to BQ dataset %s' % datasetId)
-        clinical_item_schema = self.bqClient.client.get_table(
-                self.bqClient.client.dataset('clinical_item2018', 'mining-clinical-decisions').table('clinical_item')
-        ).schema
-
-        clinical_item_csv_path = tempDir + '/clinical_item.csv'
-
-        bigQueryUtil.headerChecker(clinical_item_csv_path, [sf.name for sf in clinical_item_schema])
-
-        self.bqClient.load_csv_to_table(datasetId, 'clinical_item', clinical_item_csv_path,
-                                        skip_rows=1, append_to_table=True)
-        # auto_detect_schema=False, schema=clinical_item_schema)
-
-    def removePatientItemCsv(self, tempDir, batchCounter):
-        log.info('Removing patient_item CSV for batch %s' % batchCounter)
-        if os.path.exists(tempDir + '/' + str(batchCounter) + '_patient_item.csv'):
-            os.remove(tempDir + '/' + str(batchCounter) + '_patient_item.csv')
-        else:
-            print(tempDir + '/' + str(batchCounter) + '_patient_item.csv does not exist')
-
-    def removeClinicalTablesCsv(self, tempDir):
-        log.info('Removing clinical_item and clinical_item_category CSVs')
-        if os.path.exists(tempDir + '/clinical_item.csv'):
-            os.remove(tempDir + '/clinical_item.csv')
-        else:
-            print(tempDir + '/clinical_item.csv does not exist')
-
-        if os.path.exists(tempDir + '/clinical_item_category.csv'):
-            os.remove(tempDir + '/clinical_item_category.csv')
-        else:
-            print(tempDir + '/clinical_item_category.csv does not exist')
-
-    def removePatientItemAddedLines(self):
-        """delete added records"""
-        log.info('Removing patient_item added lines in PSQL DB')
-
-        DBUtil.execute(
-            """delete from patient_item 
-                where clinical_item_id in 
-                (   select clinical_item_id
-                    from clinical_item as ci, clinical_item_category as cic
-                    where ci.clinical_item_category_id = cic.clinical_item_category_id
-                    and cic.source_table = '%s'
-                );
-            """ % SOURCE_TABLE
-        )
-
-    def removeClinicalTablesAddedLines(self):
-        """delete added records"""
-        log.info('Removing clinical_item and clinical_item_category added lines in PSQL DB')
-
-        DBUtil.execute(
-            """delete from clinical_item 
-                where clinical_item_category_id in 
-                (   select clinical_item_category_id 
-                    from clinical_item_category 
-                    where source_table = '%s'
-                );
-                """ % SOURCE_TABLE
-        )
-
-        DBUtil.execute("delete from clinical_item_category where source_table = '%s';" % SOURCE_TABLE)
+        self.starrUtil.dumpClinicalTablesToCsv(tempDir)
+        self.starrUtil.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
+        self.starrUtil.removeClinicalTablesCsv(tempDir)
+        self.starrUtil.removeClinicalTablesAddedLines(SOURCE_TABLE)
 
     def convertSourceItems(self, patientIds=None):
         """Primary run function to process the contents of the starr_datalake2018.demographic

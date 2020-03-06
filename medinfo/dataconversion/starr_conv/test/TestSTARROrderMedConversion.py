@@ -1238,6 +1238,11 @@ class TestSTARROrderMedConversion(DBTestCase):
         STARROrderMedConversion.SOURCE_TABLE = TEST_SOURCE_TABLE
         STARROrderMedConversion.ORDERSET_TABLE = TEST_ORDERSET_TABLE
 
+        log.warn("Removing test tables, if they exist: {} and {}".format(TEST_SOURCE_TABLE, TEST_ORDERSET_TABLE))
+        bq_cursor = self.bqConn.cursor()
+        bq_cursor.execute('DROP TABLE IF EXISTS {};'.format(TEST_SOURCE_TABLE))
+        bq_cursor.execute('DROP TABLE IF EXISTS {};'.format(TEST_ORDERSET_TABLE))
+
     def generate_test_and_expected_data(self, test_data_size, conv_options):
         # preload mapped_meds table
         rxcuiDataByMedId = self.converter.loadRXCUIData()

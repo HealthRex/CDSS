@@ -2,8 +2,11 @@ import csv
 import os
 import pytz
 import random
+import subprocess
+import sys
 import time
 
+from medinfo.common.Util import stdOpen
 from medinfo.db import DBUtil
 from medinfo.dataconversion.Util import log
 from medinfo.db.bigquery import bigQueryUtil
@@ -98,33 +101,21 @@ class StarrCommonUtils:
     def dumpPatientItemCollectionLinkToCsv(self, tempDir, batchCounter=999):
         log.info('Dumping patient_item_collection_link for batch {} to CSV'.format(batchCounter))
 
-        DBUtil.execute(
-                '''
-                COPY patient_item_collection_link TO '{}/{}_patient_item_collection_link.csv' DELIMITER ',' CSV HEADER;
-                '''.format(tempDir, batchCounter), conn=self.pgConn
-        )
+        DBUtil.dumpTableToCsv('patient_item_collection_link',
+                              '{}/{}_patient_item_collection_link.csv'.format(tempDir, batchCounter))
 
     def dumpItemCollectionTablesToCsv(self, tempDir):
         log.info('Dumping item_collection_item and item_collection to CSV')
 
-        DBUtil.execute(
-                '''
-                COPY item_collection_item TO '{}/item_collection_item.csv' DELIMITER ',' CSV HEADER;
-                '''.format(tempDir), conn=self.pgConn
-        )
-
-        DBUtil.execute(
-                '''
-                COPY item_collection TO '{}/item_collection.csv' DELIMITER ',' CSV HEADER;
-                '''.format(tempDir), conn=self.pgConn
-        )
+        DBUtil.dumpTableToCsv('item_collection_item', '{}/item_collection_item.csv'.format(tempDir))
+        DBUtil.dumpTableToCsv('item_collection', '{}/item_collection.csv'.format(tempDir))
 
     def uploadPatientItemCollectionLinkCsvToBQ(self, tempDir, datasetId, batchCounter=999):
         log.info('Uploading patient_item CSV to BQ dataset {} for batch {}'.format(datasetId, batchCounter))
         patient_item_collection_link_schema = self.get_schema_filtered('clinical_item2018',
                                                                        'patient_item_collection_link')
 
-        csv_path = tempDir + '/' + str(batchCounter) + '_patient_item_collection_link.csv'
+        csv_path = tempDir + os.path.sep + str(batchCounter) + '_patient_item_collection_link.csv'
 
         bigQueryUtil.headerChecker(csv_path, [sf.name for sf in patient_item_collection_link_schema])
 
@@ -156,7 +147,7 @@ class StarrCommonUtils:
 
     def removePatientItemCollectionLinkCsv(self, temp_dir, batchCounter=999):
         log.info('Removing patient_item_collection_link CSV for batch {}'.format(batchCounter))
-        self.remove_file(temp_dir + '/' + str(batchCounter) + '_patient_item_collection_link.csv')
+        self.remove_file(temp_dir + os.path.sep + str(batchCounter) + '_patient_item_collection_link.csv')
 
     def removeItemCollectionTablesCsv(self, temp_dir):
         log.info('Removing item_collection and item_collection_item CSVs')
@@ -196,26 +187,13 @@ class StarrCommonUtils:
     def dumpPatientItemToCsv(self, tempDir, batchCounter=999):
         log.info('Dumping patient_item for batch {} to CSV'.format(batchCounter))
 
-        DBUtil.execute(
-                '''
-                COPY patient_item TO '{}/{}_patient_item.csv' DELIMITER ',' CSV HEADER;
-                '''.format(tempDir, batchCounter), conn=self.pgConn
-        )
+        DBUtil.dumpTableToCsv('patient_item', '{}/{}_patient_item.csv'.format(tempDir, batchCounter))
 
     def dumpClinicalTablesToCsv(self, tempDir):
         log.info('Dumping clinical_item and clinical_item_category to CSV')
 
-        DBUtil.execute(
-                '''
-                COPY clinical_item TO '{}/clinical_item.csv' DELIMITER ',' CSV HEADER;
-                '''.format(tempDir), conn=self.pgConn
-        )
-
-        DBUtil.execute(
-                '''
-                COPY clinical_item_category TO '{}/clinical_item_category.csv' DELIMITER ',' CSV HEADER;
-                '''.format(tempDir), conn=self.pgConn
-        )
+        DBUtil.dumpTableToCsv('clinical_item', '{}/clinical_item.csv'.format(tempDir))
+        DBUtil.dumpTableToCsv('clinical_item_category', '{}/clinical_item_category.csv'.format(tempDir))
 
     def uploadPatientItemCsvToBQ(self, tempDir, datasetId, batchCounter=999):
         log.info('Uploading patient_item CSV to BQ dataset %s for batch %s' % (datasetId, batchCounter))
@@ -230,7 +208,7 @@ class StarrCommonUtils:
                                bigquery.SchemaField('num_value', 'FLOAT64', 'NULLABLE', None, ()),
                                bigquery.SchemaField('source_id', 'INT64', 'NULLABLE', None, ())]
 
-        csv_path = tempDir + '/' + str(batchCounter) + '_patient_item.csv'
+        csv_path = tempDir + os.path.sep + str(batchCounter) + '_patient_item.csv'
 
         bigQueryUtil.headerChecker(csv_path, [sf.name for sf in patient_item_schema])
 
@@ -276,7 +254,7 @@ class StarrCommonUtils:
 
     def removePatientItemCsv(self, temp_dir, batchCounter=999):
         log.info('Removing patient_item CSV for batch {}'.format(batchCounter))
-        self.remove_file(temp_dir + '/' + str(batchCounter) + '_patient_item.csv')
+        self.remove_file(temp_dir + os.path.sep + str(batchCounter) + '_patient_item.csv')
 
     def removeClinicalTablesCsv(self, temp_dir):
         log.info('Removing clinical_item and clinical_item_category CSVs')

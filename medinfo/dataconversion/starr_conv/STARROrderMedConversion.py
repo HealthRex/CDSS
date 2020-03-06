@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys, os
 import hashlib
+import tempfile
 import time
 from datetime import datetime
 from optparse import OptionParser
@@ -50,7 +51,7 @@ class STARROrderMedConversion:
         self.itemCollectionByKeyStr = dict()    # Local cache to track item collections
         self.itemCollectionItemByCollectionIdItemId = dict()    # Local cache to track item collection items
 
-    def convertAndUpload(self, convOptions, tempDir='/tmp/', removeCsvs=True, target_dataset_id='starr_datalake2018'):
+    def convertAndUpload(self, convOptions, tempDir=tempfile.gettempdir(), removeCsvs=True, target_dataset_id='starr_datalake2018'):
         """
         Wrapper around primary run function, does conversion locally and uploads to BQ
         No batching done for treatment team since converted table is small
@@ -376,10 +377,10 @@ class STARROrderMedConversion:
         key = {
             "protocol_id": sourceItem["protocol_id"],
             "ss_section_id": sourceItem["ss_section_id"],
-            "ss_sg_key": sourceItem["ss_sg_key"].strip().upper() if sourceItem["ss_section_name"] is not None else None
+            "ss_sg_key": sourceItem["ss_sg_key"].strip().upper() if sourceItem["ss_sg_key"] is not None else None
         }
 
-        collection_key = "%(protocol_id)d-%(ss_section_id)d-%(ss_sg_key)s" % key
+        collection_key = "%(protocol_id)d-%(ss_section_id)s-%(ss_sg_key)s" % key
         if collection_key not in self.itemCollectionByKeyStr:
             # Collection does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             collection = RowItemModel(
