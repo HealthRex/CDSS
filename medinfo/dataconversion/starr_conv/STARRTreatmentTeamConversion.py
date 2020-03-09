@@ -43,7 +43,7 @@ class STARRTreatmentTeamConversion:
 
     # Column headers to query for that map to respective fields in analysis table
     HEADERS = ['prov_map_id', 'rit_uid', 'pat_enc_csn_id_coded', 'trtmnt_tm_begin_dt_jittered',
-               'trtmnt_tm_end_dt_jittered', 'name', 'prov_name']
+               'trtmnt_tm_end_dt_jittered', 'name', 'prov_name', 'trtmnt_tm_begin_dt_jittered_utc']
 
     def __init__(self):
         """Default constructor"""
@@ -299,8 +299,10 @@ class STARRTreatmentTeamConversion:
                 "patient_id": int(sourceItem["rit_uid"][2:], 16),
                 "encounter_id": sourceItem["pat_enc_csn_id_coded"],
                 "clinical_item_id": clinicalItem["clinical_item_id"],
-                "item_date": str(sourceItem["trtmnt_tm_begin_dt_jittered"])  # without str(), the time is being converted in postgres
+                "item_date": str(sourceItem["trtmnt_tm_begin_dt_jittered"]),    # without str(), the time is being converted in postgres
+                "item_date_utc": str(sourceItem["trtmnt_tm_begin_dt_jittered_utc"])    # without str(), the time is being converted in postgres
             })
+        print(patientItem)
 
         insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys())
         insertParams = patientItem.values()

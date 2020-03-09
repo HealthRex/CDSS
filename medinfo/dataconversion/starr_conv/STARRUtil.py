@@ -206,13 +206,15 @@ class StarrCommonUtils:
                                bigquery.SchemaField('encounter_id', 'INT64', 'NULLABLE', None, ()),
                                bigquery.SchemaField('text_value', 'STRING', 'NULLABLE', None, ()),
                                bigquery.SchemaField('num_value', 'FLOAT64', 'NULLABLE', None, ()),
-                               bigquery.SchemaField('source_id', 'INT64', 'NULLABLE', None, ())]
+                               bigquery.SchemaField('source_id', 'INT64', 'NULLABLE', None, ()),
+                               bigquery.SchemaField('item_date_utc', 'TIMESTAMP', 'NULLABLE', None, ())]
 
         csv_path = tempDir + os.path.sep + str(batchCounter) + '_patient_item.csv'
 
         bigQueryUtil.headerChecker(csv_path, [sf.name for sf in patient_item_schema])
 
-        self.bqClient.load_csv_to_table(datasetId, 'patient_item', csv_path, skip_rows=1, append_to_table=True)
+        self.bqClient.load_csv_to_table(datasetId, 'patient_item', csv_path, schema=patient_item_schema, skip_rows=1,
+                                        append_to_table=True)
         # auto_detect_schema=False, schema=patient_item_schema)
 
     def uploadClinicalTablesCsvToBQ(self, tempDir, datasetId):
@@ -228,7 +230,7 @@ class StarrCommonUtils:
         bigQueryUtil.headerChecker(clinical_item_category_csv_path, [sf.name for sf in clinical_item_category_schema])
 
         self.bqClient.load_csv_to_table(datasetId, 'clinical_item_category', clinical_item_category_csv_path,
-                                        skip_rows=1, append_to_table=True)
+                                        schema=clinical_item_category_schema, skip_rows=1, append_to_table=True)
         # auto_detect_schema=False, schema=clinical_item_category_schema)
 
         log.info('Uploading clinical_item CSV to BQ dataset %s' % datasetId)
@@ -249,7 +251,7 @@ class StarrCommonUtils:
         bigQueryUtil.headerChecker(clinical_item_csv_path, [sf.name for sf in clinical_item_schema])
 
         self.bqClient.load_csv_to_table(datasetId, 'clinical_item', clinical_item_csv_path,
-                                        skip_rows=1, append_to_table=True)
+                                        schema=clinical_item_schema, skip_rows=1, append_to_table=True)
         # auto_detect_schema=False, schema=clinical_item_schema)
 
     def removePatientItemCsv(self, temp_dir, batchCounter=999):
