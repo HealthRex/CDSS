@@ -103,7 +103,7 @@ Recommended to save time during workshop:
     Python
     >>> from google.cloud import bigquery;
     >>> from google.cloud.bigquery import dbapi;
-    >>> client = bigquery.Client("som-nero-phi-jonc101"); # Project identifier
+    >>> client = bigquery.Client("som-nero-phi-jonc101"); # Project identifier - Alternatively, specify this through GOOGLE_CLOUD_PROJECT environment variable
     >>> conn = dbapi.connect(client);
     >>> cursor = conn.cursor();
     >>> query = "select rit_uid, gender, birth_date_jittered from `starr_datalake2018.demographic` limit 10"; # Example dataset table
