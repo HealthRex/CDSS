@@ -49,5 +49,7 @@ PATH_TO_CDSS = "/foo/bar/CDSS"; # Directory where this file is contained in
 # See https://github.com/HealthRex/CDSS/wiki/Google-BigQuery-Access for more info
 if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/foo/bar/google-cloud-platform-token.json";
+if "GOOGLE_CLOUD_PROJECT" not in os.environ:
+	os.environ["GOOGLE_CLOUD_PROJECT"] = "mining-clinical-decisions";
 
 TEST_RUNNER_VERBOSITY = 2
