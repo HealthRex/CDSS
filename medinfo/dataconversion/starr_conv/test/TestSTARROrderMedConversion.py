@@ -1208,7 +1208,8 @@ class TestSTARROrderMedConversion(DBTestCase):
     TEST_DATA_SIZE = 2 * len(MED_ROUTES)    # at least 2 rows per med route combined with inpatient vs outpatient
 
     ORDER_MED_HEADER = ['order_med_id_coded', 'jc_uid', 'pat_enc_csn_id_coded', 'medication_id', 'med_description',
-                        'order_time_jittered', 'med_route', 'number_of_times', 'ordering_mode', 'freq_name']
+                        'order_time_jittered', 'med_route', 'number_of_times', 'ordering_mode', 'freq_name',
+                        'order_time_jittered_utc']
     MED_ORDERSET_HEADER = ['order_med_id_coded', 'protocol_id', 'protocol_name', 'ss_section_id', 'ss_section_name',
                            'ss_sg_key', 'ss_sg_name']
 
@@ -1222,7 +1223,7 @@ class TestSTARROrderMedConversion(DBTestCase):
     orderset_data_csv = tempfile.gettempdir() + '/test_starr_order_med_orderset_data.csv'
 
     def setUp(self):
-        log.setLevel(logging.INFO)  # without this no logs are printed
+        log.setLevel(logging.DEBUG)  # without this no logs are printed
 
         """Prepare state for test cases"""
         DBTestCase.setUp(self)
@@ -1314,17 +1315,19 @@ class TestSTARROrderMedConversion(DBTestCase):
             # several times less than the test records count to have some medication_ids occur multiple times
             medication_id = random.randint(0, len(MED_ROUTES) / 5)
 
+        order_time_jittered = random.randint(1, int(time.time()))
         return (
             random.randint(0, len(MED_ROUTES) / 10),  # order_med_id_coded - want some of them to repeat
             patient_id,
             curr_row,  # pat_enc_csn_id_coded
             medication_id,
             MED_DESCRIPTIONS[random.randint(0, len(MED_DESCRIPTIONS) - 1)],
-            datetime.fromtimestamp(random.randint(1, int(time.time()))),  # random order_time_jittered
+            datetime.fromtimestamp(order_time_jittered),
             MED_ROUTES[random.randint(0, len(MED_ROUTES) - 1)],
             random.randint(1, 180),  # number_of_times
             ORDERING_MODES[random.randint(0, len(ORDERING_MODES) - 1)],  # ordering_modes
-            FREQ_NAMES[random.randint(0, len(FREQ_NAMES) - 1)]
+            FREQ_NAMES[random.randint(0, len(FREQ_NAMES) - 1)],
+            datetime.fromtimestamp(order_time_jittered, tz=pytz.UTC),
         )
 
     @staticmethod
@@ -1365,7 +1368,7 @@ class TestSTARROrderMedConversion(DBTestCase):
                 # replace previous ci_descriptions in expected_data
                 for i in range(len(self.expected_data)):
                     if self.expected_data[i][3] == cic_description and self.expected_data[i][5] == normalized_model["code"]:
-                        self.expected_data[i] = self.expected_data[i][:6] + (self.clinical_items[ci_key], self.expected_data[i][7])
+                        self.expected_data[i] = self.expected_data[i][:6] + (self.clinical_items[ci_key], ) + self.expected_data[i][7:]
 
                 # replace previous ci_descriptions in expected_orderset_data
                 for i in range(len(self.expected_orderset_data)):
@@ -1382,7 +1385,8 @@ class TestSTARROrderMedConversion(DBTestCase):
                 normalized_model["medication_id"],                                                  # ci_external_id
                 normalized_model["code"],                                                           # ci_name
                 ci_description,                                                                     # ci_description
-                row[5]                                                                              # pi_item_date
+                row[5],                                                                             # pi_item_date
+                row[10].replace(tzinfo=pytz.UTC)                                                    # pi.item_date_utc
             )
             if expected_row not in self.expected_data:
                 self.expected_data.append(expected_row)
@@ -1496,7 +1500,8 @@ class TestSTARROrderMedConversion(DBTestCase):
                 ci.external_id as ci_external_id,
                 ci.name,
                 ci.description as ci_description,
-                pi.item_date
+                pi.item_date,
+                pi.item_date_utc
             from
                 {}.patient_item as pi,
                 {}.clinical_item as ci,
@@ -1512,7 +1517,7 @@ class TestSTARROrderMedConversion(DBTestCase):
         bq_cursor = self.bqConn.cursor()
         bq_cursor.execute(test_query)
         # remove timezone info in pi.item_date from coming from bigquery - we're storing datetime without timezone
-        actual_data = [row.values()[:7] + (row.values()[7].replace(tzinfo=None), ) for row in bq_cursor.fetchall()]
+        actual_data = [row.values()[:7] + (row.values()[7].replace(tzinfo=None), row.values()[8],) for row in bq_cursor.fetchall()]
 
         log.debug('actual data: {}'.format(actual_data))
         log.debug('expected data: {}'.format(self.expected_data))

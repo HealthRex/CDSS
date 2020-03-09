@@ -1348,8 +1348,9 @@ STAND_INTERVALS = [
 class TestSTARROrderProcConversion(DBTestCase):
     TEST_DATA_SIZE = 2 * len(ORDER_TYPES)    # at least 2 rows per med route combined with inpatient vs outpatient
 
-    ORDER_PROC_HEADER = ['order_proc_id_coded', 'jc_uid', 'pat_enc_csn_id_coded', 'order_type', 'proc_id',
-                         'proc_code', 'description', 'order_time_jittered', 'ordering_mode', 'stand_interval']
+    ORDER_PROC_HEADER = ['order_proc_id_coded', 'jc_uid', 'pat_enc_csn_id_coded', 'order_type', 'proc_id', 'proc_code',
+                         'description', 'order_time_jittered', 'ordering_mode', 'stand_interval',
+                         'order_time_jittered_utc']
     PROC_ORDERSET_HEADER = ['order_proc_id_coded', 'protocol_id', 'protocol_name', 'ss_section_id', 'ss_section_name',
                             'ss_sg_key', 'ss_sg_name']
 
@@ -1363,7 +1364,7 @@ class TestSTARROrderProcConversion(DBTestCase):
     orderset_data_csv = tempfile.gettempdir() + '/test_starr_order_proc_orderset_data.csv'
 
     def setUp(self):
-        log.setLevel(logging.INFO)  # without this no logs are printed
+        log.setLevel(logging.DEBUG)  # without this no logs are printed
 
         """Prepare state for test cases"""
         DBTestCase.setUp(self)
@@ -1441,6 +1442,7 @@ class TestSTARROrderProcConversion(DBTestCase):
     @staticmethod
     def generate_test_data_row(curr_row, patient_id):
         proc_id = random.randint(0, len(PROC_CODES) - 1)
+        order_time_jittered = random.randint(1, int(time.time()))
         return (
             curr_row,  # order_proc_id_coded
             patient_id,
@@ -1449,9 +1451,10 @@ class TestSTARROrderProcConversion(DBTestCase):
             proc_id,
             PROC_CODES[proc_id],
             DESCRIPTIONS[random.randint(0, len(DESCRIPTIONS) - 1)],
-            datetime.fromtimestamp(random.randint(1, int(time.time()))),  # random order_time_jittered
+            datetime.fromtimestamp(order_time_jittered),
             ORDERING_MODES[random.randint(0, len(ORDERING_MODES) - 1)],  # ordering_modes
             STAND_INTERVALS[random.randint(0, len(STAND_INTERVALS) - 1)],
+            datetime.fromtimestamp(order_time_jittered, tz=pytz.UTC),
         )
 
     @staticmethod
@@ -1492,7 +1495,8 @@ class TestSTARROrderProcConversion(DBTestCase):
             row[4],                                                                             # ci_external_id
             proc_code,                                                                          # ci_name
             ci_description,                                                                     # ci_description
-            row[7]                                                                              # pi_item_date
+            row[7],                                                                             # pi_item_date
+            row[10].replace(tzinfo=pytz.UTC),                                                   # pi.item_date_utc
         )
 
         if expected_row not in self.expected_data:
@@ -1568,7 +1572,8 @@ class TestSTARROrderProcConversion(DBTestCase):
                 ci.external_id as ci_external_id,
                 ci.name,
                 ci.description as ci_description,
-                pi.item_date
+                pi.item_date,
+                pi.item_date_utc
             from
                 {}.patient_item as pi,
                 {}.clinical_item as ci,
@@ -1584,7 +1589,7 @@ class TestSTARROrderProcConversion(DBTestCase):
         bq_cursor = self.bqConn.cursor()
         bq_cursor.execute(test_query)
         # remove timezone info in pi.item_date from coming from bigquery - we're storing datetime without timezone
-        actual_data = [row.values()[:7] + (row.values()[7].replace(tzinfo=None), ) for row in bq_cursor.fetchall()]
+        actual_data = [row.values()[:7] + (row.values()[7].replace(tzinfo=None), row.values()[8],) for row in bq_cursor.fetchall()]
 
         log.debug('actual data: {}'.format(actual_data))
         log.debug('expected data: {}'.format(self.expected_data))

@@ -123,11 +123,13 @@ class STARROrderProcConversion:
 
         # Column headers to query for that map to respective fields in analysis table
         queryHeaders = ["op.order_proc_id_coded", "jc_uid", "op.pat_enc_csn_id_coded", "op.order_type", "op.proc_id",
-                        "op.proc_code", "description", "order_time_jittered", "ordering_mode", "protocol_id",
-                        "protocol_name", "ss_section_id", "ss_section_name", "ss_sg_key", "ss_sg_name"]
+                        "op.proc_code", "description", "order_time_jittered", "order_time_jittered_utc",
+                        "ordering_mode", "protocol_id", "protocol_name", "ss_section_id", "ss_section_name",
+                        "ss_sg_key", "ss_sg_name"]
         headers = ["order_proc_id_coded", "jc_uid", "pat_enc_csn_id_coded", "order_type", "proc_id",
-                   "proc_code", "description", "order_time_jittered", "ordering_mode", "protocol_id",
-                   "protocol_name", "ss_section_id", "ss_section_name", "ss_sg_key", "ss_sg_name"]
+                   "proc_code", "description", "order_time_jittered", "order_time_jittered_utc",
+                   "ordering_mode", "protocol_id", "protocol_name", "ss_section_id", "ss_section_name",
+                   "ss_sg_key", "ss_sg_name"]
 
         # TODO original query - need to figure out how to pass date to query in BQ using SQLQuery object
         # query = SQLQuery()
@@ -264,6 +266,7 @@ class STARROrderProcConversion:
                 "encounter_id":     sourceItem["pat_enc_csn_id_coded"],
                 "clinical_item_id": clinicalItem["clinical_item_id"],
                 "item_date":        sourceItem["order_time_jittered"],
+                "item_date_utc":    str(sourceItem["order_time_jittered_utc"]),     # without str(), the time is being converted in postgres
             }
         )
         insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys())

@@ -140,12 +140,14 @@ class STARROrderMedConversion:
         """
         # Column headers to query for that map to respective fields in analysis table
         queryHeaders = ["med.order_med_id_coded", "jc_uid", "med.pat_enc_csn_id_coded", "med.medication_id",
-                        "med.med_description", "order_time_jittered", "med_route", "number_of_times", "protocol_id",
-                        "protocol_name", "ss_section_id", "ss_section_name", "ss_sg_key", "ss_sg_name", "ordering_mode"]
+                        "med.med_description", "order_time_jittered", "order_time_jittered_utc", "med_route",
+                        "number_of_times", "protocol_id", "protocol_name", "ss_section_id", "ss_section_name",
+                        "ss_sg_key", "ss_sg_name", "ordering_mode"]
 
         headers = ["order_med_id_coded", "jc_uid", "pat_enc_csn_id_coded", "medication_id",
-                   "med_description", "order_time_jittered", "med_route", "number_of_times", "protocol_id",
-                   "protocol_name", "ss_section_id", "ss_section_name", "ss_sg_key", "ss_sg_name", "ordering_mode"]
+                   "med_description", "order_time_jittered", "order_time_jittered_utc", "med_route",
+                   "number_of_times", "protocol_id", "protocol_name", "ss_section_id", "ss_section_name",
+                   "ss_sg_key", "ss_sg_name", "ordering_mode"]
 
         # TODO original query - need to figure out how to pass date to query in BQ using SQLQuery object
         # query = SQLQuery()
@@ -349,6 +351,7 @@ class STARROrderMedConversion:
                 "encounter_id": sourceItem["pat_enc_csn_id_coded"],
                 "clinical_item_id": clinicalItem["clinical_item_id"],
                 "item_date": sourceItem["order_time_jittered"],
+                "item_date_utc": str(sourceItem["order_time_jittered_utc"]),    # without str(), the time is being converted in postgres
             }
         )
         insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys())
