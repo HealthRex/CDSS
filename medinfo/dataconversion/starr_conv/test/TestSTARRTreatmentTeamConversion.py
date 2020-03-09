@@ -560,6 +560,10 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         # point the converter to dummy source table
         STARRTreatmentTeamConversion.SOURCE_TABLE = TEST_SOURCE_TABLE
 
+        log.warn("Removing test table, if exists: {}".format(TEST_SOURCE_TABLE))
+        bq_cursor = self.bqConn.cursor()
+        bq_cursor.execute('DROP TABLE IF EXISTS {};'.format(TEST_SOURCE_TABLE))
+
     def generate_test_and_expected_data(self, test_data_size, aggregate):
         for curr_row in range(test_data_size):
             patient_id = 'JC' + format(curr_row, '06')
@@ -570,15 +574,21 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         # pi.external_id desc (ci.external_id is always None, so not included here)
         self.expected_data.sort(key=lambda tup: (-tup[0]))
 
+        log.debug('test_data: {}'.format(self.test_data))
+        log.debug('expected_data: {}'.format(self.expected_data))
+
     @staticmethod
     def generate_test_data_row(curr_row, treatment_period, patient_id):
-        return ('SS' + format(curr_row, '07'),
-                patient_id,
-                curr_row,
-                datetime.fromtimestamp(treatment_period[0]),
-                datetime.fromtimestamp(treatment_period[1]),
-                NAME_TO_ACRONYM.keys()[random.randint(0, len(NAME_TO_ACRONYM) - 1)],
-                PROV_TO_CLEAN_ACRONYM.keys()[random.randint(0, len(PROV_TO_CLEAN_ACRONYM) - 1)])
+        return (
+            'SS' + format(curr_row, '07'),
+            patient_id,
+            curr_row,
+            datetime.fromtimestamp(treatment_period[0]),
+            datetime.fromtimestamp(treatment_period[1]),
+            NAME_TO_ACRONYM.keys()[random.randint(0, len(NAME_TO_ACRONYM) - 1)],
+            PROV_TO_CLEAN_ACRONYM.keys()[random.randint(0, len(PROV_TO_CLEAN_ACRONYM) - 1)],
+            datetime.fromtimestamp(treatment_period[0], tz=pytz.UTC),
+        )
 
     def generate_expected_data_rows(self, row, expected_data, aggregate):
         if not aggregate:
@@ -592,7 +602,8 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
                                         else PROV_TO_CLEAN_ACRONYM[row[6]][1] + ' (' + NAME_TO_ACRONYM[row[5]] + ')',
                 row[5].strip() if PROV_TO_CLEAN_ACRONYM[row[6]][1] == ''
                                else PROV_TO_CLEAN_ACRONYM[row[6]][0].title() + ' (' + row[5].strip() + ')',
-                row[3].replace(tzinfo=pytz.UTC)
+                row[3].replace(tzinfo=pytz.UTC),
+                row[7].replace(tzinfo=pytz.UTC),
             )
         else:
             expected_row = (
@@ -607,7 +618,8 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
                 AGGR_NAME_TO_ACRONYM[row[5]][0]
                     if AGGR_PROV_TO_CLEAN_ACRONYM[row[6]][1] == ''
                     else AGGR_PROV_TO_CLEAN_ACRONYM[row[6]][0].title() + ' (' + AGGR_NAME_TO_ACRONYM[row[5]][0] + ')',
-                row[3].replace(tzinfo=pytz.UTC)
+                row[3].replace(tzinfo=pytz.UTC),
+                row[7].replace(tzinfo=pytz.UTC)
             )
 
         expected_data.append(expected_row)
@@ -621,8 +633,8 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         log.info("Purge test records from the database")
 
         DBUtil.execute(
-            """delete from patient_item 
-            where clinical_item_id in 
+            """delete from patient_item
+            where clinical_item_id in
             (   select clinical_item_id
                 from clinical_item as ci, clinical_item_category as cic
                 where ci.clinical_item_category_id = cic.clinical_item_category_id
@@ -631,10 +643,10 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
             """ % TEST_SOURCE_TABLE
         )
         DBUtil.execute(
-            """delete from clinical_item 
-            where clinical_item_category_id in 
-            (   select clinical_item_category_id 
-                from clinical_item_category 
+            """delete from clinical_item
+            where clinical_item_category_id in
+            (   select clinical_item_category_id
+                from clinical_item_category
                 where source_table = '%s'
             )
             """ % TEST_SOURCE_TABLE
@@ -678,7 +690,8 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
                 ci.external_id as ci_external_id,
                 ci.name,
                 ci.description as ci_description,
-                pi.item_date
+                pi.item_date,
+                pi.item_date_utc
             from
                 %s.patient_item as pi,
                 %s.clinical_item as ci,
