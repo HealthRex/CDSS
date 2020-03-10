@@ -1364,7 +1364,7 @@ class TestSTARROrderProcConversion(DBTestCase):
     orderset_data_csv = tempfile.gettempdir() + '/test_starr_order_proc_orderset_data.csv'
 
     def setUp(self):
-        log.setLevel(logging.DEBUG)  # without this no logs are printed
+        log.setLevel(logging.INFO)  # without this no logs are printed
 
         """Prepare state for test cases"""
         DBTestCase.setUp(self)
