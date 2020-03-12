@@ -43,6 +43,23 @@ Recommended to save time during workshop:
   https://console.cloud.google.com/bigquery?authuser=1&project=mining-clinical-decisions
   - Note that you have to select your stanford.edu account login in the top-right
   - Note that you may have to select the project name from the drop list on the top-middle nav bar
+
+
+  It should fail with an error like: "VPC Service Controls: Request is prohibited by organization's policy..."
+  To get through, you will first need to Virtual Private Network (VPN) connection into a Stanford secured network:
+
+- Virtual Private Network connection into PHI secure Virtual Private Cloud
+  Download and run the respective VPN client from the link below
+  https://uit.stanford.edu/service/vpn
+  
+  Login (SUNetID and password with two-factor authentication) through the VPN client and be sure to select
+  "Full Traffic non-split-tunnel" for the Group option.
+
+  Try refreshing your web browser to reconnect through the web GUI to the BigQuery project database again.
+  You can continue to do any regular work in the meantime, though technically any internet traffic you're conducting is not being sent direct. It is being encrypted and sent through the Stanford secure network first and then relayed on to the actual websites or email servers you're trying to reach. This allows your computer now to mimic being within the secured virtual private network.
+
+
+- Test Queries
   - See bottom left for lists of projects, which contain lists of datasets/databases, which contain lists of tables that you can query. For example:
 
           SELECT *
@@ -58,19 +75,6 @@ Recommended to save time during workshop:
 - Web GUI access to BigQuery databases
   Try connecting to the secure project through browser similar to above...
   https://console.cloud.google.com/bigquery?authuser=1&project=som-nero-phi-jonc101
-
-  It should fail with an error like: "VPC Service Controls: Request is prohibited by organization's policy..."
-  To get through, you will first need to Virtual Private Network (VPN) connection into a Stanford secured network:
-
-- Virtual Private Network connection into PHI secure Virtual Private Cloud
-  Download and run the respective VPN client from the link below
-  https://uit.stanford.edu/service/vpn
-  
-  Login (SUNetID and password with two-factor authentication) through the VPN client and be sure to select
-  "Full Traffic non-split-tunnel" for the Group option.
-
-  Try refreshing your web browser to reconnect through the web GUI to the BigQuery project database again.
-  You can continue to do any regular work in the meantime, though technically any internet traffic you're conducting is not being sent direct. It is being encrypted and sent through the Stanford secure network first and then relayed on to the actual websites or email servers you're trying to reach. This allows your computer now to mimic being within the secured virtual private network.
 
 - Programmatic (Python) API access to BigQuery databases (Google Cloud SDK)
   You will need to create a local JSON key file to identify yourself in your (Python) programs if you want them to access these secured databases.
