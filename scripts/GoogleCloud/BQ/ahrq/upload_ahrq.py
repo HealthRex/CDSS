@@ -20,7 +20,7 @@ from google.cloud import bigquery
 csv_path = '/Users/jonc101/Downloads/ahrq_ccs4.csv'
 
 DATASET_NAME = 'ahrq_ccsr'
-TABLE_NAME = 'ahrq_codes'
+TABLE_NAME = 'procedure_code'
 
  # 'icd_10',
  # 'ccs_category',
