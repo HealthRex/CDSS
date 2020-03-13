@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys, os
 import hashlib
+import tempfile
 import time
 from datetime import datetime
 from optparse import OptionParser
@@ -50,7 +51,7 @@ class STARROrderMedConversion:
         self.itemCollectionByKeyStr = dict()    # Local cache to track item collections
         self.itemCollectionItemByCollectionIdItemId = dict()    # Local cache to track item collection items
 
-    def convertAndUpload(self, convOptions, tempDir='/tmp/', removeCsvs=True, target_dataset_id='starr_datalake2018'):
+    def convertAndUpload(self, convOptions, tempDir=tempfile.gettempdir(), removeCsvs=True, target_dataset_id='starr_datalake2018'):
         """
         Wrapper around primary run function, does conversion locally and uploads to BQ
         No batching done for treatment team since converted table is small
@@ -139,12 +140,14 @@ class STARROrderMedConversion:
         """
         # Column headers to query for that map to respective fields in analysis table
         queryHeaders = ["med.order_med_id_coded", "jc_uid", "med.pat_enc_csn_id_coded", "med.medication_id",
-                        "med.med_description", "order_time_jittered", "med_route", "number_of_times", "protocol_id",
-                        "protocol_name", "ss_section_id", "ss_section_name", "ss_sg_key", "ss_sg_name", "ordering_mode"]
+                        "med.med_description", "order_time_jittered", "order_time_jittered_utc", "med_route",
+                        "number_of_times", "protocol_id", "protocol_name", "ss_section_id", "ss_section_name",
+                        "ss_sg_key", "ss_sg_name", "ordering_mode"]
 
         headers = ["order_med_id_coded", "jc_uid", "pat_enc_csn_id_coded", "medication_id",
-                   "med_description", "order_time_jittered", "med_route", "number_of_times", "protocol_id",
-                   "protocol_name", "ss_section_id", "ss_section_name", "ss_sg_key", "ss_sg_name", "ordering_mode"]
+                   "med_description", "order_time_jittered", "order_time_jittered_utc", "med_route",
+                   "number_of_times", "protocol_id", "protocol_name", "ss_section_id", "ss_section_name",
+                   "ss_sg_key", "ss_sg_name", "ordering_mode"]
 
         # TODO original query - need to figure out how to pass date to query in BQ using SQLQuery object
         # query = SQLQuery()
@@ -348,6 +351,7 @@ class STARROrderMedConversion:
                 "encounter_id": sourceItem["pat_enc_csn_id_coded"],
                 "clinical_item_id": clinicalItem["clinical_item_id"],
                 "item_date": sourceItem["order_time_jittered"],
+                "item_date_utc": str(sourceItem["order_time_jittered_utc"]),    # without str(), the time is being converted in postgres
             }
         )
         insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys())
@@ -376,10 +380,10 @@ class STARROrderMedConversion:
         key = {
             "protocol_id": sourceItem["protocol_id"],
             "ss_section_id": sourceItem["ss_section_id"],
-            "ss_sg_key": sourceItem["ss_sg_key"].strip().upper() if sourceItem["ss_section_name"] is not None else None
+            "ss_sg_key": sourceItem["ss_sg_key"].strip().upper() if sourceItem["ss_sg_key"] is not None else None
         }
 
-        collection_key = "%(protocol_id)d-%(ss_section_id)d-%(ss_sg_key)s" % key
+        collection_key = "%(protocol_id)d-%(ss_section_id)s-%(ss_sg_key)s" % key
         if collection_key not in self.itemCollectionByKeyStr:
             # Collection does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             collection = RowItemModel(
