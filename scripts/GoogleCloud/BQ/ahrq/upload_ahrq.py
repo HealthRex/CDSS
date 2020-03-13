@@ -4,6 +4,7 @@ import os
 import logging
 import itertools
 import string
+import credentials
 #import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
 
 from medinfo.db.bigquery import bigQueryUtil
@@ -11,14 +12,14 @@ from google.cloud import bigquery
 
 # files names:
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]='/Users/jonc101/Downloads/Mining Clinical Decisions-58be3d782c5b.json'
+#os.environ["GOOGLE_APPLICATION_CREDENTIALS"]='/Users/jonc101/Downloads/Mining Clinical Decisions-2c5b.json'
 
 
 # /Users/jonc101/Downloads/
 #CSV_FILE_PREFIX = '/Users/jonc101/Downloads/ahrq_ccs4.csv'
 csv_path = '/Users/jonc101/Downloads/ahrq_ccs4.csv'
 
-DATASET_NAME = 'ahrq'
+DATASET_NAME = 'ahrq_ccsr'
 TABLE_NAME = 'ahrq_codes'
 
  # 'icd_10',
@@ -36,7 +37,7 @@ FINAL_TABLE_SCHEMA = [bigquery.SchemaField('CODE', 'STRING', 'NULLABLE', None, (
                        bigquery.SchemaField('ccs_category_description', 'STRING', 'NULLABLE', None, ()),
                        bigquery.SchemaField('multi_ccs_lvl_1', 'INT64', 'NULLABLE', None, ()),
                        bigquery.SchemaField('multi_ccs_lvl_1_label', 'STRING', 'NULLABLE', None, ()),
-                       bigquery.SchemaField('CODE_TYPE', 'STRING', 'NULLABLE', None, ())]                       
+                       bigquery.SchemaField('CODE_TYPE', 'STRING', 'NULLABLE', None, ())]
                        #bigquery.SchemaField('multi_ccs_lvl_2', 'FLOAT64', 'NULLABLE', None, ()),
                        #bigquery.SchemaField('multi_ccs_lvl_2_label', 'STRING', 'NULLABLE', None, ())]
 
@@ -47,14 +48,14 @@ FINAL_TABLE_SCHEMA = [bigquery.SchemaField('CODE', 'STRING', 'NULLABLE', None, (
 if __name__ == '__main__':
     logging.basicConfig()
 
-    upload = input('Upload? ("y"/"n"): ')
+#    upload = input('Upload? ("y"/"n"): ')
     bq_client = bigQueryUtil.BigQueryClient()
-    if upload == 'Y' or upload == 'y':
-        bq_client.reconnect_client()
-        bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
-                                    schema=FINAL_TABLE_SCHEMA,
-                                    skip_rows=1)
-    print('Done')
+#    if upload == 'Y' or upload == 'y':
+    bq_client.reconnect_client()
+    bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
+                                schema=FINAL_TABLE_SCHEMA,
+                                skip_rows=1)
+    print('upload_ahrq run finished')
 
 
 '''
