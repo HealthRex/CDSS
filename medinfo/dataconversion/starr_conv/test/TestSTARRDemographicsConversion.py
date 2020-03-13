@@ -76,6 +76,10 @@ class TestSTARRDemographicsConversion(DBTestCase):
         # point the converter to dummy source table
         STARRDemographicsConversion.SOURCE_TABLE = TEST_SOURCE_TABLE
 
+        log.warn("Removing test table if it exists: {}".format(TEST_SOURCE_TABLE))
+        bq_cursor = self.bqConn.cursor()
+        bq_cursor.execute('DROP TABLE IF EXISTS {};'.format(TEST_SOURCE_TABLE))
+
         log.info("Generating test source data")
         self.generate_test_and_expected_data(self.TEST_DATA_SIZE)
         self.starrUtil.dump_test_data_to_csv(self.header, self.test_data, self.test_data_csv)
