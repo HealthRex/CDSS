@@ -28,18 +28,16 @@ def main(argv):
 	try:
 		opts, args = getopt.getopt(argv,"hi:d:p:")
 	except getopt.GetoptError:
-		print('make_order_set_responses.py -i <data_directory> -d <patient_itemdate_mapping_file> [-p num_processes] [-a] [-h]')
+		print('add_dates.py -i <data_directory> -d <patient_itemdate_mapping_file> [-p num_processes] [-h]')
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
-			print('make_order_set_responses.py -i <data_directory> -o <output_dir> -m <patient_orderset_mapping_file> -d <patient_itemdate_mapping_file> -p <num_processes> [-a] [-h]')
+			print('add_dates.py -i <data_directory> -d <patient_itemdate_mapping_file> [-p num_processes] [-h]')
 			print('')
-			print('This script performs processes data files (in HDF5 format), from <data_directory>, to give post-one-day order set usages.')
-			print('Only the data rows that have at least one post-one-day order set usage are retained unless the flag -a is used in which case all data rows will be retained.')
-			print('The new data will be stored in <output_directory>.')
-			print('Two hdf5 files need to be specified:')
-			print('1. <patient_orderset_mapping_file>: data frame of order set items with columns being patient_id, patient_item_id, external_id (the order set ID), and item_date (the order set item date as nanoseconds since epoch).')
-			print('2. <patient_itemdate_mapping_file>: data frame of patient items with columns being item_date (as nanoseconds since epoch) and patient_item_id')
+			print('This script performs processes data files (in HDF5 format), from <data_directory>, to add item_date timestamps based on an patient item to item date mapping file.')
+			print('The new data will be appended to existing data files in <data_directory>.')
+			print('One hdf5 file nees to be specified:')
+			print('1. <patient_itemdate_mapping_file>: data frame of patient items with columns being item_date (as nanoseconds since epoch) and patient_item_id')
 			print('Use num_processes to specify the number of processes to use for multiprocessing.')
 			sys.exit()
 		elif opt == '-i':
@@ -48,8 +46,8 @@ def main(argv):
 			num_processes = int(arg)
 		elif opt == '-d':
 			dates_dir = arg
-	if len(argv) < 4 or data_dir == '' or output_dir == '' or mapping_dir == '' or dates_dir == '':
-		print('make_order_set_responses.py -i <data_directory> -o <output_dir> -m <patient_orderset_mapping_file> -d <patient_itemdate_mapping_file> [-p num_processes] [-a] [-h]')
+	if len(argv) < 2 or data_dir == '' or dates_dir == '':
+		print('add_dates.py -i <data_directory> -d <patient_itemdate_mapping_file> [-p num_processes] [-h]')
 		sys.exit(2)
 	
 	# Configure multiprocessing
