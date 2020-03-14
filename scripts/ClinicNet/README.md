@@ -62,6 +62,12 @@ To remove very low variance features, run the following script where you specify
 <pre>python3 data_processing/feature_selection.py -i data/hdf5/train_shuffled/ -o data/hdf5/train_feature_selected/ -s data/statistics/train/ -t 0.01 -r patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date,analyze_date,item_date.month,item_date.hour</pre>
 Running the script above tells us that 5214 features out of 24875 were removed, leaving 19661 features remaining. This script also outputs new statistics files (with the features removed) in the statistics directory for the data. (Note: When rerunning feature selection on the dev and test sets, be sure to use the same statistics directory specified for feature selection on the training set.)
 
+## Adding item date timestamps
+
+Now, we'll add item_date timestamps to our dataset (because by default, the date timestamps aren't preserved). You specify the input data directory and and patient_itemdate_mapping_file (HDF5 file specified via -d). We can leverage multiprocessing via -p. The patient_itemdate_mapping_file contains a data frame of patient items with columns being item_date (as nanoseconds since epoch) and patient_item_id. The item_date timestamps will be added to the data_s dataframe of the data.
+
+<pre>python data_processing/add_dates.py -i data/hdf5/train_feature_selected/ -d ./queried/patientitemid_itemdate.hdf5</pre>
+
 ## Principal Component Analysis (PCA)
 
 To run PCA, we read in a covariance matrix and get its eigenvalues & eigenvectors (stored in an output pickle file):
@@ -97,6 +103,7 @@ Then, like before, we do (e.g. for training set):
 Finally, we perform feature selection as follows (example below for training set):
 <pre>python3 data_processing/feature_selection.py -i data/hdf5/train2_shuffled/ -o data/hdf5/train2_feature_selected/ -s data/statistics/train/ -t 0.01 -r patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date,analyze_date,item_date.month,item_date.hour</pre>
 (Note: We use the same statistics file as used for the previous task since this data is still a subset of the data used for the previous task, so we'll use the same averages, standard deviations, covariances, etc. computed previously)
+(Note: The item_date timestamps will be added to the data_s dataframe of the data by these scripts)
 
 # Model and tuning <a name="processdatamatrix"></a>
 
