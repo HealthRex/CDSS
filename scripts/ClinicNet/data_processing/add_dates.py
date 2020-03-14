@@ -20,22 +20,15 @@ def add_dates(f):
 def main(argv):
 	global files_list # Input directory (where the HDF5 files are stored)
 	global data_dir
-	global output_dir
-	global mapping # Dict mapping from patient ID to data frame containing order set information for that patient
-	global all_ordersetIDs # List of all order set IDs that will become response variables
 	global all_item_dates # Match patient item IDs to dates
-	global retain_all # If false, then only data rows that have order set usage within the next day will be kept 
 	data_dir = ""
-	output_dir = ""
-	mapping_dir = ""
 	dates_dir = ""
 	all_item_dates = ""
 	num_processes = 0
-	retain_all = False
 	try:
-		opts, args = getopt.getopt(argv,"hi:o:m:d:p:a")
+		opts, args = getopt.getopt(argv,"hi:d:p:")
 	except getopt.GetoptError:
-		print('make_order_set_responses.py -i <data_directory> -o <output_dir> -m <patient_orderset_mapping_file> -d <patient_itemdate_mapping_file> [-p num_processes] [-a] [-h]')
+		print('make_order_set_responses.py -i <data_directory> -d <patient_itemdate_mapping_file> [-p num_processes] [-a] [-h]')
 		sys.exit(2)
 	for opt, arg in opts:
 		if opt == '-h':
@@ -51,14 +44,8 @@ def main(argv):
 			sys.exit()
 		elif opt == '-i':
 			data_dir = arg
-		elif opt == '-o':
-			output_dir = arg
 		elif opt == '-p':
 			num_processes = int(arg)
-		elif opt == '-a':
-			retain_all = True
-		elif opt == '-m':
-			mapping_dir = arg
 		elif opt == '-d':
 			dates_dir = arg
 	if len(argv) < 4 or data_dir == '' or output_dir == '' or mapping_dir == '' or dates_dir == '':
@@ -70,15 +57,8 @@ def main(argv):
 		num_processes = multiprocessing.cpu_count()-1
 	print("Number of processes: " + str(num_processes))
 	
-	# Setup mappings
-	mapping = pd.read_hdf(mapping_dir)
-	mapping = mapping.sort_values(by='item_date')
-	mapping = mapping.drop_duplicates()
-	all_ordersetIDs = list(mapping['external_id'].unique())
-	all_ordersetIDs.sort()
-	mapping = dict(tuple(mapping.groupby('patient_id')))
+	# Setup date time stamps
 	all_item_dates = pd.read_hdf(dates_dir)
-	print("Total order sets: {}".format(len(all_ordersetIDs)))
 	
 	# Iterate through data_dir to process the files
 	files_list = os.listdir(data_dir)
