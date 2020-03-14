@@ -15,7 +15,7 @@ def add_dates(f):
 	# data_x.to_hdf(output_dir + "/" + f, key='data_x', mode='w', complevel=1)
 	# S1.to_hdf(output_dir + "/" + f, key='data_s', complevel=1)
 	# S2.to_hdf(output_dir + "/" + f, key='data_y', complevel=1)
-	print(f)
+	print(f + " - " + "Date timestamps added successfully")
  
 def main(argv):
 	global files_list # Input directory (where the HDF5 files are stored)
@@ -61,7 +61,7 @@ def main(argv):
 	# Iterate through data_dir to process the files
 	files_list = os.listdir(data_dir)
 	pool = multiprocessing.Pool(num_processes)
-	pool.map(make_order_set_data, files_list)
+	pool.map(add_dates, files_list)
 
 if __name__ == "__main__":
    main(sys.argv[1:])
