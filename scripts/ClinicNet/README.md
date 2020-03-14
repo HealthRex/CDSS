@@ -25,7 +25,7 @@ To do the conversion, run the following script where you specify the input data 
 
 <pre>python2 preprocessing/make_hdf5.py -i data/unprocessed/train -c data/columns.txt -o data/hdf5/train -n 360 -r data/response_vars.tsv -e item_date,analyze_date -s patient_id,patient_item_id,encounter_id,clinical_item_id -p 2</pre>
 
-Running the above command will give you something like this: "Using 2 processes for processing 58290 files divided into 360 chunks". Once it's finished running, you'll see "FINISHED" printed out and you'll see 360 .h5 files in the output folder. In each HDF5 file, two data frames: data_x and data_y (for the feature matrix and response variables, respectively) are stored.
+Running the above command will give you something like this: "Using 2 processes for processing 58290 files divided into 360 chunks". Once it's finished running, you'll see "FINISHED" printed out and you'll see 360 .h5 files in the output folder. In each HDF5 file, two data frames: data_x and data_y (for the feature matrix and response variables, respectively) are stored. The features specified via -s will be contained in the data frame: data_s.
 
 IMPORTANT: The HDF5 files will store the data frames as float32 types. This means we can't have any non-numeric columns (in the example above, we removed the item_date and analyze_date columns because these columns store dates in string format). Use -e to remove non-numeric columns. Beware that large integers lose precision when casted to float32 -- therefore, large numbers (such as patient IDs) are best stored separately by specifying the -s option.
 
