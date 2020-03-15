@@ -28,6 +28,7 @@ def remove_items(f):
         data_x.to_hdf(output_dir + "/" + f, key='data_x', mode='w', complevel=1)
         data_s.to_hdf(output_dir + "/" + f, key='data_s', complevel=1)
         data_y.to_hdf(output_dir + "/" + f, key='data_y', complevel=1)
+        print(f)
 
         # Garbage collection
         del data_x
