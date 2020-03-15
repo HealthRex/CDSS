@@ -77,11 +77,11 @@ To do time series validation, we need to stratify our dataset by time. The follo
   <li>Test set: Data after the year 2012</li>
 </ul>
 <pre>
-python data_processing/stratify_data_by_time.py -i data/hdf5/train_feature_selected/ -o data/hdf5/train_feature_selected_time_temp/ -l 0 -g 1293840000000000000 -p 5
-python data_processing/stratify_data_by_time.py -i data/hdf5/dev_feature_selected/ -o data/hdf5/dev_feature_selected_time_temp/ -l 1293840000000000000 -g 1325376000000000000 -p 5
-python data_processing/stratify_data_by_time.py -i data/hdf5/test_feature_selected/ -o data/hdf5/test_feature_selected_time_temp/ -l 1325376000000000000 -g 99900000000000000000000 -p 5
+python data_processing/stratify_data_by_time.py -i data/hdf5/train_feature_selected/ -o data/hdf5/train_feature_selected_time_temp/ -l 0 -g 1293840000000000000
+python data_processing/stratify_data_by_time.py -i data/hdf5/dev_feature_selected/ -o data/hdf5/dev_feature_selected_time_temp/ -l 1293840000000000000 -g 1325376000000000000
+python data_processing/stratify_data_by_time.py -i data/hdf5/test_feature_selected/ -o data/hdf5/test_feature_selected_time_temp/ -l 1325376000000000000 -g 99900000000000000000000
 </pre>
-(Note: Use mkdir to make the output directories, specified by -o, beforehand)
+(Notes: Use mkdir to make the output directories, specified by -o, beforehand; use -p for multiprocessing)
 The 1293840000000000000 timestamp corresponds to January 1 2011 whereas the 1325376000000000000 timestamp corresponds to January 1 2012. The -l and -g options represent the lower-bound and upper-bound timestamps, respectively, for selecting data to retain (use 0 for no lower bound and use a huge number for no upper bound).
 
 ## Principal Component Analysis (PCA)
