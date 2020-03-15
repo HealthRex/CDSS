@@ -28,24 +28,31 @@ def remove_items(f):
         data_s = data_s.loc[rows_to_remove,:]
         data_x = data_x.loc[rows_to_remove,:]
         data_y = data_y.loc[rows_to_remove,:]
-
+        
+        # Write output to file
+	data_x.to_hdf(output_dir + "/" + f, key='data_x', mode='w', complevel=1)
+	data_s.to_hdf(output_dir + "/" + f, key='data_s', complevel=1)
+	data_y.to_hdf(output_dir + "/" + f, key='data_y', complevel=1)
 
 def main(argv):
         global files_list # Input directory (where the HDF5 files are stored)
         global data_dir
-        global all_item_dates # Match patient item IDs to dates
+        global output_dir
+        global date_threshold # Date timestamp threshold as nanoseconds since epoch
+        global remove_greater # If true, removes rows with timestamp >= threshold. Otherwise, removes rows w/ timestamp < threshold.
         data_dir = ""
-        dates_dir = ""
-        all_item_dates = ""
+        output_dir = ""
         num_processes = 0
+        date_threshold = 0
+        remove_greater = False
         try:
-                opts, args = getopt.getopt(argv,"hi:d:p:")
+                opts, args = getopt.getopt(argv,"hi:o:t:p:g")
         except getopt.GetoptError:
-                print('add_dates.py -i <data_directory> -d <patient_itemdate_mapping_file> [-p num_processes] [-h]')
+                print('stratify_data_by_time.py -i <data_directory> -o <output_dir> -t <timestamp> [-p num_processes] [-g] [-h]')
                 sys.exit(2)
         for opt, arg in opts:
                 if opt == '-h':
-                        print('add_dates.py -i <data_directory> -d <patient_itemdate_mapping_file> [-p num_processes] [-h]')
+                        print('stratify_data_by_time.py -i <data_directory> -o <output_dir> -t <timestamp> [-p num_processes] [-g] [-h]')
                         print('')
                         print('This script performs processes data files (in HDF5 format), from <data_directory>, to add item_date timestamps based on an patient item to item date mapping file.')
                         print('The new data will be appended to existing data files in <data_directory>.')
@@ -59,8 +66,8 @@ def main(argv):
                         num_processes = int(arg)
                 elif opt == '-d':
                         dates_dir = arg
-        if len(argv) < 2 or data_dir == '' or dates_dir == '':
-                print('add_dates.py -i <data_directory> -d <patient_itemdate_mapping_file> [-p num_processes] [-h]')
+        if len(argv) < 3 or data_dir == '' or output_dir == '' or date_threshold <= 0:
+                print('stratify_data_by_time.py -i <data_directory> -o <output_dir> -t <timestamp> [-p num_processes] [-g] [-h]')
                 sys.exit(2)
 
         # Configure multiprocessing
