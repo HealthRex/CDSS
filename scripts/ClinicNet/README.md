@@ -68,6 +68,22 @@ Now, we'll add item_date timestamps to our dataset (because by default, the date
 
 <pre>python data_processing/add_dates.py -i data/hdf5/train_feature_selected/ -d ./queried/patientitemid_itemdate.hdf5</pre>
 
+## Stratifying data by timestamp
+
+To do time series validation, we need to stratify our dataset by time. The following commands will filter the existing training, validation, and test sets to consist of the following:
+<ul>
+  <li>Training set: Data in the year 2011 and before</li>
+  <li>Validation set: Data in the year 2012</li>
+  <li>Test set: Data after the year 2012</li>
+</ul>
+<pre>
+python data_processing/stratify_data_by_time.py -i data/hdf5/train_feature_selected/ -o data/hdf5/train_feature_selected_time_temp/ -l 0 -g 1293840000000000000 -p 5
+python data_processing/stratify_data_by_time.py -i data/hdf5/dev_feature_selected/ -o data/hdf5/dev_feature_selected_time_temp/ -l 1293840000000000000 -g 1325376000000000000 -p 5
+python data_processing/stratify_data_by_time.py -i data/hdf5/test_feature_selected/ -o data/hdf5/test_feature_selected_time_temp/ -l 1325376000000000000 -g 99900000000000000000000 -p 5
+</pre>
+(Note: Use mkdir to make the output directories, specified by -o, beforehand)
+The 1293840000000000000 timestamp corresponds to January 1 2011 whereas the 1325376000000000000 timestamp corresponds to January 1 2012. The -l and -g options represent the lower-bound and upper-bound timestamps, respectively, for selecting data to retain (use 0 for no lower bound and use a huge number for no upper bound).
+
 ## Principal Component Analysis (PCA)
 
 To run PCA, we read in a covariance matrix and get its eigenvalues & eigenvectors (stored in an output pickle file):
