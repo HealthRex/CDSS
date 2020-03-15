@@ -30,6 +30,12 @@ def remove_items(f):
 	data_x.to_hdf(output_dir + "/" + f, key='data_x', mode='w', complevel=1)
 	data_s.to_hdf(output_dir + "/" + f, key='data_s', complevel=1)
 	data_y.to_hdf(output_dir + "/" + f, key='data_y', complevel=1)
+	
+	# Garbage collection
+	del data_x
+	del data_y
+	del data_s
+	gc.collect()
 
 def main(argv):
         global files_list # Input directory (where the HDF5 files are stored)
