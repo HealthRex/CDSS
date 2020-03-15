@@ -11,6 +11,7 @@ def remove_items(f):
         date_threshold = 1325376000000000000
         remove_greater = True
         
+        # Read in data
         data_s = pd.read_hdf(data_dir + "/" + f, 'data_s')
         data_x = pd.read_hdf(data_dir + "/" + f, 'data_x')
         data_y = pd.read_hdf(data_dir + "/" + f, 'data_y')
@@ -18,11 +19,16 @@ def remove_items(f):
         data_x = data_x.reset_index(drop=True)
         data_y = data_y.reset_index(drop=True)
         
+        # Remove data rows based on date threshold
         rows_to_remove = None
         if remove_greater:
                 rows_to_remove = list(data_s.loc[data_s.loc[:,"item_date"] >= date_threshold,:].index)
         else:
                 rows_to_remove = list(data_s.loc[data_s.loc[:,"item_date"] < date_threshold,:].index)
+        data_s = data_s.loc[rows_to_remove,:]
+        data_x = data_x.loc[rows_to_remove,:]
+        data_y = data_y.loc[rows_to_remove,:]
+
 
 def main(argv):
         global files_list # Input directory (where the HDF5 files are stored)
