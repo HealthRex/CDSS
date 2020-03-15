@@ -17,11 +17,9 @@ def remove_items(f):
         data_y = data_y.reset_index(drop=True)
         
         # Remove data rows based on date threshold
-        rows_to_keep = None
-        if remove_greater:
-                rows_to_keep = list(data_s.loc[data_s.loc[:,"item_date"] < date_threshold,:].index)
-        else:
-                rows_to_keep = list(data_s.loc[data_s.loc[:,"item_date"] >= date_threshold,:].index)
+        rows_to_keep1 = list(data_s.loc[data_s.loc[:,"item_date"] >= date_threshold1,:].index)
+        rows_to_keep2 = list(data_s.loc[data_s.loc[:,"item_date"] < date_threshold2,:].index)
+        rows_to_keep = list(set(rows_to_keep1) & set(rows_to_keep2)) # Intersection
         data_s = data_s.loc[rows_to_keep,:]
         data_x = data_x.loc[rows_to_keep,:]
         data_y = data_y.loc[rows_to_keep,:]
@@ -41,39 +39,40 @@ def main(argv):
         global files_list # Input directory (where the HDF5 files are stored)
         global data_dir
         global output_dir
-        global date_threshold # Date timestamp threshold as nanoseconds since epoch
+        global date_threshold1 # Date timestamp threshold #1 as nanoseconds since epoch
+        global date_threshold2 # Date timestamp threshold #2 as nanoseconds since epoch
         global remove_greater # If true, removes rows with timestamp >= threshold. Otherwise, removes rows w/ timestamp < threshold.
         data_dir = ""
         output_dir = ""
         num_processes = 0
-        date_threshold = 0
-        remove_greater = False
+        date_threshold1 = -1
+        date_threshold2 = -1
         try:
                 opts, args = getopt.getopt(argv,"hi:o:t:p:g")
         except getopt.GetoptError:
-                print('stratify_data_by_time.py -i <data_directory> -o <output_dir> -t <timestamp> [-p num_processes] [-g] [-h]')
+                print('stratify_data_by_time.py -i <data_directory> -o <output_dir> -l <timestamp1> -g <timestamp2> [-p num_processes] [-h]')
                 sys.exit(2)
         for opt, arg in opts:
                 if opt == '-h':
-                        print('stratify_data_by_time.py -i <data_directory> -o <output_dir> -t <timestamp> [-p num_processes] [-g] [-h]')
+                        print('stratify_data_by_time.py -i <data_directory> -o <output_dir> -l <timestamp1> -g <timestamp2> [-p num_processes] [-h]')
                         print('')
-                        print('This script performs processes data files (in HDF5 format), from <data_directory>, to filter rows based on date nanoseconds-since-epoch timestamp <timestamp>.')
+                        print('This script performs processes data files (in HDF5 format), from <data_directory>, to select rows based between date nanoseconds-since-epoch timestamps <timestamp1> and <timestamp2>.')
+                        print('Timestamp <timestamp1> must be less than <timestamp2>.')
                         print('The new data will be outputed to data files in <output_dir>.')
-                        print('Use -g to specify removal of rows with timestamp >= threshold; otherwise rows with timestamp < threshold will be removed.')
                         print('Use num_processes to specify the number of processes to use for multiprocessing.')
                         sys.exit()
                 elif opt == '-i':
                         data_dir = arg
                 elif opt == '-o':
                         output_dir = arg
-                elif opt == '-t':
-                        date_threshold = int(arg)
+                elif opt == '-l':
+                        date_threshold1 = int(arg)
+                elif opt == '-g':
+                        date_threshold2 = int(arg)
                 elif opt == '-p':
                         num_processes = int(arg)
-                elif opt == '-g':
-                        remove_greater = True
-        if len(argv) < 3 or data_dir == '' or output_dir == '' or date_threshold <= 0:
-                print('stratify_data_by_time.py -i <data_directory> -o <output_dir> -t <timestamp> [-p num_processes] [-g] [-h]')
+        if len(argv) < 4 or data_dir == '' or output_dir == '' or date_threshold1 < 0 or date_threshold2 < 0 or date_threshold1 >= date_threshold2:
+                print('stratify_data_by_time.py -i <data_directory> -o <output_dir> -l <timestamp1> -g <timestamp2> [-p num_processes] [-h]')
                 sys.exit(2)
 
         # Configure multiprocessing
