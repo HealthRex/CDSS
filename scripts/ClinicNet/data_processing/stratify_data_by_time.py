@@ -48,7 +48,7 @@ def main(argv):
         date_threshold1 = -1
         date_threshold2 = -1
         try:
-                opts, args = getopt.getopt(argv,"hi:o:t:p:g")
+                opts, args = getopt.getopt(argv,"hi:o:l:g:p:")
         except getopt.GetoptError:
                 print('stratify_data_by_time.py -i <data_directory> -o <output_dir> -l <timestamp1> -g <timestamp2> [-p num_processes] [-h]')
                 sys.exit(2)
