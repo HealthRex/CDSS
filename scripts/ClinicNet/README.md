@@ -85,7 +85,9 @@ python data_processing/stratify_data_by_time.py -i data/hdf5/test_feature_select
 The 1293840000000000000 timestamp corresponds to January 1 2011 whereas the 1325376000000000000 timestamp corresponds to January 1 2012. The -l and -g options represent the lower-bound and upper-bound timestamps, respectively, for selecting data to retain (use 0 for no lower bound and use a huge number for no upper bound).
 
 Following timestamp stratification, it is necessary to recreate the batches. See the following example (for the training set):
-<pre>python2 data_processing/prep_batches.py -i data/hdf5/train_feature_selected_time_temp/ -o data/train_time_shuffling.pickle -b 4096</pre>
+<pre>
+mkdir data/hdf5/train_feature_selected_time_temp/
+python2 data_processing/prep_batches.py -i data/hdf5/train_feature_selected_time_temp/ -o data/train_time_shuffling.pickle -b 4096</pre>
 
 Results for these timestamp-stratified train/dev/test batches:
 <ul>
@@ -93,6 +95,11 @@ Results for these timestamp-stratified train/dev/test batches:
   <li>Dev set data: "Read 1208680 data rows in 1353 files. Created 296 batches of size 4096"</li>
   <li>Test set data: "Read 2443646 data rows in 1339 files. Created 597 batches of size 4096"</li>
 </ul>
+
+And then, like before, we create the batches via something like (see following example for making 100 random batches from the training set):
+<pre>
+mkdir data/hdf5/train_feature_selected_time/
+python2 data_processing/make_batches.py -s data/train_time_shuffling.pickle -i data/hdf5/train_feature_selected_time_temp/ -o data/hdf5/train_feature_selected_time/ -b 0 -e 100</pre>
 
 ## Principal Component Analysis (PCA)
 
