@@ -138,6 +138,24 @@ Finally, we perform feature selection as follows (example below for training set
 (Note: We use the same statistics file as used for the previous task since this data is still a subset of the data used for the previous task, so we'll use the same averages, standard deviations, covariances, etc. computed previously)
 (Note: The item_date timestamps will be added to the data_s dataframe of the data by these scripts)
 
+## Timestamp-Stratifying the Data for Order Set Prediction
+
+See the previous section on timestamp stratification. We can do the same for these data files which we use for the order set prediction task, ultimately resulting in the following data batches:
+
+<ul>
+  <li>Training set data: "Read 5435590 data rows in 4142 files. Created 1328 batches of size 4096."</li>
+  <li>Dev set data: "Read 821521 data rows in 897 files. Created 201 batches of size 4096"</li>
+  <li>Test set data: "Read 1699164 data rows in 894 files. Created 415 batches of size 4096"</li>
+</ul>
+
+We put these files in folder named train2_feature_selected_time, dev2_feature_selected_time, and test2_feature_selected_time.
+
+We also need to rerun statistics on these ones (to avoid spillover bias):
+
+<pre>python3 data_processing/compute_stats.py -p 24 -i data/hdf5/train_feature_selected_time/ -o data/statistics/train_time/ -x patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date.month,item_date.month.sin,item_date.month.cos,item_date.hour,item_date.hour.sin,item_date.hour.cos -t data/tmp -n 543
+</pre>
+(Note: 543 files is 25% of the training data files; we mkdir the directory train_time to store these new statistics files)
+
 # Model and tuning <a name="processdatamatrix"></a>
 
 ## Data generator
