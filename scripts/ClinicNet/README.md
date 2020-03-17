@@ -87,7 +87,7 @@ The 1293840000000000000 timestamp corresponds to January 1 2011 whereas the 1325
 Following timestamp stratification, it is necessary to recreate the batches. See the following example (for the training set):
 <pre>python2 data_processing/prep_batches.py -i data/hdf5/train_feature_selected_time_temp/ -o data/train_time_shuffling.pickle -b 4096</pre>
 
-Results for these timestamp-stratified train/dev/set batches:
+Results for these timestamp-stratified train/dev/test batches:
 <ul>
   <li>Training set data: "Read 8893911 data rows in 6252 files. Created 2172 batches of size 4096."</li>
   <li>Dev set data: "Read 1208680 data rows in 1353 files. Created 296 batches of size 4096"</li>
