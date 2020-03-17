@@ -84,6 +84,16 @@ python data_processing/stratify_data_by_time.py -i data/hdf5/test_feature_select
 (Notes: Use mkdir to make the output directories, specified by -o, beforehand; use -p for multiprocessing)
 The 1293840000000000000 timestamp corresponds to January 1 2011 whereas the 1325376000000000000 timestamp corresponds to January 1 2012. The -l and -g options represent the lower-bound and upper-bound timestamps, respectively, for selecting data to retain (use 0 for no lower bound and use a huge number for no upper bound).
 
+Following timestamp stratification, it is necessary to recreate the batches. See the following example (for the training set):
+<pre>python2 data_processing/prep_batches.py -i data/hdf5/train_feature_selected_time_temp/ -o data/train_time_shuffling.pickle -b 4096</pre>
+
+Results for these timestamp-stratified train/dev/set batches:
+<ul>
+  <li>Training set data: "Read 8893911 data rows in 6252 files. Created 2172 batches of size 4096."</li>
+  <li>Dev set data: "Read 1208680 data rows in 1353 files. Created 296 batches of size 4096"</li>
+  <li>Test set data: "Read 2443646 data rows in 1339 files. Created 597 batches of size 4096"</li>
+</ul>
+
 ## Principal Component Analysis (PCA)
 
 To run PCA, we read in a covariance matrix and get its eigenvalues & eigenvectors (stored in an output pickle file):
