@@ -150,7 +150,7 @@ See the previous section on timestamp stratification. We can do the same for the
 
 We put these files in folder named train2_feature_selected_time, dev2_feature_selected_time, and test2_feature_selected_time.
 
-We also need to rerun statistics on these ones (to avoid spillover bias):
+We'll also rerun statistics on these ones (but we won't do redo feature selection for simplicity's sake):
 
 <pre>python3 data_processing/compute_stats.py -p 24 -i data/hdf5/train_feature_selected_time/ -o data/statistics/train_time/ -x patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date.month,item_date.month.sin,item_date.month.cos,item_date.hour,item_date.hour.sin,item_date.hour.cos -t data/tmp -n 543
 </pre>
