@@ -72,9 +72,9 @@ Now, we'll add item_date timestamps to our dataset (because by default, the date
 
 To do time series validation, we need to stratify our dataset by time. The following commands will filter the existing training, validation, and test sets to consist of the following:
 <ul>
-  <li>Training set: Data in the year 2011 and before</li>
-  <li>Validation set: Data in the year 2012</li>
-  <li>Test set: Data after the year 2012</li>
+  <li>Training set: Data before the year 2011</li>
+  <li>Validation set: Data in the year 2011</li>
+  <li>Test set: Data after the year 2011</li>
 </ul>
 <pre>
 python data_processing/stratify_data_by_time.py -i data/hdf5/train_feature_selected/ -o data/hdf5/train_feature_selected_time_temp/ -l 0 -g 1293840000000000000
