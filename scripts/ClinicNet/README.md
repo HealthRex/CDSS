@@ -89,6 +89,13 @@ Following timestamp stratification, it is necessary to recreate the batches. See
 mkdir data/hdf5/train_feature_selected_time_temp/
 python2 data_processing/prep_batches.py -i data/hdf5/train_feature_selected_time_temp/ -o data/train_time_shuffling.pickle -b 4096</pre>
 
+We'll also rerun statistics on these ones (but we won't do redo feature selection for simplicity's sake):
+
+<pre>python3 data_processing/compute_stats.py -p 24 -i data/hdf5/train_feature_selected_time/ -o data/statistics/train_time/ -x patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date.month,item_date.month.sin,item_date.month.cos,item_date.hour,item_date.hour.sin,item_date.hour.cos -t data/tmp -n 543
+</pre>
+(Note: 543 files is 25% of the training data files; we mkdir the directory train_time to store these new statistics files)
+
+
 Results for these timestamp-stratified train/dev/test batches:
 <ul>
   <li>Training set data: "Read 8893911 data rows in 6252 files. Created 2172 batches of size 4096."</li>
@@ -149,12 +156,6 @@ See the previous section on timestamp stratification. We can do the same for the
 </ul>
 
 We put these files in folder named train2_feature_selected_time, dev2_feature_selected_time, and test2_feature_selected_time.
-
-We'll also rerun statistics on these ones (but we won't do redo feature selection for simplicity's sake):
-
-<pre>python3 data_processing/compute_stats.py -p 24 -i data/hdf5/train_feature_selected_time/ -o data/statistics/train_time/ -x patient_item_id,external_id,patient_id,clinical_item_id,encounter_id,item_date.month,item_date.month.sin,item_date.month.cos,item_date.hour,item_date.hour.sin,item_date.hour.cos -t data/tmp -n 543
-</pre>
-(Note: 543 files is 25% of the training data files; we mkdir the directory train_time to store these new statistics files)
 
 # Model and tuning <a name="processdatamatrix"></a>
 
