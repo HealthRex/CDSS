@@ -168,7 +168,6 @@ We use run_clinicnet.py to train and tune our models. Here you can set parameter
 ## Files
 Time-Stratified Individual Item prediction task:
 <ul>
-  <li>
   <li>Data sets (train, dev, test): </li>
   <li>
     <ul>
