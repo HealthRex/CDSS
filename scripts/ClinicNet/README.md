@@ -164,3 +164,22 @@ Located in clinicnet_model/utils/datagenerator.py. Shuffles files, then shuffles
 
 ## Training and Tuning
 We use run_clinicnet.py to train and tune our models. Here you can set parameters of interest for testing purposes, and a test_mode is available if trying to test without validating on the validation set. Learning rate is decreased manually if loss appears to stop decreasing. We use train_network.sh to continue training the network from callbacks saved after every 1 million rows of data.
+
+## Files
+Time-Stratified Individual Item prediction task:
+<ul>
+  <li>
+  <li>Data sets (train, dev, test): </li>
+  <li>
+    <ul>
+  <li>/badvolume/home/ec2-user/cs230/scripts/data/hdf5/train_feature_selected_time/</li>
+  <li>/badvolume/home/ec2-user/cs230/scripts/data/hdf5/dev_feature_selected_time/</li>
+  <li>/badvolume/home/ec2-user/cs230/scripts/data/hdf5/test_feature_selected_time/</li>
+  </ul>
+  </li>
+</ul>
+<ul>
+  <li>/badvolume/home/ec2-user/cs230/scripts/data/hdf5/train_feature_selected_time/</li>
+  <li>/badvolume/home/ec2-user/cs230/scripts/data/hdf5/dev_feature_selected_time/</li>
+  <li>/badvolume/home/ec2-user/cs230/scripts/data/hdf5/test_feature_selected_time/</li>
+</ul>
