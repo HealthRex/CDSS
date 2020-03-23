@@ -176,4 +176,21 @@ Time-Stratified Individual Item prediction task:
   <li>/badvolume/home/ec2-user/cs230/scripts/data/hdf5/test_feature_selected_time/</li>
   </ul>
   </li>
+  
+  <li>Statistics files (train, dev, test): </li>
+  <li>
+    <ul>
+  <li>/badvolume/home/ec2-user/cs230/scripts/data/statistics/train_time/avg_stddev.hdf5</li>
+  <li>/badvolume/home/ec2-user/cs230/scripts/data/statistics/dev_time/avg_stddev.hdf5</li>
+  <li>/badvolume/home/ec2-user/cs230/scripts/data/statistics/test_time/avg_stddev.hdf5</li>
+  </ul>
+  </li>
+  
+  <li>Cached generators (dev, test): </li>
+  <li>
+    <ul>
+  <li>/badvolume/home/ec2-user/cs230/scripts/clinicnet_model/dev_time_generator.sav</li>
+  <li>/badvolume/home/ec2-user/cs230/scripts/clinicnet_model/test_time_generator.sav</li>
+  </ul>
+  </li>
 </ul>
