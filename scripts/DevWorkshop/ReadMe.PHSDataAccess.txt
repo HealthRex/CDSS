@@ -26,8 +26,8 @@ Creating API credentials:
 https://redivis.com/workspace/settings
 - Scroll down to API tokens: 
 - Generate new token 
-- Select all access measures: Public, Data, Organization 
-- Save token somewhere secure:
+- Select all access measures(all boxes): Public, Data, Organization: including edit/read
+- Save token to a file somewhere secure for reference later:
 
 
 Prereq: 
