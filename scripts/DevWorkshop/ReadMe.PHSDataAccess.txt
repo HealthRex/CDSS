@@ -46,10 +46,9 @@ Prereq:
 7) Open Terminal Emulator on below toolbar 
 7) git clone https://github.com/redivis/redipy.git
 8) export PYTHONPATH='/home/[SUNETID]/redipy'
-9) enter python console: python
-10) cd redipy/bigquery/
-11) type python:
-12) in python: 
+9) cd redipy/bigquery/
+10) enter python console: type python
+11) in python: 
 	import os 
 	from redivis import bigquery 
 	import pandas
