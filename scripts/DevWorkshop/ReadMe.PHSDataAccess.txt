@@ -52,13 +52,10 @@ Prereq:
 	import os 
 	from redivis import bigquery 
 	import pandas
-	client=bigquery.Client()
-	
 	os.environ['REDIVIS_API_TOKEN'] = "[TOKEN_FROM_REDIVIS]"
+	client=bigquery.Client()
 	# Perform a query.
 	# Table at https://redivis.com/StanfordPHS/datasets/1411/tables
 	QUERY = ('SELECT * FROM `stanfordphs.commuting_zone:v1_0.life_expectancy_trends` LIMIT 10')
-
 	df = client.query(QUERY).to_dataframe()  # API request
-
 	print(df)
