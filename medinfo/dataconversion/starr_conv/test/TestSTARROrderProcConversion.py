@@ -8,7 +8,7 @@ import random
 import tempfile
 import time
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import unittest
 
@@ -1379,6 +1379,7 @@ class TestSTARROrderProcConversion(DBTestCase):
         # point the converter to dummy source table
         STARROrderProcConversion.SOURCE_TABLE = TEST_SOURCE_TABLE
         STARROrderProcConversion.ORDERSET_TABLE = TEST_ORDERSET_TABLE
+        STARROrderProcConversion.TARGET_DATASET_ID = TEST_DEST_DATASET
 
         log.warn("Removing test tables, if they exist: {} and {}".format(TEST_SOURCE_TABLE, TEST_ORDERSET_TABLE))
         bq_cursor = self.bqConn.cursor()
@@ -1442,7 +1443,7 @@ class TestSTARROrderProcConversion(DBTestCase):
     @staticmethod
     def generate_test_data_row(curr_row, patient_id):
         proc_id = random.randint(0, len(PROC_CODES) - 1)
-        order_time_jittered = random.randint(1, int(time.time()))
+        order_time_jittered = random.randint(int(time.mktime((datetime.now() - timedelta(days=14)).timetuple())), int(time.time()))
         return (
             curr_row,  # order_proc_id_coded
             patient_id,
@@ -1558,8 +1559,9 @@ class TestSTARROrderProcConversion(DBTestCase):
                                               'starr_order_proc', self.test_data_csv, self.ORDER_PROC_HEADER)
 
         log.debug("Run the conversion process...")
-        temp_dir = tempfile.gettempdir()
-        self.converter.convertAndUpload(tempDir=temp_dir, target_dataset_id=TEST_DEST_DATASET, removeCsvs=True)
+        # temp_dir = tempfile.gettempdir()
+        # self.converter.convertAndUpload(tempDir=temp_dir, target_dataset_id=TEST_DEST_DATASET, removeCsvs=True)
+        self.converter.main(["test_order_proc"])
 
         # Just query back for the same data, de-normalizing the data back to a general table
         test_query = \

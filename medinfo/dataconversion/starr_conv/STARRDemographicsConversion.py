@@ -2,9 +2,11 @@
 
 import sys, os
 import tempfile
+import time
 
 from itertools import islice
 from datetime import datetime
+from optparse import OptionParser
 from medinfo.common.Util import ProgressDots
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
@@ -92,8 +94,8 @@ class STARRDemographicsConversion:
         self.categoryBySourceDescr = dict()
         self.clinicalItemByCategoryIdExtId = dict()
 
-    def convertItemsByBatch(self, patientIdsFile, batchSize=10000, tempDir=tempfile.gettempdir(), removeCsvs=True,
-                            datasetId='starr_datalake2018', skipFirstLine=True, startBatch=0):
+    def convertItemsByBatch(self, patientIdsFile, batchSize=250000, tempDir=tempfile.gettempdir(), removeCsvs=True,
+                            targetDatasetId='clinical_item2018', skipFirstLine=True, startBatch=0):
         # split pat ids into blocks
         # for each split
         # convert to local postgres db
@@ -121,15 +123,15 @@ class STARRDemographicsConversion:
                 log.info('Processing batch %s' % batch_counter)
                 log.info('Batch %s contains ids %s to %s' % (
                     batch_counter,
-                    (batchSize * batch_counter + 1),
-                    min(batchSize * (batch_counter + 1), batchSize * batch_counter + len(ids_batch))
+                    (batchSize * (batch_counter - 1) + 1),
+                    min(batchSize * batch_counter, batchSize * (batch_counter - 1) + len(ids_batch))
                 ))
 
                 self.convertSourceItems(ids_batch)
                 self.starrUtil.dumpPatientItemToCsv(tempDir, batch_counter)
 
                 self.bqClient.reconnect_client()    # refresh bq client connection
-                self.starrUtil.uploadPatientItemCsvToBQ(tempDir, datasetId, batch_counter)
+                self.starrUtil.uploadPatientItemCsvToBQ(tempDir, targetDatasetId, batch_counter)
 
                 if removeCsvs:
                     self.starrUtil.removePatientItemCsv(tempDir, batch_counter)
@@ -142,7 +144,7 @@ class STARRDemographicsConversion:
 
         # For now keep the clinical_* tables, upload them once all tables have been converted
         self.starrUtil.dumpClinicalTablesToCsv(tempDir)
-        self.starrUtil.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
+        self.starrUtil.uploadClinicalTablesCsvToBQ(tempDir, targetDatasetId)
         self.starrUtil.removeClinicalTablesCsv(tempDir)
         self.starrUtil.removeClinicalTablesAddedLines(SOURCE_TABLE)
 
@@ -191,10 +193,10 @@ class STARRDemographicsConversion:
 
         query = '''
                 SELECT rit_uid,birth_date_jittered,gender,death_date_jittered,canonical_race,canonical_ethnicity
-                FROM %s as dem
+                FROM {} as dem
                 WHERE dem.rit_uid IN UNNEST(@pat_ids)
                 ORDER BY rit_uid;
-                ''' % SOURCE_TABLE
+                '''.format(SOURCE_TABLE)
 
         query_params = [
             bigquery.ArrayQueryParameter('pat_ids', 'STRING', patientIds)
@@ -278,11 +280,12 @@ class STARRDemographicsConversion:
         category_key = (SOURCE_TABLE, "Demographics")
         if category_key not in self.categoryBySourceDescr:
             # Category does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
-            category = \
-                RowItemModel({
+            category = RowItemModel(
+                {
                     "source_table": SOURCE_TABLE,
                     "description": "Demographics",
-                })
+                }
+            )
 
             (categoryId, isNew) = DBUtil.findOrInsertItem("clinical_item_category", category, conn=conn)
             category["clinical_item_category_id"] = categoryId
@@ -294,13 +297,14 @@ class STARRDemographicsConversion:
         clinicalItemKey = (category["clinical_item_category_id"], sourceItem["name"])
         if clinicalItemKey not in self.clinicalItemByCategoryIdExtId:
             # Clinical Item does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
-            clinicalItem = \
-                RowItemModel({
+            clinicalItem = RowItemModel(
+                {
                     "clinical_item_category_id": category["clinical_item_category_id"],
                     "external_id": None,
                     "name": sourceItem["name"],
                     "description": sourceItem["description"],
-                })
+                }
+            )
             (clinicalItemId, isNew) = DBUtil.findOrInsertItem("clinical_item", clinicalItem, conn=conn)
             clinicalItem["clinical_item_id"] = clinicalItemId
             self.clinicalItemByCategoryIdExtId[clinicalItemKey] = clinicalItem
@@ -308,15 +312,16 @@ class STARRDemographicsConversion:
 
     def patientItemModelFromSourceItem(self, sourceItem, clinicalItem, conn):
         # Produce a patient_item record model for the given sourceItem
-        patient_item = \
-            RowItemModel({
+        patient_item = RowItemModel(
+            {
                 "external_id": None,
                 "patient_id": int(sourceItem["rit_uid"][2:], 16),
                 "encounter_id": None,
                 "clinical_item_id": clinicalItem["clinical_item_id"],
                 "item_date": str(sourceItem["itemDate"]),       # without str(), the time is being converted in postgres
                 "item_date_utc": None,                          # it's a date - so, no need to have a duplicate here
-            })
+            }
+        )
         insert_query = DBUtil.buildInsertQuery("patient_item", patient_item.keys())
         insert_params = patient_item.values()
         try:
@@ -325,3 +330,38 @@ class STARRDemographicsConversion:
         except conn.IntegrityError, err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
             log.warn(err)
+
+    def main(self, argv):
+        """Main method, callable from command line"""
+        usage_str = "usage: %prog [options]\n"
+        parser = OptionParser(usage=usage_str)
+        parser.add_option("-f", "--patient-ids-file", dest="patient_ids_file",
+                          help="File containing ids of patients to convert")
+        (options, args) = parser.parse_args(argv[1:])
+
+        log.info("Starting: " + str.join(" ", argv))
+        timer = time.time()
+
+        conv_options = ConversionOptions()
+        conv_options.extract_parser_options(options)
+
+        self.convertItemsByBatch(conv_options.patient_ids_file)
+
+        timer = time.time() - timer
+        log.info("%.3f seconds to complete", timer)
+
+
+class ConversionOptions:
+    """Simple struct to contain multiple program options"""
+
+    def __init__(self):
+        self.patient_ids_file = None
+
+    def extract_parser_options(self, options):
+        if options.patient_ids_file is not None:
+            self.patient_ids_file = options.patient_ids_file
+
+
+if __name__ == "__main__":
+    instance = STARRDemographicsConversion()
+    instance.main(sys.argv)
