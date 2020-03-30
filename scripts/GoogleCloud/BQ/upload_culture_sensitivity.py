@@ -9,7 +9,7 @@ import LocalEnv     # used for setting GOOGLE_APPLICATION_CREDENTIALS
 from medinfo.db.bigquery import bigQueryUtil
 from google.cloud import bigquery
 
-CSV_FILE = 'c:\\=== WORK ===\\=== Stanford ===\\csv_uploads\\culture_sensitivity_021320.csv'
+CSV_FILE = '/path/to/culture_sensitivity_021320.csv'
 DATASET_NAME = 'test_dataset'
 TABLE_NAME = 'culture_sensitivity'
 FINAL_TABLE_SCHEMA = [bigquery.SchemaField('rit_uid', 'STRING', 'REQUIRED', None, ()),
