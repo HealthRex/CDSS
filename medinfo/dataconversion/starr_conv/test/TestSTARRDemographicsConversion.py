@@ -11,7 +11,7 @@ import csv
 import pytz
 import random
 import logging
-import tempfile;
+import tempfile
 
 from datetime import datetime
 from datetime import date
@@ -220,7 +220,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
     def test_batchDataConversion(self):
         # Run the data conversion on the same data and look for expected records
         log.debug("Run the batch conversion process, and upload to test dataset in BigQuery...")
-        self.converter.convertItemsByBatch(self.pat_id_csv, self.BATCH_SIZE, datasetId=TEST_DEST_DATASET,
+        self.converter.convertItemsByBatch(self.pat_id_csv, self.BATCH_SIZE, targetDatasetId=TEST_DEST_DATASET,
                                            startBatch=self.STARTING_BATCH)
 
         # Just query back for the same data, de-normalizing the data back to a general table

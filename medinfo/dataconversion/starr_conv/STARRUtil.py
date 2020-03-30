@@ -154,35 +154,35 @@ class StarrCommonUtils:
         self.remove_file(temp_dir + '/item_collection.csv')
         self.remove_file(temp_dir + '/item_collection_item.csv')
 
-    def removePatientItemCollectionLinkAddedLines(self):
+    def removePatientItemCollectionLinkAddedLines(self, source_table):
         """delete added records"""
         log.info('Removing patient_item_collection_link added lines in PSQL DB')
 
         DBUtil.execute(
-            """delete from patient_item_collection_link
-                where item_collection_item_id in
-                (   select item_collection_item_id
-                    from item_collection_item as ici, item_collection as ic
-                    where ici.item_collection_id = ic.item_collection_id
-                    and ic.external_id < 0
-                );
-                """, conn=self.pgConn
+            """delete from patient_item_collection_link pi
+               using item_collection_item ici, clinical_item ci, clinical_item_category cic
+               where pi.item_collection_item_id = ici.item_collection_item_id
+                 and ici.clinical_item_id = ci.clinical_item_id
+                 and ci.clinical_item_category_id = cic.clinical_item_category_id
+                 and cic.source_table = '{}';
+                 """.format(source_table), conn=self.pgConn
         )
 
-    def removeItemCollectionTablesAddedLines(self):
+    def removeItemCollectionTablesAddedLines(self, source_table):
         """delete added records"""
         log.info('Removing item_collection_item and item_collection added lines in PSQL DB')
 
         DBUtil.execute(
-            """delete from item_collection_item
-                where item_collection_id in
-                (   select item_collection_id
-                    from item_collection as ic
-                    where ic.external_id < 0
-                );
-                """, conn=self.pgConn
+            """delete from item_collection_item ici
+               using clinical_item ci, clinical_item_category cic
+               where ici.clinical_item_id = ci.clinical_item_id
+                 and ci.clinical_item_category_id = cic.clinical_item_category_id
+                 and cic.source_table = '{}';
+                 """.format(source_table), conn=self.pgConn
          )
-        DBUtil.execute("delete from item_collection where external_id < 0;", conn=self.pgConn)
+
+        # TODO should be using source_table also
+        DBUtil.execute("delete from item_collection where true;", conn=self.pgConn)
 
     def dumpPatientItemToCsv(self, tempDir, batchCounter=999):
         log.info('Dumping patient_item for batch {} to CSV'.format(batchCounter))
@@ -297,6 +297,6 @@ class StarrCommonUtils:
                     where source_table = '{}'
                 );
                 """.format(source_table), conn=self.pgConn
-         )
+        )
         DBUtil.execute("delete from clinical_item_category where source_table = '{}';".format(source_table),
                        conn=self.pgConn)

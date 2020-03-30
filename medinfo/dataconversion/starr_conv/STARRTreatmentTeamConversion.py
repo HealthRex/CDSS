@@ -54,7 +54,7 @@ class STARRTreatmentTeamConversion:
         self.categoryBySourceDescr = dict()  # Local cache to track the clinical item category table contents
         self.clinicalItemByCompositeKey = dict()  # Local cache to track clinical item table contents
 
-    def convertAndUpload(self, convOptions, tempDir=tempfile.gettempdir(), removeCsvs=True, datasetId='starr_datalake2018'):
+    def convertAndUpload(self, convOptions, tempDir=tempfile.gettempdir(), removeCsvs=True, targetDatasetId='clinical_item2018'):
         """
         Wrapper around primary run function, does conversion locally and uploads to BQ
         No batching done for treatment team since converted table is small
@@ -66,14 +66,14 @@ class STARRTreatmentTeamConversion:
         batchCounter = 99999    # TODO (nodir) why not 0?
         starrUtil.dumpPatientItemToCsv(tempDir, batchCounter)
         self.bqClient.reconnect_client()  # refresh bq client connection
-        starrUtil.uploadPatientItemCsvToBQ(tempDir, datasetId, batchCounter)
+        starrUtil.uploadPatientItemCsvToBQ(tempDir, targetDatasetId, batchCounter)
         if removeCsvs:
             starrUtil.removePatientItemCsv(tempDir, batchCounter)
         starrUtil.removePatientItemAddedLines(SOURCE_TABLE)
 
         # For now keep the clinical_* tables, upload them them once all tables have been converted
         starrUtil.dumpClinicalTablesToCsv(tempDir)
-        starrUtil.uploadClinicalTablesCsvToBQ(tempDir, datasetId)
+        starrUtil.uploadClinicalTablesCsvToBQ(tempDir, targetDatasetId)
         if removeCsvs:
             starrUtil.removeClinicalTablesCsv(tempDir)
         starrUtil.removeClinicalTablesAddedLines(SOURCE_TABLE)
@@ -119,6 +119,8 @@ class STARRTreatmentTeamConversion:
         if convOptions.endDate is not None:
             query += ' WHERE ' if convOptions.startDate is None else 'AND'
             query += ' trtmnt_tm_begin_dt_jittered < @endDate'
+
+        query += ' ORDER BY trtmnt_tm_begin_dt_jittered'
         query += ';'
 
         query_params = [
@@ -257,11 +259,12 @@ class STARRTreatmentTeamConversion:
         categoryKey = (SOURCE_TABLE, categoryDescription)
         if categoryKey not in self.categoryBySourceDescr:
             # Category does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
-            category = \
-                RowItemModel({
+            category = RowItemModel(
+                {
                     "source_table": SOURCE_TABLE,
                     "description": categoryDescription,
-                })
+                }
+            )
             (categoryId, isNew) = DBUtil.findOrInsertItem("clinical_item_category", category, conn=conn)
             category["clinical_item_category_id"] = categoryId
             self.categoryBySourceDescr[categoryKey] = category
@@ -272,13 +275,14 @@ class STARRTreatmentTeamConversion:
         clinicalItemKey = (category["clinical_item_category_id"], sourceItem["description"])
         if clinicalItemKey not in self.clinicalItemByCompositeKey:
             # Clinical Item does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
-            clinicalItem = \
-                RowItemModel({
+            clinicalItem = RowItemModel(
+                {
                     "clinical_item_category_id": category["clinical_item_category_id"],
                     "external_id": None,
                     "name": sourceItem["code"],
                     "description": sourceItem["description"],
-                })
+                }
+            )
             (clinicalItemId, isNew) = DBUtil.findOrInsertItem("clinical_item", clinicalItem, conn=conn)
             clinicalItem["clinical_item_id"] = clinicalItemId
             self.clinicalItemByCompositeKey[clinicalItemKey] = clinicalItem
@@ -293,16 +297,16 @@ class STARRTreatmentTeamConversion:
             external_id = None
 
         # Produce a patient_item record model for the given sourceItem
-        patientItem = \
-            RowItemModel({
+        patientItem = RowItemModel(
+            {
                 "external_id": external_id,
                 "patient_id": int(sourceItem["rit_uid"][2:], 16),
                 "encounter_id": sourceItem["pat_enc_csn_id_coded"],
                 "clinical_item_id": clinicalItem["clinical_item_id"],
                 "item_date": str(sourceItem["trtmnt_tm_begin_dt_jittered"]),    # without str(), the time is being converted in postgres
                 "item_date_utc": str(sourceItem["trtmnt_tm_begin_dt_jittered_utc"])    # without str(), the time is being converted in postgres
-            })
-        print(patientItem)
+            }
+        )
 
         insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys())
         insertParams = patientItem.values()
@@ -342,7 +346,7 @@ class STARRTreatmentTeamConversion:
         convOptions = ConversionOptions()
         convOptions.extractParserOptions(options)
 
-        self.convertSourceItems(convOptions)
+        self.convertAndUpload(convOptions)
 
         timer = time.time() - timer
         log.info("%.3f seconds to complete", timer)
@@ -354,7 +358,7 @@ class ConversionOptions:
     def __init__(self):
         self.startDate = None
         self.endDate = None
-        self.aggregate = False
+        self.aggregate = True
 
     def extractParserOptions(self, options):
         if options.startDate is not None:
