@@ -11,7 +11,7 @@ from google.cloud import bigquery
 
 CSV_FILE_PREFIX = '/path/to/alert_history_012420_'
 DATASET_NAME = 'alert_2019'
-TABLE_NAME = 'alert_history_20200124'
+TABLE_NAME = 'alert_history_20200228'
 FINAL_TABLE_SCHEMA = [bigquery.SchemaField('anon_id', 'STRING', 'REQUIRED', None, ()),
                       bigquery.SchemaField('alt_id_jittered', 'INT64', 'REQUIRED', None, ()),
                       bigquery.SchemaField('alt_csn_id_coded', 'INT64', 'REQUIRED', None, ()),
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     - added header line
     
     split every 2 mln lines:
-    split -l 2000000 alert_history_012420.csv alert_history_012420_
+    split -l 2000000 alt_history_022820.csv alert_history_022820_
     '''
 
     upload = input('Upload? ("y"/"n"): ')
@@ -87,13 +87,13 @@ if __name__ == '__main__':
     print('Done')
 
     '''
-    expecting 167,058,216 lines from original table
+    expecting 167,056,690 lines from original table
     '''
 
     '''
     Conversion script in SQL:
 create or replace 
-table alert_2019.alert_history_20200124
+table alert_2019.alert_history_20200228
 as
 select * except(
     alt_id_jittered_s,
@@ -114,5 +114,5 @@ case when shown_place_c_s = '' then NULL else cast(shown_place_c_s as INT64) end
 case when patient_dep_id_s = '' then NULL else cast(patient_dep_id_s as INT64) end as patient_dep_id,
 cast(contact_date_time as DATE) as contact_date,
 timestamp(alt_action_inst, 'America/Los_Angeles') as alt_action_inst_utc
-from alert_2019.alert_history_20200124;
+from alert_2019.alert_history_20200228;
     '''
