@@ -676,8 +676,8 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
         log.debug("Run the conversion process...")
         conv_options = STARRTreatmentTeamConversion.ConversionOptions()
         conv_options.aggregate = aggregation
-        temp_dir = tempfile.gettempdir();
-        self.converter.convertAndUpload(conv_options, tempDir=temp_dir, datasetId=TEST_DEST_DATASET)
+        temp_dir = tempfile.gettempdir()
+        self.converter.convertAndUpload(conv_options, tempDir=temp_dir, targetDatasetId=TEST_DEST_DATASET)
 
         # Just query back for the same data, de-normalizing the data back to a general table
         test_query = \

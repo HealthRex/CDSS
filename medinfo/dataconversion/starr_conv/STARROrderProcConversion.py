@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
 import sys, os
+import logging
+import re
 import tempfile
 import time
+
 from datetime import datetime
+from datetime import timedelta
 from optparse import OptionParser
 from medinfo.common.Util import stdOpen, ProgressDots
 from medinfo.db import DBUtil
@@ -21,6 +25,7 @@ from google.cloud import bigquery
 
 SOURCE_TABLE = "starr_datalake2018.order_proc"
 ORDERSET_TABLE = "starr_datalake2018.proc_orderset"
+TARGET_DATASET_ID = "clinical_item2018"
 
 
 class STARROrderProcConversion:
@@ -51,46 +56,51 @@ class STARROrderProcConversion:
         self.bqClient = bigQueryUtil.BigQueryClient()
         self.connFactory = DBUtil.ConnectionFactory()           # Default connection source, but Allow specification of alternative DB connection source
 
+        self.starrUtil = STARRUtil.StarrCommonUtils(self.bqClient)
+
         self.categoryBySourceDescr = dict()                     # Local cache to track the clinical item category table contents
         self.clinicalItemByCategoryIdExtId = dict()             # Local cache to track clinical item table contents
+
         self.itemCollectionByKeyStr = dict()                    # Local cache to track item collections
         self.itemCollectionItemByCollectionIdItemId = dict()    # Local cache to track item collection items
 
-    def convertAndUpload(self, startDate=None, endDate=None, tempDir=tempfile.gettempdir(), removeCsvs=True, target_dataset_id='starr_datalake2018'):
+        self.patient_items = dict()                             # Local cache of processed patient items
+        self.patient_item_collection_links = set()              # Local cache of processed patient item collection links
+
+    def convertAndUpload(self, startDate=None, endDate=None, tempDir=tempfile.gettempdir(), removeCsvs=True):
         """
         Wrapper around primary run function, does conversion locally and uploads to BQ
         No batching done for treatment team since converted table is small
         """
-        starrUtil = STARRUtil.StarrCommonUtils(self.bqClient)
         self.convertSourceItems(startDate, endDate)
 
         batchCounter = 99999    # TODO (nodir) why not 0?
         self.bqClient.reconnect_client()  # refresh bq client connection
-        starrUtil.dumpPatientItemCollectionLinkToCsv(tempDir, batchCounter)
-        starrUtil.uploadPatientItemCollectionLinkCsvToBQ(tempDir, target_dataset_id, batchCounter)
+        self.starrUtil.dumpPatientItemCollectionLinkToCsv(tempDir, batchCounter)
+        self.starrUtil.uploadPatientItemCollectionLinkCsvToBQ(tempDir, TARGET_DATASET_ID, batchCounter)
         if removeCsvs:
-            starrUtil.removePatientItemCollectionLinkCsv(tempDir, batchCounter)
-        starrUtil.removePatientItemCollectionLinkAddedLines()
+            self.starrUtil.removePatientItemCollectionLinkCsv(tempDir, batchCounter)
+        self.starrUtil.removePatientItemCollectionLinkAddedLines(SOURCE_TABLE)
 
+        self.starrUtil.dumpPatientItemToCsv(tempDir, batchCounter)
+        self.starrUtil.uploadPatientItemCsvToBQ(tempDir, TARGET_DATASET_ID, batchCounter)
+        if removeCsvs:
+            self.starrUtil.removePatientItemCsv(tempDir, batchCounter)
+        self.starrUtil.removePatientItemAddedLines(SOURCE_TABLE)
+
+    def move_clinical_and_item_collection_to_bq(self, tempDir=tempfile.gettempdir(), removeCsvs=True):
         # For now keep the clinical_* tables, upload them them once all tables have been converted
-        starrUtil.dumpItemCollectionTablesToCsv(tempDir)
-        starrUtil.uploadItemCollectionTablesCsvToBQ(tempDir, target_dataset_id)
+        self.starrUtil.dumpItemCollectionTablesToCsv(tempDir)
+        self.starrUtil.uploadItemCollectionTablesCsvToBQ(tempDir, TARGET_DATASET_ID)
         if removeCsvs:
-            starrUtil.removeItemCollectionTablesCsv(tempDir)
-        starrUtil.removeItemCollectionTablesAddedLines()
-
-        starrUtil.dumpPatientItemToCsv(tempDir, batchCounter)
-        starrUtil.uploadPatientItemCsvToBQ(tempDir, target_dataset_id, batchCounter)
-        if removeCsvs:
-            starrUtil.removePatientItemCsv(tempDir, batchCounter)
-        starrUtil.removePatientItemAddedLines(SOURCE_TABLE)
-
+            self.starrUtil.removeItemCollectionTablesCsv(tempDir)
+        self.starrUtil.removeItemCollectionTablesAddedLines(SOURCE_TABLE)
         # For now keep the clinical_* tables, upload them them once all tables have been converted
-        starrUtil.dumpClinicalTablesToCsv(tempDir)
-        starrUtil.uploadClinicalTablesCsvToBQ(tempDir, target_dataset_id)
+        self.starrUtil.dumpClinicalTablesToCsv(tempDir)
+        self.starrUtil.uploadClinicalTablesCsvToBQ(tempDir, TARGET_DATASET_ID)
         if removeCsvs:
-            starrUtil.removeClinicalTablesCsv(tempDir)
-        starrUtil.removeClinicalTablesAddedLines(SOURCE_TABLE)
+            self.starrUtil.removeClinicalTablesCsv(tempDir)
+        self.starrUtil.removeClinicalTablesAddedLines(SOURCE_TABLE)
 
     def convertSourceItems(self, startDate=None, endDate=None):
         """Primary run function to process the contents of the stride_order_proc
@@ -153,6 +163,7 @@ class STARROrderProcConversion:
             query += " and order_time_jittered >= @startDate"
         if endDate is not None:
             query += " and order_time_jittered < @endDate"
+        query += " order by order_time_jittered"
         # query += " order by op.order_proc_id_coded, jc_uid, op.pat_enc_csn_id_coded, op.proc_id"
         query += ';'
 
@@ -222,8 +233,8 @@ class STARROrderProcConversion:
             # Category does not yet exist in the local cache.  Check if in database table (if not, persist a new record)
             category = RowItemModel(
                 {
-                    "source_table":  SOURCE_TABLE,
-                    "description":  "{} ({})".format(sourceItem["order_type"], sourceItem["ordering_mode"])
+                    "source_table": SOURCE_TABLE,
+                    "description": "{} ({})".format(sourceItem["order_type"], sourceItem["ordering_mode"])
                 }
             )
             (categoryId, isNew) = DBUtil.findOrInsertItem("clinical_item_category", category, conn=conn)
@@ -269,21 +280,30 @@ class STARROrderProcConversion:
                 "item_date_utc":    str(sourceItem["order_time_jittered_utc"]),     # without str(), the time is being converted in postgres
             }
         )
+
+        key_hash = hash('{}{}{}'.format(patientItem["patient_id"], patientItem["clinical_item_id"],
+                                        patientItem["item_date"]))
+        if key_hash in self.patient_items:
+            return self.patient_items[key_hash]
+
         insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys())
         insertParams = patientItem.values()
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute(insertQuery, insertParams, conn=conn)
             patientItem["patient_item_id"] = DBUtil.execute(DBUtil.identityQuery("patient_item"), conn=conn)[0][0]
+            self.patient_items[key_hash] = patientItem
         except conn.IntegrityError, err:
             # If turns out to be a duplicate, okay, pull out existint ID and continue to insert whatever else is possible
-            log.info(err)   # Lookup just by the composite key components to avoid attempting duplicate insertion again
+            log.warn(err)   # Lookup just by the composite key components to avoid attempting duplicate insertion again
             searchPatientItem = {
                 "patient_id":       patientItem["patient_id"],
                 "clinical_item_id": patientItem["clinical_item_id"],
                 "item_date":        patientItem["item_date"],
             }
             (patientItem["patient_item_id"], isNew) = DBUtil.findOrInsertItem("patient_item", searchPatientItem, conn=conn)
+            self.patient_items[key_hash] = patientItem
+
         return patientItem
 
     def itemCollectionFromSourceItem(self, sourceItem, conn):
@@ -324,6 +344,10 @@ class STARROrderProcConversion:
         return self.itemCollectionItemByCollectionIdItemId[itemKey]
 
     def patientItemCollectionLinkFromSourceItem(self, sourceItem, collectionItem, patientItem, conn):
+        hash_key = hash('{}{}'.format(patientItem["patient_item_id"], collectionItem["item_collection_item_id"]))
+        if hash_key in self.patient_item_collection_links:
+            return
+
         # Produce a patient_item_collection_link record model for the given sourceItem
         patientItemCollectionLink = RowItemModel(
             {
@@ -332,13 +356,15 @@ class STARROrderProcConversion:
             }
         )
         insertQuery = DBUtil.buildInsertQuery("patient_item_collection_link", patientItemCollectionLink.keys())
-        insertParams= patientItemCollectionLink.values()
+        insertParams = patientItemCollectionLink.values()
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute(insertQuery, insertParams, conn=conn)
+            self.patient_item_collection_links.add(hash_key)
         except conn.IntegrityError, err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
-            log.info(err)
+            log.warn(err)
+            self.patient_item_collection_links.add(hash_key)
 
     def main(self, argv):
         """Main method, callable from command line"""
@@ -351,17 +377,43 @@ class STARROrderProcConversion:
 
         log.info("Starting: " + str.join(" ", argv))
         timer = time.time()
-        startDate = None
+
+        maxMinDatesQuery = """
+            select min(extract(date from order_time_jittered)), max(extract(date from order_time_jittered))
+            from {};
+        """.format(SOURCE_TABLE)
+        maxMinDates = self.bqClient.queryBQ(maxMinDatesQuery, verbose=True)
+        min_date = None
+        max_date = None
+        for row in maxMinDates:
+            min_date = row.values()[0]
+            max_date = row.values()[1]
+
         if options.startDate is not None:
             # Parse out the start date parameter
             timeTuple = time.strptime(options.startDate, DATE_FORMAT)
             startDate = datetime(*timeTuple[0:3])
-        endDate = None
+        else:
+            startDate = datetime.combine(min_date, datetime.min.time())
+
         if options.endDate is not None:
             # Parse out the end date parameter
             timeTuple = time.strptime(options.endDate, DATE_FORMAT)
             endDate = datetime(*timeTuple[0:3])
-        self.convertSourceItems(startDate, endDate)
+        else:
+            endDate = datetime.combine(max_date + timedelta(days=1), datetime.min.time())
+
+        date = startDate
+        while date < endDate:
+            endDateBracket = min(date + timedelta(days=7), endDate)
+            log.info('Converting {} - {}'.format(date, endDateBracket))
+            self.convertAndUpload(date, endDateBracket)
+            date += timedelta(days=7)
+
+            self.patient_items.clear()
+            self.patient_item_collection_links.clear()
+
+        self.move_clinical_and_item_collection_to_bq()
 
         timer = time.time() - timer
         log.info("%.3f seconds to complete", timer)
