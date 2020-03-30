@@ -48,6 +48,18 @@
 		and extract(YEAR from enc.appt_time_jittered) >= 2017	-- >= So capture follow-up visits in 2018 as well
 		-- 4796 records in 2017 (10650 for 2017 and after, largely including 2018)
 	)
+	,
+	hematologyNewPatientEncounters2017 AS
+	(
+		select enc.jc_uid, enc.pat_enc_csn_id_coded as specialtyEncounterId, enc.appt_when_jittered as specialtyEncounterDateTime
+		from `starr_datalake2018.encounter` as enc join `starr_datalake2018.dep_map` as dep on enc.department_id = dep.department_id 
+		where dep.specialty_dep_c = '14' -- dep.specialty like 'Hematology'
+		and visit_type like 'NEW PATIENT%' -- Naturally screens to only 'Office Visit' enc_type 
+		-- and appt_type in ('Office Visit','Appointment') -- Otherwise Telephone, Refill, Orders Only, etc.
+		and appt_status = 'Completed'
+		and extract(YEAR from enc.appt_time_jittered) = 2017	-- >= So capture follow-up visits in 2018 as well
+	)
+
 
 	(2a) Find all NON-New Patient clinic visits for the referred specialty
 	WITH
@@ -67,11 +79,11 @@
 
 (3) Join to match referral orders to respective (first) patient visits within *6* months of referral
 
-	select *, DATETIME_DIFF(specEnc.specialtyEncDateTime, refEnc.referringEncDateTime, MONTH)
-	from referringEncounters as refEnc join specialtyNewPatientEncounters as specEnc using (jc_uid)
-	where DATETIME_DIFF(specEnc.specialtyEncDateTime, refEnc.referringEncDateTime, MONTH) BETWEEN 0 AND 5
-	-- 2636 referred New Patient visit within 6 months
-	-- 2899 referred New Patient visit within 12 months
+	select *, DATETIME_DIFF(specEnc.specialtyEncounterDateTime, refEnc.referralOrderDateTime, DAY) as referralDelayDays
+	from referringEncounters2017 as refEnc join specialtyNewPatientEncounters2017_ as specEnc using (jc_uid)
+	where DATETIME_DIFF(specEnc.specialtyEncounterDateTime, refEnc.referralOrderDateTime, MONTH) BETWEEN 0 AND 11
+	-- 2640 referred New Patient visit within 6 months
+	-- 2898 referred New Patient visit within 12 months
 
     - Outer join to count how many with no follow-up visit at all
     - Assess distribution of referral time
@@ -250,3 +262,37 @@ specialtyNewPatientNoMedsOrProcsEncounters2017 AS
   	-- Means >1,000 didn't follow-up in specialty clinic at all within 12 months, 
   	--	implying many of those New Patient visits weren't even necessary
   	-- Follow-up: Average 96 days, StdDev 85 days
+
+
+
+(9) New Patient specialty encouners where had a particular lab abnormality beforehand
+
+	select specNewEnc.*, ord_num_value, DATETIME_DIFF(specNewEnc.specialtyEncounterDateTime, res.result_time_jittered, MONTH) as labToEncMonths
+	from `starr_datalake2018.lab_result` as res
+	   join specialtyNewPatientEncounters2017 as specNewEnc
+	        on res.rit_uid = specNewEnc.jc_uid 
+	where base_name = 'TSH'
+	and ord_num_value <0.5
+	and DATETIME_DIFF(specNewEnc.specialtyEncounterDateTime, res.result_time_jittered, MONTH) BETWEEN 0 AND 11
+	-- 805 Endocrine New Patient visits in 2017 with low TSH in prior year
+
+
+	select specNewEnc.*, ord_num_value, DATETIME_DIFF(specNewEnc.specialtyEncounterDateTime, res.result_time_jittered, MONTH) as labToEncMonths
+	from `starr_datalake2018.lab_result` as res
+	   join specialtyNewPatientEncounters2017 as specNewEnc
+	        on res.rit_uid = specNewEnc.jc_uid 
+	where base_name = 'CA'
+	and ord_num_value > 11.5
+	and DATETIME_DIFF(specNewEnc.specialtyEncounterDateTime, res.result_time_jittered, MONTH) BETWEEN 0 AND 11
+	-- 73 Endocrine New Patient visits in 2017 with high CA in prior year
+
+
+	select specNewEnc.*, ord_num_value, DATETIME_DIFF(specNewEnc.specialtyEncounterDateTime, res.result_time_jittered, MONTH) as labToEncMonths
+	from `starr_datalake2018.lab_result` as res
+	   join hematologyNewPatientEncounters2017 as specNewEnc
+	        on res.rit_uid = specNewEnc.jc_uid 
+	where base_name = 'PLT'
+	and ord_num_value < 30
+	and DATETIME_DIFF(specNewEnc.specialtyEncounterDateTime, res.result_time_jittered, MONTH) BETWEEN 0 AND 11
+	-- 2784 Hematology New Patient visits in 2017 with low PLT in prior year
+	--	(But this is likely capturing a lot of MDS, leukemia, etc., not just isolated thrombocytopenia)

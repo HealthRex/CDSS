@@ -210,10 +210,10 @@ class BigQueryClient:
             errors = load_table_job.errors
             log.error(errors)
             return errors
-        #print(load_table_job.error_result)
+        print(load_table_job.error_result)
         table = self.client.get_table(table_ref)
         log.info('''
-                {} rows loaded into 
+                {} rows loaded into
                 table {} in dataset {}
                 in project: {}.
                 '''.format(load_table_job.output_rows, table.table_id, dataset_id, self.client.project))

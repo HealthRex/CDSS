@@ -65,7 +65,7 @@ def main(argv):
 	global mapping # Dict mapping from patient ID to data frame containing order set information for that patient
 	global all_ordersetIDs # List of all order set IDs that will become response variables
 	global all_item_dates # Match patient item IDs to dates
-	global retain_all # Match patient item IDs to dates
+	global retain_all # If false, then only data rows that have order set usage within the next day will be kept 
 	data_dir = ""
 	output_dir = ""
 	mapping_dir = ""

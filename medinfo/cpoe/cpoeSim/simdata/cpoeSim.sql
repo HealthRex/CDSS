@@ -23,6 +23,7 @@ CREATE TABLE sim_patient
 	gender TEXT NOT NULL
 );
 ALTER TABLE sim_patient ADD CONSTRAINT sim_patient_pkey PRIMARY KEY (sim_patient_id);
+ALTER TABLE sim_patient ADD COLUMN study_list TEXT;	-- Comma separated list of which studies this patient case belongs to (vs. test cases that should NOT be included in study results). Be sure to include sim_user_id = 0 for analysis as well.
 
 -- Model patient states with transition options
 CREATE TABLE sim_state
