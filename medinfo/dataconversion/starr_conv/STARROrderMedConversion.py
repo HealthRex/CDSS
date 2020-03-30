@@ -3,6 +3,8 @@ import sys, os
 import hashlib
 import tempfile
 import time
+import logging
+
 from datetime import datetime
 from optparse import OptionParser
 from medinfo.common.Util import stdOpen, ProgressDots
@@ -51,7 +53,7 @@ class STARROrderMedConversion:
         self.itemCollectionByKeyStr = dict()    # Local cache to track item collections
         self.itemCollectionItemByCollectionIdItemId = dict()    # Local cache to track item collection items
 
-    def convertAndUpload(self, convOptions, tempDir=tempfile.gettempdir(), removeCsvs=True, target_dataset_id='starr_datalake2018'):
+    def convertAndUpload(self, convOptions, tempDir=tempfile.gettempdir(), removeCsvs=True, target_dataset_id='clinical_item2018'):
         """
         Wrapper around primary run function, does conversion locally and uploads to BQ
         No batching done for treatment team since converted table is small
@@ -65,14 +67,14 @@ class STARROrderMedConversion:
         starrUtil.uploadPatientItemCollectionLinkCsvToBQ(tempDir, target_dataset_id, batchCounter)
         if removeCsvs:
             starrUtil.removePatientItemCollectionLinkCsv(tempDir, batchCounter)
-        starrUtil.removePatientItemCollectionLinkAddedLines()
+        starrUtil.removePatientItemCollectionLinkAddedLines(SOURCE_TABLE)
 
         # For now keep the clinical_* tables, upload them them once all tables have been converted
         starrUtil.dumpItemCollectionTablesToCsv(tempDir)
         starrUtil.uploadItemCollectionTablesCsvToBQ(tempDir, target_dataset_id)
         if removeCsvs:
             starrUtil.removeItemCollectionTablesCsv(tempDir)
-        starrUtil.removeItemCollectionTablesAddedLines()
+        starrUtil.removeItemCollectionTablesAddedLines(SOURCE_TABLE)
 
         starrUtil.dumpPatientItemToCsv(tempDir, batchCounter)
         starrUtil.uploadPatientItemCsvToBQ(tempDir, target_dataset_id, batchCounter)
@@ -170,7 +172,7 @@ class STARROrderMedConversion:
             query += " and order_time_jittered >= @startDate"
         if convOptions.endDate is not None:
             query += " and order_time_jittered < @endDate"
-        query += " order by med.order_med_id_coded, jc_uid, med.pat_enc_csn_id_coded, med.medication_id"
+        query += " order by order_time_jittered, med.order_med_id_coded, jc_uid, med.pat_enc_csn_id_coded, med.medication_id"
         query += ';'
 
         query_params = [
@@ -435,12 +437,13 @@ class STARROrderMedConversion:
 
     def main(self, argv):
         """Main method, callable from command line"""
+        log.setLevel(logging.FATAL)
+
         usage_str = "usage: %prog [options]\n"
         parser = OptionParser(usage=usage_str)
         parser.add_option("-s", "--startDate", dest="startDate", metavar="<startDate>",  help="Date string (e.g., 2011-12-15), if provided, will only run conversion on items with ordering time on or after this date.")
         parser.add_option("-e", "--endDate", dest="endDate", metavar="<endDate>",  help="Date string (e.g., 2011-12-15), if provided, will only run conversion on items with ordering time before this date.")
         parser.add_option("-n", "--normalizeMixtures", dest="normalizeMixtures", action="store_true",  help="If set, when find medication mixtures, will unravel / normalize into separate entries, one for each ingredient")
-        parser.add_option("-m", "--maxMixtureCount", dest="maxMixtureCount", help="If not normalizing mixtures, then this is the maximum number of mixture components will itemize for a mixture.  If more than this, just use the summary label.")
         parser.add_option("-d", "--doseCountLimit", dest="doseCountLimit", help="Medication orders with a finite number of doses specified less than this limit will be labeled as different items than those without a number specified, or whose number is >= to this limit. Intended to distinguish things like IV single bolus / use vs. continuous infusions and standing medication orders")
         (options, args) = parser.parse_args(argv[1:])
 
@@ -450,7 +453,7 @@ class STARROrderMedConversion:
         conv_options = ConversionOptions()
         conv_options.extract_parser_options(options)
 
-        self.convertSourceItems(conv_options)
+        self.convertAndUpload(conv_options)
 
         timer = time.time() - timer
         log.info("%.3f seconds to complete", timer)
@@ -462,7 +465,6 @@ class ConversionOptions:
         self.startDate = None
         self.endDate = None
         self.normalizeMixtures = False
-        self.maxMixtureCount = None
         self.doseCountLimit = None
         self.includeRouteInDescription = True
 
@@ -476,9 +478,6 @@ class ConversionOptions:
             # Parse out the end date parameter
             time_tuple = time.strptime(options.endDate, DATE_FORMAT)
             self.endDate = datetime(*time_tuple[0:3])
-
-        if options.maxMixtureCount is not None:
-            self.maxMixtureCount = int(options.maxMixtureCount)
 
         if options.doseCountLimit is not None:
             self.doseCountLimit = int(options.doseCountLimit)

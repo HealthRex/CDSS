@@ -626,14 +626,11 @@ def dumpTableToCsv(table_name, file_name, conn_params=None):
     if conn_params is None:
         conn_params = DB_PARAM
 
-    if 'PWD' not in conn_params:
-        conn_params["PWD"] = getpass(
-            "Enter password for {} on {}@{}: ".format(conn_params["UID"], conn_params["DSN"], conn_params["HOST"]))
-        if conn_params["PWD"] == "":
-            conn_params["PWD"] = None  # Special meaning, no password needed
-
-    process = subprocess.Popen(['psql', '-U', conn_params["UID"], '-d', conn_params["DSN"], '-c',
-                                '\\COPY {} TO \'{}\' DELIMITER \',\' CSV HEADER;'.format(table_name, file_name)])
+    psql_env = os.environ.copy()
+    psql_env["PGPASSWORD"] = conn_params["PWD"]
+    process = subprocess.Popen(['psql', '-U', conn_params["UID"], '-d', conn_params["DSN"],
+                                '-c', '\\COPY {} TO \'{}\' DELIMITER \',\' CSV HEADER;'.format(table_name, file_name)],
+                               env=psql_env)
     process.wait()
 
 
