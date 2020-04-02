@@ -23,6 +23,7 @@
 
 
 Creating API credentials: 
+	- Credentials enable you to access PHS projects: The token will be  used in scripts (R and Python) for authorization
 https://redivis.com/workspace/settings
 - Scroll down to API tokens: 
 - Generate new token 
