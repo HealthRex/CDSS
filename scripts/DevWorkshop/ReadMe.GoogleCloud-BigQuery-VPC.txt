@@ -58,6 +58,21 @@ Recommended to save time during workshop:
   Try refreshing your web browser to reconnect through the web GUI to the BigQuery project database again.
   You can continue to do any regular work in the meantime, though technically any internet traffic you're conducting is not being sent direct. It is being encrypted and sent through the Stanford secure network first and then relayed on to the actual websites or email servers you're trying to reach. This allows your computer now to mimic being within the secured virtual private network.
 
+- IPv4 vs. IPv6
+  If you're still getting VPC access control errors despite the above (particularly when logging in from home), be sure your network adapter is set to use IPv4 rather than IPv6. This reflects an updated version of the way internet addresses are allocated, but looks like GCP VPC protocols don't accomodate for the newer system yet.
+  
+  Apple Systems:
+  - Go to Apple - > System Preferences -> Network
+  - Select the current network connection you see listed on the left-hand side, then click the Advanced button.
+  - Go to the TCP/IP tab at the top
+  - Beside "Configure IPv6", set it to "Link-local Only" and "Apply"
+  
+  Windows Systems:
+  - Settings > Network & Internet
+  - Change Adapter Options
+  - Select your WiFi or Ethernet or other network connection device
+  - Properies
+  - Uncheck "Internet Protocol Version 6 (TCP/IPv6)"
 
 - Test Queries
   - See bottom left for lists of projects, which contain lists of datasets/databases, which contain lists of tables that you can query. For example:
