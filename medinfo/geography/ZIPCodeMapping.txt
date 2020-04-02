@@ -1,0 +1,11 @@
+# Crosswalk tables between ZIP codes, county codes, census tracts, etc.
+# Example adapted into ZIP_COUNTY_122019.csv
+https://www.huduser.gov/portal/datasets/usps_crosswalk.html#data
+
+# (Beware that these do not have 1-to-1 mappings)
+https://www.unitedstateszipcodes.org/zip-code-database/#matching-cities
+
+
+# County-Time Zone mapping
+# Adapted into bp03mr20.csv
+https://www.weather.gov/gis/ZoneCounty
