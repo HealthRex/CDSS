@@ -1,0 +1,20 @@
+
+***** In progress. Collating different notes, but not a purposeful tutorial yet ********
+
+
+
+
+
+Here are the steps to get access to STARR omop data:
+•	Request a Nero account for STARR-OMOP deID data access. A Stanford PI affiliation is required for a Nero account. More information on getting Nero account is available here. 
+•	You will need a Nero GCP account and a Nero on-premise account.
+•	In parallel, confirm that you have a valid DPA that allows you to view deidentified structured data and clinical text. I would need you and all the people you want to access this de-id data to complete a Data Privacy Attestation.  Just select “STARR Nav deID data” from the pull-down menu under Project Type – and complete the form. Let me know if you run into any issues.
+•	Once a Nero project has been created, you will get an email from Stanford Research Computing Center (SRCC) informing you that access has been granted with some introductory information. Please continue to email srcc-support for any Nero related questions.
+•	Email Priya Desai, Biomedical Informatics Product Manager, Research IT, at prd@stanford.edu with the following additional information:
+•	Your Nero GCP project name
+•	Your PI’s ORCID number  
+•	Your own ORCID number
+
+Here is a link to the STARR-OMOP User Docs to give you a better picture: (for access, log in using your Stanford email):
+
+•	User Docs: https://docs.google.com/document/d/1dTjCEvvU8sMd8CuaVx94YFoPTsW_xjOMoF9-xl5zHik/view#heading=h.b7frls1oh2pm
