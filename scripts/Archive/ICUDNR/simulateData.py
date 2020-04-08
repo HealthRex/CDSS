@@ -74,7 +74,7 @@ baselineDNRRate = 0.1;
 durationRange = [1,20];
 
 prog = ProgressDots(total=nPatients);
-for iPatient in xrange(nPatients):
+for iPatient in range(nPatients):
 	rowData = \
 		{
 			"patient_id":iPatient,
@@ -120,11 +120,11 @@ for iPatient in xrange(nPatients):
 
 	# Pick a single race label
 	raceRandom = random.random();
-	for label, raceRange in raceRangesByLabel.iteritems():
+	for label, raceRange in raceRangesByLabel.items():
 		rowData[label] = (raceRandom >= raceRange[0] and raceRandom < raceRange[-1])+0;
 
 	# Fill in lab values
-	for label, labRange in labRangeByLabel.iteritems():
+	for label, labRange in labRangeByLabel.items():
 		if (random.random() < labMissingRate):
 			rowData[label] = "NA";
 		else:
@@ -149,7 +149,7 @@ for iPatient in xrange(nPatients):
 	# Simulate dnrEventRate per day
 	dnrOccurs = False;
 	dnrDay = None;
-	for iDay in xrange(1,lengthOfStay):
+	for iDay in range(1,lengthOfStay):
 		if (random.random() < dailyDNRRate):
 			dnrDay = iDay;
 			dnrOccurs = True;
@@ -157,7 +157,7 @@ for iPatient in xrange(nPatients):
 	rowData["AnyDNRatEnd"] = dnrOccurs + 0;
 
 	# Generate daily data
-	for iDay in xrange(lengthOfStay):
+	for iDay in range(lengthOfStay):
 		rowData["curr_day"] = rowData["start"] = iDay;
 		rowData["end"] = iDay + 1;
 		rowData["timeUntilNoMoreData"] = lengthOfStay - rowData["start"];

@@ -6,13 +6,14 @@ https://towardsdatascience.com/how-to-access-google-sheet-data-using-the-python-
 https://developers.google.com/sheets/api/samples/
 '''
 
-from __future__ import print_function
+
 import pickle
 import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 import pandas as pd
+
 
 class GoogleSheetsConnect:
     '''
@@ -51,7 +52,7 @@ class GoogleSheetsConnect:
         # Get sheet result
 
         sheet_hook = self.service.spreadsheets()
-        sheet_result = sheet_hook.values().get(spreadsheetId=sheet_id, range=range_name).execute()
+        sheet_result = list(sheet_hook.values()).get(spreadsheetId=sheet_id, range=range_name).execute()
         return sheet_result
 
     def get_df(self, sheet_result, verbose=False, first_line_header=True):
@@ -69,7 +70,7 @@ class GoogleSheetsConnect:
 
         for i, series_name in enumerate(headers):
             if verbose:
-                print(f'Preparing {i+1}/{len(headers)} {series_name}')
+                print('Preparing {}/{} {}'.format(i + 1, len(headers), series_name))
             series_data = [row[i] for row in values]
             df[series_name] = series_data
 

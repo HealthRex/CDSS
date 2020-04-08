@@ -6,7 +6,7 @@ import pandas as pd
 pd.set_option('display.width', 1000)
 pd.set_option('display.max_columns', 1000)
 
-import data_config
+from . import data_config
 
 from datetime import datetime
 import matplotlib as mpl
@@ -14,7 +14,7 @@ mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 time_format = '%Y-%m-%d %H:%M:%S'
 
-import queries
+from . import queries
 
 from google.cloud import bigquery
 
@@ -25,12 +25,12 @@ if not os.path.exists(result_folderpath):
     os.mkdir(result_folderpath)
 
 def setup_client(jsonkey_filepath):
-    print 'Setting up client...'
+    print('Setting up client...')
     client = bigquery.Client.from_service_account_json(jsonkey_filepath)
     return client
 
 def make_bigquery(query, client, project_id):
-    print 'Making bigquery...'
+    print('Making bigquery...')
     df = client.query(query, project=project_id).to_dataframe()
 
     return df
@@ -46,12 +46,12 @@ def get_queried_data(query):
     cached_filepath = os.path.join(result_folderpath, 'queried_data_%d.csv'%query_id)
 
     if os.path.exists(cached_filepath):
-        print "Found cached query data, now loading..."
+        print("Found cached query data, now loading...")
         df = pd.read_csv(cached_filepath, comment='#', sep='\t')
 
     else:
-        print "Making new query..."
-        print "set client path to gcp key" 
+        print("Making new query...")
+        print("set client path to gcp key") 
         # client = setup_client('/Users/jonc101/Documents/Biomedical_Data_Science/gcp/gcp_key.json')
         client = setup_client('MiningClinicalDecisions_Song.json')
         project_id = 'mining-clinical-decisions'
@@ -70,12 +70,12 @@ def calc_PC_cnts(df_full):
         .apply(list).apply(Counter).to_dict()
     order_isPCCnt_global = {}
     # # TODO: be careful of missing specialty departments, could potentially all be PC?
-    for order, cnter in order_typeCnt_global.items():
+    for order, cnter in list(order_typeCnt_global.items()):
         order_isPCCnt_global[order] = {'PC_cnt': cnter['Primary Care'],
                                             'nonPC_cnt': sum(cnter.values()) - cnter['Primary Care']}
     return order_isPCCnt_global
 
-from data_config import referral_to_specialty_dict
+from .data_config import referral_to_specialty_dict
 from collections import Counter
 
 def truncate_icd10(icd10):
@@ -94,7 +94,7 @@ def plot_visit_cnts(df):
 
 def test_plotVisitCnts():
     df = pd.read_csv('queried_results/queried_data_2690237133563743535_sample.csv')
-    print df.head()
+    print(df.head())
     plot_visit_cnts(df)
 
 
@@ -127,7 +127,7 @@ class ReferralDataMunger():
         df_tmp_timediff['time_diff'] = df_tmp_timediff['specialty_timestamp'] \
                                        - df_tmp_timediff['referral_timestamp']
 
-        print 'Train sample size for waiting time:', df_tmp_timediff['time_diff'].shape[0]
+        print('Train sample size for waiting time:', df_tmp_timediff['time_diff'].shape[0])
         all_waiting_days = df_tmp_timediff['time_diff'].apply(lambda x: x.days)
 
         if not ax:
@@ -211,7 +211,7 @@ class ReferralDataMunger():
 
         else:
             order_tfidfs = Counter()
-            for order, abscnt in order_abscnts.items():
+            for order, abscnt in list(order_abscnts.items()):
                 order_tfidfs[order] = float(abscnt) * self.get_cnt() \
                                     / (self.get_cnt(order=order)
                                        * self.get_cnt(referral=self.referral, icd10=icd10))
@@ -226,7 +226,7 @@ class ReferralDataMunger():
 
         else:
             icd10_tfidfs = Counter()
-            for icd10, abscnt in icd10_abscnts.items():
+            for icd10, abscnt in list(icd10_abscnts.items()):
                 icd10_tfidfs[icd10] = float(abscnt) * self.get_cnt() \
                                       / (self.get_cnt(icd10=icd10)
                                          * self.get_cnt(referral=self.referral))
@@ -250,7 +250,7 @@ class ReferralDataMunger():
         #     common_absCnt_locals = self.N_to_rio_tfidf[icd10].most_common(top_k)
 
         top_orders_cnts = self.get_most_common_orders(icd10, top_k, rank_by=rank_by, order_type=order_type)
-        print top_orders_cnts
+        print(top_orders_cnts)
 
         for order, _ in top_orders_cnts:  # TODO: when tfidf?
             '''
@@ -275,7 +275,7 @@ class ReferralDataMunger():
             cur_order_summary['N(o,r,i)'] = self.get_cnt(order=order,
                                                        referral=self.referral,
                                                          icd10=icd10, order_type=order_type)
-            print order, cur_order_summary['N(o,r,i)']
+            print(order, cur_order_summary['N(o,r,i)'])
 
             cur_order_summary['N(r,i)'] = self.get_cnt(referral=self.referral,
                                                          icd10=icd10, order_type=order_type)
@@ -334,8 +334,8 @@ class ReferralDataMunger():
 def test_query():
     query = queries.query_for_recent6months(include_med=True)
     df = get_queried_data(query)
-    print df.shape
-    print df.head()
+    print(df.shape)
+    print(df.head())
     df.to_csv('order_med.csv', index=False)
 
 def load_data(test_mode=False, newPatientOnly=True, referral_name=None, include_med=False):
@@ -349,17 +349,17 @@ def load_data(test_mode=False, newPatientOnly=True, referral_name=None, include_
     return df
 
 def test_munger(referral, icd10, test_mode=False, include_med=False):
-    print "loading data into test munger for referral:  %s  with icd10: %s " %(referral,icd10)
+    print("loading data into test munger for referral:  %s  with icd10: %s " %(referral,icd10))
     df = load_data(test_mode=test_mode, newPatientOnly=True, include_med=include_med)
-    print "running data munger"
+    print("running data munger")
     munger = ReferralDataMunger(referral=referral,
                                 df_full=df)
-    print "generate order stats by abs"
+    print("generate order stats by abs")
     munger.generate_order_stats(icd10=icd10, top_k=10, rank_by='abs', order_type='med')
 
     # print "generate order stats by tfidf"
     # munger.generate_order_stats(icd10=icd10, top_k=10, rank_by='tfidf')
-    print "test munger complete"
+    print("test munger complete")
 
 def plot_waiting_times(col=3):
     df = load_data()
@@ -372,7 +372,7 @@ def plot_waiting_times(col=3):
     for i, pair in enumerate(data_config.referral_to_specialty_tuples):
         referral = pair[0]
         referrals.append(referral)
-        print "plot_waiting_times for %s" % referral
+        print("plot_waiting_times for %s" % referral)
 
         munger = ReferralDataMunger(referral=referral,
                                     df_full=df)
@@ -390,15 +390,15 @@ def plot_waiting_times(col=3):
 
 def explore_referrals(referral, top_k=5):
     df = load_data(test_mode=False)
-    print "reading data into munger"
+    print("reading data into munger")
     munger = ReferralDataMunger(referral=referral,
                                 df_full=df)
-    print "calculating by abs"
+    print("calculating by abs")
     munger.explore_referral(top_k=top_k, rank_by='abs')
 
-    print "calculating tfidf"
+    print("calculating tfidf")
     munger.explore_referral(top_k=top_k, rank_by='tfidf')
-    print "finished explore_referral"
+    print("finished explore_referral")
 
 def explore_savable_frac():
     df = load_data(test_mode=False)
@@ -416,7 +416,7 @@ def explore_savable_frac():
 
 def explore_savable_time(specialty='Hematology'):
     df = load_data(newPatientOnly=False, referral_name='REFERRAL TO HEMATOLOGY')
-    print df.head()
+    print(df.head())
     pass
 
 def explore_PC_freq():

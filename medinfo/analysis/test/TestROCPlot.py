@@ -2,18 +2,18 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 import unittest
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.common.test.Util import MedInfoTestCase;
 from medinfo.db.Model import RowItemModel;
 
 from medinfo.analysis.ROCPlot import ROCPlot;
 
-from Util import BaseTestAnalysis;
+from .Util import BaseTestAnalysis;
 
 class TestROCPlot(BaseTestAnalysis):
     def setUp(self):
@@ -142,14 +142,14 @@ outcome\tscore\tscore2
     def verifyJSONData( self, expectedStatsByNameByScoreId, jsonData ):
         """Pull out JSON data components and verify equals where expected"""
 
-        for scoreId, expectedStatsByName in expectedStatsByNameByScoreId.iteritems():
-            for statName, expectedValue in expectedStatsByName.iteritems():
+        for scoreId, expectedStatsByName in expectedStatsByNameByScoreId.items():
+            for statName, expectedValue in expectedStatsByName.items():
                 dataKey = "%s.%s" % (scoreId, statName);
                 if isinstance( jsonData[dataKey], list ):
                     for (expected,sample) in zip( expectedValue, jsonData[dataKey] ):
-                        self.assertAlmostEquals(expected,sample,2);
+                        self.assertAlmostEqual(expected,sample,2);
                 else:
-                    self.assertAlmostEquals( expectedValue, jsonData[dataKey], 5);
+                    self.assertAlmostEqual( expectedValue, jsonData[dataKey], 5);
     
 def suite():
     suite = unittest.TestSuite();

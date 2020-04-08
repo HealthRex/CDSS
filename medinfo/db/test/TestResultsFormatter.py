@@ -2,13 +2,13 @@
 """Test case for respective module in medinfo.Common package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 import unittest
 
 from datetime import datetime;
 
-from Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
-from Util import log;
+from .Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.common.test.Util import MedInfoTestCase;
 
@@ -42,7 +42,7 @@ class TestResultsFormatter(MedInfoTestCase):
                 {"order_proc_id":"4530091", "display_name":"Give patient \"Bedside Insulin Pump Flow Sheet\" to document insulin delivery, BG and carbohydrates"},
                 {"order_proc_id":"5905631", "display_name":"Sign above bed\"Do not reposition NG\""},
             ];
-        targetKeys = expectedData[0].keys();    # Check a subset of values for simplicity
+        targetKeys = list(expectedData[0].keys());    # Check a subset of values for simplicity
         self.assertEqualDictList( expectedData, parsedData, targetKeys );
 
         # Another test on messed up order_med end double quote
@@ -60,7 +60,7 @@ class TestResultsFormatter(MedInfoTestCase):
                 {"order_med_id":"5226027", "DISPLAY_NAME":"warfarin (COUMADIN) tablet 5 mg \"Pharmacy Protocol\""},
                 {"order_med_id":"3579366", "DISPLAY_NAME":""},
             ];
-        targetKeys = expectedData[0].keys();    # Check a subset of values for simplicity
+        targetKeys = list(expectedData[0].keys());    # Check a subset of values for simplicity
         self.assertEqualDictList( expectedData, parsedData, targetKeys );
 
         #    1748628,-3085618212893,408616,06/27/2010 08:28,8,"Fax",21372,"WARFARIN 4 MG PO TABS","","",06/27/2010 18:00,06/28/2010 08:36,06/28/2010 15:36,,"",365888,"warfarin (COUMADIN) tablet 4 mg (Per Pharmacy Protocol"",,"",15,"Oral",06/28/2010 15:36,368883925,"200023","DAILY","QPM","4",3,"mg",9,"Discontinued",365888,372188,4,,3,"mg",2000253,"C3","2","MODIFIED",3,"Discontinued Medication","","",,,"",2,"Inpatient",,,"",,,,,,"",,,,"",,,,"","Y",4,,3,"mg",1,,5002,"Tab"

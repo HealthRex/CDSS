@@ -3,7 +3,7 @@
 # Extract out treatment groups per patient
 ##########################################################################################
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime
 
 os.chdir('/Users/jwang/Desktop/ClinicalDecisionMaker/medinfo/db')

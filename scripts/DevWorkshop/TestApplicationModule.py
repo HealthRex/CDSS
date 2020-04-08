@@ -2,7 +2,7 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 import unittest
 
 from ApplicationModule import ApplicationClass;
@@ -45,7 +45,7 @@ For in that dream of death, when we awake,
         
         # Define expected output of a successful application run, and verify the actual results match
         expectedOutputList = ["To","To","No","For"];
-        self.assertEquals(expectedOutputList, actualOutputList);
+        self.assertEqual(expectedOutputList, actualOutputList);
 
 
 
@@ -62,7 +62,7 @@ For in that dream of death, when we awake,
         
         # Define expected output of a successful application run, and verify the actual results match
         expectedOutputList = ["or","to","sleep","that"];
-        self.assertEquals(expectedOutputList, actualOutputList);
+        self.assertEqual(expectedOutputList, actualOutputList);
 
 
 
@@ -79,7 +79,7 @@ For in that dream of death, when we awake,
         
         # Define expected output of a successful application run, and verify the actual results match
         expectedOutputList = ["point","","goes",""];
-        self.assertEquals(expectedOutputList, actualOutputList);
+        self.assertEqual(expectedOutputList, actualOutputList);
 
 
 
@@ -99,7 +99,7 @@ For in that dream of death, when we awake,
         except TypeError:
             actualError = True;
         # In this case, expect an error to have occurred (invalid wordIndex)
-        self.assertEquals(expectError, actualError);
+        self.assertEqual(expectError, actualError);
 
     #def test_fibonacci(self):
     #    # Do something here???

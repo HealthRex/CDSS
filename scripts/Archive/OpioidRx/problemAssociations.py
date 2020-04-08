@@ -59,7 +59,7 @@ def main(argv):
         patientsPerDxGroup[dxGroup] = patientCount;
 
     progress = ProgressDots();
-    for activeRx, medIds in medIdsByActiveRx.iteritems():
+    for activeRx, medIds in medIdsByActiveRx.items():
         query = baseQuery();
         query.addWhereIn("medication_id", medIds );
 
@@ -78,7 +78,7 @@ def main(argv):
                 headerCols.insert(2, "Dx2");
             headerCols.extend(statIds);
             headerStr = str.join("\t", headerCols );
-            print headerStr;
+            print(headerStr);
         
         # Query out per diagnosis group, but do as aggregate grouped query
         query.addSelect("prob.%s" % DX_COL );
@@ -115,7 +115,7 @@ def main(argv):
             for i, value in enumerate(dataCells):
                 dataCells[i] = str(value);  # String conversion to allow for concatenation below
             dataStr = str.join("\t", dataCells );
-            print dataStr;
+            print(dataStr);
             progress.update();
     progress.printStatus();
 

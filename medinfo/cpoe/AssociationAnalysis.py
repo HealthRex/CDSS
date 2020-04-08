@@ -9,13 +9,13 @@ from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, generatePlaceholders;
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList;
-from Env import DATE_FORMAT;
+from .Env import DATE_FORMAT;
 
-from DataManager import DataManager;
+from .DataManager import DataManager;
 
-from Const import DELTA_NAME_BY_SECONDS, SECONDS_PER_DAY;
+from .Const import DELTA_NAME_BY_SECONDS, SECONDS_PER_DAY;
 
-from Util import log;
+from .Util import log;
 
 
 class AnalysisOptions:
@@ -282,7 +282,7 @@ class AssociationAnalysis:
         if analysisOptions is not None and analysisOptions.deltaSecondsOptions is not None:
             deltaSecondsOptions = analysisOptions.deltaSecondsOptions;
         else:
-            deltaSecondsOptions = DELTA_NAME_BY_SECONDS.keys();
+            deltaSecondsOptions = list(DELTA_NAME_BY_SECONDS.keys());
 
         # Convert timeDelta object into simple numerical representation (seconds as a real number) to facilitate some arithmetic
         timeDelta = patientItem2["item_date"] - patientItem1["item_date"];
@@ -360,11 +360,11 @@ class AssociationAnalysis:
             bufferTwo["incrementDataByItemIdPair"] = dict()
 
         # then fill up any remaining id pairs from buffer two. if you have some in buffer two that are also in buffer one, then add those specific ones together
-        for key, value in bufferTwo["incrementDataByItemIdPair"].iteritems():
+        for key, value in bufferTwo["incrementDataByItemIdPair"].items():
             if key not in bufferOne["incrementDataByItemIdPair"]:
                 bufferOne["incrementDataByItemIdPair"][key] = bufferTwo["incrementDataByItemIdPair"][key]
             else:
-                for key2, value2 in bufferTwo["incrementDataByItemIdPair"][key].iteritems():
+                for key2, value2 in bufferTwo["incrementDataByItemIdPair"][key].items():
                     if key2 not in bufferOne["incrementDataByItemIdPair"][key]:
                         bufferOne["incrementDataByItemIdPair"][key][key2]=bufferTwo["incrementDataByItemIdPair"][key][key2]
                     else:
@@ -374,8 +374,8 @@ class AssociationAnalysis:
 
     def bufferDecay (self, bufferDecay, decayValue):
         if "incrementDataByItemIdPair" in bufferDecay:
-            for key, value in bufferDecay["incrementDataByItemIdPair"].iteritems():
-                for key2, value2 in bufferDecay["incrementDataByItemIdPair"][key].iteritems():
+            for key, value in bufferDecay["incrementDataByItemIdPair"].items():
+                for key2, value2 in bufferDecay["incrementDataByItemIdPair"][key].items():
                     bufferDecay["incrementDataByItemIdPair"][key][key2] *= decayValue
         return bufferDecay
 
@@ -406,7 +406,7 @@ class AssociationAnalysis:
             updateBuffer = json.load(ifs)
             updateBuffer["analyzedPatientItemIds"] = set(updateBuffer["analyzedPatientItemIds"])
             ifs.close()
-        except IOError, exc:
+        except IOError as exc:
             # Apparently could not find the named filename. See if instead it's a prefix
             #    for a series of enumerated files and then merge them into one mass buffer
             dirname = os.path.dirname(filename);
@@ -442,7 +442,7 @@ class AssociationAnalysis:
         try:
             if "incrementDataByItemIdPair" in updateBuffer:
                 # Ensure baseline records exist to facilitate subsequent incremental update queries
-                itemIdPairs = updateBuffer["incrementDataByItemIdPair"].keys();
+                itemIdPairs = list(updateBuffer["incrementDataByItemIdPair"].keys());
                 self.prepareItemAssociations(itemIdPairs, linkedItemIdsByBaseId, conn);
 
                 # Construct incremental update queries based on each item pair's incremental counts/sums
@@ -452,9 +452,9 @@ class AssociationAnalysis:
                 incrementProg.total = nItemPairs;
                 cursor = conn.cursor();
                 try:
-                    for (itemIdPair, incrementData) in updateBuffer["incrementDataByItemIdPair"].iteritems():
+                    for (itemIdPair, incrementData) in updateBuffer["incrementDataByItemIdPair"].items():
                         query = ["UPDATE clinical_item_association SET"];
-                        for col, increment in incrementData.iteritems():
+                        for col, increment in incrementData.items():
                             query.append("%(col)s=%(col)s+%(increment)s" % {"col":col,"increment":increment});
                             query.append(",");
                         query.pop();    # Drop extra comma at end of list
@@ -557,7 +557,7 @@ class AssociationAnalysis:
                     defaultAssociation = RowItemModel( itemIdPair, ("clinical_item_id","subsequent_item_id") );
                     try:    # Optimistic insert of a new item pair, should be safe since just checked above, but parallel processes may collide
                         DBUtil.insertRow("clinical_item_association", defaultAssociation, conn=conn);
-                    except conn.IntegrityError, err:
+                    except conn.IntegrityError as err:
                         log.warning(err);
                         pass;
 

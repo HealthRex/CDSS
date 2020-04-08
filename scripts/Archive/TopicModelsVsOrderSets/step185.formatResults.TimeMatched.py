@@ -5,7 +5,7 @@ Different layout for Time Matched experiment series. Won't have an order set ref
 import sys,os;
 import time;
 import json;
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
@@ -35,7 +35,7 @@ def main_formatResults(argv):
     ofs = stdOpen(BASE_RESULT_DIR+FORMATTED_FILENAME, "w");
 
     summaryData = {"argv": argv};
-    print >> ofs, COMMENT_TAG, json.dumps(summaryData);
+    print(COMMENT_TAG, json.dumps(summaryData), file=ofs);
 
     outputCols = ["SortType","TopicCount","TrainTime","VerifyTime","precision","recall","normalprecision","weightrecall","roc_auc"];
     formatter = TextResultsFormatter(ofs);

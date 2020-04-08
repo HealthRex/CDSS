@@ -50,15 +50,15 @@ for line in inf:
 
 	if (mortality_prob > prob_threshold and delta > delta_threshold):
 		# exclude patients from balanced patient cohorts inputted into association models
-		if (patient_id not in exclude_patients.keys()):
+		if (patient_id not in list(exclude_patients.keys())):
 			better_than_expected_patients[patient_id] = 1
 inf.close()
 
-print("Better than expected patient cases: {0}".format(len(better_than_expected_patients.keys())))
+print("Better than expected patient cases: {0}".format(len(list(better_than_expected_patients.keys()))))
 
 # Output better than expected patient list
 outf = open("better_than_expected_patients.csv", "w")
-for patient_id in better_than_expected_patients.keys():
+for patient_id in list(better_than_expected_patients.keys()):
 	outf.write("{0}\n".format(patient_id))
 outf.close()
 

@@ -3,7 +3,7 @@
 # Extract all diagnoses sorted by item_count
 ##########################################################################################
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 
 os.chdir('/Users/jwang/Desktop/CDSS/medinfo/db')

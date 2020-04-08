@@ -2,13 +2,13 @@ import unittest
 import mock
 import os
 
-from Const import RUNNER_VERBOSITY
+from .Const import RUNNER_VERBOSITY
 from medinfo.db.test.Util import DBTestCase
 from medinfo.cpoe.cpoeSim.analysis import make_usage_report
-from Util import log, captured_output
+from .Util import log, captured_output
 from medinfo.db import DBUtil
 from medinfo.cpoe.cpoeSim.SimManager import SimManager
-from cStringIO import StringIO
+from io import StringIO
 import tempfile
 import csv
 
@@ -95,7 +95,7 @@ class TestMakeUsageReport(DBTestCase):
         DBUtil.insertFile(StringIO(sim_grading_key_str), "sim_grading_key", delim=";")
 
         # Prepare survey file
-        self.survey_csv = tempfile.NamedTemporaryFile(delete=False)
+        self.survey_csv = tempfile.NamedTemporaryFile(mode='w+', delete=False)
         self.survey_csv.write("Physician User Name,resident" + os.linesep +
                               "Jonathan Chen,1")
         self.survey_csv.flush()

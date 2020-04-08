@@ -8,12 +8,12 @@ To verify whether the core counting functionality in the respective application 
 """
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 import unittest
 import zipfile, gzip;
 
-from AssociationStatsExample import AssociationStatsExample;
+from .AssociationStatsExample import AssociationStatsExample;
 
 INPUT_FILENAME_ZIP = "PartD_Prescriber_PUF_NPI_DRUG_15.zip";
 INPUT_SAMPLE_FILENAME_ZIP = "PartD_Prescriber_PUF_NPI_DRUG_15.sample.zip";  # Consider using smaller sample file to avoid excessively long test

@@ -3,7 +3,7 @@
 # Output a pickled map that we can use to filter orders ordere from order sets
 import glob
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime, timedelta
 from dateutil import parser
 import pickle as pkl
@@ -44,7 +44,7 @@ for line in results:
 	patient_id = int(line[1])
 	# if (patient_id == 7072283518095):
 	# 	print(patient_id, order_med_id)
-	if (patient_id not in orderset_order_med_ids.keys()):
+	if (patient_id not in list(orderset_order_med_ids.keys())):
 		orderset_order_med_ids[patient_id] = {}
 	orderset_order_med_ids[patient_id][order_med_id] = 1
 
@@ -80,7 +80,7 @@ results = DBUtil.execute(DATA_QUERY);
 for line in results:
 	order_proc_id = int(line[0])
 	patient_id = int(line[1])
-	if (patient_id not in orderset_order_proc_ids.keys()):
+	if (patient_id not in list(orderset_order_proc_ids.keys())):
 		orderset_order_proc_ids[patient_id] = {}
 	orderset_order_proc_ids[patient_id][order_proc_id] = 1
 

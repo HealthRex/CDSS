@@ -18,7 +18,7 @@ from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
-from LabCultureMatrix import LabCultureMatrix
+from .LabCultureMatrix import LabCultureMatrix
 
 class LabCulturePredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, lab_panel, num_episodes, use_cache=None, random_state=None):

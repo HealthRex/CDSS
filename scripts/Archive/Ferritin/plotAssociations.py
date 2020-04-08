@@ -1,6 +1,6 @@
 import sys, os;
 import time;
-from cStringIO import StringIO;
+from io import StringIO;
 
 import numpy as np;
 import pylab as pl;
@@ -66,7 +66,7 @@ for labBaseName in labBaseNames:
     # Construct independent (x) and dependent (y) vectors from available feature data
     yList = list();
     xList = list();
-    for patient in patientById.itervalues():
+    for patient in patientById.values():
         indexValue = patient[INDEX_ITEM_BASE_NAME];
         featureValue = patient[labBaseName];
         
@@ -113,4 +113,4 @@ for labBaseName in labBaseNames:
     pl.savefig("%s-%s.png" % (INDEX_ITEM_BASE_NAME, labBaseName) );
 
 timer = time.time() - timer;
-print >> sys.stderr, "%.3f seconds to complete" % timer;
+print("%.3f seconds to complete" % timer, file=sys.stderr);

@@ -34,9 +34,9 @@ class TestLabNormalityMatrix(DBTestCase):
         DBTestCase.tearDown(self)
 
     def test_empty(self):
-        print self.matrix._get_components_in_lab_panel()
-        print self.matrix._get_average_orders_per_patient()
-        print self.matrix._get_random_patient_list()
+        print(self.matrix._get_components_in_lab_panel())
+        print(self.matrix._get_average_orders_per_patient())
+        print(self.matrix._get_random_patient_list())
         # print 'self.matrix._num_patients:', self.matrix._num_patients
 
         pass
@@ -54,7 +54,7 @@ class TestLabNormalityMatrix(DBTestCase):
 
             df = pd.DataFrame()
             for one_line in FMTU.FM_TEST_INPUT_TABLES['%s_data'%table_name]:
-                df = df.append(dict(zip(columns, one_line)), ignore_index=True)
+                df = df.append(dict(list(zip(columns, one_line))), ignore_index=True)
 
             df.to_sql(table_name, conn, if_exists="append", index=False)
 

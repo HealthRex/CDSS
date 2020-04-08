@@ -8,7 +8,7 @@ import sys, os
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from datetime import timedelta;
 
 from medinfo.common.Const import COMMENT_TAG;
@@ -19,12 +19,12 @@ from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from medinfo.cpoe.ItemRecommender import RecommenderQuery;
 from medinfo.cpoe.OrderSetRecommender import OrderSetRecommender;
-from Util import log;
+from .Util import log;
 
-from RecommendationClassificationAnalysis import RecommendationClassificationAnalysis;
-from BaseCPOEAnalysis import AnalysisQuery;
-from PreparePatientItems import PreparePatientItems;
-from RecommendationClassificationAnalysis import RecommendationClassificationAnalysis;
+from .RecommendationClassificationAnalysis import RecommendationClassificationAnalysis;
+from .BaseCPOEAnalysis import AnalysisQuery;
+from .PreparePatientItems import PreparePatientItems;
+from .RecommendationClassificationAnalysis import RecommendationClassificationAnalysis;
 
 DEFAULT_RECOMMENDED_ITEM_COUNT = 10;    # When doing validation calculations, number of items to recommend when calculating precision and recall
 DEFAULT_SORT_FIELD = "P(B|A)";
@@ -39,7 +39,7 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
         # Scaled / weighted scores based on item base counts, in this case, number of included order set counts
         analysisQuery.recommender.initItemLookups(analysisQuery.baseRecQuery);
         orderSetCountByItemId = dict();
-        for itemId, orderSetIds in analysisQuery.recommender.orderSetIdsByItemId.iteritems():
+        for itemId, orderSetIds in analysisQuery.recommender.orderSetIdsByItemId.items():
             orderSetCountByItemId[itemId] = len(orderSetIds);
 
         preparer = PreparePatientItems();
@@ -143,7 +143,7 @@ class OrderSetRecommenderClassificationAnalysis(RecommendationClassificationAnal
 
             # Print comment line with analysis arguments to allow for deconstruction later
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             formatter = TextResultsFormatter( outputFile );
             colNames = self.resultHeaders(query);

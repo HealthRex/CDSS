@@ -2,7 +2,7 @@ import sys, os;
 import time;
 import numpy as np;
 from datetime import datetime, timedelta;
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.common.Const import NULL_STRING;
 from medinfo.db import DBUtil;
@@ -124,12 +124,12 @@ def main(argv=None):
     log.info("Output feature matrix file with row per patient day");
     formatter = TextResultsFormatter(featureMatrixFile);
     formatter.formatTuple(colNames);
-    for patientId, patientByIndexTime in patientByIndexTimeById.iteritems():
-        patientResults = patientByIndexTime.values();
+    for patientId, patientByIndexTime in patientByIndexTimeById.items():
+        patientResults = list(patientByIndexTime.values());
         formatter.formatResultDicts(patientResults, colNames);
 
     timer = time.time() - timer;
-    print >> sys.stderr, "%.3f seconds to complete" % timer;
+    print("%.3f seconds to complete" % timer, file=sys.stderr);
 
 if __name__ == "__main__":
     main(sys.argv);

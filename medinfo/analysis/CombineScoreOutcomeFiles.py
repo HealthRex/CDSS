@@ -7,17 +7,17 @@ import sys, os;
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.db.Model import columnFromModelList;
 from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
 from medinfo.db.Model import RowItemModel;
-from Util import log;
+from .Util import log;
 
-from Const import OUTCOME_ABSENT, OUTCOME_PRESENT;
+from .Const import OUTCOME_ABSENT, OUTCOME_PRESENT;
 
-from BaseAnalysis import BaseAnalysis;
+from .BaseAnalysis import BaseAnalysis;
 
 class CombineScoreOutcomeFiles(BaseAnalysis):
     def __init__(self):
@@ -51,7 +51,7 @@ class CombineScoreOutcomeFiles(BaseAnalysis):
                 scoreDict[outcomeLabel] = OUTCOME_PRESENT;
             
             if generateHeader:
-                headerDict = RowItemModel(scoreDict.keys(),scoreDict.keys());
+                headerDict = RowItemModel(list(scoreDict.keys()),list(scoreDict.keys()));
                 yield headerDict;
                 generateHeader = False; # Only need first row
             yield scoreDict;
@@ -90,7 +90,7 @@ class CombineScoreOutcomeFiles(BaseAnalysis):
             
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             formatter = TextResultsFormatter(outputFile);
             formatter.formatResultDicts(outputDicts);

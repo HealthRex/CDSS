@@ -2,8 +2,8 @@
 import sys, os;
 import cgi
 import cgitb; cgitb.enable();
-from cStringIO import StringIO;
-import urllib;
+from io import StringIO;
+import urllib.request, urllib.parse, urllib.error;
 
 from datetime import datetime, timedelta;
 
@@ -69,7 +69,7 @@ class NotesReview(BaseDynamicData):
         dataModel["service_type"] = noteTypeById[dataModel["service_type_id"]]["name"];
         dataModel["author_type"] = noteTypeById[dataModel["author_type_id"]]["name"];
         dataModel["note_time.format"] = (BASE_TIME + timedelta(0,dataModel["relative_time"])).strftime(TIME_FORMAT);
-        dataModel["content.quoted"] = urllib.quote(dataModel["content"]);
+        dataModel["content.quoted"] = urllib.parse.quote(dataModel["content"]);
 
 # CGI Boilerplate to initiate script
 if __name__ == "__main__":

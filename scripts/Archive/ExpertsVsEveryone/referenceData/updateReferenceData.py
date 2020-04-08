@@ -3,9 +3,9 @@ from medinfo.db import DBUtil;
 
 # Clear out any previous reference data (but keep the fixed order set data)
 # (May want to backup database before running these commands)
-print >> sys.stderr, "About to delete/replace existing item_collection_item reference data."
-print >> sys.stderr, "Are you sure? (Ctrl-C to cancel)"
-raw_input();	# Pause for command-line input/confirmation
+print("About to delete/replace existing item_collection_item reference data.", file=sys.stderr)
+print("Are you sure? (Ctrl-C to cancel)", file=sys.stderr)
+input();	# Pause for command-line input/confirmation
 
 conn = DBUtil.connection();
 try:

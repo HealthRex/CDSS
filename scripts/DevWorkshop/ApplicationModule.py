@@ -7,7 +7,7 @@ import sys, os;
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 
 COMMENT_TAG = "#";
 
@@ -23,7 +23,7 @@ class ApplicationClass:
             selectedWord = "";  # Default to empty string if cannot find a word
             if k < len(words):
                 selectedWord = words[k];
-            print >> outputFile, selectedWord;
+            print(selectedWord, file=outputFile);
 
     #def fibonacciExample(???):
         """
@@ -46,7 +46,7 @@ class ApplicationClass:
         parser.add_option("-c", "--cooccurrence",  dest="cooccurrence", action="store_true", help="If set, count up the number of lines in the input file that each word and each co-occuring word pair occurs in.");
         (options, args) = parser.parse_args(argv[1:])
 
-        print >> sys.stderr, "Starting: "+str.join(" ", argv);
+        print("Starting: "+str.join(" ", argv), file=sys.stderr);
         timer = time.time();
         if len(args) > 1:
             inputFile = open(args[0]);
@@ -54,7 +54,7 @@ class ApplicationClass:
             
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             if options.wordIndex:
                 wordIndex = int(options.wordIndex);
@@ -71,7 +71,7 @@ class ApplicationClass:
             sys.exit(-1)
 
         timer = time.time() - timer;
-        print >> sys.stderr, "%.3f seconds to complete" % timer;
+        print("%.3f seconds to complete" % timer, file=sys.stderr);
 
 if __name__ == "__main__":
     instance = ApplicationClass();

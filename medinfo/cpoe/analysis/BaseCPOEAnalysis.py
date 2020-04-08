@@ -6,7 +6,7 @@ Base Analysis module to assess results of recommenders / predictors.
 import sys, os
 import time;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from math import sqrt;
 from datetime import timedelta;
 
@@ -19,7 +19,7 @@ from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from medinfo.cpoe.ItemRecommender import RecommenderQuery;
 from medinfo.cpoe.ItemRecommender import ItemAssociationRecommender, BaselineFrequencyRecommender, RandomItemRecommender;
 from medinfo.cpoe.DataManager import DataManager;
-from Util import log;
+from .Util import log;
 
 # Prepare lookup reference of recommender objects known to be available and facilitate reference by string name
 RECOMMENDER_CLASS_LIST = [ItemAssociationRecommender, BaselineFrequencyRecommender, RandomItemRecommender];

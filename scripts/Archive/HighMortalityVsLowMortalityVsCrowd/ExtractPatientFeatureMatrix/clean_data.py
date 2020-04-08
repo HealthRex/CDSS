@@ -27,7 +27,7 @@ df = pd.get_dummies(df, columns=["clinical_item_id"])
 admission_header = list(df)[1:]
 
 for index, row in df.iterrows():
-	row = map(str,list(row))
+	row = list(map(str,list(row)))
 	last_recorded_diagnoses[row[0]] = ",".join(row[1:])
 	
 # Read in death data (7 day mortalities)

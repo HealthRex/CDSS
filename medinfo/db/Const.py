@@ -2,7 +2,7 @@
 
 import sys;
 import logging
-import Env
+from . import Env
 
 """Delimiter of SQL commands in a DB script file"""
 SQL_DELIM = ";"

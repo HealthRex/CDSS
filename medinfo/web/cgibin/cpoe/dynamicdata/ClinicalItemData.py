@@ -2,7 +2,7 @@
 import sys, os;
 import cgi
 import cgitb; cgitb.enable();
-from cStringIO import StringIO;
+from io import StringIO;
 
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, modelListFromTable;

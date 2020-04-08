@@ -36,7 +36,7 @@ for line in physician_discharge:
 cohorts_full = {} # key = physician, value = list of patient ids
 patient_lists = {} # key = physician, value = list of (patient_id, note_time) tuples
 
-for physician, patients in cohorts_hp.iteritems(): # corresponds to potential mortality
+for physician, patients in cohorts_hp.items(): # corresponds to potential mortality
 	cohort_list = []
 	pat_list = [] 
 	for (pat_id, note_time, encounter_id) in patients:
@@ -45,7 +45,7 @@ for physician, patients in cohorts_hp.iteritems(): # corresponds to potential mo
 	cohorts_full[physician] = cohort_list
 	patient_lists[physician] = pat_list
 
-for physician, patients in cohorts_discharge.iteritems(): # corresponds to potential readmission
+for physician, patients in cohorts_discharge.items(): # corresponds to potential readmission
 	if (physician not in full_cohorts):
 		cohort_list = []
 		pat_list = [] 
@@ -83,10 +83,10 @@ for line in readmission_30:
 
 #initialize map with all physician names
 observed = {} # key = physician, value = (dead or readmitted patients/total patients seen)
-for physician in cohorts_full.keys():
+for physician in list(cohorts_full.keys()):
 	observed[physician] = (0, len(cohorts_full[physician]))
 
-for physician, patients in cohorts_full.iteritems():
+for physician, patients in cohorts_full.items():
 	for (pat_id, note_time, encounter_id) in patients: # iterate through all patients that physician is responsible for based on H&P or discharge note
 
 		if (pat_id in mortality_map): # patient died within 30 days of an admission; found from H&P note
@@ -111,7 +111,7 @@ for physician, patients in cohorts_full.iteritems():
 # perform division (save number of observed mortalities)
 # NOTE: dead_or_re = "dead or readmitted"
 observed_number = {}
-for physician, (dead_or_re, total) in observed.iteritems():
+for physician, (dead_or_re, total) in observed.items():
 	observed[physician] = float(dead_or_re)/total
 	observed_number[physician] = int(dead_or_re)
 
@@ -123,7 +123,7 @@ for physician, (dead_or_re, total) in observed.iteritems():
 
 #initialize map with all physician names
 expected = {} # key = physician, value = (dead or readmitted patients/total patients seen)
-for physician in cohorts_full.keys():
+for physician in list(cohorts_full.keys()):
 	expected[physician] = (0, len(cohorts_full[physician]))
 
 # Read in expected mortality/readmission union probability 
@@ -135,7 +135,7 @@ for line in dead_or_re_probs_f:
 	dead_or_re_probs[line[0]] = float(line[1])
 
 # Find average probability of 30 day mortality/readmission for patients in cohort
-for physician, patients in cohorts_full.iteritems():
+for physician, patients in cohorts_full.items():
 	for (pat_id, note_time, encounter_id) in patients:
 		if (pat_id not in dead_or_re_probs):
 			continue # assume patient without missing probability of death/readmission maintains same as average probability for physician's cohort
@@ -146,7 +146,7 @@ for physician, patients in cohorts_full.iteritems():
 			expected[physician] = (dead_or_re_probs[pat_id], 1)
 
 # Perform division
-for physician, (prob_sum, total) in expected.iteritems():
+for physician, (prob_sum, total) in expected.items():
 	expected[physician] = float(prob_sum)/total
 
 ############################
@@ -156,7 +156,7 @@ for physician, (prob_sum, total) in expected.iteritems():
 # Write out observed and expected probabilities to CSV
 outf = open("/Users/jwang/Desktop/Results/mortalityORreadmission_observed_vs_expected.csv", "w")
 outf.write("physician,observed_combined_rate,expected_combined_rate,total_patients,observed_deadORreadmitted,observed_healthy,expected_deadORreadmitted,expected_healthy,p-value,score\n")
-for physician in cohorts_full.keys():
+for physician in list(cohorts_full.keys()):
 
 	# Compute Fisher Exact Test
 	cohort_size = len(cohorts_full[physician])

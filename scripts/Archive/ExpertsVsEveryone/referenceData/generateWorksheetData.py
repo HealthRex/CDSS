@@ -54,8 +54,8 @@ for admitDxId, sectionName, guidelineName, itemId, itemName, itemDescription, it
 
 recommender = ItemAssociationRecommender();
 
-for admitDxId, itemIds in itemIdsByAdmitDxId.iteritems():
-    print >> sys.stderr, admitDxId, len(itemIds);
+for admitDxId, itemIds in itemIdsByAdmitDxId.items():
+    print(admitDxId, len(itemIds), file=sys.stderr);
     recQuery = RecommenderQuery();
     recQuery.excludeItemIds = recommender.defaultExcludedClinicalItemIds();
     recQuery.excludeCategoryIds = recommender.defaultExcludedClinicalItemCategoryIds();
@@ -72,7 +72,7 @@ for admitDxId, itemIds in itemIdsByAdmitDxId.iteritems():
         itemIds.add( result["clinical_item_id"] );
         #print >> sys.stderr, result["description"];
 
-    print >> sys.stderr, admitDxId, len(itemIds);
+    print(admitDxId, len(itemIds), file=sys.stderr);
 
     # Top results by PPV
     recQuery.sortField = "PPV";
@@ -80,7 +80,7 @@ for admitDxId, itemIds in itemIdsByAdmitDxId.iteritems():
     for result in results:
         itemIds.add( result["clinical_item_id"] );
 
-    print >> sys.stderr, admitDxId, len(itemIds);
+    print(admitDxId, len(itemIds), file=sys.stderr);
 
     # Top results by baseline prevalence
     recQuery.sortField = "prevalence";
@@ -88,12 +88,12 @@ for admitDxId, itemIds in itemIdsByAdmitDxId.iteritems():
     for result in results:
         itemIds.add( result["clinical_item_id"] );
 
-    print >> sys.stderr, admitDxId, len(itemIds);
+    print(admitDxId, len(itemIds), file=sys.stderr);
 
 # Load clinicalItem models for quick lookups 
 clinicalItemById = DBUtil.loadTableAsDict("clinical_item");
 
-print str.join("\t",["Admit Dx ID","Section","Guideline","item_collection_id","collection_type_id","value","comment","clinical_item_id","Name","Description"]);
+print(str.join("\t",["Admit Dx ID","Section","Guideline","item_collection_id","collection_type_id","value","comment","clinical_item_id","Name","Description"]));
 
 for (admitDxId, sectionName, guidelineName) in admitDxIdSectionGuidelineNameTuples:
     itemIds = itemIdsByAdmitDxId[admitDxId];
@@ -101,6 +101,6 @@ for (admitDxId, sectionName, guidelineName) in admitDxIdSectionGuidelineNameTupl
     for itemId in itemIds:
         clinicalItem = clinicalItemById[itemId];
         # Note just printing blank spaces for values in middle
-        print "%s\t%s\t%s\t\t1\t\t\t%s\t%s\t%s" % (admitDxId, sectionName, guidelineName, clinicalItem["clinical_item_id"], clinicalItem["name"], clinicalItem["description"]);
-        print "%s\t%s\t%s\t\t3\t\t\t%s\t%s\t%s" % (admitDxId, sectionName, guidelineName, clinicalItem["clinical_item_id"], clinicalItem["name"], clinicalItem["description"]);
+        print("%s\t%s\t%s\t\t1\t\t\t%s\t%s\t%s" % (admitDxId, sectionName, guidelineName, clinicalItem["clinical_item_id"], clinicalItem["name"], clinicalItem["description"]));
+        print("%s\t%s\t%s\t\t3\t\t\t%s\t%s\t%s" % (admitDxId, sectionName, guidelineName, clinicalItem["clinical_item_id"], clinicalItem["name"], clinicalItem["description"]));
 

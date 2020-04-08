@@ -1,12 +1,12 @@
 import time
 from os import path
 
-import customDBUtil
+from . import customDBUtil
 import numpy as np
 import pandas as pd
 
 from collections import defaultdict, deque
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime
 
 # from medinfo.db.test.Const import RUNNER_VERBOSITY
@@ -79,7 +79,7 @@ class RepeatComponents(object):
 
   @staticmethod
   def splitByPatient(results):
-    currentSplit = [results.next()]
+    currentSplit = [next(results)]
     for result in results:
       if result[0] != currentSplit[-1][0]:
         yield currentSplit
@@ -112,10 +112,10 @@ class RepeatComponents(object):
         - Additional result for consecutive normal count is NULL,
           to count the total number of results and the total number of normal results
     """
-    counts = [deque() for _ in xrange(len(bins))]
+    counts = [deque() for _ in range(len(bins))]
     # key: (days back, consecutive), value: (total, next_normal)
     stats = defaultdict(lambda: np.array([0, 0]))
-    prior_histories = [[False] for _ in xrange(len(bins))]
+    prior_histories = [[False] for _ in range(len(bins))]
     for result in results:
       for window_size, queue, prior_history in zip(bins, counts, prior_histories):
         # only keep whats relevant to the current result
@@ -160,7 +160,7 @@ class RepeatComponents(object):
     # calculate a new None by summing everything else up with the same 0th index key
     # loop over keys and get the sum and create a new dict
     total_counts = defaultdict(lambda: np.array([0, 0]))
-    for k, v in stats.iteritems():
+    for k, v in stats.items():
       total_counts[k[0]] += v
     for window_size in bins:
       # then set 1,0 to 1,None
@@ -168,17 +168,17 @@ class RepeatComponents(object):
       # set window_size,None to the sum of calculated above
       stats[(window_size, None)] = total_counts[window_size]
 
-    return {k: v for k, v in stats.iteritems() if k[1] <= max_consecutive}
+    return {k: v for k, v in stats.items() if k[1] is None or k[1] <= max_consecutive}
 
   @staticmethod
   def createGlobalStatsDf(global_stats):
     df_global_stats = pd.DataFrame()
-    for base_name, d in dict(global_stats).iteritems():
+    for base_name, d in dict(global_stats).items():
       to_df = []
-      for k, v in d.iteritems():
+      for k, v in d.items():
         to_df.append([base_name] + list(k) + list(v))
       df_global_stats = pd.concat(
-          [df_global_stats, pd.DataFrame(to_df, dtype='string').fillna('NULL')])
+          [df_global_stats, pd.DataFrame(to_df, dtype='object').fillna('NULL')])
     df_global_stats = df_global_stats.rename(columns={0: 'base_name',
                                                       1: 'window',
                                                       2: 'consecutive',
@@ -204,20 +204,20 @@ class RepeatComponents(object):
 
     global_stats = defaultdict(lambda: defaultdict(lambda: np.array([0, 0])))
     for result_i, base_name in enumerate(df_result_ids['base_name'].drop_duplicates().tolist()):
-      print result_i, base_name
+      print(result_i, base_name)
       timer = time.time()
       item_ids = df_result_ids[df_result_ids['base_name'] == base_name][
           'clinical_item_id'].tolist()
       results = self._getPatientsComponentsHistories(item_ids)
       for patient_results in RepeatComponents.splitByPatient(results):
-        for k, v in RepeatComponents.getStats(patient_results, RepeatComponents.isNormal).iteritems():
+        for k, v in RepeatComponents.getStats(patient_results, RepeatComponents.isNormal).items():
           global_stats[base_name][k] += v
       times.append(time.time() - timer)
 
     RepeatComponents.createGlobalStatsDf(global_stats).to_csv(
         DATA_FOLDER + 'global_stats.csv', index=False)
 
-    print map(lambda x: round(x, 2), times)
+    print([round(x, 2) for x in times])
 
 if __name__ == '__main__':
   descriptive_stats = RepeatComponents()

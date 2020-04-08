@@ -32,11 +32,11 @@ BASE_OUTPUT_NAME = "first24hourOrderSets.2013.q%d.v%d" % (EVAL_TIMESPAN, VERIFY_
 
 def main_prepPatientItems(argv):
     prep = PreparePatientItems();
-    for i in xrange(-9,10):
+    for i in range(-9,10):
         prep.main(["PreparePatientItems","-S",START_DATE_STR, "-E",END_DATE_STR, "-O", "-p",str(DEMOGRAPHICS_CATEGORY_ID),"-c", str(ADMIT_DX_CATEGORY_ID), "-Q", str(EVAL_TIMESPAN), "-V", str(VERIFY_TIMESPAN), "%s/patientIds.5year.%s.tab.gz" % (SOURCE_DATA_DIR, i), "%s/%s.%s.tab.gz" % (SOURCE_DATA_DIR, BASE_OUTPUT_NAME, i)]);
     
     # Convert to (filtered) Bag of Words
-    for i in xrange(-9,10):
+    for i in range(-9,10):
         prep.main(["PreparePatientItems","-B","qvo","-X", EXCLUDE_CATEGORY_IDS_STR,"%s/%s.%s.tab.gz" % (SOURCE_DATA_DIR,BASE_OUTPUT_NAME,i),"%s/%s.%s.filter.bow.gz" % (SOURCE_DATA_DIR,BASE_OUTPUT_NAME,i)]);
 
     # Concatenate batch of files

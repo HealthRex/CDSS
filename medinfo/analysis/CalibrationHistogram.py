@@ -14,7 +14,7 @@ Instead of implementation that splits data into 10 equal sized groups,
 import sys, os
 import time;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 import json;
 from scipy.stats import chi2;
 from medinfo.db.Model import columnFromModelList;
@@ -22,10 +22,10 @@ from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter;
 from medinfo.db.Model import RowItemModel;
-from Util import log;
+from .Util import log;
 
-from BaseAnalysis import BaseAnalysis;
-from CalibrationPlot import CalibrationPlot;
+from .BaseAnalysis import BaseAnalysis;
+from .CalibrationPlot import CalibrationPlot;
 
 MIN_VALUE = 0.0;
 MAX_VALUE = 1.0;
@@ -50,7 +50,7 @@ class CalibrationHistogram(CalibrationPlot):
         # Setup empty data first
         results = list();
         binSize = (MAX_VALUE - MIN_VALUE) / nBins;
-        for iBin in xrange(nBins):
+        for iBin in range(nBins):
             binData = \
                 {   "scoreMin": MIN_VALUE + binSize * iBin,
                     "scoreMax": MIN_VALUE + binSize * (iBin+1), 
@@ -75,7 +75,7 @@ class CalibrationHistogram(CalibrationPlot):
             results[iBin]["predictedOutcomes"] += score;
 
         # Another pass to calculate bin summary stats
-        for iBin in xrange(nBins):
+        for iBin in range(nBins):
             if results[iBin]["totalInstances"] > 0: # Don't try to calculate for empty bins
                 results[iBin]["observedRate"] = results[iBin]["observedOutcomes"] / results[iBin]["totalInstances"];
                 results[iBin]["predictedRate"] = results[iBin]["predictedOutcomes"] / results[iBin]["totalInstances"];

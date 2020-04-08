@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """Miscellaneous utility functions used across the application
 """
-import Const, Env
+from . import Const, Env
 import sys, os
 import logging
-import urllib;
+import urllib.request, urllib.parse, urllib.error;
 import time;
 import re;
 from datetime import datetime, timedelta;
 import math;
 import json;
-from Const import DEFAULT_DATE_FORMATS, NULL_STRING, FALSE_STRINGS;
+from .Const import DEFAULT_DATE_FORMATS, NULL_STRING, FALSE_STRINGS;
 
 log = logging.getLogger("CDSS")
 log.setLevel(Const.LOGGER_LEVEL)
@@ -53,6 +53,8 @@ def stdOpen(filename,mode="r",stdFile=None):
     else:
         if filename.endswith(Const.GZIP_EXT):
             import gzip;
+            # in Python 3+ 'w' is interpreted as binary and 'wt' is interpreted as text mode
+            mode = 'wt' if mode == 'w' else mode
             return gzip.open(filename,mode);
         else:
             return open(filename,mode)
@@ -66,7 +68,7 @@ def loadJSONDict(sourceStr, keyType=None, valueType=None):
     if keyType is not None and valueType is not None:
         origDict = resultDict;
         resultDict = dict();    # Create a new copy with customized datatypes
-        for origKey, origValue in origDict.iteritems():
+        for origKey, origValue in origDict.items():
             newKey = origKey;
             newValue = origValue;
             if keyType is not None: 
@@ -158,7 +160,7 @@ class ProgressDots:
                 if self.count > 0:
                     secondsRemaining = (self.total - self.count) * (secondsElapsed / self.count);
                 estimateStr = ", ~%s until %d done" % (timedelta(0,round(secondsRemaining)), self.total);
-            print >> self.stream, "%d %s after %s%s" % (self.count, self.name, timedelta(0,round(secondsElapsed)), estimateStr );
+            print("%d %s after %s%s" % (self.count, self.name, timedelta(0,round(secondsElapsed)), estimateStr ), file=self.stream);
             self.stream.flush();
 
 
