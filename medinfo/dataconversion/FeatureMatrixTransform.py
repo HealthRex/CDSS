@@ -8,7 +8,7 @@ import pandas as pd
 
 from scipy.stats import norm
 from sklearn.preprocessing import Imputer
-from Util import log
+from .Util import log
 from math import isnan
 
 class FeatureMatrixTransform:

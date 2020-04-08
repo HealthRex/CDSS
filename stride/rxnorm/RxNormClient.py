@@ -6,7 +6,7 @@ https://rxnav.nlm.nih.gov/RxNormAPIREST.html
 """
 
 import json
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 class RxNormClient:
     BASE_URL = 'https://rxnav.nlm.nih.gov/REST'
@@ -23,7 +23,7 @@ class RxNormClient:
         if self._cache.get(url):
             properties = self._cache[url]
         else:
-            properties = json.loads(urllib2.urlopen(url).read())
+            properties = json.loads(urllib.request.urlopen(url).read())
             self._cache.update({url: properties})
 
         return properties

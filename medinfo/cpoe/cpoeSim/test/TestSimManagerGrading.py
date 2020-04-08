@@ -3,13 +3,13 @@
 
 import unittest
 from io import BytesIO  # for Python 3 use StringIO
-from cStringIO import StringIO
+from io import StringIO
 
 import json
 import csv
-from Const import RUNNER_VERBOSITY
+from .Const import RUNNER_VERBOSITY
 from medinfo.common.Const import COMMENT_TAG, VALUE_DELIM
-from Util import log, captured_output
+from .Util import log, captured_output
 from medinfo.cpoe.cpoeSim.SimManager import SimManager
 from medinfo.db import DBUtil
 from medinfo.db.test.Util import DBTestCase
@@ -196,7 +196,7 @@ Jonathan Chen;3;5;-500;
         sim_patient_ids = [1, 2, 3, 4, 5, 6, 7, 8]
         sim_grading_key_id = "Jonathan Chen"
         actual_grades_by_patient_id = self.manager.grade_cases(sim_patient_ids, sim_grading_key_id)
-        self.assertEquals(self.expected_grades_by_patient_id, actual_grades_by_patient_id)
+        self.assertEqual(self.expected_grades_by_patient_id, actual_grades_by_patient_id)
 
     def test_commandLine(self):
         argv = ["SimManager.py", "-p", "1,2,3,4,5,6", "-g", "Jonathan Chen"]
@@ -209,7 +209,7 @@ Jonathan Chen;3;5;-500;
 
         # verify comment line
         expected_comment_line = COMMENT_TAG + " " + json.dumps({"argv": argv})
-        self.assertEquals(expected_comment_line, actual_comment_line)
+        self.assertEqual(expected_comment_line, actual_comment_line)
 
         # verify csv
         actual_output_csv = StringIO(output_csv)
@@ -219,7 +219,7 @@ Jonathan Chen;3;5;-500;
 
         # verify lines
         for line_num, actual_grade in enumerate(reader):
-            expected_grade_str_values = {k: str(v) for k, v in self.expected_grades_by_patient_id[line_num].iteritems()}
+            expected_grade_str_values = {k: str(v) for k, v in self.expected_grades_by_patient_id[line_num].items()}
             self.assertEqual(expected_grade_str_values, actual_grade)
 
     def test_commandLine_no_patientIds(self):
@@ -251,6 +251,8 @@ def suite():
 
     return test_suite
 
+
+# TODO testcase for different scores for same group in different state
 
 if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

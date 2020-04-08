@@ -9,16 +9,16 @@ import os.path;
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.db.Model import columnFromModelList;
 from medinfo.common.Const import COMMENT_TAG, VALUE_DELIM;
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
 from medinfo.db.Model import RowItemModel;
 from medinfo.db.Model import RowItemFieldComparator, columnFromModelList;
-from Util import log;
+from .Util import log;
 
-from BaseAnalysis import BaseAnalysis;
+from .BaseAnalysis import BaseAnalysis;
 
 class ComparisonOptions:
     """Simple struct to store data"""
@@ -166,11 +166,11 @@ class RankSimilarity(BaseAnalysis):
             outputFile = stdOpen(outputFilename,"w");
             
             # Print comment line with arguments to allow for deconstruction later as well as extra results
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
             formatter = TextResultsFormatter( outputFile );
             # Insert a header row
-            headerCols = resultDict.keys();
-            formatter.formatResultDict( RowItemModel(resultDict.keys(),resultDict.keys()), headerCols );
+            headerCols = list(resultDict.keys());
+            formatter.formatResultDict( RowItemModel(list(resultDict.keys()),list(resultDict.keys())), headerCols );
             formatter.formatResultDict( resultDict, headerCols );
         else:
             parser.print_help()

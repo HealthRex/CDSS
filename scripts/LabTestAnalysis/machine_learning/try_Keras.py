@@ -41,7 +41,7 @@ X_train.pop('pat_id')
 X_test.pop('pat_id')
 
 features = X_train.columns.tolist()
-print features
+print(features)
 
 
 X_train, y_train, X_test, y_test = X_train.values, y_train.values, X_test.values, y_test.values
@@ -50,8 +50,8 @@ scaler = preprocessing.StandardScaler().fit(X_train)
 X_train = scaler.transform(X_train)
 X_test = scaler.transform(X_test)
 
-print "collections.Counter(y_train):", collections.Counter(y_train.flatten())
-print "collections.Counter(y_test):", collections.Counter(y_test.flatten())
+print("collections.Counter(y_train):", collections.Counter(y_train.flatten()))
+print("collections.Counter(y_test):", collections.Counter(y_test.flatten()))
 row, col = X_train.shape
 
 
@@ -92,5 +92,5 @@ else:
 
 y_pred_proba = model.predict_proba(X_test, batch_size=128)
 # print collections.Counter(y_pred_proba.flatten())
-print roc_auc_score(y_test.flatten(), y_pred_proba.flatten())
+print(roc_auc_score(y_test.flatten(), y_pred_proba.flatten()))
 

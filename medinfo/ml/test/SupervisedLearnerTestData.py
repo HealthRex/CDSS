@@ -3,9 +3,9 @@
 import numpy as np
 import pandas as pd
 
-processed_matrix_columns = [u'all_components_normal', u'LABA1C.pre.1460d', u'A1C.-14_0.min', u'A1C.-14_0.mean', u'A1C.-14_0.first', u'A1C.-14_0.proximate', u'AdmitDxDate.preTimeDays', u'AdmitDxDate.pre', u'order_time.hour', u'order_time.hour.cos', u'Birth.preTimeDays', u'Team.Medicine.preTimeDays', u'Comorbidity.Diabetes.preTimeDays', u'Comorbidity.Diabetes.pre', u'Comorbidity.Diabetes.pre.1460d', u'BP_High_Systolic.-3_0.max', u'BP_High_Systolic.-3_0.median', u'BP_High_Systolic.-3_0.mean',
-       u'BP_High_Systolic.-3_0.first', u'BP_High_Systolic.-3_0.last', u'BP_High_Systolic.-3_0.proximate', u'BP_Low_Diastolic.-3_0.min', u'BP_Low_Diastolic.-3_0.mean', u'BP_Low_Diastolic.-3_0.std', u'BP_Low_Diastolic.-3_0.firstTimeDays', u'BP_Low_Diastolic.-3_0.proximateTimeDays', u'Pulse.-3_0.min', u'Pulse.-3_0.first', u'Pulse.-3_0.firstTimeDays', u'Pulse.-3_0.proximateTimeDays', u'Resp.-3_0.firstTimeDays', u'Resp.-3_0.proximateTimeDays', u'Temp.-3_0.mean', u'Temp.-3_0.slope',
-       u'Temp.-3_0.firstTimeDays', u'Temp.-3_0.proximateTimeDays', u'HCT.-14_0.min', u'HCT.-14_0.max', u'HCT.-14_0.mean', u'HCT.-14_0.first', u'HCT.-14_0.proximate', u'PLT.-14_0.mean', u'PLT.-14_0.first', u'K.-14_0.min', u'LABA1C.pre', u'pat_id']
+processed_matrix_columns = ['all_components_normal', 'LABA1C.pre.1460d', 'A1C.-14_0.min', 'A1C.-14_0.mean', 'A1C.-14_0.first', 'A1C.-14_0.proximate', 'AdmitDxDate.preTimeDays', 'AdmitDxDate.pre', 'order_time.hour', 'order_time.hour.cos', 'Birth.preTimeDays', 'Team.Medicine.preTimeDays', 'Comorbidity.Diabetes.preTimeDays', 'Comorbidity.Diabetes.pre', 'Comorbidity.Diabetes.pre.1460d', 'BP_High_Systolic.-3_0.max', 'BP_High_Systolic.-3_0.median', 'BP_High_Systolic.-3_0.mean',
+       'BP_High_Systolic.-3_0.first', 'BP_High_Systolic.-3_0.last', 'BP_High_Systolic.-3_0.proximate', 'BP_Low_Diastolic.-3_0.min', 'BP_Low_Diastolic.-3_0.mean', 'BP_Low_Diastolic.-3_0.std', 'BP_Low_Diastolic.-3_0.firstTimeDays', 'BP_Low_Diastolic.-3_0.proximateTimeDays', 'Pulse.-3_0.min', 'Pulse.-3_0.first', 'Pulse.-3_0.firstTimeDays', 'Pulse.-3_0.proximateTimeDays', 'Resp.-3_0.firstTimeDays', 'Resp.-3_0.proximateTimeDays', 'Temp.-3_0.mean', 'Temp.-3_0.slope',
+       'Temp.-3_0.firstTimeDays', 'Temp.-3_0.proximateTimeDays', 'HCT.-14_0.min', 'HCT.-14_0.max', 'HCT.-14_0.mean', 'HCT.-14_0.first', 'HCT.-14_0.proximate', 'PLT.-14_0.mean', 'PLT.-14_0.first', 'K.-14_0.min', 'LABA1C.pre', 'pat_id']
 
 processed_matrix_array = \
 np.array([

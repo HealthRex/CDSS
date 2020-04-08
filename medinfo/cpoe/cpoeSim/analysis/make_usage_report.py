@@ -5,7 +5,7 @@ from optparse import OptionParser
 
 import pandas as pd
 
-from CPOETrackerAnalysis import aggregate_simulation_data
+from .CPOETrackerAnalysis import aggregate_simulation_data
 from medinfo.common.Const import COMMENT_TAG, VALUE_DELIM
 from medinfo.common.Util import log
 from medinfo.db import DBUtil
@@ -73,7 +73,7 @@ def add_grades_to(csv, graders):
     grade_columns_ordered = []
     for i, grader in enumerate(sorted(graders)):
         grade_column = 'grade ({})'.format(grader)
-        grades = sim_manager.grade_cases(csv['patient'].values.astype(int), grader)
+        grades = sim_manager.grade_cases(csv['patient'].values.astype(dtype=object), grader)
 
         # validate most_active_user_id == most_graded_user_id
         inconsistent_users = [grade for grade in grades if grade['most_active_user_id'] != grade['most_graded_user_id']]

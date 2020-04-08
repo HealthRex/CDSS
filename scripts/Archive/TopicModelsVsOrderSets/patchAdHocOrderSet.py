@@ -16,5 +16,5 @@ for i, line in enumerate(ifs):
     if not line.endswith(SUFFIX):
         ofs.write(line);
     else:
-        print >> sys.stderr, "Skipping Line %d" % i;
+        print("Skipping Line %d" % i, file=sys.stderr);
 prog.printStatus();

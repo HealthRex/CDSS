@@ -2,7 +2,7 @@
 
 import sys;
 import logging
-import Env
+from . import Env
 from datetime import timedelta;
 
 """Application name","for example to identify a common logger object"""

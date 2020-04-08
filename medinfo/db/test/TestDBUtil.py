@@ -2,15 +2,15 @@
 """Test case for respective module in medinfo.Common package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 import unittest
 
 from datetime import datetime;
 
-from Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
-from Util import log;
+from .Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
+from .Util import log;
 
-from Util import DBTestCase;
+from .Util import DBTestCase;
 
 from medinfo.common.test.Util import MedInfoTestCase;
 
@@ -101,7 +101,7 @@ class TestDBUtil(DBTestCase):
         try:
             DBUtil.execute("drop table TestTypes")
             pass
-        except Exception, err:
+        except Exception as err:
             log.warning(err)
             pass
 
@@ -166,7 +166,7 @@ class TestDBUtil(DBTestCase):
         actualErr = False
         try:
             DBUtil.main(argv)
-        except Exception, err:
+        except Exception as err:
             actualErr = True
         self.assertEqual(expectErr,actualErr)
         sys.stdin = origStdin
@@ -283,7 +283,7 @@ class TestDBUtil(DBTestCase):
         actualErr = False
         try:
             DBUtil.main(argv)
-        except Exception, err:
+        except Exception as err:
             actualErr = True
         self.assertEqual(expectErr,actualErr)
         sys.stdout = origStdout
@@ -380,7 +380,7 @@ class TestDBUtil(DBTestCase):
 
         expectedData = \
             [   [   -1, "A"],
-                [   -2, u"B\\xaeb"],
+                [   -2, "B\\xaeb"],
                 [   -3, "C"],
                 [   -4, "D"],
             ];

@@ -2,7 +2,7 @@
 
 import sys;
 import logging
-import Env
+from . import Env
 from datetime import datetime, timedelta;
 
 """Application name","for example to identify a common logger object"""
@@ -37,8 +37,8 @@ DELTA_NAME_BY_SECONDS = \
     }
 """Similar list but starting in units of 1 day"""
 DELTA_NAME_BY_DAYS = dict();
-for seconds, label in DELTA_NAME_BY_SECONDS.iteritems():
-    days = seconds/ SECONDS_PER_DAY;
+for seconds, label in DELTA_NAME_BY_SECONDS.items():
+    days = seconds // SECONDS_PER_DAY;
     if days > 0:
         DELTA_NAME_BY_DAYS[days] = label;
 

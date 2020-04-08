@@ -3,7 +3,7 @@
 # Extract out each patient's last recored admission diagnosis (within 2008-2009 OR 2010-2013)
 ##########################################################################################
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime
 
 os.chdir('/Users/jwang/Desktop/ClinicalDecisionMaker/medinfo/db')

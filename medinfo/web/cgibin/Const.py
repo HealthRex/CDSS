@@ -1,5 +1,5 @@
 """Various constants for use by the web scripts"""
-import Env;
+from . import Env;
 
 """Parameter key to pass if don't want the HTML interface, 
 just want direct data output like a web service"""

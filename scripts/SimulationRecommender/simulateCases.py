@@ -61,6 +61,6 @@ booleanList = [True,True, False, False]
 # running script: 
 t = randomizeCase(cases, booleanList)
 # assumes first case recommender is on
-print t[0]
-print t[1]
-print t[2]
+print(t[0])
+print(t[1])
+print(t[2])

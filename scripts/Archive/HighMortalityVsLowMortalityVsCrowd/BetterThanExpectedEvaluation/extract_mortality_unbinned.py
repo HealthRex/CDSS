@@ -4,7 +4,7 @@
 ##########################################################################################
 import sys, os
 import pandas
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 
 from Const import RUNNER_VERBOSITY;

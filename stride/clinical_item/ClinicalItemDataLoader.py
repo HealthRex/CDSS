@@ -749,7 +749,7 @@ class ClinicalItemDataLoader:
             'EKG5': ' [EKG]',
             'LABPT': ' [PT/INR]',
         }
-        for exact_name, synonym in EXACT_NAME_TO_SYNONYM.iteritems():
+        for exact_name, synonym in EXACT_NAME_TO_SYNONYM.items():
             synonym_command = \
                 """
                 UPDATE clinical_item
@@ -763,14 +763,14 @@ class ClinicalItemDataLoader:
             '^xr.*chest': ' [CXR]',
             'urinalysis': ' [UA]'
         }
-        for regex, synonym in REGEX_TO_SYNONYM.iteritems():
+        for regex, synonym in REGEX_TO_SYNONYM.items():
             synonym_command = \
                 """
                 UPDATE clinical_item
                 SET description = description || '%s'
                 WHERE description ~* '%s';
                 """ % (synonym, regex)
-            print synonym_command
+            print(synonym_command)
             DBUtil.execute(synonym_command)
 
         # More complex cases that can't be easily looped.

@@ -23,6 +23,6 @@ query1 = bq_client.queryBQ(sql1)
 df = query1.to_dataframe()
 
 for row_index,row in df.iterrows():
-   print '\nrow number:',row_index, '\n-------------' 
+   print('\nrow number:',row_index, '\n-------------') 
    time.sleep(float(a1))
-   print row
+   print(row)

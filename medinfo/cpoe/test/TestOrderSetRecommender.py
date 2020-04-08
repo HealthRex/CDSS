@@ -2,12 +2,12 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime, timedelta;
 import unittest
 
-from Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
-from Util import log;
+from .Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.common.Util import ProgressDots;
 
@@ -342,9 +342,9 @@ class TestOrderSetRecommender(DBTestCase):
         """
         lastScore = None;
         for expectedItem, recommendedItem in zip(expectedData, recommendedData):
-            for key in expectedItem.iterkeys():  # If specified, then verify a specific values
+            for key in expectedItem.keys():  # If specified, then verify a specific values
                 if isinstance(expectedItem[key],float):
-                    self.assertAlmostEquals(expectedItem[key], recommendedItem[key], 5);
+                    self.assertAlmostEqual(expectedItem[key], recommendedItem[key], 5);
                 else:
                     self.assertEqual(expectedItem[key], recommendedItem[key]);
             if lastScore is not None:

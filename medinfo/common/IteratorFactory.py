@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-import Const, Util
+from . import Const, Util
 import sys, os
 import tempfile, time;
-from Util import stdOpen, isStdFile
+from .Util import stdOpen, isStdFile
 
 class IteratorFactory:
     """Abstract base class for all iterator factories.
@@ -93,7 +93,7 @@ class FileFactory(IteratorFactory):
 
 def main(argv):
     """Main method, callable from command line"""
-    print >> sys.stderr, "This is an abstract base class and should not be invoked directly."
+    print("This is an abstract base class and should not be invoked directly.", file=sys.stderr)
     sys.exit(-1)
     
 if __name__=="__main__":

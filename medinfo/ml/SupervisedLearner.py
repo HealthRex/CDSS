@@ -65,8 +65,8 @@ class SupervisedLearner():
         sensitivity, specificity, LR_p, LR_n, PPV, NPV = get_confusion_metrics(actual_labels=y_test.values,
                                                                                predict_probas=y_test_pred_proba,
                                                                                threshold=0.5)
-        print "AUC: %s, sensitivity: %s, specificity: %s, LR_p: %s, LR_n: %s, PPV: %s, NPV: %s:. " \
-                % (AUC, sensitivity, specificity, LR_p, LR_n, PPV, NPV)
+        print("AUC: %s, sensitivity: %s, specificity: %s, LR_p: %s, LR_n: %s, PPV: %s, NPV: %s:. " \
+                % (AUC, sensitivity, specificity, LR_p, LR_n, PPV, NPV))
 
 
 if __name__ == '__main__':

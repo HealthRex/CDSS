@@ -67,60 +67,60 @@ for line in inf:
 	results_review_map[rotation][role].append(results_review/3600.0)
 
 
-num (remote) actions, num patients
+# num (remote) actions, num patients
 for rotation in num_actions_map.keys():
-	for role, values in num_actions_map[rotation].iteritems():
+	for role, values in num_actions_map[rotation].items():
 		print("# Actions", rotation, role)
 		print("{0} median with IQR {1}-{2}".format(np.median(np.array(values)), np.percentile(np.array(values), 25), np.percentile(np.array(values), 75)))
 
 for rotation in num_remote_actions_map.keys():
-	for role, values in num_remote_actions_map[rotation].iteritems():
+	for role, values in num_remote_actions_map[rotation].items():
 		print("# Remote Actions", rotation, role)
 		print("{0} median with IQR {1}-{2}".format(np.median(np.array(values)), np.percentile(np.array(values), 25), np.percentile(np.array(values), 75)))
 
 for rotation in num_patients_map.keys():
-	for role, values in num_patients_map[rotation].iteritems():
+	for role, values in num_patients_map[rotation].items():
 		print("# Patients", rotation, role)
 		print("{0} median with IQR {1}-{2}".format(np.median(np.array(values)), np.percentile(np.array(values), 25), np.percentile(np.array(values), 75)))
 
 
-time spent on each ehr action
+# time spent on each ehr action
 for rotation in chart_review_map.keys():
-	for role, values in chart_review_map[rotation].iteritems():
+	for role, values in chart_review_map[rotation].items():
 		print("Chart Review", rotation, role)
 		print("{0} mean with stdev {1}".format(np.mean(np.array(values)), np.std(np.array(values))))
 
 for rotation in note_review_map.keys():
-	for role, values in note_review_map[rotation].iteritems():
+	for role, values in note_review_map[rotation].items():
 		print("Note Review", rotation, role)
 		print("{0} mean with stdev {1}".format(np.mean(np.array(values)), np.std(np.array(values))))
 
 for rotation in note_entry_map.keys():
-	for role, values in note_entry_map[rotation].iteritems():
+	for role, values in note_entry_map[rotation].items():
 		print("Note Entry", rotation, role)
 		print("{0} mean with stdev {1}".format(np.mean(np.array(values)), np.std(np.array(values))))
 
 for rotation in order_entry_map.keys():
-	for role, values in order_entry_map[rotation].iteritems():
+	for role, values in order_entry_map[rotation].items():
 		print("Order Entry", rotation, role)
 		print("{0} mean with stdev {1}".format(np.mean(np.array(values)), np.std(np.array(values))))
 
 for rotation in navigator_map.keys():
-	for role, values in navigator_map[rotation].iteritems():
+	for role, values in navigator_map[rotation].items():
 		print("Navigator", rotation, role)
 		print("{0} mean with stdev {1}".format(np.mean(np.array(values)), np.std(np.array(values))))
 
 for rotation in results_review_map.keys():
-	for role, values in results_review_map[rotation].iteritems():
+	for role, values in results_review_map[rotation].items():
 		print("Results Review", rotation, role)
 		print("{0} mean with stdev {1}".format(np.mean(np.array(values)), np.std(np.array(values))))
 
-total time in aggregate and by role
+# total time in aggregate and by role
 agg = [] # aggregate across all rotations and roles
 pgy1 = []
 pgy2plus = []
 for rotation in total_time_map.keys():
-	for role, values in total_time_map[rotation].iteritems():
+	for role, values in total_time_map[rotation].items():
 		agg.extend(values)
 		if (role == "PGY1"):
 			pgy1.extend(values)
@@ -138,10 +138,9 @@ print("PGY2+")
 print("{0} mean with stdev {1}".format(np.mean(np.array(pgy2plus)), np.std(np.array(pgy2plus))))
 print("{0} median with IQR {1}-{2}".format(np.median(np.array(pgy2plus)), np.percentile(np.array(pgy2plus), 25), np.percentile(np.array(pgy2plus), 75)))
 
-total time by rotation and role
+# total time by rotation and role
 for rotation in total_time_map.keys():
-	for role, values in total_time_map[rotation].iteritems():
+	for role, values in total_time_map[rotation].items():
 		print(rotation, role)
 		print("{0} mean with stdev {1}".format(np.mean(np.array(values)), np.std(np.array(values))))
 		print("{0} median with IQR {1}-{2}".format(np.median(np.array(values)), np.percentile(np.array(values), 25), np.percentile(np.array(values), 75)))
-n

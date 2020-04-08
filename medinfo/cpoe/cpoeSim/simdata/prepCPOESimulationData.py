@@ -1,5 +1,5 @@
 import sys,os;
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.common.Util import ProgressDots, stdOpen;
 from medinfo.db import DBUtil;
 from medinfo.db.ResultsFormatter import TabDictReader;
@@ -116,7 +116,7 @@ def main(argv):
         # Look up clinical items (orders) based on their name / proc_code
         itemById = DBUtil.loadTableAsDict("clinical_item");
         itemByName = dict();
-        for clinicalItem in itemById.itervalues():
+        for clinicalItem in itemById.values():
             itemByName[clinicalItem["name"]] = clinicalItem;
 
         # All other (lab) result, link results to orders they can derive from
@@ -135,7 +135,7 @@ def main(argv):
                 orderResultMap = {"clinical_item_id": orderItem["clinical_item_id"], "sim_result_id": simResultId, "turnaround_time": DEFAULT_LAB_TURNAROUND_TIME};
                 DBUtil.insertRow("sim_order_result_map", orderResultMap, conn=conn);
             else:
-                print >> sys.stderr, "Unable to find item for Proc Code: %s" % procCode;
+                print("Unable to find item for Proc Code: %s" % procCode, file=sys.stderr);
             prog.update();
         prog.printStatus();
     

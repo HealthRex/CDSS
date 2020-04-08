@@ -45,7 +45,7 @@ class TestFeatureSelector(MedInfoTestCase):
         # For the test example, the true implementation flips the significance
         # of features 3 and 4 because their weights are so similar, so we know
         # that k=3 will fail. Don't bother testing.
-        K_VALUES = range(1, 6)
+        K_VALUES = list(range(1, 6))
         K_VALUES.pop(K_VALUES.index(3))
         for k in K_VALUES:
             # Rank features by importance.
@@ -64,7 +64,7 @@ class TestFeatureSelector(MedInfoTestCase):
         # For the test example, the true implementation flips the significance
         # of features 3 and 4 because their weights are so similar, so we know
         # that percentile=13 will fail. Don't bother testing.
-        PERCENTILES = range(1, 100, 4)
+        PERCENTILES = list(range(1, 100, 4))
         PERCENTILES.pop(PERCENTILES.index(13))
 
         for percentile in PERCENTILES:
@@ -96,7 +96,7 @@ class TestFeatureSelector(MedInfoTestCase):
         self._validate_feature_ranks(coefs, sorted_coefs, feature_ranks, k, strict=False)
 
         # Now iterate through all possible k values and specify them to fs.
-        K_VALUES = range(1, 6)
+        K_VALUES = list(range(1, 6))
         # For the test example, the true implementation flips the significance
         # of features 3 and 4 because their weights are so similar, so we know
         # k=3 will fail because coefs are similar. Don't bother testing.

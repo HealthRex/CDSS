@@ -2,16 +2,16 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 import unittest
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.db.ResultsFormatter import TabDictReader;
 from medinfo.analysis.MergeJoinDataFiles import MergeJoinDataFiles;
 
-from Util import BaseTestAnalysis;
+from .Util import BaseTestAnalysis;
 
 class TestMergeJoinDataFiles(BaseTestAnalysis):
     def setUp(self):
@@ -73,12 +73,12 @@ id\toutcome\tscore2
         # Read output back into structured objects, and validate matches expected
         testResults = list(TabDictReader(StringIO(outFile.getvalue())));
         expectedResults = \
-            [   dict( zip(colNames, ["1","0","0.01","0.15","0.22", "nan"]) ),
-                dict( zip(colNames, ["2","0","0.02", "nan", "nan", "nan"]) ),
-                dict( zip(colNames, ["3","1","0.13","0.31","0.42", "nan"]) ),
-                dict( zip(colNames, ["4","1", "nan","0.23", "nan","0.82"]) ),
-                dict( zip(colNames, ["5","2", "nan", "nan","0.15","0.25"]) ),
-                dict( zip(colNames, ["6","3", "nan", "nan", "nan","0.52"]) ),
+            [   dict( list(zip(colNames, ["1","0","0.01","0.15","0.22", "nan"])) ),
+                dict( list(zip(colNames, ["2","0","0.02", "nan", "nan", "nan"])) ),
+                dict( list(zip(colNames, ["3","1","0.13","0.31","0.42", "nan"])) ),
+                dict( list(zip(colNames, ["4","1", "nan","0.23", "nan","0.82"])) ),
+                dict( list(zip(colNames, ["5","2", "nan", "nan","0.15","0.25"])) ),
+                dict( list(zip(colNames, ["6","3", "nan", "nan", "nan","0.52"])) ),
             ];
         self.assertEqualList( expectedResults, testResults );
     

@@ -30,7 +30,7 @@ if __name__=="__main__":
 	conn = None
 	try:
 		conn = psycopg2.connect ("dbname=medinfo user=Muthu host=localhost") #connect to database
-		print "Connected to database"    
+		print("Connected to database")    
 		curs = conn.cursor()
 		curs.execute("DELETE FROM clinical_item_association;") # clear the training table
 		curs.execute("UPDATE patient_item SET analyze_date = null;") # reset the analyze_date column
@@ -38,10 +38,10 @@ if __name__=="__main__":
 		conn.commit()
 		curs.close()
 		conn.close()
-		print "Connection closed"	
-	except psycopg2.DatabaseError, ex:
-		print 'I am unable to connect the database: '
-		print ex
+		print("Connection closed")	
+	except psycopg2.DatabaseError as ex:
+		print('I am unable to connect the database: ')
+		print(ex)
 		sys.exit(1)
 	
 
@@ -76,8 +76,8 @@ if __name__=="__main__":
 	#Keep running the Analysis until you reach the end date
 	while currentItemEnd <= endD:
 
-		print currentItemStart
-		print currentItemEnd
+		print(currentItemStart)
+		print(currentItemEnd)
 
 
 		# Decay database, except at first iteration
@@ -85,11 +85,11 @@ if __name__=="__main__":
 			conn = None
 			try:
 				conn = psycopg2.connect ("dbname=medinfo user=Muthu host=localhost")
-				print "connected to datbase"
+				print("connected to datbase")
 				curs = conn.cursor()
-			except psycopg2.DatabaseError, ex:
-				print 'I am unable to connect the database: ' 
-				print ex
+			except psycopg2.DatabaseError as ex:
+				print('I am unable to connect the database: ') 
+				print(ex)
 				sys.exit(1)
 
 			fields = list()
@@ -100,13 +100,13 @@ if __name__=="__main__":
 					fields.append(fieldName + '=' + fieldName + "*" + str(decay))
 
 			sqlQuery = "UPDATE clinical_item_association SET " + str.join(',', fields) + ";"
-			print sqlQuery
+			print(sqlQuery)
 			curs.execute(sqlQuery)
 
 			conn.commit()
 			curs.close()
 			conn.close()
-			print "Connection closed"
+			print("Connection closed")
 
 			''' Test code for only updating one column one time
 			for field in fields:

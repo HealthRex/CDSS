@@ -3,16 +3,17 @@ import sys, os
 import hashlib
 import time;
 from datetime import datetime;
+from operator import itemgetter
 from optparse import OptionParser
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery;
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList, RowItemFieldComparator;
 
-from Util import log;
-from Const import TEMPLATE_MEDICATION_ID, TEMPLATE_MEDICATION_PREFIX;
-from Const import COLLECTION_TYPE_ORDERSET;
-from Env import DATE_FORMAT;
+from .Util import log;
+from .Const import TEMPLATE_MEDICATION_ID, TEMPLATE_MEDICATION_PREFIX;
+from .Const import COLLECTION_TYPE_ORDERSET;
+from .Env import DATE_FORMAT;
 
 SOURCE_TABLE = "stride_order_med";
 CATEGORY_TEMPLATE = "Med (%s)";    # For this data source, item category will be a Medication subscripted by medication route
@@ -220,7 +221,7 @@ class STRIDEOrderMedConversion:
     def normalizeMixData(self, rxcuiDataByMedId, mixByOrderMedId, convOptions):
         """Look through the mixture components to compile a consolidated set of medication data
         """
-        for orderMedId, mixList in mixByOrderMedId.iteritems():
+        for orderMedId, mixList in mixByOrderMedId.items():
             mixSize = len(mixList);
 
             ingredientIds = set();
@@ -254,7 +255,7 @@ class STRIDEOrderMedConversion:
                     yield ingredientModel;
             elif convOptions.maxMixtureCount is None or ingredientCount <= convOptions.maxMixtureCount:
                 # Composite into single denormalized item
-                ingredientList.sort( RowItemFieldComparator("description") ); # Ensure stable sort order
+                ingredientList.sort(key=itemgetter("description"))  # Ensure stable sort order
 
                 idStrList = list();
                 descriptionList = list();
@@ -268,7 +269,7 @@ class STRIDEOrderMedConversion:
                 # Build on last mix item's row model
                 # Create arbitrary integer, hash to try to be unique
                 # https://stackoverflow.com/questions/16008670/python-how-to-hash-a-string-into-8-digits
-                number = int(hashlib.sha1(idComposite).hexdigest(), 16) % (10 ** 12)
+                number = int(hashlib.sha1(idComposite.encode()).hexdigest(), 16) % (10 ** 12)
                 rowModel["medication_id"] = number
                 rowModel["code"] = RXCUI_CODE_TEMPLATE % idComposite;
                 # Hard to trace back to Order_Med.medication_id from here, since working with Order_Med_MixInfo records
@@ -314,7 +315,7 @@ class STRIDEOrderMedConversion:
             ingredientByRxcui = rxcuiDataByMedId[medId];
             if len(ingredientByRxcui) <= 1 or convOptions.normalizeMixtures:
                 # Single ingredient or want component active ingredients to each have one record
-                for (rxcui, ingredient) in ingredientByRxcui.iteritems():
+                for (rxcui, ingredient) in ingredientByRxcui.items():
                     # ~250/15000 RxCUI's don't have a defined active ingredient.
                     if ingredient is None:
                         continue
@@ -330,7 +331,7 @@ class STRIDEOrderMedConversion:
             else:
                 # Mixture of multiple ingredients and want to keep denormalized
                 # Extract out the active ingredient names to make a composite based only on that unique combination
-                ingredientRxcuiList = [ (ingredient, rxcui) for (rxcui, ingredient) in ingredientByRxcui.iteritems()];
+                ingredientRxcuiList = [ (ingredient, rxcui) for (rxcui, ingredient) in ingredientByRxcui.items()];
                 ingredientRxcuiList.sort();   # Ensure consistent order
 
                 rxcuiStrList = list();
@@ -438,13 +439,13 @@ class STRIDEOrderMedConversion:
                     "item_date":  sourceItem["ordering_date"],
                 }
             );
-        insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys() );
-        insertParams= patientItem.values();
+        insertQuery = DBUtil.buildInsertQuery("patient_item", list(patientItem.keys()) );
+        insertParams= list(patientItem.values());
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute( insertQuery, insertParams, conn=conn );
             patientItem["patient_item_id"] = DBUtil.execute( DBUtil.identityQuery("patient_item"), conn=conn )[0][0];
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, pull out existint ID and continue to insert whatever else is possible
             log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again
             searchPatientItem = \
@@ -505,12 +506,12 @@ class STRIDEOrderMedConversion:
                     "item_collection_item_id":  collectionItem["item_collection_item_id"],
                 }
             );
-        insertQuery = DBUtil.buildInsertQuery("patient_item_collection_link", patientItemCollectionLink.keys() );
-        insertParams= patientItemCollectionLink.values();
+        insertQuery = DBUtil.buildInsertQuery("patient_item_collection_link", list(patientItemCollectionLink.keys()) );
+        insertParams= list(patientItemCollectionLink.values());
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute( insertQuery, insertParams, conn=conn );
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
             log.info(err);
 

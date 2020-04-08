@@ -5,7 +5,7 @@ import unittest
 # from cStringIO import StringIO
 from datetime import datetime
 
-from repeat_component_descriptive import RepeatComponents
+from .repeat_component_descriptive import RepeatComponents
 
 
 class TestRepeatComponents(unittest.TestCase):
@@ -45,7 +45,7 @@ class TestRepeatComponents(unittest.TestCase):
         (1, 0): [2, 1],
         (1, 1): [3, 1]
     }
-    actualResults = {k: list(v) for k, v in actualResults.iteritems()}
+    actualResults = {k: list(v) for k, v in actualResults.items()}
     self.assertEqual(expectedResults, actualResults)
 
   def testWindowSize30Day(self):
@@ -70,7 +70,7 @@ class TestRepeatComponents(unittest.TestCase):
         (30, 2): [1, 1],
         (30, 3): [1, 0]
     }
-    actualResults = {k: list(v) for k, v in actualResults.iteritems()}
+    actualResults = {k: list(v) for k, v in actualResults.items()}
     self.assertEqual(expectedResults, actualResults)
 
   def testWindowSizes1And30Day(self):
@@ -99,7 +99,7 @@ class TestRepeatComponents(unittest.TestCase):
         (30, 2): [1, 1],
         (30, 3): [1, 0]
     }
-    actualResults = {k: list(v) for k, v in actualResults.iteritems()}
+    actualResults = {k: list(v) for k, v in actualResults.items()}
     self.assertEqual(expectedResults, actualResults)
 
   def testMaxConsecutiveFilter(self):
@@ -120,7 +120,7 @@ class TestRepeatComponents(unittest.TestCase):
         (30, 1): [2, 2],
         (30, 2): [1, 1]
     }
-    actualResults = {k: list(v) for k, v in actualResults.iteritems()}
+    actualResults = {k: list(v) for k, v in actualResults.items()}
     self.assertEqual(expectedResults, actualResults)
 
   def testAbnormalResultFollowedByOutOfWindow(self):
@@ -140,7 +140,7 @@ class TestRepeatComponents(unittest.TestCase):
         (4, 1): [2, 1],
         (4, 2): [1, 1]
     }
-    actualResults = {k: list(v) for k, v in actualResults.iteritems()}
+    actualResults = {k: list(v) for k, v in actualResults.items()}
     self.assertEqual(expectedResults, actualResults)
 
   def testCreateGlobalStatsDf(self):

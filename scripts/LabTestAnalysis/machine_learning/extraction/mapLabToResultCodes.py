@@ -41,7 +41,7 @@ SAMPLE_SIZE = 100;
 
 prog = ProgressDots(total=37500100);
 
-print "proc_code\tdescription\tbase_name\tcomponent_name"
+print("proc_code\tdescription\tbase_name\tcomponent_name")
 
 conn = DBUtil.connection();
 cursor = conn.cursor();
@@ -65,7 +65,7 @@ while row is not None:
 
 	if baseName != lastBaseName and nIds > 0:
 		# Moving on to base name. Sub-query for the last one now
-		print >> sys.stderr, lastBaseName, lastComponentName
+		print(lastBaseName, lastComponentName, file=sys.stderr)
 		subQuery = """
 			select proc_code, description, count(order_proc_id)
 			from stride_order_proc
@@ -74,7 +74,7 @@ while row is not None:
 			""" % generatePlaceholders(nIds);
 		subResults = DBUtil.execute(subQuery, tuple(orderProcIds), conn=conn);
 		for procCode, description, count in subResults:
-			print str.join("\t", [procCode, description, lastBaseName, lastComponentName]);
+			print(str.join("\t", [procCode, description, lastBaseName, lastComponentName]));
 
 		orderProcIds.clear();	# Reset once done
 		nIds = 0;
@@ -98,6 +98,6 @@ subQuery = """
 	""" % generatePlaceholders(nIds);
 subResults = DBUtil.execute(subQuery, tuple(orderProcIds), conn=conn);
 for procCode, description, count in subResults:
-	print str.join("\t", [procCode, description, lastBaseName, lastComponentName]);
+	print(str.join("\t", [procCode, description, lastBaseName, lastComponentName]));
 
 prog.printStatus();

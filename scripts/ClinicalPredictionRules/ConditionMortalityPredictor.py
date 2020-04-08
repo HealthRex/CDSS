@@ -41,11 +41,11 @@ class ConditionMortalityPredictor:
         self._build_cmm_names()
         if use_cache is None:
             self._build_raw_feature_matrix()
-        print 'Processing raw feature matrix...'
+        print('Processing raw feature matrix...')
         self._process_raw_feature_matrix()
-        print 'Training predictor...'
+        print('Training predictor...')
         self._train_predictor()
-        print 'Testing predictor...'
+        print('Testing predictor...')
         self._test_predictor()
 
     def _build_cmm_names(self):
@@ -68,15 +68,15 @@ class ConditionMortalityPredictor:
     def _process_raw_feature_matrix(self):
         # Read raw CMM.
         self._fm_io = FeatureMatrixIO()
-        print 'Reading raw matrix...'
+        print('Reading raw matrix...')
         self._cmm_raw = self._fm_io.read_file_to_data_frame(self._cmm_name_raw)
 
         # Add and remove features to _cmm_processed.
         self._fmt = FeatureMatrixTransform()
         self._fmt.set_input_matrix(self._cmm_raw)
-        print 'Adding features...'
+        print('Adding features...')
         self._add_features()
-        print 'Imputing data...'
+        print('Imputing data...')
         self._impute_data()
         self._remove_features()
         self._fmt.drop_duplicate_rows()
@@ -86,7 +86,7 @@ class ConditionMortalityPredictor:
         # This must happen before feature selection so that we don't
         # accidentally learn information from the test data.
         self._train_test_split()
-        print 'Selecting features...'
+        print('Selecting features...')
         self._select_features()
 
         # Write output to new matrix.
@@ -371,4 +371,4 @@ if __name__=="__main__":
         ]
     for condition in conditions:
         predictor = ConditionMortalityPredictor(condition, 1000)
-        print condition.summarize()
+        print(condition.summarize())

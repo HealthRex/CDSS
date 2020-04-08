@@ -2,16 +2,17 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 import unittest
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.db.Model import RowItemModel;
 from medinfo.analysis.BatchTTests import BatchTTests;
 
-from Util import BaseTestAnalysis;
+from .Util import BaseTestAnalysis;
+
 
 class TestBatchTTests(BaseTestAnalysis):
     def setUp(self):
@@ -91,7 +92,7 @@ patient_id\tnumQueryItems\tnumVerifyItems\tnumRecommendedItems\trecall\tprecisio
         argv = ["BatchTTests.py", "-l","-s,-R", "-b","None,OrderSetUsage", "-v","precision,recall", "-m","patient_id,order_set_id", "-","-"];
         self.analyzer.main(argv);
         textOutput = StringIO(sys.stdout.getvalue());
-        #print >> sys.stderr, sys.stdout.getvalue();
+        # print(sys.stdout.getvalue(), file=sys.stderr)
 
         # Expected data
         colNames = \
@@ -128,11 +129,11 @@ patient_id\tnumQueryItems\tnumVerifyItems\tnumRecommendedItems\trecall\tprecisio
                 "ttest_rel.precision",
                 "ttest_rel.recall"
             ];
-        expectedResults = \
-            [   RowItemModel([None, None,  "OrderSetUsage", "OrderSetUsage", 18, 18, 0.483333333333, 0.483333333333, 0.321886798597, 0.321886798597, 0.6, 0.6, 0.125, 0.125, 0.775, 0.775, 18, 18, 0.488888888889, 0.488888888889, 0.29038076323, 0.29038076323, 0.5, 0.5, 0.225, 0.225, 0.7, 0.7, 1.0, 1.0, None, None], colNames ),
-                RowItemModel([None, "OR",  "OrderSetUsage", "ItemAssociationRecommender", 17, 17, 0.511764705882, 0.617647058824, 0.308473190638, 0.268405518742, 0.7, 0.7, 0.2, 0.5, 0.8, 0.9, 17, 17, 0.476470588235, 0.464705882353, 0.294117647059, 0.30858534232, 0.5, 0.6, 0.2, 0.2, 0.7, 0.7, 0.30806740457, 0.912789941607, 0.312974093324, 0.913587910288], colNames ),
-                RowItemModel([None, "PPV", "OrderSetUsage", "ItemAssociationRecommender", 18, 18, 0.483333333333, 0.438888888889, 0.321886798597, 0.314711311962, 0.6, 0.45, 0.125, 0.125, 0.775, 0.675, 18, 18, 0.488888888889, 0.516666666667, 0.29038076323, 0.304138126515, 0.5, 0.4, 0.225, 0.3, 0.7, 0.875, 0.686511526989, 0.786986894926, 0.713757104768, 0.791576162848], colNames ),
-            ];
+        expectedResults = [
+            RowItemModel([None, "OR",  "OrderSetUsage", "ItemAssociationRecommender", 17, 17, 0.511764705882, 0.617647058824, 0.308473190638, 0.268405518742, 0.7, 0.7, 0.2, 0.5, 0.8, 0.9, 17, 17, 0.476470588235, 0.464705882353, 0.294117647059, 0.30858534232, 0.5, 0.6, 0.2, 0.2, 0.7, 0.7, 0.30806740457, 0.912789941607, 0.312974093324, 0.913587910288], colNames ),
+            RowItemModel([None, "PPV", "OrderSetUsage", "ItemAssociationRecommender", 18, 18, 0.483333333333, 0.438888888889, 0.321886798597, 0.314711311962, 0.6, 0.45, 0.125, 0.125, 0.775, 0.675, 18, 18, 0.488888888889, 0.516666666667, 0.29038076323, 0.304138126515, 0.5, 0.4, 0.225, 0.3, 0.7, 0.875, 0.686511526989, 0.786986894926, 0.713757104768, 0.791576162848], colNames ),
+            RowItemModel([None, None, "OrderSetUsage", "OrderSetUsage", 18, 18, 0.483333333333, 0.483333333333, 0.321886798597, 0.321886798597, 0.6, 0.6, 0.125, 0.125, 0.775, 0.775, 18, 18, 0.488888888889, 0.488888888889, 0.29038076323, 0.29038076323, 0.5, 0.5, 0.225, 0.225, 0.7, 0.7, 1.0, 1.0, None, None], colNames),
+        ]
         self.assertEqualStatResultsTextOutput(expectedResults, textOutput, colNames);
 
 
@@ -148,16 +149,31 @@ patient_id\tnumQueryItems\tnumVerifyItems\tnumRecommendedItems\trecall\tprecisio
         # Expected data
         expectedResults = \
             [
-                RowItemModel([None, None,  "OrderSetUsage", "OrderSetUsage", 18, 18, 0.483333333333, 0.483333333333, 0.321886798597, 0.321886798597, 0.6, 0.6, 0.125, 0.125, 0.775, 0.775, 18, 18, 0.488888888889, 0.488888888889, 0.29038076323, 0.29038076323, 0.5, 0.5, 0.225, 0.225, 0.7, 0.7, 1.0, 1.0, None, None], colNames ),
-                RowItemModel([None, "OR",  "OrderSetUsage", "ItemAssociationRecommender", 17, 17, 0.511764705882, 0.617647058824, 0.308473190638, 0.268405518742, 0.7, 0.7, 0.2, 0.5, 0.8, 0.9, 17, 17, 0.476470588235, 0.464705882353, 0.294117647059, 0.30858534232, 0.5, 0.6, 0.2, 0.2, 0.7, 0.7, 0.30806740457, 0.912789941607, 0.398341057058, 0.921720561974], colNames ),
-                RowItemModel([None, "PPV", "OrderSetUsage", "ItemAssociationRecommender", 18, 18, 0.483333333333, 0.438888888889, 0.321886798597, 0.314711311962, 0.6, 0.45, 0.125, 0.125, 0.775, 0.675, 18, 18, 0.488888888889, 0.516666666667, 0.29038076323, 0.304138126515, 0.5, 0.4, 0.225, 0.3, 0.7, 0.875, 0.686511526989, 0.786986894926, 0.742147103681, 0.802972782098], colNames ),
-
-                RowItemModel(['OR', None, 'ItemAssociationRecommender', 'OrderSetUsage', 17, 17, 0.617647058824, 0.511764705882, 0.268405518742, 0.308473190638, 0.7, 0.7, 0.5, 0.2, 0.9, 0.8, 17, 17, 0.464705882353, 0.476470588235, 0.30858534232, 0.294117647059, 0.6, 0.5, 0.2, 0.2, 0.7, 0.7, 0.30806740457, 0.912789941607, 0.398341057085, 0.921720561974], colNames ),
                 RowItemModel(['OR', 'OR', 'ItemAssociationRecommender', 'ItemAssociationRecommender', 17, 17, 0.617647058824, 0.617647058824, 0.268405518742, 0.268405518742, 0.7, 0.7, 0.5, 0.5, 0.9, 0.9, 17, 17, 0.464705882353, 0.464705882353, 0.30858534232, 0.30858534232, 0.6, 0.6, 0.2, 0.2, 0.7, 0.7, 1.0, 1.0, None, None], colNames ),
                 RowItemModel(['OR', 'PPV', 'ItemAssociationRecommender', 'ItemAssociationRecommender', 17, 17, 0.617647058824, 0.411764705882, 0.268405518742, 0.302698360712, 0.7, 0.4, 0.5, 0.1, 0.9, 0.6, 17, 17, 0.464705882353, 0.523529411765, 0.30858534232, 0.311598179721, 0.6, 0.4, 0.2, 0.3, 0.7, 0.9, 0.050138882624, 0.59529734676, 0.00409620577776, 0.489537980441], colNames ),
-                RowItemModel(['PPV', None, 'ItemAssociationRecommender', 'OrderSetUsage', 18, 18, 0.438888888889, 0.483333333333, 0.314711311962, 0.321886798597, 0.45, 0.6, 0.125, 0.125, 0.675, 0.775, 18, 18, 0.516666666667, 0.488888888889, 0.304138126515, 0.29038076323, 0.4, 0.5, 0.3, 0.225, 0.875, 0.7, 0.686511526989, 0.786986894926, 0.742147103681, 0.802972782098], colNames ),
+                RowItemModel(['OR', None, 'ItemAssociationRecommender', 'OrderSetUsage', 17, 17, 0.617647058824, 0.511764705882, 0.268405518742, 0.308473190638, 0.7, 0.7, 0.5, 0.2, 0.9, 0.8, 17, 17, 0.464705882353, 0.476470588235, 0.30858534232, 0.294117647059, 0.6, 0.5, 0.2, 0.2, 0.7, 0.7, 0.30806740457, 0.912789941607, 0.398341057085, 0.921720561974], colNames ),
                 RowItemModel(['PPV', 'OR', 'ItemAssociationRecommender', 'ItemAssociationRecommender', 17, 17, 0.411764705882, 0.617647058824, 0.302698360712, 0.268405518742, 0.4, 0.7, 0.1, 0.5, 0.6, 0.9, 17, 17, 0.523529411765, 0.464705882353, 0.311598179721, 0.30858534232, 0.4, 0.6, 0.3, 0.2, 0.9, 0.7, 0.050138882624, 0.59529734676, 0.00409620577776, 0.489537980441], colNames ),
                 RowItemModel(['PPV', 'PPV', 'ItemAssociationRecommender', 'ItemAssociationRecommender', 18, 18, 0.438888888889, 0.438888888889, 0.314711311962, 0.314711311962, 0.45, 0.45, 0.125, 0.125, 0.675, 0.675, 18, 18, 0.516666666667, 0.516666666667, 0.304138126515, 0.304138126515, 0.4, 0.4, 0.3, 0.3, 0.875, 0.875, 1.0, 1.0, None, None], colNames ),
+                RowItemModel(
+                    ['PPV', None, 'ItemAssociationRecommender', 'OrderSetUsage', 18, 18, 0.438888888889, 0.483333333333,
+                     0.314711311962, 0.321886798597, 0.45, 0.6, 0.125, 0.125, 0.675, 0.775, 18, 18, 0.516666666667,
+                     0.488888888889, 0.304138126515, 0.29038076323, 0.4, 0.5, 0.3, 0.225, 0.875, 0.7, 0.686511526989,
+                     0.786986894926, 0.742147103681, 0.802972782098], colNames),
+
+                RowItemModel(
+                    [None, "OR", "OrderSetUsage", "ItemAssociationRecommender", 17, 17, 0.511764705882, 0.617647058824,
+                     0.308473190638, 0.268405518742, 0.7, 0.7, 0.2, 0.5, 0.8, 0.9, 17, 17, 0.476470588235,
+                     0.464705882353, 0.294117647059, 0.30858534232, 0.5, 0.6, 0.2, 0.2, 0.7, 0.7, 0.30806740457,
+                     0.912789941607, 0.398341057058, 0.921720561974], colNames),
+                RowItemModel(
+                    [None, "PPV", "OrderSetUsage", "ItemAssociationRecommender", 18, 18, 0.483333333333, 0.438888888889,
+                     0.321886798597, 0.314711311962, 0.6, 0.45, 0.125, 0.125, 0.775, 0.675, 18, 18, 0.488888888889,
+                     0.516666666667, 0.29038076323, 0.304138126515, 0.5, 0.4, 0.225, 0.3, 0.7, 0.875, 0.686511526989,
+                     0.786986894926, 0.742147103681, 0.802972782098], colNames),
+                RowItemModel([None, None, "OrderSetUsage", "OrderSetUsage", 18, 18, 0.483333333333, 0.483333333333,
+                              0.321886798597, 0.321886798597, 0.6, 0.6, 0.125, 0.125, 0.775, 0.775, 18, 18,
+                              0.488888888889, 0.488888888889, 0.29038076323, 0.29038076323, 0.5, 0.5, 0.225, 0.225, 0.7,
+                              0.7, 1.0, 1.0, None, None], colNames),
             ];
         self.assertEqualStatResultsTextOutput(expectedResults, textOutput, colNames);
 

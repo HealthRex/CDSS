@@ -9,7 +9,7 @@ import sys, os
 import time;
 import re, string;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from math import sqrt;
 from datetime import timedelta;
 
@@ -18,7 +18,7 @@ from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, HtmlResultsFormatter, TabDictReader;
 from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.db.Model import modelListFromTable, modelDictFromList;
-from Util import log;
+from .Util import log;
 
 HTML_START = """<html><head><script>%(script)s</script><style>%(style)s</style></head><body><form name="mainForm">""";
 HTML_END = """</form></body></html>""";
@@ -61,11 +61,11 @@ class BaseTextAnalysis:
 
         headerData = {"script": HTML_SCRIPT, "style": HTML_STYLE}
 
-        print >> outputFile, HTML_START % headerData;
+        print(HTML_START % headerData, file=outputFile);
         nextRecord = None;
         lastLine = None;
 
-        print >> outputFile, '''<table class="dataTable" cellspacing=0 cellpadding=4>''';
+        print('''<table class="dataTable" cellspacing=0 cellpadding=4>''', file=outputFile);
         iRecord = 0;
         for line in sourceFile:
             if self.isNewRecordLine(line):
@@ -101,11 +101,11 @@ class BaseTextAnalysis:
         prog.update();
         # prog.printStatus();
 
-        print >> outputFile, '''</table>''';
+        print('''</table>''', file=outputFile);
 
         self.outputSummaryRecords(summaryRecords, outputFile);
 
-        print >> outputFile, HTML_END;
+        print(HTML_END, file=outputFile);
 
         #for header in headerSet:
         #    print >> sys.stdout, header;
@@ -157,8 +157,7 @@ class BaseTextAnalysis:
         if self.skipDetail:
             return;
 
-        print >> outputFile, \
-            '''<tr><th class="subheading">iRecord</th>
+        print('''<tr><th class="subheading">iRecord</th>
                     <th class="subheading">Note ID</th>
                     <th class="subheading">MRN</th>
                     <th class="subheading">Date</th>
@@ -171,52 +170,51 @@ class BaseTextAnalysis:
                     <td class="labelCell" align=center>%(contact_date)s</td>
 
                     <td class="labelCell" align=center>&nbsp;</td>
-                </tr>''' % record;
+                </tr>''' % record, file=outputFile);
 
-        print >> outputFile, '''<tr valign=top><td colspan=4 width="70%"><div style="overflow-y: scroll; height: 400px">''';
+        print('''<tr valign=top><td colspan=4 width="70%"><div style="overflow-y: scroll; height: 400px">''', file=outputFile);
 
         lastLineModel = None;
         for lineModel in record["docModel"]["lineModels"]:
             isSectionHeader = lastLineModel is not None and lineModel["section"] != lastLineModel["section"];
             if isSectionHeader:
-                print >> outputFile, "<u>",;
+                print("<u>", end=' ', file=outputFile);
 
             for tokenModel in lineModel["tokenModels"]:
                 if len(tokenModel["questionNames"]) > 0:
-                    print >> outputFile, '<a name="%(iRecord)d.%(questionNames)s" href="javascript:setQuestionsByName(\'%(questionNames)s\', %(iRecord)d)">' % tokenModel,;
+                    print('<a name="%(iRecord)d.%(questionNames)s" href="javascript:setQuestionsByName(\'%(questionNames)s\', %(iRecord)d)">' % tokenModel, end=' ', file=outputFile);
 
-                print >> outputFile, tokenModel["rawToken"],;
+                print(tokenModel["rawToken"], end=' ', file=outputFile);
 
                 if len(tokenModel["questionNames"]) > 0:
-                    print >> outputFile, "</a>",;
+                    print("</a>", end=' ', file=outputFile);
 
             if isSectionHeader:
-                print >> outputFile, "</u>",;
-            print >> outputFile, "<br>";
+                print("</u>", end=' ', file=outputFile);
+            print("<br>", file=outputFile);
             lastLineModel = lineModel;
 
-        print >> outputFile, '''<div></td><td style="padding: 0">'''
+        print('''<div></td><td style="padding: 0">''', file=outputFile)
         self.outputRecordQuestions(record, outputFile);
-        print >> outputFile, '''</td>'''
-        print >> outputFile, \
-            '''</td></tr>
+        print('''</td>''', file=outputFile)
+        print('''</td></tr>
             <tr><td class=line height=1 colspan=100></td></tr>
-            ''';
+            ''', file=outputFile);
 
     def outputRecordQuestions(self, record, outputFile):
-        print >> outputFile, '''<table cellspacing=0 cellpadding=2 style="width: 100%;">''';
-        print >> outputFile, '''<tr><th class="labelCell"><!-- input type=checkbox name="allQuestionsCheck" onClick="javascript:checkAllQuestions(this, %(iRecord)d)" --></th>''' % record;
-        print >> outputFile, '''<th class="labelCell">Name</th><th class="labelCell">Guess</th><th class="labelCell" align=left>Notes</th></tr>''';
+        print('''<table cellspacing=0 cellpadding=2 style="width: 100%;">''', file=outputFile);
+        print('''<tr><th class="labelCell"><!-- input type=checkbox name="allQuestionsCheck" onClick="javascript:checkAllQuestions(this, %(iRecord)d)" --></th>''' % record, file=outputFile);
+        print('''<th class="labelCell">Name</th><th class="labelCell">Guess</th><th class="labelCell" align=left>Notes</th></tr>''', file=outputFile);
         for questionModule in self.questionModules:
             questionData = {"iRecord": record["iRecord"], "name": questionModule.getName(), "answer": questionModule.formatAnswer(record["docModel"]), "notes": questionModule.formatNotes(record["docModel"]) }
-            print >> outputFile, '''<tr id="questionName.%(iRecord)d.%(name)s" onClick="javascript:checkQuestionByName('%(name)s', %(iRecord)d)"><td align=center><input type=checkbox name="questionCheck.%(iRecord)d" value="%(name)s" onClick="return checkQuestion(this);"></td>''' % questionData;
-            print >> outputFile, '''<td align=center>%(name)s</td><td align=center>%(answer)s</td><td>%(notes)s</td></tr>''' % questionData;
+            print('''<tr id="questionName.%(iRecord)d.%(name)s" onClick="javascript:checkQuestionByName('%(name)s', %(iRecord)d)"><td align=center><input type=checkbox name="questionCheck.%(iRecord)d" value="%(name)s" onClick="return checkQuestion(this);"></td>''' % questionData, file=outputFile);
+            print('''<td align=center>%(name)s</td><td align=center>%(answer)s</td><td>%(notes)s</td></tr>''' % questionData, file=outputFile);
 
-        print >> outputFile, '''</table>''';
+        print('''</table>''', file=outputFile);
 
     def extractSummaryRecord(self, record):
         summaryRecord = dict();
-        for key, value in record.iteritems():
+        for key, value in record.items():
             if not key.startswith(self.documentHeader):
                 summaryRecord[key] = value;
         return summaryRecord;
@@ -229,9 +227,9 @@ class BaseTextAnalysis:
             headers.append(questionModule.getName());
             controlHeaders.append(questionModule.getName()+".link");
 
-        print >> outputFile, '''<br>
+        print('''<br>
             <table class="dataTable" cellspacing=0 cellpadding=4 style="width: 100%">
-            <tr><th class="subheading" colspan=100>Summary Table</th></tr>''';
+            <tr><th class="subheading" colspan=100>Summary Table</th></tr>''', file=outputFile);
 
         textAreaRows = 50;
         if not self.skipDetail:
@@ -249,16 +247,16 @@ class BaseTextAnalysis:
 
 
         # Raw result content for copy-paste to spreadsheet
-        print >> outputFile, '''<tr><td class="labelCell" style="color: 808080" colspan=100>Raw Table (Select All and Copy-Paste to Spreadsheet)</td></tr>''';
-        print >> outputFile, '''<tr><td colspan=100><textarea style="width: 100%%;" disabled rows=%d>''' % textAreaRows;
+        print('''<tr><td class="labelCell" style="color: 808080" colspan=100>Raw Table (Select All and Copy-Paste to Spreadsheet)</td></tr>''', file=outputFile);
+        print('''<tr><td colspan=100><textarea style="width: 100%%;" disabled rows=%d>''' % textAreaRows, file=outputFile);
         formatter = TextResultsFormatter(outputFile);
         formatter.formatTuple(headers);
         for summaryRecord in summaryRecords:
             formatter.formatResultDict(summaryRecord, headers);
-        print >> outputFile, '''</textarea></td></tr>''';
+        print('''</textarea></td></tr>''', file=outputFile);
 
-        print >> outputFile, '''</table>''';
-        print >> outputFile, "%d Records Processed" % len(summaryRecords);
+        print('''</table>''', file=outputFile);
+        print("%d Records Processed" % len(summaryRecords), file=outputFile);
 
     def tokenizeDocument(self, rawText, tokenizeOps):
         """Convert raw text string into a structured, tokenized format.
@@ -313,7 +311,7 @@ class BaseTextAnalysis:
         tokenModel["lastAlnum"] = (tokenModel["length"] > 0 and token[-1].isalnum());
         tokenModel["lastAlpha"] = (tokenModel["length"] > 0 and token[-1].isalpha());
         tokenModel["lastDigit"] = (tokenModel["length"] > 0 and token[-1].isdigit());
-        tokenModel["noPunctuationToken"] = token.translate(None, string.punctuation);  # Token after discarding any punctuation characters.  Should not need to discard whitespace characters, since token splitting already separates them
+        tokenModel["noPunctuationToken"] = token.translate(str.maketrans('', '', string.punctuation));  # Token after discarding any punctuation characters.  Should not need to discard whitespace characters, since token splitting already separates them
 
     def addParserOptions(self, parser):
         """Base command-line parser options
@@ -386,7 +384,7 @@ class BaseQuestionModule:
         numDigits = 0;
         # Iterate from iStartToken and accumulate list of all numeric tokens (after discarding punctuation) until
         #   reach non-numeric token or reach expected phone number size
-        for iToken in xrange(iStartToken, len(tokenModels)):
+        for iToken in range(iStartToken, len(tokenModels)):
             tokenModel = tokenModels[iToken];
             if tokenModel["noPunctuationToken"].isdigit():
                 numericTokenModels.append(tokenModel);

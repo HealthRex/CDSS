@@ -13,7 +13,7 @@ rf_model = joblib.load(data_folderpath + "%s-normality-random-forest-model.pkl"%
 
 # rf_model = joblib.load('Uric-Acid, Serum - Plasma-normality-random-forest-model.pkl')._model
 
-print len(rf_model.feature_importances_)
+print(len(rf_model.feature_importances_))
 
 from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 fm_io = FeatureMatrixIO()
@@ -38,7 +38,7 @@ export_graphviz(estimator, out_file='tree.dot',
 import pydot
 
 (graph,) = pydot.graph_from_dot_file('tree.dot')
-print graph
+print(graph)
 graph.write_png('tree.png')
 
 
