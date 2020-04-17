@@ -157,6 +157,13 @@ See the previous section on timestamp stratification. We can do the same for the
 
 We put these files in folder named train2_feature_selected_time, dev2_feature_selected_time, and test2_feature_selected_time.
 
+## Summarizing Dataset Composition
+
+To summarize information about ethnicity, sex, birth year, and number of patients from a given dataset, supply the path to the directory containing the dataset's HDF5 files in the following command (example shown for the time-stratified training set):
+
+<pre>python utils/summarize.py -i data/hdf5/train_feature_selected_time/</pre>
+
+
 # Model and tuning <a name="processdatamatrix"></a>
 
 ## Data generator
