@@ -74,17 +74,17 @@ resultsSARSCoV2DateTimeRange AS
 ( -- Accounting for multiple possible tests per patient, group by patient ID and collate date time ranges
   SELECT 
     person_id, 
-    firstSARSCoV2TestDateTime, lastSARSCoV2TestDateTime,
-    firstSARSCoV2TestDetectedDateTime, lastSARSCoV2TestDetectedDateTime 
+    firstSARSCoV2TestedDateTime, lastSARSCoV2TestedDateTime,
+    firstSARSCoV2DetectedDateTime, lastSARSCoV2DetectedDateTime 
   FROM
   (
-    SELECT person_id, MIN(measurement_DATETIME) AS firstSARSCoV2TestDateTime, MAX(measurement_DATETIME) AS lastSARSCoV2TestDateTime
+    SELECT person_id, MIN(measurement_DATETIME) AS firstSARSCoV2TestedDateTime, MAX(measurement_DATETIME) AS lastSARSCoV2TestedDateTime
     FROM resultsSARSCoV2Tests
     GROUP BY person_id 
   ) AS firstLastSARSCoV2Tests
   LEFT JOIN -- Left outer join, because not everyone who had a test will have a positive test result to join to
   (
-    SELECT person_id, MIN(measurement_DATETIME) AS firstSARSCoV2TestDetectedDateTime, MAX(measurement_DATETIME) AS lastSARSCoV2TestDetectedDateTime
+    SELECT person_id, MIN(measurement_DATETIME) AS firstSARSCoV2DetectedDateTime, MAX(measurement_DATETIME) AS lastSARSCoV2DetectedDateTime
     FROM resultsSARSCoV2Tests
     WHERE resultsSARSCoV2Tests.detectedSARSCoV2
     GROUP BY person_id 
@@ -98,28 +98,51 @@ resultsSARSCoV2DateTimeRange AS
 -- Each with first and last dates of occurrences of ARI (after initial "recent" cutoff date) orSARS-CoV2 test results (including timing of positive/detected result, null if no positive/detected results)
 recentARIandSARSCoV2DateTimeRange AS
 ( -- Full outer join in both directions because some people with ARI diagnosis don't get SARS-CoV2 testing and vice versa
-  SELECT *
+  SELECT *,
+      DATETIME_DIFF( firstSARSCoV2TestedDateTime, firstARIDateTime, DAY ) daysFirstARItoFirstSARSCoV2Tested,
+      DATETIME_DIFF( firstSARSCoV2TestedDateTime, lastARIDateTime, DAY ) daysLastARItoFirstSARSCoV2Tested,
+      DATETIME_DIFF( lastSARSCoV2TestedDateTime, firstARIDateTime, DAY ) daysFirstARItoLastSARSCoV2Tested,
+      DATETIME_DIFF( lastSARSCoV2TestedDateTime, lastARIDateTime, DAY ) daysLastARItoLastSARSCoV2Tested,
+
+      DATETIME_DIFF( firstSARSCoV2DetectedDateTime, firstARIDateTime, DAY ) daysFirstARItoFirstSARSCoV2Detected,
+      DATETIME_DIFF( firstSARSCoV2DetectedDateTime, lastARIDateTime, DAY ) daysLastARItoFirstSARSCoV2Detected,
+      DATETIME_DIFF( lastSARSCoV2DetectedDateTime, firstARIDateTime, DAY ) daysFirstARItoLastSARSCoV2Detected,
+      DATETIME_DIFF( lastSARSCoV2DetectedDateTime, lastARIDateTime, DAY ) daysLastARItoLastSARSCoV2Detected,
   FROM 
     recentARIDateTimeRange FULL JOIN 
     resultsSARSCoV2DateTimeRange USING (person_id)
-  -- 4,091 inner join results (recent ARI diagnosis code AND SARS-CoV2 test results)
+  -- 4,091 inner join results (recent ARI diagnosis code AND SARS-CoV2 test results exist, but not necessarily in the correct datetime order)
   -- 52,088 full outer join results (recent ARI diagnosi code OR SARS-CoV2 test results)
+),
+
+recentARIandSARSCoV2DateTimeRangeWithPatientDemo AS
+( -- Join patient demographic information
+  SELECT 
+    recentARIandSARSCoV2DateTimeRange.*,
+    year_of_birth, DATE_DIFF('2020-02-01', DATE(birth_DATETIME), YEAR) ageAsOfFeb2020,
+    person.gender_concept_id , genderConc.concept_name AS genderConcept,
+    person.race_source_value, person.race_concept_id, raceConc.concept_name as raceConcept,
+    person.ethnicity_source_value, person.ethnicity_concept_id, ethnicityConc.concept_name as ethnicityConcept
+  FROM 
+    recentARIandSARSCoV2DateTimeRange 
+    JOIN `som-rit-phi-starr-prod.starr_omop_cdm5_deid_latest.person` AS person USING (person_id) 
+    LEFT JOIN `som-rit-phi-starr-prod.starr_omop_cdm5_deid_latest.concept` AS genderConc ON (person.gender_concept_id = genderConc.concept_id)
+    LEFT JOIN `som-rit-phi-starr-prod.starr_omop_cdm5_deid_latest.concept` AS raceConc ON (person.race_concept_id = raceConc.concept_id)
+    LEFT JOIN `som-rit-phi-starr-prod.starr_omop_cdm5_deid_latest.concept` AS ethnicityConc ON (person.ethnicity_concept_id = ethnicityConc.concept_id)
 )
 
-
--- Join patient demographic information
-SELECT 
-  recentARIandSARSCoV2DateTimeRange.*,
-  year_of_birth, DATE_DIFF('2020-02-01', DATE(birth_DATETIME), YEAR) ageAsOfFeb2020,
-  person.gender_concept_id , genderConc.concept_name AS genderConcept,
-  person.race_source_value, person.race_concept_id, raceConc.concept_name as raceConcept,
-  person.ethnicity_source_value, person.ethnicity_concept_id, ethnicityConc.concept_name as ethnicityConcept
-FROM 
-  recentARIandSARSCoV2DateTimeRange 
-  JOIN `som-rit-phi-starr-prod.starr_omop_cdm5_deid_latest.person` AS person USING (person_id) 
-  LEFT JOIN `som-rit-phi-starr-prod.starr_omop_cdm5_deid_latest.concept` AS genderConc ON (person.gender_concept_id = genderConc.concept_id)
-  LEFT JOIN `som-rit-phi-starr-prod.starr_omop_cdm5_deid_latest.concept` AS raceConc ON (person.race_concept_id = raceConc.concept_id)
-  LEFT JOIN `som-rit-phi-starr-prod.starr_omop_cdm5_deid_latest.concept` AS ethnicityConc ON (person.ethnicity_concept_id = ethnicityConc.concept_id)
-
+-- Example query for primary ARI and SARS CoV2 testing counts, grouped by different categories
+SELECT
+  CAST(FLOOR(ageAsOfFeb2020 / 10)*10 AS INT64) AS ageMin, CAST(FLOOR(ageAsOfFeb2020 / 10)*10+10 AS INT64) as ageMax,
+  COUNTIF(lastARIDateTime IS NOT NULL) as nARIPatients,
+  COUNTIF(lastSARSCoV2TestedDateTime IS NOT NULL) as nSARSCoV2TestedPatients,
+  COUNTIF(lastSARSCoV2DetectedDateTime IS NOT NULL) as nSARSCoV2DetectedPatients,
+  -- Looking for relative date relationship between ARI diagnosis and SARS-CoV2 Test.
+  -- This logic is imperfect as is based on date spans. Consider redoing, but using patient-days as unit of observation (rows) instead of patients
+  COUNTIF( daysFirstARItoFirstSARSCoV2Tested BETWEEN 0 AND 60 OR daysLastARItoFirstSARSCoV2Tested BETWEEN 0 AND 60 ) AS nARIPatientsSARSCoV2TestedWithin60Days,
+  COUNTIF( daysFirstARItoFirstSARSCoV2Detected BETWEEN 0 AND 60 OR daysLastARItoFirstSARSCoV2Detected BETWEEN 0 AND 60 ) AS nARIPatientsSARSCoV2DetectedWithin60Days
+FROM recentARIandSARSCoV2DateTimeRangeWithPatientDemo 
+GROUP BY ageMin, ageMax
+ORDER BY ageMin
 
 LIMIT 100
