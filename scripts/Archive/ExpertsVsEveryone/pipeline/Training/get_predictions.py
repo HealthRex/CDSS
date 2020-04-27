@@ -3,9 +3,9 @@
 # Call ItemRecommender internally
 ##########################################################################################
 
-import urlparse;
+import urllib.parse;
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 
 os.chdir('/Users/jwang/Desktop/ClinicalDecisionMaker/medinfo/db')
@@ -48,11 +48,11 @@ for line in diagnoses:
 	clinical_item_id = line[0]
 	description = " ".join(line[1:])
 	queryStr = "queryItemIds=" + str(clinical_item_id) + baseQueryStr
-	print('Finding Top Associations for "{0}"'.format(description))
+	print(('Finding Top Associations for "{0}"'.format(description)))
 
 	# Build RecommenderQuery
 	query = RecommenderQuery();
-	paramDict = dict(urlparse.parse_qsl(queryStr,True));
+	paramDict = dict(urllib.parse.parse_qsl(queryStr,True));
 	query.parseParams(paramDict);
 
 	# Call ItemRecommender

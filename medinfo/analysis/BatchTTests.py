@@ -7,20 +7,20 @@ import sys, os;
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
+from operator import itemgetter
 
 import numpy as np;
 from scipy.stats import ttest_rel, ttest_ind;
 
 from medinfo.db.Model import columnFromModelList;
-from medinfo.db.Model import RowItemFieldComparator;
 from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
 from medinfo.db.Model import RowItemModel;
-from Util import log;
+from .Util import log;
 
-from BaseAnalysis import BaseAnalysis;
+from .BaseAnalysis import BaseAnalysis;
 
 # Summary stats to report (more for sanity checking)
 def percentile25(x):
@@ -82,9 +82,9 @@ class BatchTTests(BaseAnalysis):
 
         # Another pass to ensure data is consistently sorted in each group to allow later paired t-tests
         if self.matchCols:
-            for labelKey, data in dataByLabelKey.iteritems():
-                data.sort( RowItemFieldComparator(self.matchCols) );
-
+            for labelKey, data in dataByLabelKey.items():
+                # data.sort(key=cmp_to_key(RowItemFieldComparator(self.matchCols)))
+                data.sort(key=itemgetter(*self.matchCols))
         # See if looking for only one set of base labeled data to compare the rest against
         baseLabelKey = None;
         if self.baseLabels is not None:
@@ -92,14 +92,14 @@ class BatchTTests(BaseAnalysis):
 
         # Result pass to compare all group pair-wise combinations
         prog = ProgressDots();
-        for labelKey0, data0 in dataByLabelKey.iteritems():
+        for labelKey0, data0 in dataByLabelKey.items():
             prefix0 = "Group0.";
             labelModel0 = labelModelByLabelKey[labelKey0];
 
             if baseLabelKey is not None and labelKey0 != baseLabelKey:
                 continue;   # Skip entries where the base label does not match specified key
 
-            for labelKey1, data1 in dataByLabelKey.iteritems():
+            for labelKey1, data1 in dataByLabelKey.items():
                 prefix1 = "Group1.";
                 labelModel1 = labelModelByLabelKey[labelKey1];
 
@@ -181,7 +181,7 @@ class BatchTTests(BaseAnalysis):
 
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            # print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             # Tab-delimited output formatting
             formatter = TextResultsFormatter(outputFile);

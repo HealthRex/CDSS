@@ -65,11 +65,11 @@ class SimulationAnalyzer:
 		item_dict['clinicalItemId'] = clinical_item_id
 		# Rename source to match names used for result items
 		if source == 'resultSpace1':
-			source = u'commonOrders'
+			source = 'commonOrders'
 		elif source == 'resultSpace2':
-			source = u'specificOrders'
+			source = 'specificOrders'
 		elif source == 'non-recommender':
-			source = u'data'
+			source = 'data'
 		item_dict['source'] = source if source != 'undefined' else 'data'  # Quick fix for issue where order set items are not recorded correctly
 		item_dict['searchQuery'] = searchQuery  # May be undefined due to issue where order set items are not correctly recorded
 		item_dict['mode'] = mode if mode != 'undefined' else 'OrderSets'  # Quick fix for issue where order set items are not recorded correctly
@@ -81,13 +81,13 @@ class SimulationAnalyzer:
 			results (list): list of result item dicts
 		"""
 		results = []
-		for mode in self.results_tracker_data.keys():
+		for mode in list(self.results_tracker_data.keys()):
 			for mode_object in self.results_tracker_data[mode]:
 				base_result_item_dict = dict()
 				items_collection = None
 				base_result_item_dict['mode'] = mode
-				for instance_collection_name in mode_object.keys():  # ['items', 'state']
-					for attr_name in mode_object[instance_collection_name].keys():
+				for instance_collection_name in list(mode_object.keys()):  # ['items', 'state']
+					for attr_name in list(mode_object[instance_collection_name].keys()):
 						# If attribute is a list, then items have been found.
 						if isinstance(mode_object[instance_collection_name][attr_name], list):
 							# Store type of result [commonOrders, specificOrders, data]
@@ -124,7 +124,7 @@ class SimulationAnalyzer:
 				signed_orders_tuples.append((int(timestamp), item_str))
 
 		# Filter out result items that do not correspond to items signed
-		filtered_results = list(filter(lambda r: r['clinicalItemId'] in signed_orders_id_set, self.results_collection))
+		filtered_results = list([r for r in self.results_collection if r['clinicalItemId'] in signed_orders_id_set])
 		# For each signed item, find most likely result item
 		for signed_order in signed_orders_tuples:
 			# For each result item that has the same clinical id as the current
@@ -132,7 +132,7 @@ class SimulationAnalyzer:
 			# compute timestamp delta (signed_time - store_time).
 			min_delta = float('inf')
 			best_result = None
-			for potential_result in list(filter(lambda r: r['clinicalItemId'] == signed_order[1] and r['storeTime'] < signed_order[0], filtered_results)):
+			for potential_result in list([r for r in filtered_results if r['clinicalItemId'] == signed_order[1] and r['storeTime'] < signed_order[0]]):
 				delta = signed_order[0] - potential_result['storeTime']
 				if delta < min_delta:
 					min_delta = delta
@@ -164,7 +164,7 @@ class SimulationAnalyzer:
 	def number_mouse_clicks_all(self):
 		"""Aggregate the number of mouse clicks on buttons and inputs on page"""
 		event_tracker = self.event_tracker_data
-		clicks = self.number_mouse_clicks(filters=event_tracker.keys(), perc=False)
+		clicks = self.number_mouse_clicks(filters=list(event_tracker.keys()), perc=False)
 
 		return clicks
 
@@ -198,7 +198,7 @@ class SimulationAnalyzer:
 		"""
 		summary = dict()
 		event_tracker = self.event_tracker_data
-		for event in event_tracker.keys():
+		for event in list(event_tracker.keys()):
 			summary[event] = self.number_mouse_clicks(filters=[event], perc=perc)
 
 		return summary
@@ -241,7 +241,7 @@ class SimulationAnalyzer:
 		"""
 		signed_items_tracker = self.signed_item_tracker_data
 		signed_items = []
-		for timestamp in signed_items_tracker.keys():
+		for timestamp in list(signed_items_tracker.keys()):
 			signed_items_batch = signed_items_tracker[timestamp]
 			if batch:
 				if unique:
@@ -275,7 +275,7 @@ class SimulationAnalyzer:
 			unique (bool): if set to True, duplicate results are ignored
 		"""
 		if not search_modes:
-			search_modes = self.results_tracker_data.keys()
+			search_modes = list(self.results_tracker_data.keys())
 		results = self.retrieve_results(search_modes=search_modes, search_query=search_query, batch=False, unique=unique)
 		count = len(results)
 
@@ -296,7 +296,7 @@ class SimulationAnalyzer:
 		"""
 		results_tracker = self.results_tracker_data
 		if not search_modes:
-			search_modes = results_tracker.keys()
+			search_modes = list(results_tracker.keys())
 		results = []
 		for mode in search_modes:
 			try:
@@ -306,11 +306,11 @@ class SimulationAnalyzer:
 					#	  Wild card search 					Recommendations search											Other results search
 					if (search_query is None) or (search_query == "" and state['searchQuery'] == "") or (search_query != "" and search_query in state['searchQuery']):
 						items = obj['items']
-						for data_type in items.keys():
+						for data_type in list(items.keys()):
 							items_list = items[data_type]
 							if not (type(items_list) is list): continue
 							# Extract item ids
-							items_list = list(map(lambda item: item.split('|')[0], items_list))
+							items_list = list([item.split('|')[0] for item in items_list])
 							if batch:
 								if unique:
 									# Remove duplicates within batch
@@ -335,7 +335,7 @@ class SimulationAnalyzer:
 		signed_orders = self.retrieve_signed_orders(unique=True, batch=False)
 		recommendations = self.retrieve_results(search_modes=[""], batch=False, unique=True)
 		# Map signed_orders to their ids (to be intersected with recommendations)
-		signed_orders_ids = list(map(lambda orders: orders.split('|')[0], signed_orders))
+		signed_orders_ids = list([orders.split('|')[0] for orders in signed_orders])
 		intersection = set(signed_orders_ids) & set(recommendations)
 		count = len(intersection)
 		if perc:
@@ -349,7 +349,7 @@ class SimulationAnalyzer:
 			results (list): list of item dicts corresponding to items that were
 				shown after a manual search (not from recommender)
 		"""
-		results = list(filter(lambda item: item['mode'] != '' and item['searchQuery'] != '', self.results_collection))
+		results = list([item for item in self.results_collection if item['mode'] != '' and item['searchQuery'] != ''])
 		return results
 
 	def get_recommended_options(self, include_related=True):
@@ -420,7 +420,7 @@ class SimulationAnalyzer:
 			signed_from_manual = self._result_signed_intersection(manual_search_results, self.signed_orders_collection, filter_fn=filter_fn)
 		# elif self.version == 'v4':  # versions 4 of the tracker only tracks item sources in the signed orders collection
 		else:
-			signed_from_manual = list(filter(lambda s_item: s_item['source'] == 'data', self.signed_orders_collection))
+			signed_from_manual = list([s_item for s_item in self.signed_orders_collection if s_item['source'] == 'data'])
 		return signed_from_manual
 
 	def get_signed_from_recommended(self, include_related=True):
@@ -443,7 +443,7 @@ class SimulationAnalyzer:
 			signed_from_recommended = self._result_signed_intersection(recommended_results, self.signed_orders_collection, filter_fn)
 		# elif self.version == 'v4':  # versions 4 of the tracker only tracks item sources in the signed orders collection
 		else:
-			signed_from_recommended = list(filter(lambda s_item: s_item['source'] != 'data', self.signed_orders_collection))
+			signed_from_recommended = list([s_item for s_item in self.signed_orders_collection if s_item['source'] != 'data'])
 		return signed_from_recommended
 
 	def get_signed_missed_recommended(self, include_related=True):
@@ -512,7 +512,7 @@ class SimulationAnalyzer:
 		# Flatten eventTracker
 		event_tracker = self.event_tracker_data
 		events = []
-		for event_name in event_tracker.keys():
+		for event_name in list(event_tracker.keys()):
 			for event_ocurrence in event_tracker[event_name]:
 				event_time = event_ocurrence['eventTime']
 				events.append((event_time, event_name, event_ocurrence))
@@ -525,9 +525,9 @@ class SimulationAnalyzer:
 		Args:
 			timeline (iterable): iterable of tuples (position, name, info_dict)
 		"""
-		times = list(map(lambda x: datetime.datetime.fromtimestamp((x[0] - timeline[0][0])/1000.0), timeline))
-		names = list(map(lambda x: x[1], timeline))
-		names_unique = sorted(list(set(list(map(lambda x: x, names)))))
+		times = list([datetime.datetime.fromtimestamp((x[0] - timeline[0][0])/1000.0) for x in timeline])
+		names = list([x[1] for x in timeline])
+		names_unique = sorted(list(set(list([x for x in names]))))
 
 
 		norm = plt.Normalize(1,4)
@@ -548,8 +548,8 @@ class SimulationAnalyzer:
 		plots = []
 
 		for i, name in enumerate(names_unique):
-			named_events = list(filter(lambda x: x[1] == name, timeline))
-			named_times = list(map(lambda x: datetime.datetime.fromtimestamp((x[0] - timeline[0][0])/1000.0), named_events))
+			named_events = list([x for x in timeline if x[1] == name])
+			named_times = list([datetime.datetime.fromtimestamp((x[0] - timeline[0][0])/1000.0) for x in named_events])
 			sc = plt.scatter(named_times, [i*5+1]*len(named_times), marker='o', s=100, alpha=0.8)
 			plots.append(sc)
 
@@ -566,9 +566,9 @@ def aggregate_simulation_data(data_home, output_path, append_to_existing=False, 
 		source_path (str): if append_to_existing is True, source_path is path to used csv file
 	"""
 	# Filter out files that do not end with .json
-	filenames = filter(lambda f: f.endswith('.json'), os.listdir(data_home))
+	filenames = [f for f in os.listdir(data_home) if f.endswith('.json')]
 	# Append directory path to filenames
-	filenames = list(map(lambda f: os.path.join(data_home, f), filenames))
+	filenames = list([os.path.join(data_home, f) for f in filenames])
 	headers = ["user", "patient", "start_time", "elapsed_time", "total_num_clicks", "num_note_clicks", "num_results_review_clicks", "recommended_options", "unqique_recommended_options", "manual_search_options", "total_orders", "orders_from_recommender", "orders_from_manual_search", "orders_from_recommender_missed"]
 	if not append_to_existing:
 		# Create initial csv file

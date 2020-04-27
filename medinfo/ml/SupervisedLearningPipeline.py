@@ -142,7 +142,7 @@ class SupervisedLearningPipeline:
             # be passed on directly to matrix_class, but we expect them to have
             # at least 1 primary variables and # of rows.
             # Ensure that random_state is [-1, 1]
-            random_state = float(self._random_state)/float(sys.maxint)
+            random_state = float(self._random_state)/float(sys.maxsize)
             if self._timeLimit or self._notUsePatIds:
                 matrix = matrix_class(self._var, self._num_rows, random_state=random_state,
                                   timeLimit=self._timeLimit, notUsePatIds=self._notUsePatIds)

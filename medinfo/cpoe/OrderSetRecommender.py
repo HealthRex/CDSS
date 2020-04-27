@@ -6,9 +6,10 @@ then this module will return with a ranked and scored list of associated items /
 """
 import sys, os
 import time;
+from operator import itemgetter
 from optparse import OptionParser;
 import json;
-import urlparse;
+import urllib.parse;
 import math;
 from datetime import datetime, timedelta;
 from medinfo.common.Const import FALSE_STRINGS, COMMENT_TAG;
@@ -21,8 +22,8 @@ from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from medinfo.db.ResultsFormatter import TextResultsFormatter;
 from medinfo.cpoe.ItemRecommender import BaseItemRecommender;
 from medinfo.cpoe.Const import COLLECTION_TYPE_ORDER_SET;
-from Util import log;
-from Const import AD_HOC_SECTION;
+from .Util import log;
+from .Const import AD_HOC_SECTION;
 
 class OrderSetRecommender(BaseItemRecommender):
     """Implementation class for item (e.g., order) recommendation based on existing order sets.
@@ -88,12 +89,12 @@ class OrderSetRecommender(BaseItemRecommender):
         self.itemsById = DBUtil.loadTableAsDict("clinical_item");
         self.categoryIdByItemId = dict();
         self.patientCountByItemId = dict();
-        for itemId, item in self.itemsById.iteritems():
+        for itemId, item in self.itemsById.items():
             self.categoryIdByItemId[itemId] = item["clinical_item_category_id"];
             self.patientCountByItemId[itemId] = item["patient_count"];
         self.candidateItemIds = set();
         emptyQuerySet = set();
-        for itemId in self.orderSetIdsByItemId.keys():
+        for itemId in list(self.orderSetIdsByItemId.keys()):
             if self.isItemRecommendable(itemId, emptyQuerySet, query, self.categoryIdByItemId):
                 self.candidateItemIds.add(itemId);
 
@@ -120,15 +121,15 @@ class OrderSetRecommender(BaseItemRecommender):
         for itemId in self.candidateItemIds:
             if self.isItemRecommendable(itemId, queryItemCountById, query, self.categoryIdByItemId):
                 recScoreByItemId[itemId] = 0.0;
-        for orderSetId, orderSetWeight in weightByOrderSetId.iteritems():
-            for itemId in recScoreByItemId.keys():
+        for orderSetId, orderSetWeight in weightByOrderSetId.items():
+            for itemId in list(recScoreByItemId.keys()):
                 itemWeight = self.itemOrderSetWeight(itemId, orderSetId, self.itemIdsByOrderSetId);
                 recScoreByItemId[itemId] += orderSetWeight*itemWeight;
 
         # Build 2-pls with lists to sort by score
         recommendedData = list();
         numItemsInAnyOrderSet = len(self.orderSetIdsByItemId);
-        for itemId, totalItemWeight in recScoreByItemId.iteritems():
+        for itemId, totalItemWeight in recScoreByItemId.items():
             tfidf = 0.0;
 
             if itemId in self.orderSetIdsByItemId:
@@ -142,7 +143,7 @@ class OrderSetRecommender(BaseItemRecommender):
                 };
             itemModel["score"] = itemModel[query.sortField];
             recommendedData.append(itemModel);
-        recommendedData.sort( RowItemFieldComparator(["score","clinical_item_id"]), reverse=True);
+        recommendedData.sort(key=itemgetter("score", "clinical_item_id"), reverse=True)
         return recommendedData;
 
     def estimateOrderSetWeights(self, queryItemIds, itemIdsByOrderSetId, orderSetIdsByItemId):
@@ -155,7 +156,7 @@ class OrderSetRecommender(BaseItemRecommender):
         numItemsInAnyOrderSet = float(len(orderSetIdsByItemId));
 
         queryItemsInAnyOrderSet = set();
-        for orderSetId, itemIds in itemIdsByOrderSetId.iteritems():
+        for orderSetId, itemIds in itemIdsByOrderSetId.items():
             queryItemsInAnyOrderSet.update( itemIds.intersection(queryItemIds) );
         numQueryItemsInAnyOrderSet = float(len(queryItemsInAnyOrderSet));
         if numQueryItemsInAnyOrderSet < 1:  # Blank query or otherwise searching for things we have no data.
@@ -164,7 +165,7 @@ class OrderSetRecommender(BaseItemRecommender):
             numQueryItemsInAnyOrderSet = float(len(queryItemsInAnyOrderSet));
 
         weightByOrderSetId = dict();
-        for orderSetId, itemIds in itemIdsByOrderSetId.iteritems():
+        for orderSetId, itemIds in itemIdsByOrderSetId.items():
             numQueryItemsInOrderSet = len(itemIds.intersection(queryItemIds));
             weightByOrderSetId[orderSetId] = numQueryItemsInOrderSet / numQueryItemsInAnyOrderSet;
         return weightByOrderSetId;

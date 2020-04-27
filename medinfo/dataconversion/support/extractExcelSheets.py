@@ -24,8 +24,8 @@ def extractExcelSheets(inFilename):
 			#print row
 			row = list(row);	# Convert to a modifiable list
 			for i, value in enumerate(row):
-				if isinstance(value, unicode):	# Clean up string values by replacing non-ascii characters (e.g., \xa0 = non-breaking space)
-					row[i] = value.replace(u'\xa0', u' ');
+				if isinstance(value, str):	# Clean up string values by replacing non-ascii characters (e.g., \xa0 = non-breaking space)
+					row[i] = value.replace('\xa0', ' ');
 			writer.writerow(row);
 
 		fileout.close();
@@ -36,7 +36,7 @@ def main(argv):
 	inFilename = argv[1];
 	generatedFileList = extractExcelSheets(inFilename);
 	for item in generatedFileList:
-		print item;
+		print(item);
 
 if __name__ == "__main__":
 	main(sys.argv);

@@ -10,17 +10,17 @@ import sys, os;
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.db.Model import columnFromModelList;
 from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
 from medinfo.db.Model import RowItemModel;
-from Util import log;
+from .Util import log;
 
-from Const import OUTCOME_ABSENT, OUTCOME_PRESENT;
+from .Const import OUTCOME_ABSENT, OUTCOME_PRESENT;
 
-from BaseAnalysis import BaseAnalysis;
+from .BaseAnalysis import BaseAnalysis;
 
 class ConcatenateDataFiles(BaseAnalysis):
     def __init__(self):
@@ -52,7 +52,7 @@ class ConcatenateDataFiles(BaseAnalysis):
 
             argvDict = self.extract_argvDict(reader.commentLines);  # Must be called after reader.fieldnames so initial text parsing will start
             argvDicts.append(argvDict);
-            for col in argvDict.iterkeys():
+            for col in argvDict.keys():
                 if col not in colSet:
                     colSet.add(col);
                     self.colNames.append(col);
@@ -84,7 +84,7 @@ class ConcatenateDataFiles(BaseAnalysis):
                     # Simple parse through argv to turn into dictionary of key-value pairs
                     lastKey = None;
                     iArg = 0;
-                    for i in xrange(len(argv)):
+                    for i in range(len(argv)):
                         if i == 0:
                             argvDict["argv[0]"] = argv[i];
                         else:
@@ -104,7 +104,7 @@ class ConcatenateDataFiles(BaseAnalysis):
                                     argvDict["args[%d]" % iArg] = argv[i];
                                     iArg += 1;
 
-                except ValueError, exc:
+                except ValueError as exc:
                     # Not a JSON parsable string, ignore it then
                     log.debug(exc);
                     pass;
@@ -139,14 +139,14 @@ class ConcatenateDataFiles(BaseAnalysis):
 
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             # Tab-delimited output formatting
             formatter = TextResultsFormatter(outputFile);
 
             # Begin the file parsing so can at least get the total list of column headers
             rowGenerator = self(inputFiles);
-            firstRow = rowGenerator.next();
+            firstRow = next(rowGenerator);
 
             # Insert a mock record to get a header / label row
             colNames = self.resultHeaders();

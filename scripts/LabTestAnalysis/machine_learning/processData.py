@@ -7,7 +7,7 @@ def preprocessData(filepath, imp_method, filename, lab_type):
 
 	df = pd.read_csv(filepath, na_values='None', sep='\t')
 
-	colnames = filter(lambda x: '.post' not in x, list(df))
+	colnames = [x for x in list(df) if '.post' not in x]
 
 	if 'featureMatrix.SepsisICU' in filepath:
 		df['y'] = df['Death.postTimeDays'] < 30
@@ -346,11 +346,11 @@ if __name__ == '__main__':
 
 
 	for filepath in glob.glob(INPUT_FOLDER + 'labFeatureMatrix*.tab.gz'):
-		print filepath
-		print preprocessData(gzip.open(filepath),
+		print(filepath)
+		print(preprocessData(gzip.open(filepath),
 			imp_method,
 			filepath.split('/')[-1][:-7],
-			filepath.split('.')[-3])
+			filepath.split('.')[-3]))
 
 		# pd.read_csv(gzip.open(filepath), na_values='None', sep='\t') \
 		# 	.to_csv(filepath.split('/')[-1][:-7] + '.csv', index=False)

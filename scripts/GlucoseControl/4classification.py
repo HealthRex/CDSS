@@ -80,7 +80,7 @@ X_rmnan = np.delete(X_rmnan, nan_glu_idx, 0)
 y_rmnan = np.delete(y_rmnan, nan_glu_idx, 0)
 data_IDs = np.delete(data_IDs, nan_glu_idx, 0)
 time_rmnan = np.delete(time_rmnan,nan_glu_idx)
-data_idx = range(len(data_IDs))
+data_idx = list(range(len(data_IDs)))
 
 
 ######################

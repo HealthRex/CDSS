@@ -19,12 +19,12 @@ from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
-from extraction.LabNormalityMatrix import LabNormalityMatrix
+from .extraction.LabNormalityMatrix import LabNormalityMatrix
 
 # Import FMF in order to retrieve all races name dynamically upon accessing the UMich data
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 import LocalEnv
-import prepareData_NonSTRIDE
+from . import prepareData_NonSTRIDE
 import pickle
 
 class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
@@ -153,7 +153,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         '''
         TODO: feat2imputed_dict includes the outcome label
         '''
-        processed_matrix = raw_matrix[self.feat2imputed_dict.keys()].copy()
+        processed_matrix = raw_matrix[list(self.feat2imputed_dict.keys())].copy()
 
         # TODO: tmp solution!
         tmp_path = self._build_processed_matrix_path().replace("2000","10000").replace("-holdout","")
@@ -162,7 +162,7 @@ class LabNormalityPredictionPipeline(SupervisedLearningPipeline):
         processed_matrix = processed_matrix[processed_matrix_previous.columns]
         # TODO: tmp solution!
 
-        for feat in self.feat2imputed_dict.keys():
+        for feat in list(self.feat2imputed_dict.keys()):
             processed_matrix[feat] = processed_matrix[feat].fillna(self.feat2imputed_dict[feat])
 
         fm_io.write_data_frame_to_file(processed_matrix, \
@@ -599,7 +599,7 @@ if __name__ == '__main__':
                 #                                timeLimit=(None, None), notUsePatIds=used_patient_set, holdOut=True)
         else:
             for component in STRIDE_COMPONENT_TESTS:
-                print 'start %s...'%component
+                print('start %s...'%component)
                 LabNormalityPredictionPipeline(component, 10000, use_cache=True, random_state=123456789)
                 # used_patient_set = pickle.load(open('data/used_patient_set_%s.pkl' % component, 'r'))
                 # LabNormalityPredictionPipeline(component, 2000, use_cache=True, random_state=123456789, isLabPanel=False,
@@ -641,7 +641,7 @@ if __name__ == '__main__':
                                                    test_mode=test_mode)
 
         for panel in UMICH_TOP_PANELS:
-            print "processing %s..."%panel
+            print("processing %s..."%panel)
             try:
                 if not pat_batch_mode:
                     LabNormalityPredictionPipeline(panel, 10000, use_cache=False, random_state=123456789, isLabPanel=True)
@@ -657,7 +657,7 @@ if __name__ == '__main__':
                 pass
 
         for component in UMICH_TOP_COMPONENTS:
-            print "processing %s..."%component
+            print("processing %s..."%component)
             try:
                 if not pat_batch_mode:
                     LabNormalityPredictionPipeline(component, 10000, use_cache=False, random_state=123456789)
@@ -696,7 +696,7 @@ if __name__ == '__main__':
 
         if LAB_TYPE == 'panel':
             for panel in UCSF_TOP_PANELS:
-                print 'Now processing %s'%panel
+                print('Now processing %s'%panel)
                 LabNormalityPredictionPipeline(panel, 10000, use_cache=True, random_state=123456789)
 
         else:

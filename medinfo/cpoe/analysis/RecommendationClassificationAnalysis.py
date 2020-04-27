@@ -13,7 +13,7 @@ import sys, os
 import time;
 from optparse import OptionParser;
 import json;
-from cStringIO import StringIO;
+from io import StringIO;
 from math import sqrt;
 from datetime import timedelta;
 from medinfo.common.Const import COMMENT_TAG;
@@ -26,13 +26,13 @@ from medinfo.analysis.ROCPlot import ROCPlot;
 from medinfo.cpoe.ItemRecommender import RecommenderQuery;
 from medinfo.cpoe.ItemRecommender import ItemAssociationRecommender, BaselineFrequencyRecommender, RandomItemRecommender;
 from medinfo.cpoe.OrderSetRecommender import OrderSetRecommender;
-from Util import log;
+from .Util import log;
 
-from BaseCPOEAnalysis import BaseCPOEAnalysis;
-from BaseCPOEAnalysis import RECOMMENDER_CLASS_LIST, RECOMMENDER_CLASS_BY_NAME, AnalysisQuery;
-from BaseCPOEAnalysis import AGGREGATOR_OPTIONS;
+from .BaseCPOEAnalysis import BaseCPOEAnalysis;
+from .BaseCPOEAnalysis import RECOMMENDER_CLASS_LIST, RECOMMENDER_CLASS_BY_NAME, AnalysisQuery;
+from .BaseCPOEAnalysis import AGGREGATOR_OPTIONS;
 
-from PreparePatientItems import PreparePatientItems;
+from .PreparePatientItems import PreparePatientItems;
 
 class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
     """Driver class to review given patient data and run sample recommendation queries against
@@ -109,7 +109,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
         queryItemCountById = patientItemData["queryItemCountById"];
         verifyItemCountById = patientItemData["verifyItemCountById"];
 
-        recQuery.queryItemIds = queryItemCountById.keys();
+        recQuery.queryItemIds = list(queryItemCountById.keys());
         recQuery.targetItemIds = set(); # Ensure not restricted to some specified outcome target
 
         # Query for recommended orders / items
@@ -177,8 +177,8 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
             stats["baseItemId"] = patientItemData["baseItemId"];
         if "order_set_id" in patientItemData:
             stats["order_set_id"] = patientItemData["order_set_id"];
-        stats["queryItemIds"] = queryItemCountById.keys();
-        stats["verifyItemIds"] = verifyItemCountById.keys();
+        stats["queryItemIds"] = list(queryItemCountById.keys());
+        stats["verifyItemIds"] = list(verifyItemCountById.keys());
         stats["recommendedItemIds"] = recommendedItemIds;
         stats["numQueryItems"] = len(queryItemCountById);
         stats["numVerifyItems"] = len(verifyItemCountById);
@@ -228,7 +228,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
                 baseCount = baseCountByItemId[itemId];
             if baseCount <= 0: baseCount = 0.5; # Normalization to avoid possible divide by zero
             weightByVerifyItemId[itemId] = 1.0/baseCount;
-        stats["weightVerifyItems"] = sum(weightByVerifyItemId.itervalues());
+        stats["weightVerifyItems"] = sum(weightByVerifyItemId.values());
 
         weightByRecommendedItemId = dict();
         for itemId in recommendedItemIds:
@@ -237,7 +237,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
                 baseCount = baseCountByItemId[itemId];
             if baseCount <= 0: baseCount = 0.5; # Normalization to avoid possible divide by zero
             weightByRecommendedItemId[itemId] = 1.0/baseCount;
-        stats["weightRecommendedItems"] = sum(weightByRecommendedItemId.itervalues());
+        stats["weightRecommendedItems"] = sum(weightByRecommendedItemId.values());
 
         stats["weightTP"] = 0.0;
         for itemId in verifyItemIds.intersection(recommendedItemIds):
@@ -335,7 +335,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
 
         parser.add_option("-P", "--preparedPatientItemFile",  dest="preparedPatientItemFile", action="store_true", help="If set, will expect primary argument to instead be name of file to read input data from, instead of using above parameters to query from database.");
 
-        parser.add_option("-R", "--recommender",  dest="recommender",  help="Name of the recommender to run the analysis against.  Options: %s" % RECOMMENDER_CLASS_BY_NAME.keys());
+        parser.add_option("-R", "--recommender",  dest="recommender",  help="Name of the recommender to run the analysis against.  Options: %s" % list(RECOMMENDER_CLASS_BY_NAME.keys()));
         parser.add_option("-r", "--numRecs",   dest="numRecs",  help="Number of orders / items to recommend for comparison against the verification set. Alternative set option numRecsByOrderSet to look for key order set usage and size.");
         parser.add_option("-O", "--numRecsByOrderSet",   dest="numRecsByOrderSet", action="store_true", help="If set, then look for an order_set_id column to find the key order set that triggered the evaluation time point to determine number of recommendations to consider.");
         parser.add_option("-s", "--sortField",  dest="sortField",  help="Allow overriding of default sort field when returning ranked results");
@@ -424,7 +424,7 @@ class RecommendationClassificationAnalysis(BaseCPOEAnalysis):
 
             # Print comment line with analysis arguments to allow for deconstruction later
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             formatter = TextResultsFormatter( outputFile );
             colNames = self.resultHeaders(query);

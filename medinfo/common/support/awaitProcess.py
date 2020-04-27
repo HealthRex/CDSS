@@ -18,7 +18,7 @@ def main(argv):
     parser.add_option("-c", "--commandStr",  dest="commandStr",  help="Command string to execute after the specified PID is longer found.  Will just pass whole string to subprocess");
     (options, args) = parser.parse_args(argv[1:])
 
-    print >> sys.stderr, "Starting: "+str.join(" ", argv)
+    print("Starting: "+str.join(" ", argv), file=sys.stderr)
     timer = time.time();
     if options.pid and options.commandStr:
         pid = int(options.pid);
@@ -30,15 +30,15 @@ def main(argv):
             prog.update();
         prog.printStatus();
         
-        print >> sys.stderr, "Executing: ", options.commandStr;
+        print("Executing: ", options.commandStr, file=sys.stderr);
         process = subprocess.Popen(options.commandStr);
-        print >> sys.stderr, "Started process: ", process.pid;
+        print("Started process: ", process.pid, file=sys.stderr);
     else:
         parser.print_help()
         sys.exit(-1)
 
     timer = time.time() - timer;
-    print >> sys.stderr, ("%.3f seconds to complete" % timer);
+    print(("%.3f seconds to complete" % timer), file=sys.stderr);
 
 def pidExists(pid):
     """Return True/False whether the given PID exists / is active"""

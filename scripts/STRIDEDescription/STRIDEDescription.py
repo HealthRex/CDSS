@@ -29,7 +29,7 @@ class STRIDEDescription:
         # print self._getNumPatientEncounters()
         # print self._getAdmitDateRange()
         # print self._getNumPatientEncountersByMonth()
-        print self._getPatientDemographics()
+        print(self._getPatientDemographics())
         #self.plotNumPatientEncountersByMonth()
         #self.plotPatientDemographicsByMonth()
 
@@ -429,7 +429,7 @@ class STRIDEDescription:
             """
             SELECT
             """
-        print query
+        print(query)
 
     def generateCharts():
         pass

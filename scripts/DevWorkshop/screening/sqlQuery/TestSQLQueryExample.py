@@ -2,12 +2,12 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 import unittest
 import sqlite3;
 
-from SQLQueryExample import SQLQueryExample;
+from .SQLQueryExample import SQLQueryExample;
 
 # Sample SQL database contained in single sqlite file.
 # More information and data schema: 

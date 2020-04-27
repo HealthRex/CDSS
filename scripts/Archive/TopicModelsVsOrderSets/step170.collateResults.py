@@ -49,7 +49,7 @@ def main_concatenate(argv):
         fileListFile = stdOpen(resultDir+FILELIST_FILENAME, "w");
         for filename in os.listdir(resultDir):
             if filename.startswith(RESULT_BASENAME):  
-                print >> fileListFile, resultDir+filename;
+                print(resultDir+filename, file=fileListFile);
         fileListFile.close();
         subargv = ["ConcatenateDataFiles.py","-o",resultDir+CONCATENATE_FILENAME];
         subargv.append(resultDir+FILELIST_FILENAME);
@@ -73,7 +73,7 @@ def main_mergeTTestResults(argv):
     mod = ConcatenateDataFiles();
     fileListFile = stdOpen(BASE_RESULT_DIR+FILELIST_FILENAME, "w");
     for resultDir in RESULT_DIRS:
-        print >> fileListFile, resultDir+TTEST_FILENAME;
+        print(resultDir+TTEST_FILENAME, file=fileListFile);
     fileListFile.close();
     subargv = ["ConcatenateDataFiles.py","-o", BASE_RESULT_DIR+CONCATENATE_FILENAME];
     subargv.append(BASE_RESULT_DIR+FILELIST_FILENAME);

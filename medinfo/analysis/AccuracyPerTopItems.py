@@ -10,7 +10,7 @@ import os.path;
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 import pylab;
 from medinfo.db.Model import columnFromModelList;
 from medinfo.common.Const import COMMENT_TAG, VALUE_DELIM;
@@ -18,10 +18,10 @@ from medinfo.common.StatsUtil import ContingencyStats;
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
 from medinfo.db.Model import RowItemModel;
-from Util import log;
-from Const import OUTCOME_PRESENT, OUTCOME_ABSENT;
+from .Util import log;
+from .Const import OUTCOME_PRESENT, OUTCOME_ABSENT;
 
-from BaseAnalysis import BaseAnalysis;
+from .BaseAnalysis import BaseAnalysis;
 
 AXIS_DELIM = ":";
 
@@ -30,7 +30,7 @@ class AccuracyPerTopItems(BaseAnalysis):
         BaseAnalysis.__init__(self);
 
     def __call__(self, inputFile, colOutcome, metricsByScoreCol, maxItems):
-        scoreCols = metricsByScoreCol.keys();
+        scoreCols = list(metricsByScoreCol.keys());
         scoreModels = self.parseScoreModelsFromFile(inputFile, colOutcome, scoreCols);
         
         # Count up total number of items and positive outcomes
@@ -38,14 +38,14 @@ class AccuracyPerTopItems(BaseAnalysis):
         nItems = len(scoreModels);
         
         # Prepare result dictionaries to populate
-        resultDicts = [{"ItemsConsidered": i+1} for i in xrange(maxItems)];
+        resultDicts = [{"ItemsConsidered": i+1} for i in range(maxItems)];
         
         for colScore in scoreCols:
             # Sort by each score column in descending order
             scoreModels.sort(key=lambda model: model[colScore], reverse=True);
             
             nPositiveFound = 0;
-            for i in xrange(maxItems):
+            for i in range(maxItems):
                 nConsidered = i+1;
                 scoreModel = scoreModels[i];
                 if scoreModel[colOutcome] == OUTCOME_PRESENT:
@@ -192,9 +192,9 @@ class AccuracyPerTopItems(BaseAnalysis):
             outputFile = stdOpen(outputFilename,"w");
             
             # Print comment line with arguments to allow for deconstruction later as well as extra results
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
             # Insert a header row
-            resultDicts.insert(0, RowItemModel(resultDicts[0].keys(),resultDicts[0].keys()) );
+            resultDicts.insert(0, RowItemModel(list(resultDicts[0].keys()),list(resultDicts[0].keys())) );
             
             formatter = TextResultsFormatter( outputFile );
             formatter.formatResultDicts( resultDicts );

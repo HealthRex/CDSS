@@ -6,7 +6,7 @@ Base Analysis module to assess results of recommenders / predictors.
 import sys, os
 import time;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from math import sqrt;
 from datetime import timedelta;
 
@@ -16,10 +16,10 @@ from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.db.Model import modelListFromTable, modelDictFromList;
-from Util import log;
+from .Util import log;
 
-from Const import OUTCOME_ABSENT, OUTCOME_PRESENT, OUTCOME_IN_QUERY;
-from Const import NEGATIVE_OUTCOME_STRS;
+from .Const import OUTCOME_ABSENT, OUTCOME_PRESENT, OUTCOME_IN_QUERY;
+from .Const import NEGATIVE_OUTCOME_STRS;
 
 
 class BaseAnalysis:

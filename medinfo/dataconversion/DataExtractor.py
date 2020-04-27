@@ -6,7 +6,7 @@ into matrix formats usable for machine learning / regression applications.
 from optparse import OptionParser
 import sys, os;
 import time;
-from cStringIO import StringIO;
+from io import StringIO;
 from datetime import datetime, timedelta;
 import numpy as np;
 from heapq import heappush, heappop;
@@ -18,10 +18,10 @@ from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, RowItemModel, modelListFromTable, modelDictFromList, columnFromModelList;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
-from Util import log;
-import Util;
+from .Util import log;
+from . import Util;
 
-from Const import SENTINEL_RESULT_VALUE;
+from .Const import SENTINEL_RESULT_VALUE;
 
 class DataExtractor:
     def __init__(self):
@@ -244,7 +244,7 @@ class DataExtractor:
         itemTimes = None;
         itemTimesByPatientId = self.parseClinicalItemData(itemRowIter, patientIdCol, timeCol);
         if patientId is None:   # Then assume first one encountered is the patient ID of interest
-            patientIds = itemTimesByPatientId.keys();
+            patientIds = list(itemTimesByPatientId.keys());
             if patientIds:
                 patientId = patientIds[0];
         if patientId in itemTimesByPatientId:
@@ -257,7 +257,7 @@ class DataExtractor:
         """
         patientEpisodeByIndexTimeById = dict();
         newColNames = list();   # Keep track of newly added columns
-        for patientId, itemTimes in itemTimesByPatientId.iteritems():
+        for patientId, itemTimes in itemTimesByPatientId.items():
             patient = patientById[patientId];
             (patientEpisodeByIndexTimeById[patientId], newColNames) = self.generateClinicalItemIndexTimes_singleRecord(itemTimes, patient, colNames, preDays, postDays);
         colNames.extend(newColNames);
@@ -272,13 +272,13 @@ class DataExtractor:
         for itemTime in itemTimes:
             itemDay = datetime(itemTime.year, itemTime.month, itemTime.day);  # Capture at day resolution
 
-            for iPreDay in xrange(preDays):
+            for iPreDay in range(preDays):
                 keyDay = itemDay + timedelta(-iPreDay);
                 patientCopy = dict(patientById[patientId]);
                 patientCopy["index_time"] = keyDay;
                 patientEpisodeByIndexTime[keyDay] = patientCopy;
 
-            for iPostDay in xrange(+1,postDays+1):
+            for iPostDay in range(+1,postDays+1):
                 keyDay = itemDay + timedelta(+iPostDay);
                 patientCopy = dict(patientById[patientId]);
                 patientCopy["index_time"] = keyDay;
@@ -288,7 +288,7 @@ class DataExtractor:
 
     def addTimeCycleFeatures_singlePatient(self, patientEpisodeByIndexTime, timeCol, timeAttr):
         colNames = None;
-        for patientEpisode in patientEpisodeByIndexTime.itervalues():
+        for patientEpisode in patientEpisodeByIndexTime.values():
             colNames = self.addTimeCycleFeatures_singleEpisode(patientEpisode, timeCol, timeAttr);
         return colNames;
 
@@ -326,7 +326,7 @@ class DataExtractor:
             If not specified, then default to list from medinfo.cpoe.Const.DELTA_NAME_BY_DAYS;
         """
         newColNames = list();   # Keep track of newly added columns
-        for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.iteritems():
+        for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.items():
             itemTimes = None;
             if patientId in itemTimesByPatientId:  # Have items to lookup against
                 itemTimes = itemTimesByPatientId[patientId];
@@ -342,7 +342,7 @@ class DataExtractor:
             If not specified, then default to list from medinfo.cpoe.Const.DELTA_NAME_BY_DAYS;
         """
         if daysBins is None:
-            daysBins = DELTA_NAME_BY_DAYS.keys();
+            daysBins = list(DELTA_NAME_BY_DAYS.keys());
             daysBins.sort();
 
         # Find items most proximate before and after the index item for each patient
@@ -353,7 +353,7 @@ class DataExtractor:
         preLabel = "%s.pre" % itemLabel;
         postLabel = "%s.post" % itemLabel;
 
-        for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for indexTime, patient in patientEpisodeByIndexTime.items():
             # Initialize values to null for not found
             patient[preTimeLabel] = None;
             patient[postTimeLabel] = None;
@@ -520,7 +520,7 @@ class DataExtractor:
         resultsByName = None;
         resultsByNameByPatientId = self.parseResultsData(resultRowIter, patientIdCol, nameCol, valueCol, datetimeCol);
         if patientId is None:   # Then assume first one encountered is the patient ID of interest
-            patientIds = resultsByNameByPatientId.keys();
+            patientIds = list(resultsByNameByPatientId.keys());
             if patientIds:
                 patientId = patientIds[0];
         if patientId in resultsByNameByPatientId:
@@ -544,7 +544,7 @@ class DataExtractor:
 
         # Separate loop to verify all patient records addressed, even if no results available (like an outer join)
         resultsByName = None;
-        for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.iteritems():
+        for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.items():
             newColNames = self.addResultFeatures_singlePatient(patientEpisodeByIndexTime, resultsByName, baseNames, valueCol, datetimeCol, preTimeDelta, postTimeDelta);
 
         colNames.extend(newColNames);
@@ -566,7 +566,7 @@ class DataExtractor:
             postTimeDays = postTimeDelta.days;
 
         # Init summary values to null for all results
-        for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for indexTime, patient in patientEpisodeByIndexTime.items():
             for baseName in baseNames:
                 if resultsByName is not None or ("%s.%s_%s.count" % (baseName,preTimeDays,postTimeDays)) not in patient:
                     # Default to null for all values
@@ -587,7 +587,7 @@ class DataExtractor:
                     patient["%s.%s_%s.proximateTimeDays" % (baseName,preTimeDays,postTimeDays)] = None;
 
         if resultsByName is not None:   # Have results available for this patient
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
 
                 # Time range limits on labs to consider
                 preTimeLimit = None;
@@ -764,14 +764,14 @@ class DataExtractor:
         """
         log.info("Run though IV Fluid orders for each patient and calculate accumulate amounts  for different threshold volumes and checkpoint times");
         firstPass = True;
-        for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.iteritems():
+        for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.items():
 
             # Custom rebuild IV fluid item list so infusion end times are their own (negative) events
             expandedIVFluidItems = list();
             if patientId in ivFluidsByPatientId:
                 expandedIVFluidItems = self.expandIVFluidItems(ivFluidsByPatientId[patientId]);
 
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():   # If have multiple index times per patient, will be repeated calculations here since restart volume accumulation counts for each index time
+            for indexTime, patient in patientEpisodeByIndexTime.items():   # If have multiple index times per patient, will be repeated calculations here since restart volume accumulation counts for each index time
                 # First build up accumulating fluid time point information
                 timepoints = [0];   # Track time points (seconds relative to index time) evaluated
                 preBolusVolumes = [0.0];  # Track total volume (mL) accumulated up to each time point, before any boluses that occur at this timepoint
@@ -844,7 +844,7 @@ class DataExtractor:
         for ivFluidItem in ivFluidItems:
             nextTime = ivFluidItem["start_taking_time"];
             while infusionEndItemHeap and infusionEndItemHeap[0][0] <= nextTime:    # See if passed any infusion end times, then record an entry for those
-                (endTime, infusionEndItem) = heappop(infusionEndItemHeap);
+                (endTime, infusionEndItem_str, infusionEndItem) = heappop(infusionEndItemHeap);
                 expandedIVFluidItems.append(infusionEndItem);
             expandedIVFluidItems.append(ivFluidItem);
             if ivFluidItem["min_rate"] is not None:  # Looks like a continuous infusion
@@ -852,17 +852,20 @@ class DataExtractor:
                 infusionEndItem = dict(ivFluidItem);
                 infusionEndItem["start_taking_time"] = infusionEndItem["end_taking_time"];
                 infusionEndItem["min_rate"] = -infusionEndItem["min_rate"];
-                heappush(infusionEndItemHeap, (ivFluidItem["end_taking_time"], infusionEndItem) );  # Keep track of infusion end time
+                # Keep track of infusion end time
+                # Using str() to avoid comparing infusionEndItems if end_taking_times are equal
+                # TODO what happens if str() are equal?
+                heappush(infusionEndItemHeap, (ivFluidItem["end_taking_time"], str(infusionEndItem), infusionEndItem))
         # Final check if any end infusion items left to account for
         while infusionEndItemHeap:
-            (endTime, infusionEndItem) = heappop(infusionEndItemHeap);
+            (endTime, infusionEndItem_str, infusionEndItem) = heappop(infusionEndItemHeap);
             expandedIVFluidItems.append(infusionEndItem);
         return expandedIVFluidItems;
 
     def filterPatients(patientById):
         #log.info("Deidentify patient IDs and build data list with adequate data");
         patientResults = list();
-        for iPatient, patient in enumerate(patientById.itervalues()):
+        for iPatient, patient in enumerate(patientById.values()):
             # Further deidentify patients by applying sequential ID
             patient["pat_id"] = patient["patient_id"] = iPatient;
             # Only accept patients where an index item and times were found

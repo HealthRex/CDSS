@@ -8,7 +8,7 @@ import sys, os
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from datetime import timedelta;
 from pprint import pprint;
 
@@ -22,12 +22,12 @@ from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from medinfo.cpoe.ItemRecommender import RecommenderQuery;
 from medinfo.cpoe.TopicModelRecommender import TopicModelRecommender;
-from Util import log;
+from .Util import log;
 
-from RecommendationClassificationAnalysis import RecommendationClassificationAnalysis;
-from BaseCPOEAnalysis import AnalysisQuery;
-from PreparePatientItems import PreparePatientItems;
-from RecommendationClassificationAnalysis import RecommendationClassificationAnalysis;
+from .RecommendationClassificationAnalysis import RecommendationClassificationAnalysis;
+from .BaseCPOEAnalysis import AnalysisQuery;
+from .PreparePatientItems import PreparePatientItems;
+from .RecommendationClassificationAnalysis import RecommendationClassificationAnalysis;
 
 DEFAULT_TOPIC_ITEM_COUNT = 1000; # When using or printing out topic information, number of top scored items to consider
 DEFAULT_RECOMMENDED_ITEM_COUNT = 10;    # When doing validation calculations, number of items to recommend when calculating precision and recall
@@ -163,7 +163,7 @@ class TopicModelAnalysis(RecommendationClassificationAnalysis):
 
             # Print comment line with analysis arguments to allow for deconstruction later
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             formatter = TextResultsFormatter( outputFile );
             colNames = self.resultHeaders(query);

@@ -7,7 +7,7 @@ import filecmp
 import inspect
 import os
 from pandas import read_csv
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 import unittest
 
 from LocalEnv import TEST_RUNNER_VERBOSITY

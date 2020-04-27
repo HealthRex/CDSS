@@ -1,7 +1,7 @@
 import sys, os;
 import time;
 from datetime import datetime, timedelta;
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, RowItemModel, modelListFromTable, modelDictFromList;
@@ -31,7 +31,7 @@ def main(argv):
     df.to_csv(outFile,sep="\t",index=False);
 
     elapsed = time.time() - timer;
-    print >> sys.stderr, "%s seconds to complete" % timedelta(0, round(elapsed));
+    print("%s seconds to complete" % timedelta(0, round(elapsed)), file=sys.stderr);
     
     return df;
 
