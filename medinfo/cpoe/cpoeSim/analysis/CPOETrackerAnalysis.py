@@ -11,7 +11,7 @@ import csv
 class SimulationAnalyzer:
 	def __init__(self, data_file):
 		self.data_file = data_file
-		self.version = data_file.split('.')[0].split('_')[-1]  # Get tracker version from filename
+		self.version = data_file.split('.')[-2].split('_')[-1]  # Get tracker version from filename
 		# assert(self.version in ['v4', 'v5'])
 		self.load_tracker_data()
 		self.results_collection = self.normalize_results()
@@ -163,7 +163,7 @@ class SimulationAnalyzer:
 
 
 	def normalize_signed_orders(self):
-		"""Join all signed items into a single, 'flat' colleciton of signed item dicts
+		"""Join all signed items into a single, 'flat' collection of signed item dicts
 
 		Returns:
 			signed_orders (list): list of of signed order item dicts
@@ -374,7 +374,8 @@ class SimulationAnalyzer:
 			results (list): list of item dicts corresponding to items that were
 				shown after a manual search (not from recommender)
 		"""
-		results = list([item for item in self.results_collection if item['mode'] != '' and item['searchQuery'] != ''])
+		results = list([item for item in self.results_collection if
+						(item['mode'] != '' and item['mode'].casefold() != 'related') and item['searchQuery'] != ''])
 		return results
 
 	def get_recommended_options(self, include_related=True):
@@ -390,7 +391,7 @@ class SimulationAnalyzer:
 		"""
 		filter_fn = (lambda item: item['mode'] == '' or item['searchQuery'] == '')
 		if include_related:
-			filter_fn = (lambda item: (item['mode'] == '' or item['searchQuery'] == '') or (item['mode'] == 'related'))
+			filter_fn = (lambda item: (item['mode'] == '' or item['searchQuery'] == '') or (item['mode'].casefold() == 'related'))
 		results = list(filter(filter_fn, self.results_collection))
 		return results
 
@@ -443,7 +444,7 @@ class SimulationAnalyzer:
 		# Define filter function for determining intersection
 		# This function checks that result item and signed item have same
 		# clinicalItemId, listIndex (though s_item index will be ahead), and location source        r_item listIndex starts from 1, but s_item listIndex starts from 0
-		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and r_item['listIndex'] == s_item['listIndex'] - 1 and r_item['source'] == s_item['source']
+		filter_fn = lambda r_item, s_item: r_item['clinicalItemId'] == s_item['clinicalItemId'] and (r_item['listIndex'] == s_item['listIndex'] - 1 or r_item['listIndex']+1 == s_item['listIndex'] - 1) and r_item['source'] == s_item['source']
 
 		if self.version == 'v5':  # version 5 of tracker correctly tracks order set items in results
 			# Get manually-searched signed items
@@ -549,9 +550,9 @@ class SimulationAnalyzer:
 		event_tracker = self.event_tracker_data
 		events = []
 		for event_name in list(event_tracker.keys()):
-			for event_ocurrence in event_tracker[event_name]:
-				event_time = event_ocurrence['eventTime']
-				events.append((event_time, event_name, event_ocurrence))
+			for event_occurrence in event_tracker[event_name]:
+				event_time = event_occurrence['eventTime']
+				events.append((event_time, event_name, event_occurrence))
 		# Sort events by timestamp
 		sorted_events = sorted(events, key=lambda x: x[0])
 		return sorted_events
@@ -618,7 +619,7 @@ def aggregate_simulation_data(data_home, output_path, append_to_existing=False, 
 	with open(source_path, 'a') as out_csv:
 		file_writer = csv.writer(out_csv)
 		for filename in filenames:
-			print(("Processing {}".format(filename)))
+			print("Processing {}".format(filename))
 			fields = []
 			# Instantiate SimulationAnalyzer for current data file
 			siman = SimulationAnalyzer(filename)

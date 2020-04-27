@@ -3,9 +3,9 @@
 from sklearn.pipeline import Pipeline
 from sklearn.utils.validation import column_or_1d
 
-import SupervisedLearner_Class as Clas
-import SupervisedLearner_Utils as Utils
-import SupervisedLearner_System as Syst
+from . import SupervisedLearner_Class as Clas
+from . import SupervisedLearner_Utils as Utils
+from . import SupervisedLearner_System as Syst
 
 import logging
 

@@ -5,7 +5,7 @@ import sys, os
 from io import StringIO
 import unittest
 
-from ApplicationModule import ApplicationClass;
+from .ApplicationModule import ApplicationClass;
 
 RUNNER_VERBOSITY=2; # How much log text you want the test runner to express
 
@@ -34,7 +34,7 @@ For in that dream of death, when we awake,
 
     def test_extractWordsByIndex(self):
         # Prepare sample input into application code
-        wordIndex = 1;
+        wordIndex = 0;
         inputFile = StringIO(self.SAMPLE_INPUT_FILE_STR);
         outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
         
@@ -51,7 +51,7 @@ For in that dream of death, when we awake,
 
         ######## More test iterations ########
         # Prepare sample input into application code
-        wordIndex = 3;
+        wordIndex = 2;
         inputFile = StringIO(self.SAMPLE_INPUT_FILE_STR);
         outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
         
@@ -68,7 +68,7 @@ For in that dream of death, when we awake,
 
         ######## More test iterations ########
         # Prepare sample input into application code
-        wordIndex = 10;
+        wordIndex = 9;
         inputFile = StringIO(self.SAMPLE_INPUT_FILE_STR);
         outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
         

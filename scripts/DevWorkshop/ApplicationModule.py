@@ -8,6 +8,7 @@ import time;
 import json;
 from optparse import OptionParser
 from io import StringIO;
+import re
 
 COMMENT_TAG = "#";
 
@@ -19,7 +20,7 @@ class ApplicationClass:
         """
         k = wordIndex;
         for line in inputFile:
-            words = line.split();
+            words = re.split('[ ,\n]+', line)
             selectedWord = "";  # Default to empty string if cannot find a word
             if k < len(words):
                 selectedWord = words[k];

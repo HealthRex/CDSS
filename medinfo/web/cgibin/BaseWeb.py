@@ -180,11 +180,11 @@ class BaseWeb:
         #Examples of printing errors
         #print >> environ['wsgi.errors'], "application debug #2"
         #This one seems to work
-        #print >> sys.stderr, "application debug #3"
+        # print("application debug #3", file=sys.stderr)
 
         del handlerInstance;    # Ensure garbage collection
         
-        return output    
+        return [output]
     
     def maintainParams(self):
         """Normal behavior, store all request parameters
@@ -438,7 +438,7 @@ class BaseWeb:
         templateFile = open(self.getTemplateFilename(),"r");
         populatedContents = templateFile.read() % self.requestData
         populatedContents = populatedContents.encode('utf-8');
-        return populatedContents;
+        return populatedContents
     
     def printTemplate(self):
         """Standard end result of web script.  Print the template
@@ -449,7 +449,7 @@ class BaseWeb:
         self.printHeaders();
         print()   # Separate headers from body
         # Output the template, replacing key fields by the values in templateDict
-        print(self.populatedTemplate());
+        print(self.populatedTemplate().decode());   # in Python3 without .decode(), prints bytes object, i.e., b'<string>'
 
     def returnHeaders(self, output):
         """Return HTTP headers for WSGI"""        
