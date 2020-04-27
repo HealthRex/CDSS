@@ -7,7 +7,8 @@ import unittest
 
 from LocalEnv import PATH_TO_CDSS, TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import make_test_suite, MedInfoTestCase
-from starr.rxnorm.RxNormClient import RxNormClient
+from stride.rxnorm.RxNormClient import RxNormClient
+
 
 class TestRxNormClient(MedInfoTestCase):
     def setUp(self):
@@ -154,6 +155,7 @@ class TestRxNormClient(MedInfoTestCase):
 
             self.assertEqual(expected_name, actual_name)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     suite = make_test_suite(TestRxNormClient)
     unittest.TextTestRunner(verbosity=TEST_RUNNER_VERBOSITY).run(suite)

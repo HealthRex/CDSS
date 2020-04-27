@@ -105,11 +105,11 @@ class PatientCareFrame(BaseCPOEWeb):
         subData.requestData["sim_patient_id"] = self.requestData["sim_patient_id"];
         subData.requestData["sim_time"] = self.requestData["sim_time"];
         subData.action_default();
-        self.requestData["currentDataTable"] = subData.populatedTemplate();
+        self.requestData["currentDataTable"] = subData.populatedTemplate().decode();
 
         subData = NewOrders();
         subData.action_default();
-        self.requestData["dataEntryTable"] = subData.populatedTemplate();
+        self.requestData["dataEntryTable"] = subData.populatedTemplate().decode();
 
         #subData = RelatedOrders();
         #subData.action_default();

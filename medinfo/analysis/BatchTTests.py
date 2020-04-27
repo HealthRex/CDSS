@@ -14,7 +14,6 @@ import numpy as np;
 from scipy.stats import ttest_rel, ttest_ind;
 
 from medinfo.db.Model import columnFromModelList;
-from medinfo.db.Model import RowItemFieldComparator;
 from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;

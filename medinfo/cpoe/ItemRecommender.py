@@ -817,7 +817,7 @@ class ItemAssociationRecommender(BaseItemRecommender):
             resultModel["categoryScore"] = cumulativeScoreByCategoryId[categoryId];
 
         # Re-sort result models first by category (score) then individual item score (descending order)
-        resultModels.sort(RowItemFieldComparator(["categoryScore","score"]), reverse=True);
+        resultModels.sort(key=itemgetter("categoryScore","score"), reverse=True);
 
         return resultModels;
 

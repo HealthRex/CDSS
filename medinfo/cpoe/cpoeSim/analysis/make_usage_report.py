@@ -5,7 +5,7 @@ from optparse import OptionParser
 
 import pandas as pd
 
-from .CPOETrackerAnalysis import aggregate_simulation_data
+from medinfo.cpoe.cpoeSim.analysis.CPOETrackerAnalysis import aggregate_simulation_data
 from medinfo.common.Const import COMMENT_TAG, VALUE_DELIM
 from medinfo.common.Util import log
 from medinfo.db import DBUtil

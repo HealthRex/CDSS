@@ -11,7 +11,7 @@ from medinfo.common.test.Util import MedInfoTestCase
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from numpy import array
 
-from SupervisedLearningTestData import RANDOM_CLASSIFICATION_TEST_CASE
+from .SupervisedLearningTestData import RANDOM_CLASSIFICATION_TEST_CASE
 from medinfo.common.Util import log
 
 class TestSupervisedClassifier(MedInfoTestCase):
@@ -58,9 +58,8 @@ class TestSupervisedClassifier(MedInfoTestCase):
 
     def test_train_and_predict(self):
         # Load data set.
-        X = DataFrame(RANDOM_CLASSIFICATION_TEST_CASE['X'], \
-                        columns = ['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', \
-                                    'x8', 'x9', 'x10'])
+        X = DataFrame(RANDOM_CLASSIFICATION_TEST_CASE['X'],
+                      columns=['x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9', 'x10'])
         y = DataFrame(RANDOM_CLASSIFICATION_TEST_CASE['y'])
         random_state = RANDOM_CLASSIFICATION_TEST_CASE['random_state']
         expected_y_pred_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['y_predicted']
@@ -70,8 +69,7 @@ class TestSupervisedClassifier(MedInfoTestCase):
         expected_descriptions_by_algorithm = RANDOM_CLASSIFICATION_TEST_CASE['description']
 
         # Generate train/test split.
-        X_train, X_test, y_train, y_test = train_test_split(X, y, \
-                                            random_state=random_state)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=random_state)
 
         # Iterate through SUPPORTED_ALGORITHMS.
         for algorithm in SupervisedClassifier.SUPPORTED_ALGORITHMS:
@@ -118,6 +116,7 @@ class TestSupervisedClassifier(MedInfoTestCase):
             log.debug('actual_y_pred: %s' % actual_y_pred)
             self.assertEqualList(expected_y_pred, actual_y_pred)
 
+
 def suite():
     """
     Returns the suite of tests to run for this test class / module.
@@ -128,5 +127,6 @@ def suite():
     suite.addTest(unittest.makeSuite(TestSupervisedClassifier))
     return suite
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=TEST_RUNNER_VERBOSITY).run(suite())
