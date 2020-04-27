@@ -168,13 +168,17 @@ class SimulationAnalyzer:
 		Returns:
 			signed_orders (list): list of of signed order item dicts
 		"""
+		results_clinical_items = [r['clinicalItemId'] for r in self.results_collection]
+
 		signed_orders = []
 		for timestamp in self.signed_item_tracker_data:
 			for item_str in self.signed_item_tracker_data[timestamp]:
 				signed_item_dict = dict()
 				signed_item_dict['signedTime'] = timestamp
 				self.parse_signed_item_into_dict(signed_item_dict, item_str)
-				signed_orders.append(signed_item_dict)
+				# filter out signed items not in results_collections - those are discontinued orders
+				if signed_item_dict['clinicalItemId'] in results_clinical_items:
+					signed_orders.append(signed_item_dict)
 
 		return signed_orders
 
@@ -611,12 +615,12 @@ def aggregate_simulation_data(data_home, output_path, append_to_existing=False, 
 	headers = ["user", "patient", "start_time", "elapsed_time", "total_num_clicks", "num_note_clicks", "num_results_review_clicks", "recommended_options", "unique_recommended_options", "manual_search_options", "total_orders", "orders_from_recommender", "orders_from_manual_search", "orders_from_recommender_missed"]
 	if not append_to_existing:
 		# Create initial csv file
-		with open(output_path,'w') as out_csv:
+		with open(output_path, 'w', newline='') as out_csv:
 			file_writer = csv.writer(out_csv)
 			file_writer.writerow(headers)
 		source_path = output_path
 	# Use same logic as appending to existing (now that there is an initial csv to append to)
-	with open(source_path, 'a') as out_csv:
+	with open(source_path, 'a', newline='') as out_csv:
 		file_writer = csv.writer(out_csv)
 		for filename in filenames:
 			print("Processing {}".format(filename))
