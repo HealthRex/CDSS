@@ -11,7 +11,8 @@ import unittest
 
 from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import make_test_suite, MedInfoTestCase
-from starr.box.BoxClient import BoxClient
+from stride.box.BoxClient import BoxClient
+
 
 class TestBoxClient(MedInfoTestCase):
     def setUp(self):
@@ -70,6 +71,7 @@ class TestBoxClient(MedInfoTestCase):
         # checked ad-hoc on the test case.
         # filecmp.dircmp(test_local_dir_path, verify_local_dir_path).report_full_closure()
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     suite = make_test_suite(TestBoxClient)
     unittest.TextTestRunner(verbosity=TEST_RUNNER_VERBOSITY).run(suite)

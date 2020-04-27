@@ -389,7 +389,7 @@ class FeatureMatrixFactory:
 
         # Determine time buckets for clinical item times.
         if dayBins is None:
-            dayBins = DELTA_NAME_BY_DAYS.keys()
+            dayBins = list(DELTA_NAME_BY_DAYS.keys())
             dayBins.sort()
             
         postDayBins = [1,7,30]
@@ -697,7 +697,7 @@ class FeatureMatrixFactory:
         """
         # Use results generator as outer loop as will not be able to random
         # access the contents.
-        for patientId, resultsByName in resultsByNameByPatientId.iteritems():
+        for patientId, resultsByName in resultsByNameByPatientId.items():
             # Skip results if not in our list of patients of interest
             if patientId in patientEpisodeByIndexTimeById:
                 patientEpisodeByIndexTime = patientEpisodeByIndexTimeById[patientId]
@@ -709,7 +709,7 @@ class FeatureMatrixFactory:
         # Separate loop to verify all patient records addressed, even if no
         # results available (like an outer join).
         resultsByName = None
-        for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.iteritems():
+        for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.items():
             self._addResultFeatures_singlePatient(patientEpisodeByIndexTime, \
                 resultsByName, resultNames, valueCol, datetimeCol, preTimeDelta, \
                 postTimeDelta)
@@ -734,7 +734,7 @@ class FeatureMatrixFactory:
             postTimeDays = postTimeDelta.days
 
         # Init summary values to null for all results
-        for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for indexTime, patient in patientEpisodeByIndexTime.items():
             for baseName in baseNames:
                 if resultsByName is not None or ("%s.%s_%s.count" % (baseName, preTimeDays, postTimeDays)) not in patient:
                     # Default to null for all values
@@ -756,7 +756,7 @@ class FeatureMatrixFactory:
 
         # Have results available for this patient?
         if resultsByName is not None:
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 # Time range limits on labs to consider
                 preTimeLimit = None;
                 postTimeLimit = None;
@@ -1036,7 +1036,7 @@ class FeatureMatrixFactory:
                 icd9prefixesByDisease[disease] = list()
             icd9prefixesByDisease[disease].append("^ICD9." + icd9prefix)
 
-        for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
+        for disease, icd9prefixes in icd9prefixesByDisease.items():
             disease = disease.translate(None," ()-/") # Strip off punctuation
             self.addClinicalItemFeatures(icd9prefixes, operator="~*", \
                 label="Comorbidity."+disease, features=features)
@@ -1054,7 +1054,7 @@ class FeatureMatrixFactory:
                 teamNameByCategory[category] = list()
             teamNameByCategory[category].append(teamName)
 
-        for category, teamNames in teamNameByCategory.iteritems():
+        for category, teamNames in teamNameByCategory.items():
             self.addClinicalItemFeatures(teamNames, column="description", \
                 label="Team."+category, features=features)
 
@@ -1129,7 +1129,7 @@ class FeatureMatrixFactory:
             # Each tempFile has the patientId and episodeTime fields.
             # Don't write these to the matrix file.
             for tempFileReader in tempFileReaders:
-                tempData = tempFileReader.next()
+                tempData = next(tempFileReader)
                 matrixData.extend(tempData[2:])
 
             #for tempFileName in self._featureTempFileNames:

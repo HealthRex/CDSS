@@ -43,7 +43,7 @@ else:
 path = '/badvolume/home/ec2-user/cs230/scripts/data/statistics/train2/freq_y.hdf5'
 weights = pd.read_hdf(path)
 
-class_weight = dict(zip(np.arange(0, len(weights)),1/(weights.values+0.0001)))
+class_weight = dict(list(zip(np.arange(0, len(weights)),1/(weights.values+0.0001))))
           
 from tensorflow.keras import backend as K
 import pandas as pd 

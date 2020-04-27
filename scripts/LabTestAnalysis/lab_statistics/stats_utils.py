@@ -176,7 +176,7 @@ def get_prevday2normalities(lab, mlByLab_folder, time_limit=DEFAULT_TIMELIMIT, s
         import LocalEnv
         from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 
-        print "processing %s..."%lab
+        print("processing %s..."%lab)
         # data_folder = LocalEnv.PATH_TO_CDSS + '/scripts/LabTestAnalysis/machine_learning/data-panels/%s/' % lab
         '''
         First, obtain test patients
@@ -205,7 +205,7 @@ def get_prevday2normalities(lab, mlByLab_folder, time_limit=DEFAULT_TIMELIMIT, s
 
     day2norms = get_prevweek_normal__dict(df_lab, also_get_cnt=True)
 
-    return day2norms.keys(), day2norms.values()
+    return list(day2norms.keys()), list(day2norms.values())
 
 def check_baseline2(lab, mlByLab_folder, source="train", target_PPV=0.95, picked_prevalence=None, picked_thres=None):
     '''
@@ -280,7 +280,7 @@ def plot_subfigs(dicts, colors=('blue','orange'), result_figpath="subfigs.png"):
     row, col, i_s, j_s = prepare_subfigs(num_labs, col=6)
 
 
-    keys = dicts[0].keys()
+    keys = list(dicts[0].keys())
 
     def do_one_plot(x, y, color):
         plt.bar(x, y, color=color)
@@ -522,7 +522,7 @@ def get_floored_day_to_number_orders_cnts(lab, df):
     df['order_in_1day'] = df['order_time'].apply(lambda x: 'No')
     order_in_1day__inds = []
 
-    prev_days = [sys.maxint] # The first record
+    prev_days = [sys.maxsize] # The first record
     row, col = df.shape
     for i in range(1, row):
         if df.ix[i, 'pat_id'] == df.ix[i - 1, 'pat_id']:
@@ -541,7 +541,7 @@ def get_floored_day_to_number_orders_cnts(lab, df):
             # prev_days.append(time_diff_df.seconds/86400.)
             prev_days.append(time_diff_df.days) # TODO: ceiling of days?
         else:
-            prev_days.append(sys.maxint)
+            prev_days.append(sys.maxsize)
 
     # df.ix[order_in_1day__inds, 'order_in_1day'] = 'Yes'
     # df.to_csv('Fig2_Order_Intensities/surprising_orders_in_1day_%s.csv'%lab)
@@ -795,7 +795,7 @@ def get_thres_by_fixing_PPV(lab, alg, data_folder='', PPV_wanted=0.9, thres_mode
             elif actual_list[i] == 0 and predict_class_list[i] == 0:
                 true_negative += 1
             else:
-                print "what?!"
+                print("what?!")
 
         try:
             PPV = float(true_positive) / float(true_positive + false_positive)
@@ -897,7 +897,7 @@ def fill_df_fix_PPV(lab, alg, data_folder='', PPV_wanted=0.9, lab_type=None, thr
         elif actual_list[i] == 0 and predict_class_list[i] == 0:
             true_negative += 1
         else:
-            print "what?!"
+            print("what?!")
         total_cnt += 1
 
     res_dict = {'lab': lab, 'alg': alg, 'threshold': thres,
@@ -949,7 +949,7 @@ def add_panel_cnts_fees(one_lab_alg_dict):
                                                                      'mean_volume_charge',
                                                                      'median_volume_charge']].to_dict(orient='list')
     # print cnts_fees_dict
-    for key in cnts_fees_dict.keys():
+    for key in list(cnts_fees_dict.keys()):
         try:
             cnts_fees_dict[key] = cnts_fees_dict[key][0]
         except IndexError:
@@ -1030,7 +1030,7 @@ def get_confusion_counts(actual_labels, predict_labels):
         elif actual_labels[i] == 0 and predict_labels[i] == 0:
             true_negative += 1
         else:
-            print "what?!"
+            print("what?!")
     return true_positive, false_positive, true_negative, false_negative
 
 def get_confusion_metrics(actual_labels, predict_probas, threshold, also_return_cnts=False):
@@ -1139,7 +1139,7 @@ def get_lab_descriptions(lab_type, data_source='Stanford', succinct=True, line_b
         df['description'] = df['description'].apply(lambda x: x.split(',')[0].strip())
     if line_break_at != -1:
         df['description'] = df['description'].apply(lambda x: x[:line_break_at] + '\n' + x[line_break_at:])
-    lab_descriptions = dict(zip(df[data_source].values.tolist(), df['description'].values.tolist()))
+    lab_descriptions = dict(list(zip(df[data_source].values.tolist(), df['description'].values.tolist())))
 
     if lab_type == 'panel':
         lab_descriptions['LABCBCD'] = 'Complete Blood Count w/ Differential'
@@ -1151,7 +1151,7 @@ def get_safe(func, *args):
     try:
         res = func(*args)
     except Exception as e:
-        print e
+        print(e)
         res = float('nan')
     return res
 
@@ -1204,7 +1204,7 @@ def get_medicare_price_dict():
     dict_match = df_match.to_dict(orient='index')
 
     dict_match_new = {}
-    for val in dict_match.values():
+    for val in list(dict_match.values()):
         dict_match_new[val['lab']] = val
     dict_match = dict_match_new
 
@@ -1212,7 +1212,7 @@ def get_medicare_price_dict():
     dict_price = df_price.to_dict(orient='index')
 
     dict_price_new = {}
-    for val in dict_price.values():
+    for val in list(dict_price.values()):
         dict_price_new[val['SHORTDESC']] = val
     dict_price = dict_price_new
     #
@@ -1282,7 +1282,7 @@ def get_top_labs_and_cnts(lab_type='panel', top_k=None, bottom_k=None, criterion
     labs_and_cnts_file = "%ss_and_cnts_2014-2016.csv" % lab_type
     labs_and_cnts_path = os.path.join(data_folder, labs_and_cnts_file)
     if os.path.exists(labs_and_cnts_path):
-        print "%s exists.."%labs_and_cnts_path
+        print("%s exists.."%labs_and_cnts_path)
         labs_and_cnts_df = pd.read_csv(labs_and_cnts_path, keep_default_na=False)
         labs_and_cnts = labs_and_cnts_df.values.tolist()
 
@@ -1362,7 +1362,7 @@ def query_to_dataframe(lab, lab_type='panel',
     #     print "Cached dataframe %s exists..." % lab
     #     return pd.read_csv(output_path)
 
-    print "Running query of %s..." % lab
+    print("Running query of %s..." % lab)
 
 
     query = SQLQuery()
@@ -1541,7 +1541,7 @@ def output_feature_importances(labs, data_source='Stanford', lab_type='panel', c
             feature, score = split_features(feature_tuple)
             grouped_feature = grouped(feature)
             one_lab_dict[grouped_feature] = one_lab_dict.get(grouped_feature, 0) + score
-        sorted_tuples = sorted(one_lab_dict.items(), key=lambda x: x[1])[::-1]
+        sorted_tuples = sorted(list(one_lab_dict.items()), key=lambda x: x[1])[::-1]
 
         # one_df_dict = {'lab': lab,
         #                'feature 1': sorted_tuples[0][0],

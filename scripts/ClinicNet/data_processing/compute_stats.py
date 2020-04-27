@@ -249,13 +249,13 @@ def main(argv):
 		# Get the covariance matrix
 		output_file = output_dir + "/" + output_covar_filename
 		covar = get_covar(num_processes, num_files)
-		covar_df = pd.DataFrame(covar, columns=avg.keys(), index=avg.keys()) # Convert to dataframe
+		covar_df = pd.DataFrame(covar, columns=list(avg.keys()), index=list(avg.keys())) # Convert to dataframe
 		covar_df.to_hdf(output_file, key='covar', mode='w', complevel=1) # We'll use some compression for this large matrix
 		del covar_df # Free up memory
 		print("FINISHED COVARIANCE")
 		# Get the standard deviation
 		output_file = output_dir + "/" + output_avg_stddev_filename
-		stt = pd.Series(np.diagonal(covar)**0.5, index=avg.keys()) # No attribute columns
+		stt = pd.Series(np.diagonal(covar)**0.5, index=list(avg.keys())) # No attribute columns
 		stt.to_hdf(output_file, key='sd')
 		print("FINISHED STANDARD DEVIATION")
 	else:

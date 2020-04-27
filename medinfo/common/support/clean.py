@@ -13,5 +13,5 @@ for root, dirs, files in os.walk(basedir):
     for file in files:
         if file.endswith('.pyc'):
             filepath = os.path.join(root,file)
-            print "Removing %s" % filepath
+            print("Removing %s" % filepath)
             os.remove(filepath)

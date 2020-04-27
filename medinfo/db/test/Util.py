@@ -1,7 +1,8 @@
-import Const
+from . import Const
 import sys, os
 import logging
-import cgi, UserDict
+import cgi
+from collections import UserDict
 import unittest
 
 from medinfo.common.test.Util import MedInfoTestCase;
@@ -48,7 +49,7 @@ class DBTestCase(MedInfoTestCase):
         try:
             DBUtil.createDatabase(medinfo.db.Env.DB_PARAM);
             self.testDBCreated = True;  # If error on above (e.g., database already exists), will have aborted with a database error before this
-        except Exception, err:  # Better if could be specific for <DBConnectorModule>.ProgrammingError
+        except Exception as err:  # Better if could be specific for <DBConnectorModule>.ProgrammingError
             # Error on database creation, probably because existing one already there
             # Drop existing database if already there, but beware!
             # Beware of accidentally dropping an existing production database! This may still be necessary to cleanup if accidentally left a test database instance behind

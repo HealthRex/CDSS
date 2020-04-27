@@ -14,11 +14,12 @@ matrix = factory.getMatrixAsBaz()
 
 import csv
 import datetime
+from io import IOBase
 import numpy as np
 import os
 import time
 
-from Const import SENTINEL_RESULT_VALUE
+from .Const import SENTINEL_RESULT_VALUE
 from medinfo.common.Env import LAB_TYPE
 from medinfo.common.Const import NULL_STRING
 from medinfo.cpoe.Const import SECONDS_PER_DAY, DELTA_NAME_BY_DAYS
@@ -35,7 +36,7 @@ elif LocalEnv.DATABASE_CONNECTOR_NAME == 'sqlite3':
 
 # from Util import log
 from medinfo.common.Util import log
-import Util
+from . import Util
 
 class FeatureMatrixFactory:
     FEATURE_MATRIX_COLUMN_NAMES = [
@@ -86,8 +87,7 @@ class FeatureMatrixFactory:
         if cacheDBResults:
             self.dbCache = dict()
 
-    def setPatientListInput(self, patientListInput, \
-        patientIdColumn = "patient_id"):
+    def setPatientListInput(self, patientListInput, patientIdColumn = "patient_id"):
         """
         Define the input patient list for the feature matrix.
         patientListInput: TSV file descriptor or DB cursor
@@ -95,7 +95,7 @@ class FeatureMatrixFactory:
         """
         # Verify patientListInput is TSV file or DB cursor.
         if not isinstance(patientListInput, cursor) and \
-            not isinstance(patientListInput, file):
+                not isinstance(patientListInput, IOBase):
             raise TypeError("patientListInput must be DB cursor or TSV file.")
 
         self.patientListInput = patientListInput
@@ -111,7 +111,7 @@ class FeatureMatrixFactory:
 
         if isinstance(self.patientListInput, cursor):
             return self._processPatientListDbCursor()
-        elif isinstance(self.patientListInput, file):
+        elif isinstance(self.patientListInput, IOBase):
             return self._processPatientListTsvFile()
 
     def _processPatientListDbCursor(self):
@@ -179,7 +179,7 @@ class FeatureMatrixFactory:
         """
         # Verify patientEpisodeInput is TSV file or DB cursor.
         if not isinstance(patientEpisodeInput, cursor) and \
-            not isinstance(patientEpisodeInput, file):
+            not isinstance(patientEpisodeInput, IOBase):
             raise TypeError("patientEpisodeInput must be DB cursor or TSV file.")
 
         self.patientEpisodeInput = patientEpisodeInput
@@ -195,7 +195,7 @@ class FeatureMatrixFactory:
 
         if isinstance(self.patientEpisodeInput, cursor):
             return self._processPatientEpisodeDbCursor()
-        elif isinstance(self.patientEpisodeInput, file):
+        elif isinstance(self.patientEpisodeInput, IOBase):
             return self._processPatientEpisodeTsvFile()
 
     def _processPatientEpisodeDbCursor(self):
@@ -630,7 +630,7 @@ class FeatureMatrixFactory:
 
         # Determine time buckets for clinical item times.
         if dayBins is None:
-            dayBins = DELTA_NAME_BY_DAYS.keys()
+            dayBins = list(DELTA_NAME_BY_DAYS.keys())
             dayBins.sort()
 
         # Find items most proximate before and after the index item per patient
@@ -965,7 +965,7 @@ class FeatureMatrixFactory:
         """
         # Use results generator as outer loop as will not be able to random
         # access the contents.
-        for patientId, resultsByName in resultsByNameByPatientId.iteritems():
+        for patientId, resultsByName in resultsByNameByPatientId.items():
             # Skip results if not in our list of patients of interest
             if patientId in patientEpisodeByIndexTimeById:
                 patientEpisodeByIndexTime = patientEpisodeByIndexTimeById[patientId]
@@ -977,7 +977,7 @@ class FeatureMatrixFactory:
         # Separate loop to verify all patient records addressed, even if no
         # results available (like an outer join).
         resultsByName = None
-        for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.iteritems():
+        for patientId, patientEpisodeByIndexTime in patientEpisodeByIndexTimeById.items():
             self._addResultFeatures_singlePatient(patientEpisodeByIndexTime, \
                 resultsByName, resultNames, valueCol, datetimeCol, preTimeDelta, \
                 postTimeDelta)
@@ -1002,7 +1002,7 @@ class FeatureMatrixFactory:
             postTimeDays = postTimeDelta.days
 
         # Init summary values to null for all results
-        for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for indexTime, patient in patientEpisodeByIndexTime.items():
             for baseName in baseNames:
                 if resultsByName is not None or ("%s.%s_%s.count" % (baseName, preTimeDays, postTimeDays)) not in patient:
                     # Default to null for all values
@@ -1024,7 +1024,7 @@ class FeatureMatrixFactory:
 
         # Have results available for this patient?
         if resultsByName is not None:
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 # Time range limits on labs to consider
                 preTimeLimit = None;
                 postTimeLimit = None;
@@ -1194,9 +1194,9 @@ class FeatureMatrixFactory:
                 try:
                     resultValue = float(result[valueCol])
                 except Exception as e:
-                    print "In _parseResultsDataGenerator, " \
+                    print("In _parseResultsDataGenerator, " \
                           "weird values of ord_num_value cannot be converted.. " \
-                          "Exception:", e
+                          "Exception:", e)
                     continue
                 resultTime = DBUtil.parseDateValue(result[datetimeCol])
 
@@ -1370,7 +1370,7 @@ class FeatureMatrixFactory:
                     icdprefixesByDisease[disease].append(icd10prefix)
 
 
-        for disease, icdprefixes in icdprefixesByDisease.iteritems():
+        for disease, icdprefixes in icdprefixesByDisease.items():
             disease = disease.translate(None," ()-/") # Strip off punctuation
             log.debug('Adding %s comorbidity features...' % disease)
             if LocalEnv.DATASET_SOURCE_NAME == 'STRIDE':
@@ -1399,7 +1399,7 @@ class FeatureMatrixFactory:
                     teamNameByCategory[category] = list()
                 teamNameByCategory[category].append(teamName)
 
-            for category, teamNames in teamNameByCategory.iteritems():
+            for category, teamNames in teamNameByCategory.items():
                 log.debug('Adding %s treatment team features...' % category)
                 self.addClinicalItemFeatures(teamNames, column="description", \
                                                  label="Team." + category, features=features)
@@ -1411,7 +1411,7 @@ class FeatureMatrixFactory:
                     teamNameByCategory[category] = list()
                 teamNameByCategory[category].append(teamName)
 
-            for category, teamNames in teamNameByCategory.iteritems():
+            for category, teamNames in teamNameByCategory.items():
                 log.debug('Adding %s treatment team features...' % category)
                 # TODO sx: rename
                 self.addClinicalItemFeatures_NonStanford(teamNames, \
@@ -1482,7 +1482,7 @@ class FeatureMatrixFactory:
             # Each tempFile has the patientId and episodeTime fields.
             # Don't write these to the matrix file.
             for tempFileReader in tempFileReaders:
-                tempData = tempFileReader.next()
+                tempData = next(tempFileReader)
                 matrixData.extend(tempData[2:])
 
             # Write data to matrixFile, with trailing \n.

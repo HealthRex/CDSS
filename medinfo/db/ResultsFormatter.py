@@ -3,12 +3,12 @@
 of results arrays (usually from database calls).
 """
 import sys;
-import urllib;
+import urllib.request, urllib.parse, urllib.error;
 import csv; # Does a lot of text table parsing and formatting already
 import re;
-from Model import RowItemModel;
+from .Model import RowItemModel;
 from medinfo.common.Const import COMMENT_TAG, NULL_STRING;
-from Env import CSV_EXPAND_QUOTES;
+from .Env import CSV_EXPAND_QUOTES;
 
 class ResultsFormatter:
     """Abstract class defining what methods a formatter class should implement
@@ -60,7 +60,7 @@ class ResultsFormatter:
         for self.currRow, rowDict in enumerate(resultDicts):
             if columnNames == None:
                 # If column set and order is not specified, just print all columns alphabetically
-                columnNames = rowDict.keys()
+                columnNames = list(rowDict.keys())
                 columnNames.sort()
             
             if addHeaderRow:
@@ -126,11 +126,11 @@ class TextResultsFormatter(ResultsFormatter):
             if not continueGrouping:
                 itemText = str(item);
                 if self.quoteContents:
-                    itemText = urllib.quote(itemText);  # URL quoting to avoid unsafe characters for formatting like tabs or newlines
+                    itemText = urllib.parse.quote(itemText);  # URL quoting to avoid unsafe characters for formatting like tabs or newlines
                 self.outFile.write(itemText);
             if i < (tupleLength-1): # Only add delimiters up to the last item
                 self.outFile.write(self.mDelim);
-        print >> self.outFile # New line
+        print(file=self.outFile) # New line
 
 class HtmlResultsFormatter(ResultsFormatter):
     """Formatter for displaying database output in a web table.
@@ -177,21 +177,21 @@ class HtmlResultsFormatter(ResultsFormatter):
             lineClass = "softLine";
             if isinstance(self.lineSeparators, str):
                 lineClass = self.lineSeparators;
-            print >> self.outFile, '<tr><td colspan=100 class="%s" height=1></td></tr>' % lineClass;
-        print >> self.outFile, "<tr %s %s>" % (valign, align);
+            print('<tr><td colspan=100 class="%s" height=1></td></tr>' % lineClass, file=self.outFile);
+        print("<tr %s %s>" % (valign, align), file=self.outFile);
         for i, item in enumerate(tuple):
             if self.headerRow:
                 self.outFile.write("    <%s>" % self.headerRowFormat)
                 self.outFile.write(str(item))
                 self.outFile.write("</td>")
-                print >> self.outFile
+                print(file=self.outFile)
             else:
                 if self.groupColumns and lastTuple is not None and continueGrouping:
                     if item != lastTuple[i]:
                         # Non-match.  Don't try to group anymore
                         continueGrouping = False;
                     else:
-                        print >> self.outFile, "    <td></td>";
+                        print("    <td></td>", file=self.outFile);
                 if not continueGrouping:
                     #rowspan = self.__determineRowspan(i);
                     if i == 0:
@@ -201,8 +201,8 @@ class HtmlResultsFormatter(ResultsFormatter):
                     if item is not None or self.printNone:
                         self.outFile.write(str(item))
                     self.outFile.write("</td>")
-                    print >> self.outFile
-        print >> self.outFile, "</tr>"
+                    print(file=self.outFile)
+        print("</tr>", file=self.outFile)
         self.headerRow = False # Only the first tuple should be the "header"
 
 

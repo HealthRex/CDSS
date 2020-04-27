@@ -1,6 +1,6 @@
 import sys, os;
 import time;
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, RowItemModel, modelListFromTable, modelDictFromList;
@@ -34,7 +34,7 @@ def main(argv):
     queryOutpatientIronRx(stdOpen("outpatientIronRx.tab","w"), patientById);
     
     timer = time.time() - timer;
-    print >> sys.stderr, "%.3f seconds to complete" % timer;
+    print("%.3f seconds to complete" % timer, file=sys.stderr);
 
 def queryPatients(outputFile):
     log.info("Select patients with any result for a ferritin test");
@@ -55,7 +55,7 @@ def queryPatients(outputFile):
         
 
     log.info("Patients with admit or diet orders for surgery"); # Not perfectly accurate for isolating surgical patients
-    for patient in patientById.itervalues():
+    for patient in patientById.values():
         patient["surgery"] = 0; # Default to 0 / false
     query = \
         """select distinct patient_id
@@ -68,7 +68,7 @@ def queryPatients(outputFile):
             patientById[patientId]["surgery"] = 1;
 
     log.info("Patients with an order for dialysis");    # (Does not differentiate acute vs. chronic.  Includes peritoneal)
-    for patient in patientById.itervalues():
+    for patient in patientById.values():
         patient["dialysis"] = 0; # Default to 0 / false
     query = \
         """select distinct patient_id
@@ -82,7 +82,7 @@ def queryPatients(outputFile):
 
     # Drop results as tab-delimited text output
     formatter = TextResultsFormatter(outputFile);
-    formatter.formatResultDicts(patientById.itervalues(), addHeaderRow=True);
+    formatter.formatResultDicts(iter(patientById.values()), addHeaderRow=True);
 
     return patientById;    
 
@@ -99,7 +99,7 @@ def queryClinicalItems(outputFile,clinicalItemIds,patientById):
         query.addSelect(col);
     query.addFrom("patient_item");
     query.addWhereIn("clinical_item_id", clinicalItemIds );
-    query.addWhereIn("patient_id", patientById.viewkeys() );
+    query.addWhereIn("patient_id", patientById.keys() );
     query.addOrderBy("patient_id");
     query.addOrderBy("item_date");
 
@@ -128,7 +128,7 @@ def queryLabResults(outputFile, patientById):
     query.addFrom("stride_order_results as sor, stride_order_proc as sop");
     query.addWhere("sor.order_proc_id = sop.order_proc_id");
     query.addWhereIn("base_name", labBaseNames );
-    query.addWhereIn("pat_id", patientById.viewkeys() );
+    query.addWhereIn("pat_id", patientById.keys() );
     query.addOrderBy("pat_id");
     query.addOrderBy("sor.result_time");
 
@@ -153,7 +153,7 @@ def queryOutpatientIronRx(outputFile, patientById):
         query.addSelect(col);
     query.addFrom("stride_order_med");
     query.addWhereIn("medication_id", allEnteralIronMedicationIds );
-    query.addWhereIn("pat_id", patientById.viewkeys() );
+    query.addWhereIn("pat_id", patientById.keys() );
     query.addOrderBy("pat_id");
     query.addOrderBy("ordering_date");
 

@@ -2,12 +2,12 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 import unittest
 import sqlite3;
 
-from ParsingExample import ParsingExample;
+from .ParsingExample import ParsingExample;
 
 class TestParsingExample(unittest.TestCase):
     def setUp(self):

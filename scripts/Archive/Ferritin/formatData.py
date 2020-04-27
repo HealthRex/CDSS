@@ -2,7 +2,7 @@ import sys, os;
 import time;
 import numpy as np;
 from datetime import datetime, timedelta;
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.common.Const import NULL_STRING;
 from medinfo.db import DBUtil;
@@ -74,7 +74,7 @@ def main(argv=None):
     formatter.formatResultDicts(patientResults, colNames, addHeaderRow=True);
 
     timer = time.time() - timer;
-    print >> sys.stderr, "%.3f seconds to complete" % timer;
+    print("%.3f seconds to complete" % timer, file=sys.stderr);
 
 
 def parsePatientFile(patientFile, colNames):
@@ -117,7 +117,7 @@ def addClinicalItemFeatures(itemTimesByPatientId, patientById, colNames, itemLab
     preLabel = "%s.pre" % itemLabel;
     postLabel = "%s.post" % itemLabel;
     
-    for patientId, patient in patientById.iteritems():
+    for patientId, patient in patientById.items():
         # Initialize values to null for not found
         patient[preTimeLabel] = None;
         patient[postTimeLabel] = None;
@@ -178,7 +178,7 @@ def parseLabResultsFile(labFile):
 def addLabFeatures(labsByBaseNameByPatientId, patientById, colNames, indexItemBaseName, labBaseNames, labPreTime, labPostTime):
     log.info("Sort lab results by result time for each patient and find items within specified time period to aggregate");
     prog = ProgressDots();
-    for iPatient, (patientId, labsByBaseName) in enumerate(labsByBaseNameByPatientId.iteritems()):
+    for iPatient, (patientId, labsByBaseName) in enumerate(labsByBaseNameByPatientId.items()):
         # Look for the first result of the index item (ferritin)
         indexItem = None;
         if indexItemBaseName in labsByBaseName:
@@ -245,7 +245,7 @@ def colsFromLabBaseNames(labBaseNames):
 def filterPatients(patientById):
     log.info("Deidentify patient IDs and build data list with adequate data");
     patientResults = list();
-    for iPatient, patient in enumerate(patientById.itervalues()):
+    for iPatient, patient in enumerate(patientById.values()):
         # Further deidentify patients by applying sequential ID
         patient["pat_id"] = patient["patient_id"] = iPatient;
         # Only accept patients where an index item and times were found

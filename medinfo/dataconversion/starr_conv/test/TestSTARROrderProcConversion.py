@@ -1364,8 +1364,6 @@ class TestSTARROrderProcConversion(DBTestCase):
     orderset_data_csv = tempfile.gettempdir() + '/test_starr_order_proc_orderset_data.csv'
 
     def setUp(self):
-        log.setLevel(logging.INFO)  # without this no logs are printed
-
         """Prepare state for test cases"""
         DBTestCase.setUp(self)
 
@@ -1447,7 +1445,7 @@ class TestSTARROrderProcConversion(DBTestCase):
         return (
             curr_row,  # order_proc_id_coded
             patient_id,
-            random.randint(0, curr_row / 2),  # pat_enc_csn_id_coded - want some of them to be repeated
+            random.randint(0, curr_row // 2),  # pat_enc_csn_id_coded - want some of them to be repeated
             ORDER_TYPES[random.randint(0, len(ORDER_TYPES) - 1)],
             proc_id,
             PROC_CODES[proc_id],
@@ -1591,7 +1589,7 @@ class TestSTARROrderProcConversion(DBTestCase):
         bq_cursor = self.bqConn.cursor()
         bq_cursor.execute(test_query)
         # remove timezone info in pi.item_date from coming from bigquery - we're storing datetime without timezone
-        actual_data = [row.values()[:7] + (row.values()[7].replace(tzinfo=None), row.values()[8],) for row in bq_cursor.fetchall()]
+        actual_data = [tuple(row.values())[:7] + (list(row.values())[7].replace(tzinfo=None), list(row.values())[8],) for row in bq_cursor.fetchall()]
 
         log.debug('actual data: {}'.format(actual_data))
         log.debug('expected data: {}'.format(self.expected_data))
@@ -1630,7 +1628,7 @@ class TestSTARROrderProcConversion(DBTestCase):
                        TEST_DEST_DATASET, TEST_SOURCE_TABLE)
 
         bq_cursor.execute(test_orderset_query)
-        actual_orderset_data = [row.values() for row in bq_cursor.fetchall()]
+        actual_orderset_data = [list(row.values()) for row in bq_cursor.fetchall()]
 
         log.debug('actual orderset data: {}'.format(actual_orderset_data))
         log.debug('expected orderset data: {}'.format(self.expected_orderset_data))
@@ -1649,4 +1647,5 @@ def suite():
 
 
 if __name__ == "__main__":
+    log.setLevel(logging.INFO)  # without this no logs are printed
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

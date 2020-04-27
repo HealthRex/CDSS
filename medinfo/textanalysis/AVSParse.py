@@ -10,7 +10,7 @@ import json;
 import re, string;
 from datetime import datetime;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.db.Model import columnFromModelList;
 from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, ProgressDots;
@@ -18,8 +18,8 @@ from medinfo.common.Util import parseDateValue;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
 from medinfo.db.Model import RowItemModel;
 
-from BaseTextAnalysis import BaseTextAnalysis, BaseQuestionModule, SectionLineCountQuestion;
-from Util import log;
+from .BaseTextAnalysis import BaseTextAnalysis, BaseQuestionModule, SectionLineCountQuestion;
+from .Util import log;
 
 SECTION_HEADERS = \
     set([   "This is your After Visit Summary",
@@ -327,7 +327,7 @@ class AVSParse(BaseTextAnalysis):
 
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
-            print >> outputFile, "<!-- %s -->" % json.dumps(summaryData);
+            print("<!-- %s -->" % json.dumps(summaryData), file=outputFile);
 
             # Run the actual analysis
             self(sourceFile, outputFile);

@@ -941,6 +941,8 @@ RANDOM_CLASSIFICATION_TEST_CASE = {
         SupervisedClassifier.LOGISTIC_REGRESSION: 'L1_LOGISTIC_REGRESSION(2.9574398490939546*x8)',
         SupervisedClassifier.REGRESS_AND_ROUND: 'L1_REGRESS_AND_ROUND(1.0*x8)',
         SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.3896064758300781), (x9<=-1.940993070602417), (x7<=-1.721463680267334), (x6<=1.4701499938964844), (x8<=1.5210013389587402), (x9<=-2.1801743507385254))',
+        # TODO seems like a precision issue - below is the actual data vs expected above:
+        # SupervisedClassifier.DECISION_TREE: 'DECISION_TREE((x8<=0.38960647583), (x9<=-1.9409930706), (x7<=-1.72146368027), (x6<=1.4701499939), (x8<=1.52100133896), (x9<=-2.18017435074))',
         SupervisedClassifier.RANDOM_FOREST: 'RANDOM_FOREST(n_estimators=5, features=[x8 (0.834), x9 (0.061), x10 (0.050), x7 (0.039), x6 (0.017)])',
         SupervisedClassifier.ADABOOST: 'ADABOOST(base_estimator=DecisionTreeClassifier, n_estimators=10, features=[x8 (0.736), x9 (0.217), x6 (0.024), x7 (0.023)])',
         SupervisedClassifier.GAUSSIAN_NAIVE_BAYES: 'GAUSSIAN_NAIVE_BAYES(priors=[0.0001, 0.9999])',

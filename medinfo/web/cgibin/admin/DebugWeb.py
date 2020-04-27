@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Just some helper info to help debug web scripts
 """
-import cStringIO, urllib
+import io, urllib.request, urllib.parse, urllib.error
 import cgi, sys, os
 import cgitb; cgitb.enable()
 
@@ -19,9 +19,9 @@ def DebugWeb(environ, start_response):
     templateDict["importOEChem"] = ""
     templateDict["importPsycoPg"] = ""
     
-    if request.has_key("importChemDB"): templateDict["importChemDB"] = "checked"
-    if request.has_key("importOEChem"): templateDict["importOEChem"] = "checked"
-    if request.has_key("importPsycoPg"): templateDict["importPsycoPg"] = "checked"
+    if "importChemDB" in request: templateDict["importChemDB"] = "checked"
+    if "importOEChem" in request: templateDict["importOEChem"] = "checked"
+    if "importPsycoPg" in request: templateDict["importPsycoPg"] = "checked"
 
     html =\
 """
@@ -59,21 +59,21 @@ def DebugWeb(environ, start_response):
 """ % templateDict
 
     # Test if external imports work:
-    if request.has_key("importChemDB"):
+    if "importChemDB" in request:
         import CHEM.Common.Env
         html += "<i>Successfully imported a CHEM module</i><br>"
-    if request.has_key("importOEChem"):
+    if "importOEChem" in request:
         from openeye.oechem import OEGraphMol
         mol = OEGraphMol();
         html += "<i>Successfully imported a OEChem module</i><br>"
-    if request.has_key("importPsycoPg"):
+    if "importPsycoPg" in request:
         import psycopg2
         html += "<i>Successfully imported psycopg2 module</i><br>"
 
     html += "Request Parameters"
     html += "<table border=1>"
     html += "<tr><th>Key</th><th>Value</th><th>Filename and Type</th></tr>"
-    for key in request.keys():
+    for key in list(request.keys()):
         field = request[key]
         if not isinstance(field,list):
             field = [field];    # Convert to list of size 1
@@ -95,7 +95,7 @@ def DebugWeb(environ, start_response):
     html += "<table border=1>"
     html += "<tr><th>Key</th><th>Value</th></tr>"
     
-    keyList = os.environ.keys()
+    keyList = list(os.environ.keys())
     keyList.sort()
     for key in keyList:
         html += "<tr><td>%s</td><td>%s</td></tr>" % (key,os.environ[key])

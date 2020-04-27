@@ -1,9 +1,9 @@
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime
 import unittest
 
-from summary_stats import LabStats
+from .summary_stats import LabStats
 
 class TestLabStats(unittest.TestCase):
     def setUp(self):

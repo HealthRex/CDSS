@@ -20,7 +20,7 @@ from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
-from AntiBiogramMatrix import AntiBiogramMatrix
+from .AntiBiogramMatrix import AntiBiogramMatrix
 
 
 class AntibiogramPredictionPipeline(SupervisedLearningPipeline):

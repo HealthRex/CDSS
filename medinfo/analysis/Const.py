@@ -2,7 +2,7 @@
 
 import sys;
 import logging
-import Env
+from . import Env
 from datetime import timedelta;
 
 """Default level for application logging.  Modify these for different scenarios.  See Python logging package documentation for more information"""

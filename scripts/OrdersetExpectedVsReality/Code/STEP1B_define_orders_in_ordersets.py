@@ -3,7 +3,7 @@ Find orders associated with each given orderset; output as a pickled map
 """
 import glob
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime, timedelta
 from dateutil import parser
 import pickle as pkl

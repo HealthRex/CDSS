@@ -33,8 +33,8 @@ def jitter_processed_matrix(lab, pat_num_limit=100):
     df['pat_id'] = df['pat_id'].apply(lambda x: pat2pat[x] if x in pat2pat else None)
     df = df.dropna()
 
-    print np.array_repr(df.values)
-    print df.columns
+    print(np.array_repr(df.values))
+    print(df.columns)
 
     #fm_io.write_data_frame_to_file(df, data_path.replace('processed', 'processed-jittered'))
 

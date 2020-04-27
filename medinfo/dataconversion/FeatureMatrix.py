@@ -14,7 +14,7 @@ from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 import LocalEnv
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.db import DBUtil
-from Util import log
+from .Util import log
 
 class FeatureMatrix:
     def __init__(self, variable, num_data_points, params=None):
@@ -39,7 +39,7 @@ class FeatureMatrix:
         # Fetch and return results.
         log.info('query: %s' % str(query))
 
-        if isinstance(query, basestring):
+        if isinstance(query, str):
             cursor.execute(query)
         else:
             log.info('query.params: %s' % str(query.params))

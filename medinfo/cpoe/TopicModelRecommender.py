@@ -6,9 +6,10 @@ then this module will return with a ranked and scored list of associated items /
 """
 import sys, os
 import time;
+from operator import itemgetter
 from optparse import OptionParser;
 import json;
-import urlparse;
+import urllib.parse;
 import math;
 from datetime import datetime, timedelta;
 from medinfo.common.Const import FALSE_STRINGS, COMMENT_TAG;
@@ -21,7 +22,7 @@ from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from medinfo.db.ResultsFormatter import TextResultsFormatter;
 from medinfo.cpoe.ItemRecommender import BaseItemRecommender;
 from medinfo.cpoe.TopicModel import TopicModel;
-from Util import log;
+from .Util import log;
 
 class TopicModelRecommender(BaseItemRecommender):
     """Implementation class for item (e.g., order) recommendation based on topic models 
@@ -49,11 +50,11 @@ class TopicModelRecommender(BaseItemRecommender):
     def initItemLookups(self, query):
         self.itemsById = DBUtil.loadTableAsDict("clinical_item");
         self.categoryIdByItemId = dict();
-        for itemId, item in self.itemsById.iteritems():
+        for itemId, item in self.itemsById.items():
             self.categoryIdByItemId[itemId] = item["clinical_item_category_id"];
         self.candidateItemIds = set();
         emptyQuerySet = set();
-        for itemId in self.docCountByWordId.keys():
+        for itemId in list(self.docCountByWordId.keys()):
             if self.isItemRecommendable(itemId, emptyQuerySet, query, self.categoryIdByItemId):
                 self.candidateItemIds.add(itemId);
     
@@ -89,10 +90,10 @@ class TopicModelRecommender(BaseItemRecommender):
         for itemId in self.candidateItemIds:
             if self.isItemRecommendable(itemId, queryItemCountById, query, self.categoryIdByItemId):
                 recScoreByItemId[itemId] = 0.0;
-        for topicId, topicWeight in weightByTopicId.iteritems():
+        for topicId, topicWeight in weightByTopicId.items():
             if topicWeight > query.minClusterWeight:    # Ignore topics with tiny contribution
                 weightByItemId = self.weightByItemIdByTopicId[topicId];
-                for itemId in recScoreByItemId.keys():
+                for itemId in list(recScoreByItemId.keys()):
                     itemWeight = 0.0;
                     if itemId in weightByItemId:
                         itemWeight = weightByItemId[itemId];
@@ -100,7 +101,7 @@ class TopicModelRecommender(BaseItemRecommender):
 
         # Build 2-pls with lists to sort by score
         recommendedData = list();
-        for itemId, totalItemWeight in recScoreByItemId.iteritems():
+        for itemId, totalItemWeight in recScoreByItemId.items():
             tfidf = 0.0;
             if itemId in self.docCountByWordId and self.docCountByWordId[itemId] > 0.0:
                 tfidf = totalItemWeight * self.docCountByWordId[None] / self.docCountByWordId[itemId];    # Scale TF*IDF score based on baseline document counts to prioritize disproportionately common items
@@ -112,7 +113,7 @@ class TopicModelRecommender(BaseItemRecommender):
                 };
             itemModel["score"] = itemModel[query.sortField];
             recommendedData.append(itemModel);
-        recommendedData.sort( RowItemFieldComparator("score"), reverse=True);
+        recommendedData.sort(key=itemgetter("score"), reverse=True);
         return recommendedData;
 
     def main(self, argv):

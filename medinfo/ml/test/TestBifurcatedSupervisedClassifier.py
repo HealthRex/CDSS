@@ -22,7 +22,7 @@ class TestBifurcatedSupervisedClassifier(MedInfoTestCase):
         pass
 
     def _assert_equal_hyperparams(self, expected_hyperparams, actual_hyperparams):
-        for key in expected_hyperparams.keys():
+        for key in list(expected_hyperparams.keys()):
             expected = expected_hyperparams[key]
             actual = actual_hyperparams[key]
             if key == 'cv':

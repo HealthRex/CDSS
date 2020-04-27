@@ -199,9 +199,9 @@ class LabNormalityReport:
             train_value_counts = ast.literal_eval('%s' % meta_report['y_train.value_counts()'])
             test_value_counts = ast.literal_eval('%s' % meta_report['y_test.value_counts()'])
 
-            max_value = np.max(train_value_counts.values())
-            common_label = [k for k, v in train_value_counts.iteritems() if v == max_value][0]
-            test_size = np.sum(test_value_counts.values())
+            max_value = np.max(list(train_value_counts.values()))
+            common_label = [k for k, v in train_value_counts.items() if v == max_value][0]
+            test_size = np.sum(list(test_value_counts.values()))
             counts = meta_report['y_test.value_counts()']
             test_normal_count = ast.literal_eval(counts)[1.0]
             try:
@@ -468,7 +468,7 @@ class LabNormalityReport:
         labs.set_index('lab_panel', drop=False, inplace=True)
 
         # Add labels.
-        for proc_code, label in LabNormalityReport.PROC_CODE_TO_LABEL.iteritems():
+        for proc_code, label in LabNormalityReport.PROC_CODE_TO_LABEL.items():
             if proc_code in labs['lab_panel'].values:
                 labs.at[proc_code, 'label'] = label
 

@@ -30,10 +30,10 @@ def main_quickTest(argv):
     timer = time.time() - timer;
     log.info("%.2f seconds to generate weights",timer);
 
-    for i in xrange(3):
+    for i in range(3):
         prog = ProgressDots();
-        for (topicId, weightByItemId) in weightByItemIdByTopicId.iteritems():
-            for (itemId, itemWeight) in weightByItemId.iteritems():
+        for (topicId, weightByItemId) in weightByItemIdByTopicId.items():
+            for (itemId, itemWeight) in weightByItemId.items():
                 prog.update();
         prog.printStatus();
     

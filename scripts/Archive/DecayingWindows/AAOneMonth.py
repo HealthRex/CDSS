@@ -30,7 +30,7 @@ if __name__=="__main__":
 	conn = None
 	try:
 		conn = psycopg2.connect ("dbname=medinfo user=Muthu host=localhost") #connect to database
-		print "Connected to database"    
+		print("Connected to database")    
 		curs = conn.cursor()
 		curs.execute("DELETE FROM clinical_item_association;") # clear the training table
 		curs.execute("UPDATE patient_item SET analyze_date = null;") # reset the analyze_date column
@@ -38,9 +38,9 @@ if __name__=="__main__":
 		conn.commit()
 		curs.close()
 		conn.close()
-		print "Connection closed"	
-	except psycopg2.DatabaseError, ex:
-		print 'I am unable to connect the database: ' + ex
+		print("Connection closed")	
+	except psycopg2.DatabaseError as ex:
+		print('I am unable to connect the database: ' + ex)
 		sys.exit(1)
 	
 
@@ -75,10 +75,10 @@ if __name__=="__main__":
 	
 	try:
 		conn = psycopg2.connect ("dbname=medinfo user=Muthu host=localhost")
-		print "connected to datbase"
+		print("connected to datbase")
 		curs = conn.cursor()
-	except psycopg2.DatabaseError, ex:
-		print 'I am unable to connect the database: ' + ex
+	except psycopg2.DatabaseError as ex:
+		print('I am unable to connect the database: ' + ex)
 		sys.exit(1)
 
 	prefixes = ['', 'patient_', 'encounter_']
@@ -93,14 +93,14 @@ if __name__=="__main__":
 	
 	for field in fields:
 		sqlQuery = "UPDATE clinical_item_association SET " + field
-		print sqlQuery
+		print(sqlQuery)
 		curs.execute(sqlQuery)
 
 		 
 	conn.commit()
 	curs.close()
 	conn.close()
-	print "Connection closed"
+	print("Connection closed")
 
 
 

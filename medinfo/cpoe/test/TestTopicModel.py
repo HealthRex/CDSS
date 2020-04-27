@@ -2,12 +2,12 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 import unittest
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.common.Const import NULL_STRING;
 from medinfo.db.test.Util import DBTestCase;
@@ -161,7 +161,7 @@ class TestTopicModel(DBTestCase):
             itemsChecked += 1;
         self.assertTrue( itemsChecked > 0 );    # Make sure an actual test happened
 
-        for topicId, topScoreByItemId in topScoreByItemIdByTopicId.iteritems():
+        for topicId, topScoreByItemId in topScoreByItemIdByTopicId.items():
             scoreByItemId = scoreByItemIdByTopicId[topicId];
             self.assertAlmostEqualsDict( topScoreByItemId, scoreByItemId, places=5 );
 

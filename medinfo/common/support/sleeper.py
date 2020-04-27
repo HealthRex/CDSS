@@ -7,6 +7,6 @@ import time;
 duration = int(sys.argv[1]);
 
 progress = ProgressDots();
-for i in xrange(duration):
+for i in range(duration):
 	progress.update();
 progress.printStatus();

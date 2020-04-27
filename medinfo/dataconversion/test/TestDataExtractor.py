@@ -2,12 +2,12 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime, timedelta;
 import unittest
 
-from Const import RUNNER_VERBOSITY, LOGGER_LEVEL, APPLICATION_NAME;
-from Util import log;
+from .Const import RUNNER_VERBOSITY, LOGGER_LEVEL, APPLICATION_NAME;
+from .Util import log;
 import logging
 
 from medinfo.common.Const import NULL_STRING;
@@ -307,7 +307,7 @@ class TestDataExtractor(DBTestCase):
                 -456: {"patient_id": -456, "start_time":DBUtil.parseDateValue("11/5/2113 10:20"), "end_time":DBUtil.parseDateValue("11/5/2113 10:20")},
                 -789: {"patient_id": -789, "start_time":DBUtil.parseDateValue("1/5/2113 10:20"), "end_time":DBUtil.parseDateValue("1/2/2113 10:20")},
             }
-        patientList = patientById.values();
+        patientList = list(patientById.values());
         colNames = list();
         patientEpisodeByIndexTimeById = self.extractor.generateDateRangeIndexTimes("start_time","end_time", patientList, colNames);
 
@@ -320,8 +320,8 @@ class TestDataExtractor(DBTestCase):
                 -789: {},   # Can't find a valid index time if start date is after end date
             };
         actualData = patientEpisodeByIndexTimeById;
-        for patientId, patientEpisodeByIndexTime in actualData.iteritems():
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for patientId, patientEpisodeByIndexTime in actualData.items():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 self.assertAlmostEqualsDict( expectedData[patientId][indexTime], patient );
             self.assertEqual( len(expectedData[patientId]), len(patientEpisodeByIndexTime) )
         self.assertEqual( len(expectedData), len(actualData) );
@@ -339,8 +339,8 @@ class TestDataExtractor(DBTestCase):
                 -789: {},   # Can't find a valid index time if start date is after end date
             };
         actualData = patientEpisodeByIndexTimeById;
-        for patientId, patientEpisodeByIndexTime in actualData.iteritems():
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for patientId, patientEpisodeByIndexTime in actualData.items():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 #print >> sys.stderr, patientId, indexTime, patient;
                 self.assertAlmostEqualsDict( expectedData[patientId][indexTime], patient );
             self.assertEqual( len(expectedData[patientId]), len(patientEpisodeByIndexTime) )
@@ -356,8 +356,8 @@ class TestDataExtractor(DBTestCase):
                 -789: {},   # Can't find a valid index time if start date is after end date
             };
         actualData = patientEpisodeByIndexTimeById;
-        for patientId, patientEpisodeByIndexTime in actualData.iteritems():
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for patientId, patientEpisodeByIndexTime in actualData.items():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 #print >> sys.stderr, patientId, indexTime, patient;
                 self.assertAlmostEqualsDict( expectedData[patientId][indexTime], patient );
             self.assertEqual( len(expectedData[patientId]), len(patientEpisodeByIndexTime) )
@@ -383,8 +383,8 @@ class TestDataExtractor(DBTestCase):
                       },
             };
         actualData = patientEpisodeByIndexTimeById;
-        for patientId, patientEpisodeByIndexTime in actualData.iteritems():
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for patientId, patientEpisodeByIndexTime in actualData.items():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 #print >> sys.stderr, patientId, indexTime, patient;
                 self.assertAlmostEqualsDict( expectedData[patientId][indexTime], patient );
             self.assertEqual( len(expectedData[patientId]), len(patientEpisodeByIndexTime) )
@@ -402,8 +402,8 @@ class TestDataExtractor(DBTestCase):
                       },
             };
         actualData = patientEpisodeByIndexTimeById;
-        for patientId, patientEpisodeByIndexTime in actualData.iteritems():
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for patientId, patientEpisodeByIndexTime in actualData.items():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 #print >> sys.stderr, patientId, indexTime, patient;
                 self.assertAlmostEqualsDict( expectedData[patientId][indexTime], patient );
             self.assertEqual( len(expectedData[patientId]), len(patientEpisodeByIndexTime) )
@@ -426,7 +426,7 @@ class TestDataExtractor(DBTestCase):
         expectedColNames = ["index_time.month","index_time.month.sin","index_time.month.cos", "index_time.hour","index_time.hour.sin","index_time.hour.cos"];
 
         colNames = None;
-        for patientId, patientEpisode in patientById.iteritems():
+        for patientId, patientEpisode in patientById.items():
             colNames = list();
             # Generate index time points copies for the patient
             colNames.extend(self.extractor.addTimeCycleFeatures_singleEpisode(patientEpisode, "index_time", "month"));
@@ -434,7 +434,7 @@ class TestDataExtractor(DBTestCase):
 
             #print >> sys.stderr, patientEpisode;
             self.assertAlmostEqualsDict( expectedDataByPatientId[patientId], patientEpisode );
-            self.assertEquals(expectedColNames, colNames);
+            self.assertEqual(expectedColNames, colNames);
 
     def test_addClinicalItemFeatures(self):
         log.debug("Setup clinical item feature data file first...");
@@ -450,7 +450,7 @@ class TestDataExtractor(DBTestCase):
 
         # Extract out item contents and link to patient data
         colNames = list();
-        patientEpisodeByIndexTimeById = self.extractor.generateDateRangeIndexTimes("index_time","index_time", patientById.values(), colNames);
+        patientEpisodeByIndexTimeById = self.extractor.generateDateRangeIndexTimes("index_time","index_time", list(patientById.values()), colNames);
         itemTimesByPatientId = self.extractor.parseClinicalItemFile(StringIO(outFile.getvalue()));
         self.extractor.addClinicalItemFeatures(itemTimesByPatientId, patientEpisodeByIndexTimeById, colNames, "TestItem");
 
@@ -462,8 +462,8 @@ class TestDataExtractor(DBTestCase):
             };
 
         actualData = patientEpisodeByIndexTimeById;
-        for patientId, patientEpisodeByIndexTime in actualData.iteritems():
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for patientId, patientEpisodeByIndexTime in actualData.items():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 #print >> sys.stderr, key, value;
                 self.assertAlmostEqualsDict( expectedData[patientId][indexTime], patient );
         self.assertEqual( len(expectedData), len(actualData) );
@@ -485,7 +485,7 @@ class TestDataExtractor(DBTestCase):
             };
 
         colNames = None;
-        for patientId, basePatient in patientById.iteritems():
+        for patientId, basePatient in patientById.items():
             colNames = list();
             # Generate index time points copies for the patient
             (patientEpisodeByIndexTime, newColNames) = self.extractor.generateDateRangeIndexTimes_singlePatient("index_time","index_time", basePatient);
@@ -499,7 +499,7 @@ class TestDataExtractor(DBTestCase):
             colNames.extend(newColNames);
 
             actualData = patientEpisodeByIndexTime;
-            for indexTime, patient in actualData.iteritems():
+            for indexTime, patient in actualData.items():
                 #print >> sys.stderr, patient;
                 self.assertAlmostEqualsDict( expectedDataByPatientId[patientId][indexTime], patient );
             self.assertEqual( len(expectedDataByPatientId[patientId]), len(actualData) );
@@ -541,11 +541,11 @@ class TestDataExtractor(DBTestCase):
                 {"pat_id": -123, "base_name":"CR", "ord_num_value":2.1, "result_flag": "High", "result_in_range_yn":"N", "result_time": DBUtil.parseDateValue("4/6/2009 15:12") },
                 {"pat_id": -123, "base_name":"TNI", "ord_num_value":0, "result_flag": None, "result_in_range_yn":"Y", "result_time": DBUtil.parseDateValue("4/6/2009 16:34") },
             ];
-        self.assertEqualDictList( expectedData, actualData, expectedData[0].keys() );
+        self.assertEqualDictList( expectedData, actualData, list(expectedData[0].keys()) );
 
         # Parse back the results and load into patient data
         colNames = list();
-        patientEpisodeByIndexTimeById = self.extractor.generateDateRangeIndexTimes("index_time","index_time", patientById.values(), colNames);
+        patientEpisodeByIndexTimeById = self.extractor.generateDateRangeIndexTimes("index_time","index_time", list(patientById.values()), colNames);
 
         preTimeDelta = timedelta(-90); # Any time in the past 90
         postTimeDelta = timedelta(0);   # Only look for past items
@@ -559,8 +559,8 @@ class TestDataExtractor(DBTestCase):
                 -999: {DBUtil.parseDateValue("7/6/2009 12:00"): {"patient_id": -999, "index_time":DBUtil.parseDateValue("7/6/2009 12:00"),"days_until_end": 0.0,  "TNI.-90_0.count":0, "TNI.-90_0.countInRange":0, "TNI.-90_0.min":None, "TNI.-90_0.max":None, "TNI.-90_0.median":None, "TNI.-90_0.mean":None, "TNI.-90_0.std":None, "TNI.-90_0.first":None, "TNI.-90_0.last":None, "TNI.-90_0.diff":None, "TNI.-90_0.slope":None, "TNI.-90_0.proximate":None, "TNI.-90_0.firstTimeDays":None, "TNI.-90_0.lastTimeDays":None, "TNI.-90_0.proximateTimeDays":None, "CR.-90_0.count":0, "CR.-90_0.countInRange":0, "CR.-90_0.min":None, "CR.-90_0.max":None, "CR.-90_0.median":None, "CR.-90_0.mean":None, "CR.-90_0.std":None, "CR.-90_0.first":None, "CR.-90_0.last":None, "CR.-90_0.diff":None, "CR.-90_0.slope":None, "CR.-90_0.proximate":None, "CR.-90_0.firstTimeDays":None, "CR.-90_0.lastTimeDays":None, "CR.-90_0.proximateTimeDays":None, "LAC.-90_0.count":0, "LAC.-90_0.countInRange":0, "LAC.-90_0.min":None, "LAC.-90_0.max":None, "LAC.-90_0.median":None, "LAC.-90_0.mean":None, "LAC.-90_0.std":None, "LAC.-90_0.first":None, "LAC.-90_0.last":None, "LAC.-90_0.diff":None, "LAC.-90_0.slope":None, "LAC.-90_0.proximate":None, "LAC.-90_0.firstTimeDays":None, "LAC.-90_0.lastTimeDays":None, "LAC.-90_0.proximateTimeDays":None, }},
             };
         actualData = patientEpisodeByIndexTimeById;
-        for patientId, patientEpisodeByIndexTime in actualData.iteritems():
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for patientId, patientEpisodeByIndexTime in actualData.items():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 #print >> sys.stderr, patientId, patient;
                 self.assertAlmostEqualsDict( expectedData[patientId][indexTime], patient );
         self.assertEqual( len(expectedData), len(actualData) );
@@ -599,7 +599,7 @@ class TestDataExtractor(DBTestCase):
             };
 
         colNames = None;
-        for patientId, basePatient in patientById.iteritems():
+        for patientId, basePatient in patientById.items():
             colNames = list();
             (patientEpisodeByIndexTime, newColNames) = self.extractor.generateDateRangeIndexTimes_singlePatient("index_time","index_time", basePatient);
             colNames.extend(newColNames);
@@ -611,7 +611,7 @@ class TestDataExtractor(DBTestCase):
             expectedData = expectedDataByPatientId[patientId];
             expectedKeys = None;
             if len(expectedData) > 0:
-                expectedKeys = expectedData[0].keys();
+                expectedKeys = list(expectedData[0].keys());
             self.assertEqualDictList( expectedData, actualData, expectedKeys );
 
             # Parse back the results and load into patient data
@@ -624,7 +624,7 @@ class TestDataExtractor(DBTestCase):
 
             expectedpatientEpisodeByIndexTime = expectedpatientEpisodeByIndexTimeById[patientId];
             actualData = patientEpisodeByIndexTime;
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 #print >> sys.stderr, patientId, patient["CR.None_0.count"], patient;
                 self.assertAlmostEqualsDict( expectedpatientEpisodeByIndexTime[indexTime], patient );
             self.assertEqual( len(expectedpatientEpisodeByIndexTime), len(actualData) );
@@ -669,11 +669,11 @@ class TestDataExtractor(DBTestCase):
                 {"pat_id": -123, "base_name":"Glasgow Coma Scale Score", "num_value":2.1, "result_time": DBUtil.parseDateValue("4/6/2009 15:12") },
                 {"pat_id": -123, "base_name":"FiO2", "num_value":0, "result_time": DBUtil.parseDateValue("4/6/2009 16:34") },
             ];
-        self.assertEqualDictList( expectedData, actualData, expectedData[0].keys() );
+        self.assertEqualDictList( expectedData, actualData, list(expectedData[0].keys()) );
 
         # Parse back the results and load into patient data
         colNames = list();
-        patientEpisodeByIndexTimeById = self.extractor.generateDateRangeIndexTimes("index_time","index_time", patientById.values(), colNames);
+        patientEpisodeByIndexTimeById = self.extractor.generateDateRangeIndexTimes("index_time","index_time", list(patientById.values()), colNames);
 
         preTimeDelta = None; # Any time in the past
         postTimeDelta = timedelta(0);   # Only look for past items
@@ -687,8 +687,8 @@ class TestDataExtractor(DBTestCase):
                 -999: {DBUtil.parseDateValue("7/6/2009 12:00"): {"patient_id": -999, "index_time":DBUtil.parseDateValue("7/6/2009 12:00"), "days_until_end": 0.0, "FiO2.None_0.count":0, "FiO2.None_0.countInRange":0, "FiO2.None_0.min":None, "FiO2.None_0.max":None, "FiO2.None_0.median":None, "FiO2.None_0.mean":None, "FiO2.None_0.std":None, "FiO2.None_0.first":None, "FiO2.None_0.last":None, "FiO2.None_0.diff":None, "FiO2.None_0.slope":None, "FiO2.None_0.proximate":None, "FiO2.None_0.firstTimeDays":None, "FiO2.None_0.lastTimeDays":None, "FiO2.None_0.proximateTimeDays":None, "Glasgow Coma Scale Score.None_0.count":0, "Glasgow Coma Scale Score.None_0.countInRange":0, "Glasgow Coma Scale Score.None_0.min":None, "Glasgow Coma Scale Score.None_0.max":None, "Glasgow Coma Scale Score.None_0.median":None, "Glasgow Coma Scale Score.None_0.mean":None, "Glasgow Coma Scale Score.None_0.std":None, "Glasgow Coma Scale Score.None_0.first":None, "Glasgow Coma Scale Score.None_0.last":None, "Glasgow Coma Scale Score.None_0.diff":None, "Glasgow Coma Scale Score.None_0.slope":None, "Glasgow Coma Scale Score.None_0.proximate":None, "Glasgow Coma Scale Score.None_0.firstTimeDays":None, "Glasgow Coma Scale Score.None_0.lastTimeDays":None, "Glasgow Coma Scale Score.None_0.proximateTimeDays":None, "Resp.None_0.count":0, "Resp.None_0.countInRange":0, "Resp.None_0.min":None, "Resp.None_0.max":None, "Resp.None_0.median":None, "Resp.None_0.mean":None, "Resp.None_0.std":None, "Resp.None_0.first":None, "Resp.None_0.last":None, "Resp.None_0.diff":None, "Resp.None_0.slope":None, "Resp.None_0.proximate":None, "Resp.None_0.firstTimeDays":None, "Resp.None_0.lastTimeDays":None, "Resp.None_0.proximateTimeDays":None, }},
             };
         actualData = patientEpisodeByIndexTimeById;
-        for patientId, patientEpisodeByIndexTime in actualData.iteritems():
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for patientId, patientEpisodeByIndexTime in actualData.items():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 #print >> sys.stderr, key, value;
                 self.assertAlmostEqualsDict( expectedData[patientId][indexTime], patient );
         self.assertEqual( len(expectedData), len(actualData) );
@@ -733,12 +733,12 @@ StringIO("""pat_id\tmedication_id\tstart_taking_time\tend_taking_time\tfreq_name
 -123\t4318\t4/6/2009 17:00\t4/6/2009 18:00\tCONTINUOUS\tNone\t1000
 """);
         expectedData = self.extractor.parseIVFluidFile(expectedDataFile);
-        self.assertEqualDictList( expectedData[-123], actualData[-123], expectedData[-123][0].keys() );
+        self.assertEqualDictList( expectedData[-123], actualData[-123], list(expectedData[-123][0].keys()) );
 
 
         # Parse back the results and load into patient data
         colNames = ["patient_id"];
-        patientEpisodeByIndexTimeById = self.extractor.generateDateRangeIndexTimes("index_time","index_time", patientById.values(), colNames);
+        patientEpisodeByIndexTimeById = self.extractor.generateDateRangeIndexTimes("index_time","index_time", list(patientById.values()), colNames);
 
         thresholdVolumes = [500,1000,2000,3000,4000,5000];  # Volumes (mL) of fluid interested in time until encountering
         checkpointTimes = [0, 0.5*60*60, 1*60*60, 2*60*60, 3*60*60, 4*60*60, 4.5*60*60, 5*60*60, 6*60*60, 7*60*60];  # Time checkpoints (seconds) interested in accumulated fluid volume by that time
@@ -771,8 +771,8 @@ StringIO("""pat_id\tmedication_id\tstart_taking_time\tend_taking_time\tfreq_name
                  },
             };
         actualData = patientEpisodeByIndexTimeById;
-        for patientId, patientEpisodeByIndexTime in actualData.iteritems():
-            for indexTime, patient in patientEpisodeByIndexTime.iteritems():
+        for patientId, patientEpisodeByIndexTime in actualData.items():
+            for indexTime, patient in patientEpisodeByIndexTime.items():
                 #keys = patient.keys();
                 #keys.sort();
                 #for key in keys:
@@ -780,6 +780,7 @@ StringIO("""pat_id\tmedication_id\tstart_taking_time\tend_taking_time\tfreq_name
                 self.assertAlmostEqualsDict( expectedData[patientId][indexTime], patient );
                 self.assertEqual(set(expectedData[patientId][indexTime].keys()), set(colNames));
         self.assertEqual( len(expectedData), len(actualData) );
+
 
 def suite():
     """Returns the suite of tests to run for this test class / module.
@@ -797,7 +798,8 @@ def suite():
 
     return suite;
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     #log = logging.getLogger("CDSS")
     #log.setLevel(logging.DEBUG)
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

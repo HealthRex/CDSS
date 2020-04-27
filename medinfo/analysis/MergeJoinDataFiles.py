@@ -10,14 +10,14 @@ import time;
 import json;
 import numpy as np;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 import pandas as pd;    # Take advantage of existing framework for DataFrame manipulation
 from medinfo.common.Const import COMMENT_TAG, VALUE_DELIM;
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
-from Util import log;
+from .Util import log;
 
-from BaseAnalysis import BaseAnalysis;
+from .BaseAnalysis import BaseAnalysis;
 
 class MergeJoinDataFiles(BaseAnalysis):
     def __init__(self):
@@ -77,7 +77,7 @@ class MergeJoinDataFiles(BaseAnalysis):
 
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             self(inputFiles, keyList, suffixList, outputFile);
 

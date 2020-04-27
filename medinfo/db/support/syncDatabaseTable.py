@@ -1,9 +1,8 @@
 import sys, os, pprint; #pprint is useful for debugging
-from sets import Set;
 from optparse import OptionParser
 from medinfo.db import DBUtil;
 from medinfo.db.Model import RowItemModel;
-from medinfo.db.Util import ProgressDots;
+from medinfo.common.Util import ProgressDots;
 from CHEM.DB.support import DBCopyFormatter;
 
 def main(argv):
@@ -63,8 +62,8 @@ def main(argv):
         sourceConn = DBUtil.connection( sourceDB );
         targetConn = DBUtil.connection( targetDB );
         
-    except Exception, exc:
-        print str(exc);
+    except Exception as exc:
+        print(str(exc));
         parser.print_help()
         exit();
 
@@ -77,14 +76,14 @@ def main(argv):
            just prep-work for the syncTable function
         """
         if options.rowIDs:
-            rowIDStrSet = Set();
+            rowIDStrSet = set();
             for rowIDStr in options.rowIDs.split(","):
                 rowIDStrSet.add(rowIDStr);
         
         """For each table specified, format and sync
         """
         for syncTableName in syncTableList:
-            print >> sys.stderr, "Syncing %s" % syncTableName;
+            print("Syncing %s" % syncTableName, file=sys.stderr);
             
             ##Resolve formatter to actual class
             myFormatter = None;
@@ -116,13 +115,13 @@ def syncSequence(sourceConn, targetConn, syncTableName):
         seqVal = DBUtil.execute( seqValQuery, conn=sourceConn )
         seqVal = int(seqVal[0][0]) + 1; # Add 1 to ensure no overlap
         
-        print >> sys.stderr, "Last value of sequence %s, will be updated to %d" % (seqName,seqVal)
+        print("Last value of sequence %s, will be updated to %d" % (seqName,seqVal), file=sys.stderr)
         
         altValQuery = "ALTER SEQUENCE %s RESTART WITH %d" % (seqName,seqVal)
         DBUtil.execute( altValQuery, conn=targetConn )
     
-    except Exception, exc:
-        print "syncSequence Failed: ", str(exc)
+    except Exception as exc:
+        print("syncSequence Failed: ", str(exc))
         parser.print_help()
         exit()
 
@@ -134,15 +133,15 @@ def syncTable(sourceConn, targetConn, syncTableName, rowIDStrSet=None, formatter
         idQuery = "select %s from %s" % (idCol, syncTableName);
 
         # Collect all of the IDs known in the target database and store in memory for rapid lookup
-        print >> sys.stderr, "Querying for IDs from Target Database";
+        print("Querying for IDs from Target Database", file=sys.stderr);
         targetIdTable = DBUtil.execute( idQuery, conn=targetConn );
-        targetIdSet = Set();
+        targetIdSet = set();
         for row in targetIdTable:
             targetId = row[0];
             targetIdSet.add(targetId);
 
         # Query data out of the source table, but do it by a cursor so we can stream through large data tables
-        print >> sys.stderr, "Querying for Source Data";
+        print("Querying for Source Data", file=sys.stderr);
         dataQuery = "select * from %s" % (syncTableName);
         sourceCursor = sourceConn.cursor(); 
         sourceCursor.execute(dataQuery);
@@ -161,22 +160,22 @@ def syncTable(sourceConn, targetConn, syncTableName, rowIDStrSet=None, formatter
             
             if rowIDStrSet is None or str(dataModel[idCol]) in rowIDStrSet:
                 if rowIDStrSet is not None:
-                    print >> sys.stderr, "Syncing record: %s" % dataModel[idCol];
+                    print("Syncing record: %s" % dataModel[idCol], file=sys.stderr);
                 
                 if dataModel[idCol] not in targetIdSet:
                     # Row does not yet exist in target database, need to insert it
                     if insertQuery is None:
-                        insertQuery = DBUtil.buildInsertQuery( syncTableName, dataModel.keys() );
-                    insertParams= dataModel.values();
+                        insertQuery = DBUtil.buildInsertQuery( syncTableName, list(dataModel.keys()) );
+                    insertParams= list(dataModel.values());
 
                     targetCursor.execute( insertQuery, insertParams );
 
                 else:
                     # Row already exists in target database, just update values
                     if updateQuery is None:
-                        updateQuery = DBUtil.buildUpdateQuery( syncTableName, dataModel.keys() );
+                        updateQuery = DBUtil.buildUpdateQuery( syncTableName, list(dataModel.keys()) );
                     updateParams = [];
-                    updateParams.extend( dataModel.values() );
+                    updateParams.extend( list(dataModel.values()) );
                     updateParams.append( dataModel[idCol] );
 
                     targetCursor.execute( updateQuery, updateParams );

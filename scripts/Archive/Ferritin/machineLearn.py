@@ -1,6 +1,6 @@
 import sys, os;
 import time;
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, RowItemModel, modelListFromTable, modelDictFromList;
@@ -117,7 +117,7 @@ def testModels(xDF,ySeries,kFolds=10):
     for scoreFxn in scoreFxns:
         for model in models:
             scores = cross_val_score(model,xDF,ySeries,cv=kFolds, scoring=scoreFxn);
-            print "%.2f (%.2f, %.2f) %s.%s" % (scores.mean(), scores.mean()-scores.std()*2, scores.mean()+scores.std()*2, str(scoreFxn), type(model).__name__);
+            print("%.2f (%.2f, %.2f) %s.%s" % (scores.mean(), scores.mean()-scores.std()*2, scores.mean()+scores.std()*2, str(scoreFxn), type(model).__name__));
 
 def driver(dataFrame):
     timer = time.time();
@@ -129,7 +129,7 @@ def driver(dataFrame):
     imputedDF = imputeMissingValues(subDF);  
 
     outcomeSeries = (1-imputedDF["ironOutpatient.post"]);
-    print("== Outpatient Iron Prescription, Post, %d%% ==" % (sum(outcomeSeries)*100/len(outcomeSeries)) );
+    print(("== Outpatient Iron Prescription, Post, %d%% ==" % (sum(outcomeSeries)*100/len(outcomeSeries)) ));
     selectedDF = featureSelection(imputedDF, outcomeSeries, 'all'); # But drop outcome variable, otherwise cheating prediction
     testModels(selectedDF, outcomeSeries);
 
@@ -160,7 +160,7 @@ def driver(dataFrame):
     """
     
     timer = time.time() - timer;
-    print >> sys.stderr, "%.3f seconds to complete" % timer;
+    print("%.3f seconds to complete" % timer, file=sys.stderr);
     
     return (selectedDF, imputedDF);
 

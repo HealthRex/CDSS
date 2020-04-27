@@ -2,9 +2,10 @@ from pathlib import Path
 
 from scripts.GoogleCloud.Sheets.sheets_to_df import GoogleSheetsConnect
 
+
 def test_creating_df_from_sheets(json_path, sheet_id, range_name):
     p = Path(json_path)
-    assert p.exists(), f'{json_path} does not exist.'
+    assert p.exists(), json_path + ' does not exist.'
 
     sheet_connect = GoogleSheetsConnect(json_path)
 
@@ -15,6 +16,7 @@ def test_creating_df_from_sheets(json_path, sheet_id, range_name):
     print(df)
 
     return
+
 
 if __name__ == '__main__':
     json = input('Enter json_path: ')

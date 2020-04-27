@@ -2,13 +2,13 @@
 """Test case for respective module in application package"""
 
 import sys, os;
-from cStringIO import StringIO;
+from io import StringIO;
 import json;
 from datetime import datetime, timedelta;
 import unittest
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import loadJSONDict;
@@ -340,7 +340,7 @@ class TestPreparePatientItems(DBTestCase):
         self.assertEqualTextOutput(expectedResults, textOutput, colNames);
 
     def assertEqualResultDicts(self, expectedResults, analysisResults, colNames ):
-        self.assertEquals( len(expectedResults), len(analysisResults) );
+        self.assertEqual( len(expectedResults), len(analysisResults) );
         for expectedResult, analysisResult in zip(expectedResults,analysisResults):
             self.assertEqualDict(expectedResult, analysisResult, colNames);
     

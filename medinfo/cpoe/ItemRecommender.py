@@ -8,9 +8,10 @@ items / orders.
 """
 import sys, os
 import time;
+from operator import itemgetter
 from optparse import OptionParser;
 import json;
-import urlparse;
+import urllib.parse;
 import math;
 from datetime import datetime, timedelta;
 from medinfo.common.Const import FALSE_STRINGS, COMMENT_TAG;
@@ -22,12 +23,12 @@ from medinfo.db.Model import RowItemFieldComparator;
 from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from medinfo.db.ResultsFormatter import TextResultsFormatter;
 
-from DataManager import DataManager;
+from .DataManager import DataManager;
 
-from Util import log;
-from Const import AGGREGATOR_OPTIONS;
-from Const import SECONDS_PER_DAY;
-from Const import CORE_FIELDS;
+from .Util import log;
+from .Const import AGGREGATOR_OPTIONS;
+from .Const import SECONDS_PER_DAY;
+from .Const import CORE_FIELDS;
 
 # List of fields that may be aggregated across results by a (weighted) average
 WEIGHTED_AVERAGE_FIELDS = ["nAB","nA"];
@@ -407,8 +408,8 @@ class BaseItemRecommender:
             nA' = Product((nAi-nAiB)/(N-nB)) * (N-nB) + nAB'
         """
         if statIds is None:
-            statIds = set([query.sortField]);
-            for (fieldOp, value) in query.fieldFilters.iteritems():
+            statIds = {query.sortField}
+            for (fieldOp, value) in query.fieldFilters.items():
                 if value is not None:
                     field = fieldOp[:-1];
                     statIds.add(field);
@@ -417,8 +418,8 @@ class BaseItemRecommender:
             componentResultsById = aggregateResult["componentResultsById"];
 
             # Fill in baseline counts directly, as values should be identical across components
-            aggregateResult["nB"] = componentResultsById.values()[0]["nB"];
-            aggregateResult["N"] = componentResultsById.values()[0]["N"];
+            aggregateResult["nB"] = list(componentResultsById.values())[0]["nB"];
+            aggregateResult["N"] = list(componentResultsById.values())[0]["N"];
 
             if query.aggregationMethod in ("weighted","unweighted"):
                 # Standard (weighted) average of component scores
@@ -426,27 +427,27 @@ class BaseItemRecommender:
                 aggregateResult["sum(nA*weight)"] = 0.0;
                 aggregateResult["sum(weight)"] = 0.0;
 
-                for componentId, component in componentResultsById.iteritems():
+                for componentId, component in componentResultsById.items():
                     component["weight"] = 1.0;
                     if query.aggregationMethod == "weighted":
                         # Weighted scaling of scores inversely proportional to the query item frequency,
                         #   so less common (and thus more specific) query items are paid more attention to in the aggregate recommendations
                         #   Though should beware this may give disproportionate weight to unusually rare query items
-                    	component["weight"] = 1.0 / component["nA"];
+                        component["weight"] = 1.0 / component["nA"];
 
                     aggregateResult["sum(nAB*weight)"] += (component["nAB"] * component["weight"]);
                     aggregateResult["sum(nA*weight)"] += (component["nA"] * component["weight"]);
                     aggregateResult["sum(weight)"] += component["weight"];
 
-            	aggregateResult["nAB"] = aggregateResult["sum(nAB*weight)"] / aggregateResult["sum(weight)"];   # Complete the weighted average score calculation
-            	aggregateResult["nA"] = aggregateResult["sum(nA*weight)"] / aggregateResult["sum(weight)"];
+                aggregateResult["nAB"] = aggregateResult["sum(nAB*weight)"] / aggregateResult["sum(weight)"];   # Complete the weighted average score calculation
+                aggregateResult["nA"] = aggregateResult["sum(nA*weight)"] / aggregateResult["sum(weight)"];
 
             elif query.aggregationMethod in ("NaiveBayes"):
                 # Naive Bayes products
                 aggregateResult["product(nAB/nB)"] = 1.0;
                 aggregateResult["product(nA/N)"] = 1.0;
 
-                for componentId, component in componentResultsById.iteritems():
+                for componentId, component in componentResultsById.items():
                     nAB_ = max(component["nAB"],DEGENERATE_VALUE_ADJUSTMENT);   # Small adjustment to avoid zero value that will wipe out all information in product
                     nA_ = max(component["nA"],DEGENERATE_VALUE_ADJUSTMENT); # Similar check should not be necessary
                     aggregateResult["product(nAB/nB)"] *= nAB_ / component["nB"];
@@ -478,7 +479,7 @@ class BaseItemRecommender:
                 aggregateResult["Product(nAB/nB)"] = 1.0;
                 aggregateResult["Product((nA-nAB)/(N-nB))"] = 1.0;
 
-                for componentId, component in componentResultsById.iteritems():
+                for componentId, component in componentResultsById.items():
                     nAB_ = max(component["nAB"],DEGENERATE_VALUE_ADJUSTMENT);   # Small adjustment to avoid zero value that will wipe out all information in product
                     nA_ = component["nA"];
                     aggregateResult["Product(nAB/nB)"] *= nAB_ / component["nB"];
@@ -501,7 +502,7 @@ class BaseItemRecommender:
         """
         # Now collect and sort the aggregated results to return only the top relevant results
         aggregateResultsWithScore = list();
-        for aggregateResult in aggregateResultsByItemId.itervalues():
+        for aggregateResult in aggregateResultsByItemId.values():
             itemId = aggregateResult["clinical_item_id"];
 
             # Calculate and populate the aggregate result item with stats based on its component items
@@ -510,7 +511,7 @@ class BaseItemRecommender:
 
             # Look for value filters
             excludeResult = False;
-            for (fieldOp, value) in query.fieldFilters.iteritems():
+            for (fieldOp, value) in query.fieldFilters.items():
                 if value is not None:
                     field = fieldOp[:-1];
                     op = fieldOp[-1];
@@ -521,7 +522,7 @@ class BaseItemRecommender:
             if not excludeResult:
                 aggregateResultsWithScore.append( (aggregateResult[query.sortField], aggregateResult) );
 
-        aggregateResultsWithScore.sort();
+        aggregateResultsWithScore.sort(key=itemgetter(0));
         if query.sortReverse:
             aggregateResultsWithScore.reverse();    # Descending order of score to get top results
 
@@ -816,7 +817,7 @@ class ItemAssociationRecommender(BaseItemRecommender):
             resultModel["categoryScore"] = cumulativeScoreByCategoryId[categoryId];
 
         # Re-sort result models first by category (score) then individual item score (descending order)
-        resultModels.sort(RowItemFieldComparator(["categoryScore","score"]), reverse=True);
+        resultModels.sort(key=itemgetter("categoryScore","score"), reverse=True);
 
         return resultModels;
 
@@ -883,10 +884,10 @@ class ItemAssociationRecommender(BaseItemRecommender):
 
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             # Parse out query parameters
-            paramDict = dict(urlparse.parse_qsl(queryStr,True));
+            paramDict = dict(urllib.parse.parse_qsl(queryStr,True));
             query = RecommenderQuery();
             query.parseParams(paramDict);
             displayFields = query.getDisplayFields();

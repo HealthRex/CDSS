@@ -2,7 +2,7 @@
 
 import sys;
 import logging
-import Env
+from . import Env
 
 """If specify this as the name of an input/output file, interpret as user wants to use stdin or stdout"""
 STD_FILE = "-"

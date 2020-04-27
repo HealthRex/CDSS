@@ -10,7 +10,7 @@ import time;
 import math;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 import numpy as np;
 #from sklearn.metrics import roc_curve, auc, roc_auc_score;
 #import pylab;
@@ -20,9 +20,9 @@ from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.common.StatsUtil import ContingencyStats;
 from medinfo.db.ResultsFormatter import TextResultsFormatter;
 from medinfo.db.Model import RowItemModel;
-from Util import log;
+from .Util import log;
 
-from BaseAnalysis import BaseAnalysis;
+from .BaseAnalysis import BaseAnalysis;
 
 CONFIDENCE_INTERVAL = 0.95;
 
@@ -41,7 +41,7 @@ class ROCPlot(BaseAnalysis):
         (outcomes, scoresById) = self.parseScoreFile(inputFile, colOutcome=colOutcome, colScore=colScore);
         analysisResultsByScoreId = dict();
         summaryData = dict();
-        for scoreId, scores in scoresById.iteritems():
+        for scoreId, scores in scoresById.items():
             (rocData, scoreSummaryData) = self.rocCurve( outcomes, scores, scoreId, options );
             (fpr,tpr,thresholds) = rocData;
             analysisResultsByScoreId[scoreId] = [ (afpr,atpr) for (afpr,atpr) in zip(fpr,tpr)];    # Repackage into a list of 2-ples
@@ -180,7 +180,7 @@ class ROCPlot(BaseAnalysis):
         
             statIds = options.contingencyStats.split(VALUE_DELIM);
 
-            for scoreId in scoresById.iterkeys():
+            for scoreId in scoresById.keys():
                 pairsCorrect = summaryData["%s.pairsCorrect" % scoreId];
                 pairsChecked = summaryData["%s.pairsChecked" % scoreId];
                 contStats = ContingencyStats( pairsCorrect, pairsChecked, pairsCorrect+basePairsCorrect, pairsChecked+basePairsChecked );
@@ -199,7 +199,7 @@ class ROCPlot(BaseAnalysis):
         if rcParams is not None:
             pylab.rcParams.update(rcParams);
         
-        scoreIds = analysisResultsByScoreId.keys();
+        scoreIds = list(analysisResultsByScoreId.keys());
         if colScoreStr is not None:
             # Use pre-specified order of columns, otherwise subject to erratic dictionary key ordering
             scoreIds = colScoreStr.split(VALUE_DELIM);
@@ -245,14 +245,14 @@ class ROCPlot(BaseAnalysis):
         # Organize results by scoreId into a single table.  Some columns will not be as long as others, so fill with None values
         nScores = len(analysisResultsByScoreId);
         maxNResults = 0;
-        for iScore, (scoreId, analysisResults) in enumerate(analysisResultsByScoreId.iteritems()):
+        for iScore, (scoreId, analysisResults) in enumerate(analysisResultsByScoreId.items()):
             analysisResults = analysisResultsByScoreId[scoreId];
             maxNResults = max(maxNResults, len(analysisResults));
         # Prepopulate table space
         #outputTable = [[None]*(nScores*2)] * maxNResults;    # This does not work directly, for some reason causes multi-row assignment when try to set individual cell values
-        outputTable = [[None]*(nScores*2) for iResult in xrange(maxNResults)];
+        outputTable = [[None]*(nScores*2) for iResult in range(maxNResults)];
 
-        for iScore, (scoreId, analysisResults) in enumerate(analysisResultsByScoreId.iteritems()):
+        for iScore, (scoreId, analysisResults) in enumerate(analysisResultsByScoreId.items()):
             analysisResults = analysisResultsByScoreId[scoreId];
             for iResult, (fpr,tpr) in enumerate(analysisResults):
                 outputTable[iResult][iScore*2] = fpr;
@@ -307,7 +307,7 @@ class ROCPlot(BaseAnalysis):
             
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData["argv"] = argv;
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             outputTable = self.formatAnalysisTable(analysisResultsByScoreId);
             
