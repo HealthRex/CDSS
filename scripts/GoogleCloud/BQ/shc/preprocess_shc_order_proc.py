@@ -33,8 +33,8 @@ def non_numeric_sub(string):
     return re.sub("[^0-9.-]", "", string)
 
 
-file_match = glob.glob('/Users/jonc101/Documents/lpch_auto/flowsheets/flowsheet2012/flowsheet_*')
-file_prefix = '/Users/jonc101/Documents/lpch_auto/flowsheets/flowsheet2012/flowsheet_'
+file_match = glob.glob('/Users/jonc101/Downloads/shc/sheet_*')
+file_prefix = '/Users/jonc101/Downloads/shc/sheet_'
 
 file_prefix_list = []
 
@@ -55,29 +55,22 @@ for file in file_prefix_list:
     print(file_prefix + file)
     print('-----------------')
     if file == 'aa':
-
-        c  = pd.read_csv(file_prefix + file, sep='\t')
-        c['meas_value'] = c['meas_value'].apply(str)
-        c['meas_value'] = c['meas_value'].apply(non_numeric_sub)
-        c['entry_user_id'] = c['entry_user_id'].apply(str)
-        c['entry_user_id'] = c['entry_user_id'].apply(non_numeric_sub)
-        # remove potential numbers:
-        c['meas_length'] = c['meas_value'].apply(len)
-        c[(c.meas_length < 10)]
-        c = c.drop('meas_length',1)
+        c  = pd.read_csv(file_prefix + file, sep='\t',header=None,skiprows=1)
+        pd.options.display.float_format = '{:,.0f}'.format
+        pd.set_option('precision', 0)
+        c[2] = c[2].astype(str).replace(".0", "", regex=True).replace('nan','',regex=True)
+        c[5] = c[5].astype(str).replace(".0", "", regex=True).replace('nan','',regex=True)
+        c[34] = c[34].astype(str).replace(".0", "", regex=True).replace('nan','',regex=True)
+        c[41] = c[41].astype(str).replace(".0", "", regex=True).replace('nan','',regex=True)
         c.to_csv(file_prefix + file, encoding='utf-8', index=False)
-
-
     else:
         c  = pd.read_csv(file_prefix + file, sep='\t',header = None)
-        c[5] = c[5].apply(str)
-        c[5] = c[5].apply(non_numeric_sub)
-        c[7] = c[7].apply(str)
-        c[7] = c[7].apply(non_numeric_sub)
-        # remove potential numbers:
-        c['meas_length'] = c[5].apply(len)
-        c[(c.meas_length < 10)]
-        c = c.drop('meas_length',1)
+        pd.options.display.float_format = '{:,.0f}'.format
+        pd.set_option('precision', 0)
+        c[2] = c[2].astype(str).replace(".0", "", regex=True).replace('nan','',regex=True)
+        c[5] = c[5].astype(str).replace(".0", "", regex=True).replace('nan','',regex=True)
+        c[34] = c[34].astype(str).replace(".0", "", regex=True).replace('nan','',regex=True)
+        c[41] = c[41].astype(str).replace(".0", "", regex=True).replace('nan','',regex=True)
         c.to_csv(file_prefix + file, encoding='utf-8', index=False)
     print('-----------------')
     print('processed file')
