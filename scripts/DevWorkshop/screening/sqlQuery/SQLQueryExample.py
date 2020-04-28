@@ -28,7 +28,7 @@ class SQLQueryExample:
         Query options is a dictionary with key-values including:
         - artistPrefix: Only retrieve artists whose name starts with this prefix string
         - invoiceDateStart: Count only tracks which were sold (have a dated invoice) on or after this date
-        - invoiceDateEnd: Count only tracks which were sold (have a dated invocie) before this date
+        - invoiceDateEnd: Count only tracks which were sold (have a dated invoice) before this date
         - sortField: Sort criteria (name of column to sort by, optionally followed by "desc" for descending order)
         """
         ###################### START CODE HERE ########################

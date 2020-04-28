@@ -3,7 +3,7 @@ import sys, os;
 import time;
 import cgi
 import cgitb; cgitb.enable();
-from cStringIO import StringIO;
+from io import StringIO;
 
 from medinfo.common.Const import FALSE_STRINGS;
 

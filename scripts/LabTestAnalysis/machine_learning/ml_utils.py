@@ -92,7 +92,7 @@ def map_lab(lab, data_source, lab_type, map_type='to_src'):
         vals = df['lab'].values.tolist()
         keys = df[data_source].values.tolist()
 
-    my_dict = dict(zip(keys, vals))
+    my_dict = dict(list(zip(keys, vals)))
 
     # print lab, my_dict[lab]
 
@@ -104,12 +104,12 @@ def get_patIds(data_matrix):
 def test_get_baseline():
     df_1 = pd.DataFrame([[123, '2014-01-01', 1, 2]], columns=['pat_id', 'order_time', 'actual', 'predict'])
     df_2 = pd.DataFrame([[456, '2015-01-01', 3]], columns=['pat_id', 'order_time', 'actual'])
-    print get_baseline(df_1, df_2)
+    print(get_baseline(df_1, df_2))
     # assert df's not changed
 
 
 def get_baseline(df_train, df_test, y_label):
-    print df_test[['pat_id', 'order_time', y_label]].copy().head()
+    print(df_test[['pat_id', 'order_time', y_label]].copy().head())
     df_res = df_test[['pat_id', 'order_time', y_label]].copy().rename(columns={y_label:'actual'}) # Not change the input
 
     prevalence = float(df_train[y_label].values.sum()) / float(df_train.shape[0])

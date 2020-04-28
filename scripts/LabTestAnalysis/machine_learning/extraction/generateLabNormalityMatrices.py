@@ -3,7 +3,7 @@
 from medinfo.common.Util import log
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
-from LabNormalityMatrix import LabNormalityMatrix
+from .LabNormalityMatrix import LabNormalityMatrix
 
 # Includes list of the top 25 most commonly ordered lab tests,
 # unioned with the top 25 most expensive by volume (count * price) lab tests.

@@ -17,8 +17,9 @@ Multiple versions of stats to get out of module:
 import sys, os
 import time;
 import json;
+from operator import itemgetter
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from datetime import timedelta;
 
 from medinfo.common.Const import COMMENT_TAG;
@@ -30,11 +31,11 @@ from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from medinfo.cpoe.ItemRecommender import RecommenderQuery;
 from medinfo.cpoe.OrderSetRecommender import OrderSetRecommender;
 from medinfo.cpoe.Const import AD_HOC_SECTION;
-from Util import log;
+from .Util import log;
 
-from BaseCPOEAnalysis import AnalysisQuery;
-from PreparePatientItems import PreparePatientItems;
-from RecommendationClassificationAnalysis import RecommendationClassificationAnalysis;
+from .BaseCPOEAnalysis import AnalysisQuery;
+from .PreparePatientItems import PreparePatientItems;
+from .RecommendationClassificationAnalysis import RecommendationClassificationAnalysis;
 
 # When doing validation calculations, number of items to recommend when calculating precision and recall
 # If set to value < 1, then interpret as sentinel value, meaning just use all available order set items.
@@ -136,7 +137,7 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
                 orderSetItemsByOrderSetId[orderSetId] = list();
             orderSetItemsByOrderSetId[orderSetId].append(orderSetItem);
 
-        keyOrderSetIds = orderSetItemsByOrderSetId.keys();
+        keyOrderSetIds = list(orderSetItemsByOrderSetId.keys());
         if analysisQuery.numRecsByOrderSet:
             # Only use the specified key order set for each set of patient data
             orderSetId = patientItemData["order_set_id"];
@@ -172,8 +173,8 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
         allAvailableOrderSetItemIds = set();
         allAvailableVerifyOrderSetItemIds = set();
         recommendableAvailableOrderSetItemIds = set();
-        for isVerifyItem, usedItemIdsByOrderSetId in usedItemIdsByOrderSetIdByIsVerifyItem.iteritems():
-            for orderSetId, usedItemIds in usedItemIdsByOrderSetId.iteritems():
+        for isVerifyItem, usedItemIdsByOrderSetId in usedItemIdsByOrderSetIdByIsVerifyItem.items():
+            for orderSetId, usedItemIds in usedItemIdsByOrderSetId.items():
                 allUsedOrderSetIds.add(orderSetId);
                 if isVerifyItem:
                     allAvailableVerifyOrderSetItemIds.update(self.supportRecommender.itemIdsByOrderSetId[orderSetId]);
@@ -197,7 +198,7 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
             recItemModel = dict(self.supportRecommender.itemsById[itemId]);
             recItemModel["score"] = recItemModel[recQuery.sortField];
             recommendedData.append(recItemModel);
-        recommendedData.sort( RowItemFieldComparator(recQuery.sortField), reverse=True );
+        recommendedData.sort(key=itemgetter(recQuery.sortField), reverse=True)
 
         # Distill down to just the set of recommended item IDs
         recommendedItemIds = set();
@@ -300,7 +301,7 @@ class OrderSetUsageAnalysis(RecommendationClassificationAnalysis):
 
             # Print comment line with analysis arguments to allow for deconstruction later
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             formatter = TextResultsFormatter( outputFile );
             colNames = self.resultHeaders(query);

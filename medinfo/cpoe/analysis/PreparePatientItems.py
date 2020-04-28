@@ -12,7 +12,7 @@ import sys, os
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from datetime import timedelta;
 from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, ProgressDots, loadJSONDict;
@@ -24,14 +24,14 @@ from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from medinfo.cpoe.ItemRecommender import RecommenderQuery, ItemAssociationRecommender;
 from medinfo.cpoe.TopicModel import TopicModel;
 from medinfo.cpoe.Const import AD_HOC_SECTION;
-from Util import log;
-from Const import MAX_BASE_ITEM_TIME_RESOLUTION;
+from .Util import log;
+from .Const import MAX_BASE_ITEM_TIME_RESOLUTION;
 
 from medinfo.analysis.Const import OUTCOME_ABSENT, OUTCOME_PRESENT, OUTCOME_IN_QUERY;
 from medinfo.analysis.Const import NEGATIVE_OUTCOME_STRS;
 
-from BaseCPOEAnalysis import AnalysisQuery;
-from BaseCPOEAnalysis import BaseCPOEAnalysis;
+from .BaseCPOEAnalysis import AnalysisQuery;
+from .BaseCPOEAnalysis import BaseCPOEAnalysis;
 
 class PreparePatientItems(BaseCPOEAnalysis):
     def __init__(self):
@@ -312,7 +312,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
         prog = ProgressDots();
         for i, dataRow in enumerate(TabDictReader(inputFile)):
             existsByOutcomeId = None;
-            dataKeys = dataRow.keys();  # Retrieve separate from iteration, as will be modifying contents as iterate
+            dataKeys = list(dataRow.keys());  # Retrieve separate from iteration, as will be modifying contents as iterate
             for key in dataKeys:
                 value = dataRow[key];
                 if key.endswith("id") or key.endswith("Id"):
@@ -370,7 +370,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
         for inputDict in TabDictReader(inputFile):
             for itemCol in itemColumnHeaders:
                 itemCountById = loadJSONDict(inputDict[itemCol],int,int);
-                allItemIds.update(itemCountById.iterkeys());
+                allItemIds.update(iter(itemCountById.keys()));
             nLines += 1;
         inputFile.close();
 
@@ -397,7 +397,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
             rowItemCountById = dict();
             for itemCol in itemColumnHeaders:
                 itemCountById = loadJSONDict(inputDict[itemCol],int,int);
-                for itemId, itemCount in itemCountById.iteritems():
+                for itemId, itemCount in itemCountById.items():
                     if itemId not in rowItemCountById:
                         rowItemCountById[itemId] = 0;
                     rowItemCountById[itemId] += itemCount;
@@ -434,7 +434,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
             observedIds = set();
             if outcomeItems:
                 # Pull out labeled outcome values
-                for key, value in inputDict.iteritems():
+                for key, value in inputDict.items():
                     if key.startswith("outcome."):
                         value = int(value);
                         outcomeId = int(key[len("outcome."):]);
@@ -445,13 +445,13 @@ class PreparePatientItems(BaseCPOEAnalysis):
             if queryItems:
                 # Iterate through query items
                 itemCountById = loadJSONDict(inputDict["queryItemCountByIdJSON"], int, int);
-                for itemId, itemCount in itemCountById.iteritems():
+                for itemId, itemCount in itemCountById.items():
                     if itemId not in totalCountById:
                         totalCountById[itemId] = 0;
                     totalCountById[itemId] += itemCount;
             if verifyItems:
                 itemCountById = loadJSONDict(inputDict["verifyItemCountByIdJSON"], int, int);
-                for itemId, itemCount in itemCountById.iteritems():
+                for itemId, itemCount in itemCountById.items():
                     if itemId not in totalCountById:
                         totalCountById[itemId] = 0;
                     totalCountById[itemId] += itemCount;
@@ -527,12 +527,12 @@ class PreparePatientItems(BaseCPOEAnalysis):
                 if options.excludeCategoryIds is not None:
                     excludeCategoryIds = set(int(idStr) for idStr in options.excludeCategoryIds.split(","));
 
-                print >> outputFile, COMMENT_TAG, json.dumps({"argv":argv});    # Print comment line with analysis arguments to allow for deconstruction later
+                print(COMMENT_TAG, json.dumps({"argv":argv}), file=outputFile);    # Print comment line with analysis arguments to allow for deconstruction later
 
                 # Run the actual analysis / data extraction
                 rowGenerator = self.convertResultsFileToBagOfWordsCorpus(inputFile, queryItems, verifyItems, outcomeItems, excludeCategoryIds);
                 for row in rowGenerator:
-                    print >> outputFile, json.dumps(row);
+                    print(json.dumps(row), file=outputFile);
 
             elif options.featureMatrixConvert:
                 # Convert results file into full feature matrix format
@@ -544,7 +544,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
                     outputFilename = args[1];
                 outputFile = stdOpen(outputFilename,"w");
 
-                print >> outputFile, COMMENT_TAG, json.dumps({"argv":argv});    # Print comment line with analysis arguments to allow for deconstruction later
+                print(COMMENT_TAG, json.dumps({"argv":argv}), file=outputFile);    # Print comment line with analysis arguments to allow for deconstruction later
 
                 # Run the actual analysis / data extraction
                 rowGenerator = self.convertResultsFileToFeatureMatrix(inputFilename);
@@ -615,7 +615,7 @@ class PreparePatientItems(BaseCPOEAnalysis):
                     outputFilename = args[1];
                 outputFile = stdOpen(outputFilename,"w");
 
-                print >> outputFile, COMMENT_TAG, json.dumps({"argv":argv});    # Print comment line with analysis arguments to allow for deconstruction later
+                print(COMMENT_TAG, json.dumps({"argv":argv}), file=outputFile);    # Print comment line with analysis arguments to allow for deconstruction later
 
                 formatter = TextResultsFormatter( outputFile );
 
@@ -722,7 +722,7 @@ class ItemsByBaseItemExtractor:
 
             # Option to track sequences of multiple items as a single virtual target item
             midSequenceItemDatesByItemId = dict();
-            for virtualItemId, sequenceIds in analysisQuery.sequenceItemIdsByVirtualItemId.iteritems():
+            for virtualItemId, sequenceIds in analysisQuery.sequenceItemIdsByVirtualItemId.items():
                 midSequenceId = sequenceIds[0];
                 for patientItem in patientItemList:
                     if patientItem["clinical_item_id"] == midSequenceId:
@@ -741,7 +741,7 @@ class ItemsByBaseItemExtractor:
 
                 # Determine if this represents a virtual outcome item
                 virtualOutcomeId = None;
-                for virtualItemId, sequenceIds in analysisQuery.sequenceItemIdsByVirtualItemId.iteritems():
+                for virtualItemId, sequenceIds in analysisQuery.sequenceItemIdsByVirtualItemId.items():
                     midSequenceId = sequenceIds[0];
                     endSequenceId = sequenceIds[-1];
                     isVirtualOutcome = itemId == endSequenceId;

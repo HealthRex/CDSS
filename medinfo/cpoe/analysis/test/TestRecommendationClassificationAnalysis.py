@@ -2,12 +2,12 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime, timedelta;
 import unittest
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.db.test.Util import DBTestCase;
 
@@ -546,7 +546,7 @@ class TestRecommendationClassificationAnalysis(DBTestCase):
         for i, dataRow in enumerate(TabDictReader(preparedDataFile)):
             dataRow["order_set_id"] = TEST_ORDERSET_ID;
             if i <= 0:
-                dataCols = dataRow.keys();
+                dataCols = list(dataRow.keys());
                 formatter.formatTuple(dataCols);    # Insert a mock record to get a header / label row
             formatter.formatResultDict(dataRow, dataCols);
         preparedDataFile = StringIO(modFile.getvalue());

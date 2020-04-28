@@ -34,7 +34,7 @@ def main(argv):
     headerCols = ["Rx","Dx1","Dx2","RxDx1Dx2Count","RxDx1Count","RxDx2Count","RxCount","Dx1Dx2Count","Total","E(RxDx1Dx2Count)","E(RxDx2Dx1Count)","E(Dx1Dx2Count)","P-Chi2-Obs:Exp",];
     headerCols.extend(statIds);
     headerStr = str.join("\t", headerCols );
-    print headerStr;
+    print(headerStr);
 
     associationFile = open(argv[1]);
     associationFile.readline(); # Dump header row
@@ -82,7 +82,7 @@ def main(argv):
         for i, value in enumerate(dataCells):
             dataCells[i] = str(value);  # String conversion to allow for concatenation below
         dataStr = str.join("\t", dataCells );
-        print dataStr;
+        print(dataStr);
         progress.update();
     progress.printStatus();
 

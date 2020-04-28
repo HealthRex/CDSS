@@ -4,7 +4,7 @@ Shell script to run several processes
 import sys,os;
 import time;
 import json;
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
@@ -30,7 +30,7 @@ def main_formatMergedTTests(argv):
     ofs = stdOpen(BASE_RESULT_DIR+FILTERED_FILENAME, "w");
 
     summaryData = {"argv": argv};
-    print >> ofs, COMMENT_TAG, json.dumps(summaryData);
+    print(COMMENT_TAG, json.dumps(summaryData), file=ofs);
 
     outputCols = ["SortType","TopicCount","VerifyTime","Group1.precision.mean","Group1.recall.mean","Group1.normalprecision.mean","Group1.weightrecall.mean","Group1.roc_auc.mean","ttest_rel.precision","ttest_rel.recall","ttest_rel.weightrecall","ttest_rel.roc_auc","Group1.numqueryitems.mean","Group1.numverifyitems.mean","Group1.numrecommendeditems.mean","Group1.tp.mean"];
     formatter = TextResultsFormatter(ofs);

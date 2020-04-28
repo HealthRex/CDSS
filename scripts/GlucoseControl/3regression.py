@@ -93,7 +93,7 @@ X_rmnan = np.delete(X_rmnan, nan_glu_idx, 0)
 y_rmnan = np.delete(y_rmnan, nan_glu_idx, 0)
 data_IDs = np.delete(data_IDs, nan_glu_idx, 0)
 time_rmnan = np.delete(time_rmnan,nan_glu_idx)
-data_idx = range(len(data_IDs))
+data_idx = list(range(len(data_IDs)))
 
 # dimension of feature matrix
 print("dimension of feature matrix", X_rmnan.shape)
@@ -375,14 +375,14 @@ plt.show()
 time_test2 = np.array([tt.split('.')[0] for tt in time_test])
 
 for j in range(len(test_diff_idx)-1):  # len(test_diff_idx)-1
-    pat_indices = range(test_diff_idx[j],test_diff_idx[j+1])
-    plt_pat_idx = range(len(y_test[pat_indices]))
+    pat_indices = list(range(test_diff_idx[j],test_diff_idx[j+1]))
+    plt_pat_idx = list(range(len(y_test[pat_indices])))
     time_pat = time_test2[pat_indices]
     pat_test = y_test[pat_indices]
     pat_pred = y_pred[pat_indices]
     # pat_upper = upper[pat_indices]
     # pat_lower = lower[pat_indices]
-    idx_pat_idx = range(len(plt_pat_idx))
+    idx_pat_idx = list(range(len(plt_pat_idx)))
     if len(time_pat) > 1:
         fig = plt.figure(figsize=(int(np.ceil(len(plt_pat_idx)) / 2), 4))
 

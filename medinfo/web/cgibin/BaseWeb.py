@@ -14,13 +14,13 @@ Refactored in wsgiHandler to mostly use same basic CGI infrastructure while taki
 import sys, os;
 import logging;
 import cgi
-import Options
-import Links
-import Env
-import urllib;
+from . import Options
+from . import Links
+from . import Env
+import urllib.request, urllib.parse, urllib.error;
 import smtplib;
 import string;
-from cStringIO import StringIO;
+from io import StringIO;
 from time import time;
 
 from medinfo.common.Const import NULL_TAG;
@@ -117,7 +117,7 @@ class BaseWeb:
             # First time a request is made, and a request object available
             #   must be a mod_python script.  Copy over PythonOption
             #   request directives as environment variables
-            for key, value in req.get_options().iteritems():
+            for key, value in req.get_options().items():
                 os.environ[key] = value;
             os.environ["envOptionsCopied"] = "True";
 
@@ -128,7 +128,7 @@ class BaseWeb:
             # Catch exceptions for more graceful error reporting
             try:
                 self.__handleRequest(form, req);
-            except Exception, exc:
+            except Exception as exc:
                 self.errorResponse(exc);
 
 
@@ -146,7 +146,7 @@ class BaseWeb:
         timer = time(); # Track how long the request processing takes
         self.action_initial();
         for (commandName, methodName) in self.mHandlers:
-            if form.has_key(commandName) and self.requestData[commandName] != "":
+            if commandName in form and self.requestData[commandName] != "":
                 # Use reflection to get a handle on the named method to execute
                 commandMethod = getattr(self,methodName)
                 commandMethod()
@@ -180,11 +180,11 @@ class BaseWeb:
         #Examples of printing errors
         #print >> environ['wsgi.errors'], "application debug #2"
         #This one seems to work
-        #print >> sys.stderr, "application debug #3"
+        # print("application debug #3", file=sys.stderr)
 
         del handlerInstance;    # Ensure garbage collection
         
-        return output    
+        return [output]
     
     def maintainParams(self):
         """Normal behavior, store all request parameters
@@ -202,7 +202,7 @@ class BaseWeb:
         if len(self.mForm) > 0:
             self.manualResetParams();
         
-        for key in self.mForm.keys():
+        for key in list(self.mForm.keys()):
             field = self.mForm[key]
             if isinstance(field,list):  # Multi-Items 
                 selectedValues   = [];
@@ -283,12 +283,12 @@ class BaseWeb:
                 cgi.print_environ();
             else:
                 # Looks like mod_python or other call, with request object included.  Derive environment from there
-                print >> sys.stdout, "<h3>Request Sub-Process Environment</h3>"
-                print >> sys.stdout, "<ul>"
+                print("<h3>Request Sub-Process Environment</h3>", file=sys.stdout)
+                print("<ul>", file=sys.stdout)
                 self.req.add_common_vars();
-                for key, value in self.req.subprocess_env.iteritems():
-                    print >> sys.stdout, "<li>%s: %s</li>" % (key, value)
-                print >> sys.stdout, "</ul>"
+                for key, value in self.req.subprocess_env.items():
+                    print("<li>%s: %s</li>" % (key, value), file=sys.stdout)
+                print("</ul>", file=sys.stdout)
 
             sys.stdout = origStdout;
 
@@ -364,8 +364,8 @@ class BaseWeb:
                 cookieDict = mod_python.Cookie.get_cookies(self.req);
         else:
             # Assume is a CGI call
-            import Cookie;
-            cookieDict = Cookie.SimpleCookie();
+            import http.cookies;
+            cookieDict = http.cookies.SimpleCookie();
             if "HTTP_COOKIE" in os.environ:                
                 cookieDict.load(os.environ["HTTP_COOKIE"]);
                 
@@ -389,19 +389,19 @@ class BaseWeb:
             #Go through and assign all cookie attributes, I know this is cool right?  Variable vaiables!
             for attribute in cookieAttributes:
                 if isinstance(attribute['value'], int):                    
-                    exec "cookie.%s = %s" % (attribute['name'], attribute['value'])
+                    exec("cookie.%s = %s" % (attribute['name'], attribute['value']))
                 else:
-                    exec "cookie.%s = '%s'" % (attribute['name'], attribute['value'])
+                    exec("cookie.%s = '%s'" % (attribute['name'], attribute['value']))
             
             #Add cookie to header
             mod_python.Cookie.add_cookie(self.req, cookie);
         else:
             # Assume is a CGI call
-            import Cookie
-            if os.environ.has_key("HTTP_COOKIE"):
-                cookie = Cookie.SimpleCookie(os.environ["HTTP_COOKIE"])          
+            import http.cookies
+            if "HTTP_COOKIE" in os.environ:
+                cookie = http.cookies.SimpleCookie(os.environ["HTTP_COOKIE"])          
             else:
-                cookie = Cookie.SimpleCookie()
+                cookie = http.cookies.SimpleCookie()
             
             #Define cookie name and value 
             cookie[key] = value
@@ -438,7 +438,7 @@ class BaseWeb:
         templateFile = open(self.getTemplateFilename(),"r");
         populatedContents = templateFile.read() % self.requestData
         populatedContents = populatedContents.encode('utf-8');
-        return populatedContents;
+        return populatedContents
     
     def printTemplate(self):
         """Standard end result of web script.  Print the template
@@ -447,9 +447,9 @@ class BaseWeb:
         """
 
         self.printHeaders();
-        print   # Separate headers from body
+        print()   # Separate headers from body
         # Output the template, replacing key fields by the values in templateDict
-        print self.populatedTemplate();
+        print(self.populatedTemplate().decode());   # in Python3 without .decode(), prints bytes object, i.e., b'<string>'
 
     def returnHeaders(self, output):
         """Return HTTP headers for WSGI"""        
@@ -460,9 +460,9 @@ class BaseWeb:
 
     def printHeaders(self):
         """Print HTTP headers before printing any body text"""
-        print "Content-type: text/html"
+        print("Content-type: text/html")
         # Set any Cookies
-        print self.getCookies()
+        print(self.getCookies())
         
     def setTemplateFilename(self, filename):
         self.mTemplateFilename = filename
@@ -536,7 +536,7 @@ class BaseWeb:
         if the contents of that field are non-empty, copy the contents
         into the field (templateDict value) named "smiles"
         """
-        for key in self.mForm.keys():
+        for key in list(self.mForm.keys()):
             if key.endswith(self.FILE_FIELD_SUFFIX):
                 fileContents = self.mForm[key].value
                 if len(fileContents) > 0:
@@ -581,7 +581,7 @@ class BaseWeb:
                 char = "_"+char;
             newFilepath.append(char);
         newFilepath = str.join('', newFilepath);    # Convert "StringBuffer" into actual string
-        newFilepath = urllib.quote(newFilepath,'');  # Neutralize special characters, including "/"
+        newFilepath = urllib.parse.quote(newFilepath,'');  # Neutralize special characters, including "/"
         return newFilepath;
     quoteFilepath = staticmethod(quoteFilepath)
 

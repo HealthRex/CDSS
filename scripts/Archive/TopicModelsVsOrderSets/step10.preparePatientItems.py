@@ -37,11 +37,11 @@ SOURCE_DATA_DIR = "sourceData";
 
 def main_prepPatientItems(argv):
     prep = PreparePatientItems();
-    for i in xrange(-9,10):
+    for i in range(-9,10):
         prep.main(["PreparePatientItems","-S",START_DATE_STR, "-E",END_DATE_STR, "-p",str(DEMOGRAPHICS_CATEGORY_ID),"-c", str(ADMIT_DX_CATEGORY_ID), "-Q", str(QUERY_TIME), "-V", str(VERIFY_TIME), "-o", str(DEATH_ITEM_ID), "-t", "2592000", "%s/patientIds.5year.%s.tab.gz" % (SOURCE_DATA_DIR, i), "%s/firstItems.q%s.v%s.%s.%s.tab.gz" % (SOURCE_DATA_DIR, QUERY_TIME, VERIFY_TIME, BASE_YEAR, i)]);
     
     # Convert to (filtered) Bag of Words
-    for i in xrange(-9,10):
+    for i in range(-9,10):
         prep.main(["PreparePatientItems","-B","qvo","-X", EXCLUDE_CATEGORY_IDS_STR,"%s/firstItems.q%s.v%s.%s.%d.tab.gz" % (SOURCE_DATA_DIR,QUERY_TIME,VERIFY_TIME,BASE_YEAR,i),"%s/firstItems.q%s.v%s.%s.%d.filter.bow.gz" % (SOURCE_DATA_DIR,QUERY_TIME,VERIFY_TIME,BASE_YEAR,i)]);
 
     # Concatenate batch of files

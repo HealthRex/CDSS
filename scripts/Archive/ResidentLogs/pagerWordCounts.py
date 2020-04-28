@@ -2,7 +2,7 @@
 """
 import sys, os;
 from wordcloud import WordCloud
-import urllib;
+import urllib.request, urllib.parse, urllib.error;
 from medinfo.common.Util import ProgressDots;
 from medinfo.db import DBUtil;
 
@@ -54,14 +54,14 @@ finally:
 
 # Only look at common words with more instances and write as sortable tuples
 countTokens = list();
-for token, count in countPerToken.iteritems():
+for token, count in countPerToken.items():
 	if count >= COUNT_THRESHOLD:
 		countTokens.append( (count, token) );
 countTokens.sort(reverse=True);
 
 truncatedCountPerToken = dict();
 for iToken, (count, token) in enumerate(countTokens):
-	print "%s\t%s" % (count, token);
+	print("%s\t%s" % (count, token));
 	if iToken < TOP_WORDS_TO_SHOW:
 		truncatedCountPerToken[token] = count;
 

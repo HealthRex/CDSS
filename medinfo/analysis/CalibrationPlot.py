@@ -10,7 +10,7 @@ Calibration curve generally splits scored entries into deciles and compares how 
 import sys, os
 import time;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 import json;
 from scipy.stats import chi2;
 from medinfo.db.Model import columnFromModelList;
@@ -18,9 +18,9 @@ from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db.ResultsFormatter import TextResultsFormatter;
 from medinfo.db.Model import RowItemModel;
-from Util import log;
+from .Util import log;
 
-from BaseAnalysis import BaseAnalysis;
+from .BaseAnalysis import BaseAnalysis;
 
 class CalibrationPlot(BaseAnalysis):
     def __init__(self):
@@ -32,7 +32,7 @@ class CalibrationPlot(BaseAnalysis):
     def __call__(self, inputFile, nBins, colScore=None):
         (outcomes, scoresById) = self.parseScoreFile(inputFile);
         if colScore is None:
-            colScore = scoresById.keys()[0];    # Arbitrarily select the first score column found
+            colScore = list(scoresById.keys())[0];    # Arbitrarily select the first score column found
         scores = scoresById[colScore];
         results = self.binData( outcomes, scores, nBins );
         return results;
@@ -53,8 +53,8 @@ class CalibrationPlot(BaseAnalysis):
 
         data.sort();
         nData = len(data);
-        binSize = nData/nBins;
-        for iBin in xrange(nBins):
+        binSize = nData // nBins;
+        for iBin in range(nBins):
             iBinDataMin = iBin*binSize;
             iBinDataMax = (iBin+1)*binSize;
             if (iBin+1) == nBins:
@@ -66,7 +66,7 @@ class CalibrationPlot(BaseAnalysis):
             scoreSum = 0.0;
             scoreMin = None;
             scoreMax = None;
-            for iData in xrange(iBinDataMin, iBinDataMax):
+            for iData in range(iBinDataMin, iBinDataMax):
                 (score, outcome) = data[iData];
                 if scoreMin is None or score < scoreMin:
                     scoreMin = score;
@@ -179,7 +179,7 @@ class CalibrationPlot(BaseAnalysis):
             outputFile = stdOpen(outputFilename,"w");
             
             # Print comment line with arguments to allow for deconstruction later as well as extra results
-            print >> outputFile, COMMENT_TAG, json.dumps({"argv":argv, "P-HosmerLemeshow": hlP});
+            print(COMMENT_TAG, json.dumps({"argv":argv, "P-HosmerLemeshow": hlP}), file=outputFile);
 
             colNames = self.analysisHeaders();
             analysisResults.insert(0, RowItemModel(colNames,colNames) );    # Insert a mock record to get a header / label row

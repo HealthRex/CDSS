@@ -6,7 +6,7 @@ Simple Python CGI script to test web interface to molecule file processing modul
 import cgi
 import cgitb; cgitb.enable()
 
-from cStringIO import StringIO;
+from io import StringIO;
 import time
 
 
@@ -53,7 +53,7 @@ class DBUtilWeb(BaseAdminWeb):
         # Read checkboxes by presence or absence of field
         self.requestData["incCols"] = ""  # Checkboxes not passed if unchecked, so extra step to ensure uncheck is persisted
         incCols = False
-        if self.mForm.has_key("incCols"):
+        if "incCols" in self.mForm:
             self.requestData["incCols"] = self.mForm["incCols"].value
             incCols = True
         
@@ -144,7 +144,7 @@ class DBUtilWeb(BaseAdminWeb):
         
         connParams = dict();
         
-        for key, value in self.requestData.iteritems():
+        for key, value in self.requestData.items():
             if key.startswith("db"):    # Look for db parameters
                 tagKey = key[len("db"):];
                 if len(value) > 0: 
@@ -160,9 +160,9 @@ class DBUtilWeb(BaseAdminWeb):
     def response(self):
         if self.outputOnly:
             # Don't do normal HTML template output, output data directly
-            print "Content-type: text/plain"
-            print
-            print self.requestData["resultsText"]
+            print("Content-type: text/plain")
+            print()
+            print(self.requestData["resultsText"])
         else:
             # Defer to superclass implementation
             BaseAdminWeb.response(self)

@@ -91,7 +91,7 @@ lsi = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=2);
 corpus_lsi = lsi[corpus_tfidf]; # Chaining transformation wrappers
 pprint(lsi.print_topics(2));
 """
-print "LDA..."
+print("LDA...")
 nTopics = 4;
 #lda = models.LdaMulticore(corpus_tfidf,id2word=dictionary, num_topics=nTopics, workers=2);
 lda = models.LdaModel(corpus_tfidf,id2word=dictionary, num_topics=nTopics);

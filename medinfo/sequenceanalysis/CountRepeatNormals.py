@@ -1,7 +1,7 @@
 from collections import defaultdict
 import numpy as np
 
-from SequenceAnalyzer import SequenceAnalyzer
+from .SequenceAnalyzer import SequenceAnalyzer
 
 class CountRepeatNormals(object):
   def __init__(self, patient_col, labresult_col, datetime_col, window_sizes):
@@ -75,7 +75,7 @@ class CountRepeatNormals(object):
     # switch (window_size, 0) to mean no priors,
     # and switch (window_size, None) to be the total count
     total_counts = defaultdict(lambda: np.array([0, 0]))
-    for k, v in counts.iteritems():
+    for k, v in counts.items():
       # Aggregate total number of results and positive results
       total_counts[k[0]] += v
     for window_size in self.window_sizes:
@@ -84,5 +84,5 @@ class CountRepeatNormals(object):
       # Set (window_size, None) to the sum of calculated above
       counts[(window_size.days, None)] = total_counts[window_size.days]
 
-    for k, v in counts.iteritems():
+    for k, v in counts.items():
       self.global_stats[base_name][k] += v

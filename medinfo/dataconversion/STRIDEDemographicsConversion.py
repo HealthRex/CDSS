@@ -8,8 +8,8 @@ from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery;
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList;
 
-from Util import log;
-from Env import DATE_FORMAT;
+from .Util import log;
+from .Env import DATE_FORMAT;
 
 SOURCE_TABLE = "stride_patient";
 
@@ -140,7 +140,7 @@ class STRIDEDemographicsConversion:
                 yield rowModel;
 
                 # Record another at resolution of decade
-                decade = (rowModel["birth_year"] / 10) * 10;
+                decade = (rowModel["birth_year"] // 10) * 10;
                 rowModel["itemDate"] = datetime(rowModel["birth_year"],1,1);
                 rowModel["name"] = "Birth%ds" % decade;
                 rowModel["description"] = "Birth Decade %ds" % decade;
@@ -149,7 +149,7 @@ class STRIDEDemographicsConversion:
                 # Summarize race and ethnicity information into single field of interest
                 raceEthnicity = self.summarizeRaceEthnicity(rowModel);
                 rowModel["itemDate"] = datetime(rowModel["birth_year"],1,1);
-                rowModel["name"] = "Race"+(raceEthnicity.translate(None," ()-/"));   # Strip off punctuation
+                rowModel["name"] = "Race"+(raceEthnicity.translate(str.maketrans('', '', " ()-/")))   # Strip off punctuation
                 rowModel["description"] = "Race/Ethnicity: %s" % raceEthnicity;
                 yield rowModel;
 
@@ -252,12 +252,12 @@ class STRIDEDemographicsConversion:
                     "item_date":  sourceItem["itemDate"],
                 }
             );
-        insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys() );
-        insertParams= patientItem.values();
+        insertQuery = DBUtil.buildInsertQuery("patient_item", list(patientItem.keys()) );
+        insertParams= list(patientItem.values());
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute( insertQuery, insertParams, conn=conn );
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
             log.info(err);
 

@@ -8,7 +8,7 @@ def preprocessData(filename, imp_method):
 
 	# use outcome as death.posttime days < 30
 	df['y'] = (df['Death.postTimeDays'] < 30) * 1
-	colnames = filter(lambda x: 'post' not in x, list(df))
+	colnames = [x for x in list(df) if 'post' not in x]
 
 	# throw out times
 	if filename == 'featureMatrix.SepsisICU.csv':
@@ -67,7 +67,7 @@ if __name__ == '__main__':
 	# imp_method = 'mean'
 	imp_method = 'median'
 
-	print preprocessData(filename, imp_method)
+	print(preprocessData(filename, imp_method))
 
 '''
 for publication: people want to know what actually makes a difference

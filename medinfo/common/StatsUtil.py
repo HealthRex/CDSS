@@ -234,7 +234,7 @@ class ContingencyStats:
                     return -logP;
                 else:
                     return logP;
-            except ValueError, exc:
+            except ValueError as exc:
                 # Likely from negative table values.  Return default / uncertain value
                 return 0.0;
             
@@ -259,7 +259,7 @@ class ContingencyStats:
                     return -logP;
                 else:
                     return logP;
-            except ValueError, exc:
+            except ValueError as exc:
                 # Likely from negative table values.  Return default / uncertain value
                 return 0.0;
             
@@ -267,7 +267,7 @@ class ContingencyStats:
             try:
                 (oddsRatio, fisherP) = fisher_exact(ct);
                 return fisherP;
-            except ValueError, exc:
+            except ValueError as exc:
                 # Negative table values.  Return default / uncertain value
                 return 1.0;
         
@@ -279,7 +279,7 @@ class ContingencyStats:
                     return (1-fisherP);
                 else:
                     return (fisherP-1);
-            except ValueError, exc:
+            except ValueError as exc:
                 return 0.0;
 
         elif statId in ("P-Fisher-NegLog",):
@@ -296,7 +296,7 @@ class ContingencyStats:
                     return -logP;
                 else:
                     return logP;
-            except ValueError, exc:
+            except ValueError as exc:
                 # Likely from negative table values.  Return default / uncertain value
                 return 0.0;
         else:

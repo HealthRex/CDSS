@@ -20,8 +20,8 @@ import pandas as pd
 
 def get_icd10_category_mapping():
     df = pd.read_csv('mapping/icd10_categories.csv', keep_default_na=False, header=None)
-    icd10_category_mapping = dict(zip(df[0], df[1]))
+    icd10_category_mapping = dict(list(zip(df[0], df[1])))
     return icd10_category_mapping
 
 if __name__ == '__main__':
-    print get_icd10_category_mapping()
+    print(get_icd10_category_mapping())

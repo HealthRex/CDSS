@@ -8,9 +8,9 @@ import sys, os
 import time
 import unittest
 
-from Const import RUNNER_VERBOSITY
-from cStringIO import StringIO
-from FeatureMatrixTestData import FM_TEST_INPUT_TABLES, FM_TEST_OUTPUT
+from .Const import RUNNER_VERBOSITY
+from io import StringIO
+from .FeatureMatrixTestData import FM_TEST_INPUT_TABLES, FM_TEST_OUTPUT
 from medinfo.dataconversion.DataExtractor import DataExtractor
 from medinfo.dataconversion.FeatureMatrixFactory import FeatureMatrixFactory
 from medinfo.db import DBUtil
@@ -20,7 +20,7 @@ from medinfo.db.test.Util import DBTestCase
 from stride.core.StrideLoader import StrideLoader;
 from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader;
 
-from Util import log
+from .Util import log
 
 class TestFeatureMatrixFactory(DBTestCase):
     def setUp(self):
@@ -149,7 +149,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         # Verify results.
         expectedPatientList = ["-789", "-456", "-123"]
         for expectedPatientId in expectedPatientList:
-            resultPatientId = resultPatientIterator.next()['pat_id']
+            resultPatientId = next(resultPatientIterator)['pat_id']
             self.assertEqual(resultPatientId, expectedPatientId)
         resultPatientIterator.close();
 
@@ -177,7 +177,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         # Verify results.
         expectedPatientList = ["-123", "-123", "-123", "-456", "-789"]
         for expectedPatientId in expectedPatientList:
-            resultPatientId = resultPatientIterator.next()['patient_id']
+            resultPatientId = next(resultPatientIterator)['patient_id']
             self.assertEqual(resultPatientId, expectedPatientId)
         patientListTsv.close();
         resultPatientIterator.close();
@@ -656,7 +656,7 @@ class TestFeatureMatrixFactory(DBTestCase):
                     formatter.formatTuple(colNames)
 
                 # Print out patient (episode) data (one row per episode)
-                formatter.formatResultDicts(patientEpisodeByIndexTime.values(), colNames)
+                formatter.formatResultDicts(list(patientEpisodeByIndexTime.values()), colNames)
 
             if lastPatientId is None or lastPatientId != patientId:
                 # Prepare to aggregate patient episode record per patient
@@ -727,7 +727,7 @@ class TestFeatureMatrixFactory(DBTestCase):
             patientEpisodeByIndexTime, labsByBaseName, ["Qux"], \
             preTimeDelta, postTimeDelta))
 
-        formatter.formatResultDicts(patientEpisodeByIndexTime.values(), colNames)
+        formatter.formatResultDicts(list(patientEpisodeByIndexTime.values()), colNames)
 
         # Close file.
         outFile.close()
@@ -750,6 +750,7 @@ class TestFeatureMatrixFactory(DBTestCase):
         except OSError:
             pass
 
+
 def suite():
     """
     Returns the suite of tests to run for this test class / module.
@@ -764,6 +765,7 @@ def suite():
     #suite.addTest(TestFeatureMatrixFactory("test_buildFeatureMatrix_multiClinicalItem"));
     suite.addTest(unittest.makeSuite(TestFeatureMatrixFactory))
     return suite
+
 
 if __name__=="__main__":
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

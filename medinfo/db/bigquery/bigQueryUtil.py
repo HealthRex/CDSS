@@ -169,7 +169,7 @@ class BigQueryClient:
 
         location = 'US'
 
-        dataset_ref = self.client.dataset(dataset_id)
+        dataset_ref = self.client.get_dataset(dataset_id)
         table_ref = dataset_ref.table(table_id)
         dataset = bigquery.Dataset(dataset_ref)
         dataset.location = location
@@ -181,7 +181,6 @@ class BigQueryClient:
         job_config.skip_leading_rows = skip_rows
         job_config.quote_character = '\"'
 
-
         if not append_to_table:
             job_config.write_disposition = bigquery.WriteDisposition.WRITE_EMPTY
 
@@ -192,7 +191,6 @@ class BigQueryClient:
                 job_config.autodetect = False
                 assert schema != [], 'Auto-detect is False, but no schema specified'
                 job_config.schema = schema
-
 
         with open(csv_path, 'rb') as csv_file:
             load_table_job = self.client.load_table_from_file(

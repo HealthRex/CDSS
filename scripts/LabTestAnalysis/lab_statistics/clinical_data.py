@@ -14,7 +14,7 @@ import csv
 import numpy as np
 import pandas as pd
 
-from cStringIO import StringIO
+from io import StringIO
 # from datetime import datetime
 
 # from medinfo.db.test.Const import RUNNER_VERBOSITY
@@ -39,8 +39,8 @@ class ClinicalData(object):
 		# WHERE
 		query.addWhere('max_result_flag is not null')
 
-		print query
-		print query.getParams()
+		print(query)
+		print(query.getParams())
 		DBUtil.runDBScript(self.SCRIPT_FILE, False)
 		results = DBUtil.execute(str(query), query.getParams())
 
@@ -54,8 +54,8 @@ class ClinicalData(object):
 		# FROM
 		query.addFrom('clinical_item')
 
-		print query
-		print query.getParams()
+		print(query)
+		print(query.getParams())
 		DBUtil.runDBScript(self.SCRIPT_FILE, False)
 		results = DBUtil.execute(str(query), query.getParams())
 
@@ -83,7 +83,7 @@ class ClinicalData(object):
 							.drop_duplicates()
 
 
-		print df_lab_orders.head()
+		print(df_lab_orders.head())
 
 
 if __name__ == '__main__':

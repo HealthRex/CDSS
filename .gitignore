@@ -9,3 +9,4 @@ scripts/LabCulturePrediction/data*
 .idea*
 venv*
 *token.pickle
+.Rproj.user

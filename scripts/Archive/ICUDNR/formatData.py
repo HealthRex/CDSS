@@ -2,7 +2,7 @@ import sys, os;
 import time;
 import numpy as np;
 from datetime import datetime, timedelta;
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.common.Const import NULL_STRING;
 from medinfo.db import DBUtil;
@@ -57,7 +57,7 @@ def main(argv=None):
     patientById = extractor.parsePatientFile(stdOpen("patients.tab"), colNames);
 
     log.info("Expand to index dates based start and end dates");
-    patientByIndexTimeById = extractor.generateDateRangeIndexTimes("firstLifeSupportDate","lastContiguousDate", patientById.values(), colNames);
+    patientByIndexTimeById = extractor.generateDateRangeIndexTimes("firstLifeSupportDate","lastContiguousDate", list(patientById.values()), colNames);
 
     log.info("Populate flowsheet summary statistics");
     flowsheetByNameByPatientId = extractor.parseFlowsheetFile(stdOpen("Flowsheet.tab.gz"));
@@ -107,12 +107,12 @@ def main(argv=None):
     log.info("Output feature matrix file with row per patient day");
     featureMatrixFile = stdOpen("featureMatrix.ICUDNR.tab.gz","w");
     formatter = TextResultsFormatter(featureMatrixFile);
-    for patientId, patientByIndexTime in patientByIndexTimeById.iteritems():
-        patientResults = patientByIndexTime.values();
+    for patientId, patientByIndexTime in patientByIndexTimeById.items():
+        patientResults = list(patientByIndexTime.values());
         formatter.formatResultDicts(patientResults, colNames, addHeaderRow=True);
 
     timer = time.time() - timer;
-    print >> sys.stderr, "%.3f seconds to complete" % timer;
+    print("%.3f seconds to complete" % timer, file=sys.stderr);
 
 if __name__ == "__main__":
     main(sys.argv);

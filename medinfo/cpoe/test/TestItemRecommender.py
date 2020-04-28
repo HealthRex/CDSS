@@ -2,12 +2,12 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime, timedelta;
 import unittest
 
-from Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
-from Util import log;
+from .Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.common.Util import ProgressDots;
 
@@ -314,12 +314,12 @@ class TestItemRecommender(DBTestCase):
         lastScore = None;
         for expectedItem, recommendedItem in zip(expectedData, recommendedData):
             # Ensure derived statistics are populated to enable comparisons
-            ItemAssociationRecommender.populateDerivedStats( recommendedItem, expectedItem.keys() );
+            ItemAssociationRecommender.populateDerivedStats( recommendedItem, list(expectedItem.keys()) );
 
             self.assertEqualDict(expectedItem, recommendedItem, ["clinical_item_id"]);
-            for key in expectedItem.iterkeys():  # If specified, then verify a specific values
+            for key in expectedItem.keys():  # If specified, then verify a specific values
                 if isinstance(expectedItem[key],float):
-                    self.assertAlmostEquals(expectedItem[key], recommendedItem[key], 5);
+                    self.assertAlmostEqual(expectedItem[key], recommendedItem[key], 5);
                 else:
                     self.assertEqual(expectedItem[key], recommendedItem[key]);
             if lastScore is not None:
@@ -377,7 +377,7 @@ class TestItemRecommender(DBTestCase):
                 expectedValue = expectedItem[header];
                 recommendedValue = recommendedItem[header];
                 msg = 'Dicts diff with key (%s).  Verify = %s, Sample = %s' % (header, expectedValue, recommendedValue);
-                self.assertAlmostEquals(expectedValue, recommendedValue, 3, msg);
+                self.assertAlmostEqual(expectedValue, recommendedValue, 3, msg);
 
     def test_recommender_stats_commandline(self):
         # Run the recommender against the mock test data above and verify expected stats calculations
@@ -412,7 +412,7 @@ class TestItemRecommender(DBTestCase):
         """
         recommendedData = list();
         for dataRow in TabDictReader(textOutput):
-            for key,value in dataRow.iteritems():
+            for key,value in dataRow.items():
                 if key in headers:
                     dataRow[key] = float(value);    # Parse into numerical values for comparison
             recommendedData.append(dataRow);
@@ -453,7 +453,7 @@ class TestItemRecommender(DBTestCase):
 
         # Repeat multiple times, should still have no new query activity
         # prog = ProgressDots(10,1,"repeats");
-        for iRepeat in xrange(10):
+        for iRepeat in range(10):
             newData = self.recommender( query );
             newQueryCount = self.recommender.dataManager.queryCount;
             self.assertEqualRecommendedData( baselineData, newData, query );

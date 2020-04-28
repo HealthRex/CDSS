@@ -2,18 +2,18 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 import unittest
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.common.test.Util import MedInfoTestCase;
 from medinfo.db.Model import RowItemModel;
 
 from medinfo.analysis.CalibrationPlot import CalibrationPlot;
 
-from Util import BaseTestAnalysis;
+from .Util import BaseTestAnalysis;
 
 class TestCalibrationPlot(BaseTestAnalysis):
     def setUp(self):
@@ -70,7 +70,7 @@ outcome\tscore
         textOutput = StringIO(sys.stdout.getvalue());
         jsonData = self.extractJSONComment(textOutput);
 
-        self.assertAlmostEquals(expectedHLP, jsonData["P-HosmerLemeshow"], 5);
+        self.assertAlmostEqual(expectedHLP, jsonData["P-HosmerLemeshow"], 5);
         self.assertEqualStatResultsTextOutput(expectedResults, textOutput, colNames);
     
 def suite():

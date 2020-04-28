@@ -7,7 +7,7 @@ import pandas as pd
 pd.set_option('display.width', 3000)
 pd.set_option('display.max_columns', 500)
 
-import stats_utils
+from . import stats_utils
 
 
 '''
@@ -48,7 +48,7 @@ def show_top_volume_panels():
         df.drop('2014 1stHalf count', axis=1).to_csv(data_filepath, index=False)
 
     top_panels_and_cnts_by_vol =  df[['lab', 'total_cnt']].drop_duplicates().sort_values('total_cnt', ascending=False).values.tolist()
-    print ', '.join(str(x) for x in top_panels_and_cnts_by_vol)
+    print(', '.join(str(x) for x in top_panels_and_cnts_by_vol))
 
 def show_top_avoided_volume_panels(target_PPV=0.95):
     data_filepath = os.path.join(data_folderpath, 'summary-stats-bestalg-fixTrainPPV.csv')
@@ -63,20 +63,20 @@ def show_top_avoided_volume_panels(target_PPV=0.95):
     df['avoided_cnt'] = (df['true_positive']+df['false_positive']) * df['total_cnt']
     top_panels_and_cnts_by_avoidable_vol = df[['lab', 'avoided_cnt']].drop_duplicates().sort_values('avoided_cnt',
                                                                                         ascending=False).values.tolist()
-    print ', '.join(str(x) for x in top_panels_and_cnts_by_avoidable_vol)
+    print(', '.join(str(x) for x in top_panels_and_cnts_by_avoidable_vol))
 
 def show_top_order_in_1day_panels():
     data_filepath = os.path.join(data_folderpath, 'Fig2_Order_Intensities', 'Order_Intensities_panel.csv')
     df = pd.read_csv(data_filepath, keep_default_na=False)
     top_panels_and_cnts_in_1day = df[['lab', '< 1 day']].drop_duplicates().sort_values('< 1 day', ascending=False).values.tolist()
-    print ', '.join(str(x) for x in top_panels_and_cnts_in_1day)
+    print(', '.join(str(x) for x in top_panels_and_cnts_in_1day))
 
 def show_top_order_in_1to3day_panels():
     data_filepath = os.path.join(data_folderpath, 'Fig2_Order_Intensities', 'Order_Intensities_panel.csv')
     df = pd.read_csv(data_filepath, keep_default_na=False)
     top_panels_and_cnts_in_1to3days = df[['lab', '1-3 days']].drop_duplicates().sort_values('1-3 days',
                                                                                        ascending=False).values.tolist()
-    print ', '.join(str(x) for x in top_panels_and_cnts_in_1to3days)
+    print(', '.join(str(x) for x in top_panels_and_cnts_in_1to3days))
 
 if __name__ == '__main__':
     show_top_order_in_1day_panels()

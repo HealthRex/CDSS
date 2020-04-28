@@ -1,7 +1,8 @@
-import Const
+from . import Const
 import sys, os
 import logging
-import cgi, UserDict
+import cgi
+from collections import UserDict
 import unittest
 
 import json;
