@@ -3,7 +3,7 @@
 import pandas as pd
 import os
 import tables
-import cPickle
+import pickle
 import gzip
 import gc
 import sys, getopt
@@ -32,7 +32,7 @@ def write_shuffled_batches(data_dir, output_dir, batch_dicts, index_begin=None, 
 		except KeyError:
 			data_s = None
 		for i in range(index_begin,index_end):
-			if f in batch_dicts[i].keys():
+			if f in list(batch_dicts[i].keys()):
 				if batch_data_x[i] is None:
 					batch_data_x[i] = data_x.iloc[batch_dicts[i][f]]
 				else:
@@ -99,7 +99,7 @@ def main(argv):
 
 	# Read the shuffling from the gzip-compressed pickle file
 	infile = gzip.open(pickle_shuffle_file,'rb', compresslevel=1)
-	shuffled_batches = cPickle.load(infile)
+	shuffled_batches = pickle.load(infile)
 	infile.close()
 
 	# Finally, time to write the batches to files

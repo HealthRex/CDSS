@@ -10,7 +10,7 @@ import sys, os;
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 
 from medinfo.db.Model import columnFromModelList;
 from medinfo.db.Model import RowItemFieldComparator;
@@ -20,9 +20,9 @@ from medinfo.db.Model import RowItemModel;
 from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
 from medinfo.db.ResultsFormatter import pandas_read_table, pandas_write_table;
 from medinfo.db.ResultsFormatter import pandas_to_sqlconn, pandas_read_sql_query;
-from Util import log;
+from .Util import log;
 
-from BaseAnalysis import BaseAnalysis;
+from .BaseAnalysis import BaseAnalysis;
 
 DEFAULT_TABLENAME = 'data';
 
@@ -58,7 +58,7 @@ class SQLQueryDataFile(BaseAnalysis):
 
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             # Primary execution to load inputFile, run query, then drop results into outputFile
             dataFrame = self(sqlQuery, inputFile, outputFile);

@@ -2,12 +2,12 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 import unittest
 
-from Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
-from Util import log;
+from .Const import LOGGER_LEVEL, RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.db.test.Util import DBTestCase;
 

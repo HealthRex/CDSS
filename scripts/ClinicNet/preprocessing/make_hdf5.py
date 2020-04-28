@@ -122,7 +122,7 @@ def main(argv):
 	response_cols = pd.read_csv(relevant_response_columns_file, sep="\t")
 	response_cols = response_cols.loc[:,"clinical_item_id"]
 	response_cols = response_cols.values
-	response_cols = map(lambda x: "clinitem_{}.post.1d".format(x), response_cols)
+	response_cols = ["clinitem_{}.post.1d".format(x) for x in response_cols]
 	r = re.compile("(.*\.post\.1d$)")
 	all_response_cols = list(filter(r.match, columns_line))
 	response_cols_to_remove = list(set(all_response_cols) - set(response_cols))

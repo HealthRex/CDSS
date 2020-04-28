@@ -9,7 +9,7 @@ from itertools import islice
 import sqlite3
 import LocalEnv
 from medinfo.common.Util import log
-import prepareData_NonSTRIDE as utils_general
+from . import prepareData_NonSTRIDE as utils_general
 import datetime
 from collections import Counter
 

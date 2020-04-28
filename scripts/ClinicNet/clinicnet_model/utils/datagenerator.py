@@ -159,7 +159,7 @@ class DataGenerator(tf.keras.utils.Sequence):
             del self.cache
             self.cache = {} # Once we come across a file that isn't cached, we know it's time to cache a new set of files!
             pool = multiprocessing.Pool(self.num_processes)
-            files_list_all = list(OrderedDict.fromkeys([ v for k, v in self.idx2file.items() if k >= index ]))[0:self.num_files_cache] # Here's our new list of files to cache
+            files_list_all = list(OrderedDict.fromkeys([ v for k, v in list(self.idx2file.items()) if k >= index ]))[0:self.num_files_cache] # Here's our new list of files to cache
             if self.num_files_cache > 100:
                 # We partition our new list of files into chunks if we have more than 100 files to cache
                 # Otherwise, pool.map runs into problems when trying to return a huge amount of data at once
@@ -168,7 +168,7 @@ class DataGenerator(tf.keras.utils.Sequence):
                 files_list_all = np.array_split(files_list_all, 1)
             for files_list in files_list_all:
                 #print("NEW FILE LIST")
-                datas = pool.map(read_data_file, zip(files_list,repeat(self.path), repeat(self.avg_sd), repeat(self.matrix_w), repeat(self.exclude_cols_transformation))) # Read in data from list of files
+                datas = pool.map(read_data_file, list(zip(files_list,repeat(self.path), repeat(self.avg_sd), repeat(self.matrix_w), repeat(self.exclude_cols_transformation)))) # Read in data from list of files
                 for data in datas: # Go through (and cache) all the data we read in from list of files (each iteration of this loop is the data returned from a single file)
                     fname = data[0]
                     data_x = data[1]
@@ -230,8 +230,8 @@ class DataGenerator(tf.keras.utils.Sequence):
                 batches = [i[i != -1] for i in batches]
             else:
                 batches = np.array_split(indices, num_batches)
-            self.idx2batch.update(dict(zip(range(idx, idx+num_batches), batches)))
-            self.idx2file.update(dict.fromkeys(range(idx, idx+num_batches), f))
+            self.idx2batch.update(dict(list(zip(list(range(idx, idx+num_batches)), batches))))
+            self.idx2file.update(dict.fromkeys(list(range(idx, idx+num_batches)), f))
             h5file.close()
             idx += num_batches
             

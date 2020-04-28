@@ -62,7 +62,7 @@ class StarrCommonUtils:
 
     @staticmethod
     def dump_test_data_to_csv(header, test_data, csv_file):
-        with open(csv_file, 'wb') as test_data_file:
+        with open(csv_file, 'w', newline='') as test_data_file:
             csv_writer = csv.writer(test_data_file)
             csv_writer.writerow(header)
             csv_writer.writerows(test_data)
@@ -73,13 +73,11 @@ class StarrCommonUtils:
     The resulting schema, in this case, will be sorted according to the filter order.
     '''
     def get_schema_filtered(self, dataset, table, fields_to_keep_in_schema=None):
-        schema = self.bqClient.client.get_table(
-            self.bqClient.client.dataset(dataset, 'mining-clinical-decisions').table(table)
-        ).schema
+        schema = self.bqClient.client.get_table('mining-clinical-decisions.{}.{}'.format(dataset, table)).schema
 
         if fields_to_keep_in_schema:
             # filter out only fields we need
-            schema = list(filter(lambda field: field.name in fields_to_keep_in_schema, schema))
+            schema = list([field for field in schema if field.name in fields_to_keep_in_schema])
             # sort schema fields according to the header
             schema.sort(key=lambda field: fields_to_keep_in_schema.index(field.name))
 
@@ -268,7 +266,7 @@ class StarrCommonUtils:
         if os.path.exists(file_path):
             os.remove(file_path)
         else:
-            print('{} does not exist'.format(file_path))
+            log.warning('{} does not exist'.format(file_path))
 
     def removePatientItemAddedLines(self, source_table):
         """delete added records"""

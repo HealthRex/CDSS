@@ -312,7 +312,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
 
     def compute_precision_at_k_curve(self, ci=None, n_bootstrap_iter=None):
         num_samples = self._y_test.shape[0]
-        k_vals = range(1, num_samples + 1)
+        k_vals = list(range(1, num_samples + 1))
         precision_vals = list()
         lower_ci_vals = list()
         upper_ci_vals = list()

@@ -91,7 +91,7 @@ def create_batches(data_dir,outdir,split,batch_size,Tx,n_feats,n_y,start_batch,e
 			x_batch_i = x_batch_i.T
 			y_batch_i = y_batch_i.T
 			
-			print (nb, x_batch_i.shape,y_batch_i.shape)
+			print(nb, x_batch_i.shape,y_batch_i.shape)
 
 
 			x_batch_i_padded = pad_sequences(x_batch_i,maxlen=Tx,padding='post',value=-1.).T
@@ -100,8 +100,8 @@ def create_batches(data_dir,outdir,split,batch_size,Tx,n_feats,n_y,start_batch,e
 			except:
 				print ("ERROR")
 				print (x_fn)
-				print ('nrows: %d' % x_batch_i.shape[0])
-				print ('ncols: %d' % x_batch_i.shape[1])
+				print('nrows: %d' % x_batch_i.shape[0])
+				print('ncols: %d' % x_batch_i.shape[1])
 				continue
 
 			y_batch_i_padded = pad_sequences(y_batch_i,maxlen=Tx,padding='post',value=-1.).T

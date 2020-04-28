@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Miscellaneous utility functions used across the application
 """
-import Const, Env
+from . import Const, Env
 import sys, os
 import logging
 

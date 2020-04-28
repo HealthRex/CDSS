@@ -7,7 +7,7 @@
 
 import sys, os;
 import time;
-from cStringIO import StringIO;
+from io import StringIO;
 from datetime import datetime, timedelta;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.db import DBUtil;
@@ -115,7 +115,7 @@ def main(argv):
             icd_prefixesByDisease[disease] = list();
         icd_prefixesByDisease[disease].append("^ICD10." + icd10prefix + '.*'); # For ICD10, match the prefix
 
-    for disease, icd_prefixes in icd_prefixesByDisease.iteritems():
+    for disease, icd_prefixes in icd_prefixesByDisease.items():
         disease = disease.translate(None," ()-/");   # Strip off punctuation
         extractor.queryClinicalItemsByName(icd_prefixes, patientIds, stdOpen("Charlson."+disease+".tab","w"), operator="~*");
 
@@ -126,11 +126,11 @@ def main(argv):
         if category not in teamNameByCategory:
             teamNameByCategory[category] = list();
         teamNameByCategory[category].append(teamName);
-    for category, teamNames in teamNameByCategory.iteritems():
+    for category, teamNames in teamNameByCategory.items():
         extractor.queryClinicalItemsByName(teamNames, patientIds, stdOpen("TT."+category+".tab","w"), col="description");
 
     timer = time.time() - timer;
-    print >> sys.stderr, "%.3f seconds to complete" % timer;
+    print("%.3f seconds to complete" % timer, file=sys.stderr);
 
 def loadIVAntibioticItemIds(extractor):
     # ivMedCategoryId = 72;
@@ -247,7 +247,7 @@ def queryPatientEpisodes(outputFile, extractor):
             
         order by adt1.shifted_transf_in_dt_tm
         """ % (suspectSepsisItemIdsStr, excludeTeamItemIdsStr);
-        print >> sys.stderr, cohortQuery;
+        print(cohortQuery, file=sys.stderr);
         cursor.execute(cohortQuery);
 
         patientEpisodes = list();

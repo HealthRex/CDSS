@@ -9,11 +9,11 @@ from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery;
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList;
 
-from Util import log;
-from Env import DATE_FORMAT;
+from .Util import log;
+from .Env import DATE_FORMAT;
 
-from Const import SENTINEL_RESULT_VALUE, Z_SCORE_LIMIT;
-from Const import FLAG_IN_RANGE, FLAG_HIGH, FLAG_LOW, FLAG_RESULT, FLAG_ABNORMAL;
+from .Const import SENTINEL_RESULT_VALUE, Z_SCORE_LIMIT;
+from .Const import FLAG_IN_RANGE, FLAG_HIGH, FLAG_LOW, FLAG_RESULT, FLAG_ABNORMAL;
 
 SOURCE_TABLE = "stride_order_results";
 
@@ -183,7 +183,7 @@ class STRIDEOrderResultsConversion:
                         resultModel["result_flag"] = FLAG_HIGH;
                     else:   # |zScore| < Z_SCORE_LIMIT
                         resultModel["result_flag"] = FLAG_IN_RANGE;
-                except ValueError, exc:
+                except ValueError as exc:
                     # Math error, probably stdev = 0 or variance < 0, just treat as an unspecified result
                     resultModel["result_flag"] = FLAG_RESULT;
             else:   # No value distribution, just record as a non-specific result
@@ -281,12 +281,12 @@ class STRIDEOrderResultsConversion:
                     "num_value": sourceItem["ord_num_value"],
                 }
             );
-        insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys() );
-        insertParams= patientItem.values();
+        insertQuery = DBUtil.buildInsertQuery("patient_item", list(patientItem.keys()) );
+        insertParams= list(patientItem.values());
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute( insertQuery, insertParams, conn=conn );
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
             log.info(err);
 

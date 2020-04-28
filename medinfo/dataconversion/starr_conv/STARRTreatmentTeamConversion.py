@@ -140,7 +140,7 @@ class STARRTreatmentTeamConversion:
                                           verbose=True)
 
         for row in query_job:  # API request - fetches results
-            rowModel = RowItemModel(row.values(), self.HEADERS)
+            rowModel = RowItemModel(list(row.values()), self.HEADERS)
             log.debug("rowModel: {}".format(rowModel))
             yield self.normalizeRowModel(rowModel, convOptions)  # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
 
@@ -308,14 +308,14 @@ class STARRTreatmentTeamConversion:
             }
         )
 
-        insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys())
-        insertParams = patientItem.values()
+        insertQuery = DBUtil.buildInsertQuery("patient_item", list(patientItem.keys()))
+        insertParams = list(patientItem.values())
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute(insertQuery, insertParams, conn=conn)
             # Retrieve id of just inserted row
             patientItem["patient_item_id"] = DBUtil.execute(DBUtil.identityQuery("patient_item"), conn=conn)[0][0]
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, pull out existing ID and continue to insert whatever else is possible
             log.info(err)  # Lookup just by the composite key components to avoid attempting duplicate insertion again
 

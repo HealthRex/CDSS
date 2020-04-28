@@ -19,7 +19,7 @@ from medinfo.dataconversion.FeatureMatrixIO import FeatureMatrixIO
 from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.SupervisedLearningPipeline import SupervisedLearningPipeline
-from MRSAMatrix import MRSAMatrix
+from .MRSAMatrix import MRSAMatrix
 
 class MRSAPredictionPipeline(SupervisedLearningPipeline):
     def __init__(self, lab_panel, microcultures,  num_episodes, use_cache=None, random_state=None):
@@ -57,7 +57,7 @@ class MRSAPredictionPipeline(SupervisedLearningPipeline):
             # be passed on directly to matrix_class, but we expect them to have
             # at least 1 primary variables and # of rows.
             # Ensure that random_state is [-1, 1]
-            random_state = float(self._random_state)/float(sys.maxint)
+            random_state = float(self._random_state)/float(sys.maxsize)
             if self._isLabNormalityPredictionPipeline:
                 matrix = matrix_class(self._var, self.panel, self._num_rows, random_state=random_state,
                                   isLabPanel=self._isLabPanel, timeLimit=self._timeLimit,

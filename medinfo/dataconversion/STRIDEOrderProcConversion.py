@@ -8,9 +8,9 @@ from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery;
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList;
 
-from Util import log;
-from Env import DATE_FORMAT;
-from Const import COLLECTION_TYPE_ORDERSET;
+from .Util import log;
+from .Env import DATE_FORMAT;
+from .Const import COLLECTION_TYPE_ORDERSET;
 
 SOURCE_TABLE = "stride_order_proc";
 
@@ -193,13 +193,13 @@ class STRIDEOrderProcConversion:
                     "item_date":  sourceItem["order_time"],
                 }
             );
-        insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys() );
-        insertParams= patientItem.values();
+        insertQuery = DBUtil.buildInsertQuery("patient_item", list(patientItem.keys()) );
+        insertParams= list(patientItem.values());
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute( insertQuery, insertParams, conn=conn );
             patientItem["patient_item_id"] = DBUtil.execute( DBUtil.identityQuery("patient_item"), conn=conn )[0][0];
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, pull out existint ID and continue to insert whatever else is possible
             log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again
             searchPatientItem = \
@@ -260,12 +260,12 @@ class STRIDEOrderProcConversion:
                     "item_collection_item_id":  collectionItem["item_collection_item_id"],
                 }
             );
-        insertQuery = DBUtil.buildInsertQuery("patient_item_collection_link", patientItemCollectionLink.keys() );
-        insertParams= patientItemCollectionLink.values();
+        insertQuery = DBUtil.buildInsertQuery("patient_item_collection_link", list(patientItemCollectionLink.keys()) );
+        insertParams= list(patientItemCollectionLink.values());
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute( insertQuery, insertParams, conn=conn );
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
             log.info(err);
 

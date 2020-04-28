@@ -115,7 +115,7 @@ for line in physician_patient_map:
 overlap_outf = open("/Users/jwang/Desktop/Results/duplicate_patients.csv", "w")
 overlap_outf.write("patient_id,physician,physician speciality,physician cohort\n")
 # iterate through all duplicate patients
-for patient_id, top_physicians in overlap_map_top.iteritems():
+for patient_id, top_physicians in overlap_map_top.items():
 	for physician in top_physicians:
 		overlap_outf.write("{0},{1},{2},top\n".format(patient_id,physician,physician_specialties[physician]))
 	for physician in overlap_map_bottom[patient_id]:

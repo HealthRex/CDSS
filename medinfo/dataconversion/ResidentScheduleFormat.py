@@ -3,13 +3,14 @@ import sys, os
 import time;
 import csv;
 from datetime import datetime, timedelta;
+from operator import itemgetter
 from optparse import OptionParser
 from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db import DBUtil;
 from medinfo.db.ResultsFormatter import TextResultsFormatter;
 from medinfo.db.Model import RowItemModel, RowItemFieldComparator, modelListFromTable, modelDictFromList;
 
-from Util import log;
+from .Util import log;
 
 CHANGE_HOUR = 7;  # Designate 7am as changeover time rather than midnight, otherwise night shift behavior on change dates will be misinterpreted
 DEFAULT_INDEX_PREFIX_LENGTH = 3;    # Default number of first letters (prefix) of a provider's name to count as equal / equivalent when guessing provider IDs
@@ -35,13 +36,13 @@ class ResidentScheduleFormat:
         
         # Iterate through header lines until find one that looks like key date row
         # Expect first key line to be the primary date ranges
-        row = reader.next();
+        row = next(reader);
         while row[-1].isalnum() or row[-1].find("-") < 0:    # Expect date rows formatted like "5/25 - 6/24" so look for a non-alphanumeric row with a '-'' in the middle
-            row = reader.next();        
+            row = next(reader);        
         dateRanges = self.parseDateRanges(row, baseYear);  
 
         # Expect next line to be mid-rotation split dates
-        row = reader.next();    
+        row = next(reader);    
         splitDates = self.parseSplitDates(row, baseYear); 
         
         scheduleItems = list();
@@ -111,7 +112,7 @@ class ResidentScheduleFormat:
                             scheduleItems.append(scheduleItem);
 
             # Now yield / generate results, but keep sorted in chronologic order
-            scheduleItems.sort( RowItemFieldComparator("start_date") );
+            scheduleItems.sort(key=itemgetter("start_date"));
             for item in scheduleItems:
                 yield item;
 

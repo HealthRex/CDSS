@@ -1,7 +1,7 @@
 import sys, os;
 import time;
 from datetime import datetime, timedelta;
-from cStringIO import StringIO;
+from io import StringIO;
 import numpy as np;
 import pandas as pd;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
@@ -48,7 +48,7 @@ def main(argv):
 
     
     elapsed = time.time() - timer;
-    print >> sys.stderr, "%s to complete" % timedelta(0,round(elapsed));
+    print("%s to complete" % timedelta(0,round(elapsed)), file=sys.stderr);
     
     return patientDF;
 

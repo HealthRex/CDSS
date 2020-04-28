@@ -68,15 +68,13 @@ class TestSTARRDemographicsConversion(DBTestCase):
 
     def setUp(self):
         """Prepare state for test cases"""
-        log.setLevel(logging.INFO)  # without this no logs are printed
-
         DBTestCase.setUp(self)
         ClinicalItemDataLoader.build_clinical_item_psql_schemata()
 
         # point the converter to dummy source table
         STARRDemographicsConversion.SOURCE_TABLE = TEST_SOURCE_TABLE
 
-        log.warn("Removing test table if it exists: {}".format(TEST_SOURCE_TABLE))
+        log.warning("Removing test table if it exists: {}".format(TEST_SOURCE_TABLE))
         bq_cursor = self.bqConn.cursor()
         bq_cursor.execute('DROP TABLE IF EXISTS {};'.format(TEST_SOURCE_TABLE))
 
@@ -101,7 +99,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
         self.expected_data.sort(key=lambda tup: (-tup[1], tup[5]))  # patient_id desc, name asc
 
     def dump_patient_ids_to_test_to_csv(self, pat_id_csv):
-        with open(pat_id_csv, 'wb') as f:
+        with open(pat_id_csv, 'w') as f:
             for rit_uid in ['rit_uid'] + self.patientIds:
                 f.write("%s\n" % rit_uid)
 
@@ -153,7 +151,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
     @staticmethod
     def birth_decade_tuple_from(birth_list, row):
         birth_decade_list = list(birth_list)
-        decade = (row[1].year / 10) * 10
+        decade = (row[1].year // 10) * 10
         birth_decade_list[5] = "Birth%ds" % decade
         birth_decade_list[6] = "Birth Decade %ds" % decade
         return tuple(birth_decade_list)
@@ -161,7 +159,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
     def race_tuple_from(self, birth_list, row):
         race_list = list(birth_list)
         race_ethnicity = self.converter.summarizeRaceEthnicity(row[4], row[5])
-        race_list[5] = "Race%s" % race_ethnicity.translate(None, " ()-/")
+        race_list[5] = "Race%s" % race_ethnicity.translate(str.maketrans('', '', " ()-/"))
         race_list[6] = "Race/Ethnicity: %s" % race_ethnicity
         return tuple(race_list)
 
@@ -249,7 +247,7 @@ class TestSTARRDemographicsConversion(DBTestCase):
 
         bq_cursor = self.bqConn.cursor()
         bq_cursor.execute(test_query)
-        actual_data = [row.values() for row in bq_cursor.fetchall()]
+        actual_data = [list(row.values()) for row in bq_cursor.fetchall()]
 
         log.debug('actual data %s' % actual_data)
         log.debug('expected data %s' % self.expected_data)
@@ -269,4 +267,5 @@ def suite():
 
 
 if __name__ == "__main__":
+    log.setLevel(logging.INFO)  # without this no logs are printed
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

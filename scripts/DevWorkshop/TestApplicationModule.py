@@ -2,10 +2,10 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 import unittest
 
-from ApplicationModule import ApplicationClass;
+from .ApplicationModule import ApplicationClass;
 
 RUNNER_VERBOSITY=2; # How much log text you want the test runner to express
 
@@ -34,7 +34,7 @@ For in that dream of death, when we awake,
 
     def test_extractWordsByIndex(self):
         # Prepare sample input into application code
-        wordIndex = 1;
+        wordIndex = 0;
         inputFile = StringIO(self.SAMPLE_INPUT_FILE_STR);
         outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
         
@@ -45,13 +45,13 @@ For in that dream of death, when we awake,
         
         # Define expected output of a successful application run, and verify the actual results match
         expectedOutputList = ["To","To","No","For"];
-        self.assertEquals(expectedOutputList, actualOutputList);
+        self.assertEqual(expectedOutputList, actualOutputList);
 
 
 
         ######## More test iterations ########
         # Prepare sample input into application code
-        wordIndex = 3;
+        wordIndex = 2;
         inputFile = StringIO(self.SAMPLE_INPUT_FILE_STR);
         outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
         
@@ -62,13 +62,13 @@ For in that dream of death, when we awake,
         
         # Define expected output of a successful application run, and verify the actual results match
         expectedOutputList = ["or","to","sleep","that"];
-        self.assertEquals(expectedOutputList, actualOutputList);
+        self.assertEqual(expectedOutputList, actualOutputList);
 
 
 
         ######## More test iterations ########
         # Prepare sample input into application code
-        wordIndex = 10;
+        wordIndex = 9;
         inputFile = StringIO(self.SAMPLE_INPUT_FILE_STR);
         outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
         
@@ -79,7 +79,7 @@ For in that dream of death, when we awake,
         
         # Define expected output of a successful application run, and verify the actual results match
         expectedOutputList = ["point","","goes",""];
-        self.assertEquals(expectedOutputList, actualOutputList);
+        self.assertEqual(expectedOutputList, actualOutputList);
 
 
 
@@ -99,7 +99,7 @@ For in that dream of death, when we awake,
         except TypeError:
             actualError = True;
         # In this case, expect an error to have occurred (invalid wordIndex)
-        self.assertEquals(expectError, actualError);
+        self.assertEqual(expectError, actualError);
 
     #def test_fibonacci(self):
     #    # Do something here???

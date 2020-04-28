@@ -3,8 +3,8 @@ import sys, os;
 import cgi
 import cgitb; cgitb.enable();
 import json;
-import urllib;
-from cStringIO import StringIO;
+import urllib.request, urllib.parse, urllib.error;
+from io import StringIO;
 
 from medinfo.common.Const import FALSE_STRINGS;
 
@@ -60,7 +60,7 @@ class OrderSetSearch(BaseDynamicData):
         for dataModel in resultIter:
             if dataModel is not None:
                 dataModel["nameFormat"] = NAME_TEMPLATE % dataModel;
-                dataModel["itemListJSON.quote"] = urllib.quote(json.dumps(dataModel["itemList"]));
+                dataModel["itemListJSON.quote"] = urllib.parse.quote(json.dumps(dataModel["itemList"]));
                 dataModel["controls"] = CONTROLS_TEMPLATE % dataModel;
                 results.append(dataModel);
 

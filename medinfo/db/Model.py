@@ -1,6 +1,6 @@
 """Common objects / base classes used to support DB interactions.
 """
-from Env import SQL_PLACEHOLDER;
+from .Env import SQL_PLACEHOLDER;
 
 class RowItemModel(dict):
     """Generic object class to model rows from database tables.
@@ -47,7 +47,7 @@ class RowItemModel(dict):
                     self[key] = value
             else:
                 # Only have initData, expect this to be a dictionary.  Copy over contents
-                for key, value in initData.iteritems():
+                for key, value in initData.items():
                     self[key] = value
         return self
 
@@ -97,7 +97,7 @@ def modelDictFromList(modelList,columnName,listValues=False):
     for model in modelList:
         key = model[columnName];
         if listValues:
-            if not modelDict.has_key(key):
+            if key not in modelDict:
                 modelDict[key] = [];    # Create a new list
             modelDict[key].append(model);
         else:
@@ -164,7 +164,7 @@ class RowItemFieldComparator:
         for fieldName in self.fieldNames:
             values2.append(item2[fieldName]);
 
-        result = cmp(values1, values2);
+        result = (values1 > values2) - (values1 < values2)
         if self.desc:
             result *= -1;
         return result;

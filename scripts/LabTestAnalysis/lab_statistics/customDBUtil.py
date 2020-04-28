@@ -55,7 +55,7 @@ def connection( connParams=None ):
     if connParams is None:
         connParams = DB_PARAM;
 
-    if not connParams.has_key("PWD"):
+    if "PWD" not in connParams:
         connParams["PWD"] = getpass("Enter password for %s on %s@%s: " % (connParams["UID"], connParams["DSN"], connParams["HOST"]) );
         if connParams["PWD"] == "":
             connParams["PWD"] = None;   # Special meaning, no password needed
@@ -155,7 +155,7 @@ def execute( query, parameters=None, includeColumnNames=False, incTypeCodes=Fals
         timer = time.time();
         try:
             cur.execute( query, parameters )
-        except Exception, err:
+        except Exception as err:
             log.error(err);
             #log.error(parameterizeQueryString(query,parameters));
             if (not extConn) or autoCommit:
@@ -219,7 +219,7 @@ def runDBScript( scriptFile, skipErrors = False ):
                         #   any previous commands as well
                         if skipErrors: 
                             conn.commit()    
-                    except Exception, err:
+                    except Exception as err:
                         conn.rollback();    # Reset changes and connection state
                         if skipErrors:
                             log.warning("Error Executing in Script: "+ sql )

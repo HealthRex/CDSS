@@ -14,7 +14,7 @@ from datetime import timedelta
 
 # Code to connect to database:
 
-dsn_pwd = raw_input("Enter the database password: ")
+dsn_pwd = input("Enter the database password: ")
 def connectToDB(dsn_pwd):
     '''
     Connects to Database, requires password
@@ -28,12 +28,12 @@ def connectToDB(dsn_pwd):
 
     try:
         conn_string = "host='"+dsn_hostname+"' port="+dsn_port+" dbname='"+dsn_database+"' user='"+dsn_uid+"' password='"+dsn_pwd+"'"
-        print "Connecting to database\n  ->%s" % (conn_string)
+        print("Connecting to database\n  ->%s" % (conn_string))
         conn=psycopg2.connect(conn_string)
-        print "Connected!\n"
+        print("Connected!\n")
 
     except:
-        print "Unable to connect to the database."
+        print("Unable to connect to the database.")
 
     cursor = conn.cursor()
     return cursor
@@ -96,6 +96,6 @@ def queryItems(i):
 # Do multiprocessing of the batches
 
 pool = Pool(14)
-iterations = range(0, num_iterations)
+iterations = list(range(0, num_iterations))
 pool.map(queryItems, iterations, chunksize=1)
 

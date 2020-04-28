@@ -77,7 +77,7 @@ for line in access_logs:
 		action_histories[user_day].append( (access_timestamp, metric_id) )
 
 # For each rotation and user-day, sort list of tuples by access_timestamp
-for user_day in action_histories.keys():
+for user_day in list(action_histories.keys()):
 	action_histories[user_day] = sorted(action_histories[user_day], key=lambda x: x[0])
 
 # Note: there are 551 different metric_ids (actions)
@@ -99,7 +99,7 @@ for category in categories_of_interest:
 total_time_counter = {} # indexed by user-day
 
 # For each rotation and user-day, compute action deltas (proxy for interaction time)
-for user_day, history in action_histories.iteritems():
+for user_day, history in action_histories.items():
 	time_start = ""
 	metric_id = ""
 	metric_category = ""
@@ -115,13 +115,13 @@ for user_day, history in action_histories.iteritems():
 			# compute difference between timestamps
 			time_delta = parser.parse(tup[0]) - time_start
 			if (time_delta <= datetime.timedelta(minutes=cutoff)): # enforce idle cutoff (e.g. consider only inter-access time intervals < 5 minutes or else assume inactivity)
-				if (user_day not in total_time_counter.keys()):
+				if (user_day not in list(total_time_counter.keys())):
 					total_time_counter[user_day] = datetime.timedelta(minutes=0)
 				total_time_counter[user_day] += time_delta
 
 				# based on metric_category, add to corresponding time_counter
 				if (metric_category in categories_of_interest):
-					if (user_day not in category_time_counter[metric_category].keys()):
+					if (user_day not in list(category_time_counter[metric_category].keys())):
 						category_time_counter[metric_category][user_day] = datetime.timedelta(minutes=0)
 					category_time_counter[metric_category][user_day] += time_delta
 
@@ -136,7 +136,7 @@ for user_day, history in action_histories.iteritems():
 # Output results to master spreadsheet
 outf_spreadsheet = open("usage_spreadsheet.csv", "w")
 outf_spreadsheet.write("Rotation,Role,Provider_ID,Date,Chart_Review_Time,Note_Review_Time,Note_Entry_Time,Order_Entry_Time,Navigator_Time,Results_Review_Time,Total_Time,Number_EHR_Actions,Number_EHR_Actions_Accessed_Remotely,Number_Unique_Patient_Records_Accessed\n")
-for user_day in total_time_counter.keys():
+for user_day in list(total_time_counter.keys()):
 	provider_id = user_day.split("_")[0]
 	access_date = user_day.split("_")[1]
 

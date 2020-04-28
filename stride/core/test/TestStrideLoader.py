@@ -38,7 +38,7 @@ class TestStrideLoader(MedInfoTestCase):
 
     def test_build_clean_data_file(self):
         StrideLoader.build_clean_csv_file(self.gz_raw_file_path, self.gz_clean_file_path)
-        with open(self.clean_file_path, 'r') as f_expected, gzip.open(self.gz_clean_file_path, 'r') as f_actual:
+        with open(self.clean_file_path, 'rt') as f_expected, gzip.open(self.gz_clean_file_path, 'rt') as f_actual:
             content_expected = f_expected.read()
             content_actual = f_actual.read()
             self.assertEqual(content_expected, content_actual);

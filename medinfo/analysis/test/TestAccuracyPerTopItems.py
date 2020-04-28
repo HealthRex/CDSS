@@ -2,18 +2,18 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 import unittest
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.common.test.Util import MedInfoTestCase;
 from medinfo.db.Model import RowItemModel;
 
 from medinfo.analysis.AccuracyPerTopItems import AccuracyPerTopItems;
 
-from Util import BaseTestAnalysis;
+from .Util import BaseTestAnalysis;
 
 class TestAccuracyPerTopItems(BaseTestAnalysis):
     def setUp(self):

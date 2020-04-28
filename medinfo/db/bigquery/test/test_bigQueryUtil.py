@@ -18,6 +18,7 @@ TEST_DEST_DATASET = 'test_dataset'
 TEST_TABLE_ID = 'unittest_bigQueryUtil'
 TMP_DIR = tempfile.gettempdir();
 
+
 class test_bigQueryUtil(MedInfoTestCase):
 
     def setUp(self):
@@ -26,7 +27,7 @@ class test_bigQueryUtil(MedInfoTestCase):
         # create dummy CSV
         self.tmp_dummy_csv_path = TMP_DIR + '/unittest_bq_dummy.csv'
         self.dummy_table = lines = [['num', 'char']] + [[n, chr(ord('a')+n)] for n in range(26)]
-        with open(self.tmp_dummy_csv_path, 'wb') as csvfile:
+        with open(self.tmp_dummy_csv_path, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             writer.writerows(lines)
 
@@ -49,8 +50,8 @@ class test_bigQueryUtil(MedInfoTestCase):
             os.remove(self.tmp_dummy_csv_path)
 
     def test_create_table_from_schema(self):
-        schema = [bigquery.SchemaField(u'num',  u'INTEGER', u'REQUIRED', None, ()),
-                   bigquery.SchemaField(u'char', u'STRING', u'NULLABLE', None, ())]
+        schema = [bigquery.SchemaField('num',  'INTEGER', 'REQUIRED', None, ()),
+                   bigquery.SchemaField('char', 'STRING', 'NULLABLE', None, ())]
 
         self.bqClient.create_new_table_from_schema(TEST_DEST_DATASET, TEST_TABLE_ID, schema)
 
@@ -59,7 +60,7 @@ class test_bigQueryUtil(MedInfoTestCase):
         bq_schema = table.schema
 
         for ref_schema_field, cmp_schema_field in zip(schema, bq_schema):
-            print(ref_schema_field.to_api_repr(), cmp_schema_field.to_api_repr())
+            print((ref_schema_field.to_api_repr(), cmp_schema_field.to_api_repr()))
             assert ref_schema_field.name == cmp_schema_field.name
             assert ref_schema_field.field_type == cmp_schema_field.field_type
             assert ref_schema_field.is_nullable == cmp_schema_field.is_nullable
@@ -86,7 +87,7 @@ class test_bigQueryUtil(MedInfoTestCase):
         with open(self.tmp_csv_path, 'wb') as csvfile:
             writer = csv.writer(csvfile)
             for row in query_job:
-                writer.writerow(row.values())
+                writer.writerow(list(row.values()))
                 actual_data.append(row.values)
 
         # TODO fill expected data

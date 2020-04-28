@@ -1,7 +1,7 @@
 '''
 need a delete list to remove from GCP after testing (do this in web GUI)
 '''
-import os.environ
+import os
 from pathlib import Path
 
 from scripts.GoogleCloud.BQ.BigQueryConnect import BigQueryConnect

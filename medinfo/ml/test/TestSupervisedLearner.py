@@ -1,7 +1,7 @@
 
 import unittest
 import medinfo.ml.SupervisedLearner as SupervisedLearner
-import SupervisedLearnerTestData
+from . import SupervisedLearnerTestData
 
 class TestSupervisedClassifier(unittest.TestCase):
     def setUp(self):

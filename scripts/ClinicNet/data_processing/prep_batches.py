@@ -6,7 +6,7 @@ import pandas as pd
 import math
 import os
 import tables
-import cPickle
+import pickle
 import gzip
 import random
 import sys, getopt
@@ -29,11 +29,11 @@ def get_shuffled_batches(data_dir, batch_size, num_data_rows):
 			nrows = store.get_storer('data_x').shape[0]
 			total_data_rows += nrows
 			batch_update = [] # The data row numbers in the new batch to add on
-			if f in data_map.keys(): 
-				batch_update = list(set(random.sample(range(nrows), nrows)) - set(data_map[f]))
+			if f in list(data_map.keys()): 
+				batch_update = list(set(random.sample(list(range(nrows)), nrows)) - set(data_map[f]))
 			else:
 				data_map[f] = []
-				batch_update = list(set(random.sample(range(nrows), nrows)))
+				batch_update = list(set(random.sample(list(range(nrows)), nrows)))
 			random.shuffle(batch_update)
 			batch_update_length = min(batch_size,len(batch_update))
 			batch_update_length = min(batch_update_length, data_rows_remaining)
@@ -52,7 +52,7 @@ def get_shuffled_batches(data_dir, batch_size, num_data_rows):
 
 	# Turn the data_map into a list of tuples 
 	data_map_list = []
-	for k,v in data_map.iteritems():
+	for k,v in data_map.items():
 		s = [(k,r) for r in v]
 		if len(s) > 0:
 			data_map_list.extend(s)
@@ -117,7 +117,7 @@ def main(argv):
 	# Get our shuffled batch assignments and write them to the pickle file
 	shuffled_batches = get_shuffled_batches(input_dir, batch_size, num_rows)
 	outfile = gzip.open(output_file,'wb', compresslevel=1)
-	cPickle.dump(shuffled_batches,outfile)
+	pickle.dump(shuffled_batches,outfile)
 	outfile.close()
 
 if __name__ == "__main__":

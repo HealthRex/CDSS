@@ -2,12 +2,12 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 import unittest
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.db.test.Util import DBTestCase;
 from stride.core.StrideLoader import StrideLoader;
@@ -145,9 +145,9 @@ class TestSTRIDEOrderProcConversion(DBTestCase):
             """;
         expectedData = \
             [
-                [ -419697343, 3042640, 222, "Point of Care Testing", 1001, "LABPOCGLU", "GLUCOSE BY METER", datetime(2112,01,13) ],
-                [ -419268937, 3039254, 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", datetime(2112,01,05) ],
-                [ -419268931, 3039254, 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", datetime(2112,01,04) ],
+                [ -419697343, 3042640, 222, "Point of Care Testing", 1001, "LABPOCGLU", "GLUCOSE BY METER", datetime(2112,1,13) ],
+                [ -419268937, 3039254, 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", datetime(2112,1,5) ],
+                [ -419268931, 3039254, 666, "Lab", 1721, "LABPTT", "PTT PARTIAL THROMBOPLASTIN TIME", datetime(2112,1,4) ],
                 [ -418928388, -1612899, 333, "Point of Care Testing", 1001, "LABPOCGLU", "GLUCOSE BY METER", datetime(2111,12,28) ],
                 [ -418045499, 2087083, 444, "Nursing", 1428, "NUR1018", "MONITOR INTAKE AND OUTPUT", datetime(2111,12,11) ],
                 [ -417974686, 380873, 111, "Nursing", 1453, "NUR1043", "NURSING PULSE OXIMETRY", datetime(2111,12,10) ],

@@ -28,12 +28,12 @@ from optparse import OptionParser
 from medinfo.common.Const import EST_INPUT, COMMENT_TAG, TOKEN_END, NULL_STRING;
 from medinfo.common.Util import stdOpen, isStdFile, fileLineCount, ProgressDots;
 from medinfo.common.Util import parseDateValue, asciiSafeStr;
-from Model import SQLQuery, RowItemModel;
-from Model import modelListFromTable, modelDictFromList;
-from Const import DEFAULT_ID_COL_SUFFIX, SQL_DELIM;
-from Env import DB_PARAM;   # Default connection parameters
-from ResultsFormatter import TextResultsFormatter, TabDictReader;
-from Util import log;
+from .Model import SQLQuery, RowItemModel;
+from .Model import modelListFromTable, modelDictFromList;
+from .Const import DEFAULT_ID_COL_SUFFIX, SQL_DELIM;
+from .Env import DB_PARAM;   # Default connection parameters
+from .ResultsFormatter import TextResultsFormatter, TabDictReader;
+from .Util import log;
 from medinfo.db import Util;
 
 DOUBLE_TOKEN_END = TOKEN_END+TOKEN_END;
@@ -42,7 +42,7 @@ DOUBLE_TOKEN_END = TOKEN_END+TOKEN_END;
 ######### BEGIN Database Specific Stuff ###########
 ###################################################
 
-import Env;
+from . import Env;
 SQL_PLACEHOLDER = Env.SQL_PLACEHOLDER;
 
 def connection( connParams=None ):
@@ -55,7 +55,7 @@ def connection( connParams=None ):
     if connParams is None:
         connParams = DB_PARAM;
 
-    if not connParams.has_key("PWD"):
+    if "PWD" not in connParams:
         connParams["PWD"] = getpass("Enter password for %s on %s@%s: " % (connParams["UID"], connParams["DSN"], connParams["HOST"]) );
         if connParams["PWD"] == "":
             connParams["PWD"] = None;   # Special meaning, no password needed
@@ -256,7 +256,7 @@ def execute( query, parameters=None, includeColumnNames=False, incTypeCodes=Fals
         timer = time.time();
         try:
             cur.execute( query, parameters )
-        except Exception, err:
+        except Exception as err:
             log.error(err);
             #log.error(parameterizeQueryString(query,parameters));
             if (not extConn) or autoCommit: 
@@ -362,7 +362,7 @@ def runDBScript( scriptFile, skipErrors = False ):
                         #   any previous commands as well
                         if skipErrors: 
                             conn.commit()    
-                    except Exception, err:
+                    except Exception as err:
                         conn.rollback();    # Reset changes and connection state
                         log.warning("Error Executing in Script: "+ sql )
                         log.warning(err)
@@ -421,7 +421,7 @@ def insertFile( sourceFile, tableName, columnNames=None, delim=None, idFile=None
 
     if dateColFormats is not None:
         # Ensure column keys are normalized
-        dateCols = dateColFormats.keys();
+        dateCols = list(dateColFormats.keys());
         for dateCol in dateCols:
             normalCol = normalizeColName(dateCol);
             dateColFormats[normalCol] = dateColFormats[dateCol];
@@ -479,7 +479,7 @@ def insertFile( sourceFile, tableName, columnNames=None, delim=None, idFile=None
                     else:
                         cur.execute(identityQuery(tableName));
                         rowId = cur.fetchone()[0];
-                    print >> idFile, rowId;
+                    print(rowId, file=idFile);
 
                 # Need to "auto-commit" after each command, 
                 #   otherwise a skipped error will rollback 
@@ -489,7 +489,7 @@ def insertFile( sourceFile, tableName, columnNames=None, delim=None, idFile=None
 
                 progress.Update()
 
-            except Exception, err:
+            except Exception as err:
                 log.info(sql);
                 log.info(tuple(params))
                 conn.rollback();    # Reset any changes since the last commit
@@ -552,7 +552,7 @@ def updateFromFile( sourceFile, tableName, columnNames=None, nIdCols=1, delim=No
         sql.append("set");
 
         # Data Columns
-        for i in xrange(nIdCols,nCols):
+        for i in range(nIdCols,nCols):
             sql.append(columnNames[i]);
             sql.append("=");
             sql.append(Env.SQL_PLACEHOLDER);
@@ -561,7 +561,7 @@ def updateFromFile( sourceFile, tableName, columnNames=None, nIdCols=1, delim=No
 
         # ID Columns
         sql.append("where")
-        for i in xrange(nIdCols):
+        for i in range(nIdCols):
             sql.append(columnNames[i]);
             sql.append("=");
             sql.append(Env.SQL_PLACEHOLDER);
@@ -581,7 +581,7 @@ def updateFromFile( sourceFile, tableName, columnNames=None, nIdCols=1, delim=No
                     params = line.split(delim);
                     
                     # Special handling for null / None string
-                    for iParam in xrange(len(params)):
+                    for iParam in range(len(params)):
                         if params[iParam] == "" or params[iParam] == NULL_STRING:   # Treat blank strings as NULL
                             params[iParam] = None;
 
@@ -602,7 +602,7 @@ def updateFromFile( sourceFile, tableName, columnNames=None, nIdCols=1, delim=No
 
                     progress.Update()
 
-                except Exception, err:
+                except Exception as err:
                     conn.rollback();    # Reset changes and connection state
                     log.critical(sql);
                     log.critical(paramTuple);
@@ -675,7 +675,7 @@ def findOrInsertItem(tableName, searchDict, insertDict=None, retrieveCol=None, f
             searchQuery.addSelect(retrieveCol);
         searchQuery.addFrom(tableName)
 
-        for i, (col, value) in enumerate(searchDict.iteritems()):
+        for i, (col, value) in enumerate(searchDict.items()):
             if value is not None:
                 searchQuery.addWhereEqual(col, value);
             else:
@@ -699,7 +699,7 @@ def findOrInsertItem(tableName, searchDict, insertDict=None, retrieveCol=None, f
         if ( rowExisted ):
             if forceUpdate:
                 # Item already exists, but want to force an update with the insertDict contents
-                updateRow( tableName, insertDict, searchDict.values(), searchDict.keys(), conn=conn );
+                updateRow( tableName, insertDict, list(searchDict.values()), list(searchDict.keys()), conn=conn );
                 cur.execute( searchQuery, searchParams );
                 result = cur.fetchone()
             return (result[0], not rowExisted)
@@ -737,8 +737,8 @@ def insertRow(tableName, insertDict, conn=None, cursor=None):
     if cursor is None:
         cursor = conn.cursor();
     try:
-        insertQuery = buildInsertQuery( tableName, insertDict.keys() );
-        insertParams= insertDict.values();
+        insertQuery = buildInsertQuery( tableName, list(insertDict.keys()) );
+        insertParams= list(insertDict.values());
 
         # Convert component list into string
         log.debug( parameterizeQueryString( insertQuery, insertParams ) );
@@ -767,9 +767,9 @@ def updateRow(tableName, rowDict, idValue, idCol=None, conn=None):
     if not isinstance( idValue, list ): idValue = [idValue];    # Convert to list of size 1
     if not isinstance( idCol, list ):   idCol = [idCol];
 
-    query = buildUpdateQuery(tableName, rowDict.keys(), idCol, idValue );
+    query = buildUpdateQuery(tableName, list(rowDict.keys()), idCol, idValue );
     params = [];
-    params.extend( rowDict.values() );
+    params.extend( list(rowDict.values()) );
     params.extend( idValue );
 
     try:
@@ -829,8 +829,9 @@ def parseValue(chunk,colName,dateColFormats=None,escapeStrings=False):
         returnValue = parseDateValue(chunk,dateFormat);
     elif chunk is not None and escapeStrings:
         # Generic string value, but run through escape encoder so weird non-ascii characters don't make DB process crash
-        returnValue = chunk.encode('string_escape');
-        #returnValue = asciiSafeStr(chunk);  # Clean up any weird unicode characters
+        returnValue = chunk.encode('unicode_escape').decode('utf-8')
+        # returnValue = chunk.encode('string_escape');  # doesn't work in Python3
+        # returnValue = asciiSafeStr(chunk);  # Clean up any weird unicode characters
 
     return returnValue;
 
@@ -1073,7 +1074,7 @@ def main(argv):
         
         if options.incCommand:
             summaryData = {"argv": argv};
-            print >> outFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outFile);
 
         textFormatter = TextResultsFormatter(outFile, options.delim)
 

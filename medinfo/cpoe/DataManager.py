@@ -12,7 +12,7 @@ from medinfo.common.Util import stdOpen, ProgressDots;
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, RowItemModel, generatePlaceholders;
 from medinfo.db.Model import modelListFromTable, modelDictFromList;
-from Util import log;
+from .Util import log;
 
 class DataManager:
     connFactory = None;
@@ -264,8 +264,8 @@ class DataManager:
             if compositeId is not None:
                 compositeItem["clinical_item_id"] = compositeId;
 
-            insertQuery = DBUtil.buildInsertQuery("clinical_item", compositeItem.keys() );
-            insertParams= compositeItem.values();
+            insertQuery = DBUtil.buildInsertQuery("clinical_item", list(compositeItem.keys()) );
+            insertParams= list(compositeItem.values());
             DBUtil.execute( insertQuery, insertParams, conn=conn);
             if compositeId is None:
                 compositeId = DBUtil.execute( DBUtil.identityQuery("clinical_item"), conn=conn )[0][0];   # Retrieve the just inserted item's ID
@@ -290,8 +290,8 @@ class DataManager:
                 linkModel["clinical_item_id"] = compositeId;
                 linkModel["linked_item_id"] = componentId;
 
-                insertQuery = DBUtil.buildInsertQuery("clinical_item_link", linkModel.keys() );
-                insertParams= linkModel.values();
+                insertQuery = DBUtil.buildInsertQuery("clinical_item_link", list(linkModel.keys()) );
+                insertParams= list(linkModel.values());
                 DBUtil.execute(insertQuery, insertParams, conn=conn);
 
             # Extract back link information, which will also flatten out any potential inherited links
@@ -314,13 +314,13 @@ class DataManager:
                 patientItem["clinical_item_id"] = compositeId;
                 patientItem["analyze_date"] = None;
 
-                insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys() );
-                insertParams= patientItem.values();
+                insertQuery = DBUtil.buildInsertQuery("patient_item", list(patientItem.keys()) );
+                insertParams= list(patientItem.values());
 
                 try:
                     # Optimistic insert of a new unique item
                     DBUtil.execute( insertQuery, insertParams, conn=conn );
-                except conn.IntegrityError, err:
+                except conn.IntegrityError as err:
                     # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
                     log.info(err);
                 progress.Update();
@@ -410,7 +410,7 @@ class DataManager:
                     try:
                         # Optimistic insert of a new unique item
                         DBUtil.execute( insertQuery, insertParams, conn=conn );
-                    except conn.IntegrityError, err:
+                    except conn.IntegrityError as err:
                         # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
                         log.info(err);
                         pass;
@@ -496,7 +496,7 @@ class DataManager:
                 lookForNewLinks = False;
                 inheritanceDepth += 1;
 
-                for (clinicalItemId, linkedItemIdSet) in linkedItemIdsByBaseId.iteritems():
+                for (clinicalItemId, linkedItemIdSet) in linkedItemIdsByBaseId.items():
                     linkedItemIdSetCopy = set(linkedItemIdSet); # Make copy as could be modifying set as iterate through it
                     for linkedItemId in linkedItemIdSetCopy:
                         if linkedItemId in linkedItemIdsByBaseId:

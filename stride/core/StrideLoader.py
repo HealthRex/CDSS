@@ -120,7 +120,7 @@ class StrideLoader:
     @staticmethod
     def build_stride_psql_schemata():
         schemata_dir = StrideLoader.fetch_psql_schemata_dir()
-        for params in STRIDE_LOADER_PARAMS.values():
+        for params in list(STRIDE_LOADER_PARAMS.values()):
             psql_table = params['psql_table'] % TABLE_PREFIX
 
             log.debug('loading %s schema...' % psql_table)
@@ -135,7 +135,7 @@ class StrideLoader:
     @staticmethod
     def build_stride_psql_indices():
         indices_dir = StrideLoader.fetch_psql_indices_dir()
-        for params in STRIDE_LOADER_PARAMS.values():
+        for params in list(STRIDE_LOADER_PARAMS.values()):
             psql_table = params['psql_table'] % TABLE_PREFIX
 
             # Open file, feed to DBUtil, and close file.
@@ -150,7 +150,7 @@ class StrideLoader:
     @staticmethod
     def clear_stride_psql_tables():
         log.info('Clearing stride psql tables...')
-        for params in STRIDE_LOADER_PARAMS.values():
+        for params in list(STRIDE_LOADER_PARAMS.values()):
             psql_table = params['psql_table'] % TABLE_PREFIX
             log.debug('dropping table %s...' % psql_table)
             # load_stride_to_psql is not itempotent, so in case schema already

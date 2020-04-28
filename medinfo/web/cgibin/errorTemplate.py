@@ -3,11 +3,11 @@
 Simple Python CGI script to relay error message to users in a more pleasing format.
 """
 
-from cStringIO import StringIO
+from io import StringIO
 import cgi
 import cgitb; cgitb.enable()
 
-from BaseWeb import BaseWeb
+from .BaseWeb import BaseWeb
 
 class errorTemplate(BaseWeb):
     def __init__(self):
