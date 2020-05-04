@@ -176,8 +176,12 @@ class SimulationAnalyzer:
 				signed_item_dict = dict()
 				signed_item_dict['signedTime'] = timestamp
 				self.parse_signed_item_into_dict(signed_item_dict, item_str)
-				# filter out signed items not in results_collections - those are discontinued orders
-				if signed_item_dict['clinicalItemId'] in results_clinical_items:
+				# Discontinuation orders have the following format in json:
+				# sim_patient_order_id|undefined|undefined|undefined|undefined
+				# And the self.parse_signed_item_into_dict() overwrites those values into:
+				# sim_patient_order_id|data|undefined|OrderSets|1000
+				# filter out discontinuation orders
+				if not(signed_item_dict['searchQuery'] == 'undefined' and signed_item_dict['listIndex'] == 1000):
 					signed_orders.append(signed_item_dict)
 
 		return signed_orders
