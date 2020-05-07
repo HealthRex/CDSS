@@ -308,5 +308,6 @@ Time-Stratified Order Set prediction task:
   </ul>
   </li>
 </ul>
+
 # Evaluation
 * bootstrap.py outlines how we performed the bootstrapping at patient-level for our evaluation metrics.
