@@ -2,6 +2,7 @@
 1. [Data Preprocessing](#preprocessing)
 2. [Processing the Data Matrix](#processdatamatrix)
 3. [Model and Tuning](#model)
+4. [Evaluation](#evaluation)
 # Data Preprocessing<a name="preprocessing"></a>
 
 ## Splitting Data into Train/Dev/Test
@@ -307,3 +308,5 @@ Time-Stratified Order Set prediction task:
   </ul>
   </li>
 </ul>
+# Evaluation
+* bootstrap.py outlines how we performed the bootstrapping at patient-level for our evaluation metrics.
