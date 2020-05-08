@@ -8,8 +8,8 @@ from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery;
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList;
 
-from Util import log;
-from Env import DATE_FORMAT;
+from .Util import log;
+from .Env import DATE_FORMAT;
 
 DEFAULT_SOURCE_TABLE = "jchi_accesslog_script";
 NULL_GROUP_ID = 0;  # Metric Group ID to assign if null/None indicated
@@ -179,7 +179,7 @@ class STRIDEAccessLogConversion:
             self.metricLineDescriptionsById[metricId] = list();
         nCurrentLines = len(self.metricLineDescriptionsById[metricId]);
         nMissingLines = targetLine - nCurrentLines;
-        for i in xrange(nMissingLines):
+        for i in range(nMissingLines):
             self.metricLineDescriptionsById[metricId].append('XXX');    # Placeholder values
 
         self.metricLineDescriptionsById[metricId][iTargetLine] = sourceItem["description"];
@@ -199,13 +199,13 @@ class STRIDEAccessLogConversion:
                         "access_datetime":  sourceItem["access_datetime"],
                     }
                 );
-            insertQuery = DBUtil.buildInsertQuery("access_log", accessLog.keys() );
-            insertParams= accessLog.values();
+            insertQuery = DBUtil.buildInsertQuery("access_log", list(accessLog.keys()) );
+            insertParams= list(accessLog.values());
             DBUtil.execute( insertQuery, insertParams, conn=conn );
         return accessLog;
 
     def updateMetricDescriptionLines(self):
-        for metricId, descriptionLines in self.metricLineDescriptionsById.iteritems():
+        for metricId, descriptionLines in self.metricLineDescriptionsById.items():
             description = str.join(' ', descriptionLines);
             DBUtil.updateRow("metric", {"description": description}, metricId );
 

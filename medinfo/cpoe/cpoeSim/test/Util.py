@@ -1,10 +1,11 @@
-import Const
+from . import Const
 import sys, os
 import logging
-import cgi, UserDict
+import cgi
+from collections import UserDict
 import unittest
 from contextlib import contextmanager
-from StringIO import StringIO
+from io import StringIO
 
 from medinfo.db.test.Util import DBTestCase;
 

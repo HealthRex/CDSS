@@ -1,6 +1,6 @@
 import sys, os;
 import time;
-from cStringIO import StringIO;
+from io import StringIO;
 
 import numpy as np;
 import pylab as pl;
@@ -71,14 +71,14 @@ for outcomeName in outcomeNames:
         # Build lab value datasets separated by outcome value
         labValuesByOutcome = {0:list(), 1:list()};  # Start with empty lists for each outcome
 
-        for patient in patientById.itervalues():
+        for patient in patientById.values():
             outcome = patient[outcomeName];
             labValue = patient[labBaseName];
             if labValue is not None:    # Skip patients if don't have a value to count
                 labValuesByOutcome[outcome].append(labValue);
 
         # Trim off tails to avoid extreme values
-        for outcome, labValues in labValuesByOutcome.iteritems():
+        for outcome, labValues in labValuesByOutcome.items():
             nValues = len(labValues);
             labValues.sort();
             labValuesByOutcome[outcome] = labValues[int(0.05*nValues):int(0.95*nValues)];
@@ -89,8 +89,8 @@ for outcomeName in outcomeNames:
         # Histogram plotting
         pl.clf();
         nBins = 25;
-        data = labValuesByOutcome.values();
-        label = ["%s-%s" % (outcomeName,outcome) for outcome in labValuesByOutcome.iterkeys()];
+        data = list(labValuesByOutcome.values());
+        label = ["%s-%s" % (outcomeName,outcome) for outcome in labValuesByOutcome.keys()];
 
         (n, bins, patches) = pl.hist( data, nBins, histtype='bar', label=label);
         pl.legend();
@@ -100,4 +100,4 @@ for outcomeName in outcomeNames:
         pl.savefig("%s-%s.png" % (outcomeName, labBaseName) );
 
 timer = time.time() - timer;
-print >> sys.stderr, "%.3f seconds to complete" % timer;
+print("%.3f seconds to complete" % timer, file=sys.stderr);

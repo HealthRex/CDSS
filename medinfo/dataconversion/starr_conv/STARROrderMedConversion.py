@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys, os
 import hashlib
+import math
 import tempfile
 import time
 import logging
@@ -195,7 +196,7 @@ class STARROrderMedConversion:
         query_job = self.bqClient.queryBQ(query, query_params=query_params, verbose=True)
 
         for row in query_job:  # API request - fetches results
-            rowModel = RowItemModel(row.values(), headers)
+            rowModel = RowItemModel(list(row.values()), headers)
             log.debug("rowModel: {}".format(rowModel))
             for normalizedModel in self.normalizeMedData(rxcuiDataByMedId, rowModel, convOptions):
                 yield normalizedModel  # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
@@ -232,7 +233,7 @@ class STARROrderMedConversion:
             ingredientByRxcui = rxcuiDataByMedId[medId]
             if len(ingredientByRxcui) <= 1 or convOptions.normalizeMixtures:
                 # Single ingredient or want component active ingredients to each have one record
-                for (rxcui, ingredient) in ingredientByRxcui.iteritems():
+                for (rxcui, ingredient) in ingredientByRxcui.items():
                     # ~250/15000 RxCUI's don't have a defined active ingredient.
                     if ingredient is None:
                         # No mapping entry found, just use the available generic medication data then
@@ -250,8 +251,9 @@ class STARROrderMedConversion:
             else:
                 # Mixture of multiple ingredients and want to keep denormalized
                 # Extract out the active ingredient names to make a composite based only on that unique combination
-                ingredientRxcuiList = [(ingredient, rxcui) for (rxcui, ingredient) in ingredientByRxcui.iteritems()]
-                ingredientRxcuiList.sort()    # Ensure consistent order
+                ingredientRxcuiList = [(ingredient, rxcui) for (rxcui, ingredient) in ingredientByRxcui.items()]
+                # Ensure consistent order
+                ingredientRxcuiList.sort(key=lambda x: x if x[0] is not None else ('', x[1]))   # Python2 sort keeps None at the top while Python3 doesn't allow NoneType and int comparison)
 
                 rxcuiStrList = list()
                 ingredientList = list()
@@ -356,13 +358,13 @@ class STARROrderMedConversion:
                 "item_date_utc": str(sourceItem["order_time_jittered_utc"]),    # without str(), the time is being converted in postgres
             }
         )
-        insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys())
-        insertParams = patientItem.values()
+        insertQuery = DBUtil.buildInsertQuery("patient_item", list(patientItem.keys()))
+        insertParams = list(patientItem.values())
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute(insertQuery, insertParams, conn=conn)
             patientItem["patient_item_id"] = DBUtil.execute(DBUtil.identityQuery("patient_item"), conn=conn)[0][0]
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, pull out existint ID and continue to insert whatever else is possible
             log.info(err)    # Lookup just by the composite key components to avoid attempting duplicate insertion again
             searchPatientItem = {
@@ -426,12 +428,12 @@ class STARROrderMedConversion:
                 "item_collection_item_id": collectionItem["item_collection_item_id"],
             }
         )
-        insertQuery = DBUtil.buildInsertQuery("patient_item_collection_link", patientItemCollectionLink.keys())
-        insertParams = patientItemCollectionLink.values()
+        insertQuery = DBUtil.buildInsertQuery("patient_item_collection_link", list(patientItemCollectionLink.keys()))
+        insertParams = list(patientItemCollectionLink.values())
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute(insertQuery, insertParams, conn=conn)
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
             log.info(err)
 

@@ -6,7 +6,7 @@ import sys;
 import os;
 import time;
 from optparse import OptionParser
-from Util import log;
+from .Util import log;
 
 def generatePSPfromCGITemplate( cgiTemplateFilename, linkConversion=False ):
     """Standard conversion from older CGI HTML template files to 

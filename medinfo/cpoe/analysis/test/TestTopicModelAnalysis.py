@@ -2,14 +2,14 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 import unittest
 
 import numpy as np;
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.common.Const import NULL_STRING;
 from medinfo.db.test.Util import DBTestCase;
@@ -267,6 +267,7 @@ class TestTopicModelAnalysis(DBTestCase):
         #    print >> sys.stderr
         self.assertEqualStatResultsTextOutput(expectedResults, textOutput, colNames);
 
+
 def suite():
     """Returns the suite of tests to run for this test class / module.
     Use unittest.makeSuite methods which simply extracts all of the
@@ -280,6 +281,7 @@ def suite():
     suite.addTest(unittest.makeSuite(TestTopicModelAnalysis));
     
     return suite;
-    
-if __name__=="__main__":
+
+
+if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

@@ -425,7 +425,7 @@ if __name__ == '__main__':
     change_params = {}
     change_params['method'] = 'sd'
     change_params['feature_new'] = 'ord_num_value'
-    params_to_test = [0.5, 0.4, 0.0.2, 0.1]
+    params_to_test = [0.5, 0.4, 0.2, 0.1]
     sample_size = 12000
 
     for panel in labs_to_test:

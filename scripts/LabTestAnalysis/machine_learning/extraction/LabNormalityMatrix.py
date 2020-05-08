@@ -267,7 +267,7 @@ class LabNormalityMatrix(FeatureMatrix):
             Set seed to ensure re-producibility of patient episodes.
             Recover int random_state here, since numpy requires int while sql requires [-1,1]
             '''
-            numpy.random.seed(int(self._random_state*float(sys.maxint)))
+            numpy.random.seed(int(self._random_state*float(sys.maxsize)))
             inds_random_patients = numpy.random.choice(len(results), size=patient_number_chosen, replace=False)
 
             pat_IDs_random_patients = [results[ind][0] for ind in inds_random_patients]

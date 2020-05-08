@@ -215,7 +215,7 @@ class STARRDemographicsConversion:
             rows_fetched += 1
             # Row values can be accessed by field name or index
             # assert row[0] == row.name == row["name"]
-            rowModel = RowItemModel(row.values(), headers)
+            rowModel = RowItemModel(list(row.values()), headers)
 
             # skip this record if we already processed this rit_uid
             if rowModel["rit_uid"] == previous_rit_uid:
@@ -232,7 +232,7 @@ class STARRDemographicsConversion:
                 yield rowModel
 
                 # Record another at resolution of decade
-                decade = (rowModel["birth_date_jittered"].year / 10) * 10
+                decade = (rowModel["birth_date_jittered"].year // 10) * 10
                 rowModel["itemDate"] = datetime(rowModel["birth_date_jittered"].year, 1, 1)
                 rowModel["name"] = "Birth%ds" % decade
                 rowModel["description"] = "Birth Decade %ds" % decade
@@ -241,7 +241,7 @@ class STARRDemographicsConversion:
                 # Summarize race and ethnicity information into single field of interest
                 raceEthnicity = self.summarizeRaceEthnicity(rowModel["canonical_race"], rowModel["canonical_ethnicity"])
                 rowModel["itemDate"] = datetime(rowModel["birth_date_jittered"].year, 1, 1)
-                rowModel["name"] = "Race" + (raceEthnicity.translate(None, " ()-/"))  # Strip off punctuation
+                rowModel["name"] = "Race" + (raceEthnicity.translate(str.maketrans('', '', " ()-/")))  # Strip off punctuation
                 rowModel["description"] = "Race/Ethnicity: %s" % raceEthnicity
                 yield rowModel
 
@@ -322,12 +322,12 @@ class STARRDemographicsConversion:
                 "item_date_utc": None,                          # it's a date - so, no need to have a duplicate here
             }
         )
-        insert_query = DBUtil.buildInsertQuery("patient_item", patient_item.keys())
-        insert_params = patient_item.values()
+        insert_query = DBUtil.buildInsertQuery("patient_item", list(patient_item.keys()))
+        insert_params = list(patient_item.values())
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute(insert_query, insert_params, conn=conn)
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
             log.warn(err)
 

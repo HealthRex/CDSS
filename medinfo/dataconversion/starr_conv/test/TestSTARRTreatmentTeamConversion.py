@@ -545,8 +545,6 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
     test_data_csv = tempfile.gettempdir() + '/test_starr_treatment_team_dummy_data.csv'
 
     def setUp(self):
-        log.setLevel(logging.INFO)  # without this no logs are printed
-
         """Prepare state for test cases"""
         DBTestCase.setUp(self)
 
@@ -585,8 +583,8 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
             curr_row,
             datetime.fromtimestamp(treatment_period[0]),
             datetime.fromtimestamp(treatment_period[1]),
-            NAME_TO_ACRONYM.keys()[random.randint(0, len(NAME_TO_ACRONYM) - 1)],
-            PROV_TO_CLEAN_ACRONYM.keys()[random.randint(0, len(PROV_TO_CLEAN_ACRONYM) - 1)],
+            list(NAME_TO_ACRONYM.keys())[random.randint(0, len(NAME_TO_ACRONYM) - 1)],
+            list(PROV_TO_CLEAN_ACRONYM.keys())[random.randint(0, len(PROV_TO_CLEAN_ACRONYM) - 1)],
             datetime.fromtimestamp(treatment_period[0], tz=pytz.UTC),
         )
 
@@ -706,7 +704,7 @@ class TestSTARRTreatmentTeamConversion(DBTestCase):
 
         bq_cursor = self.bqConn.cursor()
         bq_cursor.execute(test_query)
-        actual_data = [row.values() for row in bq_cursor.fetchall()]
+        actual_data = [list(row.values()) for row in bq_cursor.fetchall()]
         log.debug('actual data: {}'.format(actual_data))
         log.debug('expected data: {}'.format(self.expected_data))
         self.assertEqualTable(self.expected_data, actual_data)
@@ -724,4 +722,5 @@ def suite():
 
 
 if __name__ == "__main__":
+    log.setLevel(logging.INFO)  # without this no logs are printed
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

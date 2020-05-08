@@ -19,21 +19,21 @@ def getPatientList(idFile):
 	conn = None
 	try:
 		conn = psycopg2.connect ("dbname=medinfo user=Muthu host=localhost") #connect to database
-		print "Connected to database"    
+		print("Connected to database")    
 		curs = conn.cursor()
 		patientNumbers = sys.argv[1:]
 		for number in patientNumbers:
 			fileName = idFile[:-4] + str(number) + ".txt"
 			fileNameQuery = "COPY (select distinct patient_id from patient_item where patient_id % 10 = " + str(number) +") TO '" + str(fileName) + "';"
 			curs.execute(fileNameQuery)
-			print "Patient ID file created to: " + fileName
+			print("Patient ID file created to: " + fileName)
 		conn.commit()
 		curs.close()
 		conn.close()
-		print "Connection closed"	
-	except psycopg2.DatabaseError, ex:
-		print 'I am unable to connect the database: '
-		print ex
+		print("Connection closed")	
+	except psycopg2.DatabaseError as ex:
+		print('I am unable to connect the database: ')
+		print(ex)
 		sys.exit(1)
 
 # Does the same as above, except for the negative numbers
@@ -41,21 +41,21 @@ def getPatientListNegative(idFile):
 	conn = None
 	try:
 		conn = psycopg2.connect ("dbname=medinfo user=Muthu host=localhost") #connect to database
-		print "Connected to database"    
+		print("Connected to database")    
 		curs = conn.cursor()
 		patientNumbers = sys.argv[1:]
 		for number in patientNumbers:
 			fileName = idFile[:-4] + "Neg" + str(number) + ".txt"
 			fileNameQuery = "COPY (select distinct patient_id from patient_item where patient_id % 10 = " + "-" + str(number) +") TO '" + str(fileName) + "';"
 			curs.execute(fileNameQuery)
-			print "Patient ID file created to: " + fileName
+			print("Patient ID file created to: " + fileName)
 		conn.commit()
 		curs.close()
 		conn.close()
-		print "Connection closed"	
-	except psycopg2.DatabaseError, ex:
-		print 'I am unable to connect the database: '
-		print ex
+		print("Connection closed")	
+	except psycopg2.DatabaseError as ex:
+		print('I am unable to connect the database: ')
+		print(ex)
 		sys.exit(1)
 
 #getPatientList("/Users/Muthu/Desktop/JonathanChen/CDSS_checkedout/MuthuAnalysis/PatientIDFiles/patientIDs.txt")

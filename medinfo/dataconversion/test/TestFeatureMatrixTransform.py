@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 from scipy.stats import powerlaw
 import unittest
 import numpy as np
@@ -62,7 +62,7 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
 
         # Verify feature addition.
         actual_matrix = self.fmt.fetch_matrix()
-        assert_frame_equal(expected_matrix, actual_matrix)
+        assert_frame_equal(expected_matrix.sort_index(axis=1), actual_matrix.sort_index(axis=1))
 
     def test_remove_feature(self):
         # Remove f2.
@@ -97,7 +97,7 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
 
         # Verify feature addition.
         actual_matrix = self.fmt.fetch_matrix()
-        assert_frame_equal(expected_matrix, actual_matrix)
+        assert_frame_equal(expected_matrix.sort_index(axis=1), actual_matrix.sort_index(axis=1))
 
     def test_add_threshold_feature(self):
         # Add threshold feature.
@@ -113,7 +113,7 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
 
         # Verify feature addition.
         actual_matrix = self.fmt.fetch_matrix()
-        assert_frame_equal(expected_matrix, actual_matrix)
+        assert_frame_equal(expected_matrix.sort_index(axis=1), actual_matrix.sort_index(axis=1))
 
     def test_add_change_interval_feature(self):
         # Add change feature.
@@ -126,7 +126,7 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
 
         # Verify feature addition.
         actual_matrix = self.fmt.fetch_matrix()
-        assert_frame_equal(expected_matrix, actual_matrix)
+        assert_frame_equal(expected_matrix.sort_index(axis=1), actual_matrix.sort_index(axis=1))
 
     def test_add_change_percent_feature(self):
         # Add change feature.
@@ -139,7 +139,7 @@ class TestFeatureMatrixTransform(MedInfoTestCase):
 
         # Verify feature addition.
         actual_matrix = self.fmt.fetch_matrix()
-        assert_frame_equal(expected_matrix, actual_matrix)
+        assert_frame_equal(expected_matrix.sort_index(axis=1), actual_matrix.sort_index(axis=1))
 
     """
     add_change_feature with 'sd' is not meant to run on matrices smaller than 301

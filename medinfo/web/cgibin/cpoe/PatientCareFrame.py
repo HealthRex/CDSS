@@ -7,7 +7,7 @@ import sys;
 import cgi
 import cgitb; cgitb.enable()
 
-from cStringIO import StringIO;
+from io import StringIO;
 import time
 from datetime import datetime, timedelta;
 
@@ -94,9 +94,9 @@ class PatientCareFrame(BaseCPOEWeb):
         patientModel = manager.loadPatientInfo([patientId], simTime)[0];
         #print >> sys.stderr, "Loaded %(sim_patient_id)s in state %(sim_state_id)s at %(relative_time_start)s" % patientModel
 
-        for key, value in userModel.iteritems():
+        for key, value in userModel.items():
             self.requestData["sim_user."+key] = value;
-        for key, value in patientModel.iteritems():
+        for key, value in patientModel.items():
             self.requestData["sim_patient."+key] = value;
         self.requestData["sim_time.format"] = (BASE_TIME + timedelta(0,simTime)).strftime(TIME_FORMAT);
 
@@ -105,11 +105,11 @@ class PatientCareFrame(BaseCPOEWeb):
         subData.requestData["sim_patient_id"] = self.requestData["sim_patient_id"];
         subData.requestData["sim_time"] = self.requestData["sim_time"];
         subData.action_default();
-        self.requestData["currentDataTable"] = subData.populatedTemplate();
+        self.requestData["currentDataTable"] = subData.populatedTemplate().decode();
 
         subData = NewOrders();
         subData.action_default();
-        self.requestData["dataEntryTable"] = subData.populatedTemplate();
+        self.requestData["dataEntryTable"] = subData.populatedTemplate().decode();
 
         #subData = RelatedOrders();
         #subData.action_default();

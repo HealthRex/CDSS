@@ -1,7 +1,9 @@
-import Const
+from . import Const
 import sys, os
+import math
 import logging
-import cgi, UserDict
+import cgi
+from collections import UserDict
 import unittest
 import re;
 import json;
@@ -41,7 +43,7 @@ class MedInfoTestCase(unittest.TestCase):
             #   to avoid potentially running a test case against a "real" production DB
             import medinfo.db.Env;
             medinfo.db.Env.DB_PARAM["HOST"] = "Test_cases_that_include_DB_access_should_inherit_from_MedInfo.DB.test.Util.DBTestCase_for_safety_against_accidentally_overriding_real_DB_data";
-        except Exception, exc:
+        except Exception as exc:
             log.info("No medinfo.db package found.  Not necessary if no DB access planned for testing");
 
     def tearDown(self):
@@ -142,12 +144,12 @@ class MedInfoTestCase(unittest.TestCase):
         Check item by item rather than whole list
         so errors are easier to debug.
         """
-        errorStr  = "%d != %d\n" % (len(verifyList),len(sampleList));
+        errorStr  = "%d != %d\n" % (len(verifyList), len(sampleList));
         errorStr += str(sampleList);
+        self.assertEqual(len(verifyList), len(sampleList), errorStr)
 
         for verifyItem, sampleItem in zip(verifyList, sampleList):
             self.assertEqual(verifyItem, sampleItem)
-        self.assertEqual(len(verifyList),len(sampleList), errorStr)
 
     def assertAlmostEqualsList( self, verifyList, sampleList, places=7 ):
         """Assumes the two parameters are each lists or tuples and
@@ -160,8 +162,7 @@ class MedInfoTestCase(unittest.TestCase):
 
         self.assertEqual(len(verifyList),len(sampleList), errorStr);
         for verifyItem, sampleItem in zip(verifyList, sampleList):
-            self.assertAlmostEquals(verifyItem, sampleItem, places);
-
+            self.assertAlmostEqual(verifyItem, sampleItem, places);
 
     def assertEqualTable( self, verifyTable, sampleTable, precision=None ):
         """Assumes the two parameters are each 2D lists or tuples and
@@ -171,58 +172,58 @@ class MedInfoTestCase(unittest.TestCase):
         If the precision parameter is specified, will do assertEqualGeneral
         instead with option to compare floating point numbers.
         """
+        self.assertEqual(len(verifyTable), len(sampleTable))
         for verifyRow, sampleRow in zip(verifyTable, sampleTable):
             #print >> sys.stderr, "Verify: %s" % str(verifyRow);
             #print >> sys.stderr, "Sample: %s" % str(sampleRow);
+            self.assertEqual(len(verifyRow),len(sampleRow))
             for verifyItem, sampleItem in zip(verifyRow, sampleRow):
                 if precision is None:
                     self.assertEqual(verifyItem, sampleItem)
                 else:
                     self.assertEqualGeneral(verifyItem, sampleItem, precision);
-            self.assertEqual(len(verifyRow),len(sampleRow))
-        self.assertEqual(len(verifyTable),len(sampleTable))
 
     def assertEqualDict( self, verifyDict, sampleDict, targetKeys=None):
         """Assumes two params are two dict and does a assertEqual on each key, val.
         If targetKeys is provided, will only check equality based on those keyed items.
         """
         if targetKeys is None:
-            verifyKeyList = verifyDict.keys();
-            sampleKeyList = sampleDict.keys();
+            verifyKeyList = list(verifyDict.keys());
+            sampleKeyList = list(sampleDict.keys());
             verifyKeyList.sort();
             sampleKeyList.sort();
-            for vKey, sKey in zip(verifyKeyList, sampleKeyList):
-                self.assertEquals(vKey, sKey);
-                msg = 'Dicts diff with vKey : %s = %s, and sKey: %s = %s'
-                self.assertEquals(verifyDict[vKey], sampleDict[sKey], msg % (vKey, str(verifyDict[vKey]), sKey, str(sampleDict[sKey])));
             self.assertEqual(len(verifyKeyList), len(sampleKeyList));
+            for vKey, sKey in zip(verifyKeyList, sampleKeyList):
+                self.assertEqual(vKey, sKey);
+                msg = 'Dicts diff with vKey : %s = %s, and sKey: %s = %s'
+                self.assertEqual(verifyDict[vKey], sampleDict[sKey], msg % (vKey, str(verifyDict[vKey]), sKey, str(sampleDict[sKey])));
         else:
             for key in targetKeys:
                 msg = 'Dicts diff with key (%s).  Verify = %s, Sample = %s'
-                self.assertEquals(verifyDict[key], sampleDict[key], msg % (key, str(verifyDict[key]), str(sampleDict[key])));
+                self.assertEqual(verifyDict[key], sampleDict[key], msg % (key, str(verifyDict[key]), str(sampleDict[key])));
 
 
     def assertEqualDictList( self, verifyList, sampleList, targetKeys=None ):
         """Assumes the two parameters are each lists of dictionary objects
         and check if equal based on the specified targetKeys (otherwise assume all)
         """
+        self.assertEqual(len(verifyList),len(sampleList) );
         for verifyItem, sampleItem in zip(verifyList, sampleList):
             self.assertEqualDict(verifyItem, sampleItem, targetKeys);
-        self.assertEqual(len(verifyList),len(sampleList) );
 
     def assertAlmostEqualsDict( self, verifyDict, sampleDict, msg=None, places=7 ):
         """Assumes two params are two dicts with numeric vals and does an assertAlmostEquals on each val"""
-        verifyKeyList = verifyDict.keys();
-        sampleKeyList = sampleDict.keys();
+        verifyKeyList = list(verifyDict.keys());
+        sampleKeyList = list(sampleDict.keys());
         self.assertEqual(len(verifyKeyList), len(sampleKeyList), msg);
-        verifyKeyList.sort();
-        sampleKeyList.sort();
+        verifyKeyList.sort(key=lambda x: x if x is not None else -math.inf) # Python2 sort keeps None at the top while Python3 doesn't allow NoneType and int comparison
+        sampleKeyList.sort(key=lambda x: x if x is not None else -math.inf) # Python2 sort keeps None at the top while Python3 doesn't allow NoneType and int comparison
         for vKey, sKey in zip(verifyKeyList, sampleKeyList):
-            self.assertEquals(vKey, sKey, msg);
+            self.assertEqual(vKey, sKey, msg);
             if isinstance(verifyDict[vKey], float):
-                self.assertAlmostEquals(verifyDict[vKey], sampleDict[sKey], places=places, msg=msg);
+                self.assertAlmostEqual(verifyDict[vKey], sampleDict[sKey], places=places, msg=msg);
             else:
-                self.assertEquals(verifyDict[vKey], sampleDict[sKey], msg=msg);
+                self.assertEqual(verifyDict[vKey], sampleDict[sKey], msg=msg);
 
 
     def diffDict(inputDict1, inputDict2):
@@ -231,7 +232,7 @@ class MedInfoTestCase(unittest.TestCase):
         minus the values from inputDict1.
         """
         resultDict = dict(inputDict2);  # Start with a copy of second dictionary
-        for key, value in inputDict1.iteritems():   # Now look for values to substract from 1st dictionary
+        for key, value in inputDict1.items():   # Now look for values to substract from 1st dictionary
             if key not in resultDict:
                 resultDict[key] = 0;
             resultDict[key] -= value;
@@ -245,7 +246,7 @@ class MedInfoTestCase(unittest.TestCase):
         can be easily translated into tab-delimited format for table manipulation.
         """
         dictStrList = ["{"];
-        sortedKeys = inputDict.keys();
+        sortedKeys = list(inputDict.keys());
         sortedKeys.sort();
         for key in sortedKeys:
             value = inputDict[key];
@@ -257,6 +258,7 @@ class MedInfoTestCase(unittest.TestCase):
 
 
     def assertEqualStatResults(self, expectedResults, analysisResults, colNames):
+        self.assertEqual(len(expectedResults), len(analysisResults))
         for expectedDict, analysisDict in zip(expectedResults, analysisResults):
             #print >> sys.stderr, colNames;
             #print >> sys.stderr, expectedDict.valuesByName(colNames);
@@ -265,10 +267,9 @@ class MedInfoTestCase(unittest.TestCase):
                 expectedValue = expectedDict[key];
                 analysisValue = analysisDict[key];
                 try:    # Assume numerical values and just check for "close enough"
-                    self.assertAlmostEquals( expectedValue, analysisValue, 3 );
+                    self.assertAlmostEqual( expectedValue, analysisValue, 3 );
                 except TypeError:   # Not numbers, then just use generic equals check
                     self.assertEqual( expectedValue, analysisValue );
-        self.assertEquals(len(expectedResults),len(analysisResults));
 
     def assertEqualStatResultsTextOutput(self, expectedResults, textOutput, colNames):
         # Convert the text output into a structured format to facilitate verification testing
@@ -307,7 +308,7 @@ class MedInfoTestCase(unittest.TestCase):
         return None;
 
 
-class MockCGIFieldStorage(UserDict.UserDict):
+class MockCGIFieldStorage(UserDict):
     """Mock object to simulate cgi.FieldStorage for testing purposes.
     All methods may not implemented (stupid, no defined
     interfaces / pure virtual abstract classes) so may need to add

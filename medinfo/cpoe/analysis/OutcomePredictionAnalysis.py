@@ -16,7 +16,7 @@ import sys, os
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from datetime import timedelta;
 from medinfo.common.Const import COMMENT_TAG;
 from medinfo.common.Util import stdOpen, ProgressDots;
@@ -27,11 +27,11 @@ from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from medinfo.cpoe.Const import AGGREGATOR_OPTIONS, COUNT_PREFIX_OPTIONS;
 from medinfo.cpoe.ItemRecommender import RecommenderQuery;
 from medinfo.cpoe.ItemRecommender import ItemAssociationRecommender, BaselineFrequencyRecommender, RandomItemRecommender;
-from Util import log;
+from .Util import log;
 
-from BaseCPOEAnalysis import BaseCPOEAnalysis;
-from BaseCPOEAnalysis import RECOMMENDER_CLASS_LIST, RECOMMENDER_CLASS_BY_NAME, AnalysisQuery;
-from PreparePatientItems import PreparePatientItems;
+from .BaseCPOEAnalysis import BaseCPOEAnalysis;
+from .BaseCPOEAnalysis import RECOMMENDER_CLASS_LIST, RECOMMENDER_CLASS_BY_NAME, AnalysisQuery;
+from .PreparePatientItems import PreparePatientItems;
 
 from medinfo.analysis.Const import OUTCOME_IN_QUERY;
 
@@ -80,7 +80,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
                 if existsByOutcomeId is not None:
                     # Verify that at least one of the labels is not trivial with the outcome occuring during the query period
                     nonTrivialOutcomeExists = False;
-                    for outcomeResult in existsByOutcomeId.itervalues():
+                    for outcomeResult in existsByOutcomeId.values():
                         if outcomeResult != OUTCOME_IN_QUERY:
                             nonTrivialOutcomeExists = True;
                     if not analysisQuery.skipIfOutcomeInQuery or nonTrivialOutcomeExists:
@@ -109,7 +109,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
         queryItemCountById = patientItemData["queryItemCountById"];
         existsByOutcomeId = patientItemData["existsByOutcomeId"];
 
-        recQuery.queryItemIds = queryItemCountById.keys();
+        recQuery.queryItemIds = list(queryItemCountById.keys());
         #recQuery.targetItemIds = queryStartTime.targetItemIds;     # Already established in base construction
 
         # Query for recommended orders / items
@@ -158,14 +158,14 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
         """
         stats = RowItemModel();
         stats["patient_id"] = patientId;
-        stats["queryItemIds"] = queryItemCountById.keys();
+        stats["queryItemIds"] = list(queryItemCountById.keys());
 
         # Convert sets into more easily readable, sorted lists
         queryItemIdList = list(stats["queryItemIds"]);
         queryItemIdList.sort();
         stats["queryItemIdList"] = json.dumps(queryItemIdList);
 
-        for outcomeId in scoreByOutcomeId.iterkeys():
+        for outcomeId in scoreByOutcomeId.keys():
             stats["score.%s" % outcomeId] = scoreByOutcomeId[outcomeId];
             stats["outcome.%s" % outcomeId] = existsByOutcomeId[outcomeId];
 
@@ -201,7 +201,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
 
         parser.add_option("-P", "--preparedPatientItemFile",  dest="preparedPatientItemFile", action="store_true", help="If set, will expect primary argument to instead be name of file to read input data from, instead of using above parameters to query from database.");
 
-        parser.add_option("-R", "--recommender",  dest="recommender",  help="Name of the recommender to run the analysis against.  Options: %s" % RECOMMENDER_CLASS_BY_NAME.keys());
+        parser.add_option("-R", "--recommender",  dest="recommender",  help="Name of the recommender to run the analysis against.  Options: %s" % list(RECOMMENDER_CLASS_BY_NAME.keys()));
         parser.add_option("-S", "--scoreField",  dest="scoreField",  help="Name of (derived) field to score items by.  For example, 'conditionalFreq.'");
         parser.add_option("-p", "--countPrefix",  dest="countPrefix",  help="Which counting method to use for item associations.  Defaults to counting item occurrences, allowing for duplicates.  Additional options include: %s." % list(COUNT_PREFIX_OPTIONS) );
         parser.add_option("-a", "--aggregationMethod",  dest="aggregationMethod",  help="Aggregation method to use for recommendations based off multiple query items.  Options: %s." % list(AGGREGATOR_OPTIONS) );
@@ -270,7 +270,7 @@ class OutcomePredictionAnalysis(BaseCPOEAnalysis):
             outputFile = stdOpen(outputFilename,"w");
 
             # Print comment line with analysis arguments to allow for deconstruction later
-            print >> outputFile, COMMENT_TAG, json.dumps({"argv":argv});
+            print(COMMENT_TAG, json.dumps({"argv":argv}), file=outputFile);
 
             colNames = self.analysisHeaders(query);
             analysisResults.insert(0, RowItemModel(colNames,colNames) );    # Insert a mock record to get a header / label row

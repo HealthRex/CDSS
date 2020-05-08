@@ -1,6 +1,6 @@
 import sys, os;
 import time;
-from cStringIO import StringIO;
+from io import StringIO;
 from datetime import datetime, timedelta;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.db import DBUtil;
@@ -419,7 +419,7 @@ def main(argv):
         if disease not in icd9prefixesByDisease:
             icd9prefixesByDisease[disease] = list();
         icd9prefixesByDisease[disease].append("^ICD9."+icd9prefix);
-    for disease, icd9prefixes in icd9prefixesByDisease.iteritems():
+    for disease, icd9prefixes in icd9prefixesByDisease.items():
         disease = disease.translate(None," ()-/");   # Strip off punctuation
         extractor.queryClinicalItemsByName(icd9prefixes, patientById, stdOpen("Charlson."+disease+".tab","w"), operator="~*");
     
@@ -430,11 +430,11 @@ def main(argv):
         if category not in teamNameByCategory:
             teamNameByCategory[category] = list();
         teamNameByCategory[category].append(teamName);
-    for category, teamNames in teamNameByCategory.iteritems():
+    for category, teamNames in teamNameByCategory.items():
         extractor.queryClinicalItemsByName(teamNames, patientById, stdOpen("TT."+category+".tab","w"), col="description");
     
     timer = time.time() - timer;
-    print >> sys.stderr, "%.3f seconds to complete" % timer;
+    print("%.3f seconds to complete" % timer, file=sys.stderr);
 
 def queryPatients(outputFile):
     log.info("Select patients with any ICU life support orders and follow contiguous date trail for apparent hospitalization (long query >20 min)...");
@@ -487,7 +487,7 @@ def queryPatients(outputFile):
             row = cursor.fetchone();
 
         # Second query phase to link to encounter information (e.g., insurance, admitting vital signs)
-        encounterIds = columnFromModelList(patientById.itervalues(), "encounter_id");
+        encounterIds = columnFromModelList(iter(patientById.values()), "encounter_id");
         query = SQLQuery();
         query.addSelect("pat_id");
         query.addSelect("pat_enc_csn_id");
@@ -520,7 +520,7 @@ def queryPatients(outputFile):
         
         # Drop results as tab-delimited text output
         formatter = TextResultsFormatter(outputFile);
-        formatter.formatResultDicts(patientById.itervalues(), addHeaderRow=True);
+        formatter.formatResultDicts(iter(patientById.values()), addHeaderRow=True);
 
         return patientById;    
     finally:

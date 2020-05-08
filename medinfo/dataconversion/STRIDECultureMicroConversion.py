@@ -8,8 +8,8 @@ from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery;
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList, RowItemFieldComparator;
 
-from Util import log;
-from Env import DATE_FORMAT;
+from .Util import log;
+from .Env import DATE_FORMAT;
 
 
 SOURCE_TABLE = "stride_culture_micro";
@@ -194,13 +194,13 @@ class STRIDECultureMicroConversion:
                     "item_date":  sourceItem["shifted_result_time"],
                 }
             );
-        insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys() );
-        insertParams= patientItem.values();
+        insertQuery = DBUtil.buildInsertQuery("patient_item", list(patientItem.keys()) );
+        insertParams= list(patientItem.values());
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute( insertQuery, insertParams, conn=conn );
             patientItem["patient_item_id"] = DBUtil.execute( DBUtil.identityQuery("patient_item"), conn=conn )[0][0];
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, pull out existing ID and continue to insert whatever else is possible
             # log.info(err);   # Lookup just by the composite key components to avoid attempting duplicate insertion again
             searchPatientItem = \

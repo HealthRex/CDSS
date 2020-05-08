@@ -7,7 +7,7 @@ import sys, os
 import time;
 from optparse import OptionParser;
 import json;
-import urlparse;
+import urllib.parse;
 import math;
 from datetime import datetime, timedelta;
 from medinfo.common.Const import COMMENT_TAG;
@@ -65,7 +65,7 @@ class ExampleQueryApp:
 
             # Print comment line with arguments to allow for deconstruction later as well as extra results
             summaryData = {"argv": argv};
-            print >> outputFile, COMMENT_TAG, json.dumps(summaryData);
+            print(COMMENT_TAG, json.dumps(summaryData), file=outputFile);
 
             self.queryItems(options, outputFile);
 

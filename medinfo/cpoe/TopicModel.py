@@ -8,7 +8,7 @@ import sys, os
 import time;
 import json;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from datetime import timedelta;
 from pprint import pprint;
 
@@ -18,7 +18,7 @@ from medinfo.db.ResultsFormatter import TextResultsFormatter, TabDictReader;
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.db.Model import modelListFromTable, modelDictFromList;
-from Util import log;
+from .Util import log;
 
 DEFAULT_TOPIC_ITEM_COUNT = 100; # When using or printing out topic information, number of top scored items to consider
 BUFFER_UPDATE_SIZE = 100000;   # Number of document Bag-of-Words to keep in memory before performing model updates.
@@ -41,8 +41,8 @@ class TopicModel:
         # Load dictionary to translate item IDs to descriptions
         itemsById = DBUtil.loadTableAsDict("clinical_item");
         id2word = dict();   # Models expect a pair for every possible item ID, and judges vocabulary size by length of this dictionary rather than the maximum ID values.  That means have to populate all of the empty ones as well.
-        maxId = max(itemsById.iterkeys());
-        for itemId in xrange(maxId+1):
+        maxId = max(itemsById.keys());
+        for itemId in range(maxId+1):
             description = str(itemId);  # Default to just the same as the ID string
             if itemId in itemsById:
                 description = itemsById[itemId]["description"];
@@ -117,7 +117,8 @@ class TopicModel:
 
         import gensim; # External import as needed
         if isinstance(model, gensim.models.HdpModel):   # Has different topic API for no good reason
-            topics = model.show_topics(num_topics=-1, num_words=itemsPerCluster, formatted=False);
+            # topics = model.show_topics(num_topics=-1, num_words=itemsPerCluster, formatted=False);
+            topics = model.show_topics(num_words=itemsPerCluster, formatted=False);
             for topicId, topicItems in topics:
                 #for (itemId, itemWeight) in topicItems:  # 2-ple order is also reversed for no good reason
                 #    print topicId, itemDescr, itemWeight;
@@ -144,7 +145,7 @@ class TopicModel:
     def printTopicsToFile(self, model, docCountByWordId, topicFile, itemsPerCluster):
         """Print out the topic model contents to file in tab-delimited format for easy review"""
 
-        print >> topicFile, "topic_id\titem_id\tdescription\tscore\ttfidf";
+        print("topic_id\titem_id\tdescription\tscore\ttfidf", file=topicFile);
         id2word = model.id2word;
         for (topicId, topicItems) in self.enumerateTopics(model, itemsPerCluster):
             for (itemId, itemScore) in topicItems:
@@ -152,14 +153,14 @@ class TopicModel:
                 tfidf = 0.0;
                 if itemId in docCountByWordId and docCountByWordId[itemId] > 0:
                     tfidf = itemScore * docCountByWordId[None] / docCountByWordId[itemId];
-                print >> topicFile, "%s\t%s\t%s\t%s\t%s" % (topicId, itemId, itemDescription, itemScore, tfidf);
+                print("%s\t%s\t%s\t%s\t%s" % (topicId, itemId, itemDescription, itemScore, tfidf), file=topicFile);
 
         # Now print out basic word-document counts under the "None" Topic representing all documents / entire corpus
-        for itemId, docCount in docCountByWordId.iteritems():
+        for itemId, docCount in docCountByWordId.items():
             itemDescription = None;
             if itemId in id2word:
                 itemDescription = id2word[itemId];
-            print >> topicFile, "%s\t%s\t%s\t%s\t%s" % (None, itemId, itemDescription, docCount, docCountByWordId[None]);
+            print("%s\t%s\t%s\t%s\t%s" % (None, itemId, itemDescription, docCount, docCountByWordId[None]), file=topicFile);
 
     def topTopicFilename(self, baseName):
         """Generate a name for a top topics summary file given a base output filename"""
@@ -202,7 +203,7 @@ class TopicModel:
         """Return 2-ple (itemId, count) representation of item IDs, but filter out those in excluded set,
         or whose category looked up via itemsById is already observed previously or so far.
         """
-        for itemId, itemCount in itemCountById.iteritems():
+        for itemId, itemCount in itemCountById.items():
             categoryId = None;
             if itemsById is not None and itemId in itemsById:
                 categoryId = itemsById[itemId]["clinical_item_category_id"]
@@ -254,7 +255,7 @@ class TopicModel:
             # Save top topic information in readable tab-delimited format
             itemsPerCluster = int(options.itemsPerCluster);
             topicFile = stdOpen(self.topTopicFilename(outputFilename),"w");
-            print >> topicFile, COMMENT_TAG, json.dumps({"argv":argv});    # Print comment line with analysis arguments to allow for deconstruction later
+            print(COMMENT_TAG, json.dumps({"argv":argv}), file=topicFile);    # Print comment line with analysis arguments to allow for deconstruction later
             self.printTopicsToFile(model, docCountByWordId, topicFile, itemsPerCluster);
 
         else:

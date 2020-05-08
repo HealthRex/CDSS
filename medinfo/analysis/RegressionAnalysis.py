@@ -8,7 +8,7 @@ import time;
 import json;
 from datetime import timedelta;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 
 from sklearn.linear_model import LinearRegression, Lasso, LogisticRegression;
 from numpy import array;
@@ -21,10 +21,10 @@ from medinfo.db.ResultsFormatter import TextResultsFormatter;
 from medinfo.db.Model import RowItemModel;
 from medinfo.cpoe.ItemRecommender import RecommenderQuery;
 from medinfo.cpoe.ItemRecommender import ItemAssociationRecommender;
-from Util import log;
-from Const import OUTCOME_ABSENT, OUTCOME_PRESENT, OUTCOME_IN_QUERY;
+from .Util import log;
+from .Const import OUTCOME_ABSENT, OUTCOME_PRESENT, OUTCOME_IN_QUERY;
 
-from BaseAnalysis import BaseAnalysis;
+from .BaseAnalysis import BaseAnalysis;
 
 class RegressionAnalysis(BaseAnalysis):
     def __init__(self):
@@ -59,7 +59,7 @@ class RegressionAnalysis(BaseAnalysis):
                     
                     # Pull out any outcome variables
                     outcomeInQuery = False;
-                    for key,value in rowModel.iteritems():
+                    for key,value in rowModel.items():
                         if key.startswith("outcome."):
                             aOutcomeId = int(key[len("outcome."):]);
                             allOutcomeIds.add(aOutcomeId);
@@ -104,12 +104,12 @@ class RegressionAnalysis(BaseAnalysis):
     def predict(self, testFile, model, queryIds, outcomeId, options=None):
         """Pull out test data and use model to predict outcome scores for comparison"""
         (testX, testY, queryIds, rowModels) = self.fileToMatrixes(testFile, outcomeId, queryIds);
-        print >> sys.stderr, model.coef_
-        print >> sys.stderr, model.intercept_
+        print(model.coef_, file=sys.stderr)
+        print(model.intercept_, file=sys.stderr)
 
         for queryId, b in zip(queryIds, model.coef_[0]):
             if b != 0:
-                print >> sys.stderr, queryId, b;
+                print(queryId, b, file=sys.stderr);
 
         #print lr.predict( testX );
         testYscore = model.predict_proba(testX);
@@ -164,7 +164,7 @@ class RegressionAnalysis(BaseAnalysis):
             outputFile = stdOpen(outputFilename,"w");
             
             # Print comment line with arguments to allow for deconstruction later as well as extra results
-            print >> outputFile, COMMENT_TAG, json.dumps({"argv":argv});
+            print(COMMENT_TAG, json.dumps({"argv":argv}), file=outputFile);
 
             colNames = self.analysisHeaders(outcomeId);
             analysisResults.insert(0, RowItemModel(colNames,colNames) );    # Insert a mock record to get a header / label row

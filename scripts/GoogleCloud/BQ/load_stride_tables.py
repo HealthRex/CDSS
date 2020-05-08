@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from BigQueryConnect import BigQueryConnect
+from .BigQueryConnect import BigQueryConnect
 
 class LoadStride:
 

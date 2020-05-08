@@ -1223,8 +1223,6 @@ class TestSTARROrderMedConversion(DBTestCase):
     orderset_data_csv = tempfile.gettempdir() + '/test_starr_order_med_orderset_data.csv'
 
     def setUp(self):
-        log.setLevel(logging.INFO)  # without this no logs are printed
-
         """Prepare state for test cases"""
         DBTestCase.setUp(self)
 
@@ -1239,7 +1237,7 @@ class TestSTARROrderMedConversion(DBTestCase):
         STARROrderMedConversion.SOURCE_TABLE = TEST_SOURCE_TABLE
         STARROrderMedConversion.ORDERSET_TABLE = TEST_ORDERSET_TABLE
 
-        log.warn("Removing test tables, if they exist: {} and {}".format(TEST_SOURCE_TABLE, TEST_ORDERSET_TABLE))
+        log.warning("Removing test tables, if they exist: {} and {}".format(TEST_SOURCE_TABLE, TEST_ORDERSET_TABLE))
         bq_cursor = self.bqConn.cursor()
         bq_cursor.execute('DROP TABLE IF EXISTS {};'.format(TEST_SOURCE_TABLE))
         bq_cursor.execute('DROP TABLE IF EXISTS {};'.format(TEST_ORDERSET_TABLE))
@@ -1310,14 +1308,14 @@ class TestSTARROrderMedConversion(DBTestCase):
         use_rxcui = random.randint(1, 5)
         if use_rxcui % 5 == 0:
             # use mapped_meds 20% of the time
-            medication_id = rxcuiDataByMedId.keys()[random.randint(0, len(rxcuiDataByMedId) - 1)]
+            medication_id = list(rxcuiDataByMedId.keys())[random.randint(0, len(rxcuiDataByMedId) - 1)]
         else:
             # several times less than the test records count to have some medication_ids occur multiple times
-            medication_id = random.randint(0, len(MED_ROUTES) / 5)
+            medication_id = random.randint(0, len(MED_ROUTES) // 5)
 
         order_time_jittered = random.randint(1, int(time.time()))
         return (
-            random.randint(0, len(MED_ROUTES) / 10),  # order_med_id_coded - want some of them to repeat
+            random.randint(0, len(MED_ROUTES) // 10),  # order_med_id_coded - want some of them to repeat
             patient_id,
             curr_row,  # pat_enc_csn_id_coded
             medication_id,
@@ -1517,7 +1515,7 @@ class TestSTARROrderMedConversion(DBTestCase):
         bq_cursor = self.bqConn.cursor()
         bq_cursor.execute(test_query)
         # remove timezone info in pi.item_date from coming from bigquery - we're storing datetime without timezone
-        actual_data = [row.values()[:7] + (row.values()[7].replace(tzinfo=None), row.values()[8],) for row in bq_cursor.fetchall()]
+        actual_data = [tuple(row.values())[:7] + (list(row.values())[7].replace(tzinfo=None), list(row.values())[8],) for row in bq_cursor.fetchall()]
 
         log.debug('actual data: {}'.format(actual_data))
         log.debug('expected data: {}'.format(self.expected_data))
@@ -1556,7 +1554,7 @@ class TestSTARROrderMedConversion(DBTestCase):
                        TEST_DEST_DATASET, TEST_SOURCE_TABLE)
 
         bq_cursor.execute(test_orderset_query)
-        actual_orderset_data = [row.values() for row in bq_cursor.fetchall()]
+        actual_orderset_data = [list(row.values()) for row in bq_cursor.fetchall()]
 
         log.debug('actual orderset data: {}'.format(actual_orderset_data))
         log.debug('expected orderset data: {}'.format(self.expected_orderset_data))
@@ -1575,4 +1573,5 @@ def suite():
 
 
 if __name__ == "__main__":
+    log.setLevel(logging.DEBUG)  # without this no logs are printed
     unittest.TextTestRunner(verbosity=RUNNER_VERBOSITY).run(suite())

@@ -3,10 +3,11 @@
 Simple Python CGI script to test web interface to molecule file processing modules
 """
 
+import sys
 import cgi
 import cgitb; cgitb.enable()
 
-from cStringIO import StringIO;
+from io import StringIO;
 import time
 
 from medinfo.db import DBUtil
@@ -104,7 +105,7 @@ class ItemRecommenderWeb(BaseCPOEWeb):
         self.requestData["clinicalItemExcludedOptions"] = self.optionTagsFromField("clinicalItemExcluded");
 
         if "timeDeltaMax" not in Options.FIELD2VALUE:
-            secondsOptions = DELTA_NAME_BY_SECONDS.keys();
+            secondsOptions = list(DELTA_NAME_BY_SECONDS.keys());
             secondsOptions.sort();
             Options.FIELD2VALUE["timeDeltaMax"] = [str(seconds) for seconds in secondsOptions];
             Options.FIELD2TEXT ["timeDeltaMax"] = [DELTA_NAME_BY_SECONDS[seconds] for seconds in secondsOptions];
@@ -170,7 +171,7 @@ class ItemRecommenderWeb(BaseCPOEWeb):
         # Read checkboxes by presence or absence of field
         self.requestData["incCols"] = ""  # Checkboxes not passed if unchecked, so extra step to ensure uncheck is persisted
         incCols = False
-        if self.mForm.has_key("incCols"):
+        if "incCols" in self.mForm:
             self.requestData["incCols"] = self.mForm["incCols"].value
             incCols = True
         
@@ -199,6 +200,7 @@ class ItemRecommenderWeb(BaseCPOEWeb):
         self.requestData["resultsInfo"] += "(%1.3f seconds)" % timer
 
 if __name__ == "__main__":
+    print("hello", file=sys.stderr)
     webController =  ItemRecommenderWeb()
     webController.handleRequest(cgi.FieldStorage())
 

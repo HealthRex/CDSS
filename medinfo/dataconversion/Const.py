@@ -2,7 +2,7 @@
 
 import sys;
 import logging
-import Env
+from . import Env
 
 """Application name","for example to identify a common logger object"""
 APPLICATION_NAME = "medinfo.cpoe.app"

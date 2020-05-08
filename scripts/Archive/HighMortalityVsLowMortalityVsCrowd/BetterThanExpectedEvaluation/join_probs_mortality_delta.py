@@ -19,7 +19,7 @@ for line in inf_probs:
 	pat_prob_map[line[0]] = line[1] # pat_id: 30_day_mortality_prob
 inf_probs.close()
 
-for pat_id, prob in pat_prob_map.iteritems():
+for pat_id, prob in pat_prob_map.items():
 	delta = "N/A"
 	if (pat_id in pat_mortality_map):
 		delta = pat_mortality_map[pat_id]

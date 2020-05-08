@@ -187,7 +187,7 @@ class STARROrderProcConversion:
         query_job = self.bqClient.queryBQ(query, query_params=query_params, verbose=True)
 
         for row in query_job:  # API request - fetches results
-            rowModel = RowItemModel(row.values(), headers)
+            rowModel = RowItemModel(list(row.values()), headers)
             log.debug("rowModel: {}".format(rowModel))
             yield rowModel  # Yield one row worth of data at a time to avoid having to keep the whole result set in memory
 
@@ -286,14 +286,14 @@ class STARROrderProcConversion:
         if key_hash in self.patient_items:
             return self.patient_items[key_hash]
 
-        insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys())
-        insertParams = patientItem.values()
+        insertQuery = DBUtil.buildInsertQuery("patient_item", list(patientItem.keys()))
+        insertParams = list(patientItem.values())
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute(insertQuery, insertParams, conn=conn)
             patientItem["patient_item_id"] = DBUtil.execute(DBUtil.identityQuery("patient_item"), conn=conn)[0][0]
             self.patient_items[key_hash] = patientItem
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, pull out existint ID and continue to insert whatever else is possible
             log.warn(err)   # Lookup just by the composite key components to avoid attempting duplicate insertion again
             searchPatientItem = {
@@ -355,13 +355,13 @@ class STARROrderProcConversion:
                 "item_collection_item_id":  collectionItem["item_collection_item_id"],
             }
         )
-        insertQuery = DBUtil.buildInsertQuery("patient_item_collection_link", patientItemCollectionLink.keys())
-        insertParams = patientItemCollectionLink.values()
+        insertQuery = DBUtil.buildInsertQuery("patient_item_collection_link", list(patientItemCollectionLink.keys()))
+        insertParams = list(patientItemCollectionLink.values())
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute(insertQuery, insertParams, conn=conn)
             self.patient_item_collection_links.add(hash_key)
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
             log.warn(err)
             self.patient_item_collection_links.add(hash_key)
@@ -386,8 +386,8 @@ class STARROrderProcConversion:
         min_date = None
         max_date = None
         for row in maxMinDates:
-            min_date = row.values()[0]
-            max_date = row.values()[1]
+            min_date = list(row.values())[0]
+            max_date = list(row.values())[1]
 
         if options.startDate is not None:
             # Parse out the start date parameter

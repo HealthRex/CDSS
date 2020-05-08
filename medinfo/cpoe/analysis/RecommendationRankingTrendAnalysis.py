@@ -18,7 +18,7 @@ to find the orders that will actually be used.
 import sys, os
 import time;
 from optparse import OptionParser
-from cStringIO import StringIO;
+from io import StringIO;
 from datetime import timedelta;
 from math import sqrt;
 from medinfo.common.Util import stdOpen, ProgressDots;
@@ -28,11 +28,11 @@ from medinfo.db.Model import SQLQuery, RowItemModel;
 from medinfo.db.Model import modelListFromTable, modelDictFromList;
 from medinfo.cpoe.ItemRecommender import RecommenderQuery;
 from medinfo.cpoe.ItemRecommender import ItemAssociationRecommender, BaselineFrequencyRecommender, RandomItemRecommender;
-from Util import log;
+from .Util import log;
 
-from BaseCPOEAnalysis import BaseCPOEAnalysis;
-from BaseCPOEAnalysis import RECOMMENDER_CLASS_LIST, RECOMMENDER_CLASS_BY_NAME, AnalysisQuery;
-from BaseCPOEAnalysis import AGGREGATOR_OPTIONS;
+from .BaseCPOEAnalysis import BaseCPOEAnalysis;
+from .BaseCPOEAnalysis import RECOMMENDER_CLASS_LIST, RECOMMENDER_CLASS_BY_NAME, AnalysisQuery;
+from .BaseCPOEAnalysis import AGGREGATOR_OPTIONS;
 
 class AnalysisQuery:
     """Simple struct to pass query parameters
@@ -247,7 +247,7 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
                     "   <outputFile>    If query yields a result set, then that will be output\n"+\
                     "                       to the named file.  Leave blank or specify \"-\" to send to stdout.\n"
         parser = OptionParser(usage=usageStr)
-        parser.add_option("-R", "--recommender",  dest="recommender",  help="Name of the recommender to run the analysis against.  Options: %s" % RECOMMENDER_CLASS_BY_NAME.keys());
+        parser.add_option("-R", "--recommender",  dest="recommender",  help="Name of the recommender to run the analysis against.  Options: %s" % list(RECOMMENDER_CLASS_BY_NAME.keys()));
         parser.add_option("-s", "--sortField",  dest="sortField",  help="Allow overriding of default sort field when returning ranked results");
         parser.add_option("-f", "--fieldFilters",  dest="fieldFilters",  help="Filters to exclude results.  Comma-separated separated list of field-op:value exclusions where op is either < or > like, conditionalFreq<:0.1,frqeRatio<:1");
         parser.add_option("-t", "--timeDeltaMax",  dest="timeDeltaMax",  help="If set, represents a time delta in seconds maximum by which recommendations should be based on.  Defaults to recommending items that occur at ANY time after the key orders.  If provided, will apply limits to only orders placed within 0 seconds, 1 hour (3600), 1 day (86400), or 1 week (604800) of the key orders / items.");
@@ -302,7 +302,7 @@ class RecommendationRankingTrendAnalysis(BaseCPOEAnalysis):
                 outputFilename = args[1];
             outputFile = stdOpen(outputFilename,"w");
 
-            print >> outputFile, "#", argv;  # Print comment line with analysis arguments to allow for deconstruction later
+            print("#", argv, file=outputFile);  # Print comment line with analysis arguments to allow for deconstruction later
 
             colNames = ["patientId", "clinicalItemId", "iItem", "iRecItem", "recRank", "recScore"];
             analysisResults.insert(0, colNames);    # Insert a mock record to get a header / label row

@@ -9,12 +9,12 @@ from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, generatePlaceholders;
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList;
 
-from AssociationAnalysis import AssociationAnalysis, AnalysisOptions;
-from DataManager import DataManager;
+from .AssociationAnalysis import AssociationAnalysis, AnalysisOptions;
+from .DataManager import DataManager;
 
-from Const import DELTA_NAME_BY_SECONDS;
+from .Const import DELTA_NAME_BY_SECONDS;
 
-from Util import log;
+from .Util import log;
 
 class TripleAssociationAnalysis(AssociationAnalysis):
     """Pre-Computation module to sort through data on patient clinical items
@@ -127,8 +127,8 @@ class TripleAssociationAnalysis(AssociationAnalysis):
 
         # Separate pass to get virtual item baseline counts.  Cannot be done directly, since the virtual items do not actually exist in the raw data
         subsequentItemIds.clear();
-        for iItem1, patientItem1 in enumerate(endSequenceItemsByPatientItemId.itervalues()):
-            for iItem2, patientItem2 in enumerate(endSequenceItemsByPatientItemId.itervalues()):
+        for iItem1, patientItem1 in enumerate(endSequenceItemsByPatientItemId.values()):
+            for iItem2, patientItem2 in enumerate(endSequenceItemsByPatientItemId.values()):
                 itemIdPair = (virtualItemId, virtualItemId);
                 encounterIdPair = (patientItem1["encounter_id"], patientItem2["encounter_id"]);
 
@@ -160,8 +160,8 @@ class TripleAssociationAnalysis(AssociationAnalysis):
                     linkModel["clinical_item_id"] = virtualItemId;
                     linkModel["linked_item_id"] = componentId;
 
-                    insertQuery = DBUtil.buildInsertQuery("clinical_item_link", linkModel.keys() );
-                    insertParams= linkModel.values();
+                    insertQuery = DBUtil.buildInsertQuery("clinical_item_link", list(linkModel.keys()) );
+                    insertParams= list(linkModel.values());
                     DBUtil.execute( insertQuery, insertParams, conn=conn);
 
                     linkedItemIdsByBaseId[virtualItemId].add(componentId);
