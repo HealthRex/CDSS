@@ -331,7 +331,7 @@ class SupervisedClassifier:
         elif hyperparam == 'n_iter':
             # RandomizedSearchCV throws ValueError if n_iter is less than the
             # number of hyperparam options.
-            num_hyperparam_settings = np.prod([len(value) for key, value in self._hyperparam_search_space.iteritems()])
+            num_hyperparam_settings = np.prod([len(value) for key, value in self._hyperparam_search_space.items()])
             log.debug('num_hyperparam_settings: %s' % num_hyperparam_settings)
             self._hyperparams[hyperparam] = np.min([48, num_hyperparam_settings])
         elif hyperparam == 'n_jobs':
@@ -1014,7 +1014,7 @@ class SupervisedClassifier:
 
         # Set model and hyperparams.
         self._model = tuner.best_estimator_
-        for key in tuner.best_params_.keys():
+        for key in list(tuner.best_params_.keys()):
             log.debug('tune(%s): %s --> %s' % (key, self._hyperparams[key], \
                         tuner.best_params_[key]))
             self._hyperparams[key] = tuner.best_params_[key]

@@ -1,6 +1,5 @@
 import os
 import glob
-import os
 import logging
 import itertools
 import string
@@ -30,8 +29,8 @@ def remove_prefix(text, prefix):
         return text[len(prefix):]
     return text
 
-file_match = glob.glob('/Users/jonc101/Documents/lpch_auto/flowsheets/flowsheet2018/flowsheet_*')
-file_prefix = '/Users/jonc101/Documents/lpch_auto/flowsheets/flowsheet2018/flowsheet_'
+file_match = glob.glob('/Users/jonc101/Documents/lpch_auto/flowsheets/flowsheet2012/flowsheet_*')
+file_prefix = '/Users/jonc101/Documents/lpch_auto/flowsheets/flowsheet2012/flowsheet_'
 CSV_FILE_PREFIX = file_prefix
 file_prefix_list = []
 
@@ -55,7 +54,7 @@ FINAL_TABLE_SCHEMA = [bigquery.SchemaField('ANON_ID', 'STRING', 'REQUIRED', None
 
 def load_table(csv_path):
     bq_client.load_csv_to_table(DATASET_NAME, TABLE_NAME, csv_path, auto_detect_schema=False,
-                                schema=FINAL_TABLE_SCHEMA, skip_rows=1, append_to_table = False)
+                                schema=FINAL_TABLE_SCHEMA, skip_rows=1, append_to_table = True)
 
 
 if __name__ == '__main__':

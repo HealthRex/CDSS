@@ -7,7 +7,7 @@ Find "A La Carte Orders": medications/procedures listed in order set that are mo
 """
 import glob
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime, timedelta
 from dateutil import parser
 import pickle as pkl
@@ -74,8 +74,8 @@ for tup in year_intervals:
 		print("Starting a la carte counts counts for {0}-minute window...".format(window))
 		order_description_map = {} # key: medication_id/proc_code, value: description
 
-		for orderset in orderset_instances.keys():
-			instances = orderset_instances[orderset].keys()
+		for orderset in list(orderset_instances.keys()):
+			instances = list(orderset_instances[orderset].keys())
 			num_instances = len(instances)
 			
 			co_occurrence_medication_counts = {} 
@@ -97,8 +97,8 @@ for tup in year_intervals:
 				window_lower = timestamp - timedelta(minutes=window)
 
 				order_med_id_str = ""
-				if (pat_id in orderset_order_med_ids.keys()):
-					for order_med_id in orderset_order_med_ids[pat_id].keys():
+				if (pat_id in list(orderset_order_med_ids.keys())):
+					for order_med_id in list(orderset_order_med_ids[pat_id].keys()):
 						order_med_id_str += "'{0}', ".format(order_med_id)
 					order_med_id_str = order_med_id_str[:-2]
 
@@ -127,7 +127,7 @@ for tup in year_intervals:
 				DATA_QUERY.addWhere("pat_id = '{0}'".format(pat_id))
 				DATA_QUERY.addWhere("ordering_date >= '{0}'".format(window_lower))
 				DATA_QUERY.addWhere("ordering_date <= '{0}'".format(window_upper))
-				if (pat_id in orderset_order_med_ids.keys()):
+				if (pat_id in list(orderset_order_med_ids.keys())):
 					DATA_QUERY.addWhere("order_med_id NOT IN ({0})".format(order_med_id_str)) # do not count order instances ordered with an order set; we only want a la carte instances
 
 				DATA_QUERY.addGroupBy("pat_id")
@@ -144,7 +144,7 @@ for tup in year_intervals:
 					order_description_map[medication] = description.replace(",", ";")
 
 					# consider only orders already in orderset
-					if (orderset in orderset_orders and medication in orderset_orders[orderset].keys()): # medication is in order set
+					if (orderset in orderset_orders and medication in list(orderset_orders[orderset].keys())): # medication is in order set
 						if (medication not in co_occurrence_medication_counts):
 							co_occurrence_medication_counts[medication] = 1 # binary, consider whether the order occurred in the given time window or not
 						else:
@@ -153,12 +153,12 @@ for tup in year_intervals:
 			outf = open("{0}/a_la_carte_orders_MEDICATIONS/{1}/{2}.csv".format(DATADIR, window, orderset.replace(" ", "_").replace("/", "_")), "w")
 			outf.write("medication,description,order_type,a_la_carte_count,orderset_usage_count,ratio\n")
 
-			for medication, co_occurrence in co_occurrence_medication_counts.iteritems():
+			for medication, co_occurrence in co_occurrence_medication_counts.items():
 				outf.write("{0},{1},medication,{2},{3},{4}\n".format(medication, order_description_map[medication], co_occurrence, num_instances, float(co_occurrence)/num_instances))
 			outf.close()
 
-		for orderset in orderset_instances.keys():
-			instances = orderset_instances[orderset].keys()
+		for orderset in list(orderset_instances.keys()):
+			instances = list(orderset_instances[orderset].keys())
 			num_instances = len(instances)
 
 			co_occurrence_procedure_counts = {}
@@ -180,8 +180,8 @@ for tup in year_intervals:
 				window_lower = timestamp - timedelta(minutes=window)
 
 				order_proc_id_str = ""
-				if (pat_id in orderset_order_proc_ids.keys()):
-					for order_proc_id in orderset_order_proc_ids[pat_id].keys():
+				if (pat_id in list(orderset_order_proc_ids.keys())):
+					for order_proc_id in list(orderset_order_proc_ids[pat_id].keys()):
 						order_proc_id_str += "'{0}', ".format(order_proc_id)
 					order_proc_id_str = order_proc_id_str[:-2]
 
@@ -214,7 +214,7 @@ for tup in year_intervals:
 				DATA_QUERY.addWhere("order_time >= '{0}'".format(window_lower))
 				DATA_QUERY.addWhere("order_time <= '{0}'".format(window_upper))
 				DATA_QUERY.addWhere("order_type IN  ('Imaging', 'Blood Bank', 'Lab Panel', 'Microbiology', 'HIV Lab Restricted', 'Lab Only', 'Lab', 'Microbiology Culture', 'Point of Care Testing', 'ECHO')")
-				if (pat_id in orderset_order_proc_ids.keys()):
+				if (pat_id in list(orderset_order_proc_ids.keys())):
 					DATA_QUERY.addWhere("order_proc_id NOT IN ({0})".format(order_proc_id_str)) # do not count order instances ordered with an order set
 
 				DATA_QUERY.addGroupBy("pat_id")
@@ -236,7 +236,7 @@ for tup in year_intervals:
 					order_description_map[procedure] = description
 
 					# consider only orders already in orderset
-					if (orderset in orderset_orders and procedure in orderset_orders[orderset].keys()): # procedure is in order set
+					if (orderset in orderset_orders and procedure in list(orderset_orders[orderset].keys())): # procedure is in order set
 						if (procedure not in co_occurrence_procedure_counts):
 							co_occurrence_procedure_counts[procedure] = 1
 						else:
@@ -245,7 +245,7 @@ for tup in year_intervals:
 			outf = open("{0}/a_la_carte_orders_PROCEDURES/{1}/{2}.csv".format(DATADIR, window, orderset.replace(" ", "_").replace("/", "_")), "w")
 			outf.write("procedure,description,order_type,a_la_carte_count,orderset_usage_count,ratio\n")
 
-			for procedure, co_occurrence in co_occurrence_procedure_counts.iteritems():
+			for procedure, co_occurrence in co_occurrence_procedure_counts.items():
 				outf.write("{0},{1},{2},{3},{4},{5}\n".format(procedure, order_description_map[procedure], order_type, co_occurrence, num_instances, float(co_occurrence)/num_instances))
 			outf.close()
 

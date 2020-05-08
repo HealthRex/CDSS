@@ -268,7 +268,7 @@ def pd2db(data_df, db_path, table_name, db_name, order_proc_ids_to_include=None)
     elif table_name == "diagnoses":
         data_df = pd_process_diagnoses(data_df)
     else:
-        print table_name + " does not exist!"
+        print(table_name + " does not exist!")
 
     data_df.to_sql(table_name, conn, if_exists="append")
 
@@ -278,7 +278,7 @@ def pd2db(data_df, db_path, table_name, db_name, order_proc_ids_to_include=None)
 def raw2db(data_file, data_folderpath, db_path, db_name, build_index_patid=True, collected_included_order_proc_ids=None):
     chunk_size = 100000  # num of rows
 
-    print 'Now writing %s into database...' % data_file  #
+    print('Now writing %s into database...' % data_file)  #
 
     table_name = data_file.replace(".txt", "")
     table_name = table_name.replace(".sample", "")

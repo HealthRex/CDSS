@@ -73,6 +73,6 @@ CSV_EXPAND_QUOTES = True;
 
 def formatDBConnectString( dbParamDict ):
     connStr = ""
-    for key, value in dbParamDict.iteritems():
+    for key, value in dbParamDict.items():
         connStr += "%s=%s;" % (key,value);
     return connStr;

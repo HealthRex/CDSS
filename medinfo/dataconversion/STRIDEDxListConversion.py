@@ -8,8 +8,8 @@ from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery;
 from medinfo.db.Model import RowItemModel, modelListFromTable, modelDictFromList;
 
-from Util import log;
-from Env import DATE_FORMAT;
+from .Util import log;
+from .Env import DATE_FORMAT;
 
 SOURCE_TABLE = "stride_dx_list";
 SUBCODE_DELIM = ".";    # Delimiter for ICD9 codes to distinguish main categorization vs. detail descriptions
@@ -138,7 +138,7 @@ class STRIDEDxListConversion:
                 }
             }
 
-            for version, info in icd_versions.iteritems():
+            for version, info in icd_versions.items():
                 icd_codes = info['codes']
                 icd_lookup = info['lookup']
 
@@ -252,12 +252,12 @@ class STRIDEDxListConversion:
                     "item_date":  sourceItem["noted_date"],
                 }
             );
-        insertQuery = DBUtil.buildInsertQuery("patient_item", patientItem.keys() );
-        insertParams= patientItem.values();
+        insertQuery = DBUtil.buildInsertQuery("patient_item", list(patientItem.keys()) );
+        insertParams= list(patientItem.values());
         try:
             # Optimistic insert of a new unique item
             DBUtil.execute( insertQuery, insertParams, conn=conn );
-        except conn.IntegrityError, err:
+        except conn.IntegrityError as err:
             # If turns out to be a duplicate, okay, just note it and continue to insert whatever else is possible
             log.info(err);
             pass;

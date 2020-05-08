@@ -35,9 +35,9 @@ class ClassifierPipeline(object):
 		self.X_test = X_test
 		self.y_test = y_test
 
-		print 'train_size', self.y_train.shape[0]
-		print 'validation_size', self.y_validation.shape[0]
-		print 'test_size', self.y_test.shape[0]
+		print('train_size', self.y_train.shape[0])
+		print('validation_size', self.y_validation.shape[0])
+		print('test_size', self.y_test.shape[0])
 
 		self.output = output
 		self.name = name
@@ -137,7 +137,7 @@ class ClassifierPipeline(object):
 
 	def train(self):
 		# iterate over classifiers
-		print 'TRAIN'
+		print('TRAIN')
 		print('"name","train_accuracy","validation_accuracy",'
 			'"validation_precision","validation_recall","validation_f1",'
 			'"validation_roc-auc"')
@@ -152,13 +152,13 @@ class ClassifierPipeline(object):
 			validation_recall = recall_score(self.y_validation, validation_predictions)
 			validation_f1 = f1_score(self.y_validation, validation_predictions)
 			validation_roc_auc = roc_auc_score(self.y_validation, validation_prediction_probs)
-			print '"%s","%0.3f","%0.3f","%0.3f","%0.3f","%0.3f","%0.3f"' % \
+			print('"%s","%0.3f","%0.3f","%0.3f","%0.3f","%0.3f","%0.3f"' % \
 				(name, train_score, validation_score, validation_precision,
-					validation_recall, validation_f1, validation_roc_auc)
+					validation_recall, validation_f1, validation_roc_auc))
 
 	def test(self):
 		# iterate over classifiers
-		print 'TEST'
+		print('TEST')
 		print('"name","test_accuracy","test_precision","test_recall","test_f1",'
 			'"test_roc-auc"')
 		for i, (name, clf) in enumerate(zip(self.names, self.classifiers)):
@@ -170,8 +170,8 @@ class ClassifierPipeline(object):
 			test_recall = recall_score(self.y_test, test_predictions)
 			test_f1 = f1_score(self.y_test, test_predictions)
 			test_roc_auc = roc_auc_score(self.y_test, test_prediction_probs)
-			print '"%s","%0.3f","%0.3f","%0.3f","%0.3f","%0.3f"' % \
-				(name, test_score, test_precision, test_recall, test_f1, test_roc_auc)
+			print('"%s","%0.3f","%0.3f","%0.3f","%0.3f","%0.3f"' % \
+				(name, test_score, test_precision, test_recall, test_f1, test_roc_auc))
 
 			prob_true, prob_pred = calibration_curve(self.y_test, test_prediction_probs, n_bins=20)
 			fig = plt.figure(figsize=(6, 4))
@@ -189,7 +189,7 @@ if __name__ == '__main__':
 	imp_method = 'median'
 
 	for filepath in glob.glob(INPUT_FOLDER + imp_method + '*labFeatureMatrix*.csv'):
-		print filepath
+		print(filepath)
 
 		df = pd.read_csv(filepath)
 
@@ -232,4 +232,4 @@ if __name__ == '__main__':
 		pipeline.train()
 		pipeline.test()
 		pipeline.output.to_csv('pipelineResults/' + name + '_outputs.csv', index=False)
-		print
+		print()

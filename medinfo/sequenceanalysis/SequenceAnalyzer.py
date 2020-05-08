@@ -15,8 +15,8 @@ class SequenceAnalyzer(object):
     assert len(self.pipeline) == 0
     def func(data):
       if isinstance(data, types.GeneratorType):
-        current_split = [data.next()]
-      elif isinstance(data, types.ListType):
+        current_split = [next(data)]
+      elif isinstance(data, list):
         current_split = [data[0]]
         data = data[1:]
       for row in data:
@@ -100,8 +100,8 @@ class SequenceAnalyzer(object):
       pipeline = pipeline[1:]
 
     for data_split in data_split_generator:
-      bins_queue = [deque() for _ in xrange(len(bins))]
-      bins_vars_dict = [dict(self.vars) for _ in xrange(len(bins))]
+      bins_queue = [deque() for _ in range(len(bins))]
+      bins_vars_dict = [dict(self.vars) for _ in range(len(bins))]
       for row in data_split:
         for window_size, queue, vars_dict in zip(bins, bins_queue, bins_vars_dict):
           vars_dict['row_added'] = False

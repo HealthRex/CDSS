@@ -3,7 +3,7 @@
 # Extract patient_ids based on expert v.s. everyone provider type
 ##########################################################################################
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 
 os.chdir('/Users/jwang/Desktop/ClinicalDecisionMaker/medinfo/db')
@@ -56,7 +56,7 @@ output.write("patient_id,clinical_item_category_id,name,description\n")
 
 #count = 0
 for line in results:
-    if (line[0] not in unique_patient_ids.keys()): # only consider unique patient_ids
+    if (line[0] not in list(unique_patient_ids.keys())): # only consider unique patient_ids
         unique_patient_ids[line[0]] = 1
         output.write("{0},{1},{2},{3}\n".format(line[0],line[1],line[2],line[3]))
         outlist.write(str(line[0])+"\n")

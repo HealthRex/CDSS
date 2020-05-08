@@ -3,7 +3,7 @@ import csv
 import numpy as np
 import pandas as pd
 
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime
 
 from medinfo.db.test.Const import RUNNER_VERBOSITY
@@ -14,6 +14,9 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 
 import os
+
+# from scripts.Archive.HighMortalityVsLowMortalityVsCrowd.Miscellaneous.compute_observed_vs_expected_mortalityORreadmission import \
+# 	encounter_id
 
 CLINICAL_ITEM_ID = 'clinical_item_id'
 ITEM_COUNTS = 'item_counts'
@@ -31,8 +34,8 @@ class LabStats(object):
 		query.addGroupBy(CLINICAL_ITEM_ID)
 		query.addOrderBy('total', dir='desc')
 
-		print query
-		print query.getParams()
+		print(query)
+		print(query.getParams())
 		DBUtil.runDBScript(self.SCRIPT_FILE, False)
 		results = DBUtil.execute(str(query), query.getParams())
 
@@ -52,8 +55,8 @@ class LabStats(object):
 		# OTHER
 		query.addOrderBy(CLINICAL_ITEM_ID, dir='asc')
 
-		print query
-		print query.getParams()
+		print(query)
+		print(query.getParams())
 		DBUtil.runDBScript(self.SCRIPT_FILE, False)
 		results = DBUtil.execute(str(query), query.getParams())
 
@@ -82,7 +85,7 @@ class LabStats(object):
 		df_billing_codes['name'] = df_billing_codes['name'].apply(lambda x: 'LAB' + str(x))
 
 		# Get prices
-		df_chargemaster = pd.DataFrame(pd.read_csv(THIS_DIR + '/data_summary_stats/chargemaster.csv', dtype='string'))
+		df_chargemaster = pd.DataFrame(pd.read_csv(THIS_DIR + '/data_summary_stats/chargemaster.csv', dtype='string', encoding='latin'))
 		df_chargemaster = df_chargemaster[['billing_code', 'price', 'price_description']]
 		df_chargemaster['price'] = df_chargemaster['price'].apply(lambda x: float(x.replace(',','')))
 

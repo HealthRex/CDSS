@@ -29,10 +29,10 @@ for line in mortality_30:
 
 #initialize map with all physician ids
 observed_mortality = {}
-for physician in physician_cohorts.keys():
+for physician in list(physician_cohorts.keys()):
 	observed_mortality[physician] = (0, len(physician_cohorts[physician]))
 
-for physician, patients in physician_cohorts.iteritems():
+for physician, patients in physician_cohorts.items():
 	for (pat_id, note_time) in patients:
 
 		if (pat_id in mortality_map):
@@ -44,7 +44,7 @@ for physician, patients in physician_cohorts.iteritems():
 
 # perform division (save number of observed mortalities)
 observed_mortalities = {}
-for physician, (dead, total) in observed_mortality.iteritems():
+for physician, (dead, total) in observed_mortality.items():
 	observed_mortality[physician] = float(dead)/total
 	observed_mortalities[physician] = int(dead)
 #print(observed_mortality)
@@ -57,7 +57,7 @@ for physician, (dead, total) in observed_mortality.iteritems():
 
 # Initialize map with physician ids
 expected_mortality = {}
-for physician in physician_cohorts.keys():
+for physician in list(physician_cohorts.keys()):
 	expected_mortality[physician] = (0, len(physician_cohorts[physician]))
 
 # Read in sickness metrics (expected mortality probability)
@@ -69,7 +69,7 @@ for line in mortality_probs_f:
 	mortality_probs[line[0]] = float(line[1])
 
 # Find average probability of 30 day mortality for patients in cohort
-for physician, patients in physician_cohorts.iteritems():
+for physician, patients in physician_cohorts.items():
 	for (pat_id, note_time) in patients:
 		if (pat_id not in mortality_probs):
 			continue # assume patient without probability of death maintains same as average probability for the physician
@@ -80,7 +80,7 @@ for physician, patients in physician_cohorts.iteritems():
 			expected_mortality[physician] = (mortality_probs[pat_id], 1)
 
 # Perform division
-for physician, (prob_sum, total) in expected_mortality.iteritems():
+for physician, (prob_sum, total) in expected_mortality.items():
 	expected_mortality[physician] = float(prob_sum)/total
 #print(expected_mortality)
 
@@ -91,7 +91,7 @@ for physician, (prob_sum, total) in expected_mortality.iteritems():
 # Write out observed and expected probabilities to CSV
 outf = open("/Users/jwang/Desktop/Results/mortality_observed_vs_expected.csv", "w")
 outf.write("physician,observed_mortality_rate,expected_mortality_rate,total_patients,observed_dead,observed_survived,expected_dead,expected_survived,p-value,score,observed_over_expected\n")
-for physician in physician_cohorts.keys():
+for physician in list(physician_cohorts.keys()):
 
 	# Compute Fisher Exact Test
 	cohort_size = len(physician_cohorts[physician])

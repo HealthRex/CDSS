@@ -23,7 +23,7 @@ for line in inf:
 inf.close()
 
 # compute median ordering probabilities
-for orderset_id, ordering_prob_array in ordering_probabilities.iteritems():
+for orderset_id, ordering_prob_array in ordering_probabilities.items():
 	median_ordering_probabilities[orderset_id] = np.median(np.array(ordering_prob_array))
 
 # print(median_ordering_probabilities)

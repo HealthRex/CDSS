@@ -17,17 +17,17 @@ for row in reader:
         rowByTitle[row["TITLE"]] = row;
 
 # Build table of contents
-sortedTitles = rowByTitle.keys();
+sortedTitles = list(rowByTitle.keys());
 sortedTitles.sort();
 
-print >> ofs, "<ul>";
+print("<ul>", file=ofs);
 for title in sortedTitles:
     row = rowByTitle[title];
-    print >> ofs, TOC_TEMPLATE % row;
-print >> ofs, "</ul>";
+    print(TOC_TEMPLATE % row, file=ofs);
+print("</ul>", file=ofs);
 
 # Build actual content
 for title in sortedTitles:
     row = rowByTitle[title];
-    print >> ofs, ROW_TEMPLATE % row;
+    print(ROW_TEMPLATE % row, file=ofs);
         

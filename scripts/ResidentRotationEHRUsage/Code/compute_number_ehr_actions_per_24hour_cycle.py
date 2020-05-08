@@ -31,7 +31,7 @@ for line in access_logs:
 		# print(role)
 		rotation_id = line[1]
 		access_date = line[14].split(" ")[0]
-		access_timestamp = map(int, line[14].split(" ")[1].split(":")[:-1])
+		access_timestamp = list(map(int, line[14].split(" ")[1].split(":")[:-1]))
 		bucket_id = bucket(access_timestamp)
 		provider_id = line[4]
 
@@ -44,9 +44,9 @@ for line in access_logs:
 
 # For each rotation, compute average number of actions per user-day
 averaged_timeseries = {'2':np.zeros(48), '5':np.zeros(48), '22':np.zeros(48), '27':np.zeros(48)}
-for rotation_id in action_counter.keys():
+for rotation_id in list(action_counter.keys()):
 	num_user_days = 0
-	for user_day, action_ts in action_counter[rotation_id].iteritems(): # for each timeseries
+	for user_day, action_ts in action_counter[rotation_id].items(): # for each timeseries
 		num_user_days += 1
 		averaged_timeseries[rotation_id] = averaged_timeseries[rotation_id] + np.array(action_ts)
 	if (num_user_days == 0): # e.g. for PGY1 interns in ICU since first years do not do ICU rotation
@@ -56,8 +56,8 @@ for rotation_id in action_counter.keys():
 
 # Output results
 outf = open("average_number_actions_per_userday_24_hour_cycle_{0}.csv".format(ROLE), "w")
-outf.write("rotation,{0}\n".format(",".join(map(str, list(np.array(range(0,48))/2.0)))))
-for k, v in averaged_timeseries.iteritems():
+outf.write("rotation,{0}\n".format(",".join(map(str, list(np.array(list(range(0,48)))/2.0)))))
+for k, v in averaged_timeseries.items():
 	if (int(k) == 2):
 		outf.write("General Medicine,")
 	elif (int(k) == 5):

@@ -2,12 +2,12 @@
 """Test case for respective module in parent package"""
 
 import sys, os
-import cStringIO
+import io
 import logging
 import unittest
 from math import sqrt, exp, log as ln;
 
-import Const, Util
+from . import Const, Util
 
 from medinfo.common.StatsUtil import AggregateStats, ContingencyStats, UnrecognizedStatException;
 from medinfo.common.test.Util import MedInfoTestCase
@@ -45,28 +45,28 @@ class TestAggregateStats(MedInfoTestCase):
         MedInfoTestCase.tearDown(self);
 
     def test_minMax(self):
-        self.assertAlmostEquals(self.MIN, self.aAggregateStats.min())
-        self.assertAlmostEquals(self.MAX, self.aAggregateStats.max())
+        self.assertAlmostEqual(self.MIN, self.aAggregateStats.min())
+        self.assertAlmostEqual(self.MAX, self.aAggregateStats.max())
 
     def test_meanStdDev(self):
-        self.assertAlmostEquals(self.MEAN,   self.aAggregateStats.mean())
-        self.assertAlmostEquals(self.STD_DEV,self.aAggregateStats.stdDev())
+        self.assertAlmostEqual(self.MEAN,   self.aAggregateStats.mean())
+        self.assertAlmostEqual(self.STD_DEV,self.aAggregateStats.stdDev())
 
     def test_weightedMeanStdDev(self):
-        self.assertAlmostEquals(self.MEAN_W,     self.aAggregateStats.meanW())
-        self.assertAlmostEquals(self.STD_DEV_W,  self.aAggregateStats.stdDevW())
+        self.assertAlmostEqual(self.MEAN_W,     self.aAggregateStats.meanW())
+        self.assertAlmostEqual(self.STD_DEV_W,  self.aAggregateStats.stdDevW())
 
     def test_rmsd(self):
-        self.assertAlmostEquals(self.RMSD,   self.aAggregateStats.rmsd(self.MEAN))
-        self.assertAlmostEquals(self.RMSD_W, self.aAggregateStats.rmsdW(self.MEAN_W))
+        self.assertAlmostEqual(self.RMSD,   self.aAggregateStats.rmsd(self.MEAN))
+        self.assertAlmostEqual(self.RMSD_W, self.aAggregateStats.rmsdW(self.MEAN_W))
 
         Util.log.debug("Negative test case");
-        self.assertNotAlmostEquals(self.RMSD_W,  self.aAggregateStats.rmsd(self.MEAN))
-        self.assertNotAlmostEquals(self.RMSD,    self.aAggregateStats.rmsdW(self.MEAN_W))
+        self.assertNotAlmostEqual(self.RMSD_W,  self.aAggregateStats.rmsd(self.MEAN))
+        self.assertNotAlmostEqual(self.RMSD,    self.aAggregateStats.rmsdW(self.MEAN_W))
 
     def test_counts(self):
-        self.assertEquals( self.N_NON_NAN_VALUES,            self.aAggregateStats.countNonNull() )
-        self.assertEquals( self.N_NON_ZERO_WEIGHTED_VALUES,  self.aAggregateStats.countNonZeroWeight() )
+        self.assertEqual( self.N_NON_NAN_VALUES,            self.aAggregateStats.countNonNull() )
+        self.assertEqual( self.N_NON_ZERO_WEIGHTED_VALUES,  self.aAggregateStats.countNonZeroWeight() )
 
     def test_incrementStats(self):
 
@@ -83,9 +83,9 @@ class TestAggregateStats(MedInfoTestCase):
         expectedVariance = 3.81;
         expectedWeight = 7;
 
-        self.assertAlmostEquals(expectedMean, newMean, 3);
-        self.assertAlmostEquals(expectedVariance, newVariance, 3);
-        self.assertAlmostEquals(expectedWeight, newWeight, 3);
+        self.assertAlmostEqual(expectedMean, newMean, 3);
+        self.assertAlmostEqual(expectedVariance, newVariance, 3);
+        self.assertAlmostEqual(expectedWeight, newWeight, 3);
 
 class TestContingencyStats(MedInfoTestCase):
     def setUp(self):
@@ -170,18 +170,18 @@ class TestContingencyStats(MedInfoTestCase):
                 "relativeRisk95CILow": ("RR95CILow",),
                 "relativeRisk95CIHigh": ("RR95CIHigh",),
             }
-        for statId, synonymIds in synonymsByStatId.iteritems():
+        for statId, synonymIds in synonymsByStatId.items():
             for synonymId in synonymIds:
                 self.EXPECTED[synonymId] = self.EXPECTED[statId];
 
     def test_contingencyStats(self):
         contStats = ContingencyStats( self.TEST_NAB, self.TEST_NA, self.TEST_NB, self.TEST_TOTAL );
 
-        for statId, expectedValue in self.EXPECTED.iteritems():
+        for statId, expectedValue in self.EXPECTED.items():
             Util.log.debug(statId);
             # log.debug(statId)
             testValue = contStats.calc(statId);
-            self.assertAlmostEquals( expectedValue, testValue, 3 );
+            self.assertAlmostEqual( expectedValue, testValue, 3 );
 
     def test_contingencyStats_normalize(self):
         # Set test values that will result in divide by zero or negative unless normalize somehow
@@ -211,10 +211,10 @@ class TestContingencyStats(MedInfoTestCase):
             {   "sensitivity": 0.4,
                 "specificity": 2.0, # Makes no sense with negative numbers
             }
-        for statId, expectedValue in expected.iteritems():
+        for statId, expectedValue in expected.items():
             Util.log.debug(statId);
             testValue = contStats.calc(statId);
-            self.assertAlmostEquals( expectedValue, testValue, 3 );
+            self.assertAlmostEqual( expectedValue, testValue, 3 );
 
         expected = \
             {   "P-Fisher": 1.0,    # Cannot calculate this properly with negative numbers
@@ -223,10 +223,10 @@ class TestContingencyStats(MedInfoTestCase):
             }
 
         Util.log.debug("Expect calculation error with default values returned");
-        for statId, expectedValue in expected.iteritems():
+        for statId, expectedValue in expected.items():
             Util.log.debug(statId);
             testValue = contStats.calc(statId);
-            self.assertAlmostEquals( expectedValue, testValue, 3 );
+            self.assertAlmostEqual( expectedValue, testValue, 3 );
 
         Util.log.debug("Now redo while adding normalization option");
         expected = \
@@ -240,10 +240,10 @@ class TestContingencyStats(MedInfoTestCase):
             }
 
         contStats.normalize(truncateNegativeValues=True);
-        for statId, expectedValue in expected.iteritems():
+        for statId, expectedValue in expected.items():
             Util.log.debug(statId);
             testValue = contStats.calc(statId);
-            self.assertAlmostEquals( expectedValue, testValue, 3 );
+            self.assertAlmostEqual( expectedValue, testValue, 3 );
 
     def test_precisionTolerance(self):
         # Try setting very small values and validating that won't lose values during numerical changes
@@ -258,10 +258,10 @@ class TestContingencyStats(MedInfoTestCase):
                 "sensitivity": 1.5e-163,
                 "specificity": 1.0, # Precision inevitably lost here
             }
-        for statId, expectedValue in expected.iteritems():
+        for statId, expectedValue in expected.items():
             Util.log.debug(statId);
             testValue = contStats.calc(statId);
-            self.assertAlmostEquals( expectedValue, testValue, 3 );
+            self.assertAlmostEqual( expectedValue, testValue, 3 );
 
 class TestUnitTestTools(MedInfoTestCase):
     def test_assertEqualsGeneral(self):

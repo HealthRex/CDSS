@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """Miscellaneous utility functions used across the application
 """
-import Const, Env
+from . import Const, Env
 import sys, os
 import logging
-import urllib;
+import urllib.request, urllib.parse, urllib.error;
 import time;
 import math;
 

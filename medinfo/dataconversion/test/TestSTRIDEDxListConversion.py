@@ -2,12 +2,12 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime;
 import unittest
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 from pprint import pprint
 
 from medinfo.db.test.Util import DBTestCase;
@@ -181,18 +181,18 @@ class TestSTRIDEDxListConversion(DBTestCase):
                 [None, -126798, -131016557370, "Diagnosis (ADMIT_DX)", None, "ICD9.-780.9", "Diagnosis 6a", datetime(2111,7,26)],
                 [None, -126798, -131016557370, "Diagnosis (ADMIT_DX)", None, "ICD9.-780.97", "Diagnosis 6", datetime(2111,7,26)],
 
-                [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10431.0', 'Diagnosis 2b Full', datetime(2111, 10, 14, 0, 0)],
-                [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10431.00', 'Diagnosis 2 Full', datetime(2111, 10, 14, 0, 0)],
-                [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10432', '-10432', datetime(2111, 10, 14, 0, 0)],
-                [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-431.0', 'Diagnosis 2b', datetime(2111, 10, 14, 0, 0)],
-                [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-431.00', 'Diagnosis 2', datetime(2111, 10, 14, 0, 0)],
-                [None, -2126500L, -135000000000L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-432', '-432', datetime(2111, 10, 14, 0, 0)],
-                [None, -2126798L, -135014753610L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10482.9', '-10482.9', datetime(2111, 6, 6, 0, 0)],
-                [None, -2126798L, -135014753610L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10483', '-10483', datetime(2111, 6, 6, 0, 0)],
-                [None, -2126798L, -135014753610L, 'Diagnosis (ADMIT_DX)', None, 'ICD10.-10780', 'Diagnosis 5 Full', datetime(2111, 3, 8, 0, 0)],
-                [None, -2126798L, -135014753610L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-482.9', '-482.9', datetime(2111, 6, 6, 0, 0)],
-                [None, -2126798L, -135014753610L, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-483', '-483', datetime(2111, 6, 6, 0, 0)],
-                [None, -2126798L, -135014753610L, 'Diagnosis (ADMIT_DX)', None, 'ICD9.-780', 'Diagnosis 5', datetime(2111, 3, 8, 0, 0)],
+                [None, -2126500, -135000000000, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10431.0', 'Diagnosis 2b Full', datetime(2111, 10, 14, 0, 0)],
+                [None, -2126500, -135000000000, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10431.00', 'Diagnosis 2 Full', datetime(2111, 10, 14, 0, 0)],
+                [None, -2126500, -135000000000, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10432', '-10432', datetime(2111, 10, 14, 0, 0)],
+                [None, -2126500, -135000000000, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-431.0', 'Diagnosis 2b', datetime(2111, 10, 14, 0, 0)],
+                [None, -2126500, -135000000000, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-431.00', 'Diagnosis 2', datetime(2111, 10, 14, 0, 0)],
+                [None, -2126500, -135000000000, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-432', '-432', datetime(2111, 10, 14, 0, 0)],
+                [None, -2126798, -135014753610, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10482.9', '-10482.9', datetime(2111, 6, 6, 0, 0)],
+                [None, -2126798, -135014753610, 'Diagnosis (PROBLEM_LIST)', None, 'ICD10.-10483', '-10483', datetime(2111, 6, 6, 0, 0)],
+                [None, -2126798, -135014753610, 'Diagnosis (ADMIT_DX)', None, 'ICD10.-10780', 'Diagnosis 5 Full', datetime(2111, 3, 8, 0, 0)],
+                [None, -2126798, -135014753610, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-482.9', '-482.9', datetime(2111, 6, 6, 0, 0)],
+                [None, -2126798, -135014753610, 'Diagnosis (PROBLEM_LIST)', None, 'ICD9.-483', '-483', datetime(2111, 6, 6, 0, 0)],
+                [None, -2126798, -135014753610, 'Diagnosis (ADMIT_DX)', None, 'ICD9.-780', 'Diagnosis 5', datetime(2111, 3, 8, 0, 0)],
             ];
         actualData = DBUtil.execute(testQuery);
         self.assertEqualTable( expectedData, actualData );

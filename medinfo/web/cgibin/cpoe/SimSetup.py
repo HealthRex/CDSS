@@ -7,7 +7,7 @@ import sys;
 import cgi
 import cgitb; cgitb.enable()
 
-from cStringIO import StringIO;
+from io import StringIO;
 import time
 from datetime import datetime, timedelta;
 

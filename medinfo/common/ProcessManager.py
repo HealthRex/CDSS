@@ -12,7 +12,7 @@ from optparse import OptionParser
 import math;
 from datetime import datetime;
 from medinfo.common.Util import stdOpen, ProgressDots;
-from Util import log;
+from .Util import log;
 
 class ProcessManager:
     def __init__(self, parallelProcessCount=1):
@@ -53,7 +53,7 @@ class ProcessManager:
         while(processesRemain):
             self.update()
             if self.completed:
-                print "All processes have completed.\n"
+                print("All processes have completed.\n")
                 break
             if availableThreads > 0:
                 # run an unprocessed command string
@@ -84,15 +84,15 @@ class ProcessManager:
                 prog.update();
             # prog.printStatus();
 
-            print >> sys.stderr, "Executing: ", options.commandStr;
+            print("Executing: ", options.commandStr, file=sys.stderr);
             process = subprocess.Popen(options.commandStr);
-            print >> sys.stderr, "Started process: ", process.pid;
+            print("Started process: ", process.pid, file=sys.stderr);
         else:
             parser.print_help()
             sys.exit(-1)
 
         timer = time.time() - timer;
-        print >> sys.stderr, ("%.3f seconds to complete" % timer);
+        print(("%.3f seconds to complete" % timer), file=sys.stderr);
         ###---END awaitProcess method---###
 
         timer = time.time() - timer;

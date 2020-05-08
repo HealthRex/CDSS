@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Miscellaneous utility functions
 """
-import Env;
-import Const
+from . import Env;
+from . import Const
 import sys, os
 import logging
 

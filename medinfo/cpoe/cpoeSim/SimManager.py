@@ -17,7 +17,7 @@ from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery, RowItemModel, generatePlaceholders
 from medinfo.db.Model import modelListFromTable, modelDictFromList, columnFromModelList
 from medinfo.cpoe.Const import AD_HOC_SECTION
-from Const import DEFAULT_STATE_ID
+from .Const import DEFAULT_STATE_ID
 
 
 class SimManager:
@@ -295,7 +295,7 @@ class SimManager:
                 DBUtil.insertRow("sim_patient_order", insertDict, conn=conn)
 
             # See if any of these new orders triggered state transitions
-            triggerItemIds = postStateIdByItemId.viewkeys() & orderItemIdSet
+            triggerItemIds = postStateIdByItemId.keys() & orderItemIdSet
             while triggerItemIds:   # Found a trigger item
                 triggerItemId = None
                 if len(triggerItemIds) > 1: # Found multiple. Weird. Arbitrarily act on the one that appeared first in the input list
@@ -316,7 +316,7 @@ class SimManager:
                 postStateIdByItemId = patientInfo["postStateIdByItemId"]
                 
                 orderItemIdSet.discard(triggerItemId)  # Don't keep looking for this one, important to avoid infinite loop
-                triggerItemIds = postStateIdByItemId.viewkeys() & orderItemIdSet
+                triggerItemIds = postStateIdByItemId.keys() & orderItemIdSet
                 
         
             if discontinuePatientOrderIds is not None:
@@ -382,7 +382,7 @@ class SimManager:
             query.addFrom("sim_patient_order as po")
             query.addWhereEqual("sim_patient_id", patientId )
 
-            lastOrderTime = max(DBUtil.execute(query, conn=conn)[0])
+            lastOrderTime = max(value for value in DBUtil.execute(query, conn=conn)[0] if value is not None)
             return lastOrderTime
         finally:
             if not extConn:
@@ -895,11 +895,11 @@ class SimManager:
         output_file = stdOpen(output_filename, "w")
 
         # Print comment line with arguments to allow for deconstruction later as well as extra results
-        print >> output_file, COMMENT_TAG, json.dumps(summary_data)
+        print(COMMENT_TAG, json.dumps(summary_data), file=output_file)
 
         if grades:
             # Write csv to output
-            csv_writer = csv.DictWriter(output_file, grades[0].keys())
+            csv_writer = csv.DictWriter(output_file, list(grades[0].keys()))
             csv_writer.writeheader()
             csv_writer.writerows(grades)
 

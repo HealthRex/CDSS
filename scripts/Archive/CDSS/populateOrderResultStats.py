@@ -20,7 +20,7 @@ def main(argv):
         prog = ProgressDots(big=1,small=1,total=len(nameTable));
         for row in nameTable:
             baseName = row[0];
-            print >> sys.stderr, "Calculating Stats for %s" % baseName;
+            print("Calculating Stats for %s" % baseName, file=sys.stderr);
             statModel = conversionProcessor.calculateResultStats( baseName, conn=conn );
             DBUtil.insertRow("order_result_stat", statModel, conn=conn );
             prog.update();

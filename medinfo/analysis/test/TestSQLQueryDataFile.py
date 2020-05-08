@@ -2,18 +2,18 @@
 """Test case for respective module in application package"""
 
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 import unittest
-import pandas.util.testing as pdt;
+import pandas.testing as pdt;
 
-from Const import RUNNER_VERBOSITY;
-from Util import log;
+from .Const import RUNNER_VERBOSITY;
+from .Util import log;
 
 from medinfo.db.Model import RowItemModel;
 from medinfo.db.ResultsFormatter import pandas_read_table;
 from medinfo.analysis.SQLQueryDataFile import SQLQueryDataFile;
 
-from Util import BaseTestAnalysis;
+from .Util import BaseTestAnalysis;
 
 class TestSQLQueryDataFile(BaseTestAnalysis):
     def setUp(self):

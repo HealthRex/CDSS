@@ -2,7 +2,7 @@
 # procedure_code/medication_id, description, orderset_X, yes_co_occurrence_with_orderset_X_usage, no_co_occurrence_with_orderset_X_usage, yes_co_occurrence_with_any_orderset_usage, no_co_occurrence_with_any_orderset_usage, orderset_X_usage_count, co_occurring_probability_orderset_X, co_occurring_probability_any_orderset, p_value
 import glob
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime, timedelta
 from dateutil import parser
 import numpy as np
@@ -90,14 +90,14 @@ for tup in year_intervals:
 			inf.close()
 
 		# compute total orderset usage instances
-		total_order_set_usage_instances = np.sum(np.array(orderset_usage_instances.values()))
+		total_order_set_usage_instances = np.sum(np.array(list(orderset_usage_instances.values())))
 
 		# output files
-		for orderset, co_occurrence_map in co_occurrence_for_orderset_X_tracker.iteritems():
+		for orderset, co_occurrence_map in co_occurrence_for_orderset_X_tracker.items():
 			outf = open("{0}/co_occurring_orders_MASTER/{1}/{2}.csv".format(DATADIR, window, orderset), "w")
 			outf.write("id_or_code,description,order_type,orderset_X,yes_co_occurrence_with_orderset_X_usage,no_co_occurrence_with_orderset_X_usage,yes_co_occurrence_with_any_orderset_usage,no_co_occurrence_with_any_orderset_usage,orderset_X_usage_count,co_occurring_probability_orderset_X,co_occurring_probability_any_orderset,p_value\n")
 
-			for id_or_code, co_occurrence_counts in co_occurrence_map.iteritems():
+			for id_or_code, co_occurrence_counts in co_occurrence_map.items():
 				yes_orderset_X = co_occurrence_for_orderset_X_tracker[orderset][id_or_code][0] # medication co-occurred within window of orderset X usage instance
 				no_orderset_X = co_occurrence_for_orderset_X_tracker[orderset][id_or_code][1] # medication did not co-occur within window of orderset X usage instance
 				yes_any_orderset = co_occurrence_for_any_orderset_tracker[id_or_code] # medication co-occurred within window of any orderset usage instance

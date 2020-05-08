@@ -2,7 +2,7 @@
 
 import glob
 import sys, os
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime, timedelta
 from dateutil import parser
 

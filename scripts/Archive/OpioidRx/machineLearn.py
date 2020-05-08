@@ -1,7 +1,7 @@
 import sys, os;
 import time;
 from datetime import timedelta;
-from cStringIO import StringIO;
+from io import StringIO;
 from medinfo.common.Util import stdOpen, log, ProgressDots;
 from medinfo.db import DBUtil;
 from medinfo.db.Model import SQLQuery, RowItemModel, modelListFromTable, modelDictFromList;
@@ -61,15 +61,15 @@ def main(argv):
     model = logisticRegressionInterpret(xDF,ySeries);
 
     elapsed = time.time() - timer;
-    print >> sys.stderr, "%s seconds to complete" % timedelta(0, round(elapsed));
+    print("%s seconds to complete" % timedelta(0, round(elapsed)), file=sys.stderr);
     
     return model;
 
 def logisticRegressionInterpret(xDF,ySeries):
     model = LogisticRegression();
     model.fit(xDF,ySeries);
-    print np.exp(model.coef_)
-    print model.intercept_
+    print(np.exp(model.coef_))
+    print(model.intercept_)
     return model;
     
     
@@ -87,7 +87,7 @@ def testModels(xDF,ySeries,kFolds=10,models=None,scoreFxns=None):
     for scoreFxn in scoreFxns:
         for model in models:
             scores = cross_val_score(model,xDF,ySeries,cv=kFolds, scoring=scoreFxn);
-            print "%.2f (%.2f, %.2f) %s.%s" % (scores.mean(), scores.mean()-scores.std()*2, scores.mean()+scores.std()*2, str(scoreFxn), type(model).__name__);
+            print("%.2f (%.2f, %.2f) %s.%s" % (scores.mean(), scores.mean()-scores.std()*2, scores.mean()+scores.std()*2, str(scoreFxn), type(model).__name__));
 
 if __name__ == "__main__":
     main(sys.argv);

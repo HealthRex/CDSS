@@ -15,10 +15,10 @@ inputFilename = "featureMatrix.ICUDNR.removeExtraHeaders.tab.gz";
 #conn = sqlite3.connect("featureMatrix.ICUDNR.sqlite");
 #df2sql(df,conn=conn);
 
-print >> sys.stderr, "Prepare connection to SQLite database. Skip directly to this step if file previously generated"
+print("Prepare connection to SQLite database. Skip directly to this step if file previously generated", file=sys.stderr)
 conn = sqlite3.connect("featureMatrix.ICUDNR.sqlite");
 
-print >> sys.stderr, "Query Summary Stats"
+print("Query Summary Stats", file=sys.stderr)
 queryCaptionList = \
 	[	("select count(distinct patient_id) from data", "Distinct Patients"),
 		("select count(*) from data where firstLifeSupportDate = index_time", "First Life Support Day Records"),
@@ -79,7 +79,7 @@ queryCaptionList = \
 
 	];
 for query, caption in queryCaptionList:
-	print "%s\t%s\t%s" % (DBUtil.execute(query,conn=conn)[0][0], caption, query);
+	print("%s\t%s\t%s" % (DBUtil.execute(query,conn=conn)[0][0], caption, query));
 
 
 """

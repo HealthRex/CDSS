@@ -1,12 +1,12 @@
 import time
 from os import path
 
-import customDBUtil
+from . import customDBUtil
 import numpy as np
 import pandas as pd
 
 from collections import defaultdict, deque
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime
 
 # from medinfo.db.test.Const import RUNNER_VERBOSITY
@@ -16,7 +16,7 @@ from medinfo.db.test.Util import DBTestCase
 from medinfo.db import DBUtil
 from medinfo.db.Model import SQLQuery
 # from medinfo.db.DBUtil import NUMBER, BOOLEAN, STRING, DATETIME
-from repeat_component_descriptive import RepeatComponents
+from .repeat_component_descriptive import RepeatComponents
 
 CLINICAL_ITEM_ID = 'clinical_item_id'
 DATA_FOLDER = 'data_repeat_lab_descriptive/'
@@ -78,21 +78,21 @@ class RepeatLabs(object):
 
     global_stats = defaultdict(lambda: defaultdict(lambda: np.array([0, 0])))
     proc_codes = df_proc_codes['proc_code'].tolist()
-    for batch_i in xrange(int(np.ceil(1.0*len(proc_codes) / batch_size))):
-      print batch_i, proc_codes[batch_i * batch_size]
+    for batch_i in range(int(np.ceil(1.0*len(proc_codes) / batch_size))):
+      print(batch_i, proc_codes[batch_i * batch_size])
       timer = time.time()
       batch = proc_codes[batch_i * batch_size:(batch_i + 1) * batch_size]
       results = self._getPatientsLabsHistories(batch)
       for patient_results in RepeatComponents.splitByPatient(results):
         proc_code = patient_results[0][3]
-        for k, v in RepeatComponents.getStats(patient_results, RepeatLabs.isNormal).iteritems():
+        for k, v in RepeatComponents.getStats(patient_results, RepeatLabs.isNormal).items():
           global_stats[proc_code][k] += v
       times.append(time.time() - timer)
 
     RepeatComponents.createGlobalStatsDf(global_stats).to_csv(
         DATA_FOLDER + 'global_stats.csv', index=False)
 
-    print map(lambda x: round(x, 2), times)
+    print([round(x, 2) for x in times])
 
 if __name__ == '__main__':
   descriptive_stats = RepeatLabs()

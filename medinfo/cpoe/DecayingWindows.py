@@ -43,7 +43,7 @@ from medinfo.cpoe.test import TestAssociationAnalysis
 from medinfo.cpoe import AssociationAnalysis
 from medinfo.cpoe.test.Const import RUNNER_VERBOSITY
 from medinfo.cpoe.Const import DELTA_NAME_BY_SECONDS, SECONDS_PER_DAY;
-from Util import log;
+from .Util import log;
 
 class DecayAnalysisOptions:
 	"""Simple struct to pass filter parameters on which records to do analysis on"""
@@ -177,14 +177,14 @@ class DecayingWindows:
 				deltaSeconds = decayAnalysisOptions.delta.total_seconds();
 				
 				# Look for smallest value that is still larger than the given delta.
-				smallestLargerDeltaOption = sys.maxint;	
-				for secondsOption in DELTA_NAME_BY_SECONDS.iterkeys():
+				smallestLargerDeltaOption = sys.maxsize;	
+				for secondsOption in DELTA_NAME_BY_SECONDS.keys():
 					if secondsOption > deltaSeconds:
 						smallestLargerDeltaOption = min(secondsOption, smallestLargerDeltaOption);
 
 				# Tell the AssociationAnalysis to only accrue data for time ranges within the size of the delta period specified
 				analysisOptions.deltaSecondsOptions = list();
-				for secondsOption in DELTA_NAME_BY_SECONDS.iterkeys():
+				for secondsOption in DELTA_NAME_BY_SECONDS.keys():
 					if secondsOption <= smallestLargerDeltaOption:
 						analysisOptions.deltaSecondsOptions.append(secondsOption);
 

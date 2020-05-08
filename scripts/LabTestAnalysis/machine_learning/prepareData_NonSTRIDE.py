@@ -4,9 +4,9 @@ from itertools import islice
 import pandas as pd
 import LocalEnv
 if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
-    import utils_UMich as utils_NonSTRIDE
+    from . import utils_UMich as utils_NonSTRIDE
 elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-    import utils_UCSF as utils_NonSTRIDE
+    from . import utils_UCSF as utils_NonSTRIDE
 
 from medinfo.common.Util import log
 import os
@@ -36,11 +36,11 @@ def filter_nondigits(any_str):
 
 def preprocess_files(raw_data_folderpath, data_files=None):
     if LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
-        import utils_UCSF as utils_specs
+        from . import utils_UCSF as utils_specs
         utils_specs.separate_demog_diagn_encnt(raw_data_folderpath)
         utils_specs.separate_labs_team(raw_data_folderpath)
     else:
-        import utils_UMich
+        from . import utils_UMich
         utils_UMich.preprocess_files(raw_data_folderpath, data_files)
 
 class DB_Preparor:
@@ -83,7 +83,7 @@ class DB_Preparor:
             data_folderpath = raw_data_folderpath
 
         for data_file in data_files:
-            print 'Started processing %s...' % data_file
+            print('Started processing %s...' % data_file)
             if LocalEnv.DATASET_SOURCE_NAME == 'UMich':
                 if 'encounters' in data_file:
                     all_included_order_proc_ids = utils_NonSTRIDE.raw2db(data_file, data_folderpath,
@@ -156,7 +156,7 @@ class DB_Preparor:
             elif df_name == "diagnoses":
                 tab2df_dict = utils_NonSTRIDE.pd_process_diagnoses(data_df)
             else:
-                print df_name + " does not exist for UMich!"
+                print(df_name + " does not exist for UMich!")
 
         elif LocalEnv.DATASET_SOURCE_NAME == 'UCSF':
 
@@ -167,22 +167,22 @@ class DB_Preparor:
             elif df_name == 'vitals':
                 tab2df_dict = utils_NonSTRIDE.pd_process_vitals(data_df)
             else:
-                print df_name + " does not exist for UCSF!"
+                print(df_name + " does not exist for UCSF!")
 
-        for table_name in tab2df_dict.keys():
+        for table_name in list(tab2df_dict.keys()):
             tab2df_dict[table_name].to_sql(table_name, conn, if_exists="append")
 
             if self.test_mode:
                 tab2df_dict[table_name].to_csv('raw_data_UCSF/' + table_name + '.csv')
 
-        return tab2df_dict.keys()
+        return list(tab2df_dict.keys())
 
     # Chunk mechanism, should be general for any outside data
     def raw2db(self, data_file, data_folderpath, db_path, db_name,
            build_index_patid=True):
         chunk_size = 100000  # num of rows
 
-        print 'Now writing %s into database...' % data_file  #
+        print('Now writing %s into database...' % data_file)  #
 
         generated_tables = []
 

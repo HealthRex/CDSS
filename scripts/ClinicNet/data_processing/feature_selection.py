@@ -37,7 +37,7 @@ def data_remove_features(num_processes=1):
 def identify_lowvar_features(std_dev, std_dev_threshold):
 	features = list(std_dev.keys())
 	zero_var = list(set(range(0, len(std_dev))) - set(list(np.nonzero(std_dev > std_dev_threshold)[0])))
-	return std_dev[zero_var].keys().tolist()
+	return list(std_dev[zero_var].keys()).tolist()
 
 def main(argv):
 	# Read in command line arguments:
@@ -90,8 +90,8 @@ def main(argv):
 	std_dev = pd.read_hdf(stats_dir + "/" + "avg_stddev.hdf5", 'sd')
 	lowvar_features = identify_lowvar_features(std_dev, std_dev_threshold)
 	features_to_remove = lowvar_features + manually_remove
-	features_to_remove = list(set(features_to_remove) & set(std_dev.keys().tolist())) # Remove manually_remove elements that aren't also in std_dev
-	print("{} features out of {} to be removed (SD threshold: {})".format(len(features_to_remove), len(std_dev.keys().tolist()), std_dev_threshold))
+	features_to_remove = list(set(features_to_remove) & set(list(std_dev.keys()).tolist())) # Remove manually_remove elements that aren't also in std_dev
+	print("{} features out of {} to be removed (SD threshold: {})".format(len(features_to_remove), len(list(std_dev.keys()).tolist()), std_dev_threshold))
 
 	# Processing the data to remove selected features
 	data_remove_features(num_processes)
