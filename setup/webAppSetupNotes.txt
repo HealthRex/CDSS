@@ -178,12 +178,20 @@ PostgreSQL: # Use timestamp data type
 
 
 #  Setup Web Server (Apache HTTP, mod_wsgi, psycopg2 DB access).  
+# [[[Notes below are based on Python 2.7 + Apache 2.2. Several modifications are necessary for Python 3.x + Apache 2.4]]]
+
+
 # Install mod_wsgi using an install or Copy the version appropriate mod_wsgi.so file to the 
 #	apache modules directory and rename to simply mod_wsgi.so
 # 	This has a high probability of being very painful, because it requires 
 #	perfectly synced binaries / compiler versions for each component.
 #	Best if you have a package installer (e.g., yum) that does it automatically, otherwise
 #	you'll have to hunt down the right combination of pre-compiled components that are compatible.
+#   On Windows, you'll probably need precompiled binaries, so
+#      Figure out what compiler was used for your version of Python (including 32 vs. 64 bit) https://wiki.python.org/moin/WindowsCompilers
+#      Look for unofficial compiled windows binaries and select the one that matches your version of Python https://www.lfd.uci.edu/~gohlke/pythonlibs/#mod_wsgi
+#      Look for (older) versions of compiled Apache HTTP that the above references, probably off http://www.apachelounge.com/download/ 
+#      Install the mod_wsgi connector module (python3 -m pip install mod_wsgi.XXX.whl, then mod_wsgi-express.exe module-config) https://pypi.org/project/mod-wsgi/
 # Setup the Apache webserver as per standard instructions, 
 #	Can just be a matter of downloading the respective package and running httpd -k install
 #	or using a package manager like yum / apt-get / brew, etc.,
