@@ -285,6 +285,7 @@ class BaseItemRecommender:
             if not extConn:
                 conn.close();
 
+    @staticmethod
     def populateDerivedStats(resultModel, statIds):
         """
         Calculate several derived statistics based on the component item counts in the resultModel,
@@ -317,8 +318,6 @@ class BaseItemRecommender:
             if statId not in resultModel:   # Skip stats that have already been populated
                 resultModel[statId] = contStats[statId];
                 #print >> sys.stderr, statId, resultModel[statId];
-
-    populateDerivedStats = staticmethod(populateDerivedStats);
 
     def populateAggregateStats(aggregateResult, query, statIds=None):
         """Calculate and populate the aggregate result item with stats based
@@ -520,15 +519,18 @@ class BaseItemRecommender:
                         break;  # Don't need to look anymore
 
             if not excludeResult:
-                aggregateResultsWithScore.append( (aggregateResult[query.sortField], aggregateResult) );
+                aggregateResultsWithScore.append( (aggregateResult[query.sortField], aggregateResult["clinical_item_id"], aggregateResult) );
 
-        aggregateResultsWithScore.sort(key=itemgetter(0));
+        aggregateResultsWithScore.sort(key=itemgetter(0, 1))    # sort by query.sortField and clinical_item_id
+        for result in aggregateResultsWithScore:
+            print(result)
+
         if query.sortReverse:
             aggregateResultsWithScore.reverse();    # Descending order of score to get top results
 
         # Pull out only the top X results to satisfy the query results
         topAggregateResults = list();
-        for i, (score, aggregateResult) in enumerate(aggregateResultsWithScore):
+        for i, (score, clinical_item_id, aggregateResult) in enumerate(aggregateResultsWithScore):
             if query.limit is not None and i >= query.limit:
                 break;  # Stop adding more results if only asked for a subset
             topAggregateResults.append(aggregateResult);
