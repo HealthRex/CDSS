@@ -38,7 +38,9 @@ function saveTrackers(){
   var a = document.createElement('a');
   a.href = 'data:' + encoded_data;
   a.download  = data['user'] + '_' + data['patient'] +'_data_v5.json';
-  a.click()
+  window.setTimeout(function() {  // click the save link after saveTrackers() is finished
+    a.click();
+  }, 0);
   sessionStorage.clear()
 }
 
