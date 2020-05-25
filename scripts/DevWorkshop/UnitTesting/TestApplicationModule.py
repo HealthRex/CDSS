@@ -49,73 +49,66 @@ class TestApplicationModule(unittest.TestCase):
         unittest.TestCase.tearDown(self);   # Superclass tearDown
 
     def test_extractWordsByIndex(self):
-        # Prepare sample input into application code
+        # Prepare sample input into application code and respective expected output
         wordIndex = 1;
         inputFile = open(TEMP_FILENAME);
-        outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
+        expectedOutputList = ["To","To","No","For"];
         
         # Run application code against sample input, and collect output
+        outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
         self.app.extractWordsByIndex(wordIndex, inputFile, outputFile);
         inputFile.close();
+        # Extract the sample results and verify they match the expected results
         actualOutputFileStr = outputFile.getvalue();
         actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
-        
-        # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["To","To","No","For"];
         self.assertEqual(expectedOutputList, actualOutputList);
 
 
-
         ######## More test iterations ########
-        # Prepare sample input into application code
+        # Prepare sample input into application code and respective expected output
         wordIndex = 3;
         inputFile = open(TEMP_FILENAME);
-        outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
+        expectedOutputList = ["or","to","sleep","that"];
         
         # Run application code against sample input, and collect output
+        outputFile = StringIO();
         self.app.extractWordsByIndex(wordIndex, inputFile, outputFile);
         inputFile.close();
+        # Extract the sample results and verify they match the expected results
         actualOutputFileStr = outputFile.getvalue();
         actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
-        
-        # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["or","to","sleep","that"];
         self.assertEqual(expectedOutputList, actualOutputList);
 
 
 
         ######## More test iterations ########
-        # Prepare sample input into application code
+        # Prepare sample input into application code and respective expected output
         wordIndex = 10;
         inputFile = open(TEMP_FILENAME);
-        outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
-        
+        expectedOutputList = ["point","","goes",""];
+
         # Run application code against sample input, and collect output
+        outputFile = StringIO();
         self.app.extractWordsByIndex(wordIndex, inputFile, outputFile);
         inputFile.close();
+        # Extract the sample results and verify they match the expected results
         actualOutputFileStr = outputFile.getvalue();
         actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
-        
-        # Define expected output of a successful application run, and verify the actual results match
-        expectedOutputList = ["point","","goes",""];
         self.assertEqual(expectedOutputList, actualOutputList);
 
 
-
         ######## More test iterations ########
-        # Prepare sample input into application code
+        # Prepare sample input into application code, but this time expect an Error
         wordIndex = 1.2;    # Invalid index. Must be an integer
         inputFile = open(TEMP_FILENAME);
-        outputFile = StringIO();    # Empty IO object can write to like a file, but will just save as an in memory string
         
         # Run application code against sample input, and collect output
         expectError = True;
         actualError = False;
         try:
+            outputFile = StringIO();
             self.app.extractWordsByIndex(wordIndex, inputFile, outputFile);
-            actualOutputFileStr = outputFile.getvalue();
-            actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
-        except TypeError:
+        except TypeError:   # Look for a specific "TypeError" because provided a floating point type instead of an integer type value
             actualError = True;
         inputFile.close();
         # In this case, expect an error to have occurred (invalid wordIndex)
