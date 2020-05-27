@@ -26,7 +26,7 @@ Google Cloud and Compute Instance Setup
 - Startup a Compute VM Instance
   - [Create Instance] under the top nav bar header
     - Name
-    - Region: A region close by can reduce network latency, but more important is consistency (e.g., us-west1-b)
+    - Region: A region close by can reduce network latency, but more important is consistency (e.g., us-central1-a)
     - Zone: As above, pick a consistent zone so all of your servers spawn in the same place
     - Machine Configuration: What type of hardware do you want to use
       - Series + Machine Type
@@ -194,6 +194,8 @@ On GCP Linux Server:
     (Ctrl+C will abort the "tail" monitoring process, not the original application process.)
 
 - Use a batch driver script to run multiple (parallel) processes
+  (Beware that this is likely to overwhelm the RAM (memory) available on the tiny test server)
+
   `bash batchDriver.sh`
 
   Though bash (.sh) scripts are more common, I often prefer Python when it can do all of the above, 
@@ -227,25 +229,17 @@ On GCP Linux Server:
 
 
 OPTIONAL LEARNING 
-- SNAPSHOTS
-  	(Useful when you need more/less compute or want to backup your VM):
-            provide a mechanism to create one or a series of persistent disk backups,
-            each at a specific point-in-time. Snapshots are stored as differential captures of the actual data on a persistent disk,
-            using storage space efficiently.
+- Machine Images
+  	Useful when you need more/less compute or want to backup your virtual machine setup at a particular time:
 
-            Store a compute engine snapshot and restore
-                - Under Compute Engine (left) Go to disks (dropdown)
-                - Go to create snapshot
-                  - you  will see a dropdown of your Instances
-                  - on the right you will see actions
-                    - hit  "Create Snapshot"
-                    - name your snapshot (i.e based on your vm instance)
-                    - source  disk represents the  vm you are  snapshotting
-                - then make snapshot from that  instance
-                - Under Compute  Engine (left)  go to snapshot
-                  - here we can  create an instance with more/less/same  compute as  before with the  same file  directories as
-                       your instance
-                  - steps will be the same as creating an instance
+    - Store / Save a copy of a currently running compute engine instance
+      - [New Machine Image] from the ... menu for your running instance
+    - Restore / Spawan a copy of a compute engine instance that was previously saved as a Machine Image
+      - Machine Image section > Create an Instance
+        Most settings will be similar to creating a new compute instance, 
+        but note how you can choose a "bigger" computer with more CPU, RAM but still have the same
+        hard disk / code setup ready to go.
+
 
 
 
