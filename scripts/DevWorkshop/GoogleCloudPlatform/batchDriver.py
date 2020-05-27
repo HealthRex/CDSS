@@ -27,7 +27,7 @@ specificArgvList = \
 
 for medRoute in ROUTE_LIST:
     for descriptionPrefix in DESCRIPTION_PREFIXES:
-        specificArgv = ["-r", medRoute, "-d", descriptionPrefix, "results/queryResults.%s.%s.tab.gz" % (descriptionPrefix, medRoute) ];
+        specificArgv = ["-r", medRoute, "-d", descriptionPrefix, "results/queryResults.%s.%s.tab" % (descriptionPrefix, medRoute) ];
         specificArgvList.append(specificArgv);
 
 prog = ProgressDots(1,1,"Processes",total=len(specificArgvList));
