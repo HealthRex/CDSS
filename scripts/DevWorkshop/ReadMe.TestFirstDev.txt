@@ -5,7 +5,6 @@ Test First Development
 - Unit test execution and debugging
 - Test First Development example
 - Python command-line processing tips
-    - Data pipes (stdin, stdout, stderr)
 - Further reading:
   http://agiledata.org/essays/tdd.html
 
