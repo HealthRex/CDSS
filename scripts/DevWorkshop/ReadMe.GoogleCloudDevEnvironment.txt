@@ -229,16 +229,24 @@ On GCP Linux Server:
 
 
 OPTIONAL LEARNING 
-- Machine Images
+- SnapShots and Machine Images
   	Useful when you need more/less compute or want to backup your virtual machine setup at a particular time:
 
-    - Store / Save a copy of a currently running compute engine instance
-      - [New Machine Image] from the ... menu for your running instance
-    - Restore / Spawan a copy of a compute engine instance that was previously saved as a Machine Image
-      - Machine Image section > Create an Instance
+    Option 1 - SnapShots (only saves changes compared to last copy, reducing storage costs)
+    - Store / Save a copy of a currently running compute engine instance hard disk as a SnapShot
+      - Compute Engine > Disks > (Find your running Instance) > [Create Snapshot]
+    - Restore / Spawn a copy of a compute engine instance that was previously saved as a SnapShot
+      - Compute Engine > Snapshots > (Find the snapshot of interest) > [Create Instance]
         Most settings will be similar to creating a new compute instance, 
         but note how you can choose a "bigger" computer with more CPU, RAM but still have the same
-        hard disk / code setup ready to go.
+        Boot hard disk / code setup ready to go.
+
+    Option 2 - Machine Images (includes copy of entire hard disk and operating system)
+    - Store / Save a copy of a currently running compute engine instance
+      - [New Machine Image] from the ... menu for your running instance
+    - Restore / Spawn a copy of a compute engine instance that was previously saved as a Machine Image
+      - Machine Image section > Create an Instance
+
 
 
 
