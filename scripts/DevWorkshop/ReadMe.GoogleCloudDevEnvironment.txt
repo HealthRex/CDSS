@@ -105,104 +105,130 @@ Google Cloud and Compute Instance Setup
 
     source .bash_profile
 
+- Setup LocalEnv.py file so the application DBUtil knows how to find the BigQuery database
+  Copy the CDSS/LocalEnv.py.template into a CDSS/LocalEnv.py configuration file.
+
+  Edit the contents of the LocalEnv.py file to refer to the database of interest.
+  Most of the other settings can be ignored, as they are for other environments (e.g., PostgreSQL databases)
+  
+    DATABASE_CONNECTOR_NAME = "bigquery"
+
+    LOCAL_PROD_DB_PARAM["HOST"] = 'mining-clinical-decisions"
 
 == Testing and Running (Batch) Processes ==
 On GCP Linux Server:
 
+- Test Run an Application Module that Connects to Database
+  Should report the number of patient records in the example dataset
 
-  - First run this command to see the expected print.
-  - Prints out a progress indicator every second for N iterations. (This should print out a progress indicator and finish after 10 seconds)
+    python3 -m medinfo.db.DBUtil "select count(*) from starr_datalake2018.demographic"
 
-        python sleep_loop.py 10
+- Running an example script to process data from database and manage intermediate results files
+  - Go to CDSS/scripts/DevWorkshop/GoogleCloudPlatform 
+  - Run the following commands
 
-  - Run the command again, but with a different option, where it will take a long time
-    and you will want to hit Ctrl+C after starting to finish
+    python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0 -
 
-        python sleep_loop.py 1000
+  Should output a bunch of data rows to the console.
+  If you don't want to see it all, you can send the output to a text file
 
-  - (This should print out a progress indicator and would finish after 1000 seconds, but you can just Ctrl+C to quit it,
-     while we now examine how you might manage long compute processes)
+    python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0 results/dataRows.tab
+
+  For potentially very large (intermediate) data files, consider storing them in gzipped format
+  by piping the output through the gzip program and redirecting to a respectively named file.
+
+    python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0 - | gzip > results/dataRows.tab.gz
+
+  Note that this functionality is already embedded in medinfo.common.Util.stdOpen to transparently
+  treat any text files with the .gz suffix as presumptive gzipped content and treat "-" as stdin or stdout.
+
+    python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0 results/dataRows.tab.gz
+
+  You can similarly then decompress and read the contents of gzipped files on-demand
+
+    gzip -dc results/dataRows.tab.gz
 
 
-- Running Background Processes
 
-  - Run this next version of the command, but run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup").
-  - So you can start a long process and just let the server continue to work on it, without requiring you to keep your (laptop) client computer logged in.
-  - Any error messages, progress indicators, or other text that you normally see in the console window will be redirected (&>)
-    to the specified log file (progress.log)
+- Artificially simulate a slow/long process by adding in a 0.5 second pause between each result row
 
-      nohup python -u sleep_loop.py 1000 &> progress.log &
+    python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0.5 results/dataRows.tab
 
-  - to see progress.log updates use the 'cat' command which in this case can display text files on screen
+  When you get bored waiting for above to finish, Ctrl+C to abort the process
 
-      cat progress.log
+- Run the process again, but do so in the background
+
+    nohup python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0.5 results/dataRows.tab &> log/progress.log &
+
+  Above will run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup").
+  So you can start a long process and just let the server continue to work on it,
+  without requiring you to keep your (laptop) client computer logged in.
+  Any error messages, progress indicators, or other text that you normally see in the console window will be
+  redirected (&>) to the specified log file (log/progress.log)
 
 - Check on the progress of the process you have running in the background
-    `ps -u`
-	`ps -u USER -f`
-        USER will be replaced with your google user name  or user name associated  with the compute instance
-		Checks which processes are running under the USER, with full details. Note the Process ID (PID)
-	`kill <PID>`
-		If you need to kill/stop a process that you don't want to continue anymore
-	`top`
-		Running monitor of all the most intensive processes running on the server
-		Overall reporting can track how much total free memory (RAM) the server still has available,
-		and how much processor (CPU) is being used. Helpful when trying to gauge the bottleneck for
-		intensive processes (need more processors or need more RAM?).
-		Note that total CPU load can be >100% for servers with multiple CPUs.
-		The whole point of using a multi-processor server is that you
-		should run multiple simultaneous (parallel) processes
-		to take advantage of extra CPUs working for you.
-		You can't make a single process run at 200% speed with two CPUs,
-		but you can break up the work into two separate tasks, and have each running at 100% on separate CPUs.
-		Beware that the multiple processors are both using the same shared memory (RAM), so if you have a process
-		that uses a lot of RAM, parallelizing the process will also multiply the amount of total RAM needed.
+  `ps -u yourUserName -f`
+    Checks which processes are running under your username, with full details. Note the Process ID (PID)
+  `kill <PID>`
+    If you need to kill a process that you don't want to continue anymore
+  `top`
+    Running monitor of all the most intensive processes running on the server
+    Overall reporting can track how much total free memory (RAM) the server still has available,
+    and how much processor (CPU) is being used. Helpful when trying to gauge the bottleneck 
+    for intensive processes (need more processors or need more RAM?).
+    Note that total CPU load can be >100% for servers with multiple CPUs.
+    The whole point of using a multi-processor server is that you should run 
+    multiple simultaneous (parallel) processes to take advantage of extra CPUs working for you.
+    You can't make a single process run at 200% speed with two CPUs,
+    but you can break up the work into two separate tasks, and have each running at 100% on separate CPUs.
+    Beware that the multiple processors are both using the same shared memory (RAM), so if you have a process
+    that uses a lot of RAM, parallelizing the process will also multiply the amount of total RAM needed.
 
-		"M" to sort the results by which processes are using the most memory
-		"q" to quit/exit when done.
-	`cat process.log`
-		Show the output of the redirected console output from your application process
-	`tail -f process.log`
-		Show just the last few lines of the redirected console output,
-		and continue watching it until Ctrl+C to abort.
-		(Ctrl+C will abort the "tail" monitoring process, not the original application process.)
+    "M" to sort the results by which processes are using the most memory
+    "q" to quit/exit when done.
+  `cat log/process.log`
+    Show the output of the redirected console output from your application process
+  `tail -f log/process.log`
+    Show just the last few lines of the redirected console output, 
+    and continue watching it until Ctrl+C to abort.
+    (Ctrl+C will abort the "tail" monitoring process, not the original application process.)
+
+- Use a batch driver script to run multiple (parallel) processes
+  `bash batchDriver.sh`
+
+  Though bash (.sh) scripts are more common, I often prefer Python when it can do all of the above, 
+  is more flexible, platform independent, and unifies the programming/scripting language used.
+  For example, rather than copy-pasting a dozen similar but different command line calls in batchDriver.sh,
+  use a Python loop to dynamically generate those commands and spawn them via the subprocess module:
+
+  `python3 batchDriver.py`
+
+  If you prefer serial, rather than parallel, processes for more control.
+  Remove the "nohup &" background commands from the .sh script, or change the Python subprocess.Popen to subprocess.call.
+  You may then want to run the batchDriver itself as a background process with a redirected log file:
+
+  `nohup python3 batchDriver.py &> log/driver.log &`
+
+  Additional support functionality:
+    medinfo/common/support/awaitProcess.py - Wait until an existing process completes before starting another one
+    medinfo/common/ProcessManager.py - Not implemented yet (5/14/2018). Intended to consolidate above support functionality.
+
+  Large compute clusters often have their own job submission and parallelization schemes (e.g., qsub, bsub grid engines).
+  Depending on the scale of your needs, you may want to look into such services. 
+  Otherwise, you can get a lot done cheaply by just taking advantage of multiple CPU servers as above.
+  For example, once you've got your compute instance setup, create a SnapShot image of the hard disk,
+  then restore that image onto a server with dozens more CPUs and then just run your processes on that server.
+  We're paying for these servers by the hour, but the pricing is proportional to capacity.
+  Given that proportionality, you can pay twice as much for twice as many CPUs that will get your
+  job done in half the time. This is perfectly worth it since the amount of dollars spent is the same,
+  but you save half your human time waiting for results.
 
 
-- Section on running serial and parallel processes using simple scripts.
 
-- Running a batch script in the background
-  	- If you have a series of python scripts you would like to run in the background you can create a shell script of
-      python programs you want to run.
-    - We will be using cloud_read.py which is a python script that converts a sql query from BigQuery into rows of output
-      on the command line. It accepts three arguments that you can change.
-    - First change the directory
 
-  	   cd batch/
-
-    - the first argument is the delay time in seconds (1) between result outputs
-    - the second argument is the letter to query (a)
-    - the third argument is the number of rows to output (5)
-
-        python cloud_read.py 1 a 5
-
-    - Feel free to change the arguments and see how the output changes
-
-    - Then you can run 'cloudDriverScript.py' which is a script that creates a python batch file.
-    - The 'cloudDriverScript.py' creates a shell script (A shell script is a computer program that runs on the command line interpreter)
-
-        python cloudDriverScript.py
-
-    - The cloud_log.sh file that is created is a shell script that includes batch python scripts, that builds off of the cloud_read.py
-    - It outputs the first 100 rows of med descriptions, for each letter  of the alphabet, giving 26 different log files.
-
-      bash cloud_driver.sh
-
-    - The cloud_log.sh file gives a template for writing scripts or programs that may a take a long time to run,
-    - runs in the background, while recording the progress and outputs as they occur.
-    - If a process is taking too long or your dataset increases in size. You may think about increasing your compute on the instance.
-
+OPTIONAL LEARNING 
 - SNAPSHOTS
-  	OPTIONAL LEARNING (Useful when you need more/less compute or want to backup your VM):
+  	(Useful when you need more/less compute or want to backup your VM):
             provide a mechanism to create one or a series of persistent disk backups,
             each at a specific point-in-time. Snapshots are stored as differential captures of the actual data on a persistent disk,
             using storage space efficiently.
