@@ -78,7 +78,8 @@ class TestApplicationModule(unittest.TestCase):
         actualOutputFileStr = outputFile.getvalue();
         actualOutputList = actualOutputFileStr[:-1].split("\n"); # Get one value per line, ignoring the ending newline
         self.assertEqual(expectedOutputList, actualOutputList);
-
+        # HINT: str.strip(string.punctuation)
+        # https://stackoverflow.com/questions/265960/best-way-to-strip-punctuation-from-a-string
 
 
         ######## More test iterations ########
