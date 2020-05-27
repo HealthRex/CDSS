@@ -3,159 +3,107 @@ Google Cloud and Compute Instance Setup
 
 == Learning Goals ==
 - Setting up Google Cloud Compute Instances
-    - SSH GCloud
-    - Setting up Linux Instance
+    - SSH remote connections + public-private key security
+    - Setting up a Linux Instance
 - Running queries on Linux server
-    - Process management to allow process to keep running in background while logged off
+    - Process management to allow (parallel) processes to keep running in background while logged off
     - (nohup command &> logFile &)
-- Parallel and Batch Processes
-    - Importing medinfo
-    - Shell Scripting
 
 == Preconditions ==
 - Google Stanford Account with VPN setup
-- Project Permissions
-- Service Account with Access Permissions to BigQuery Databases
+- Project (mining-clinical-decisions) Permissions
+  (See ReadMe.GoogleCloud-BigQuery-VPC.txt DevWorkshop)
 
 == Workshop Steps ==
-=== Starting from blank Compute Engine and Connecting to BigQuery ===
+=== Setting up a Compute Engine Instance from Scratch ===
 - Login to the Google Cloud Platform
+    https://console.cloud.google.com/home/dashboard?project=mining-clinical-decisions&authuser=1
   - Make sure connected as your stanford.edu account
-  - Pick the correct GCP Project (Mining-Clinical-Decisions depending on access needed)
-  (See prior workshop on VPN access if needed)
+  - Pick the correct GCP Project on the top nav bar ([Mining Clinical Decisions] depending on access needed)
 
-- Select "VM instances" under "Compute Engine" section in left-side dropdown under "COMPUTE"
+- Top Left Menu > [Compute Engine] > [VM instances]
 
 - Startup a Compute VM Instance
-    - Click on Create Instance button in top bar under header
-	- Name
-  	- Name your instance: For example, username or last name first letter initial for workshop. ie. chiangj
-        - Region
-            - Geographic location where  you run your instance
-            - Decreased Network Latency
-                - Choose a region close by to reduce latency, but more important is just to be consistent (e.g., us-west1-b)
-  		 - Zone
-    		    - As above, pick a consistent zone so all of your servers spawn in the same place
-     - Series
-     	- select N1 for  workshop
-     	- type of server processor
-
-     - Machine type
-	     Can be customized in 'Machine type' dropdown under custom.
-             Otherwise select a compute instance that fulfills your needs
-	     - select n1-standard1 for workshop.
-	     - different machines types cost different amounts based on compute  power  (ram, processor, etc)
-
-		For testing purposes we can use n1-standard
-            	With heavy computing, you can pick a server with more CPUs and more RAM
-        - Boot Disk
-            Allows you to change the Operating System
-
-	- Identity and API access
-	    - Select 'mining-clinical-dev' in dropdown. This gives read/view access and create job access
-		    This is the most important for accessing BigQuery. You should have
-		    access to a service account that has the BQ enabled.
-		    (Service accounts are different levels of permissions to access data in bigquery
-        is a permissions method to enable compute instances to access BigQuery databases
-        without requiring individual login key file (though that is an option too).
-
+  - [Create Instance] under the top nav bar header
+    - Name
+    - Region: A region close by can reduce network latency, but more important is consistency (e.g., us-west1-b)
+    - Zone: As above, pick a consistent zone so all of your servers spawn in the same place
+    - Machine Configuration: What type of hardware do you want to use
+      - Series + Machine Type
+        Different machines types cost different amounts based on how many CPUs and RAM you need
+        For testing purposes, just pick choose one of the smallest ones (e.g., N1 - f1-micro)
+    - Boot Disk: Allow specification of different default Operating Systems (default Debian GNU/Linux for now)
+  	- Identity and API access
+	    If you want the compute instance to have specific access privilieges.
+      Select 'mining-clinical-dev' for simplicity for now, as this gives read/view and create job access
+      against the BigQuery databases through a Service Account 
+      without requiring individual login key files (though that is an option too).
     - Create
-        - then you can create your instance
 
--- ACCESSING YOUR  INSTANCE:
+- Accessing your Compute Instance:
+  SSH secure shell terminals allow for secure encrypted command-line access to computers
+  This requires SSH public-private key pairs or a login/password (though the latter is not as secure)
 
-  -  Gcloud SSH versus Browser:
-     - SSH key is an access credential in the SSH protocol for VM/instances  (like a login/password)
+  - Option 1 - Using the browser based SSH client
+    - Find the compute instance you created under Compute Engine > VM Instances
+    - Click the [SSH] Connect option to the right of your instance name
+      This should spawn a terminal console window that logs you into the 
+      home directory of a Linux server where you can interactively enter shell commands (e.g., ls, mkdir, pwd)
 
-    - Access with SSH/Browser
-      - Click ssh on the right of your instance name
-      - Can Download and upload files with GUI
-      - No other installation required (very convenient)
-      - Connecting may be  a little slower depending on  number of vms and identifying ssh keys
+  - Option 2 - Using gcloud/SSH command-line tools
+    Requires gcloud installation (see ReadMe.GoogleCloudDevEnvironment.txt DevWorkshop)
+  	From your local command-line terminal/console:
+			
+      gcloud init
+			- Pick configuration (typically 1)
+			- Choose account (stanford.edu)
+			- Pick a cloud project (mining-clinical-decisions)
+			- Select the region associated with instance (optional)
+			
+      From the browser VM list, look under the other menu options after the [SSH] default Connect option, 
+      including the gcloud command line option. This should an SSH terminal console to the compute instance.
+      You should get a warning about the authenticity of the server/host not being established.
+      This makes sense since you've never connected to this server before, and you could be the
+      subject of a "man-in-the-middle" attack. Just agree to the connection for test/dev purposes,
+      but for real applications with security risks, you should authenticate the server by other channels.
 
-    - Access with gcloud/SSH
-      - You may use gcloud instead of the SSH browser provided on the google console window. This allows you to use
-        the terminal on your system.
-      - automatic generation of ssh keys
+        gcloud compute ssh <instanceName>
 
-	    - Precondition:
-	  		- requires gcloud installation (see GoogleCloudDevEnvironment.txt devworkshop)
-	  		- Access on SSH
-	  			1) gcloud init
-  				2) pick configuration (typically 1)
-  				3) choose  account (stanford account)
-  				4) pick a cloud project (mining-clinical-decisions)
-  				5) select region associated with instance
-	  			6) gcloud compute ssh <name-instance>
+- Install Libraries and Dependencies / Package Managers
+  You'll need software packages and dependencies installed on the compute instance for development work
+  Default system comes with both Python 2.7 and Python 3.7 installed (latter as "python3") (as of 5/26/2020),
+  but is largely barebones in terms of other software packages. Using package management software tools,
+  such as apt and pip in this case, are essentially for easing the pain of "dependency hell."
 
+  Run the following commands to install several dependencies:
 
+    sudo apt update                               # Tell the "superuser" admin to "do" an update of the apt tool
+    sudo apt install git                          # Git client to communicate with source code version control repository
+    sudo apt install python3-pip                  # Install PIP tool for Python package management
+    python3 -m pip install google-cloud-bigquery  # Python - Google Cloud interface to connect to BigQuery databases
+    python3 -m pip install pandas                 # Popular Python package for manipulating tabular dataframes
 
-	- Install Libraries and Dependencies / Package Managers
+- Download a Copy of the Application Code Repository
+	
+  git clone https://github.com/HealthRex/CDSS.git
 
-      - The following steps ensure that you have the proper packages installed in python as well the proper
-          linux dependencies installed.
-      - Unix based operating systems use 'sudo' commands as a superuser command.
-          This means that your command acts as the admin and may require a password to use.
-      - 'apt' acts a  command line interface for linux distribution commands. Typically system wide installations or changes
-          will be prefaced by  'sudo apt ...'
-      - 'git' acts as the way to communicate with out repository to maintain our code.
-      - 'pip' is the python package manager command and helps to install python modules
-      - 'pandas' is a very popular python package used to manage dataframes in a more user friendly way,
-          which is helpful for interfacing with tabular EHR data in a python and analytical environment
+- Setup PYTHONPATH so Python knows where to find Application Code
+  Enter the following shell command to create/update a PYTHONPATH shell environment variable
+  to tell Python where to look for code package and module imports beyond the current working directory.
 
-            - Installs Dependencies: Python/Bigquery
-            - Installs Python dependencies
-            - Install  Git for  Version Control
+    export PYTHONPATH=/home/yourUserName/CDSS:$PYTHONPATH
 
-        sudo apt update
-        sudo apt install git
-        wget https://bootstrap.pypa.io/get-pip.py
-        sudo python get-pip.py
-        pip install google-cloud-bigquery
-        pip install pandas
+  Or wherever you put the CDSS directory. Followed by a $ reference to any existing $PYTHONPATH 
+  so if you already had anything set, you'll copy the prior value and just preprend your additions here.
+  Better yet, append the command to the .bash_profile script:
 
-	- Download Copy of Application Code Repository
-		    git clone https://github.com/HealthRex/CDSS.git
+    echo "export PYTHONPATH=/home/yourUserName/CDSS:$PYTHONPATH" >> .bash_profile
 
-  - How to upload and download files to your compute instance (i.e., SCP)
-      Use both the web GUI And the command-line options as examples???
+  Or use a Unix text editor to edit the profile script (`vi /home/yourUserName/.bash_profile`)
+  The .bash_profile script (the . prefix indicates a hidden system file you can find with `ls -la`)
+  will run every time you connect to the server, or you can direct invoke it with:
 
-  	- Using SSH/Web Browser client
-  		???More relevant than downloading files, would be show how to upload and download???
-  		- Top right corner of window has a Gear icon with a Upload and Download file option
-  		- To download specify your path and file you wish to download: for example:
-        - ("/home/yourUserName/CDSS/scripts/DevWorkshop/ReadMe.GoogleCloudDevEnvironment.txt")
-  		- To upload:
-    		- select 'Upload file' and select the file you wish to upload.This will upload to your current directory
-
-
-    - Using gcloud / command-line
-	      gcloud compute scp yourLocalFile.txt <instance-name>:/home/yourID/yourRemoteFileCopy.txt
-
-         (where instance-name is the name of your instance)
-
-
-  - Python Modules and Exporting PythonPath to use medinfo module (linux)
-      - Python code uses "import" of code packages and modules to reuse components, but then your Python interpreter needs to know where to find these modules...
-      - The import statement combines two operations; it searches for the named module, then it binds the results of that search to a name in the local scope.
-      - When a module is first imported, Python searches for the module in the current path and if found, it creates a module object 1, initializing it.
-      - If the named module cannot be found, a ModuleNotFoundError is raised.
-      - Python can look for modules in the PYTHONPATH
-      - use (can use 'pwd' to get path attributes [your_directory])
-
-            export PYTHONPATH=/[your_directory]/CDSS/
-
-      - then type 'python' of 'python3' in the command line to open the Python interpreter depending on which version of Python being used
-             python
-      - import medinfo to confirm you can import the CDSS modules
-             >>> import medinfo
-
-      - Exit out of python shell
-             >>> quit()
-
-      - Change your directory to the devworkshop in our repo
-
-            cd CDSS/scripts/DevWorkshop/GoogleCloudPlatform
+    source .bash_profile
 
 
 == Testing and Running (Batch) Processes ==
@@ -272,3 +220,19 @@ On GCP Linux Server:
                   - here we can  create an instance with more/less/same  compute as  before with the  same file  directories as
                        your instance
                   - steps will be the same as creating an instance
+
+
+
+- Notes on How to Upload/Download any File
+  - Option 1 - Using SSH/Web Browser client
+    - Top right corner of window has a "Gear" icon with a Upload and Download file option
+    - To download specify your path and file you wish to download: for example:
+      - ("/home/yourUserName/CDSS/scripts/DevWorkshop/ReadMe.GoogleCloudDevEnvironment.txt")
+    - To upload:
+      - select 'Upload file' and select the file you wish to upload to the current working directory
+
+  - Option 2 - Using gcloud from you local command-line console to simulate an SCP (secure copy) command
+    
+    gcloud compute scp yourLocalFile.txt <instance-name>:/home/yourUserName/yourRemoteFileCopy.txt
+
+
