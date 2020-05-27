@@ -13,6 +13,7 @@ import time;
 import json;
 from optparse import OptionParser
 import re;
+import string;
 
 COMMENT_TAG = "#";
 
