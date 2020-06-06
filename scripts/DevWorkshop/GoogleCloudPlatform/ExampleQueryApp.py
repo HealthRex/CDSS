@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Example app module to run queries against the processed clincal database, 
+Example app module to run queries against a GCP BigQuery database, 
 more as fodder to test management of driver scripts to manage this.
 """
 import sys, os
@@ -24,15 +24,15 @@ class ExampleQueryApp:
         pauseSeconds = float(options.pauseSeconds);
 
         query = SQLQuery();
-        query.addSelect("cic.description, ci.clinical_item_id, ci.name, ci.description");
-        query.addFrom("clinical_item_category as cic");
-        query.addFrom("clinical_item as ci");
-        query.addWhere("cic.clinical_item_category_id = ci.clinical_item_category_id");
-        if options.itemPrefix:
-            query.addWhereOp("ci.description","like", options.itemPrefix+"%%");    # Add wildcard to enabe prefix search
-        if options.categoryNames:
-            query.addWhereIn("cic.description", options.categoryNames.split(",") );
-        query.addOrderBy("cic.description, ci.name, ci.description, ci.clinical_item_id");
+        query.addSelect("count(order_med_id_coded) as nOrders");
+        query.addSelect("om.med_route, om.medication_id, om.med_description");
+        query.addFrom("starr_datalake2018.order_med as om");
+        if options.descriptionPrefix:
+            query.addWhereOp("om.med_description","like", options.descriptionPrefix+"%%");    # Add wildcard to enabe prefix search
+        if options.medRoutes:
+            query.addWhereIn("om.med_route", options.medRoutes.split(",") );
+        query.addGroupBy("om.medication_id, om.med_description, om.med_route");
+        query.addOrderBy("nOrders desc, om.med_description");
 
         formatter = TextResultsFormatter(outputFile);
         
@@ -45,12 +45,12 @@ class ExampleQueryApp:
 
     def main(self, argv):
         """Main method, callable from command line"""
-        usageStr =  "Query for the clinical_item records that exist with the specified criteria\n"+\
+        usageStr =  "Query for order_med record counts that exist with the specified criteria\n"+\
                     "usage: %prog [options] [<outputFile>]\n"+\
-                    "   <outputFile>    Results file. Leave blank or specify \"-\" to send to stdout.\n"
+                    "   <outputFile>    Results file. Specify \"-\" to send to stdout.\n"
         parser = OptionParser(usage=usageStr)
-        parser.add_option("-i", "--itemPrefix",  dest="itemPrefix", help="Look for clinical_items whose description starts with this prefix.");
-        parser.add_option("-c", "--categoryNames",  dest="categoryNames", help="Comma separated list of clinical_item_category.descriptions to look for.");
+        parser.add_option("-d", "--descriptionPrefix",  dest="descriptionPrefix", help="Look for medication orders whose description starts with this prefix.");
+        parser.add_option("-r", "--medRoutes",  dest="medRoutes", help="Comma separated list of medication routes to consider (e.g., Intravenous, Oral).");
         parser.add_option("-p", "--pauseSeconds",  dest="pauseSeconds", default="0", help="Number of seconds to pause between processing each record.");
         (options, args) = parser.parse_args(argv[1:])
 
