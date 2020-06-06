@@ -15,7 +15,7 @@ Accessing GoogleCloud BigQuery within Virtual Private Cloud
 - Python Installed
 
 Recommended to save time during workshop:
-- Access granted to Virtual Private Cloud contained BigQuery database
+- Access granted to Virtual Private Cloud containing BigQuery database
 - Google Cloud SDK Installed
   https://cloud.google.com/sdk/install
 - Google Cloud - Python API Libraries Installed
@@ -23,7 +23,8 @@ Recommended to save time during workshop:
 
 == Workshop Steps ==
 - Review tiers of access restriction for moderate to high-risk patient data
-  * Name (non-obvious) data elements that qualify as Protected Health Information (and thus High-Risk Data that require stronger security)
+  * Name (non-obvious) data elements that qualify as Protected Health Information 
+      (and thus High-Risk Data that require stronger security)
     - Real dates (relative times or date shifted / jittered okay)
     - Location more precise than 3 digit ZIP code (including hospital bed numbers)
     - Age when >90 years old
@@ -34,7 +35,8 @@ Recommended to save time during workshop:
 
 === Stanford-only GCP project "mining-clinical-decisions" (still not safe for PHI) ===
 - Access Control requests
-  If you want in this club, complete the data usage requirements first and have a group sys admin grant BigQuery User privileges through GCP interface linked below.  
+  If you want in this club, complete the data usage requirements first and have a group sys admin grant 
+  BigQuery User and Viewer privileges through the GCP interface linked below.  
   https://github.com/HealthRex/CDSS/wiki/Data-usage-training-and-agreements
   https://console.cloud.google.com/iam-admin/iam?authuser=1&project=mining-clinical-decisions
   
@@ -56,14 +58,20 @@ Recommended to save time during workshop:
   "Full Traffic non-split-tunnel" for the Group option.
 
   Try refreshing your web browser to reconnect through the web GUI to the BigQuery project database again.
-  You can continue to do any regular work in the meantime, though technically any internet traffic you're conducting is not being sent direct. It is being encrypted and sent through the Stanford secure network first and then relayed on to the actual websites or email servers you're trying to reach. This allows your computer now to mimic being within the secured virtual private network.
+  You can continue to do any regular work in the meantime, though technically any internet traffic 
+  you're conducting is not being sent direct. It is being encrypted and sent through the Stanford 
+  secure network first and then relayed on to the actual websites or email servers you're trying to reach. 
+  This allows your computer now to mimic being within the secured virtual private network.
 
 - IPv4 vs. IPv6
-  If you're still getting VPC access control errors despite the above (particularly when logging in from home), be sure your network adapter is set to use IPv4 rather than IPv6. This reflects an updated version of the way internet addresses are allocated, but looks like GCP VPC protocols don't accomodate for the newer system yet.
+  If you're still getting VPC access control errors despite the above (particularly when logging in from home),
+  be sure your network adapter is set to use IPv4 rather than IPv6. 
+  This reflects an updated version of the way internet addresses are allocated, 
+  but looks like GCP VPC protocols don't accomodate for the newer system yet.
   
   Apple Systems:
   - Go to Apple - > System Preferences -> Network
-  - Select the current network connection you see listed on the left-hand side, then click the Advanced button.
+  - Select the current network connection listed on the left-hand side, then click the Advanced button.
   - Go to the TCP/IP tab at the top
   - Beside "Configure IPv6", set it to "Link-local Only" and "Apply"
   
@@ -75,7 +83,10 @@ Recommended to save time during workshop:
   - Uncheck "Internet Protocol Version 6 (TCP/IPv6)"
 
 - Test Queries
-  - See bottom left for lists of projects, which contain lists of datasets/databases, which contain lists of tables that you can query. For example:
+  - See bottom left for lists of projects, which contain lists of datasets/databases, 
+    which contain lists of tables that you can query.
+    (You may need to manually search for the project "mining-clinical-decisions" and "Pin" it for later use.)
+    For example:
 
           SELECT *
           FROM starr_datalake2018.order_med
@@ -83,19 +94,23 @@ Recommended to save time during workshop:
 
 === Stanford-VPC GCP project "som-nero-phi-jonc101" (safe for PHI) ===
 - Access Control requests
-  If you want in this club, you will further need to be added to a respective IRB that allows for PHI access and have a group sys admin grant membership to the nero:jonc101-bq-users workgroup via the link below. 
-  If additional privileges are needed, they need to be requested through Stanford Research Computing Center support <srcc-support@stanford.edu>
+  If you want in this club, you will further need to be added to a respective IRB that allows for 
+  PHI access and have a group sys admin grant membership to the 
+  nero:jonc101-bq-users workgroup (or subgroups for specific datasets) via the link below. 
+  If additional privileges are needed, they need to be requested through 
+  Stanford Research Computing Center support <srcc-support@stanford.edu>
   https://workgroup.stanford.edu/main/WGApp
 
 - Web GUI access to BigQuery databases
-  Try connecting to the secure project through browser similar to above...
+  Try connecting to the secure project through your browser similar to above...
   https://console.cloud.google.com/bigquery?authuser=1&project=som-nero-phi-jonc101
 
 - Programmatic (Python) API access to BigQuery databases (Google Cloud SDK)
-  You will need to create a local JSON key file to identify yourself in your (Python) programs if you want them to access these secured databases.
+  You will need to create a local JSON key file to identify yourself in your (Python) programs 
+  if you want them to access these secured databases.
 
   - Find, download and run the respective Google Cloud SDK installer for your system from the link below. 
-    (If you already have Python 2.7 installed on your system, you can skip that dependency)
+    (If you already have Python installed on your system, you can skip that dependency)
     https://cloud.google.com/sdk/install
   - Run the Google Cloud SDK initializer from command-line 
 
@@ -103,7 +118,10 @@ Recommended to save time during workshop:
 
   - Run the Google Cloud application authentication
     This should spawn a web browser (or create a web link you can use) to login as a specific user 
-    After completing the above, go back to your command terminal and it should report a message that it created a JSON key file in a local directory (recommend you rename it to something that includes your user name, and store it in a place you will remember).
+    After completing the above, go back to your command terminal and it should report a message 
+    that it created a JSON key file in a local directory 
+    (recommend you rename it to something that includes your user name, 
+    and store it in a place you will remember).
 
     gcloud auth application-default login
 
@@ -121,8 +139,7 @@ Recommended to save time during workshop:
     
     Python
     >>> from google.cloud import bigquery;
-    >>> from google.cloud.bigquery import dbapi;
-    >>> client = bigquery.Client("som-nero-phi-jonc101"); # Project identifier - Alternatively, specify this through GOOGLE_CLOUD_PROJECT environment variable
+    >>> client = bigquery.Client("som-nero-phi-jonc101"); # Alternatively, set GOOGLE_CLOUD_PROJECT environment variable
     >>> conn = dbapi.connect(client);
     >>> cursor = conn.cursor();
     >>> query = "select rit_uid, gender, birth_date_jittered from `starr_datalake2018.demographic` limit 10"; # Example dataset table
@@ -146,9 +163,15 @@ Support Notebooks in Jupyter for examples of tips and tricks for reviewing and m
 https://code.stanford.edu/starr/nero-starr-notebooks
 
 
-If set CDSS code tree LocalEnv.DATABASE_CONNECTOR_NAME parameters, then medinfo.db.DBUtil.connection should take care of setting up a Python DB-API compliant connection object to the BigQuery database (not all functionality supported at this time).
-If you need to do direct manipulations against the database (e.g., creating and renaming tables, importing data, etc.), then you may want to directly use the BigQueryClient interface. Otherwise I recommended sticking to the generic DB-API interface, so you remain cross-platform compatible with other databases.
+If you set the CDSS code tree LocalEnv.DATABASE_CONNECTOR_NAME parameters, 
+then medinfo.db.DBUtil.connection should take care of setting up a Python DB-API compliant connection object 
+to the BigQuery database (not all functionality supported at this time).
 
+If you need to do direct manipulations against the database 
+(e.g., creating and renaming tables, importing data, etc.), 
+then you may want to directly use the BigQueryClient interface. 
+Otherwise I recommended sticking to the generic DB-API interface, 
+so you remain cross-platform compatible with other databases.
 
 
 Alternative option to create service account authentication keys instead of user authentication keys

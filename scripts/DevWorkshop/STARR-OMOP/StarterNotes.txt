@@ -18,3 +18,49 @@ Here are the steps to get access to STARR omop data:
 Here is a link to the STARR-OMOP User Docs to give you a better picture: (for access, log in using your Stanford email):
 
 •	User Docs: https://docs.google.com/document/d/1dTjCEvvU8sMd8CuaVx94YFoPTsW_xjOMoF9-xl5zHik/view#heading=h.b7frls1oh2pm
+
+
+
+
+
+
+
+
+
+
+Priya Desai (4/11/2020)
+
+
+Welcome to STARR Data Users group
+Your access to STARR-OMOP-deid data has been enabled. The STARR-OMOP-deid data resides in the GCP project som-rit-phi-starr-prod. You can access the data using jupyter notebooks from your nero on-prem project. You have also been granted access to:
+1.	Slack Data users channel
+2.	Nero-STARR-notebooks repository in the Stanford gitlab
+Accessing STARR-Nav de-id data:
+1)	Connect to the Stanford Full Tunnel VPN; information about setting up the VPN is available at https://vpn.stanford.edu
+2)	Confirm access using the BigQuery console:
+a)	Log into you nero GCP project from https://console.cloud.google.com using your Stanford SUNet ID.
+3)	Click on the following link:   https://console.cloud.google.com/bigquery?authuser=0&folder=&organizationId=&project= your nero gcp projectname &p=som-rit-phi-starr-prod&page=project , after replacing the highlighted portion with your Nero GCP project name.
+4)	In the BigQuery console, under the Resources tab; type in som-rit-phi-starr-prod and click on it. You should be able to view the following 5 datasets:
+i)	starr_omop_cdm5_deid_1pcent_latest
+ii)	starr_omop_cdm5_deid_latest
+iii)	starr_omop_cdm5_deid_1pcent_lite
+iv)	starr_omop_cdm5_deid_1pcent_lite_latest
+v)	Synpuf_2m_cdm_53
+5)	If you see VPC control errors, you may need to reset your IPv6  settings. See Resolving VPC Service Control Errors. If you continue to experience problems please email prd@stanford.edu.
+
+	We highly discourage the use of the BQ console for data exploration due to security risks.
+	You can now access all these datasets via Jupyter Notebooks from the nero on prem server.
+	More information about STARR-Nav Deid data can be found in:
+1.	User Docs:   https://docs.google.com/document/d/1dTjCEvvU8sMd8CuaVx94YFoPTsW_xjOMoF9-xl5zHik/view# 
+2.	OMOP 5.3 specs: https://drive.google.com/open?id=1WCj8zp0ZbMG1yHdYNFpG3xWVfsV_tnPJ
+3.	Technical Specs: https://drive.google.com/a/stanford.edu/file/d/16OfTSUEdxMe5fddGB4I_qtc5O2SrOPf0/view?usp=sharing
+4.	To see more documentation and  introductory material on using Jupyter notebooks on
+Nero to explore BQ datasets, see the project Nero-STARR-notebooks in the Stanford  gitlab.
+5.	You have also been added to the STARR-data users Slack channel at https://starrdatausers.slack.com/ where notifications will be posted. Slack is our primary method of communication. You should have links to the user guide and technical docs in the list on pinned items under the starr-general.
+Thanks !
+--
+Priya Desai, 
+Biomedical Informatics Product Manager
+Research IT, Stanford School of Medicine,
+408-688-7464 | prd@stanford.edu
+
