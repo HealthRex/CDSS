@@ -99,6 +99,12 @@ def connection( connParams=None ):
         import sqlite3;
         return sqlite3.connect(os.path.join(connParams["DATAPATH"], connParams["DSN"]));
 
+    if Env.DATABASE_CONNECTOR_NAME == "bigquery":
+        import google.cloud.bigquery.dbapi;
+        return google.cloud.bigquery.dbapi.connect();   # Depends on environment variables to identify right connection
+
+
+
 def identityQuery( tableName , pgSeqName=None):
     """Given a table name, return the SQL query that will return the
     last auto-generated primary key value (i.e. sequences) from that table.

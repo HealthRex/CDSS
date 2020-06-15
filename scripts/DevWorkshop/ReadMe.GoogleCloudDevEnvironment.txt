@@ -3,272 +3,264 @@ Google Cloud and Compute Instance Setup
 
 == Learning Goals ==
 - Setting up Google Cloud Compute Instances
-    - SSH GCloud
-    - Setting up Linux Instance
+    - SSH remote connections + public-private key security
+    - Setting up a Linux Instance
 - Running queries on Linux server
-    - Process management to allow process to keep running in background while logged off
+    - Process management to allow (parallel) processes to keep running in background while logged off
     - (nohup command &> logFile &)
-- Parallel and Batch Processes
-    - Importing medinfo
-    - Shell Scripting
 
 == Preconditions ==
 - Google Stanford Account with VPN setup
-- Project Permissions
-- Service Account with Access Permissions to BigQuery Databases
+- Project (mining-clinical-decisions) Permissions
+  (See ReadMe.GoogleCloud-BigQuery-VPC.txt DevWorkshop)
 
 == Workshop Steps ==
-=== Starting from blank Compute Engine and Connecting to BigQuery ===
+=== Setting up a Compute Engine Instance from Scratch ===
 - Login to the Google Cloud Platform
+    https://console.cloud.google.com/home/dashboard?project=mining-clinical-decisions&authuser=1
   - Make sure connected as your stanford.edu account
-  - Pick the correct GCP Project (Mining-Clinical-Decisions depending on access needed)
-  (See prior workshop on VPN access if needed)
+  - Pick the correct GCP Project on the top nav bar ([Mining Clinical Decisions] depending on access needed)
 
-- Select "VM instances" under "Compute Engine" section in left-side dropdown under "COMPUTE"
+- Top Left Menu > [Compute Engine] > [VM instances]
 
 - Startup a Compute VM Instance
-    - Click on Create Instance button in top bar under header
-	- Name
-  	- Name your instance: For example, username or last name first letter initial for workshop. ie. chiangj
-        - Region
-            - Geographic location where  you run your instance
-            - Decreased Network Latency
-                - Choose a region close by to reduce latency, but more important is just to be consistent (e.g., us-west1-b)
-  		 - Zone
-    		    - As above, pick a consistent zone so all of your servers spawn in the same place
-     - Series
-     	- select N1 for  workshop
-     	- type of server processor
-
-     - Machine type
-	     Can be customized in 'Machine type' dropdown under custom.
-             Otherwise select a compute instance that fulfills your needs
-	     - select n1-standard1 for workshop.
-	     - different machines types cost different amounts based on compute  power  (ram, processor, etc)
-
-		For testing purposes we can use n1-standard
-            	With heavy computing, you can pick a server with more CPUs and more RAM
-        - Boot Disk
-            Allows you to change the Operating System
-
-	- Identity and API access
-	    - Select 'mining-clinical-dev' in dropdown. This gives read/view access and create job access
-		    This is the most important for accessing BigQuery. You should have
-		    access to a service account that has the BQ enabled.
-		    (Service accounts are different levels of permissions to access data in bigquery
-        is a permissions method to enable compute instances to access BigQuery databases
-        without requiring individual login key file (though that is an option too).
-
+  - [Create Instance] under the top nav bar header
+    - Name
+    - Region: A region close by can reduce network latency, but more important is consistency (e.g., us-central1-a)
+    - Zone: As above, pick a consistent zone so all of your servers spawn in the same place
+    - Machine Configuration: What type of hardware do you want to use
+      - Series + Machine Type
+        Different machines types cost different amounts based on how many CPUs and RAM you need
+        For testing purposes, just pick choose one of the smallest ones (e.g., N1 - f1-micro)
+    - Boot Disk: Allow specification of different default Operating Systems (default Debian GNU/Linux for now)
+  	- Identity and API access
+	    If you want the compute instance to have specific access privilieges.
+      Select 'mining-clinical-dev' for simplicity for now, as this gives read/view and create job access
+      against the BigQuery databases through a Service Account 
+      without requiring individual login key files (though that is an option too).
     - Create
-        - then you can create your instance
 
--- ACCESSING YOUR  INSTANCE:
+- Accessing your Compute Instance:
+  SSH secure shell terminals allow for secure encrypted command-line access to computers
+  This requires SSH public-private key pairs or a login/password (though the latter is not as secure)
 
-  -  Gcloud SSH versus Browser:
-     - SSH key is an access credential in the SSH protocol for VM/instances  (like a login/password)
+  - Option 1 - Using the browser based SSH client
+    - Find the compute instance you created under Compute Engine > VM Instances
+    - Click the [SSH] Connect option to the right of your instance name
+      This should spawn a terminal console window that logs you into the 
+      home directory of a Linux server where you can interactively enter shell commands (e.g., ls, mkdir, pwd)
 
-    - Access with SSH/Browser
-      - Click ssh on the right of your instance name
-      - Can Download and upload files with GUI
-      - No other installation required (very convenient)
-      - Connecting may be  a little slower depending on  number of vms and identifying ssh keys
+  - Option 2 - Using gcloud/SSH command-line tools
+    Requires gcloud installation (see ReadMe.GoogleCloudDevEnvironment.txt DevWorkshop)
+  	From your local command-line terminal/console:
+			
+      gcloud init
+			- Pick configuration (typically 1)
+			- Choose account (stanford.edu)
+			- Pick a cloud project (mining-clinical-decisions)
+			- Select the region associated with instance (optional)
+			
+      From the browser VM list, look under the other menu options after the [SSH] default Connect option, 
+      including the gcloud command line option. This should an SSH terminal console to the compute instance.
+      You should get a warning about the authenticity of the server/host not being established.
+      This makes sense since you've never connected to this server before, and you could be the
+      subject of a "man-in-the-middle" attack. Just agree to the connection for test/dev purposes,
+      but for real applications with security risks, you should authenticate the server by other channels.
 
-    - Access with gcloud/SSH
-      - You may use gcloud instead of the SSH browser provided on the google console window. This allows you to use
-        the terminal on your system.
-      - automatic generation of ssh keys
+        gcloud compute ssh <instanceName>
 
-	    - Precondition:
-	  		- requires gcloud installation (see GoogleCloudDevEnvironment.txt devworkshop)
-	  		- Access on SSH
-	  			1) gcloud init
-  				2) pick configuration (typically 1)
-  				3) choose  account (stanford account)
-  				4) pick a cloud project (mining-clinical-decisions)
-  				5) select region associated with instance
-	  			6) gcloud compute ssh <name-instance>
+- Install Libraries and Dependencies / Package Managers
+  You'll need software packages and dependencies installed on the compute instance for development work
+  Default system comes with both Python 2.7 and Python 3.7 installed (latter as "python3") (as of 5/26/2020),
+  but is largely barebones in terms of other software packages. Using package management software tools,
+  such as apt and pip in this case, are essentially for easing the pain of "dependency hell."
 
+  Run the following commands to install several dependencies:
 
+    sudo apt update                               # Tell the "superuser" admin to "do" an update of the apt tool
+    sudo apt install git                          # Git client to communicate with source code version control repository
+    sudo apt install python3-pip                  # Install PIP tool for Python package management
+    python3 -m pip install google-cloud-bigquery  # Python - Google Cloud interface to connect to BigQuery databases
+    python3 -m pip install pandas                 # Popular Python package for manipulating tabular dataframes
 
-	- Install Libraries and Dependencies / Package Managers
+- Download a Copy of the Application Code Repository
+	
+  git clone https://github.com/HealthRex/CDSS.git
 
-      - The following steps ensure that you have the proper packages installed in python as well the proper
-          linux dependencies installed.
-      - Unix based operating systems use 'sudo' commands as a superuser command.
-          This means that your command acts as the admin and may require a password to use.
-      - 'apt' acts a  command line interface for linux distribution commands. Typically system wide installations or changes
-          will be prefaced by  'sudo apt ...'
-      - 'git' acts as the way to communicate with out repository to maintain our code.
-      - 'pip' is the python package manager command and helps to install python modules
-      - 'pandas' is a very popular python package used to manage dataframes in a more user friendly way,
-          which is helpful for interfacing with tabular EHR data in a python and analytical environment
+- Setup PYTHONPATH so Python knows where to find Application Code
+  Enter the following shell command to create/update a PYTHONPATH shell environment variable
+  to tell Python where to look for code package and module imports beyond the current working directory.
 
-            - Installs Dependencies: Python/Bigquery
-            - Installs Python dependencies
-            - Install  Git for  Version Control
+    export PYTHONPATH=/home/yourUserName/CDSS:$PYTHONPATH
 
-        sudo apt update
-        sudo apt install git
-        wget https://bootstrap.pypa.io/get-pip.py
-        sudo python get-pip.py
-        pip install google-cloud-bigquery
-        pip install pandas
+  Or wherever you put the CDSS directory. Followed by a $ reference to any existing $PYTHONPATH 
+  so if you already had anything set, you'll copy the prior value and just preprend your additions here.
+  Better yet, append the command to the .bash_profile script:
 
-	- Download Copy of Application Code Repository
-		    git clone https://github.com/HealthRex/CDSS.git
+    echo "export PYTHONPATH=/home/yourUserName/CDSS:$PYTHONPATH" >> .bash_profile
 
-  - How to upload and download files to your compute instance (i.e., SCP)
-      Use both the web GUI And the command-line options as examples???
+  Or use a Unix text editor to edit the profile script (`vi /home/yourUserName/.bash_profile`)
+  The .bash_profile script (the . prefix indicates a hidden system file you can find with `ls -la`)
+  will run every time you connect to the server, or you can direct invoke it with:
 
-  	- Using SSH/Web Browser client
-  		???More relevant than downloading files, would be show how to upload and download???
-  		- Top right corner of window has a Gear icon with a Upload and Download file option
-  		- To download specify your path and file you wish to download: for example:
-        - ("/home/yourUserName/CDSS/scripts/DevWorkshop/ReadMe.GoogleCloudDevEnvironment.txt")
-  		- To upload:
-    		- select 'Upload file' and select the file you wish to upload.This will upload to your current directory
+    source .bash_profile
 
+- Setup LocalEnv.py file so the application DBUtil knows how to find the BigQuery database
+  Copy the CDSS/LocalEnv.py.template into a CDSS/LocalEnv.py configuration file.
 
-    - Using gcloud / command-line
-	      gcloud compute scp yourLocalFile.txt <instance-name>:/home/yourID/yourRemoteFileCopy.txt
+  Edit the contents of the LocalEnv.py file to refer to the database of interest.
+  Most of the other settings can be ignored, as they are for other environments (e.g., PostgreSQL databases)
+  
+    DATABASE_CONNECTOR_NAME = "bigquery"
 
-         (where instance-name is the name of your instance)
-
-
-  - Python Modules and Exporting PythonPath to use medinfo module (linux)
-      - Python code uses "import" of code packages and modules to reuse components, but then your Python interpreter needs to know where to find these modules...
-      - The import statement combines two operations; it searches for the named module, then it binds the results of that search to a name in the local scope.
-      - When a module is first imported, Python searches for the module in the current path and if found, it creates a module object 1, initializing it.
-      - If the named module cannot be found, a ModuleNotFoundError is raised.
-      - Python can look for modules in the PYTHONPATH
-      - use (can use 'pwd' to get path attributes [your_directory])
-
-            export PYTHONPATH=/[your_directory]/CDSS/
-
-      - then type 'python' of 'python3' in the command line to open the Python interpreter depending on which version of Python being used
-             python
-      - import medinfo to confirm you can import the CDSS modules
-             >>> import medinfo
-
-      - Exit out of python shell
-             >>> quit()
-
-      - Change your directory to the devworkshop in our repo
-
-            cd CDSS/scripts/DevWorkshop/GoogleCloudPlatform
-
+    LOCAL_PROD_DB_PARAM["HOST"] = 'mining-clinical-decisions"
 
 == Testing and Running (Batch) Processes ==
 On GCP Linux Server:
 
+- Test Run an Application Module that Connects to Database
+  Should report the number of patient records in the example dataset
 
-  - First run this command to see the expected print.
-  - Prints out a progress indicator every second for N iterations. (This should print out a progress indicator and finish after 10 seconds)
+    python3 -m medinfo.db.DBUtil "select count(*) from starr_datalake2018.demographic"
 
-        python sleep_loop.py 10
+- Running an example script to process data from database and manage intermediate results files
+  - Go to CDSS/scripts/DevWorkshop/GoogleCloudPlatform 
+  - Run the following commands
 
-  - Run the command again, but with a different option, where it will take a long time
-    and you will want to hit Ctrl+C after starting to finish
+    python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0 -
 
-        python sleep_loop.py 1000
+  Should output a bunch of data rows to the console.
+  If you don't want to see it all, you can send the output to a text file
 
-  - (This should print out a progress indicator and would finish after 1000 seconds, but you can just Ctrl+C to quit it,
-     while we now examine how you might manage long compute processes)
+    python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0 results/dataRows.tab
+
+  For potentially very large (intermediate) data files, consider storing them in gzipped format
+  by piping the output through the gzip program and redirecting to a respectively named file.
+
+    python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0 - | gzip > results/dataRows.tab.gz
+
+  Note that this functionality is already embedded in medinfo.common.Util.stdOpen to transparently
+  treat any text files with the .gz suffix as presumptive gzipped content and treat "-" as stdin or stdout.
+
+    python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0 results/dataRows.tab.gz
+
+  You can similarly then decompress and read the contents of gzipped files on-demand
+
+    gzip -dc results/dataRows.tab.gz
 
 
-- Running Background Processes
 
-  - Run this next version of the command, but run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup").
-  - So you can start a long process and just let the server continue to work on it, without requiring you to keep your (laptop) client computer logged in.
-  - Any error messages, progress indicators, or other text that you normally see in the console window will be redirected (&>)
-    to the specified log file (progress.log)
+- Artificially simulate a slow/long process by adding in a 0.5 second pause between each result row
 
-      nohup python -u sleep_loop.py 1000 &> progress.log &
+    python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0.5 results/dataRows.tab
 
-  - to see progress.log updates use the 'cat' command which in this case can display text files on screen
+  When you get bored waiting for above to finish, Ctrl+C to abort the process
 
-      cat progress.log
+- Run the process again, but do so in the background
+
+    nohup python3 ExampleQueryApp.py -r Intravenous -d CEF -p 0.5 results/dataRows.tab &> log/progress.log &
+
+  Above will run the process in the background (ending &) and continue even if you logoff (nohup = "no hangup").
+  So you can start a long process and just let the server continue to work on it,
+  without requiring you to keep your (laptop) client computer logged in.
+  Any error messages, progress indicators, or other text that you normally see in the console window will be
+  redirected (&>) to the specified log file (log/progress.log)
 
 - Check on the progress of the process you have running in the background
-    `ps -u`
-	`ps -u USER -f`
-        USER will be replaced with your google user name  or user name associated  with the compute instance
-		Checks which processes are running under the USER, with full details. Note the Process ID (PID)
-	`kill <PID>`
-		If you need to kill/stop a process that you don't want to continue anymore
-	`top`
-		Running monitor of all the most intensive processes running on the server
-		Overall reporting can track how much total free memory (RAM) the server still has available,
-		and how much processor (CPU) is being used. Helpful when trying to gauge the bottleneck for
-		intensive processes (need more processors or need more RAM?).
-		Note that total CPU load can be >100% for servers with multiple CPUs.
-		The whole point of using a multi-processor server is that you
-		should run multiple simultaneous (parallel) processes
-		to take advantage of extra CPUs working for you.
-		You can't make a single process run at 200% speed with two CPUs,
-		but you can break up the work into two separate tasks, and have each running at 100% on separate CPUs.
-		Beware that the multiple processors are both using the same shared memory (RAM), so if you have a process
-		that uses a lot of RAM, parallelizing the process will also multiply the amount of total RAM needed.
+  `ps -u yourUserName -f`
+    Checks which processes are running under your username, with full details. Note the Process ID (PID)
+  `kill <PID>`
+    If you need to kill a process that you don't want to continue anymore
+  `top`
+    Running monitor of all the most intensive processes running on the server
+    Overall reporting can track how much total free memory (RAM) the server still has available,
+    and how much processor (CPU) is being used. Helpful when trying to gauge the bottleneck 
+    for intensive processes (need more processors or need more RAM?).
+    Note that total CPU load can be >100% for servers with multiple CPUs.
+    The whole point of using a multi-processor server is that you should run 
+    multiple simultaneous (parallel) processes to take advantage of extra CPUs working for you.
+    You can't make a single process run at 200% speed with two CPUs,
+    but you can break up the work into two separate tasks, and have each running at 100% on separate CPUs.
+    Beware that the multiple processors are both using the same shared memory (RAM), so if you have a process
+    that uses a lot of RAM, parallelizing the process will also multiply the amount of total RAM needed.
 
-		"M" to sort the results by which processes are using the most memory
-		"q" to quit/exit when done.
-	`cat process.log`
-		Show the output of the redirected console output from your application process
-	`tail -f process.log`
-		Show just the last few lines of the redirected console output,
-		and continue watching it until Ctrl+C to abort.
-		(Ctrl+C will abort the "tail" monitoring process, not the original application process.)
+    "M" to sort the results by which processes are using the most memory
+    "q" to quit/exit when done.
+  `cat log/process.log`
+    Show the output of the redirected console output from your application process
+  `tail -f log/process.log`
+    Show just the last few lines of the redirected console output, 
+    and continue watching it until Ctrl+C to abort.
+    (Ctrl+C will abort the "tail" monitoring process, not the original application process.)
+
+- Use a batch driver script to run multiple (parallel) processes
+  (Beware that this is likely to overwhelm the RAM (memory) available on the tiny test server)
+
+  `bash batchDriver.sh`
+
+  Though bash (.sh) scripts are more common, I often prefer Python when it can do all of the above, 
+  is more flexible, platform independent, and unifies the programming/scripting language used.
+  For example, rather than copy-pasting a dozen similar but different command line calls in batchDriver.sh,
+  use a Python loop to dynamically generate those commands and spawn them via the subprocess module:
+
+  `python3 batchDriver.py`
+
+  If you prefer serial, rather than parallel, processes for more control.
+  Remove the "nohup &" background commands from the .sh script, or change the Python subprocess.Popen to subprocess.call.
+  You may then want to run the batchDriver itself as a background process with a redirected log file:
+
+  `nohup python3 batchDriver.py &> log/driver.log &`
+
+  Additional support functionality:
+    medinfo/common/support/awaitProcess.py - Wait until an existing process completes before starting another one
+    medinfo/common/ProcessManager.py - Not implemented yet (5/14/2018). Intended to consolidate above support functionality.
+
+  Large compute clusters often have their own job submission and parallelization schemes (e.g., qsub, bsub grid engines).
+  Depending on the scale of your needs, you may want to look into such services. 
+  Otherwise, you can get a lot done cheaply by just taking advantage of multiple CPU servers as above.
+  For example, once you've got your compute instance setup, create a SnapShot image of the hard disk,
+  then restore that image onto a server with dozens more CPUs and then just run your processes on that server.
+  We're paying for these servers by the hour, but the pricing is proportional to capacity.
+  Given that proportionality, you can pay twice as much for twice as many CPUs that will get your
+  job done in half the time. This is perfectly worth it since the amount of dollars spent is the same,
+  but you save half your human time waiting for results.
 
 
-- Section on running serial and parallel processes using simple scripts.
 
-- Running a batch script in the background
-  	- If you have a series of python scripts you would like to run in the background you can create a shell script of
-      python programs you want to run.
-    - We will be using cloud_read.py which is a python script that converts a sql query from BigQuery into rows of output
-      on the command line. It accepts three arguments that you can change.
-    - First change the directory
 
-  	   cd batch/
+OPTIONAL LEARNING 
+- SnapShots and Machine Images
+  	Useful when you need more/less compute or want to backup your virtual machine setup at a particular time:
 
-    - the first argument is the delay time in seconds (1) between result outputs
-    - the second argument is the letter to query (a)
-    - the third argument is the number of rows to output (5)
+    Option 1 - SnapShots (only saves changes compared to last copy, reducing storage costs)
+    - Store / Save a copy of a currently running compute engine instance hard disk as a SnapShot
+      - Compute Engine > Disks > (Find your running Instance) > [Create Snapshot]
+    - Restore / Spawn a copy of a compute engine instance that was previously saved as a SnapShot
+      - Compute Engine > Snapshots > (Find the snapshot of interest) > [Create Instance]
+        Most settings will be similar to creating a new compute instance, 
+        but note how you can choose a "bigger" computer with more CPU, RAM but still have the same
+        Boot hard disk / code setup ready to go.
 
-        python cloud_read.py 1 a 5
+    Option 2 - Machine Images (includes copy of entire hard disk and operating system)
+    - Store / Save a copy of a currently running compute engine instance
+      - [New Machine Image] from the ... menu for your running instance
+    - Restore / Spawn a copy of a compute engine instance that was previously saved as a Machine Image
+      - Machine Image section > Create an Instance
 
-    - Feel free to change the arguments and see how the output changes
 
-    - Then you can run 'cloudDriverScript.py' which is a script that creates a python batch file.
-    - The 'cloudDriverScript.py' creates a shell script (A shell script is a computer program that runs on the command line interpreter)
 
-        python cloudDriverScript.py
 
-    - The cloud_log.sh file that is created is a shell script that includes batch python scripts, that builds off of the cloud_read.py
-    - It outputs the first 100 rows of med descriptions, for each letter  of the alphabet, giving 26 different log files.
 
-      bash cloud_driver.sh
+- Notes on How to Upload/Download any File
+  - Option 1 - Using SSH/Web Browser client
+    - Top right corner of window has a "Gear" icon with a Upload and Download file option
+    - To download specify your path and file you wish to download: for example:
+      - ("/home/yourUserName/CDSS/scripts/DevWorkshop/ReadMe.GoogleCloudDevEnvironment.txt")
+    - To upload:
+      - select 'Upload file' and select the file you wish to upload to the current working directory
 
-    - The cloud_log.sh file gives a template for writing scripts or programs that may a take a long time to run,
-    - runs in the background, while recording the progress and outputs as they occur.
-    - If a process is taking too long or your dataset increases in size. You may think about increasing your compute on the instance.
+  - Option 2 - Using gcloud from you local command-line console to simulate an SCP (secure copy) command
+    
+    gcloud compute scp yourLocalFile.txt <instance-name>:/home/yourUserName/yourRemoteFileCopy.txt
 
-- SNAPSHOTS
-  	OPTIONAL LEARNING (Useful when you need more/less compute or want to backup your VM):
-            provide a mechanism to create one or a series of persistent disk backups,
-            each at a specific point-in-time. Snapshots are stored as differential captures of the actual data on a persistent disk,
-            using storage space efficiently.
 
-            Store a compute engine snapshot and restore
-                - Under Compute Engine (left) Go to disks (dropdown)
-                - Go to create snapshot
-                  - you  will see a dropdown of your Instances
-                  - on the right you will see actions
-                    - hit  "Create Snapshot"
-                    - name your snapshot (i.e based on your vm instance)
-                    - source  disk represents the  vm you are  snapshotting
-                - then make snapshot from that  instance
-                - Under Compute  Engine (left)  go to snapshot
-                  - here we can  create an instance with more/less/same  compute as  before with the  same file  directories as
-                       your instance
-                  - steps will be the same as creating an instance
