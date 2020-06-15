@@ -70,6 +70,10 @@ Only necessary if you want to develop interactive web interfaces:
 - Apache 2.2
 - Mod_WSGI
 
+For Python 3.6, the required dependencies are:
+- Apache 2.4
+- Mod_WSGI
+
 ==============================================
 Download code from source control
 > git clone https://github.com/HealthRex/CDSS.git
@@ -230,6 +234,39 @@ sudo vi /etc/httpd/conf/httpd.conf
 
 		Order allow,deny
 	</Directory>
+
+# Sample Apache Config for Apache 2.4 and Python 3.6 for Windows:
+
+    # CDSS HealthRex clinical recommender setup
+    LoadFile "c:/python36/python36.dll"
+    LoadModule wsgi_module "c:/python36/lib/site-packages/mod_wsgi/server/mod_wsgi.cp36-win_amd64.pyd"
+    WSGIPythonHome "c:/python36"
+    DocumentRoot "c:/CDSS/medinfo/web"
+
+    # Medical Informatics web application configuration
+    WSGIPythonPath "c:/CDSS"
+    Alias /medinfo/web/ "c:/CDSS/medinfo/web/"
+    <Directory "c:/CDSS/medinfo/web">
+        DirectoryIndex index.html index.htm
+
+        AllowOverride None
+        Require all granted
+    </Directory>
+    <Directory "c:/CDSS/medinfo/web/cgibin">
+        # Handler setup for Python CGI scripts (works on files ending in .py)
+        Options +ExecCGI
+
+        # Basic CGI support
+        #AddHandler cgi-script py
+        #SetEnv PYTHONPATH c:/CDSS
+
+        # mod_wsgi support.  # Need to define PythonPAth and other environment variables at level of user starting Apache process, or PythonPath in above WSGIPythonPath
+        AddHandler wsgi-script py
+        WSGIApplicationGroup %{GLOBAL}
+
+        AllowOverride None
+        Require all granted
+    </Directory>
 
 
 # Update medinfo/web/cgibin/Env.py, CGI_TEXT_RESPONSE depending on if using CGI or WSGI setup

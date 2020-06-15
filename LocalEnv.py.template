@@ -26,8 +26,8 @@ SQL_PLACEHOLDER = "%s"
 
 # Connection parameters to primary working database of interest
 LOCAL_PROD_DB_PARAM = {}
-LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'   # Database host. Localhost if running on your local computer. For AWS RDS instances, look for the "Endpoint" hostname, e.g. YourDatabaseIdentifier.cwyfvxgvic6c.us-east-1.rds.amazonaws.com
-LOCAL_PROD_DB_PARAM["DSN"] = 'databaseName'    # Specific database name hosted by the database server (e.g., stride_inpatient_2008_2017)
+LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'   # Database host. Localhost if running on your local computer. For GCP, name of the project. For AWS RDS instances, look for the "Endpoint" hostname, e.g. YourDatabaseIdentifier.cwyfvxgvic6c.us-east-1.rds.amazonaws.com
+LOCAL_PROD_DB_PARAM["DSN"] = 'databaseName'    # Specific database/dataset name hosted by the database server (e.g., stride_inpatient_2008_2017)
 LOCAL_PROD_DB_PARAM["UID"] = 'databaseUserId'
 LOCAL_PROD_DB_PARAM["PWD"] = 'databaseUserPassword'
 
@@ -44,12 +44,12 @@ LOCAL_TEST_DB_PARAM["UID"] = 'testuid'
 LOCAL_TEST_DB_PARAM["PWD"] = 'testpwd'
 
 PATH_TO_CDSS = "/foo/bar/CDSS"; # Directory where this file is contained in
-# Look for this environment variable on authenticating to Google cloud server
+# Look for environment variable on authenticating to Google cloud server
 # If env var not already there, then manually set here.
 # See https://github.com/HealthRex/CDSS/wiki/Google-BigQuery-Access for more info
-if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/foo/bar/google-cloud-platform-token.json";
+#if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+#    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/foo/bar/google-cloud-platform-token.json";
 if "GOOGLE_CLOUD_PROJECT" not in os.environ:
-	os.environ["GOOGLE_CLOUD_PROJECT"] = "mining-clinical-decisions";
+	os.environ["GOOGLE_CLOUD_PROJECT"] = LOCAL_PROD_DB_PARAM["HOST"];
 
 TEST_RUNNER_VERBOSITY = 2
