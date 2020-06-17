@@ -130,10 +130,12 @@ plotType1ErrorRateVsSampleSize = function(nPatientsRange, probOutcomeRange, nSim
     
   # Now use matplot to plot out the entire dataframe / matrix
   # https://stackoverflow.com/questions/14860078/plot-multiple-lines-data-series-each-with-unique-color-in-r
-  matplot(nPatientsRange, plotDF, type=c("b"), pch="+", ylim=c(0.0,1.0), xlab="Sample Size", ylab="Type I Error Rate")
+  yDF = plotDF[-1] # Exclude the first column of x-values to just get the y-values
+  matplot(plotDF[1], yDF, type=c("b"), pch="+", ylim=c(0.0,1.0), xlab="Sample Size", ylab="Type I Error Rate")
+  legend("topleft", legend=colnames(yDF), col=1:ncol(yDF), lty=1:ncol(yDF) )
   return(plotDF)
 }
-#plotType1ErrorRateVsSampleSize( c(10,20,40,80,160,320,640,1280,2048), c(0.01,0.02,0.05,0.10,0.20,0.50), 1000 )
+#plotType1ErrorRateVsSampleSize( c(20,40,80,160,320), c(0.20,0.50), 1000 )
 
 #Binary Outcome
 #(Similar to above, but binomial distributions)
