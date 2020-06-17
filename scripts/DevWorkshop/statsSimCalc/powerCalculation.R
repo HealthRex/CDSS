@@ -51,8 +51,8 @@ dfSample100 = simulateBinaryTreatmentOutcome(nPatients=100, nTreated=50, probOut
 
 # Define a function to run a batch of simulations (like running the same randomized controlled trial over and over again)
 # and collect the Fisher exact test p.values and estimated odds ratio effect estimates across all trials.
-# This will then allow us empirically estimate how often (how likely) a simultation/trial will 
-# yield a "significant" result with p.value < 0.05 (alpha value) and the range of effect estimates
+# This will then allow us to empirically estimate how often (how likely) a simultation/trial will 
+# yield a "significant" result with p.value < 0.05 (alpha value) and the range of effect estimates (odds ratio)
 # - nSims: Number of simulations to run
 # - simParams: List of the parameters needed for each simulation (e.g, simParams$nPatients, simParams$nTreated, ...)
 batchSimulateBinaryTreatmentOutcome = function(nSims, simParams)
@@ -64,6 +64,8 @@ batchSimulateBinaryTreatmentOutcome = function(nSims, simParams)
     dfSample = simulateBinaryTreatmentOutcome(simParams$nPatients, simParams$nTreated, simParams$probOutcomeUntreated, simParams$probOutcomeTreated)
     fisherResults = fisher.test(dfSample$treated, dfSample$outcome)
     pValues = append(pValues, fisherResults$p.value) # This is probably an inefficient repeated vector copy
+    #chisqResults = chisq.test(dfSample$treated, dfSample$outcome)
+    #pValues = append(pValues, chisqResults$p.value) # This is probably an inefficient repeated vector copy
     oddsRatios = append(oddsRatios, fisherResults$estimate)
   }
   batchSimResults = list("pValues"=pValues, "oddsRatios"=oddsRatios)
@@ -80,21 +82,58 @@ alpha = 0.05  # P-value threshold at which to consider a difference to be "stati
 batchSimResults = batchSimulateBinaryTreatmentOutcome(nSims, simParams)
 type1Errors = (batchSimResults$pValues < alpha) # Since we know there is no (only random) difference between treated and untreated outcome rates, it is a type 1 error if the p-value isless than the alpha significance threshold. Track how often this happens
 type1ErrorRate = mean(type1Errors) # By interpreting the individual errors as binary (0,1) values, the mean value can be interpreted as a percentage rate
-
+nullOddsRatio95CI = quantile( batchSimResults$oddsRatios, c(0.025,0.975) ) # Empirically estimated 95% confidence interval for odds ratio. In null hypothesis case, the true odds ratio should = 1
 
 # Type II error rate estimation
-# Run a batch of sims for an example set of parameters to empirically estimate Type II error rate (how often "no difference" is detected when there is one)
+# Run a batch of sims for an example set of parameters to empirically estimate Type II error rate (how often "no difference" is concluded when there actually is one)
 nSims = 1000
 simParams = list("nPatients"=40, "nTreated"=20, "probOutcomeUntreated"=0.4, "probOutcomeTreated"=0.2)
 alpha = 0.05  # P-value threshold at which to consider a difference to be "statistically significant" or not
 batchSimResults = batchSimulateBinaryTreatmentOutcome(nSims, simParams)
 type2Errors = (batchSimResults$pValues >= alpha) # Since we know there is a difference between treated and untreated outcome rates, it is a type 2 error if the p-value is not less than the alpha significance threshold. Track how often this happens
 type2ErrorRate = mean(type2Errors) # By interpreting the individual errors as binary (0,1) values, the mean value can be interpreted as a percentage rate
+nonNullOddsRatio95CI = quantile( batchSimResults$oddsRatios, c(0.025,0.975) ) # Empirically estimated 95% confidence interval for odds ratio
 
 
 
-
-
+# Define a function to plot the Type I error rate (given fixed outcome probability = null hypothesis where outcome does not depend on treatment assignment)
+# as a function of a range of sample sizes (nPatients) (assume 50:50 treated vs. untreated),
+# stratified by the outcome rate (to reflect imbalanced outcome classes and difficulty of detecting rare events)
+# - nPatientsRange: x-axis for plot, the increasing values of nPatients in the sample size
+# - probOutcomeRange: Different treatment independent outcome rates to simulate
+# - nSimsPerPoint: The number of simulations to run to empirically estimate Type1ErrorRate for each point
+plotType1ErrorRateVsSampleSize = function(nPatientsRange, probOutcomeRange, nSimsPerPoint)
+{
+  # Build data frame, first with just a column for the x-axis (sample size) values
+  plotDF = data.frame("Sample Size"=nPatientsRange)
+  
+  # For each outcome rate (probOutcome) to plot, prepare another y-axis column of values to simulate
+  for (i in 1:length(probOutcomeRange))
+  {
+    probOutcome = probOutcomeRange[i]
+    type1ErrorRates = vector()  # Build up a vector of simulated results
+    
+    # Now run a simulation calculation for each sample size value
+    for (j in 1:length(nPatientsRange))
+    {
+      nPatients = nPatientsRange[j]
+      simParams = list("nPatients"=nPatients, "nTreated"=(nPatients %/% 2), "probOutcomeUntreated"=probOutcome, "probOutcomeTreated"=probOutcome)
+      alpha = 0.05  # P-value threshold at which to consider a difference to be "statistically significant" or not
+      batchSimResults = batchSimulateBinaryTreatmentOutcome(nSimsPerPoint, simParams)
+      type1Errors = (batchSimResults$pValues < alpha) # Since we know there is no (only random) difference between treated and untreated outcome rates, it is a type 1 error if the p-value isless than the alpha significance threshold. Track how often this happens
+      type1ErrorRate = mean(type1Errors) # By interpreting the individual errors as binary (0,1) values, the mean value can be interpreted as a percentage rate
+      type1ErrorRates = append(type1ErrorRates, type1ErrorRate)
+    }
+    plotDF = cbind(plotDF, type1ErrorRates) # Add on another column of y-values to plot
+    colnames(plotDF)[ncol(plotDF)] = paste("Outcome Rate:", as.character(probOutcome))  # Provide a specific column name label
+  }
+    
+  # Now use matplot to plot out the entire dataframe / matrix
+  # https://stackoverflow.com/questions/14860078/plot-multiple-lines-data-series-each-with-unique-color-in-r
+  matplot(nPatientsRange, plotDF, type=c("b"), pch="+", ylim=c(0.0,1.0), xlab="Sample Size", ylab="Type I Error Rate")
+  return(plotDF)
+}
+#plotType1ErrorRateVsSampleSize( c(10,20,40,80,160,320,640,1280,2048), c(0.01,0.02,0.05,0.10,0.20,0.50), 1000 )
 
 #Binary Outcome
 #(Similar to above, but binomial distributions)
