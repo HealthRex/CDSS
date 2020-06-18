@@ -55,6 +55,11 @@ dfSample100 = simulateBinaryTreatmentOutcome(nPatients=100, nTreated=50, probOut
 # yield a "significant" result with p.value < 0.05 (alpha value) and the range of effect estimates (odds ratio)
 # - nSims: Number of simulations to run
 # - simParams: List of the parameters needed for each simulation (e.g, simParams$nPatients, simParams$nTreated, ...)
+#   Beware that if you simulate a small number of patients and small probability of outcomes, it's possible
+#   that some simulations will result in nobody in a group having the outcome at all, at which point
+#   the pValue and oddsRatio calculations will fail since they don't make sense (divide by zero), yielding the cryptic error message:
+#     Error in fisher.test(dfSample$treated, dfSample$outcome) : 
+#     'x' and 'y' must have at least 2 levels 
 batchSimulateBinaryTreatmentOutcome = function(nSims, simParams)
 {
   pValues = vector()
@@ -76,7 +81,7 @@ batchSimulateBinaryTreatmentOutcome = function(nSims, simParams)
 # Run a batch of sims to empirically estimate Type I error rate:
 # How often a "significant" difference is detected when there is none (i.e., probOutcomeUntreated = probOutcomeTreated))
 # In theory, the type1ErroRate should equal the pre-specified alpha, since that is the definition
-nSims = 1000
+nSims = 100
 simParams = list("nPatients"=40, "nTreated"=20, "probOutcomeUntreated"=0.4, "probOutcomeTreated"=0.4)
 alpha = 0.05  # P-value threshold at which to consider a difference to be "statistically significant" or not
 batchSimResults = batchSimulateBinaryTreatmentOutcome(nSims, simParams)
@@ -86,13 +91,65 @@ nullOddsRatio95CI = quantile( batchSimResults$oddsRatios, c(0.025,0.975) ) # Emp
 
 # Type II error rate estimation
 # Run a batch of sims for an example set of parameters to empirically estimate Type II error rate (how often "no difference" is concluded when there actually is one)
-nSims = 1000
+nSims = 100
 simParams = list("nPatients"=40, "nTreated"=20, "probOutcomeUntreated"=0.4, "probOutcomeTreated"=0.2)
 alpha = 0.05  # P-value threshold at which to consider a difference to be "statistically significant" or not
 batchSimResults = batchSimulateBinaryTreatmentOutcome(nSims, simParams)
 type2Errors = (batchSimResults$pValues >= alpha) # Since we know there is a difference between treated and untreated outcome rates, it is a type 2 error if the p-value is not less than the alpha significance threshold. Track how often this happens
 type2ErrorRate = mean(type2Errors) # By interpreting the individual errors as binary (0,1) values, the mean value can be interpreted as a percentage rate
 nonNullOddsRatio95CI = quantile( batchSimResults$oddsRatios, c(0.025,0.975) ) # Empirically estimated 95% confidence interval for odds ratio
+
+
+# Define a function to iterate through combinations of simulation parameters to 
+# batch simulate scenarios and collect the empirically estimated pValues significance rates and oddsRatio confidence intervals.
+# Return the collected results in a long-format data frame with one column per modifiable parameter and one column per result value
+# - nPatientsRange: Increasing values of nPatients in the sample size
+# - percentTreatedRange: What percent of the total nPatients in a simulation will be assigned to treatment
+# - probOutcomeUntreatedRange: Range of untreated outcome rates to simulate
+# - probOutcomeTreatedRange: Range of treated outcome rates to simulate (must be same length as probOutcomeUntreatedRange to match)
+# - nSimsPerCombo: The number of simulations for each parameter combination
+# - alpha: Threshold below which to consider a p-value as "statistically significant" to reject the null hypothesis. Classically use 0.05, corresponding to 95% confidence intervals.
+batchSimulateBinaryTreatmentOutcomeAcrossParameters = function(nPatientsRange, percentTreatedRange, probOutcomeUntreatedRange, probOutcomeTreatedRange, nSimsPerCombo, alpha)
+{
+  # Start with data frame, with just column assignments first for parameters and result values of interest
+  resultDF = 
+    data.frame("nPatients"=numeric(0), "percentTreated"=numeric(0), "probOutcomUntreated"=numeric(0), "probOutcomeTreated"=numeric(0),
+               "nullHypothesisRejectRate"=numeric(0), "oddsRatioMean"=numeric(0), "oddsRatioMedian"=numeric(0), "oddsRatioCILow"=numeric(0), "oddsRatioCIHigh"=numeric(0))
+
+  # Iterate through each combination of simulation parameters
+  for (nPatients in nPatientsRange)
+  {
+    for (percentTreated in percentTreatedRange)
+    {
+      nTreated = as.integer(nPatients * percentTreated)
+      
+      for (iProbOutcome in 1:length(probOutcomeUntreatedRange)) # Use numeric index to simultaneously iterate through both treated and untreated parameters
+      {
+        probOutcomeUntreated = probOutcomeUntreatedRange[iProbOutcome]
+        probOutcomeTreated = probOutcomeTreatedRange[iProbOutcome]
+        
+        # Now run a batch of simulations for the given combination of parameters
+        simParams = list("nPatients"=nPatients, "nTreated"=nTreated, "probOutcomeUntreated"=probOutcomeUntreated, "probOutcomeTreated"=probOutcomeTreated)
+        message(paste(as.character(simParams), collapse=", "))  # Print message before simulation as a progress indicator
+        batchSimResults = batchSimulateBinaryTreatmentOutcome(nSimsPerCombo, simParams)
+        
+        simParams["nullHypothesisRejectRate"] = mean(batchSimResults$pValues < alpha) # Classical frequentist statistics, if p-value is less than the alpha threshold, then reject null hypothesis = "statistically significany differnece detected." Track how often this happens
+        simParams["oddsRatioMean"] = mean(batchSimResults$oddsRatios)
+        simParams["oddsRatioMedian"] = median(batchSimResults$oddsRatios)
+        simParams["oddsRatioCILow"] = quantile( batchSimResults$oddsRatios, alpha/2 ) # At alpha = 0.05, bottom end of 95% confidence interval corresponds to the 2.5%ile
+        simParams["oddsRatioCIHigh"] = quantile( batchSimResults$oddsRatios, 1.0 - alpha/2 )
+        
+        # Append the parameter and result values to the result data frame
+        resultDF = rbind(resultDF, simParams)
+      }
+    }
+  }
+  return(resultDF)
+}
+#batchSimulateBinaryTreatmentOutcomeAcrossParameters( c(20,40,80,160), c(0.50), c( c() ) )
+
+
+
 
 
 
@@ -136,6 +193,13 @@ plotType1ErrorRateVsSampleSize = function(nPatientsRange, probOutcomeRange, nSim
   return(plotDF)
 }
 #plotType1ErrorRateVsSampleSize( c(20,40,80,160,320), c(0.20,0.50), 1000 )
+
+
+
+
+
+
+
 
 #Binary Outcome
 #(Similar to above, but binomial distributions)
