@@ -39,8 +39,8 @@ SQL Queries and Databases
 
 == Workshop Steps ==
 - Data Tables in Databases in Database Servers
-  A database server can host one or more databases. 
-  Usually will be working with one primary database that contains many different 2D tables of data.
+  A database server can host one or more databases/datasets. 
+  Usually you will be working with one primary database that contains many different 2D tables of data.
   Each table is of fixed width (number of columns/features/covariates), but arbitrary length (number of rows/instances/observations).
   Database Schema and Data Dictionaries ("metadata") define what tables exist, what columns they have, 
     and what data types each column holds (e.g., integer, floating point, string, datetime) .
@@ -250,7 +250,6 @@ SQL Queries and Databases
             WHERE appt_type = 'Anesthesia'
             AND contact_date_jittered = '2016-01-01'
         )
-        
 
   - Inner Join - Subqueries like above where matching by an ID column are almost always incorrect (or at least inefficient).
   		Generally should be joining tables together by some matching criteria (usually a foreign key ID field)
@@ -346,6 +345,40 @@ SQL Queries and Databases
           dem.rit_uid
         ORDER BY
           COUNT(DISTINCT enc.pat_enc_csn_id_coded) DESC;
+
+
+  - WITH Common Table Expressions, Temporary Table Views - Very large, nested sub-queries can quickly grow out of control. Organize the results of subqueries as tables/views themselves that you can query from in the same space. Similar to abstracting out code blocks into modular functions.
+
+	WITH
+	-- High Creatine lab result values >2.0
+	highCreatineLabResults AS
+	(
+	  SELECT rit_uid, result_time_jittered, EXTRACT(DATE FROM result_time_jittered) as result_date, base_name, ord_num_value
+	  FROM `starr_datalake2018.lab_result` 
+	  WHERE base_name = 'CR'
+	  AND ord_num_value > 2.0
+
+	),
+	-- High white blood cell count values (flagged by lab) from complete blood counts
+	highWBCLabResults AS
+	(
+	  SELECT rit_uid, result_time_jittered, EXTRACT(DATE FROM result_time_jittered) as result_date, base_name, ord_num_value
+	  FROM `starr_datalake2018.lab_result` 
+	  WHERE proc_code LIKE 'LABCBC%'
+	  AND base_name = 'WBC'
+	  AND result_flag LIKE 'High%'
+	)
+
+	-- Draw from the above sub-queries to identify dates where patients had both a high Creatine and high WBC count and report the max value for each patient-date
+	SELECT rit_uid, result_date, MAX(highCr.ord_num_value) as maxCr, MAX(highWBC.ord_num_value) as maxWBC
+	FROM highCreatineLabResults as highCr 
+	   JOIN highWBCLabResults as highWBC
+	      USING (rit_uid, result_date)  -- Join on multiple columns, and when they have exact same names, USING function even better to eliminate ambiguity afterwards
+	GROUP BY rit_uid, result_date
+
+	LIMIT 100
+
+
 
 - Challenge Queries
   - Top 10 Diagnoses recorded in 2017? In 2018?
