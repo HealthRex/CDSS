@@ -9,8 +9,9 @@ Power Calculations - Empirically Estimating by Simulation
 
 
 == Preconditions ==
-- R and R Studio installed
+- R installed
   - install.packages("dplyr","reshape2")
+  - Convenient to also install RStudio and bonus points for getting R to work in Jupyter notebooks (https://www.datacamp.com/community/blog/jupyter-notebook-r)
 - Git installed so able to download / clone code repository
 - Suggest online pre-reading to review Power calculations, Type I error, Type II error, alpha, beta, etc.
 
@@ -47,4 +48,5 @@ Power Calculations - Empirically Estimating by Simulation
 The Use of Predicted Confidence Intervals When Planning Experiments and the Misuse of Power When Interpreting Results
 Steven N. Goodman, MD, PhD, Jesse A. Berlin, ScD
 https://www.acpjournals.org/doi/10.7326/0003-4819-121-3-199408010-00008
+
 
