@@ -11,16 +11,18 @@ dfManual = data.frame(patientId, treated, outcome)
 # After sourcing this file, try inspecting the contents of the dataframes and doing some basic calculations
 # https://www.datacamp.com/community/tutorials/contingency-tables-r
 # > source("/<filePath>/powerCalculation.R")    # Specify the full path where you stored and run the contents in your console
-# > df = dfManual # Reassign to a simple df (dataframe) working variable name for convenience
-# > head(df)  # Look at the top several rows of the dataframe
-# > table(df$treated, df$outcome) # Prepare a 2x2 contingency table out of the treated and outcome columns
-# > chisq.test(df$treated, df$outcome)  # Calculate Chi-square test to assess for independence between the treated and outcome columns (Note the warning that Chi-square is an approximation that may not be correct for small datasets with cell counts <5)
-# > fisher.test(df$treated, df$outcome) # Calculate Fisher exact test to assess for independence between the treated and outcome columns
+# > head(dfManual)  # Look at the top several rows of the dataframe
+# > table(dfManual$treated, dfManual$outcome) # Prepare a 2x2 contingency table out of the treated and outcome columns
+# > chisq.test(dfManual$treated, dfManual$outcome)  # Calculate Chi-square test to assess for independence between the treated and outcome columns (Note the warning that Chi-square is an approximation that may not be correct for small datasets with cell counts <5)
+# > fisher.test(dfManual$treated, dfManual$outcome) # Calculate Fisher exact test to assess for independence between the treated and outcome columns
 # Example to illustrate observed vs. expected cell counts if assume independence between treated and outcome
-# > result = chisq.test(df$treated, df$outcome)
+# > result = chisq.test(dfManual$treated, dfManual$outcome)
 # > result$observed
 # > result$expected
 
+
+########## For the manually constructed treatment vs. outcome data above, what is p-value for for whether the treatment affects the outcome?
+########## Why does the above not have one answer? (What are the tradeoffs between a Chi-square vs. Fisher exact test?)
 
 
 # Define a function to generate simulated data for binary treatment and outcomes
@@ -50,6 +52,7 @@ dfSample10  = simulateBinaryTreatmentOutcome(nPatients= 10, nTreated= 5, probOut
 dfSample40  = simulateBinaryTreatmentOutcome(nPatients= 40, nTreated=20, probOutcomeUntreated=0.4, probOutcomeTreated=0.2)
 dfSample100 = simulateBinaryTreatmentOutcome(nPatients=100, nTreated=50, probOutcomeUntreated=0.4, probOutcomeTreated=0.2)
 
+########## How does the p-value for a treatment effect hypothesis change for the above samples of increasing sample size?
 
 
 
@@ -85,7 +88,7 @@ batchSimulateBinaryTreatmentOutcome = function(nSims, simParams)
 # Run a batch of sims to empirically estimate Type I error rate:
 # How often a "significant" difference is detected when there is none (i.e., probOutcomeUntreated = probOutcomeTreated))
 # In theory, the type1ErroRate should equal the pre-specified alpha, since that is the definition
-nSims = 100
+nSims = 1000
 simParams = list("nPatients"=40, "nTreated"=20, "probOutcomeUntreated"=0.4, "probOutcomeTreated"=0.4)
 alpha = 0.05  # P-value threshold at which to consider a difference to be "statistically significant" or not
 batchSimResults = batchSimulateBinaryTreatmentOutcome(nSims, simParams)
@@ -95,7 +98,7 @@ nullOddsRatio95CI = quantile( batchSimResults$oddsRatios, c(0.025,0.975) ) # Emp
 
 # Type II error rate (beta) estimation
 # Run a batch of sims for an example set of parameters to empirically estimate Type II error rate (how often "no difference" is concluded when there actually is one)
-nSims = 100
+nSims = 1000
 simParams = list("nPatients"=40, "nTreated"=20, "probOutcomeUntreated"=0.4, "probOutcomeTreated"=0.2)
 alpha = 0.05  # P-value threshold at which to consider a difference to be "statistically significant" or not
 batchSimResults = batchSimulateBinaryTreatmentOutcome(nSims, simParams)
@@ -103,8 +106,8 @@ type2Errors = (batchSimResults$pValues >= alpha) # Since we know there is a diff
 type2ErrorRate = mean(type2Errors) # By interpreting the individual errors as binary (0,1) values, the mean value can be interpreted as a percentage rate
 nonNullOddsRatio95CI = quantile( batchSimResults$oddsRatios, c(0.025,0.975) ) # Empirically estimated 95% confidence interval for odds ratio
 
-# Try inspecting the values of the above error rates and confidence intervals
-
+####### For the two sets of simulations above, how would you estimate the alpha, beta, and Power values of the simulated trials?
+####### What 95% confidence interval range of the odds ratio estimates in the above simulations would be considered "significant?" Would you expect that here?
 
 
 
@@ -172,50 +175,4 @@ quickPlotDF = function(plotDF, ylab, legendLoc="topright")
   legend(legendLoc, legend=colnames(yDF), col=1:ncol(yDF), lty=1:ncol(yDF))  # Add a legend to the plot that matches the color scheme of the plot
 }
   
-
-
-
-
-
-
-# Example simulate results where probOutcomeUntreated == probOutcomeTreated 
-#   (i.e., null hypothesis is true, where outcome rates are independent of any treatment effect) 
-nullResultDF = batchSimulateBinaryTreatmentOutcomeAcrossParameters( c(32,64,128,256,512,1024), c(0.50), c(0.4), c(0.4), 1000, 0.05 )
-#
-# Plot the x-axis (nPatients) and the empiric null hypothesis reject rate. In theory, this should always = alpha, since that's the definition
-# > quickPlotDF( nullResultDF %>% select(nPatients, nullHypothesisRejectRate), "Type I Error Rate = alpha","bottomright")  # Since we know the null hypothesis is true here, the rejection rate is the Type I error rate
-#
-# Plot the x-axis (nPatients) and the oddsRatio estimates and confidence interval ranges to see how they change with respect to data size
-# > quickPlotDF( nullResultDF %>% select(nPatients, oddsRatioCILow, oddsRatioMean, oddsRatioMedian, oddsRatioCIHigh), "Odds Ratio Estimates")
-#
-#
-# Review cases where probOutcomeUntreated != probOutcomeTreated 
-#   (i.e., null hypothesis is false. There is a treatment effect on the outcome) 
-nonNullResultDF = batchSimulateBinaryTreatmentOutcomeAcrossParameters( c(32,64,128,256,512,1024), c(0.50), c(0.2), c(0.4), 1000, 0.05 )
-#
-# Plot the x-axis (nPatients) and the empiric null hypothesis non-reject rate (i.e., Power). 
-# > quickPlotDF( nonNullResultDF %>% select(nPatients, nullHypothesisRejectRate), "Power = 1-Beta","bottomright")  # Since we know the null hypothesis is false here, the reject rate is the Power = 1 - Beta (Type II error rate)
-#
-# Plot the x-axis (nPatients) and the oddsRatio estimates and confidence interval ranges to see how they change with respect to data size
-# > quickPlotDF( nonNullResultDF %>% select(nPatients, oddsRatioCILow, oddsRatioMean, oddsRatioMedian, oddsRatioCIHigh), "Odds Ratio Estimates")
-
-
-# Example simulations with increasing total sample sizes, but same (small) number of treated cases. Illustrate that power depends on your smaller class size, not the total sample size
-imbalancedResultDF = batchSimulateBinaryTreatmentOutcomeAcrossParameters( c(32,64,128,256,512,1024), c(16), c(0.2), c(0.4), 1000, 0.05 )
-#
-# Plot the x-axis (nPatients) and the empiric null hypothesis non-reject rate (i.e., Power). 
-# > quickPlotDF( imbalancedResultDF %>% select(nPatients, nullHypothesisRejectRate), "Power = 1-Beta","bottomright")  # Since we know the null hypothesis is false here, the reject rate is the Power = 1 - Beta (Type II error rate)
-#
-# Join the imbalanced results with the 50:50 balanced results to compare the progression of Power with sample size
-balancedVsImbalancedDF = inner_join( nonNullResultDF[c("nPatients","nullHypothesisRejectRate")], imbalancedResultDF[c("nPatients","nullHypothesisRejectRate")], by=c("nPatients") )
-colnames(balancedVsImbalancedDF) = c("nPatients","nTreated = 50%","nTreated = 16")  # Rename columns to clarify comparison
-# > quickPlotDF(balancedVsImbalancedDF, "Power","bottomright")
-
-
-# Example simulations with increasing average treatment effect (larger difference between outcome probabilities). Illustrate that power depends on how small a sample size is to be detected (and very hard to detect small differences)
-treatmentEffectResultDF = batchSimulateBinaryTreatmentOutcomeAcrossParameters( c(32,64,128,256,512,1024), c(0.50), c(0.3,0.4,0.45,0.48,0.50), c(0.5,0.5,0.5,0.5,0.5), 1000, 0.05 )
-# PivotTable to reshape-dcast long-format data into wide-format, so can compare effect of multiple parameters simultaneously: https://www.r-bloggers.com/pivot-tables-in-r/
-treatmentEffectResultDF$averageTreatmentEffectLabel = paste("ATE",format(treatmentEffectResultDF$averageTreatmentEffect))
-wideTreatmentEffectResultDF = dcast(treatmentEffectResultDF %>% select(nPatients,averageTreatmentEffectLabel,nullHypothesisRejectRate), nPatients ~ averageTreatmentEffectLabel)
-# > quickPlotDF(wideTreatmentEffectResultDF,"Power","topleft")
-
+######### See the accompanying powerCalculation.examples.R for example batch simulations
