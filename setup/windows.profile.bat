@@ -11,12 +11,15 @@ set MEDINFO_DIR=C:\HealthRex\CDSS
 set PYTHONPATH=%PYTHONPATH%;%CHEM_DIR%;%MEDINFO_DIR%
 
 rem Put Python on path for command-line convenience
-set PYTHONHOME=C:\Dev\Python27
-set PATH=%PATH%;%PYTHONHOME%
+set PYTHONHOME=C:\Dev\Python36
+set PATH=%PYTHONHOME%;%PYTHONHOME%\Scripts;%PATH%
+
+rem Put R on path for command-line convenience
+set PATH=C:\Dev\R\R-3.6.1\bin;%PATH%
 
 rem PostgreSQL DLL's need to be accessible for clients to work
 set POSTGRESQL_HOME=C:\Dev\PostgreSQL\9.6
-set PATH=%PATH%;%POSTGRESQL_HOME%\bin
+set PATH=%POSTGRESQL_HOME%\bin;%PATH%
 
 rem Git Unix tools
 set PATH=%PATH%;"C:\Dev\Git\usr\bin"
