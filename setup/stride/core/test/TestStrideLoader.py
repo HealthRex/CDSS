@@ -13,9 +13,10 @@ from LocalEnv import PATH_TO_CDSS, TEST_RUNNER_VERBOSITY
 
 from stride.core.StrideLoader import StrideLoader
 
+
 class TestStrideLoader(MedInfoTestCase):
     def setUp(self):
-        test_dir = '/'.join([PATH_TO_CDSS, 'stride', 'core', 'test'])
+        test_dir = '/'.join([PATH_TO_CDSS, 'setup', 'stride', 'core', 'test'])
 
         # gzip test_raw_data_file.csv
         raw_file_path = '/'.join([test_dir, 'test_raw_data_file.csv'])
