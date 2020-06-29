@@ -27,16 +27,17 @@ from medinfo.common.Util import log
 from stride.rxnorm.RxNormClient import RxNormClient
 from stride.core.StrideLoaderParams import TABLE_PREFIX, STRIDE_LOADER_PARAMS
 
+
 class StrideLoader:
     @staticmethod
     def fetch_stride_dir():
-        # CDSS/stride/
-        return os.path.join(PATH_TO_CDSS, 'stride')
+        # CDSS/setup/stride/
+        return os.path.join(PATH_TO_CDSS, 'setup', 'stride')
 
     @staticmethod
     def fetch_core_dir():
-        # CDSS/core/
-        return os.path.join(PATH_TO_CDSS, 'core')
+        # CDSS/setup/core/
+        return os.path.join(PATH_TO_CDSS, 'setup', 'core')
 
     @staticmethod
     def fetch_data_dir():

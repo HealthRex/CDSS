@@ -22,6 +22,7 @@ from stride.clinical_item.ClinicalItemDataLoader import ClinicalItemDataLoader;
 
 from .Util import log
 
+
 class TestFeatureMatrixFactory(DBTestCase):
     def setUp(self):
         """Prepare state for test cases."""
