@@ -364,7 +364,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
         }
 
         # Add train and test counts.
-        y_test_counts = self._y_test[self._y_test.columns[0]].value_counts()
+        y_test_counts = self._y_test[self._y_test.columns[0]].value_counts(ascending=True)
         report_dict.update({'y_test.value_counts()': [str(y_test_counts.to_dict())]})
         column_names.append('y_test.value_counts()')
 
@@ -403,7 +403,7 @@ class ClassifierAnalyzer(PredictorAnalyzer):
                 report_dict.update({upper_ci_label:upper_ci})
 
         # Add hyperparams.
-        report_dict.update({'hyperparams': str(self._predictor.hyperparams())})
+        report_dict.update({'hyperparams': str(dict(sorted(self._predictor.hyperparams().items())))})
         column_names.append('hyperparams')
 
         return DataFrame(report_dict, columns=column_names), column_names

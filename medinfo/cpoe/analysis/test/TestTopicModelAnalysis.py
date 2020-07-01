@@ -26,6 +26,7 @@ import medinfo.cpoe.analysis.test;
 TEST_DIR = os.path.dirname(medinfo.cpoe.analysis.test.__file__);
 TEST_FILE_PREFIX = "TestTopicModel.model";
 
+
 class TestTopicModelAnalysis(DBTestCase):
     def setUp(self):
         """Prepare state for test cases"""
