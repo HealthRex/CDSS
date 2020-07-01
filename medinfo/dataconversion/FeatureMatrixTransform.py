@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from scipy.stats import norm
-from sklearn.preprocessing import Imputer
+from sklearn.impute import SimpleImputer
 from .Util import log
 from math import isnan
 

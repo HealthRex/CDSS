@@ -13,13 +13,14 @@ from sklearn.utils.validation import column_or_1d
 import unittest
 
 
-from ClassifierAnalyzerTestData import RANDOM_10_TEST_CASE, RANDOM_100_TEST_CASE
+from .ClassifierAnalyzerTestData import RANDOM_10_TEST_CASE, RANDOM_100_TEST_CASE
 from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import make_test_suite, MedInfoTestCase
 from medinfo.common.Util import log
 from medinfo.ml.ListPredictor import ListPredictor
 from medinfo.ml.ClassifierAnalyzer import ClassifierAnalyzer
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
+
 
 class TestClassifierAnalyzer(MedInfoTestCase):
     def setUp(self):
@@ -43,7 +44,6 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         self._ml_classifier = SupervisedClassifier([0, 1], hyperparams)
         self._ml_classifier.train(X_train, column_or_1d(y_train))
         self._ml_analyzer = ClassifierAnalyzer(self._ml_classifier, X_test, y_test)
-
 
     def tearDown(self):
         test_dir = os.path.dirname(os.path.abspath(__file__))
@@ -288,6 +288,7 @@ class TestClassifierAnalyzer(MedInfoTestCase):
         # Not sure how to validate this at the moment, so just validate
         # that it actually passes.
         self.assertTrue(True)
+
 
 if __name__ == '__main__':
     suite = make_test_suite(TestClassifierAnalyzer)

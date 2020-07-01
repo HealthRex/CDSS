@@ -12,7 +12,7 @@ from medinfo.common.Util import log
 from medinfo.ml.SupervisedClassifier import SupervisedClassifier
 from medinfo.ml.BifurcatedSupervisedClassifier import BifurcatedSupervisedClassifier
 from numpy import array
-from SupervisedLearningTestData import RANDOM_CLASSIFICATION_TEST_CASE
+from .SupervisedLearningTestData import RANDOM_CLASSIFICATION_TEST_CASE
 
 class TestBifurcatedSupervisedClassifier(MedInfoTestCase):
     def setUp(self):
