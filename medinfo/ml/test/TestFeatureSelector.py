@@ -5,7 +5,8 @@ import unittest
 from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import make_test_suite, MedInfoTestCase
 from medinfo.ml.FeatureSelector import FeatureSelector
-from FeatureSelectorTestData import RANDOM_REGRESSION_TEST_CASE
+from .FeatureSelectorTestData import RANDOM_REGRESSION_TEST_CASE
+
 
 class TestFeatureSelector(MedInfoTestCase):
     def setUp(self):

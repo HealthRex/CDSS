@@ -13,7 +13,7 @@ from LocalEnv import TEST_RUNNER_VERBOSITY
 from medinfo.common.test.Util import make_test_suite, MedInfoTestCase
 from medinfo.ml.Regressor import Regressor
 from medinfo.ml.RegressorAnalyzer import RegressorAnalyzer
-from RegressorAnalyzerTestData import RANDOM_REGRESSION_TEST_CASE
+from .RegressorAnalyzerTestData import RANDOM_REGRESSION_TEST_CASE
 
 # Use a simple Regressor instead of a true Regressor so that the predictions
 # are non-random, and we can validate the output.

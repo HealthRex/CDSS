@@ -177,7 +177,7 @@ RANDOM_100_TEST_CASE = {
             'roc_auc_0.95_upper_ci': 1.0,
             'accuracy_0.95_upper_ci': 1.0,
             'percent_predictably_positive': 0.16,
-            'hyperparams': "{'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'penalty': 'l1', 'C': 0.1, 'max_iter': 100, 'n_jobs': 1, 'tol': 0.0001, 'algorithm': 'regress-and-round', 'fit_intercept': True, 'solver': 'saga', 'hyperparam_strategy': 'exhaustive-search', 'multi_class': 'ovr', 'random_state': 123456789, 'coef_max': 1, 'dual': False, 'n_iter': 9, 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'class_weight': 'balanced'}",
+            'hyperparams': "{'C': 0.1, 'algorithm': 'regress-and-round', 'class_weight': 'balanced', 'coef_max': 1, 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'dual': False, 'fit_intercept': True, 'hyperparam_strategy': 'exhaustive-search', 'max_iter': 100, 'multi_class': 'ovr', 'n_iter': 9, 'n_jobs': 1, 'penalty': 'l1', 'random_state': 123456789, 'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'solver': 'saga', 'tol': 0.0001}",
             'f1_0.95_upper_ci': 1.0,
             'precision': 0.9444444444444444,
             'y_test.value_counts()': ['{0: 8, 1: 17}'],
@@ -252,7 +252,7 @@ RANDOM_100_TEST_CASE = {
         'k(precision=0.95)': [0.16],
         'k(precision=0.90)': [1.0],
         'precision_at_10_percent': 1.0,
-        'hyperparams': "{'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'penalty': 'l1', 'C': 0.1, 'max_iter': 100, 'n_jobs': 1, 'tol': 0.0001, 'algorithm': 'regress-and-round', 'fit_intercept': True, 'solver': 'saga', 'hyperparam_strategy': 'exhaustive-search', 'multi_class': 'ovr', 'random_state': 123456789, 'coef_max': 1, 'dual': False, 'n_iter': 9, 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'class_weight': 'balanced'}"
+        'hyperparams': "{'C': 0.1, 'algorithm': 'regress-and-round', 'class_weight': 'balanced', 'coef_max': 1, 'cv': StratifiedKFold(n_splits=10, random_state=123456789, shuffle=False), 'dual': False, 'fit_intercept': True, 'hyperparam_strategy': 'exhaustive-search', 'max_iter': 100, 'multi_class': 'ovr', 'n_iter': 9, 'n_jobs': 1, 'penalty': 'l1', 'random_state': 123456789, 'scoring': make_scorer(roc_auc_score, needs_threshold=True), 'solver': 'saga', 'tol': 0.0001}"
     }, columns=['model', 'test_size', 'y_test.value_counts()', 'accuracy', 'recall', 'precision', 'f1', 'average_precision', 'percent_predictably_positive', 'precision_at_10_percent',
         'k(precision=0.99)', 'k(precision=0.95)', 'k(precision=0.90)', 'roc_auc', 'hyperparams'])
 }
