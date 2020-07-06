@@ -189,6 +189,7 @@ class TopicModel:
                     itemId = int(topicItem["item_id"]);
                 docCount = int(topicItem["score"]);
                 docCountByWordId[itemId] = docCount;
+        reader.close()
         return docCountByWordId;
 
     def loadModelAndDocCounts(self, filename):
@@ -257,6 +258,7 @@ class TopicModel:
             topicFile = stdOpen(self.topTopicFilename(outputFilename),"w");
             print(COMMENT_TAG, json.dumps({"argv":argv}), file=topicFile);    # Print comment line with analysis arguments to allow for deconstruction later
             self.printTopicsToFile(model, docCountByWordId, topicFile, itemsPerCluster);
+            topicFile.close()
 
         else:
             parser.print_help()

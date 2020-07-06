@@ -16,7 +16,8 @@ from medinfo.common.Util import log
 from medinfo.ml.Predictor import Predictor
 from medinfo.ml.PredictorAnalyzer import PredictorAnalyzer
 from medinfo.ml.ListPredictor import ListPredictor
-from PredictorAnalyzerTestData import MANUAL_PREDICTION_TEST_CASE
+from .PredictorAnalyzerTestData import MANUAL_PREDICTION_TEST_CASE
+
 
 class TestPredictorAnalyzer(MedInfoTestCase):
     def setUp(self):

@@ -38,6 +38,7 @@ elif LocalEnv.DATABASE_CONNECTOR_NAME == 'sqlite3':
 from medinfo.common.Util import log
 from . import Util
 
+
 class FeatureMatrixFactory:
     FEATURE_MATRIX_COLUMN_NAMES = [
         "patient_id"
@@ -52,8 +53,8 @@ class FeatureMatrixFactory:
         self._patientItemTimeColumn = None
         self.timestampColumn = None
 
-        self._isLabPanel = True if LAB_TYPE == 'panel' else 'component'
-        self._labTypeCol = 'proc_code' if self._isLabPanel else 'base_name'
+        self._isLabPanel = True if LAB_TYPE == 'panel' else False   # 'component'
+        self._labTypeCol = lambda isLabPanel: 'proc_code' if isLabPanel else 'base_name'
 
         self.patientsProcessed = None
 
@@ -1118,7 +1119,7 @@ class FeatureMatrixFactory:
             query.addFrom("stride_order_results AS sor, stride_order_proc AS sop")
             query.addWhere("sor.order_proc_id = sop.order_proc_id")
 
-            query.addWhereIn(self._labTypeCol, labNames)
+            query.addWhereIn(self._labTypeCol(isLabPanel), labNames)
 
             query.addWhereIn("pat_id", patientIds)
             query.addOrderBy("pat_id")
@@ -1135,7 +1136,7 @@ class FeatureMatrixFactory:
                 query_str += column + ","
             query_str = query_str[:-1] + " FROM labs "
 
-            query_str += "WHERE %s IN (" % (self._labTypeCol)
+            query_str += "WHERE %s IN (" % (self._labTypeCol(isLabPanel))
             for labName in labNames:
                 query_str += "'%s'," % labName
             query_str = query_str[:-1] + ") "

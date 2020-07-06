@@ -64,8 +64,8 @@ class ClinicalItemDataLoader:
 
     @staticmethod
     def fetch_clinical_item_dir():
-        # CDSS/stride/clinical_item
-        return os.path.join(PATH_TO_CDSS, 'stride/clinical_item')
+        # CDSS/setup/stride/clinical_item
+        return os.path.join(PATH_TO_CDSS, 'setup', 'stride', 'clinical_item')
 
     @staticmethod
     def fetch_psql_dir():
