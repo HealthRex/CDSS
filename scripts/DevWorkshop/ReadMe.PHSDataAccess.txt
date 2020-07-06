@@ -2,7 +2,7 @@
 
 
 1) PHS Access to Restricted Datasets:
-2) Install Cardinal Key:
+2) (Optional) Install Cardinal Key:
 	- a digital certificate that is installed on a device and provides a user’s
 		identity to a remote server in place of a SUNet ID and password
 	- https://phsdocs.developerhub.io/software-installation/cardinal-key
