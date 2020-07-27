@@ -139,6 +139,7 @@ Recommended to save time during workshop:
     
     Python
     >>> from google.cloud import bigquery;
+    >>> from google.cloud.bigquery import dbapi;
     >>> client = bigquery.Client("som-nero-phi-jonc101"); # Alternatively, set GOOGLE_CLOUD_PROJECT environment variable
     >>> conn = dbapi.connect(client);
     >>> cursor = conn.cursor();
