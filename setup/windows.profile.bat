@@ -24,6 +24,9 @@ set PATH=%POSTGRESQL_HOME%\bin;%PATH%
 rem Git Unix tools
 set PATH=%PATH%;"C:\Dev\Git\usr\bin"
 
+rem Google Cloud authentication
+set GOOGLE_APPLICATION_CREDENTIALS=C:\GoogleDrive\Tools\application_default_credentials.jonc101@stanford.edu.json
+
 rem Organize DIR listings
 set DIRCMD=/O:GEN /P
 
