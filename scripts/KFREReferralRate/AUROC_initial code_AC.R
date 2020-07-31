@@ -18,3 +18,5 @@ df3 <- select(df2, KFRE_Score, Any_Neph_Actual)
 roc2 <- roc(df3$Any_Neph_Actual, df3$KFRE_Score)
 auc(roc2)
 plot(roc2, print.auc=TRUE)
+
+##
