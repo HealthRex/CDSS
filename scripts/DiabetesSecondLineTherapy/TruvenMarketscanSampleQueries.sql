@@ -58,30 +58,35 @@ LIMIT 1000
 
 
 
--- Look for all outpatient prescription fills from one of the primary diabetes medication categories
--- Break out by year
-SELECT 
-	EXTRACT(YEAR from FILL_DT) as fill_year, 
-	SUBSTR(AHFSCLSS, 0, 6) as AHFSCLSS_LEAD_CODE,
-  AHFSCLSS, 
-	count(distinct PATID) as n_Patients, count(distinct CLMID) as n_Claims, count(distinct NPI) as n_NPIs
-FROM stanfordphs.optum_zip5:139:v3_0:sample.rx_pharmacy:9 
-WHERE
-   AHFSCLSS like '682004%' -- Biguanides (e.g., Metformin)
-OR AHFSCLSS like '682092%' -- Miscellaneous Diabetes Meds
-OR AHFSCLSS like '682008%' -- Insulins
-OR AHFSCLSS like '682020%' -- Sulfonylurea (e.g., glipizide)
-OR AHFSCLSS like '682005%' -- DPP-4 Inhibitors (e.g., sitagliptin)
-OR AHFSCLSS like '682028%' -- Thiazolidinediones (e.g., rosiglitazone)
-OR AHFSCLSS like '682006%' -- Incretin Mimetic / GLP-1 (e.g., exenatide)
-OR AHFSCLSS like '682018%' -- SGLT2 Inhibitor (e.g., empagliflozin)
-OR AHFSCLSS like '682016%' -- Meglitinides (e.g., repaglinide)
+-- Count up patients and claims for prescriptions for diabetes related drug classes
+-- Broken up by Year
+SELECT
+	pc.YEAR,
+	pc.THERCLS,
+	pc.THERGRP,
+	-- rb.GENNME,
+	count(distinct pc.PATID) as n_patients,
+  count(distinct pc.SEQNUM) as n_claims
 
+FROM
+	stanfordphs.marketscan:142:v2_0:sample.outpatient_pharmaceutical_claims:7 AS pc
+	   INNER JOIN
+	stanfordphs.marketscan_redbook:14:v2_0.marketscan_redbook:1 AS rb ON (pc.`NDCNUM` = rb.`NDCNUM`)
+WHERE
+	   pc.THERCLS = 172 -- Insulins
+	OR pc.THERCLS = 174 -- Miscellaneous Diabetes Meds: Includes Metformin, GLP-1 (e.g., Exenatide), DDP-4 (e.g., Linagliptin) 
+	OR pc.THERCLS = 173 -- Sulfonylurea (e.g., glipizide)
+	OR pc.THERCLS = 268 -- Thiazolidinediones (e.g., rosiglitazone)
+	OR pc.THERCLS = 267 -- SGLT2 Inhibitor (e.g., empagliflozin)
+	OR pc.THERCLS = 266 -- Meglitinides (e.g., repaglinide)
 GROUP BY
-   fill_year,
-	 AHFSCLSS_LEAD_CODE,
-	 AHFSCLSS
+	pc.YEAR,
+	pc.THERCLS,
+	pc.THERGRP,
+	rb.GENNME
 ORDER BY
-   fill_year desc, 
-   n_Claims desc
-LIMIT 100
+	pc.YEAR desc,
+	-- rb.GENNME,
+	n_patients desc
+
+LIMIT 1000
