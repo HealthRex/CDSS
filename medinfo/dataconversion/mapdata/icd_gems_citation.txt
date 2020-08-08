@@ -1,0 +1,5 @@
+General Equivalence Mapping files between ICD9 and ICD10 codes
+Download the respective GEMS ZIP file for more documentation
+A copy of the mapping files should be gzipped in this folder and also loaded into the shared database to facilitate reuse
+
+https://www.cms.gov/Medicare/Coding/ICD10/2018-ICD-10-CM-and-GEMs
