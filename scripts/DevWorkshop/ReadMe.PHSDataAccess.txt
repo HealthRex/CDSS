@@ -23,6 +23,15 @@
 		- encryption verification
 		- study approval: HealthRex and Diagnostics has already been approved
 
+		Once access granted, can "Add Dataset" to "Projects" which will bring to Redivis graphical tree view to query 1% or 100% data samples
+		Not allowed to download data or results from here, but enough to query and review high level reports.
+
+		Can hack together queries through graphical interface, or click on code symbol button ("</>") to enter direct SQL queries.
+		Add a "Transform" to a table of interest, which is basically a SQL query that can be custom edited and run, to generate a new Table of results.
+		For large databases, note the different between full database and 1% sample (suffix ":sample" to the table name)
+
+
+
 Creating API credentials:
 	- Credentials enable you to access PHS projects: The token will be  used in scripts (R and Python) for authorization
 			- https://redivis.com/workspace/settings
