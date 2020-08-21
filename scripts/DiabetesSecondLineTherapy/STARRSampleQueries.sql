@@ -69,10 +69,27 @@ dmRxPatients AS
 	GROUP BY
 	  d.anon_id, d.gender, d.canonical_race, d.canonical_ethnicity, d.birth_date_jittered
 )
+
+-- By Gender
 select gender, count(distinct anon_id) as nPatients
 from dmRxPatients
 group by gender
 order by nPatients desc
 
+
+
+-- By Race/Ethnicity
+select canonical_race, canonical_ethnicity, count(distinct anon_id) as nPatients
+from dmRxPatients
+group by canonical_race, canonical_ethnicity
+order by nPatients desc
+
+
+
+-- By Age of First Prescription/Order
+select CAST(FLOOR(age_at_first_order/10)*10 AS INT64) AS decade_at_first_order, count(distinct anon_id) as nPatients
+from dmRxPatients
+group by decade_at_first_order
+order by decade_at_first_order desc
 
 
