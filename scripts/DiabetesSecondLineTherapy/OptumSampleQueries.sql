@@ -159,84 +159,85 @@ dmRx AS
 		OR AHFSCLSS like '682018%' -- SGLT2 Inhibitor (e.g., empagliflozin)
 		OR AHFSCLSS like '682016%' -- Meglitinides (e.g., repaglinide)
 ),
-maceDxSample AS (
--- Pull out diagnoses where matches one of the ICD10 codes for select Major Adverse Cardiovascular Events
--- Doesn't capture all of them however, as the full list appears to include other procedure codes and this is only for ICD10 
--- (whereas the database appears to have ICD9 codes prior to ~2015)
--- https://www.ahajournals.org/doi/pdf/10.1161/JAHA.119.014402
-SELECT
-	PATID,
-	CLMID,
-	DIAG,
-	ICD_FLAG,
-	FST_DT,
-	EXTRACT(YEAR FROM FST_DT) as FST_YEAR
-FROM
-	stanfordphs.optum_dod:138:v3_0:sample.medical_diagnosis:13
-WHERE
-  ICD_FLAG = 10 AND
-  (
-	-- Myocardial Infarction
-	DIAG LIKE 'I21%' OR
-	DIAG LIKE 'I210%' OR
-	DIAG LIKE 'I2101%' OR
-	DIAG LIKE 'I2102%' OR
-	DIAG LIKE 'I2109%' OR
-	DIAG LIKE 'I211%' OR
-	DIAG LIKE 'I2111%' OR
-	DIAG LIKE 'I2119%' OR
-	DIAG LIKE 'I212%' OR
-	DIAG LIKE 'I2121%' OR
-	DIAG LIKE 'I2129%' OR
-	DIAG LIKE 'I213%' OR
-	DIAG LIKE 'I214%' OR
-	DIAG LIKE 'I22%' OR
-	DIAG LIKE 'I220%' OR
-	DIAG LIKE 'I221%' OR
-	DIAG LIKE 'I222%' OR
-	DIAG LIKE 'I228%' OR
-	DIAG LIKE 'I229%' OR
-	DIAG LIKE 'I23%' OR
-	DIAG LIKE 'I230%' OR
-	DIAG LIKE 'I231%' OR
-	DIAG LIKE 'I232%' OR
-	DIAG LIKE 'I233%' OR
-	DIAG LIKE 'I234%' OR
-	DIAG LIKE 'I235%' OR
-	DIAG LIKE 'I236%' OR
-	DIAG LIKE 'I237%' OR
-	DIAG LIKE 'I238%' OR
-	DIAG LIKE 'I252%' OR
+maceDxSample AS
+(
+	-- Pull out diagnoses where matches one of the ICD10 codes for select Major Adverse Cardiovascular Events
+	-- Doesn't capture all of them however, as the full list appears to include other procedure codes and this is only for ICD10 
+	-- (whereas the database appears to have ICD9 codes prior to ~2015)
+	-- https://www.ahajournals.org/doi/pdf/10.1161/JAHA.119.014402
+	SELECT
+		PATID,
+		CLMID,
+		DIAG,
+		ICD_FLAG,
+		FST_DT,
+		EXTRACT(YEAR FROM FST_DT) as FST_YEAR
+	FROM
+		stanfordphs.optum_dod:138:v3_0:sample.medical_diagnosis:13
+	WHERE
+	  ICD_FLAG = 10 AND
+	  (
+		-- Myocardial Infarction
+		DIAG LIKE 'I21%' OR
+		DIAG LIKE 'I210%' OR
+		DIAG LIKE 'I2101%' OR
+		DIAG LIKE 'I2102%' OR
+		DIAG LIKE 'I2109%' OR
+		DIAG LIKE 'I211%' OR
+		DIAG LIKE 'I2111%' OR
+		DIAG LIKE 'I2119%' OR
+		DIAG LIKE 'I212%' OR
+		DIAG LIKE 'I2121%' OR
+		DIAG LIKE 'I2129%' OR
+		DIAG LIKE 'I213%' OR
+		DIAG LIKE 'I214%' OR
+		DIAG LIKE 'I22%' OR
+		DIAG LIKE 'I220%' OR
+		DIAG LIKE 'I221%' OR
+		DIAG LIKE 'I222%' OR
+		DIAG LIKE 'I228%' OR
+		DIAG LIKE 'I229%' OR
+		DIAG LIKE 'I23%' OR
+		DIAG LIKE 'I230%' OR
+		DIAG LIKE 'I231%' OR
+		DIAG LIKE 'I232%' OR
+		DIAG LIKE 'I233%' OR
+		DIAG LIKE 'I234%' OR
+		DIAG LIKE 'I235%' OR
+		DIAG LIKE 'I236%' OR
+		DIAG LIKE 'I237%' OR
+		DIAG LIKE 'I238%' OR
+		DIAG LIKE 'I252%' OR
 
-	-- Ischemic stroke 
-	DIAG LIKE 'I63%' OR
+		-- Ischemic stroke 
+		DIAG LIKE 'I63%' OR
 
-	-- Heart failure
-	DIAG LIKE 'I099%' OR
-	DIAG LIKE 'I110%' OR
-	DIAG LIKE 'I130%' OR
-	DIAG LIKE 'I132%' OR
-	DIAG LIKE 'I255%' OR
-	DIAG LIKE 'I420%' OR
-	DIAG LIKE '1425%' OR
-	DIAG LIKE '1426%' OR
-	DIAG LIKE '1427%' OR
-	DIAG LIKE '1428%' OR
-	DIAG LIKE '1429%' OR
-	DIAG LIKE 'I43%' OR
-	DIAG LIKE 'I50%' OR
-	DIAG LIKE 'P290%' OR
+		-- Heart failure
+		DIAG LIKE 'I099%' OR
+		DIAG LIKE 'I110%' OR
+		DIAG LIKE 'I130%' OR
+		DIAG LIKE 'I132%' OR
+		DIAG LIKE 'I255%' OR
+		DIAG LIKE 'I420%' OR
+		DIAG LIKE 'I425%' OR
+		DIAG LIKE 'I426%' OR
+		DIAG LIKE 'I427%' OR
+		DIAG LIKE 'I428%' OR
+		DIAG LIKE 'I429%' OR
+		DIAG LIKE 'I43%' OR
+		DIAG LIKE 'I50%' OR
+		DIAG LIKE 'P290%' OR
 
-	-- Acute coronary syndrome
-	DIAG LIKE 'I200%' OR
-	DIAG LIKE 'I2109%' OR
-	DIAG LIKE 'I2111%' OR
-	DIAG LIKE 'I2119%' OR
-	DIAG LIKE 'I2129%' OR
-	DIAG LIKE 'I213%' OR
-	DIAG LIKE 'I214%' OR
-	DIAG LIKE 'I240%' 
-	)
+		-- Acute coronary syndrome
+		DIAG LIKE 'I200%' OR
+		DIAG LIKE 'I2109%' OR
+		DIAG LIKE 'I2111%' OR
+		DIAG LIKE 'I2119%' OR
+		DIAG LIKE 'I2129%' OR
+		DIAG LIKE 'I213%' OR
+		DIAG LIKE 'I214%' OR
+		DIAG LIKE 'I240%' 
+	  )
 ),
 
 dmRxMACESamplePatients AS (
