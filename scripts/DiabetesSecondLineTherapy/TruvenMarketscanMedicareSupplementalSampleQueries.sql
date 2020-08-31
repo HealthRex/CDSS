@@ -1,77 +1,17 @@
-	
-	
--- Look for example Redbook / NDC lookup for outpatient prescriptions of all the different types of diabetes medications
--- https://www.mayoclinic.org/diseases-conditions/type-2-diabetes/diagnosis-treatment/drc-20351199
-SELECT 
-    THERCLS, THERGRP, THRDTDS, THRCLDS, THRGRDS, GENNME,
-		count(distinct NDCNUM) as n_NDC,
-FROM stanfordphs.marketscan_redbook:14:v2_0.marketscan_redbook:1 AS rb
-WHERE
-	   GENNME like 'Metform%'
-	OR GENNME like 'Glipizide%'
-	OR GENNME like 'Glyburide%'
-	OR GENNME like 'Glimepiride%'
-	OR GENNME like 'Repaglinide%'
-	OR GENNME like 'Nateglinide%'
-	OR GENNME like 'Rosiglitazone%'
-	OR GENNME like 'Pioglitazone%'
-	OR GENNME like 'Sitagliptin%'
-	OR GENNME like 'Saxagliptin%'
-	OR GENNME like 'Linagliptin%'
-	OR GENNME like 'Exenatide%'
-	OR GENNME like 'Liraglutide%'
-	OR GENNME like 'Semaglutide%'
-	OR GENNME like 'Canagliflozin%'
-	OR GENNME like 'Dapagliflozin%'
-	OR GENNME like 'Empagliflozin'
-	OR GENNME like 'Insulin%'
-GROUP BY
-    THERCLS, THERGRP, THRDTDS, THRCLDS, THRGRDS, GENNME
-ORDER BY
-    THERCLS, THERGRP, THRDTDS, THRCLDS, THRGRDS, GENNME,
-	n_NDC desc
-LIMIT 1000
-
-
-
-
-
--- Look for example Redbook / NDC lookup for outpatient prescriptions of all the different types of diabetes medications by class
--- https://www.mayoclinic.org/diseases-conditions/type-2-diabetes/diagnosis-treatment/drc-20351199
-SELECT 
-    THERCLS, THERGRP, THRDTDS, THRCLDS, THRGRDS, GENNME,
-		count(distinct NDCNUM) as n_NDC,
-FROM stanfordphs.marketscan_redbook:14:v2_0.marketscan_redbook:1 AS rb
-WHERE
-	   THERCLS = 172 -- Insulins
-	OR THERCLS = 174 -- Miscellaneous Diabetes Meds: Includes Metformin, GLP-1 (e.g., Exenatide), DDP-4 (e.g., Linagliptin) 
-	OR THERCLS = 173 -- Sulfonylurea (e.g., glipizide)
-	OR THERCLS = 268 -- Thiazolidinediones (e.g., rosiglitazone)
-	OR THERCLS = 267 -- SGLT2 Inhibitor (e.g., empagliflozin)
-	OR THERCLS = 266 -- Meglitinides (e.g., repaglinide)
-GROUP BY
-    THERCLS, THERGRP, THRDTDS, THRCLDS, THRGRDS, GENNME
-ORDER BY
-    THERCLS, THERGRP, THRDTDS, THRCLDS, THRGRDS, GENNME,
-	n_NDC desc
-LIMIT 1000
-
-
-
 -- Count up patients and claims for prescriptions for diabetes related drug classes
 -- Broken up by Year
 SELECT
 	pc.YEAR,
 	pc.THERCLS,
-	pc.THERGRP,
+	-- pc.THERGRP,
 	-- rb.GENNME,
-	count(distinct pc.PATID) as n_patients,
+	count(distinct pc.ENROLID) as n_patients,
   count(distinct pc.SEQNUM) as n_claims
 
 FROM
-	stanfordphs.marketscan:142:v2_0:sample.outpatient_pharmaceutical_claims:7 AS pc
+	stanfordphs.ibm_marketscan_medicare_supplemental:141:v2_0.insurance_outpatient_pharmacy:6 AS pc
 	   INNER JOIN
-	stanfordphs.marketscan_redbook:14:v2_0.marketscan_redbook:1 AS rb ON (pc.`NDCNUM` = rb.`NDCNUM`)
+	stanfordphs.ibm_marketscan_redbook:14:v2_0.marketscan_redbook:1 AS rb ON (pc.`NDCNUM` = rb.`NDCNUM`)
 WHERE
 	   pc.THERCLS = 172 -- Insulins
 	OR pc.THERCLS = 174 -- Miscellaneous Diabetes Meds: Includes Metformin, GLP-1 (e.g., Exenatide), DDP-4 (e.g., Linagliptin) 
@@ -82,8 +22,8 @@ WHERE
 GROUP BY
 	pc.YEAR,
 	pc.THERCLS,
-	pc.THERGRP,
-	rb.GENNME
+	pc.THERGRP
+	--rb.GENNME
 ORDER BY
 	pc.YEAR desc,
 	-- rb.GENNME,
@@ -93,65 +33,47 @@ ORDER BY
 LIMIT 1000
 
 
+-- Then do subsequent group by queries to get age, gender, race breakdowns
+SELECT
+	SEX,
+	count(distinct ENROLID) as nPatients
+FROM
+	jonc101.test_project_multi_user:1.diabetes_med_patients_marketscan_output:27
+GROUP BY
+  SEX
 
 
-
-
-
-
-
-
-
--- Patient demograhpic information for those who've received a diabetes related drug prescription
-WITH
--- Find claims for prescriptions for diabetes related drug classes
-dmRx AS
-(
-	SELECT
-		pc.SEQNUM,
-		pc.ENROLID,	
-		pc.YEAR,
-		pc.THERCLS,
-		rb.GENNME,
-		pc.REGION,
-		pc.AGEGRP,
-		pc.SEX,
-	  pc.DOBYR,
-		pc.AGE
-	FROM
-		stanfordphs.marketscan:142:v2_0.outpatient_pharmaceutical_claims:7 AS pc
-			 INNER JOIN
-		stanfordphs.marketscan_redbook:14:v2_0.marketscan_redbook:1 AS rb USING (NDCNUM)
-	WHERE
-			 pc.THERCLS = 172 -- Insulins
-		OR pc.THERCLS = 174 -- Miscellaneous Diabetes Meds: Includes Metformin, GLP-1 (e.g., Exenatide), DDP-4 (e.g., Linagliptin) 
-		OR pc.THERCLS = 173 -- Sulfonylurea (e.g., glipizide)
-		OR pc.THERCLS = 268 -- Thiazolidinediones (e.g., rosiglitazone)
-		OR pc.THERCLS = 267 -- SGLT2 Inhibitor (e.g., empagliflozin)
-		OR pc.THERCLS = 266 -- Meglitinides (e.g., repaglinide)
-)
-
--- Could join with enrollment detail table, but looks like main patient demographic
---   is already denormalized and included in the pharmaceutical claims table
 
 SELECT
-	ENROLID, SEX, DOBYR, 
-	REGION, -- Could have multiple records per patient/enrolee then, if moved between regions
-	MIN(SEQNUM) AS FIRST_SEQNUM,
-	MIN(AGE) AS AGE_FIRST_RX, MIN(AGEGRP) AS AGEGRP_FIRST_RX
-	-- Apparently Truven MarketScan does NOT include race/ethnicity information
+	CAST(FLOOR(AGE_FIRST_RX/10)*10 AS INT64) AS DECADE_FIRST_RX,
+	count(distinct ENROLID) as nPatients
 FROM
-	dmRx
-WHERE
-	ENROLID IS NOT NULL	-- Can't do unique patient counts in this case
+	jonc101.test_project_multi_user:1.diabetes_med_patients_marketscan_output:27
 GROUP BY
-  ENROLID, SEX, DOBYR,
-	REGION
+  DECADE_FIRST_RX
 ORDER BY
-	ENROLID
+	DECADE_FIRST_RX
 
 
--- Then do subsequent group by queries to get age, gender, race breakdowns
+SELECT
+	REGION,
+	count(distinct ENROLID) as nPatients
+FROM
+	jonc101.test_project_multi_user:1.diabetes_med_patients_marketscan_output:27
+GROUP BY
+  REGION
+ORDER BY
+	REGION
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -174,7 +96,7 @@ maceDx1Sample AS
 		YEAR,
 		SEX
 	FROM
-		stanfordphs.marketscan:142:v2_0.facility_header:5 AS t0
+  	stanfordphs.ibm_marketscan_medicare_supplemental:141:v2_0.insurance_facility_header:5 AS t0
 	WHERE
 		-- DXVER = 0 -- ICD10, but most are null?
 		-- Myocardial Infarction
@@ -503,9 +425,9 @@ dmRx AS
 	  pc.DOBYR,
 		pc.AGE
 	FROM
-		stanfordphs.marketscan:142:v2_0.outpatient_pharmaceutical_claims:7 AS pc
+  	stanfordphs.ibm_marketscan_medicare_supplemental:141:v2_0.insurance_outpatient_pharmacy:6 AS pc
 			 INNER JOIN
-		stanfordphs.marketscan_redbook:14:v2_0.marketscan_redbook:1 AS rb USING (NDCNUM)
+		stanfordphs.ibm_marketscan_redbook:14:v2_0.marketscan_redbook:1 AS rb USING (NDCNUM)
 	WHERE
 			 pc.THERCLS = 172 -- Insulins
 		OR pc.THERCLS = 174 -- Miscellaneous Diabetes Meds: Includes Metformin, GLP-1 (e.g., Exenatide), DDP-4 (e.g., Linagliptin) 
@@ -541,9 +463,24 @@ dmRxMACEDx1SamplePatients AS
 )
 
 SELECT
-	YEAR_FIRST_DX1, count(distinct ENROLID)
+	YEAR_FIRST_DX1, count(distinct ENROLID) as nPatients
 FROM dmRxMACEDx1SamplePatients
 GROUP BY
 	YEAR_FIRST_DX1
 ORDER BY
 	YEAR_FIRST_DX1
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
