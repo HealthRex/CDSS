@@ -102,6 +102,7 @@ LIMIT 1000
 
 
 
+	
 -- Patient demograhpic information for those who've received a diabetes related drug prescription
 WITH
 -- Find claims for prescriptions for diabetes related drug classes
@@ -119,9 +120,9 @@ dmRx AS
 	  pc.DOBYR,
 		pc.AGE
 	FROM
-		stanfordphs.marketscan:142:v2_0.outpatient_pharmaceutical_claims:7 AS pc
+	stanfordphs.ibm_marketscan_medicare_supplemental:141:v2_0.insurance_outpatient_pharmacy:6 AS pc
 			 INNER JOIN
-		stanfordphs.marketscan_redbook:14:v2_0.marketscan_redbook:1 AS rb USING (NDCNUM)
+		stanfordphs.ibm_marketscan_redbook:14:v2_0.marketscan_redbook:1 AS rb USING (NDCNUM)
 	WHERE
 			 pc.THERCLS = 172 -- Insulins
 		OR pc.THERCLS = 174 -- Miscellaneous Diabetes Meds: Includes Metformin, GLP-1 (e.g., Exenatide), DDP-4 (e.g., Linagliptin) 
@@ -152,6 +153,37 @@ ORDER BY
 
 
 -- Then do subsequent group by queries to get age, gender, race breakdowns
+SELECT
+	SEX,
+	count(distinct ENROLID) as nPatients
+FROM
+	jonc101.test_project_multi_user:1.dmrx_demographics_medicare_supplemental_output:41
+GROUP BY
+  SEX
+	
+
+
+SELECT
+	CAST(FLOOR(AGE_FIRST_RX/10)*10 AS INT64) AS DECADE_FIRST_RX,
+	count(distinct ENROLID) as nPatients
+FROM
+	jonc101.test_project_multi_user:1.dmrx_demographics_medicare_supplemental_output:41
+GROUP BY
+  DECADE_FIRST_RX
+ORDER BY
+	DECADE_FIRST_RX
+
+
+SELECT
+	REGION,
+	count(distinct ENROLID) as nPatients
+FROM
+	jonc101.test_project_multi_user:1.dmrx_demographics_medicare_supplemental_output:41
+GROUP BY
+  REGION
+ORDER BY
+	REGION	
+
 
 
 
