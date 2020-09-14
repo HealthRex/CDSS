@@ -10,6 +10,8 @@
 	 	- Go to https://redivis.com/StanfordPHS/ and click on create account
 			- additional information:
 			- https://phsdocs.developerhub.io/computing-environment/quick-tour-phs-data-portal
+		- Strongly recommend signing up for the PHS data slack channel
+		- https://docs.google.com/document/d/1n304k9zMM3dji_ngJ9SQBovllK_s7zIg-du2XoRpQPc/edit
 5) Getting Access to Dataset:
 	- a) apply for permissions
 	- b) Levels of Access:
@@ -34,6 +36,7 @@
 		Can hack together queries through graphical interface, or click on code symbol button ("</>") to enter direct SQL queries.
 		Add a "Transform" to a table of interest, which is basically a SQL query that can be custom edited and run, to generate a new Table of results.
 		For large databases, note the different between full database and 1% sample (suffix ":sample" to the table name)
+	- Note that there is a channel in the PHS slack called #access-admin if you have difficulty / substantial delays with any step
 
 
 
