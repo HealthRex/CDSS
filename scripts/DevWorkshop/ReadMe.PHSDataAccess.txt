@@ -91,3 +91,8 @@ Accessing through Jupyter Notebook:
 		- this will bring you into home/SUNETID/redivis/bigquery folder:
 	- select jupyer notebook on the middle panel:
 	- Repeat steps in 7 to copy code into jupyter noteboook
+	
+	
+Install new packages:
+	-R packages: http://nero-docs.stanford.edu/jupyter-installing-r-packages.html
+	-Python packages: http://nero-docs.stanford.edu/anaconda_usage.html
