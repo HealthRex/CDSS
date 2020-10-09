@@ -17,6 +17,22 @@ class ParsingExample:
           ' represents NOT
           ! represents OR
           & represents AND
+
+
+		Parse it into a computable stack/list of descriptive components, similar to below:
+
+        testStr = "(SEX)&(AGE)&FI(2)&'FI(3)";
+        expectedLogicStack = \
+            [   {"negate": False, "type": "SEX", "index": None },
+                "&",
+                {"negate": False, "type": "AGE", "index": None },
+                "&",
+                {"negate": False, "type": "FI", "index": 2 },
+                "&",
+                {"negate": True, "type": "FI", "index": 3 },
+            ];
+
+
         """
         logicStack = list();  # Store components as a stack (list) of items and operators
 
