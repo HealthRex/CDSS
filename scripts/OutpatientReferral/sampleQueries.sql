@@ -6,7 +6,8 @@
 	      enc.appt_when_jittered as referringApptDateTime, op.order_time_jittered as referralOrderDateTime
 		from `starr_datalake2018.order_proc` as op 
 		  join `starr_datalake2018.encounter` as enc on op.pat_enc_csn_id_coded = enc.pat_enc_csn_id_coded 
-		where proc_code = 'REF31' -- REFERRAL TO ENDOCRINE CLINIC (internal)
+		where proc_code = 'REF31' -- REFERRAL TO ENDOCRINE CLINIC
+		-- where proc_code = 'REF18' -- REFERRAL TO HEMATOLOGY CLINIC
 		and ordering_mode = 'Outpatient'
 		and EXTRACT(YEAR from order_time_jittered) = 2017
 		-- 5675 Records
@@ -85,10 +86,10 @@
 	-- 2640 referred New Patient visit within 6 months
 	-- 2898 referred New Patient visit within 12 months
 
-    - Outer join to count how many with no follow-up visit at all
-    - Assess distribution of referral time
+    -- Outer join to count how many with no follow-up visit at all
+    -- Assess distribution of referral time
 (4) Find all (sorted by prevalence)
-    - Diagnoses from encounters in (1)
+    -- Diagnoses from encounters in (1)
 		select dx.icd9, dx.icd10, dx_name, count(*)
 		from referringEncounters as refEnc 
 		  join `starr_datalake2018.diagnosis_code` as dx on refEnc.referringEncounterId = dx.pat_enc_csn_id_coded 
@@ -96,7 +97,7 @@
 		order by count(*) desc
 		-- 8240 Distinct diagnosis codes, but long tail dominated by head with 512 Osteoporosis, 487 Thyroid Nodule...
     
-    - Order Med	from encounters in (2)
+    -- Order Med from encounters in (2)
 		select medication_id, med_description, count(*)
 		from specialtyNewPatientEncounters as specEnc
 		  join `starr_datalake2018.order_med` as om on specEnc.specialtyEncounterId = om.pat_enc_csn_id_coded 
