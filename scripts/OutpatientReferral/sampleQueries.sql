@@ -76,7 +76,7 @@
 
 
 	-- (2a) Find all NON-New Patient clinic visits for the referred specialty
-	endocrineNonNewPatientEncounters2017 AS
+	endocrineNonNewPatientEncounters2017_ AS
 	(
 		select enc.jc_uid, enc.pat_enc_csn_id_coded as nonNewSpecialtyEncounterId, enc.appt_when_jittered as nonNewSpecialtyEncounterDateTime
 		from `starr_datalake2018.encounter` as enc join `starr_datalake2018.dep_map` as dep on enc.department_id = dep.department_id 
@@ -87,7 +87,7 @@
 		and extract(YEAR from enc.appt_time_jittered) >= 2017
     	-- 20,489 non-NEW PATIENT specialty encounter visits in 2017
     ),
-    hematologyNonNewPatientEncounters2017 AS
+    hematologyNonNewPatientEncounters2017_ AS
 	(
 		select enc.jc_uid, enc.pat_enc_csn_id_coded as nonNewSpecialtyEncounterId, enc.appt_when_jittered as nonNewSpecialtyEncounterDateTime
 		from `starr_datalake2018.encounter` as enc join `starr_datalake2018.dep_map` as dep on enc.department_id = dep.department_id 
@@ -111,6 +111,7 @@
 		where DATETIME_DIFF(specEnc.specialtyEncounterDateTime, refEnc.referralOrderDateTime, MONTH) BETWEEN 0 AND 11
 		-- 2,640 referred New Patient visit within 6 months
 		-- 2,898 referred New Patient visit within 12 months
+			-- 67 days average, 66 days stdev, 44 days median (IQR 26-83)
 	),
 	hematologyReferralTimes2017 AS
 	(
@@ -119,9 +120,11 @@
 		where DATETIME_DIFF(specEnc.specialtyEncounterDateTime, refEnc.referralOrderDateTime, MONTH) BETWEEN 0 AND 11
 		-- 1,204 referred New Patient visit within 6 months
 		-- 1,238 referred New Patient visit within 12 months
+			-- 42 days average, 45 days stdev, 34 days median (IQR 19-48)
 	),
+
     -- Outer join to count how many with no follow-up visit at all
-    -- Assess distribution of referral time
+    -- Assess distribution of referral time by summarizing results in Excel
 
 
 --(4) Find all (sorted by prevalence)
@@ -519,15 +522,16 @@ hematologyNewPatientNoMedsOrProcsEncounters2017 AS
 	 ),
 
 -- (9) New Patient specialty encouners where had a particular lab abnormality beforehand (to estimate power calculations)
-
+    /*
 	endocrinePriorAbnormalTSH AS
 	(
 		select specNewEnc.*, ord_num_value, DATETIME_DIFF(specNewEnc.specialtyEncounterDateTime, res.result_time_jittered, MONTH) as labToEncMonths
 		from `starr_datalake2018.lab_result` as res
-		   join specialtyNewPatientEncounters2017 as specNewEnc
+		   join endocrineNewPatientEncounters2017_ as specNewEnc
 		        on res.rit_uid = specNewEnc.jc_uid 
 		where base_name = 'TSH'
 		and ord_num_value <0.5
+		and EXTRACT(YEAR from specNewEnc.specialtyEncounterDateTime) = 2017
 		and DATETIME_DIFF(specNewEnc.specialtyEncounterDateTime, res.result_time_jittered, MONTH) BETWEEN 0 AND 11
 		-- 805 Endocrine New Patient visits in 2017 with low TSH in prior year
 	),
@@ -540,6 +544,7 @@ hematologyNewPatientNoMedsOrProcsEncounters2017 AS
 		        on res.rit_uid = specNewEnc.jc_uid 
 		where base_name = 'CA'
 		and ord_num_value > 11.5
+		and EXTRACT(YEAR from specNewEnc.specialtyEncounterDateTime) = 2017
 		and DATETIME_DIFF(specNewEnc.specialtyEncounterDateTime, res.result_time_jittered, MONTH) BETWEEN 0 AND 11
 		-- 73 Endocrine New Patient visits in 2017 with high CA in prior year
 	),
@@ -552,7 +557,11 @@ hematologyNewPatientNoMedsOrProcsEncounters2017 AS
 		        on res.rit_uid = specNewEnc.jc_uid 
 		where base_name = 'PLT'
 		and ord_num_value < 30
+		and EXTRACT(YEAR from specNewEnc.specialtyEncounterDateTime) = 2017
 		and DATETIME_DIFF(specNewEnc.specialtyEncounterDateTime, res.result_time_jittered, MONTH) BETWEEN 0 AND 11
 		-- 2784 Hematology New Patient visits in 2017 with low PLT in prior year
 		--	(But this is likely capturing a lot of MDS, leukemia, etc., not just isolated thrombocytopenia)
 	),
+	*/
+	spacer AS (select * from primaryCareEncounters2017)
+	
