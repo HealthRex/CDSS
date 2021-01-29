@@ -1,0 +1,67 @@
+Git is an open source version control system that's useful for 
+1. Saving your code to a place that's not your local computer or a university IT server that
+could spontaenously combust at any moment. 
+2. Keep track of changes made to your code by yourself and other users working off the same
+code base so that you can revert to prior versions of your code should new versions break things. 
+
+By the end of this workshop, you should feel comfortable using basic git commands. 
+This will include cloning a git repository to your local
+workstation, making changes to files locally, adding and comitting 
+these changes to your local repository, and finally pushing these changes to the remote repository. 
+
+On top of this, you will practice pulling changes that have been pushed to the remote repository
+by other users and merging them into your local branch.  This will include handling any
+merge conflicts that should arise. 
+
+Step 1: Everyone should pull the most recent changes from the master branch of CDSS. 
+If you haven't cloned this repository to your local workstation previously, do so now. In a
+terminal, navigate to a directory of choice and execute the command below.  
+
+git clone https://github.com/HealthRex/CDSS.git
+
+If you've already cloned this repository, navigate to where you have it cloned and execute
+
+git pull 
+
+The master branch on your local repository is now up to date. 
+
+Step 2 [Main Task]: Break into groups and head to breakout rooms. Your group will be assigned a 
+number. Remember your number (it's your breakout room number).
+Each member of your group will sign their name (just type your name) 
+into the corresponding group signatures file in /CDSS/scripts/DevWorkshop/GithubWorkshop/. 
+The group signature file you want to edit will be called group_signature_[group_number].txt
+where group_number is your assigned group number.  Your task will be completed when
+the remote master branch of CDSS has a file called group_signature_[group_number].txt
+with all your group member's names (one name per line) AND no other names.  
+
+Some useful commands to guide you through the above. 
+
+To view the status of files you've made changes to, and whether they have been staged, execute
+
+git status
+
+To stage to_add.txt (a text file in the /file/you/want/ directory), execute
+
+git add /file/you/want/to_add.txt 
+
+Once this file is staged, you can commit changes to this file to your local
+repository's master branch. To do this, execute
+
+git commit -m "insert a useful message pertaining to the changes you've made"
+
+You now want to push these changes to the remote repository's master branch, but you know that
+multiple people are also trying to do the same thing.  Before you ever push changes to the remote
+master, it's best practice to pull changes made by other users into your local repository. Do 
+this by executing the following:
+
+git pull 
+
+Uh oh... you have a merge conflict. It looks like you have an imposter trying to pass themselves
+off as a member of your group. In your editor of choice, handle the merge conflict by deleting the
+imposter's name and anything else in the file you do not want pushed to the remote master branch. 
+Stage the changes again, commit them, and then finally push to the remote master branch by executing:
+
+git push origin master
+
+Have each member of your group step through the above process until your group text file has all
+of your names and no imposters. 
