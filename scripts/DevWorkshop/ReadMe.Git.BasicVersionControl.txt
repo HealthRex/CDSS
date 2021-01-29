@@ -1,4 +1,4 @@
-Sandbox folder to test out different functions, for example Git version control commands.
+Visualization of Git version control commands.
 https://twitter.com/MJAlwajeeh/status/984177298076262401?s=20
 
 # Get a copy/clone of the code repository to work with
