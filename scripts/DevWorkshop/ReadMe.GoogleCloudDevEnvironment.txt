@@ -31,7 +31,7 @@ Google Cloud and Compute Instance Setup
     - Machine Configuration: What type of hardware do you want to use
       - Series + Machine Type
         Different machines types cost different amounts based on how many CPUs and RAM you need
-        For testing purposes, just pick choose one of the smallest ones (e.g., N1 - f1-micro)
+        For testing purposes, a small g1-small should be sufficient (the smallest f1-micro looks like it doesn't have enough RAM for subsequents steps)
     - Boot Disk: Allow specification of different default Operating Systems (default Debian GNU/Linux for now)
   	- Identity and API access
 	    If you want the compute instance to have specific access privilieges.
@@ -71,7 +71,7 @@ Google Cloud and Compute Instance Setup
 
 - Install Libraries and Dependencies / Package Managers
   You'll need software packages and dependencies installed on the compute instance for development work
-  Default system comes with both Python 2.7 and Python 3.7 installed (latter as "python3") (as of 5/26/2020),
+  Default system comes with Python 3 installed ("python3") (as of 1/29/2021),
   but is largely barebones in terms of other software packages. Using package management software tools,
   such as apt and pip in this case, are essentially for easing the pain of "dependency hell."
 
@@ -80,7 +80,8 @@ Google Cloud and Compute Instance Setup
     sudo apt update                               # Tell the "superuser" admin to "do" an update of the apt tool
     sudo apt install git                          # Git client to communicate with source code version control repository
     sudo apt install python3-pip                  # Install PIP tool for Python package management
-    python3 -m pip install google-cloud-bigquery  # Python - Google Cloud interface to connect to BigQuery databases
+    python3 -m pip install google-cloud-bigquery  # Python - Google Cloud interface to connect to BigQuery databases 
+                                                    ***This takes over 10 minutes. Consider opening a second terminal connection to the compute instance so you can continue the subsequent steps in parallel
     python3 -m pip install pandas                 # Popular Python package for manipulating tabular dataframes
 
 - Download a Copy of the Application Code Repository
@@ -106,9 +107,21 @@ Google Cloud and Compute Instance Setup
     source .bash_profile
 
 - Setup LocalEnv.py file so the application DBUtil knows how to find the BigQuery database
+  
   Copy the CDSS/LocalEnv.py.template into a CDSS/LocalEnv.py configuration file.
+    cp CDSS/LocalEnv.py.template CDSS/LocalEnv.py
 
   Edit the contents of the LocalEnv.py file to refer to the database of interest.
+  You can use the not great, but ubiquitous "vi" editor on Unix systems
+    vi CDSS/LocalEnv.py
+
+    Quick vi commands
+    - x: Delete a character
+    - i: Change to "insert" (i.e., edit mode)
+    - Escape: Exit out of edit mode
+    - ":wq": Change to "colon-command" mode, then (w)rite your changes to the file, then (q)uit the editor
+    - ":q!": Change to "colon-command" mode, (q)uit the editor, WITHOUT saving changes (!)
+    
   Most of the other settings can be ignored, as they are for other environments (e.g., PostgreSQL databases)
   
     DATABASE_CONNECTOR_NAME = "bigquery"
@@ -186,15 +199,15 @@ On GCP Linux Server:
 
     "M" to sort the results by which processes are using the most memory
     "q" to quit/exit when done.
-  `cat log/process.log`
+  `cat log/progress.log`
     Show the output of the redirected console output from your application process
-  `tail -f log/process.log`
+  `tail -f log/progress.log`
     Show just the last few lines of the redirected console output, 
     and continue watching it until Ctrl+C to abort.
     (Ctrl+C will abort the "tail" monitoring process, not the original application process.)
 
 - Use a batch driver script to run multiple (parallel) processes
-  (Beware that this is likely to overwhelm the RAM (memory) available on the tiny test server)
+  (Beware that this is likely to overwhelm the RAM (memory) available on your tiny test compute instance)
 
   `bash batchDriver.sh`
 
