@@ -96,3 +96,10 @@ Accessing through Jupyter Notebook:
 Install new packages:
 	-R packages: http://nero-docs.stanford.edu/jupyter-installing-r-packages.html
 	-Python packages: http://nero-docs.stanford.edu/anaconda_usage.html
+	
+Tips on working with PHS data:
+-The export limit is 1 GB (though the size may change) - querying PHS data using the API from Nero counts as an export! This means that you cannot query most of the original tables in Optum (or other datasets) as they are usually >1 GB
+-Two possible solutions are: 
+i) you can request an exemption to the export size (there's a button in the upper right corner of the Redivis GUI) - I had no issues getting these quickly approved so long as I clarified that I was requesting the exemption to query the tables from Nero (and NOT to export data >1 GB onto my local machine)
+ii) you can create smaller tables in the Redivis GUI and query those
+-If you're using the BigQuery API, it is much faster to do data processing/cleaning via SQL commands since BigQuery is optimized for speed. Doing larger queries, converting the result to a dataframe, and then doing data processing is much slower
