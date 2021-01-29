@@ -1,5 +1,4 @@
-Working file to test
-Sandbox folder to test out different functions, for example Git version control commands.
+Visualization of Git version control commands.
 https://twitter.com/MJAlwajeeh/status/984177298076262401?s=20
 
 # Get a copy/clone of the code repository to work with
@@ -52,3 +51,6 @@ https://twitter.com/MJAlwajeeh/status/984177298076262401?s=20
 # Check a log of all the changes made to the file
 	git log yourTestFile.txt
 	
+
+# Git contains much more advanced functionality for code branches and remerges, but likely excessive for small-medium sized teams
+# Essentially all code content, logs, as well as a Wiki + basic Issue and Project Tracker are accessible on the GitHub website.
