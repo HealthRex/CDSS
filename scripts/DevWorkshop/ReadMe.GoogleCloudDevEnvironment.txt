@@ -11,7 +11,7 @@ Google Cloud and Compute Instance Setup
 
 == Preconditions ==
 - Google Stanford Account with VPN setup
-- Project (mining-clinical-decisions) Permissions
+- Project (mining-clinical-decisions) Permissions, including *Compute Engine Editor*
   (See ReadMe.GoogleCloud-BigQuery-VPC.txt DevWorkshop)
 
 == Workshop Steps ==
@@ -34,9 +34,8 @@ Google Cloud and Compute Instance Setup
         For testing purposes, a small g1-small should be sufficient (the smallest f1-micro looks like it doesn't have enough RAM for subsequents steps)
     - Boot Disk: Allow specification of different default Operating Systems (default Debian GNU/Linux for now)
   	- Identity and API access
-	    If you want the compute instance to have specific access privilieges.
-      Select 'mining-clinical-dev' for simplicity for now, as this gives read/view and create job access
-      against the BigQuery databases through a Service Account 
+      Select 'mining-clinical-dev' for simplicity for now, 
+      as this gives read/view and create job access the BigQuery databases through a Service Account 
       without requiring individual login key files (though that is an option too).
     - Create
 

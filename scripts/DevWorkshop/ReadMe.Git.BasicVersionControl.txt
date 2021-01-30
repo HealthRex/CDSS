@@ -1,8 +1,15 @@
 Visualization of Git version control commands.
 https://twitter.com/MJAlwajeeh/status/984177298076262401?s=20
 
+See CDSS/scripts/DevWorkshop/GithubWorkshop for additional examples.
+Otherwise, quick test commands here:
+
+
 # Get a copy/clone of the code repository to work with
 	git clone https://github.com/HealthRex/CDSS.git
+
+# Pull any latest updates or changes from the master online repository to your local copy
+	git pull
 
 # Identify yourself to the GitHub repository
 	git config --global user.email "yourGitHubEmail"
