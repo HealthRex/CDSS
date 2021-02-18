@@ -200,7 +200,6 @@ class ItemRecommenderWeb(BaseCPOEWeb):
         self.requestData["resultsInfo"] += "(%1.3f seconds)" % timer
 
 if __name__ == "__main__":
-    print("hello", file=sys.stderr)
     webController =  ItemRecommenderWeb()
     webController.handleRequest(cgi.FieldStorage())
 
