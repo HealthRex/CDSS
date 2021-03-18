@@ -7,7 +7,7 @@
 	      enc.appt_when_jittered as referringApptDateTime, op.order_time_jittered as referralOrderDateTime
 		from `starr_datalake2018.order_proc` as op 
 		  join `starr_datalake2018.encounter` as enc on op.pat_enc_csn_id_coded = enc.pat_enc_csn_id_coded 
-		where proc_code = 'REF31' -- REFERRAL TO ENDOCRINE CLINIC
+		where proc_id = 34378 -- proc_code = 'REF31' -- REFERRAL TO ENDOCRINE CLINIC -- Should be the same thing, but 2020 database update seems to be missing proc_code for many records
 		and ordering_mode = 'Outpatient'
 		and EXTRACT(YEAR from order_time_jittered) = 2017
 		-- 5675 Records - Endocrine
@@ -23,7 +23,7 @@
 	      enc.appt_when_jittered as referringApptDateTime, op.order_time_jittered as referralOrderDateTime
 		from `starr_datalake2018.order_proc` as op 
 		  join `starr_datalake2018.encounter` as enc on op.pat_enc_csn_id_coded = enc.pat_enc_csn_id_coded 
-		where proc_code = 'REF18' -- REFERRAL TO HEMATOLOGY CLINIC
+		where proc_id = 34352 -- proc_code = 'REF18' -- REFERRAL TO HEMATOLOGY CLINIC -- Should be the same thing, but 2020 database update seems to be missing proc_code for many records
 		and ordering_mode = 'Outpatient'
 		and EXTRACT(YEAR from order_time_jittered) = 2017
 		-- 2406 Records - Hematology
