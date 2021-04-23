@@ -6,6 +6,7 @@ scripts/LabTestAnalysis/machine_learning/data*
 starr/data*
 stride/data*
 scripts/LabCulturePrediction/data*
+scripts/ER_Infection/data*
 .idea*
 venv*
 *token.pickle
