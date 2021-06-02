@@ -276,3 +276,6 @@ OPTIONAL LEARNING
     gcloud compute scp yourLocalFile.txt <instance-name>:/home/yourUserName/yourRemoteFileCopy.txt
 
 
+
+- Nero Compute GCP Cheat Sheet for PHI Secure Compute Version?
+https://docs.google.com/drawings/d/14Ixgar6XTSWiXwlBG16AFNxpZzPl2gNrF7P3U4s7JHc/edit?usp=sharing
