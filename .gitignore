@@ -6,6 +6,8 @@ scripts/LabTestAnalysis/machine_learning/data*
 starr/data*
 stride/data*
 scripts/LabCulturePrediction/data*
+scripts/LabCulturePrediction/*.tab
+scripts/LabCulturePrediction/DecisionMakingClass/*.csv
 scripts/ER_Infection/data*
 .idea*
 venv*
