@@ -1,17 +1,98 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics import roc_auc_score
+import lightgbm as lgb
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 
 import sys, argparse, os, json
-sys.path.insert(1, '/Users/conorcorbin/repos/CDSS/scripts/ER_Infection/notebooks/modeling/')
-from train_model import (
-    ridge, lasso,
-    lightgbm, random_forest
-)
-
+from tqdm import tqdm
 import pdb
 
-def gbm(X_train, y_train, X_test, y_test):
+def lasso(X_train, y_train, X_test, y_test):
+    """
+    Trains an l2 penalized logistic regression sweeping over reg strength
+    Uses test set for model selection
+    """
+    grid = {'C' : np.logspace(-8, 8, 17)}
+
+    best_auc = 0.5
+    best_params = {key: None for key in grid}
+    best_preds = None
+
+    for c in tqdm(grid['C']):
+        clf = LogisticRegression(penalty='l1', C=c, solver='liblinear')
+        clf.fit(X_train, y_train)
+        preds = clf.predict_proba(X_test)[:, 1]
+        auc = roc_auc_score(y_test, preds)
+        if auc > best_auc:
+            best_auc = auc
+            best_params['C'] = c
+            best_preds = [p for p in preds]
+                
+    print(f"AUC: {round(best_auc, 2)}")
+    return clf, best_preds, best_auc, best_params 
+
+
+def ridge(X_train, y_train, X_test, y_test):
+    """
+    Trains an l2 penalized logistic regression sweeping over reg strength
+    Uses test set for model selection
+    """
+    grid = {'C' : np.logspace(-8, 8, 17)}
+
+    best_auc = 0.5
+    best_params = {key: None for key in grid}
+    best_preds = None
+
+    for c in tqdm(grid['C']):
+        clf = LogisticRegression(penalty='l2', C=c)
+        clf.fit(X_train, y_train)
+        preds = clf.predict_proba(X_test)[:, 1]
+        auc = roc_auc_score(y_test, preds)
+        if auc > best_auc:
+            best_auc = auc
+            best_params['C'] = c
+            best_preds = [p for p in preds]
+                
+    print(f"AUC: {round(best_auc, 2)}")
+    return clf, best_preds, best_auc, best_params 
+
+
+def random_forest(X_train, y_train, X_test, y_test):
+    """
+    Trains a random forest, sweeps over a few hyperparams
+    Uses test set for model selection
+    """
+    grid = {
+        'min_samples_split' : [2, 10, 50, 100],
+        'max_features' : ['sqrt', 'log2', None]
+    }
+
+    best_auc = 0.5
+    best_params = {key: None for key in grid}
+    best_preds = None
+
+    for mss in tqdm(grid['min_samples_split']):
+        for mf in grid['max_features']:
+            clf = RandomForestClassifier(
+                n_estimators=1000,
+                min_samples_split=mss,
+                max_features=mf
+            )
+            clf.fit(X_train, y_train)
+            preds = clf.predict_proba(X_test)[:, 1]
+            auc = roc_auc_score(y_test, preds)
+            if auc > best_auc:
+                best_auc = auc
+                best_params['min_samples_split'] = mss
+                best_params['max_features'] = mf
+                best_preds = [p for p in preds]
+
+    print(f"AUC: {round(best_auc, 2)}")
+    return clf, best_preds, best_auc, best_params 
+
+def lightgbm(X_train, y_train, X_test, y_test):
     """
     Trains a gbm with standard hyperparamters and returns AUROC on test set. 
     Uses test set for model selection
@@ -21,27 +102,58 @@ def gbm(X_train, y_train, X_test, y_test):
             'num_leaves' : [2, 8, 16, 32, 64]
     }
 
-    # Instantiate GBM
-    gbm = lgb.LGBMClassifier(objective='binary',
-                             n_estimators=1000,
-                             learning_rate=0.1,
-                             num_leaves=2)
+    best_auc = 0.5
+    best_lr, best_num_leaves, best_iter = None, None, None
+    best_preds = None
 
-    
-    # Fit model with early stopping
-    gbm.fit(X_train,
-            y_train,
-            eval_set= [(X_test, y_test)],
-            eval_metric = 'binary',
-            early_stopping_rounds = 20,
-            verbose=False)
-    
-    boosting_rounds = gbm.best_iteration_
-    preds = gbm.predict_proba(X_test)[:, 1]
-    auc = roc_auc_score(y_test, preds)
-    print(f"Num Boosting Rounds: {boosting_rounds} AUC: {round(auc, 2)}")
-    return gbm, preds
+    for lr in tqdm(grid['learning_rate']):
+        for n in grid['num_leaves']:
+            # Instantiate GBM
+            clf = lgb.LGBMClassifier(
+                objective='binary',
+                n_estimators=1000,
+                learning_rate=lr,
+                num_leaves=n
+            )
+            
+            # Fit model with early stopping
+            clf.fit(
+                X_train,
+                y_train,
+                eval_set= [(X_test, y_test)],
+                eval_metric = 'binary',
+                early_stopping_rounds = 20,
+                verbose=False
+            )
+            
+            boosting_rounds = clf.best_iteration_
+            preds = clf.predict_proba(X_test)[:, 1]
+            auc = roc_auc_score(y_test, preds)
 
+            if auc > best_auc:
+                best_auc = auc
+                best_lr, best_num_leaves = lr, n
+                best_preds = [p for p in preds]
+                best_iter = clf.best_iteration_
+        
+    print(f"Num Boosting Rounds: {best_iter} AUC: {round(best_auc, 2)}")
+    best_params = {
+        'boosting_rounds' : best_iter,
+        'num_leaves' : best_num_leaves,
+        'learning_rate' : best_lr
+    }
+    return clf, best_preds, best_auc, best_params 
+
+def train_ensembled_model():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--label', default="NIT",
+                        type=str,
+                        help='NIT SXT CIP LVX')
+    parser.add_argument('--output_path',
+                        default="/Users/conorcorbin/data/mit_abx_model_results/",
+                        type=str,
+                        help='directory to save outputs')
+    args = parser.parse_args()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -51,11 +163,15 @@ def main():
     parser.add_argument('--label', default="NIT",
                         type=str,
                         help='NIT SXT CIP LVX')
-    parser.add_argument('--output_path', default="",
+    parser.add_argument('--output_path',
+                        default="/Users/conorcorbin/data/mit_abx_model_results/",
                         type=str,
                         help='directory to save outputs')
     args = parser.parse_args()
 
+    output_path = os.path.join(args.output_path, args.label, args.model_class)
+    os.makedirs(output_path, exist_ok=True)
+    
     df_features = pd.read_csv('./data/all_uti_features.csv')
     df_labels = pd.read_csv('./data/all_uti_resist_labels.csv')
 
@@ -71,7 +187,7 @@ def main():
     df_test = df.query("is_train == 0", engine='python')
 
     # DEBUG
-    # df_train = df_train.sample(n=1000).reset_index(drop=True)
+    # df_train = df_train.sample(n=500).reset_index(drop=True)
 
     model_dict = {
         'gbm' : lightgbm,
@@ -91,12 +207,12 @@ def main():
     print("%s AUROC %s: " % (args.model_class, roc))
 
     # Write AUROC to file so we can read it in later if this is val
-    f_auroc = os.path.join(args.output_path, 'auroc.txt')
+    f_auroc = os.path.join(output_path, 'auroc.txt')
     with open(f_auroc, 'w') as w:
         w.write(str(round(roc, 5)))
 
     # Write optimal hyerparameters to file
-    f_params = os.path.join(args.output_path, f'{args.model_class}_best_params.json')
+    f_params = os.path.join(output_path, f'{args.model_class}_best_params.json')
     with open(f_params, 'w') as w:
         json.dump(params, w) 
 
@@ -106,7 +222,7 @@ def main():
         'predictions' : predictions
     })
     df_yhats.to_csv(
-        os.path.join(args.output_path, f"{args.model_class}_predictions.csv")
+        os.path.join(output_path, f"{args.model_class}_predictions.csv")
     )
 
     # If testing, save top 50 features
@@ -126,7 +242,7 @@ def main():
         .head(50)
     )
     df_features_top_50.to_csv(
-        os.path.join(args.output_path, f"{args.model_class}_feature_importances.csv"),
+        os.path.join(output_path, f"{args.model_class}_feature_importances.csv"),
         index=None
     )
 
