@@ -9,6 +9,7 @@ scripts/LabCulturePrediction/data*
 scripts/LabCulturePrediction/*.tab
 scripts/LabCulturePrediction/DecisionMakingClass/*.csv
 scripts/ER_Infection/data*
+scripts/ER_Infection/notebooks/mit_data_analysis/data*
 .idea*
 venv*
 *token.pickle

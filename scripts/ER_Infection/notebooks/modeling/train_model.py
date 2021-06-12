@@ -27,7 +27,7 @@ def ridge(X_train, y_train, X_valid, y_valid):
         4. Returns Model, hyperparameters, and yhats
     """
     grid = {'C' : np.logspace(-8, 8, 17)}
-    cv = StratifiedKFold(n_splits=5, random_state=42)
+    cv = StratifiedKFold(n_splits=5)
     ridge = LogisticRegression(penalty='l2', max_iter= 1000, solver='lbfgs')
     search = GridSearchCV(ridge, grid, scoring='roc_auc', cv=cv, verbose=2)
     result = search.fit(X_train, y_train)
@@ -54,7 +54,7 @@ def lasso(X_train, y_train, X_valid, y_valid):
         4. Returns Model, hyperparameters, and yhats
     """
     grid = {'C' : np.logspace(-8, 8, 17)}
-    cv = StratifiedKFold(n_splits=5, random_state=42)
+    cv = StratifiedKFold(n_splits=5)
     lasso = LogisticRegression(penalty='l1', max_iter= 1000, solver='liblinear')
     search = GridSearchCV(lasso, grid, scoring='roc_auc', cv=cv, verbose=2)
     result = search.fit(X_train, y_train)
@@ -101,16 +101,17 @@ def elastic_net(X_train, y_train, X_valid, y_valid):
 
 def random_forest(X_train, y_train, X_valid, y_valid):
 
-    """ 1. Splits train set into k fold for hyperparameter search
-        2. Refits on Train
-        3. Evaluate on Val
-        4. Returns Model, hyperparameters, and yhats
+    """ 
+    1. Splits train set into k fold for hyperparameter search
+    2. Refits on Train
+    3. Evaluate on Val
+    4. Returns Model, hyperparameters, and yhats
     """
 
     grid = {'min_samples_split' : [2, 10, 50, 100],
             'max_features' : ['sqrt', 'log2', None]
            }
-    cv = StratifiedKFold(n_splits=5, random_state=42)
+    cv = StratifiedKFold(n_splits=5)
     rf = RandomForestClassifier(n_estimators=1000, random_state=42)
     search = GridSearchCV(rf, grid, scoring='roc_auc', cv=cv, verbose=2)
     result = search.fit(X_train, y_train)
@@ -143,7 +144,7 @@ def lightgbm(X_train, y_train, X_valid, y_valid):
     grid = {'learning_rate' : [0.01, 0.05, 0.1, 0.5],
             'num_leaves' : [2, 8, 16, 32, 64]
     }
-    cv = StratifiedKFold(n_splits=5, random_state=42)
+    cv = StratifiedKFold(n_splits=5)
 
     # Instantiate dictionary of aucs
     aucs = {}
