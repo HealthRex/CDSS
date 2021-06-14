@@ -4,6 +4,10 @@ from sklearn.metrics import roc_auc_score
 import lightgbm as lgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import (
+    cross_val_predict,
+    StratifiedKFold
+)
 
 import sys, argparse, os, json
 from tqdm import tqdm
@@ -153,7 +157,45 @@ def train_ensembled_model():
                         default="/Users/conorcorbin/data/mit_abx_model_results/",
                         type=str,
                         help='directory to save outputs')
+    parser.add_argument('--model_classes',
+                        nargs='+',
+                        default=['ridge', 'lasso', 'gbm', 'random_forest'],
+                        help='models to ensemble')
     args = parser.parse_args()
+
+    df = pd.DataFrame()
+    for model in args.model_classes:
+        path = os.path.join(
+            args.output_path, args.label, model,
+            f"{model}_predictions.csv"
+        )
+        df_preds = pd.read_csv(path)
+        df_preds = df_preds.assign(
+            model=lambda x: [model for i in range(len(df_preds))],
+            pred_id = lambda x: [i for i in range(len(df_preds))]
+        )
+        df = pd.concat([df, df_preds])
+    
+    df_wide = (df
+        .pivot(index='pred_id', columns='model', values='predictions')
+        .reset_index()
+        .merge(df[['pred_id', 'label']], how='inner', on='pred_id')
+        .drop_duplicates()
+    )
+
+    cv = StratifiedKFold(n_splits=10)
+    clf = LogisticRegression(penalty='none')
+    X, y = df_wide[args.model_classes], df_wide['label']
+    predictions = cross_val_predict(clf, X, y, cv=cv, method='predict_proba')[:, 1]
+    auc = roc_auc_score(y, predictions)
+    print(f"{args.label} ensembled AUC: {round(auc, 3)}")
+
+    df_ens_preds = pd.DataFrame(data={
+        'labels' : y,
+        'predictions' : predictions
+    })
+
+    df_ens_preds.to_csv(f"{args.label}_ensembled_preds.csv", index=False)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -243,11 +285,11 @@ def main():
     )
     df_features_top_50.to_csv(
         os.path.join(output_path, f"{args.model_class}_feature_importances.csv"),
-        index=None
+        index=False
     )
 
 
 if __name__ == '__main__':
-    main()
+    train_ensembled_model()
  
 
