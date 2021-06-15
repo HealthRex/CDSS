@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+sns.set(style='white', font_scale=1.5)
 from pulp.apis import PULP_CBC_CMD
 import os
 from tqdm import tqdm
@@ -223,21 +224,33 @@ def perform_sweep_plots():
         'SXT' : 1260
     }
 
+    row, col = 0, 0
     for i, sweep in enumerate(sweeps):
-        axs = sweep_plot(df, sweep, axs, i, start_config)
-        pdb.set_trace()
-def sweep_plot(df, sweep, axs, i, config):
+        axs = sweep_plot(df, sweep, axs, row, col, start_config)
+        if col == 2:
+            row += 1
+            col = 0
+        else:
+            col += 1
+    plt.savefig(
+        './abx_sweep.png',
+        bbox_inches='tight',
+        dpi=300
+    )
+
+def sweep_plot(df, sweep, axs, row, col, config):
     """
     Performs one sweep
     """
 
     opt = AbxDecisionMaker(df, config)
     r_rates, o_rates, c_rates = [], [], []
-    for i in tqdm(range(0, config[sweep[0]], 100)):
+    num_replaced = []
+    for j in tqdm(range(0, config[sweep[0]], 100)):
         opt.reset_config()
         opt.set_config({
-            sweep[0] : -i,
-            sweep[1] : +i
+            sweep[0] : -j,
+            sweep[1] : +j
         })
         print(opt.abx_settings)
         opt.solve_and_assign()
@@ -246,27 +259,38 @@ def sweep_plot(df, sweep, axs, i, config):
         r_rates.append(r)
         c_rates.append(c)
         o_rates.append(i)
+        num_replaced.append(j)
 
-    row = int(i) / 2
-    col = int(i) % 2
     axs[row, col].plot(
-        [i for i in range(len(c_rates))],
-        c_rates,
-        label='Clinician Allocation',
-        linewidth=2.0
-    )
-    axs[row, col].plot(
-        [i for i in range(len(c_rates))],
+        num_replaced,
         r_rates,
         label='Random Allocation',
         linewidth=2.0
     )
     axs[row, col].plot(
-        [i for i in range(len(c_rates))],
+        num_replaced,
+        c_rates,
+        label='Clinician Allocation',
+        linewidth=2.0
+    )
+    axs[row, col].plot(
+        num_replaced,
         o_rates,
         label='Optimized Allocation',
         linewidth=2.0
     )
+
+    if col == 2:
+        axs[row, col].legend(
+            bbox_to_anchor=(1.05, 1),
+            loc=2, borderaxespad=0.
+        )
+    # else:
+    #     axs[row, col].get_legend().remove()
+
+    axs[row, col].set_title(f"{sweep[0]} to {sweep[1]}")
+    axs[row, col].set_xlabel(f"Num {sweep[0]} replaced with {sweep[1]}")
+    axs[row, col].set_ylabel(f"Miss Rate")
 
     return axs
 
