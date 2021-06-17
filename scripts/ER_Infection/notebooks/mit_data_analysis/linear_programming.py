@@ -3,10 +3,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-sns.set(style='white', font_scale=1.5)
+sns.set(style='white', font_scale=2.0)
 from pulp.apis import PULP_CBC_CMD
 import os
 from tqdm import tqdm
+import pickle
 
 import pdb
 
@@ -225,34 +226,47 @@ def perform_sweep_plots():
     }
 
     row, col = 0, 0
+    sweep_data = {}
     for i, sweep in enumerate(sweeps):
-        axs = sweep_plot(df, sweep, axs, row, col, start_config)
+        sweep_data[i] = {}
+        axs, data = sweep_plot(df, sweep, axs, row, col, start_config)
         if col == 2:
             row += 1
             col = 0
         else:
             col += 1
+        
+        sweep_data[i]['num_replaced'] = data[0]
+        sweep_data[i]['r_rates'] = data[1]
+        sweep_data[i]['c_rates'] = data[2]
+        sweep_data[i]['o_rates'] = data[3]
+
     plt.savefig(
         './abx_sweep.png',
         bbox_inches='tight',
         dpi=300
     )
 
+    with open("sweep_data.pickle", "wb") as f:
+        pickle.dump(sweep_data, f)
+
 def sweep_plot(df, sweep, axs, row, col, config):
     """
     Performs one sweep
     """
-
+    if sweep[0] in ('CIP', 'NIT'):
+        step_size = 10
+    else:
+        step_size = 1
     opt = AbxDecisionMaker(df, config)
     r_rates, o_rates, c_rates = [], [], []
     num_replaced = []
-    for j in tqdm(range(0, config[sweep[0]], 100)):
+    for j in tqdm(range(0, config[sweep[0]], step_size)):
         opt.reset_config()
         opt.set_config({
             sweep[0] : -j,
             sweep[1] : +j
         })
-        print(opt.abx_settings)
         opt.solve_and_assign()
         opt.random_assignment()
         c, i, r = opt.get_coverage_rates()
@@ -285,14 +299,176 @@ def sweep_plot(df, sweep, axs, row, col, config):
             bbox_to_anchor=(1.05, 1),
             loc=2, borderaxespad=0.
         )
-    # else:
-    #     axs[row, col].get_legend().remove()
 
     axs[row, col].set_title(f"{sweep[0]} to {sweep[1]}")
     axs[row, col].set_xlabel(f"Num {sweep[0]} replaced with {sweep[1]}")
     axs[row, col].set_ylabel(f"Miss Rate")
 
-    return axs
+    data = (
+        num_replaced,
+        r_rates,
+        c_rates,
+        o_rates
+    )
+
+    return axs, data
+
+def green(a, b, c):
+    """
+    array of booleans when a has yet to exceed b or c
+    """
+    arr = a < b
+    was_false = False
+    for i in range(len(arr)):
+        if arr[i] == False:
+            was_false = True
+        
+        if was_false and arr[i] == True:
+            arr[i] == False
+
+    return arr
+
+def yellow(a, b, c):
+    """
+    array of booleans when a has exceeded b but has yet to exceed c
+    """
+    arr = np.logical_and(
+        a > b,
+        a <= c
+    )
+    ind_first_true, ind_last_true = None, None
+    was_true = False
+    for i in range(len(arr)):
+        if arr[i] == True and was_true == False:
+            ind_first_true = i
+            was_true = True
+        elif arr[i] == True and was_true == True:
+            ind_last_true = i
+
+    if ind_first_true is None:
+        ind_first_true = len(arr)
+    if ind_last_true is None:
+        ind_last_true = len(arr)
+
+    for i in range(len(arr)):
+        if i > ind_first_true and i < ind_last_true:
+            arr[i] = True
+
+    return arr
+
+def red(a, b, c):
+    """
+    array of booleans when as has exceeded b and c
+    """
+    arr = a > c
+    was_true = False
+    for i in range(len(arr)):
+        if arr[i] == True:
+            was_true = True
+        if was_true and arr[i] == False:
+            arr[i] == True
+    return arr
+
+
+def plot_data():
+    """
+    Given saved data from sweeps, makes figures
+    """
+    # Pre-calculated - we know mean random miss rate is 12.5 percent
+    # Clinician miss rate is 11.9 percent
+
+    with open("sweep_data.pickle", "rb") as f:
+        data = pickle.load(f)
+    
+    sweeps = {
+        0 : ('CIP', 'LVX'),
+        1 : ('CIP', 'NIT'),
+        2 : ('CIP', 'SXT'),
+        3 : ('LVX', 'NIT'),
+        4 : ('LVX', 'SXT'),
+        5 : ('NIT', 'SXT')
+    }
+
+    fig, axs = plt.subplots(2, 3, figsize=(30, 20))
+    row, col = 0, 0
+    for key, sweep in data.items():
+        sweep['r_rates'] =  np.array(
+            [.125 for i in range(len(sweep['r_rates']))]
+        )
+        sweep['c_rates'] = np.array([
+            sweep['c_rates'][0] for i in range(len(sweep['c_rates']))
+        ])
+        sweep['o_rates'] = np.array(sweep['o_rates'])
+        axs[row, col].plot(
+            sweep['num_replaced'],
+            sweep['r_rates'],
+            '--',
+            label='Random Allocation',
+            linewidth=2.0,
+            color='grey',
+        )
+        axs[row, col].plot(
+            sweep['num_replaced'],
+            sweep['c_rates'],
+            '--',
+            label='Clinician Allocation',
+            linewidth=2.0,
+            color='black',
+        )
+        axs[row, col].plot(
+            sweep['num_replaced'],
+            sweep['o_rates'],
+            label='Optimized Allocation',
+            linewidth=2.0,
+            color='black'
+        )
+        axs[row, col].fill_between(
+            sweep['num_replaced'], sweep['o_rates'], sweep['c_rates'],
+            where=(green(sweep['o_rates'], sweep['c_rates'], sweep['r_rates'])),
+            color='green', alpha=0.3,
+            interpolate=True
+        )
+        axs[row, col].fill_between(
+            sweep['num_replaced'], sweep['o_rates'], sweep['r_rates'],
+            where=(
+                yellow(sweep['o_rates'], sweep['c_rates'], sweep['r_rates'])
+            ),
+            color='yellow', alpha=0.3,
+            interpolate=True
+        )
+        axs[row, col].fill_between(
+            sweep['num_replaced'], sweep['o_rates'], sweep['r_rates'],
+            where=(red(sweep['o_rates'], sweep['c_rates'], sweep['r_rates'])),
+            color='red', alpha=0.3,
+            interpolate=True
+        )
+        axs[row, col].set_ylim([0.09, 0.14])
+        axs[row, col].set_title(
+            f"{sweeps[key][0]} to {sweeps[key][1]}"
+        )
+        axs[row, col].set_xlabel(
+            f"# {sweeps[key][0]} Prescriptions Replaced With {sweeps[key][1]}"
+        )
+        axs[row, col].set_ylabel("Miss Rate")
+
+        if col == 2 and row == 0:
+            axs[row, col].legend(
+                bbox_to_anchor=(1.05, 1),
+                loc=2, borderaxespad=0.
+            )
+
+        if col == 2:
+            row += 1
+            col = 0
+        else:
+            col += 1
+
+    plt.savefig(
+        './abx_sweep_with_shade.png',
+        bbox_inches='tight',
+        dpi=300
+    )
+
 
 if __name__ == "__main__":
-    perform_sweep_plots()
+    plot_data()
