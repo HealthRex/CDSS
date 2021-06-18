@@ -1,3 +1,5 @@
+from scripts.ER_Infection.notebooks.decision_alg.integer_programming import get_coverage_rates
+from matplotlib import get_configdir
 from pulp import *
 import pandas as pd
 import numpy as np
@@ -142,31 +144,9 @@ class AbxDecisionMaker():
             abx_decisions.append(abx_decision)
         self.df['ip_prescription'] = abx_decisions
 
-def load_best_model_predictions(base_path):
+def load_df():
     """
-    Loads best model predictions for input into linear programming opt
-    """
-    best_auc = 0.5
-    label = base_path.split('/')[-1]
-    for model in ['ridge', 'lasso', 'gbm', 'random_forest']:
-        auc_path = os.path.join(base_path, model, "auroc.txt")
-        with open(auc_path, 'r') as f:
-            auc = float(f.read().rstrip())
-        if auc > best_auc:
-            # Load predictions for this model
-            path = os.path.join(base_path, model, f"{model}_predictions.csv")
-            df_preds = pd.read_csv(path)
-            df_preds = df_preds.assign(
-                pred_id = [i for i in range(len(df_preds))],
-                label = [label for i in range(len(df_preds))]
-            )
-            best_auc = auc
-    print(f"{label} best auc: {best_auc}")
-    return df_preds
-
-def perform_sweep_plots():
-    """
-    Starts antibiotics config at what doctors prescribed and then 
+    Loads df for input into AbxDecisionMaker
     """
     base_path = '/Users/conorcorbin/data/mit_abx_model_results/'
     df = pd.DataFrame()
@@ -207,6 +187,99 @@ def perform_sweep_plots():
     df = (df
         .merge(df_prescriptions, how='inner', on='example_id')
     )
+
+    return df
+
+def stat_test_better_than_random():
+    """
+    Permutation test to see if optimized miss rate is better than the random
+    miss rate
+    """
+    df = load_df()
+
+    start_config = {
+        'CIP' : 1282,
+        'LVX' : 41,
+        'NIT' : 1358,
+        'SXT' : 1260
+    }
+
+    opt = AbxDecisionMaker(df, start_config)
+    opt.solve_and_assign()
+    opt.random_assignment()
+    c, i, r = opt.get_coverage_rates()
+    bootstrapped_r = []
+    for i in range(10000):
+        opt.random.assignment()
+        _, __, r = opt.get_coverage_rates()
+        bootstrapped_r.append(r)
+    
+    pvalue = len([
+        r for r in bootstrapped_r if r <= i
+    ])/len(bootstrapped_r)
+
+    return pvalue
+
+def stat_test_better_than_clinician():
+    """
+    Boostrap data to get a distribution for clinician and random miss rates so 
+    that we can get a pvalue when comparing to the optimized miss rate
+    """
+    
+    df = load_df()
+
+    start_config = {
+        'CIP' : 1282,
+        'LVX' : 41,
+        'NIT' : 1358,
+        'SXT' : 1260
+    }
+
+    opt = AbxDecisionMaker(df, start_config)
+    opt.solve_and_assign()
+    opt.random_assignment()
+    c, i, r = opt.get_coverage_rates()
+    bootstrapped_c = []
+    for i in range(10000):
+        opt.df = (opt.df
+            .sample(n=1., replace=True)
+        )
+        c, _, __ = opt.get_coverage_rates()
+        bootstrapped_c.append(c)
+    
+    pvalue = len([
+        c for c in bootstrapped_c if c <= i
+    ])/len(bootstrapped_c)
+
+    return pvalue
+
+def load_best_model_predictions(base_path):
+    """
+    Loads best model predictions for input into linear programming opt
+    """
+    best_auc = 0.5
+    label = base_path.split('/')[-1]
+    for model in ['ridge', 'lasso', 'gbm', 'random_forest']:
+        auc_path = os.path.join(base_path, model, "auroc.txt")
+        with open(auc_path, 'r') as f:
+            auc = float(f.read().rstrip())
+        if auc > best_auc:
+            # Load predictions for this model
+            path = os.path.join(base_path, model, f"{model}_predictions.csv")
+            df_preds = pd.read_csv(path)
+            df_preds = df_preds.assign(
+                pred_id = [i for i in range(len(df_preds))],
+                label = [label for i in range(len(df_preds))]
+            )
+            best_auc = auc
+    print(f"{label} best auc: {best_auc}")
+    return df_preds
+
+def perform_sweep_plots():
+    """
+    Starts antibiotics config at what doctors prescribed and then 
+    """
+    df = load_df()
 
     fig, axs = plt.subplots(2, 3, figsize=(30, 20))
     sweeps = [
@@ -356,6 +429,29 @@ def yellow(a, b, c):
 
     return arr
 
+def yellow_range(a, b, c):
+    """
+    returns range of indices where yellow is true
+    """
+    arr = np.logical_and(
+        a > b,
+        a <= c
+    )
+    ind_first_true, ind_last_true = None, None
+    was_true = False
+    for i in range(len(arr)):
+        if arr[i] == True and was_true == False:
+            ind_first_true = i
+            was_true = True
+        elif arr[i] == True and was_true == True:
+            ind_last_true = i
+    
+    if ind_last_true is not None:
+        if ind_last_true >= len(arr) - 2: # hack for 2nd mit plot
+            ind_last_true = None
+
+    return ind_first_true, ind_last_true
+
 def red(a, b, c):
     """
     array of booleans when as has exceeded b and c
@@ -369,6 +465,116 @@ def red(a, b, c):
             arr[i] == True
     return arr
 
+def sweep_plot(ax, sweep, num_replaced, o_rates, c_rates, r_rates, settings):
+    """
+    Makes one sweep plot
+    
+    Parameters
+    ----------
+    ax : axes object
+    sweep : tuble (abx_1, abx_2)
+    num_replaced : np array iteration
+    o_rates : np array optimized miss rates
+    c_rates : np array clinician miss rates
+    r_rates : np array random miss rates
+    settings : dictionary - original abx prescribing distribution 
+
+    Returns
+    -------
+    ax : axes object
+    """
+    percent_replaced = [
+        int(n/settings[sweep[0]] * 100)
+        for n in num_replaced
+    ]
+
+    r_rates =  np.array(
+        [.125 for i in range(len(r_rates))]
+    )
+    c_rates = np.array([
+        c_rates[0] for i in range(len(c_rates))
+    ])
+    o_rates = np.array(o_rates)
+
+    yellow_first, yellow_last = yellow_range(o_rates, c_rates, r_rates)
+    if yellow_first is not None:
+        ax.vlines(
+            percent_replaced[yellow_first],
+            color='black',
+            linestyles='dotted',
+            ymin=0.08,
+            ymax=0.15
+        )
+    if yellow_last is not None:
+        ax.vlines(
+            percent_replaced[yellow_last],
+            color='black',
+            linestyles='dotted',
+            ymin=0.08,
+            ymax=0.15
+        )
+
+    ax.plot(
+        percent_replaced,
+        r_rates,
+        '--',
+        label='Random Allocation',
+        linewidth=2.0,
+        color='grey',
+    )
+    ax.plot(
+        percent_replaced,
+        c_rates,
+        '--',
+        label='Clinician Allocation',
+        linewidth=2.0,
+        color='black',
+    )
+    ax.plot(
+        percent_replaced,
+        o_rates,
+        label='Optimized Allocation',
+        linewidth=2.0,
+        color='black'
+    )
+    ax.fill_between(
+        percent_replaced, o_rates, c_rates,
+        where=(green(o_rates, c_rates, r_rates)),
+        color='green', alpha=0.3,
+        interpolate=True
+    )
+    ax.fill_between(
+        percent_replaced, o_rates, r_rates,
+        where=(
+            yellow(o_rates, c_rates, r_rates)
+        ),
+        color='yellow', alpha=0.3,
+        interpolate=True
+    )
+    ax.fill_between(
+        percent_replaced, o_rates, r_rates,
+        where=(red(o_rates, c_rates, r_rates)),
+        color='red', alpha=0.3,
+        interpolate=True
+    )
+    ax.set_ylim([0.09, 0.14])
+    ax.set_xlim([0, 100])
+    ax.set_title(
+        f"{sweep[0]} to {sweep[1]}"
+    )
+    ax.set_xlabel(
+        f"% of {sweep[0]} Prescriptions Replaced With {sweep[1]}"
+    )
+    ax.set_ylabel("Miss Rate")
+    ax.set_xticklabels([
+        f"{int(n)}%"
+        for n in ax.get_xticks()
+    ])
+    ax.set_yticklabels([
+        f"{int(n*100)}%" for n in ax.get_yticks()
+    ])
+
+    return ax
 
 def plot_data():
     """
@@ -389,67 +595,25 @@ def plot_data():
         5 : ('NIT', 'SXT')
     }
 
+    settings = {
+        'CIP' : 1282,
+        'LVX' : 41,
+        'NIT' : 1358,
+        'SXT' : 1260
+    }
+
     fig, axs = plt.subplots(2, 3, figsize=(30, 20))
     row, col = 0, 0
     for key, sweep in data.items():
-        sweep['r_rates'] =  np.array(
-            [.125 for i in range(len(sweep['r_rates']))]
+        axs[row, col] = sweep_plot(
+            axs[row, col],
+            sweeps[key],
+            num_replaced=sweep['num_replaced'],
+            o_rates=sweep['o_rates'],
+            c_rates=sweep['c_rates'],
+            r_rates=sweep['r_rates'],
+            settings=settings
         )
-        sweep['c_rates'] = np.array([
-            sweep['c_rates'][0] for i in range(len(sweep['c_rates']))
-        ])
-        sweep['o_rates'] = np.array(sweep['o_rates'])
-        axs[row, col].plot(
-            sweep['num_replaced'],
-            sweep['r_rates'],
-            '--',
-            label='Random Allocation',
-            linewidth=2.0,
-            color='grey',
-        )
-        axs[row, col].plot(
-            sweep['num_replaced'],
-            sweep['c_rates'],
-            '--',
-            label='Clinician Allocation',
-            linewidth=2.0,
-            color='black',
-        )
-        axs[row, col].plot(
-            sweep['num_replaced'],
-            sweep['o_rates'],
-            label='Optimized Allocation',
-            linewidth=2.0,
-            color='black'
-        )
-        axs[row, col].fill_between(
-            sweep['num_replaced'], sweep['o_rates'], sweep['c_rates'],
-            where=(green(sweep['o_rates'], sweep['c_rates'], sweep['r_rates'])),
-            color='green', alpha=0.3,
-            interpolate=True
-        )
-        axs[row, col].fill_between(
-            sweep['num_replaced'], sweep['o_rates'], sweep['r_rates'],
-            where=(
-                yellow(sweep['o_rates'], sweep['c_rates'], sweep['r_rates'])
-            ),
-            color='yellow', alpha=0.3,
-            interpolate=True
-        )
-        axs[row, col].fill_between(
-            sweep['num_replaced'], sweep['o_rates'], sweep['r_rates'],
-            where=(red(sweep['o_rates'], sweep['c_rates'], sweep['r_rates'])),
-            color='red', alpha=0.3,
-            interpolate=True
-        )
-        axs[row, col].set_ylim([0.09, 0.14])
-        axs[row, col].set_title(
-            f"{sweeps[key][0]} to {sweeps[key][1]}"
-        )
-        axs[row, col].set_xlabel(
-            f"# {sweeps[key][0]} Prescriptions Replaced With {sweeps[key][1]}"
-        )
-        axs[row, col].set_ylabel("Miss Rate")
 
         if col == 2 and row == 0:
             axs[row, col].legend(
@@ -471,4 +635,4 @@ def plot_data():
 
 
 if __name__ == "__main__":
-    plot_data()
+    stat_test_better_than_clinician()
