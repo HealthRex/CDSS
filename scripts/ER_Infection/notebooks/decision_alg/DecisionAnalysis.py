@@ -334,7 +334,6 @@ def plot_histogram(settings, ax, miss_rate=None, reduction_rate=None, abx1=None,
     """
     Given antibiotic settings, plot distribution as bar plot
     """
-
     if abx1 == None:
         text_offset = 8
         xlim_min = 430
