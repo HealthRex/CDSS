@@ -1,6 +1,5 @@
-from scripts.ER_Infection.notebooks.decision_alg.integer_programming import get_coverage_rates
-from matplotlib import get_configdir
 from pulp import *
+from sklearn.metrics import roc_auc_score
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -55,9 +54,9 @@ class AbxDecisionMaker():
 
     def get_coverage_rates(self, df=None):
         """
-        Create flag for whether clinicians covered the patient during the csn, whether
-        a random assignemnt covered patient CSN, and whether optimized assignment covered
-        the patient CSN
+        Create flag for whether clinicians covered the patient during the csn,
+        whether a random assignemnt covered patient CSN, and whether optimized
+        assignment covered the patient CSN
         """
         if df is None:
             df = self.df
@@ -240,9 +239,9 @@ def stat_test_better_than_clinician():
     opt.random_assignment()
     c, i, r = opt.get_coverage_rates()
     bootstrapped_c = []
-    for i in range(10000):
+    for i in tqdm(range(10000)):
         opt.df = (opt.df
-            .sample(n=1., replace=True)
+            .sample(frac=1., replace=True)
         )
         c, _, __ = opt.get_coverage_rates()
         bootstrapped_c.append(c)
@@ -252,6 +251,24 @@ def stat_test_better_than_clinician():
     ])/len(bootstrapped_c)
 
     return pvalue
+
+def bootstrap_auroc(labels, predictions):
+    """
+    Get bootstrapped confidence interval of auc
+    """
+    inds = [i for i in range(len(labels))]
+    aucs = []
+    for i in range(1000):
+        inds_b = np.random.choice(inds, size=len(inds), replace=True)
+        labels_b = [labels[i] for i in inds_b]
+        predictions_b = [predictions[i] for i in inds_b]
+        auc = roc_auc_score(labels_b, predictions_b)
+        aucs.append(auc)
+    mean = round(np.mean(aucs), 2)
+    upper = round(np.percentile(aucs, 97.5), 2)
+    lower = round(np.percentile(aucs, 2.5), 2)
+    auc_ci = f"{mean} [{lower}, {upper}]"
+    return auc_ci
 
 def load_best_model_predictions(base_path):
     """
@@ -274,6 +291,18 @@ def load_best_model_predictions(base_path):
             best_auc = auc
     print(f"{label} best auc: {best_auc}")
     return df_preds
+
+def compute_model_performances():
+    """
+    computes auc cis for each of the 4 best models
+    """
+    base_path = '/Users/conorcorbin/data/mit_abx_model_results/'
+    df_preds = load_best_model_predictions(base_path)
+    for abx in ['SXT', 'NIT', 'CIP', 'LVX']:
+        labels = df_preds[abx].values
+        predictions = df_preds[f"{abx}_predictions"].values
+        auc_ci = bootstrap_auroc(labels, predictions)
+        print(f"{abx}: {auc_ci}")
 
 def perform_sweep_plots():
     """
@@ -323,7 +352,7 @@ def perform_sweep_plots():
     with open("sweep_data.pickle", "wb") as f:
         pickle.dump(sweep_data, f)
 
-def sweep_plot(df, sweep, axs, row, col, config):
+def sweep_opt(df, sweep, axs, row, col, config):
     """
     Performs one sweep
     """
@@ -465,7 +494,7 @@ def red(a, b, c):
             arr[i] == True
     return arr
 
-def sweep_plot(ax, sweep, num_replaced, o_rates, c_rates, r_rates, settings):
+def sweep_plot(ax, sweep, num_replaced, o_rates, c_rates, r_rates, params):
     """
     Makes one sweep plot
     
@@ -477,19 +506,20 @@ def sweep_plot(ax, sweep, num_replaced, o_rates, c_rates, r_rates, settings):
     o_rates : np array optimized miss rates
     c_rates : np array clinician miss rates
     r_rates : np array random miss rates
-    settings : dictionary - original abx prescribing distribution 
+    params : dictionary - original abx prescribing distribution
+             along with site specific data used for plot formatting
 
     Returns
     -------
     ax : axes object
     """
     percent_replaced = [
-        int(n/settings[sweep[0]] * 100)
+        int(n/params[sweep[0]] * 100)
         for n in num_replaced
     ]
 
     r_rates =  np.array(
-        [.125 for i in range(len(r_rates))]
+        [params['random_rate'] for i in range(len(r_rates))]
     )
     c_rates = np.array([
         c_rates[0] for i in range(len(c_rates))
@@ -502,16 +532,16 @@ def sweep_plot(ax, sweep, num_replaced, o_rates, c_rates, r_rates, settings):
             percent_replaced[yellow_first],
             color='black',
             linestyles='dotted',
-            ymin=0.08,
-            ymax=0.15
+            ymin=params['ymin'],
+            ymax=params['ymax']
         )
     if yellow_last is not None:
         ax.vlines(
             percent_replaced[yellow_last],
             color='black',
             linestyles='dotted',
-            ymin=0.08,
-            ymax=0.15
+            ymin=params['ymin'],
+            ymax=params['ymax']
         )
 
     ax.plot(
@@ -541,7 +571,8 @@ def sweep_plot(ax, sweep, num_replaced, o_rates, c_rates, r_rates, settings):
         percent_replaced, o_rates, c_rates,
         where=(green(o_rates, c_rates, r_rates)),
         color='green', alpha=0.3,
-        interpolate=True
+        interpolate=True,
+        label='Fewer misses than clinicians'
     )
     ax.fill_between(
         percent_replaced, o_rates, r_rates,
@@ -549,23 +580,25 @@ def sweep_plot(ax, sweep, num_replaced, o_rates, c_rates, r_rates, settings):
             yellow(o_rates, c_rates, r_rates)
         ),
         color='yellow', alpha=0.3,
-        interpolate=True
+        interpolate=True,
+        label='Fewer misses than random'
     )
     ax.fill_between(
         percent_replaced, o_rates, r_rates,
         where=(red(o_rates, c_rates, r_rates)),
         color='red', alpha=0.3,
-        interpolate=True
+        interpolate=True,
+        label="More misses than random"
     )
-    ax.set_ylim([0.09, 0.14])
+    ax.set_ylim([params['ymin'], params['ymax']])
     ax.set_xlim([0, 100])
     ax.set_title(
-        f"{sweep[0]} to {sweep[1]}"
+        f"{params['site']} {sweep[0]} to {sweep[1]} " 
+        f"({params[sweep[0]]}) Total"
     )
     ax.set_xlabel(
-        f"% of {sweep[0]} Prescriptions Replaced With {sweep[1]}"
+        f"{sweep[0]} Prescriptions Replaced With {sweep[1]}"
     )
-    ax.set_ylabel("Miss Rate")
     ax.set_xticklabels([
         f"{int(n)}%"
         for n in ax.get_xticks()
@@ -595,11 +628,15 @@ def plot_data():
         5 : ('NIT', 'SXT')
     }
 
-    settings = {
+    params = {
         'CIP' : 1282,
         'LVX' : 41,
         'NIT' : 1358,
-        'SXT' : 1260
+        'SXT' : 1260,
+        'ymin' : 0.09,
+        'ymax' : 0.14,
+        'random_rate' : .125,
+        'site' : "[Boston]"
     }
 
     fig, axs = plt.subplots(2, 3, figsize=(30, 20))
@@ -612,7 +649,7 @@ def plot_data():
             o_rates=sweep['o_rates'],
             c_rates=sweep['c_rates'],
             r_rates=sweep['r_rates'],
-            settings=settings
+            params=params
         )
 
         if col == 2 and row == 0:
@@ -620,6 +657,9 @@ def plot_data():
                 bbox_to_anchor=(1.05, 1),
                 loc=2, borderaxespad=0.
             )
+
+        if col == 0:
+            axs[row, col].set_ylabel("Miss Rate")
 
         if col == 2:
             row += 1
@@ -635,4 +675,5 @@ def plot_data():
 
 
 if __name__ == "__main__":
-    stat_test_better_than_clinician()
+    pval = stat_test_better_than_clinician()
+    print(f"clin pvalue: {pval}")
