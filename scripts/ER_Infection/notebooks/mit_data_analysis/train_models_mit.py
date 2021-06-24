@@ -224,7 +224,8 @@ def main():
         .merge(df_features, how='inner', on=['example_id', 'is_train', 'uncomplicated'])
         .query("uncomplicated == 1", engine='python')
     )
-
+    
+    pdb.set_trace()
     df_train = df.query("is_train == 1", engine='python')
     df_test = df.query("is_train == 0", engine='python')
 
@@ -290,6 +291,6 @@ def main():
 
 
 if __name__ == '__main__':
-    train_ensembled_model()
+    main()
  
 

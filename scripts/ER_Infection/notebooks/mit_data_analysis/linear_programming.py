@@ -206,15 +206,15 @@ def stat_test_better_than_random():
     opt = AbxDecisionMaker(df, start_config)
     opt.solve_and_assign()
     opt.random_assignment()
-    c, i, r = opt.get_coverage_rates()
+    c, o, r = opt.get_coverage_rates()
     bootstrapped_r = []
     for i in range(10000):
-        opt.random.assignment()
+        opt.random_assignment()
         _, __, r = opt.get_coverage_rates()
         bootstrapped_r.append(r)
     
     pvalue = len([
-        r for r in bootstrapped_r if r <= i
+        r for r in bootstrapped_r if r <= o
     ])/len(bootstrapped_r)
 
     return pvalue
@@ -237,17 +237,16 @@ def stat_test_better_than_clinician():
     opt = AbxDecisionMaker(df, start_config)
     opt.solve_and_assign()
     opt.random_assignment()
-    c, i, r = opt.get_coverage_rates()
+    c, o, r = opt.get_coverage_rates()
     bootstrapped_c = []
     for i in tqdm(range(10000)):
-        opt.df = (opt.df
+        df_sampled  = (opt.df
             .sample(frac=1., replace=True)
         )
-        c, _, __ = opt.get_coverage_rates()
+        c, _, __ = opt.get_coverage_rates(df=df_sampled)
         bootstrapped_c.append(c)
-    
     pvalue = len([
-        c for c in bootstrapped_c if c <= i
+        c for c in bootstrapped_c if c <= o
     ])/len(bootstrapped_c)
 
     return pvalue
@@ -453,7 +452,7 @@ def yellow(a, b, c):
         ind_last_true = len(arr)
 
     for i in range(len(arr)):
-        if i > ind_first_true and i < ind_last_true:
+        if i > ind_first_true-2 and i < ind_last_true:
             arr[i] = True
 
     return arr
@@ -470,7 +469,7 @@ def yellow_range(a, b, c):
     was_true = False
     for i in range(len(arr)):
         if arr[i] == True and was_true == False:
-            ind_first_true = i
+            ind_first_true = i-1
             was_true = True
         elif arr[i] == True and was_true == True:
             ind_last_true = i
@@ -543,7 +542,9 @@ def sweep_plot(ax, sweep, num_replaced, o_rates, c_rates, r_rates, params):
             ymin=params['ymin'],
             ymax=params['ymax']
         )
-
+    print(
+        f"{sweep[0]} to {sweep[1]}: {round(percent_replaced[yellow_first], 4)}"
+    )
     ax.plot(
         percent_replaced,
         r_rates,
@@ -592,12 +593,9 @@ def sweep_plot(ax, sweep, num_replaced, o_rates, c_rates, r_rates, params):
     )
     ax.set_ylim([params['ymin'], params['ymax']])
     ax.set_xlim([0, 100])
-    ax.set_title(
-        f"{params['site']} {sweep[0]} to {sweep[1]} " 
-        f"({params[sweep[0]]}) Total"
-    )
+    ax.set_title(f"{sweep[0]} - {sweep[1]}")
     ax.set_xlabel(
-        f"{sweep[0]} Prescriptions Replaced With {sweep[1]}"
+        f"Percentage Swapped"
     )
     ax.set_xticklabels([
         f"{int(n)}%"
@@ -675,5 +673,7 @@ def plot_data():
 
 
 if __name__ == "__main__":
-    pval = stat_test_better_than_clinician()
-    print(f"clin pvalue: {pval}")
+    pval_c = stat_test_better_than_clinician()
+    print(pval_c)
+    pval_r = stat_test_better_than_random()
+    print(f"clin pvalue: {pval_c} random pvalue: {pval_r}")

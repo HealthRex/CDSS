@@ -91,7 +91,163 @@ def plot_abx_distributions():
         dpi=300
     )
 
+def plot_select_sweeps_boston():
+    """
+    Plot select sweeps from boston data
+    """
 
+    with open("sweep_data_boston.pickle", "rb") as f:
+        boston_data = pickle.load(f)
+
+    boston_sweeps = {
+        1 : ('CIP', 'NIT'),
+        2 : ('CIP', 'SXT'),
+        5 : ('NIT', 'SXT')
+    }
+
+    abbs = {
+        'CIP' : 'Ciprofloxacin',
+        'LVX' : 'Levofloxacin',
+        'NIT' : 'Nitrofurantoin',
+        'SXT' : 'Trimethoprim/Sulfamethoxazole'
+    }
+
+    boston_params = {
+        'Ciprofloxacin' : 1282,
+        'Levofloxacin' : 41,
+        'Nitrofurantoin' : 1358,
+        'Trimethoprim/Sulfamethoxazole' : 1260,
+        'ymin' : 0.09,
+        'ymax' : 0.14,
+        'random_rate' : .125,
+        'site' : "[Boston]"
+    }
+    fig, axs = plt.subplots(1, 3, figsize=(30, 10))
+    col = 0
+    for key, sweep in boston_data.items():
+        if key not in [key for key in boston_sweeps]:
+            continue
+        axs[col] = sweep_plot(
+            axs[col],
+            (abbs[boston_sweeps[key][0]], abbs[boston_sweeps[key][1]]),
+            num_replaced=sweep['num_replaced'],
+            o_rates=sweep['o_rates'],
+            c_rates=sweep['c_rates'],
+            r_rates=sweep['r_rates'],
+            params=boston_params
+        )
+
+        if col == 0:
+            axs[col].set_ylabel("Miss Rate")
+
+        if col == 2:
+            axs[col].legend(
+                bbox_to_anchor=(1.05, 1),
+                loc=2, borderaxespad=0.
+            )
+        col += 1      
+
+    os.makedirs("./select_sweep_plots/", exist_ok=True)
+    plt.savefig(
+        './select_sweep_plots/sweep_plot_boston_select.png',
+        bbox_inches='tight',
+        dpi=300
+    )
+
+
+def plot_select_sweeps_stanford():
+    """
+    Plot select sweeps from stanford data
+    """
+    with open('sweep_data.pickle', 'rb') as f:
+        stanford_data = pickle.load(f)
+
+    abbs = {
+        "Ceftriaxone" : "Ceftriaxone",
+        "Vancomycin_Zosyn" : "Vanc/Pip-Tazo",
+        "Zosyn" : "Pip-Tazo",
+        "Vancomycin_Ceftriaxone" : "Vanc/Ceftriaxone",
+        "Vancomycin_Cefepime" : "Vanc/Cefepime",
+        "Cefepime" : "Cefepime",
+        "Vancomycin" : "Vanc",
+        "Vancomycin_Meropenem" : "Vanc/Meropenem",
+        "Meropenem" : "Meropenem",
+        "Cefazolin" : "Cefazolin",
+        "Ciprofloxacin" : "Ciprofloxacin",
+        "Ampicillin" : "Ampicillin"
+    }
+
+    stanford_params = {
+        "Ceftriaxone" : 404,
+        "Vanc/Pip-Tazo" :  149,
+        "Pip-Tazo" : 102,
+        "Vanc/CTX" : 31,
+        "Vanc/Cefepime" : 23,
+        "Cefepime" : 14,
+        "Vanc" : 13,
+        "Vanc/Meropenem" : 9,
+        "Meropenem" : 9,
+        "Cefazolin" : 8,
+        "Ciprofloxacin" : 8,
+        "Ampicillin" : 0,
+        "random_rate" : .208,   
+        "ymin" : 0.12,
+        "ymax" : 0.23,
+        "site" : "[Stanford]"
+    }
+    stanford_sweeps = [
+        ('Vancomycin_Zosyn', 'Zosyn'),
+        ('Vancomycin_Zosyn', 'Cefepime'),
+        ('Vancomycin_Zosyn', 'Ceftriaxone'),
+        ('Vancomycin_Zosyn', 'Ampicillin'),
+        ('Zosyn', 'Ceftriaxone'),
+        ('Zosyn', 'Cefazolin'),
+        ('Zosyn', 'Ampicillin'),
+        ('Ceftriaxone', 'Cefazolin'),
+        ('Ceftriaxone', 'Ampicillin')
+    ]
+
+    fig, axs = plt.subplots(3, 3, figsize=(30, 30))
+    row, col = 0, 0
+    for sweep in stanford_sweeps:
+        num_replaced = [
+                k for k in range(len(stanford_data[sweep]['r_rates']))
+            ]
+        r_rates = stanford_data[sweep]['r_rates']
+        c_rates = stanford_data[sweep]['c_rates']
+        o_rates = stanford_data[sweep]['o_rates']
+        axs[row, col] = sweep_plot(
+            axs[row, col],
+            (abbs[sweep[0]], abbs[sweep[1]]),
+            num_replaced=num_replaced,
+            o_rates=o_rates,
+            c_rates=c_rates,
+            r_rates=r_rates,
+            params=stanford_params
+        )
+
+        if col == 0:
+            axs[row, col].set_ylabel("Miss Rate")
+
+        if col == 2 and row == 0:
+            axs[row, col].legend(
+                bbox_to_anchor=(1.05, 1),
+                loc=2, borderaxespad=0.
+            )
+
+        if col == 2:
+            row += 1
+            col = 0
+        else:
+            col += 1
+
+    os.makedirs("./select_sweep_plots/", exist_ok=True)
+    plt.savefig(
+        './select_sweep_plots/sweep_plot_stanford_select.png',
+        bbox_inches='tight',
+        dpi=300
+    )
+  
 def plot_select_sweeps():
     """
     Plot select sweeps from both stanford and boston. This creates main text
@@ -148,7 +304,7 @@ def plot_select_sweeps():
         "CFZ" : 8,
         "CIP" : 8,
         "AMP" : 0,
-        "random_rate" : .208,
+        "random_rate" : .208,   
         "ymin" : 0.12,
         "ymax" : 0.23,
         "site" : "[Stanford]"
@@ -164,7 +320,7 @@ def plot_select_sweeps():
         ('Ceftriaxone', 'Cefazolin'),
         ('Ceftriaxone', 'Ampicillin')
     ]
-
+        
     fig, axs = plt.subplots(4, 3, figsize=(30, 40))
     row, col = 0, 0
     for sweep in stanford_sweeps:
@@ -386,4 +542,4 @@ def plot_all_stanford():
 
 
 if __name__ == "__main__":
-    plot_abx_distributions()
+    plot_select_sweeps_stanford()
