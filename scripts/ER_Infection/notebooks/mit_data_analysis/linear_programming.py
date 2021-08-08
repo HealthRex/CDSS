@@ -1,5 +1,5 @@
 from pulp import *
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, average_precision_score
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -251,29 +251,40 @@ def stat_test_better_than_clinician():
 
     return pvalue
 
-def bootstrap_auroc(labels, predictions):
+def bootstrap_performance(labels, predictions):
     """
     Get bootstrapped confidence interval of auc
     """
     inds = [i for i in range(len(labels))]
     aucs = []
-    for i in range(1000):
+    average_precisions = []
+    for i in tqdm(range(1000)):
         inds_b = np.random.choice(inds, size=len(inds), replace=True)
         labels_b = [labels[i] for i in inds_b]
         predictions_b = [predictions[i] for i in inds_b]
         auc = roc_auc_score(labels_b, predictions_b)
+        ap = average_precision_score(labels_b, predictions_b)
         aucs.append(auc)
+        average_precisions.append(ap)
+
     mean = round(np.mean(aucs), 2)
     upper = round(np.percentile(aucs, 97.5), 2)
     lower = round(np.percentile(aucs, 2.5), 2)
     auc_ci = f"{mean} [{lower}, {upper}]"
-    return auc_ci
+
+    mean = round(np.mean(average_precisions), 2)
+    upper = round(np.percentile(average_precisions, 97.5), 2)
+    lower = round(np.percentile(average_precisions, 2.5), 2)
+    auc_pr = f"{mean} [{lower}, {upper}]"
+
+    return auc_ci, auc_pr
 
 def load_best_model_predictions(base_path):
     """
     Loads best model predictions for input into linear programming opt
     """
     best_auc = 0.5
+    best_model = None
     label = base_path.split('/')[-1]
     for model in ['ridge', 'lasso', 'gbm', 'random_forest']:
         auc_path = os.path.join(base_path, model, "auroc.txt")
@@ -288,7 +299,8 @@ def load_best_model_predictions(base_path):
                 label = [label for i in range(len(df_preds))]
             )
             best_auc = auc
-    print(f"{label} best auc: {best_auc}")
+            best_model = model
+    print(f"{label} best auc: {best_auc} best model: {best_model}")
     return df_preds
 
 def compute_model_performances():
@@ -492,6 +504,113 @@ def red(a, b, c):
         if was_true and arr[i] == False:
             arr[i] == True
     return arr
+
+def sweep_plot_coverage_rate(ax, sweep, num_replaced,
+                             o_rates, c_rates, r_rates, params):
+    """
+    Makes on sweep plot (but plots coverage rate instead of miss rate)
+    """
+    percent_replaced = [
+        int(n/params[sweep[0]] * 100)
+        for n in num_replaced
+    ]
+
+    r_rates =  np.array(
+        [params['random_rate'] for i in range(len(r_rates))]
+    )
+    c_rates = np.array([
+        c_rates[0] for i in range(len(c_rates))
+    ])
+    o_rates = np.array(o_rates)
+
+    yellow_first, yellow_last = yellow_range(o_rates, c_rates, r_rates)
+    if yellow_first is not None:
+        ax.vlines(
+            percent_replaced[yellow_first],
+            color='black',
+            linestyles='dotted',
+            ymin=params['ymin'],
+            ymax=params['ymax']
+        )
+    if yellow_last is not None:
+        ax.vlines(
+            percent_replaced[yellow_last],
+            color='black',
+            linestyles='dotted',
+            ymin=params['ymin'],
+            ymax=params['ymax']
+        )
+    if yellow_first is not None:
+        print(
+            f"{sweep[0]} to {sweep[1]}: {round(percent_replaced[yellow_first], 4)}"
+        )
+    else:
+        print(
+            f"{sweep[0]} to {sweep[1]}: 100"
+        )
+    ax.plot(
+        percent_replaced,
+        1-r_rates,
+        '--',
+        label='Random Allocation',
+        linewidth=2.0,
+        color='grey',
+    )
+    ax.plot(
+        percent_replaced,
+        1-c_rates,
+        '--',
+        label='Clinician Allocation',
+        linewidth=2.0,
+        color='black',
+    )
+    ax.plot(
+        percent_replaced,
+        1-o_rates,
+        label='Optimized Allocation',
+        linewidth=2.0,
+        color='black'
+    )
+    ax.fill_between(
+        percent_replaced, 1-o_rates, 1-c_rates,
+        where=(green(o_rates, c_rates, r_rates)),
+        color='green', alpha=0.3,
+        interpolate=True,
+        label='Greater coverage rate than clinicians'
+    )
+    if yellow_first is not None:
+        ax.fill_between(
+            percent_replaced, 1-o_rates, 1-r_rates,
+            where=(
+                yellow(o_rates, c_rates, r_rates)
+            ),
+            color='yellow', alpha=0.3,
+            interpolate=True,
+            label='Greater coverage rate than random'
+        )
+    ax.fill_between(
+        percent_replaced, 1-o_rates, 1-r_rates,
+        where=(red(o_rates, c_rates, r_rates)),
+        color='red', alpha=0.3,
+        interpolate=True,
+        label="Lower coverage rate than random"
+    )
+    ax.set_ylim([params['ymin'], params['ymax']])
+    ax.set_xlim([0, 100])
+    ax.set_title(f"{sweep[0]} - {sweep[1]}")
+    ax.set_xlabel(
+        f"Percentage Swapped"
+    )
+    ax.set_xticklabels([
+        f"{int(n)}%"
+        for n in ax.get_xticks()
+    ])
+    ax.set_yticklabels([
+        f"{int(n*100)}%" for n in ax.get_yticks()
+    ])
+
+    return ax
+
 
 def sweep_plot(ax, sweep, num_replaced, o_rates, c_rates, r_rates, params):
     """

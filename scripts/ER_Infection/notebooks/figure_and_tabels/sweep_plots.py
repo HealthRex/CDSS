@@ -7,89 +7,178 @@ from tqdm import tqdm
 import pickle
 
 sys.path.insert(1, '../mit_data_analysis/')
-from linear_programming import sweep_plot
+from linear_programming import sweep_plot, sweep_plot_coverage_rate
 
 import pdb
 
-def plot_abx_distributions():
+def plot_abx_distributions(site=None):
     """
     Makes bar plots of abx prescription distributions for both the Stanford
     and Boston datasets
     """
-    boston_abx = {
-        'NIT' : 1358,
-        'CIP' : 1282,
-        'SXT' : 1260,
-        'LVX' : 41
-    }
+    if site == "Stanford":
+        abbs = {
+            "Ceftriaxone" : "Ceftriaxone",
+            "Vancomycin_Zosyn" : "Vanc/Pip-Tazo",
+            "Zosyn" : "Pip-Tazo",
+            "Vancomycin_Ceftriaxone" : "Vanc/Ceftriaxone",
+            "Vancomycin_Cefepime" : "Vanc/Cefepime",
+            "Cefepime" : "Cefepime",
+            "Vancomycin" : "Vanc",
+            "Vancomycin_Meropenem" : "Vanc/Meropenem",
+            "Meropenem" : "Meropenem",
+            "Cefazolin" : "Cefazolin",
+            "Ciprofloxacin" : "Ciprofloxacin",
+            "Ampicillin" : "Ampicillin"
+        }
 
-    abbs = {
-        "Ceftriaxone" : "CTX",
-        "Vancomycin_Zosyn" : "VAN/TZP",
-        "Zosyn" : "TZP",
-        "Vancomycin_Ceftriaxone" : "VAN/CTX",
-        "Vancomycin_Cefepime" : "VAN/CFP",
-        "Cefepime" : "CFP",
-        "Vancomycin" : "VAN",
-        "Vancomycin_Meropenem" : "VAN/MEM",
-        "Meropenem" : "MEM",
-        "Cefazolin" : "CFZ",
-        "Ciprofloxacin" : "CIP",
-        "Ampicillin" : "AMP"
-    }
+        stanford_params = {
+            "Ceftriaxone" : 404,
+            "Vanc/Pip-Tazo" :  149,
+            "Pip-Tazo" : 102,
+            "Vanc/Ceftriaxone" : 31,
+            "Vanc/Cefepime" : 23,
+            "Cefepime" : 14,
+            "Vanc" : 13,
+            "Vanc/Meropenem" : 9,
+            "Meropenem" : 9,
+            "Cefazolin" : 8,
+            "Ciprofloxacin" : 8,
+        }
 
-    stanford_abx = {
-        "CTX" : 404,
-        "VAN/TZP" :  149,
-        "TZP" : 102,
-        "VAN/CTX" : 31,
-        "VAN/CFP" : 23,
-        "CFP" : 14,
-        "VAN" : 13,
-        "VAN/MEM" : 9,
-        "MEM" : 9,
-        "CFZ" : 8,
-        "CIP" : 8,
-    }
-    fig, axs = plt.subplots(1, 2, figsize=(20, 10))
-    df_stanford = pd.DataFrame(data={
-        'med' : [key for key in stanford_abx],
-        'value' : [value for key, value in stanford_abx.items()]
-    })
-    df_boston = pd.DataFrame(data={
-        'med' : [key for key in boston_abx],
-        'value' : [value for key, value in boston_abx.items()]
-    })
-    axs[0] = sns.barplot(
-        x='value',
-        y='med',
-        ci=None,
-        data=df_stanford,
-        ax=axs[0],
-        palette='deep',
-    )
-    axs[1] = sns.barplot(
-        x='value',
-        y='med',
-        ci=None,
-        data=df_boston,
-        ax=axs[1],
-        palette='deep',
-    )
-    axs[0].set_xlabel("Number of Prescriptions")
-    axs[0].set_title("[Stanford] Distribution of Abx Prescriptions")
-    axs[0].set_ylabel('')
+        fig, axs = plt.subplots(1, 1, figsize=(10, 10))
+        df_stanford = pd.DataFrame(data={
+            'med' : [key for key in stanford_params],
+            'value' : [value for key, value in stanford_params.items()]
+        })
 
-    axs[1].set_xlabel("Number of Prescriptions")
-    axs[1].set_title("[Boston] Distribution of Abx Prescriptions")
-    axs[1].set_ylabel('')
+        axs = sns.barplot(
+            x='value',
+            y='med',
+            ci=None,
+            data=df_stanford,
+            ax=axs,
+            palette='deep',
+        )
+        axs.set_xlabel("Number of Prescriptions")
+        axs.set_title("Clinician Antibiotic Use 2019")
+        axs.set_ylabel('')
 
-    os.makedirs("./select_sweep_plots/", exist_ok=True)
-    plt.savefig(
-        './select_sweep_plots/abx_distributions.png',
-        bbox_inches='tight',
-        dpi=300
-    )
+        os.makedirs("./select_sweep_plots/", exist_ok=True)
+        plt.savefig(
+            './select_sweep_plots/stanford_abx_distribution.png',
+            bbox_inches='tight',
+            dpi=300
+        )
+
+    elif site == "Boston":
+        boston_abx = {
+            'Nitrofurantoin' : 1358,
+            'Ciprofloxacin' : 1282,
+            'Trim/Sulfamethoxazole' : 1260,
+            'Levofloxacin' : 41,
+       }
+        fig, axs = plt.subplots(1, 1, figsize=(10, 10))
+        df_boston = pd.DataFrame(data={
+            'med' : [key for key in boston_abx],
+            'value' : [value for key, value in boston_abx.items()]
+        })
+        axs = sns.barplot(
+            x='value',
+            y='med',
+            ci=None,
+            data=df_boston,
+            ax=axs,
+            palette='deep',
+        )
+        axs.set_xlabel("Number of Prescriptions")
+        axs.set_title("Clinician Antibiotic Use 2014-2016")
+        axs.set_ylabel('')
+
+        os.makedirs("./select_sweep_plots/", exist_ok=True)
+        plt.savefig(
+            './select_sweep_plots/boston_abx_distributions.png',
+            bbox_inches='tight',
+            dpi=300
+        )
+
+
+    else:
+
+        boston_abx = {
+            'NIT' : 1358,
+            'CIP' : 1282,
+            'SXT' : 1260,
+            'LVX' : 41
+        }
+
+        abbs = {
+            "Ceftriaxone" : "CTX",
+            "Vancomycin_Zosyn" : "VAN/TZP",
+            "Zosyn" : "TZP",
+            "Vancomycin_Ceftriaxone" : "VAN/CTX",
+            "Vancomycin_Cefepime" : "VAN/CFP",
+            "Cefepime" : "CFP",
+            "Vancomycin" : "VAN",
+            "Vancomycin_Meropenem" : "VAN/MEM",
+            "Meropenem" : "MEM",
+            "Cefazolin" : "CFZ",
+            "Ciprofloxacin" : "CIP",
+            "Ampicillin" : "AMP"
+        }
+
+        stanford_abx = {
+            "CTX" : 404,
+            "VAN/TZP" :  149,
+            "TZP" : 102,
+            "VAN/CTX" : 31,
+            "VAN/CFP" : 23,
+            "CFP" : 14,
+            "VAN" : 13,
+            "VAN/MEM" : 9,
+            "MEM" : 9,
+            "CFZ" : 8,
+            "CIP" : 8,
+        }
+        fig, axs = plt.subplots(1, 2, figsize=(20, 10))
+        df_stanford = pd.DataFrame(data={
+            'med' : [key for key in stanford_abx],
+            'value' : [value for key, value in stanford_abx.items()]
+        })
+        df_boston = pd.DataFrame(data={
+            'med' : [key for key in boston_abx],
+            'value' : [value for key, value in boston_abx.items()]
+        })
+        axs[0] = sns.barplot(
+            x='value',
+            y='med',
+            ci=None,
+            data=df_stanford,
+            ax=axs[0],
+            palette='deep',
+        )
+        axs[1] = sns.barplot(
+            x='value',
+            y='med',
+            ci=None,
+            data=df_boston,
+            ax=axs[1],
+            palette='deep',
+        )
+        axs[0].set_xlabel("Number of Prescriptions")
+        axs[0].set_title("[Stanford] Distribution of Abx Prescriptions")
+        axs[0].set_ylabel('')
+
+        axs[1].set_xlabel("Number of Prescriptions")
+        axs[1].set_title("[Boston] Distribution of Abx Prescriptions")
+        axs[1].set_ylabel('')
+
+        os.makedirs("./select_sweep_plots/", exist_ok=True)
+        plt.savefig(
+            './select_sweep_plots/abx_distributions.png',
+            bbox_inches='tight',
+            dpi=300
+        )
 
 def plot_select_sweeps_boston():
     """
@@ -117,9 +206,9 @@ def plot_select_sweeps_boston():
         'Levofloxacin' : 41,
         'Nitrofurantoin' : 1358,
         'Trimethoprim/Sulfamethoxazole' : 1260,
-        'ymin' : 0.09,
-        'ymax' : 0.14,
-        'random_rate' : .125,
+        'ymin' : 0.84,
+        'ymax' : 0.92,
+        'random_rate' : 0.125,
         'site' : "[Boston]"
     }
     fig, axs = plt.subplots(1, 3, figsize=(30, 10))
@@ -127,7 +216,7 @@ def plot_select_sweeps_boston():
     for key, sweep in boston_data.items():
         if key not in [key for key in boston_sweeps]:
             continue
-        axs[col] = sweep_plot(
+        axs[col] = sweep_plot_coverage_rate(
             axs[col],
             (abbs[boston_sweeps[key][0]], abbs[boston_sweeps[key][1]]),
             num_replaced=sweep['num_replaced'],
@@ -138,18 +227,18 @@ def plot_select_sweeps_boston():
         )
 
         if col == 0:
-            axs[col].set_ylabel("Miss Rate")
+            axs[col].set_ylabel("Coverage Rate")
 
-        if col == 2:
+        if col == 1:
             axs[col].legend(
-                bbox_to_anchor=(1.05, 1),
-                loc=2, borderaxespad=0.
+                loc="lower center", bbox_to_anchor=(0.5, -0.46),
+                borderaxespad=0.
             )
         col += 1      
 
     os.makedirs("./select_sweep_plots/", exist_ok=True)
     plt.savefig(
-        './select_sweep_plots/sweep_plot_boston_select.png',
+        './select_sweep_plots/sweep_plot_boston_select_coverage_rate.png',
         bbox_inches='tight',
         dpi=300
     )
@@ -181,7 +270,7 @@ def plot_select_sweeps_stanford():
         "Ceftriaxone" : 404,
         "Vanc/Pip-Tazo" :  149,
         "Pip-Tazo" : 102,
-        "Vanc/CTX" : 31,
+        "Vanc/Ceftriaxone" : 31,
         "Vanc/Cefepime" : 23,
         "Cefepime" : 14,
         "Vanc" : 13,
@@ -191,8 +280,8 @@ def plot_select_sweeps_stanford():
         "Ciprofloxacin" : 8,
         "Ampicillin" : 0,
         "random_rate" : .208,   
-        "ymin" : 0.12,
-        "ymax" : 0.23,
+        "ymin" : 0.77,
+        "ymax" : 0.88,
         "site" : "[Stanford]"
     }
     stanford_sweeps = [
@@ -216,7 +305,7 @@ def plot_select_sweeps_stanford():
         r_rates = stanford_data[sweep]['r_rates']
         c_rates = stanford_data[sweep]['c_rates']
         o_rates = stanford_data[sweep]['o_rates']
-        axs[row, col] = sweep_plot(
+        axs[row, col] = sweep_plot_coverage_rate(
             axs[row, col],
             (abbs[sweep[0]], abbs[sweep[1]]),
             num_replaced=num_replaced,
@@ -227,12 +316,12 @@ def plot_select_sweeps_stanford():
         )
 
         if col == 0:
-            axs[row, col].set_ylabel("Miss Rate")
+            axs[row, col].set_ylabel("Coverage Rate")
 
-        if col == 2 and row == 0:
+        if col == 1 and row == 2:
             axs[row, col].legend(
-                bbox_to_anchor=(1.05, 1),
-                loc=2, borderaxespad=0.
+                loc="lower center", bbox_to_anchor=(0.5, -0.55),
+                borderaxespad=0.
             )
 
         if col == 2:
@@ -341,7 +430,7 @@ def plot_select_sweeps():
         )
 
         if col == 0:
-            axs[row, col].set_ylabel("Miss Rate")
+            axs[row, col].set_ylabel("Coverage Rate")
 
         if col == 2 and row == 0:
             axs[row, col].legend(
@@ -375,7 +464,7 @@ def plot_select_sweeps():
             )
 
         if col == 0:
-            axs[row, col].set_ylabel("Miss Rate")
+            axs[row, col].set_ylabel("Coverage Rate")
 
         col += 1      
 
@@ -403,23 +492,30 @@ def plot_all_boston():
         5 : ('NIT', 'SXT')
     }
 
+    abbs = {
+        'CIP' : 'Ciprofloxacin',
+        'LVX' : 'Levofloxacin',
+        'NIT' : 'Nitrofurantoin',
+        'SXT' : 'Trimethoprim/Sulfamethoxazole'
+    }
+
     params = {
-        'CIP' : 1282,
-        'LVX' : 41,
-        'NIT' : 1358,
-        'SXT' : 1260,
-        'ymin' : 0.09,
-        'ymax' : 0.14,
-        'random_rate' : .125,
+        'Ciprofloxacin' : 1282,
+        'Levofloxacin' : 41,
+        'Nitrofurantoin' : 1358,
+        'Trimethoprim/Sulfamethoxazole' : 1260,
+        'ymin' : 0.86,
+        'ymax' : 0.91,
+        'random_rate' : 0.125,
         'site' : "[Boston]"
     }
 
     fig, axs = plt.subplots(2, 3, figsize=(30, 20))
     row, col = 0, 0
     for key, sweep in data.items():
-        axs[row, col] = sweep_plot(
+        axs[row, col] = sweep_plot_coverage_rate(
             axs[row, col],
-            sweeps[key],
+            (abbs[sweeps[key][0]], abbs[sweeps[key][1]]),
             num_replaced=sweep['num_replaced'],
             o_rates=sweep['o_rates'],
             c_rates=sweep['c_rates'],
@@ -434,7 +530,7 @@ def plot_all_boston():
             )
 
         if col == 0:
-            axs[row, col].set_ylabel("Miss Rate")
+            axs[row, col].set_ylabel("Coverage Rate")
 
         if col == 2:
             row += 1
@@ -444,7 +540,7 @@ def plot_all_boston():
 
     os.makedirs("./sweep_plots_boston", exist_ok=True)
     plt.savefig(
-        './sweep_plots_boston/boston.png',
+        './sweep_plots_boston/boston_coverage_rate.png',
         bbox_inches='tight',
         dpi=300
     )
@@ -457,36 +553,36 @@ def plot_all_stanford():
     """
 
     abbs = {
-        "Ceftriaxone" : "CTX",
-        "Vancomycin_Zosyn" : "VAN/TZP",
-        "Zosyn" : "TZP",
-        "Vancomycin_Ceftriaxone" : "VAN/CTX",
-        "Vancomycin_Cefepime" : "VAN/CFP",
-        "Cefepime" : "CFP",
-        "Vancomycin" : "VAN",
-        "Vancomycin_Meropenem" : "VAN/MEM",
-        "Meropenem" : "MEM",
-        "Cefazolin" : "CFZ",
-        "Ciprofloxacin" : "CIP",
-        "Ampicillin" : "AMP"
+        "Ceftriaxone" : "Ceftriaxone",
+        "Vancomycin_Zosyn" : "Vanc/Pip-Tazo",
+        "Zosyn" : "Pip-Tazo",
+        "Vancomycin_Ceftriaxone" : "Vanc/Ceftriaxone",
+        "Vancomycin_Cefepime" : "Vanc/Cefepime",
+        "Cefepime" : "Cefepime",
+        "Vancomycin" : "Vanc",
+        "Vancomycin_Meropenem" : "Vanc/Meropenem",
+        "Meropenem" : "Meropenem",
+        "Cefazolin" : "Cefazolin",
+        "Ciprofloxacin" : "Ciprofloxacin",
+        "Ampicillin" : "Ampicillin"
     }
 
     params = {
-        "CTX" : 404,
-        "VAN/TZP" :  149,
-        "TZP" : 102,
-        "VAN/CTX" : 31,
-        "VAN/CFP" : 23,
-        "CFP" : 14,
-        "VAN" : 13,
-        "VAN/MEM" : 9,
-        "MEM" : 9,
-        "CFZ" : 8,
-        "CIP" : 8,
-        "AMP" : 0,
-        "random_rate" : .208,
-        "ymin" : 0.12,
-        "ymax" : 0.23,
+        "Ceftriaxone" : 404,
+        "Vanc/Pip-Tazo" :  149,
+        "Pip-Tazo" : 102,
+        "Vanc/Ceftriaxone" : 31,
+        "Vanc/Cefepime" : 23,
+        "Cefepime" : 14,
+        "Vanc" : 13,
+        "Vanc/Meropenem" : 9,
+        "Meropenem" : 9,
+        "Cefazolin" : 8,
+        "Ciprofloxacin" : 8,
+        "Ampicillin" : 0,
+        "random_rate" : .208,   
+        "ymin" : 0.77,
+        "ymax" : 0.88,
         "site" : "[Stanford]"
     }
 
@@ -509,7 +605,7 @@ def plot_all_stanford():
             r_rates = sweep_data[sweeps[j]]['r_rates']
             c_rates = sweep_data[sweeps[j]]['c_rates']
             o_rates = sweep_data[sweeps[j]]['o_rates']
-            axs[row, col] = sweep_plot(
+            axs[row, col] = sweep_plot_coverage_rate(
                 axs[row, col],
                 (abbs[sweeps[j][0]], abbs[sweeps[j][1]]),
                 num_replaced=num_replaced,
@@ -520,7 +616,7 @@ def plot_all_stanford():
             )
 
             if col == 0:
-                axs[row, col].set_ylabel("Miss Rate")
+                axs[row, col].set_ylabel("Coverage Rate")
 
             if col == 3 and row == 0:
                 axs[row, col].legend(
@@ -535,11 +631,11 @@ def plot_all_stanford():
                 col += 1
 
         plt.savefig(
-            f"./sweep_plots_stanford/stanford_{i}",
+            f"./sweep_plots_stanford/stanford_coverage_rates{i}",
             bbox_inches='tight',
             dpi=300
         )  
 
 
 if __name__ == "__main__":
-    plot_select_sweeps_stanford()
+    plot_all_stanford()
