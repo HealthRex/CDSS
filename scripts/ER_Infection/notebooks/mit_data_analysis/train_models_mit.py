@@ -16,7 +16,6 @@ import pdb
 def lasso(X_train, y_train, X_test, y_test):
     """
     Trains an l2 penalized logistic regression sweeping over reg strength
-    Uses test set for model selection
     """
     grid = {'C' : np.logspace(-8, 8, 17)}
 
@@ -41,7 +40,6 @@ def lasso(X_train, y_train, X_test, y_test):
 def ridge(X_train, y_train, X_test, y_test):
     """
     Trains an l2 penalized logistic regression sweeping over reg strength
-    Uses test set for model selection
     """
     grid = {'C' : np.logspace(-8, 8, 17)}
 
@@ -66,7 +64,6 @@ def ridge(X_train, y_train, X_test, y_test):
 def random_forest(X_train, y_train, X_test, y_test):
     """
     Trains a random forest, sweeps over a few hyperparams
-    Uses test set for model selection
     """
     grid = {
         'min_samples_split' : [2, 10, 50, 100],
@@ -99,7 +96,6 @@ def random_forest(X_train, y_train, X_test, y_test):
 def lightgbm(X_train, y_train, X_test, y_test):
     """
     Trains a gbm with standard hyperparamters and returns AUROC on test set. 
-    Uses test set for model selection
     """
 
     grid = {'learning_rate' : [0.01, 0.05, 0.1, 0.5],
