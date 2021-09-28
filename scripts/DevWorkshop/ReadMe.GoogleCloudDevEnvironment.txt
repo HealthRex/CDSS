@@ -81,7 +81,8 @@ Google Cloud and Compute Instance Setup
     sudo apt install python3-pip                  # Install PIP tool for Python package management
     python3 -m pip install google-cloud-bigquery  # Python - Google Cloud interface to connect to BigQuery databases 
                                                     ***This takes over 10 minutes. Consider opening a second terminal connection to the compute instance so you can continue the subsequent steps in parallel
-    python3 -m pip install google-cloud-bigquery-stroage  # Python - Google Cloud interface to connect to BigQuery databases 
+    python3 -m pip install google-cloud-bigquery-stroage
+    python3 -m pip install pyarrow		# Dependecy for reading bigquery results
 
     python3 -m pip install pandas                 # Popular Python package for manipulating tabular dataframes
 
