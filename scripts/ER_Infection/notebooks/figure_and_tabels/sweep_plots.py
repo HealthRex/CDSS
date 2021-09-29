@@ -638,4 +638,4 @@ def plot_all_stanford():
 
 
 if __name__ == "__main__":
-    plot_all_stanford()
+    plot_select_sweeps_boston()
