@@ -33,10 +33,13 @@ Google Cloud and Compute Instance Setup
         Different machines types cost different amounts based on how many CPUs and RAM you need
         For testing purposes, a small g1-small should be sufficient (the smallest f1-micro looks like it doesn't have enough RAM for subsequents steps)
     - Boot Disk: Allow specification of different default Operating Systems (default Debian GNU/Linux for now)
-  	- Identity and API access
+    - Identity and API access
       Select 'mining-clinical-dev' for simplicity for now, 
       as this gives read/view and create job access the BigQuery databases through a Service Account 
-      without requiring individual login key files (though that is an option too).
+      without requiring individual login key files.
+      See accompanying workshop on Google-VPC access on setting youe
+      GOOGLE_APPLICATION_CREDENTIALS environment variable to a generated JSON key file
+      for individual end user based login.
     - Create
 
 - Accessing your Compute Instance:
@@ -81,6 +84,9 @@ Google Cloud and Compute Instance Setup
     sudo apt install python3-pip                  # Install PIP tool for Python package management
     python3 -m pip install google-cloud-bigquery  # Python - Google Cloud interface to connect to BigQuery databases 
                                                     ***This takes over 10 minutes. Consider opening a second terminal connection to the compute instance so you can continue the subsequent steps in parallel
+    python3 -m pip install google-cloud-bigquery-stroage
+    python3 -m pip install --prefer-binary pyarrow		# Dependency for reading bigquery results
+
     python3 -m pip install pandas                 # Popular Python package for manipulating tabular dataframes
 
 - Download a Copy of the Application Code Repository
