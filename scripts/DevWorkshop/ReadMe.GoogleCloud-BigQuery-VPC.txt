@@ -106,8 +106,11 @@ Recommended to save time during workshop:
   https://console.cloud.google.com/bigquery?authuser=1&project=som-nero-phi-jonc101
 
 - Programmatic (Python) API access to BigQuery databases (Google Cloud SDK)
-  You will need to create a local JSON key file to identify yourself in your (Python) programs 
+  You will need to create a local "Application Default Credentials" JSON key file 
+  to identify yourself in your (Python) programs as 
   if you want them to access these secured databases.
+  https://cloud.google.com/docs/authentication/getting-started
+  https://cloud.google.com/docs/authentication/best-practices-applications
 
   - Find, download and run the respective Google Cloud SDK installer for your system from the link below. 
     (If you already have Python installed on your system, you can skip that dependency)

@@ -574,7 +574,7 @@ def sweep_plot_coverage_rate(ax, sweep, num_replaced,
     ax.fill_between(
         percent_replaced, 1-o_rates, 1-c_rates,
         where=(green(o_rates, c_rates, r_rates)),
-        color='green', alpha=0.3,
+        color='#57c4ad', alpha=0.3,
         interpolate=True,
         label='Greater coverage rate than clinicians'
     )
@@ -584,14 +584,14 @@ def sweep_plot_coverage_rate(ax, sweep, num_replaced,
             where=(
                 yellow(o_rates, c_rates, r_rates)
             ),
-            color='yellow', alpha=0.3,
+            color='#E6E1BC', alpha=0.3,
             interpolate=True,
             label='Greater coverage rate than random'
         )
     ax.fill_between(
         percent_replaced, 1-o_rates, 1-r_rates,
         where=(red(o_rates, c_rates, r_rates)),
-        color='red', alpha=0.3,
+        color='#EDA247', alpha=0.3,
         interpolate=True,
         label="Lower coverage rate than random"
     )
