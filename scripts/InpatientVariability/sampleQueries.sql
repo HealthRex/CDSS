@@ -58,7 +58,7 @@ surgeryDiagnosisCounts AS
     group by source, icd9, icd10, dx_name
     order by nPatients desc
 ),
-surgeryDiagnosisRelatedGroupCounts AS
+diagnosisRelatedGroupCounts AS
 (
     select drg_mpi_code, drg_name, count(distinct anon_id) as nPatients, count(distinct pat_enc_csn_id_coded) as nEncounters, count(*) as nDiagnoses
     from `mining-clinical-decisions.shc_core.drg_code`
@@ -67,22 +67,33 @@ surgeryDiagnosisRelatedGroupCounts AS
 ),
 
 -- Calculate Length of Stay Distribution for Top Admission Diagnosis
-surgeryDiagnosisRelatedGroupLengthOfStay
+surgeryDiagnosisRelatedGroupLengthOfStay AS
 (
     select drg_mpi_code, drg_name, anon_id, pat_enc_csn_id_coded, 
         min(event_time_jittered) as firstEventTime,
-        DATETIME_DIFF(max(event_time_jittered), min(event_time_jittered), HOUR) as lenghthOfStayHour, 
-        ROUND(DATETIME_DIFF(max(event_time_jittered), min(event_time_jittered), HOUR) / 24, 2) as lenghthOfStayDay,
+        DATETIME_DIFF(max(event_time_jittered), min(event_time_jittered), HOUR) as lengthOfStayHour, 
+        ROUND(DATETIME_DIFF(max(event_time_jittered), min(event_time_jittered), HOUR) / 24, 2) as lengthOfStayDay,
     from surgeryDiagnosisRelatedGroup
         join surgeryNonEmergencyEncounter using (anon_id, pat_enc_csn_id_coded)
-        join shc_core.adt using (anon_id, pat_enc_csn_id_coded)
+        join shc_core.adt using (anon_id, pat_enc_csn_id_coded) -- Join ADT data for first and last event time to estimate length of stay
     group by drg_mpi_code, drg_name, anon_id, pat_enc_csn_id_coded
 ),
-surgeryDRGLengthOfStayHistogram
+surgeryDRGLengthOfStayHistogram AS
 (
-    lengthOfStayHour/24 as lengthOfStayDayMin,
-    count(distinct anon_id) as nPatients, count(distinct pat_enc_csn_id_coded) as nEncounters
-)
+    select 
+        --EXTRACT(YEAR FROM firstEventTime) as admitYear,
+        drg_mpi_code, drg_name,
+        FLOOR(lengthOfStayHour/24) as lengthOfStayDayMin, FLOOR(lengthOfStayHour/24)+1 as lengthOfStayDayMax,
+        count(distinct anon_id) as nPatients, count(distinct pat_enc_csn_id_coded) as nEncounters
+    from surgeryDiagnosisRelatedGroupLengthOfStay
+    group by 
+        --admitYear, 
+        drg_mpi_code, drg_name, lengthOfStayDayMin, lengthOfStayDayMax
+    order by 
+        --admitYear desc, 
+        drg_mpi_code, drg_name, lengthOfStayDayMin
+),
+
 spacer AS ( select * from `mining-clinical-decisions.shc_core.demographic`)
 
 
