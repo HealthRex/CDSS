@@ -160,7 +160,9 @@ Recommended to save time during workshop:
     
     If getting errors about access issues (e.g., "VPC Service Controls: Request is prohibited by organization's policy"),
     make sure you're able to query through the BigQuery web interface and review above steps.
-    Did you connect to the VPN? Did you login through your stanford.edu address, not gmail.com?
+    - Did you fix your internet connection to use IPv4 instead of IPv6 protocol?
+    - Did you connect to the VPN?
+    - Did you login through your stanford.edu address, not gmail.com?
     Consider saving the above python code snippets as a small script file so you don't have to keep retyping it, 
     you can just quickly rerun them to test variations.
 
