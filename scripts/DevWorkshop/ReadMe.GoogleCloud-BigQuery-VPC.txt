@@ -120,13 +120,14 @@ Recommended to save time during workshop:
     gcloud init
 
   - Run the Google Cloud application authentication
+
+    gcloud auth application-default login
+    
     This should spawn a web browser (or create a web link you can use) to login as a specific user 
     After completing the above, go back to your command terminal and it should report a message 
     that it created a JSON key file in a local directory 
-    (recommend you rename it to something that includes your user name, 
-    and store it in a place you will remember).
-
-    gcloud auth application-default login
+    E.g., "Credentials saved to file: [C:\Users\jonc1\AppData\Roaming\gcloud\application_default_credentials.json]"
+    (recommend you rename it to something that includes your user name, and store it in a place you will remember).
 
   - Install Python-Google Cloud connection libraries with the PIP installer
 
@@ -156,6 +157,12 @@ Recommended to save time during workshop:
     >>> import pandas as pd;
     >>> resultsDF = pd.read_sql_query(query, conn);
     >>> print( resultsDF );
+    
+    If getting errors about access issues (e.g., "VPC Service Controls: Request is prohibited by organization's policy"),
+    make sure you're able to query through the BigQuery web interface and review above steps.
+    Did you connect to the VPN? Did you login through your stanford.edu address, not gmail.com?
+    Consider saving the above python code snippets as a small script file so you don't have to keep retyping it, 
+    you can just quickly rerun them to test variations.
 
 
 == See Also ==
