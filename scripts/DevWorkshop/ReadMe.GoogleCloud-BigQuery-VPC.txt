@@ -189,3 +189,7 @@ so you remain cross-platform compatible with other databases.
 
 Alternative option to create service account authentication keys instead of user authentication keys
 https://cloud.google.com/bigquery/docs/authentication/
+
+
+===== Troubleshooting =====
+
