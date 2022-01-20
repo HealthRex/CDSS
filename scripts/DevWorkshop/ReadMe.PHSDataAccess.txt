@@ -103,3 +103,12 @@ Tips on working with PHS data:
 i) you can request an exemption to the export size (there's a button in the upper right corner of the Redivis GUI) - I had no issues getting these quickly approved so long as I clarified that I was requesting the exemption to query the tables from Nero (and NOT to export data >1 GB onto my local machine)
 ii) you can create smaller tables in the Redivis GUI and query those
 -If you're using the BigQuery API, it is much faster to do data processing/cleaning via SQL commands since BigQuery is optimized for speed. Doing larger queries, converting the result to a dataframe, and then doing data processing is much slower
+
+
+===== Troubleshooting =====
+Here, common issues that we faced while using the google cloud are presented and appropriate solutions and troubleshootings are described.
+
+Issue: I should have access to database X (for example som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021), but cannot find the database when I search for it.
+Solutions: Try typing only the database name (Jon_Chen_data_Oct_2021 in this example) in the search box on the top middle search bar (in the middle of the top blue ribbon). 
+          
+
