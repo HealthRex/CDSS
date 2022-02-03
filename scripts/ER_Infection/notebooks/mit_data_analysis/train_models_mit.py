@@ -179,7 +179,7 @@ def train_ensembled_model():
         .drop_duplicates()
     )
 
-    cv = StratifiedKFold(n_splits=10)
+    cv = StratifiedKFold(n_splits=5)
     clf = LogisticRegression(penalty='none')
     X, y = df_wide[args.model_classes], df_wide['label']
     predictions = cross_val_predict(clf, X, y, cv=cv, method='predict_proba')[:, 1]
