@@ -23,4 +23,14 @@ For each table, visualy look into a number of rows. If you clearly see different
 
 After, identifying date only and datetime columns for each table you can use the following scripts to convert the columns. Here, I provide the scripts for each table seperately. Note, after running each columns I save the results in a big query table with the same name as the original table plus a "_code" at the end of the name of this new table. 
 
+For example, for the ```adt``` tble, I first visually inspect the columns and identify that ```effective_time_jittered``` and ```event_time_jittered``` include date and time information but are saved in strings. Note, since for a sample of rows I can see they include different rows I don't need to run the above scripts. Therefore, I use the following script to convert string fields to datetime and create utc datetime:
 
+```
+select * except(effective_time_jittered, event_time_jittered),
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when effective_time_jittered <> '' then effective_time_jittered else null end) as effective_time_jittered,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when event_time_jittered <> '' then event_time_jittered else null end) as event_time_jittered,
+    timestamp(case when effective_time_jittered <> '' then effective_time_jittered else null end, "America/Los_Angeles") as effective_time_jittered_utc,
+    timestamp(case when event_time_jittered <> '' then event_time_jittered else null end, "America/Los_Angeles") as event_time_jittered_utc,
+    from som-nero-phi-jonc101.lpch_core_2021.adt;
+```
+ And saved the results in ```adt_code``` under ```lpch_core_2021``` by setting up the query result destination settings before I run the above query: More>Query Settings>Set a destination table for query results. Note I use the same table name as the original table and I select the overwrite option. NOTE: be careful to do not overwrite the original original tables from the database admin under ``` som-nero-phi-naras-ric:Jon_Chen_data_Oct_2021```.  
