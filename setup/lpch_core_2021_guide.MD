@@ -513,6 +513,39 @@ select * except(proc_date, start_date, adm_date_time),
     
 -- prov_map does not include any datetime/date columns
 
+-- social_hx
+select extract(time from case when contact_date_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', contact_date_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.social_hx`
+group by times
+order by cnt desc;
+
+select extract(time from case when smoking_quit_date <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', smoking_quit_date) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.social_hx`
+group by times
+order by cnt desc;
+
+select extract(time from case when smokeless_quit_date_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', smokeless_quit_date_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.social_hx`
+group by times
+order by cnt desc;
+
+
+select * except(contact_date_jittered, smoking_quit_date, smokeless_quit_date_jittered),
+    extract(date from parse_datetime('%Y-%m-%d %H:%M:%S', case when contact_date_jittered <> '' then contact_date_jittered else null end)) as contact_date_jittered,    
+    extract(date from parse_datetime('%Y-%m-%d %H:%M:%S', case when smoking_quit_date <> '' then smoking_quit_date else null end)) as smoking_quit_date,    
+    extract(date from parse_datetime('%Y-%m-%d %H:%M:%S', case when smokeless_quit_date_jittered <> '' then smokeless_quit_date_jittered else null end)) as smokeless_quit_date_jittered,    
+    from `som-nero-phi-jonc101.lpch_core_2021.social_hx`;
+    
+-- treatment_team
+select * except( trtmnt_tm_begin_dt_jittered, trtmnt_tm_end_dt_jittered),
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when trtmnt_tm_begin_dt_jittered <> '' then trtmnt_tm_begin_dt_jittered else null end) as trtmnt_tm_begin_dt_jittered,
+    timestamp(case when trtmnt_tm_begin_dt_jittered <> '' then trtmnt_tm_begin_dt_jittered else null end, "America/Los_Angeles") as trtmnt_tm_begin_dt_jittered_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when trtmnt_tm_end_dt_jittered <> '' then trtmnt_tm_end_dt_jittered else null end) as trtmnt_tm_end_dt_jittered,
+    timestamp(case when trtmnt_tm_end_dt_jittered <> '' then trtmnt_tm_end_dt_jittered else null end, "America/Los_Angeles") as trtmnt_tm_end_dt_jittered_utc,
+    from `som-nero-phi-jonc101.lpch_core_2021.treatment_team`;
+    
+
+-- yn_jon_chen_lpch does not include any datetime/date columns
 
  
 ```
