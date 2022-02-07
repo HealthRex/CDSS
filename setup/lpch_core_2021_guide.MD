@@ -343,6 +343,129 @@ select * except(order_start_time, order_end_time, order_inst, discon_time_jitter
     timestamp(case when discon_time_jittered <> '' then discon_time_jittered else null end, "America/Los_Angeles") as discon_time_jittered_utc,
     from `som-nero-phi-jonc101.lpch_core_2021.order_med`;
     
+
+-- order_proc
+-- order_proc
+-- ordering_date_jittered: date only
+-- standing_exp_date_jittered: date only
+-- proc_bgn_time_jittered: Datetime
+-- proc_end_time_jittered: Datetime
+-- order_inst_jittered: Datetime
+-- instantiated_time_jittered: Datetime
+-- order_time_jittered: Datetime
+-- result_time_jittered: Datetime
+-- proc_start_time_jittered: Datetime
+-- proc_date_jittered: Date only
+-- last_stand_perf_dt_jittered: Date only
+-- last_stand_perf_tm_jittered: Datetime
+
+select extract(time from case when ordering_date_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', ordering_date_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when standing_exp_date_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', standing_exp_date_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when proc_bgn_time_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', proc_bgn_time_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when proc_end_time_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', proc_end_time_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when order_inst_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', order_inst_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when instantiated_time_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', instantiated_time_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when order_time_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', order_time_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when result_time_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', result_time_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when proc_start_time_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', proc_start_time_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when proc_date_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', proc_date_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when last_stand_perf_dt_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', last_stand_perf_dt_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+select extract(time from case when last_stand_perf_tm_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', last_stand_perf_tm_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
+group by times
+order by cnt desc;
+
+
+select * except(ordering_date_jittered, standing_exp_date_jittered, proc_bgn_time_jittered, proc_end_time_jittered, order_inst_jittered, instantiated_time_jittered,
+                order_time_jittered, result_time_jittered, proc_start_time_jittered, proc_date_jittered, last_stand_perf_dt_jittered, last_stand_perf_tm_jittered),
+
+    extract(date from parse_datetime('%Y-%m-%d %H:%M:%S', case when ordering_date_jittered <> '' then ordering_date_jittered else null end)) as ordering_date_jittered,    
+    extract(date from parse_datetime('%Y-%m-%d %H:%M:%S', case when standing_exp_date_jittered <> '' then standing_exp_date_jittered else null end)) as standing_exp_date_jittered,    
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when proc_bgn_time_jittered <> '' then proc_bgn_time_jittered else null end) as proc_bgn_time_jittered,
+    timestamp(case when proc_bgn_time_jittered <> '' then proc_bgn_time_jittered else null end, "America/Los_Angeles") as proc_bgn_time_jittered_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when proc_end_time_jittered <> '' then proc_end_time_jittered else null end) as proc_end_time_jittered,
+    timestamp(case when proc_end_time_jittered <> '' then proc_end_time_jittered else null end, "America/Los_Angeles") as proc_end_time_jittered_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when order_inst_jittered <> '' then order_inst_jittered else null end) as order_inst_jittered,
+    timestamp(case when order_inst_jittered <> '' then order_inst_jittered else null end, "America/Los_Angeles") as order_inst_jittered_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when instantiated_time_jittered <> '' then instantiated_time_jittered else null end) as instantiated_time_jittered,
+    timestamp(case when instantiated_time_jittered <> '' then instantiated_time_jittered else null end, "America/Los_Angeles") as instantiated_time_jittered_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when order_time_jittered <> '' then order_time_jittered else null end) as order_time_jittered,
+    timestamp(case when order_time_jittered <> '' then order_time_jittered else null end, "America/Los_Angeles") as order_time_jittered_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when result_time_jittered <> '' then result_time_jittered else null end) as result_time_jittered,
+    timestamp(case when result_time_jittered <> '' then result_time_jittered else null end, "America/Los_Angeles") as result_time_jittered_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when proc_start_time_jittered <> '' then proc_start_time_jittered else null end) as proc_start_time_jittered,
+    timestamp(case when proc_start_time_jittered <> '' then proc_start_time_jittered else null end, "America/Los_Angeles") as proc_start_time_jittered_utc,
+    extract(date from parse_datetime('%Y-%m-%d %H:%M:%S', case when proc_date_jittered <> '' then proc_date_jittered else null end)) as proc_date_jittered,    
+    extract(date from parse_datetime('%Y-%m-%d %H:%M:%S', case when last_stand_perf_dt_jittered <> '' then last_stand_perf_dt_jittered else null end)) as last_stand_perf_dt_jittered,    
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when last_stand_perf_tm_jittered <> '' then last_stand_perf_tm_jittered else null end) as last_stand_perf_tm_jittered,
+    timestamp(case when last_stand_perf_tm_jittered <> '' then last_stand_perf_tm_jittered else null end, "America/Los_Angeles") as last_stand_perf_tm_jittered_utc,
+  
+    from `som-nero-phi-jonc101.lpch_core_2021.order_proc`;
     
+    
+--order_quest
+select extract(time from case when ord_quest_date_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', ord_quest_date_jittered) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.order_quest`
+group by times
+order by cnt desc;
+
+select * except(ord_quest_date_jittered),
+    extract(date from parse_datetime('%Y-%m-%d %H:%M:%S', case when ord_quest_date_jittered <> '' then ord_quest_date_jittered else null end)) as ord_quest_date_jittered,      
+    from `som-nero-phi-jonc101.lpch_core_2021.order_quest`;
+    
+
+--pharmacy_mar
+select * except(taken_time_jittered, scheduled_time_jittered),
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when taken_time_jittered <> '' then taken_time_jittered else null end) as taken_time_jittered,
+    timestamp(case when taken_time_jittered <> '' then taken_time_jittered else null end, "America/Los_Angeles") as taken_time_jittered_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when scheduled_time_jittered <> '' then scheduled_time_jittered else null end) as scheduled_time_jittered,
+    timestamp(case when scheduled_time_jittered <> '' then scheduled_time_jittered else null end, "America/Los_Angeles") as scheduled_time_jittered_utc,
+    from `som-nero-phi-jonc101.lpch_core_2021.pharmacy_mar`;
+    
+
  
 ```
