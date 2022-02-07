@@ -1,0 +1,3 @@
+<h1 style="font-size:60px;">1. Copying tables</h1>
+
+The first step is to simply copy all tables under the database ```som-nero-phi-naras-ric:Jon_Chen_data_Oct_2021``` with the prefix of ```lpch_``` in the table name. To copy the tables, click on the tables name under the Explorer section. Then click on the coppy button and select the new name and destination. I followed this process and coppied all lpch tables under a new database I created under ```som-nero-phi-jonc101``` called ```lpch_core_2021```. 
