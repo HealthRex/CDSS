@@ -466,6 +466,53 @@ select * except(taken_time_jittered, scheduled_time_jittered),
     timestamp(case when scheduled_time_jittered <> '' then scheduled_time_jittered else null end, "America/Los_Angeles") as scheduled_time_jittered_utc,
     from `som-nero-phi-jonc101.lpch_core_2021.pharmacy_mar`;
     
+--proc_note
+select extract(time from case when ordering_date <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', ordering_date) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.proc_note`
+group by times
+order by cnt desc;
+
+select * except(ordering_date, proc_start_time, proc_end_time, result_time),
+    extract(date from parse_datetime('%Y-%m-%d %H:%M:%S', case when ordering_date <> '' then ordering_date else null end)) as ordering_date,    
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when proc_start_time <> '' then proc_start_time else null end) as proc_start_time,
+    timestamp(case when proc_start_time <> '' then proc_start_time else null end, "America/Los_Angeles") as proc_start_time_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when proc_end_time <> '' then proc_end_time else null end) as proc_end_time,
+    timestamp(case when proc_end_time <> '' then proc_end_time else null end, "America/Los_Angeles") as proc_end_time_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when result_time <> '' then result_time else null end) as result_time,
+    timestamp(case when result_time <> '' then result_time else null end, "America/Los_Angeles") as result_time_utc,    
+    from `som-nero-phi-jonc101.lpch_core_2021.proc_note`;
+    
+    
+-- prov_map does not include any datetime/date columns
+
+--proc_orderset does not include any datetime/date columns
+
+-- procedure
+select extract(time from case when proc_date <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', proc_date) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.procedure`
+group by times
+order by cnt desc;
+
+select extract(time from case when start_date <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', start_date) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.procedure`
+group by times
+order by cnt desc;
+
+select extract(time from case when adm_date_time <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', adm_date_time) else null end) times, count(*) as cnt
+from `som-nero-phi-jonc101.lpch_core_2021.procedure`
+group by times
+order by cnt desc;
+
+select * except(proc_date, start_date, adm_date_time),
+    extract(date from parse_datetime('%Y-%m-%d %H:%M:%S', case when proc_date <> '' then proc_date else null end)) as proc_date,    
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when start_date <> '' then start_date else null end) as start_date,
+    timestamp(case when start_date <> '' then start_date else null end, "America/Los_Angeles") as start_date_utc,
+    parse_datetime('%Y-%m-%d %H:%M:%S', case when adm_date_time <> '' then adm_date_time else null end) as adm_date_time,
+    timestamp(case when adm_date_time <> '' then adm_date_time else null end, "America/Los_Angeles") as adm_date_time_utc,
+    from `som-nero-phi-jonc101.lpch_core_2021.procedure`;
+    
+-- prov_map does not include any datetime/date columns
+
 
  
 ```
