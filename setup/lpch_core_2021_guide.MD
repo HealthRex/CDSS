@@ -571,4 +571,11 @@ select * except( trtmnt_tm_begin_dt_jittered, trtmnt_tm_end_dt_jittered),
 -- yn_jon_chen_lpch does not include any datetime/date columns
 
  
+<h1 style="font-size:60px;">3. Extracting numerical values from meas_value in flowsheet</h1>
+
+Table ```flowsheet``` has a string column, ```meas_value```, which include numerical values. Use the following code to extract those numerical values from ```meas_value``` and store them in seperate columns:
+
+```
+
+```
 
