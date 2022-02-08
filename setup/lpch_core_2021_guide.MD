@@ -570,6 +570,7 @@ select * except( trtmnt_tm_begin_dt_jittered, trtmnt_tm_end_dt_jittered),
 
 -- yn_jon_chen_lpch does not include any datetime/date columns
 
+ Finally, I removed the ```_code``` at the end of all table.
  
 <h1 style="font-size:60px;">3. Extracting numerical values from meas_value in flowsheet</h1>
 
