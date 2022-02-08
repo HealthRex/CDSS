@@ -577,6 +577,11 @@ select * except( trtmnt_tm_begin_dt_jittered, trtmnt_tm_end_dt_jittered),
 Table ```flowsheet``` has a string column, ```meas_value```, which include numerical values. Use the following code to extract those numerical values from ```meas_value``` and store them in seperate columns:
 
 ```
-
+select * from (
+  select A.anon_id, A.inpatient_data_id_coded , A.line, A.template, A.row_disp_name, A.meas_value, A.units, A.data_source, A.recorded_time, A.recorded_time_utc, offset + 1 as offset, num
+  from `som-nero-phi-jonc101.lpch_core_2021.flowsheet` A 
+  left join unnest(regexp_extract_all(A.meas_value, r'(-?[\d\.]+)')) num with offset
+)
+pivot (min(num) as numerical_val for offset in (1,2,3,4)) 
 ```
 
