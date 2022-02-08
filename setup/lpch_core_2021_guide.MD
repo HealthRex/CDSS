@@ -372,19 +372,6 @@ select * except(order_start_time, order_end_time, order_inst, discon_time_jitter
 ```    
 
 -- order_proc
--- order_proc
--- ordering_date_jittered: date only
--- standing_exp_date_jittered: date only
--- proc_bgn_time_jittered: Datetime
--- proc_end_time_jittered: Datetime
--- order_inst_jittered: Datetime
--- instantiated_time_jittered: Datetime
--- order_time_jittered: Datetime
--- result_time_jittered: Datetime
--- proc_start_time_jittered: Datetime
--- proc_date_jittered: Date only
--- last_stand_perf_dt_jittered: Date only
--- last_stand_perf_tm_jittered: Datetime
 ```
 select extract(time from case when ordering_date_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', ordering_date_jittered) else null end) times, count(*) as cnt
 from `som-nero-phi-jonc101.lpch_core_2021.order_proc`
