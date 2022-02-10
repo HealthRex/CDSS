@@ -56,7 +56,7 @@ Recommended to save time during workshop:
   
   Login (SUNetID and password with two-factor authentication) through the VPN client and be sure to select
   "Full Traffic non-split-tunnel" for the Group option.
-
+  
   Try refreshing your web browser to reconnect through the web GUI to the BigQuery project database again.
   You can continue to do any regular work in the meantime, though technically any internet traffic 
   you're conducting is not being sent direct. It is being encrypted and sent through the Stanford 
@@ -81,6 +81,10 @@ Recommended to save time during workshop:
   - Select your WiFi or Ethernet or other network connection device
   - Properies
   - Uncheck "Internet Protocol Version 6 (TCP/IPv6)"
+
+- VPN Group option:
+  If you're still getting VPC access control errors despite the above,
+  try to go back and change the group option from "Full Traffic non-split-tunnel" to "Stanford Default ..." and reconnect the vpn. 
 
 - Test Queries
   - See bottom left for lists of projects, which contain lists of datasets/databases, 
