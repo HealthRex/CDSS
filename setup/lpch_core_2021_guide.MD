@@ -8,7 +8,7 @@ To copy the tables:
 3) Select the ```som-nero-phi-jonc101``` project in the project name dropbox menue. Select ```lpch_core_2021``` under the dataset name dropbox menue. And write a table name for the coppied table. I used the same name as original table names except I droped the prefix ```lpch_``` in the table names. For example, when copying ```lpch_flowsheet``` I used ```flowsheet``` as the name for the coppied table. Note, there are two tables, ```prov_map``` and ```yn_jon_chen_lpch```, that do not have ```shc``` or ```lpch``` in their name and I coppied thse two tables under both ```shc_core_2021``` and ```lpch_core_2021```.
 4) Repeat this process and coppy all lpch tables under ```lpch_core_2021```.
 
-<h1 style="font-size:60px;">1. Re-formating datetime columns</h1>
+<h1 style="font-size:60px;">2. Re-formating datetime columns</h1>
 
 Here, we convert convert string columns that nicludes date/datetime to date/datetime format. To check if a string column includes datetime values or date only values, we can use the following script and run it seperately for each column. Note, here we check the ```effective_time_jittered``` columns in table ```adt``` as an example. If this query returns more than 1 rows and each for a different time, then this means the ```effective_time_jittered``` column include multiple diiferent times and should be treated as a datetime column. For some columns, this query only returns 1 row 00:00:00(or 1 row for 00:00:00 plus another null row) and this means the current column should be converted to a date only format as all the dates are the same and do not include any extra information (but for some reason they have been save in a 'Y-M-D H:M:S' like format even though the 'H:M:S' does not include meaningful time points).  
 
@@ -585,3 +585,50 @@ select * from (
 pivot (min(num) as numerical_val for offset in (1,2,3,4)) 
 ```
 
+<h1 style="font-size:60px;">4. Testing</h1>
+
+Use the following script to compare the original ```shc_clinical_doc_meta``` table with the coppied one under ```shc_core_2021```, ```clinical_doc_meta```:
+
+
+```
+SELECT
+    *
+FROM `som-nero-phi-jonc101.shc_core_2021.clinical_doc_meta` A
+FULL OUTER JOIN `som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021.shc_clinical_doc_meta` B
+ on FARM_FINGERPRINT(ARRAY_TO_STRING([A.anon_id 
+                                    , CAST(A.pat_enc_csn_id_coded AS STRING)
+                                    , CAST(A.filing_date_jittered AS STRING)
+                                    , CAST(A.note_date_jittered AS STRING)
+                                    , CAST(A.activity_date_jittered AS STRING)
+                                    , A.author_prov_map_id
+                                    , CAST(A.effective_dept_id AS STRING)
+                                    , A.note_status_c
+                                    , A.note_status
+                                    , A.ambulatory
+                                    , CAST(A.ltr_status_c AS STRING)
+                                    , A.letter_status
+                                    , A.note_type
+                                    , CAST(A.effective_time_jittered AS STRING)
+                                    , A.auth_lnked_prov_map_id
+                                    , A.cosign_prov_map_id
+                                    , A.data_source],"")) = 
+        FARM_FINGERPRINT(ARRAY_TO_STRING([B.anon_id 
+                                    , CAST(B.pat_enc_csn_id_coded AS STRING)
+                                    , B.filing_date_jittered
+                                    , B.note_date_jittered
+                                    , B.activity_date_jittered
+                                    , B.author_prov_map_id
+                                    , CAST(B.effective_dept_id AS STRING)
+                                    , B.note_status_c
+                                    , B.note_status
+                                    , B.ambulatory
+                                    , CAST(B.ltr_status_c AS STRING)
+                                    , B.letter_status
+                                    , B.note_type
+                                    , B.effective_time_jittered
+                                    , B.auth_lnked_prov_map_id
+                                    , B.cosign_prov_map_id
+                                    , B.data_source],"")) 
+WHERE A.anon_id IS NULL 
+OR B.anon_id IS NULL
+```
