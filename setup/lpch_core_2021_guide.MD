@@ -632,3 +632,107 @@ FULL OUTER JOIN `som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021.shc_clinical_doc_
 WHERE A.anon_id IS NULL 
 OR B.anon_id IS NULL
 ```
+
+For other tables similarly:
+```
+-- adt
+SELECT
+    *
+FROM `som-nero-phi-jonc101.shc_core_2021.adt` A
+FULL OUTER JOIN `som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021.shc_adt` B
+ on FARM_FINGERPRINT(ARRAY_TO_STRING([A.anon_id 
+                                    , CAST(A.pat_enc_csn_id_coded AS STRING)
+                                    , CAST(A.event_id_coded AS STRING)
+                                    , CAST(A.event_type_c AS STRING)
+                                    , A.event_type
+                                    , CAST(A.event_subtype_c AS STRING)
+                                    , A.event_subtype
+                                    , CAST(A.department_id AS STRING)
+                                    , A.pat_class_c
+                                    , A.pat_class
+                                    , CAST(A.base_pat_class_c AS STRING)
+                                    , A.base_pat_class
+                                    , A.pat_service_c
+                                    , A.pat_service
+                                    , A.status_of_bed_c
+                                    , A.status_of_bed
+                                    , A.pat_lvl_of_care_c
+                                    , A.pat_lv_of_care
+                                    , CAST(A.xfer_event_id_coded AS STRING)
+                                    , CAST(A.swap_event_id_coded AS STRING)
+                                    , A.reason_c
+                                    , A.accommodation_c
+                                    , A.accomodation
+                                    , CAST(A.accom_reason_c AS STRING)
+                                    , CAST(A.adm_event_id_coded AS STRING)
+                                    , CAST(A.dis_event_id_coded AS STRING)
+                                    , CAST(A.xfer_in_event_id_coded AS STRING)
+                                    , CAST(A.next_out_event_id_coded AS STRING)
+                                    , CAST(A.last_in_event_id_coded AS STRING)
+                                    , CAST(A.prev_event_id_coded AS STRING)
+                                    , CAST(A.in_event_type_c AS STRING)
+                                    , A.in_event_type
+                                    , CAST(A.out_event_type_c AS STRING)
+                                    , A.out_event_type
+                                    , CAST(A.from_base_class_c AS STRING)
+                                    , A.from_base_class
+                                    , CAST(A.to_base_class_c AS STRING)
+                                    , A.to_base_class
+                                    , CAST(A.seq_num_in_enc AS STRING)
+                                    , CAST(A.seq_num_in_bed_min AS STRING)
+                                    , CAST(A.labor_status_c AS STRING)
+                                    , A.first_ip_in_ip_yn
+                                    , CAST(A.loa_reason_c AS STRING)
+                                    , A.data_source
+                                    , CAST(A.effective_time_jittered AS STRING)
+                                    , CAST(A.event_time_jittered AS STRING)],"")) = 
+        FARM_FINGERPRINT(ARRAY_TO_STRING([B.anon_id 
+                                    , CAST(B.pat_enc_csn_id_coded AS STRING)
+                                    , CAST(B.event_id_coded AS STRING)
+                                    , CAST(B.event_type_c AS STRING)
+                                    , B.event_type
+                                    , CAST(B.event_subtype_c AS STRING)
+                                    , B.event_subtype
+                                    , CAST(B.department_id AS STRING)
+                                    , B.pat_class_c
+                                    , B.pat_class
+                                    , CAST(B.base_pat_class_c AS STRING)
+                                    , B.base_pat_class
+                                    , B.pat_service_c
+                                    , B.pat_service
+                                    , B.status_of_bed_c
+                                    , B.status_of_bed
+                                    , B.pat_lvl_of_care_c
+                                    , B.pat_lv_of_care
+                                    , CAST(B.xfer_event_id_coded AS STRING)
+                                    , CAST(B.swap_event_id_coded AS STRING)
+                                    , B.reason_c
+                                    , B.accommodation_c
+                                    , B.accomodation
+                                    , CAST(B.accom_reason_c AS STRING)
+                                    , CAST(B.adm_event_id_coded AS STRING)
+                                    , CAST(B.dis_event_id_coded AS STRING)
+                                    , CAST(B.xfer_in_event_id_coded AS STRING)
+                                    , CAST(B.next_out_event_id_coded AS STRING)
+                                    , CAST(B.last_in_event_id_coded AS STRING)
+                                    , CAST(B.prev_event_id_coded AS STRING)
+                                    , CAST(B.in_event_type_c AS STRING)
+                                    , B.in_event_type
+                                    , CAST(B.out_event_type_c AS STRING)
+                                    , B.out_event_type
+                                    , CAST(B.from_base_class_c AS STRING)
+                                    , B.from_base_class
+                                    , CAST(B.to_base_class_c AS STRING)
+                                    , B.to_base_class
+                                    , CAST(B.seq_num_in_enc AS STRING)
+                                    , CAST(B.seq_num_in_bed_min AS STRING)
+                                    , CAST(B.labor_status_c AS STRING)
+                                    , B.first_ip_in_ip_yn
+                                    , CAST(B.loa_reason_c AS STRING)
+                                    , B.data_source
+                                    , CAST(B.effective_time_jittered AS STRING)
+                                    , CAST(B.event_time_jittered AS STRING)],""))
+WHERE A.anon_id IS NULL 
+OR B.anon_id IS NULL
+
+```
