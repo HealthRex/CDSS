@@ -585,7 +585,7 @@ select * from (
 pivot (min(num) as numerical_val for offset in (1,2,3,4)) 
 ```
 
-<h1 style="font-size:60px;">4. Testing</h1>
+<h1 style="font-size:60px;">4. Testing SHC tables</h1>
 
 Use the following script to compare the original ```shc_clinical_doc_meta``` table with the coppied one under ```shc_core_2021```, ```clinical_doc_meta```:
 
