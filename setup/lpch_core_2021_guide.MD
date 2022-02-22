@@ -735,4 +735,48 @@ FULL OUTER JOIN `som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021.shc_adt` B
 WHERE A.anon_id IS NULL 
 OR B.anon_id IS NULL
 
+
+-- ALERT
+SELECT
+    *
+FROM `som-nero-phi-jonc101.shc_core_2021.alert` A
+FULL OUTER JOIN `som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021.shc_alert` B
+ on FARM_FINGERPRINT(ARRAY_TO_STRING([A.anon_id 
+                                    , CAST(A.alt_id_coded AS STRING)
+                                    , CAST(A.pat_enc_csn_id_coded AS STRING)
+                                    , A.alert_desc
+                                    , CAST(A.general_alt_type_c AS STRING)
+                                    , A.alt_type    
+                                    , A.alt_title
+                                    , A.abbr
+                                    , CAST(A.med_alert_type_c AS STRING)
+                                    , A.med_alt_type
+                                    , A.med_alt_title
+                                    , A.med_alt_type_abbr
+                                    , CAST(A.immun_id AS STRING)
+                                    , A.immun_name
+                                    , A.immun_abbreviation
+                                    , CAST(A.immun_type AS STRING)
+                                    , CAST(A.bpa_locator_id AS STRING)
+                                    , CAST(A.update_date_jittered AS STRING)],"")) = 
+        FARM_FINGERPRINT(ARRAY_TO_STRING([B.anon_id 
+                                    , CAST(B.alt_id_coded AS STRING)
+                                    , CAST(B.pat_enc_csn_id_coded AS STRING)
+                                    , B.alert_desc
+                                    , CAST(B.general_alt_type_c AS STRING)
+                                    , B.alt_type    
+                                    , B.alt_title
+                                    , B.abbr
+                                    , CAST(B.med_alert_type_c AS STRING)
+                                    , B.med_alt_type
+                                    , B.med_alt_title
+                                    , B.med_alt_type_abbr
+                                    , CAST(B.immun_id AS STRING)
+                                    , B.immun_name
+                                    , B.immun_abbreviation
+                                    , CAST(B.immun_type AS STRING)
+                                    , CAST(B.bpa_locator_id AS STRING)
+                                    , CAST(B.update_date_jittered AS STRING)],""))
+WHERE A.anon_id IS NULL 
+OR B.anon_id IS NULL
 ```
