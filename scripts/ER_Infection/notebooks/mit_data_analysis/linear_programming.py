@@ -510,6 +510,7 @@ def sweep_plot_coverage_rate(ax, sweep, num_replaced,
     """
     Makes on sweep plot (but plots coverage rate instead of miss rate)
     """
+    x_axis = [n/params[sweep[0]] * 100 for n in num_replaced]
     percent_replaced = [
         int(n/params[sweep[0]] * 100)
         for n in num_replaced
@@ -608,6 +609,15 @@ def sweep_plot_coverage_rate(ax, sweep, num_replaced,
     ax.set_yticklabels([
         f"{int(n*100)}%" for n in ax.get_yticks()
     ])
+    import pdb
+    pdb.set_trace()
+    # For supplementary data 
+    df_out = pd.DataFrame(data={
+        'x-axis': x_axis,
+        'y-axis': 1-o_rates
+    })
+    os.makedirs('./supp_data/', exist_ok=True)
+    df_out.to_csv(f"./supp_data/{sweep[0].replace('/', '-')}_{sweep[1].replace('/', '-')}.csv")
 
     return ax
 
