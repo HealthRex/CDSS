@@ -1,6 +1,7 @@
 """
 Definition of CohortBuilder - a class to construct a cohort (set of examples)
 """
+import decimal
 import pandas as pd
 
 class CohortBuilder(object):
@@ -56,6 +57,12 @@ class CohortBuilder(object):
             print("Unexpected columns")
             for col in self.df.columns:
                 print(col)
+        
+        # Older version of pandas_gbq reads in numeric column as decimal
+        if isinstance(self.df.observation_id.values[0], decimal.Decimal):
+            self.df = self.df.assign(observation_id=lambda x:
+                [int(str(d).split('.')[0]) for d in x.observation_id]
+            )
 
     def write_cohort_table(self, overwrite=False, schema=None):
         """

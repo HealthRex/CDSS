@@ -597,7 +597,7 @@ class BagOfWordsFeaturizer(object):
             labels.index_time,
             'Lab Results' as feature_type,
             lr.result_time_utc as feature_time,
-            lr.order_id_coded as feature_id,
+            CAST(lr.order_id_coded AS INTEGER) as feature_id,
             lr.base_name as feature,
             lr.ord_num_value as value
         FROM
