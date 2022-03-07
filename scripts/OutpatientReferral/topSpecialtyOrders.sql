@@ -117,7 +117,7 @@
 	),
 
 	-- Compare proc order rate per specialty-diagnosis vs. overall most common rate
-	procOrderRatePerSpecialtyDiagnosis AS
+	procCountsPerSpecialtyDiagnosis AS
 	(
 		select
 			specialty_dep_c, specialty,
@@ -126,7 +126,7 @@
 			newEncCount.nPatients as nPatientsAny, newEncCount.nEncounters as nEncountersAny,
 			ts.nPatients as nPatientsPerSpecialty, ts.nEncounters as nEncountersPerSpecialty,			
 			tds.nPatients as nPatientsPerSpecialtyDiagnosis, tds.nEncounters as nEncountersPerSpecialtyDiagnosis,
-			tp.nPatients as nPatientsAnyProc, tp.nEncounters as nEncountersAnyProc,
+			tp.nPatients as nPatientsProcPerAny, tp.nEncounters as nEncountersProcPerAny,
 			tpsd.nPatients as nPatientsProcPerSpecialtyDiagnosis, tpsd.nEncounters as nEncountersProcPerSpecialtyDiagnosis
 		from 
 			topProcPerSpecialtyDiagnosis as tpsd join 
@@ -135,9 +135,31 @@
 			topSpecialty as ts using (specialty_dep_c, specialty),
 			newPatientEncounterCount as newEncCount 	-- Last one is not a joint, since no criteria. Should be a single count row product against all
 	),
+	procOrderRatePerSpecialtyDiagnosis AS
+	(
+		select
+			specialty_dep_c, specialty,
+			icd9, icd10, dx_name, 
+			proc_code, description,
 
+			(nEncountersProcPerSpecialtyDiagnosis / nEncountersPerSpecialtyDiagnosis) AS procRatePerSpecialtyDiagnosis,	-- AKA Confidence / PPV / Conditional Prevalence
+			(nEncountersProcPerAny / nEncountersAny) AS procRatePerAny, -- AKA Baseline Prevalence ~ Support
+			(nEncountersProcPerSpecialtyDiagnosis / nEncountersPerSpecialtyDiagnosis) / (nEncountersProcPerAny / nEncountersAny) AS procRateLiftPerSpecialtyDiagnosisVsAny,	-- AKA Lift / Interest (similar to relative risk)
+			-- To Do -- Add p-value / (negative log-p) value to further sort by significance of association to avoid spurious
 
+			nPatientsAny, nEncountersAny,
+			nPatientsPerSpecialty, nEncountersPerSpecialty,			
+			nPatientsPerSpecialtyDiagnosis, nEncountersPerSpecialtyDiagnosis,
+			nPatientsProcPerAny, nEncountersProcPerAny,
+			nPatientsProcPerSpecialtyDiagnosis, nEncountersProcPerSpecialtyDiagnosis,
 
+		from procCountsPerSpecialtyDiagnosis
+		where nPatientsPerSpecialtyDiagnosis > 10 -- Ignore small cases by only looking at items that are ordered for more than 10 different patients
+		order by
+			nEncountersPerSpecialty desc, specialty,	-- Sort by most common specialty type first
+			nEncountersPerSpecialtyDiagnosis desc, icd10, dx_name,	-- Then sort by most common diagnosis per specialty
+			procRatePerSpecialtyDiagnosis desc  -- Then sort by most common proc orders per specialty-diagnosis
+	),
 	spacer AS (select * from newPatientEncounter limit 10)
 
     select * 
