@@ -154,7 +154,7 @@
 			nPatientsProcPerSpecialtyDiagnosis, nEncountersProcPerSpecialtyDiagnosis,
 
 		from procCountsPerSpecialtyDiagnosis
-		where nPatientsPerSpecialtyDiagnosis > 10 -- Ignore small cases by only looking at items that are ordered for more than 10 different patients
+		where nPatientsProcPerSpecialtyDiagnosis > 10 -- Ignore small cases by only looking at items that are ordered for more than 10 different patients
 		order by
 			nEncountersPerSpecialty desc, specialty,	-- Sort by most common specialty type first
 			nEncountersPerSpecialtyDiagnosis desc, icd10, dx_name,	-- Then sort by most common diagnosis per specialty
