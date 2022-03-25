@@ -779,4 +779,60 @@ FULL OUTER JOIN `som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021.shc_alert` B
                                     , CAST(B.update_date_jittered AS STRING)],""))
 WHERE A.anon_id IS NULL 
 OR B.anon_id IS NULL
+
+
+-- culture_sensitivity
+SELECT
+    *
+FROM `som-nero-phi-jonc101.shc_core_2021.culture_sensitivity` A
+FULL OUTER JOIN `som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021.shc_culture_sensitivity` B
+ on FARM_FINGERPRINT(ARRAY_TO_STRING([A.anon_id
+                                        , CAST(A.order_proc_id_coded AS STRING)
+                                        , CAST(A.line	AS STRING)
+                                        , A.description
+                                        , A.sens_organism_sid
+                                        , A.organism
+                                        , A.organism_quantity
+                                        , A.antibiotic		
+                                        , A.suscept	
+                                        , A.sensitivity_value	
+                                        , A.sensitivity_units	
+                                        , CAST(A.sens_status_c	AS STRING)	
+                                        , A.sens_ref_range		
+                                        , CAST(A.ANTIBIO_LNC_ID	AS STRING)	
+                                        , A.specimen_source		
+                                        , A.specimen_type		
+                                        , CAST(A.resulting_lab_id	AS STRING)	
+                                        , A.llb_name		
+                                        , A.data_source],"")) = 
+        FARM_FINGERPRINT(ARRAY_TO_STRING([B.anon_id
+                                        , CAST(B.order_proc_id_coded AS STRING)
+                                        , CAST(B.line	AS STRING)
+                                        , B.description
+                                        , B.sens_organism_sid
+                                        , B.organism
+                                        , B.organism_quantity
+                                        , B.antibiotic		
+                                        , B.suscept	
+                                        , B.sensitivity_value	
+                                        , B.sensitivity_units	
+                                        , CAST(B.sens_status_c	AS STRING)	
+                                        , B.sens_ref_range		
+                                        , CAST(B.ANTIBIO_LNC_ID	AS STRING)	
+                                        , B.specimen_source		
+                                        , B.specimen_type		
+                                        , CAST(B.resulting_lab_id	AS STRING)	
+                                        , B.llb_name		
+                                        , B.data_source],""))
+WHERE A.anon_id IS NULL 
+OR B.anon_id IS NULL
+
+
+-- check random records
+select *
+from `som-nero-phi-jonc101.shc_core_2021.culture_sensitivity` A
+where A.anon_id = 'JC557358'
+and A.order_proc_id_coded = 576835304
+and A.line = 12
+
 ```
