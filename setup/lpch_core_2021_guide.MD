@@ -834,5 +834,66 @@ from `som-nero-phi-jonc101.shc_core_2021.culture_sensitivity` A
 where A.anon_id = 'JC557358'
 and A.order_proc_id_coded = 576835304
 and A.line = 12
+```
+
+Double checking myc_msg from shc_core_2021 with the original shc_myc_msg:
+```
+-- myc_mesg
+SELECT
+    *
+FROM `som-nero-phi-jonc101.shc_core_2021.myc_mesg` A
+FULL OUTER JOIN `som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021.shc_myc_mesg` B
+on FARM_FINGERPRINT(ARRAY_TO_STRING([A.anon_id
+                                    , CAST(A.offset_message_id	AS STRING)		
+                                    , CAST(A.offset_parent_message_id	AS STRING)		
+                                    , CAST(A.offset_inbasket_msg_id	AS STRING)		
+                                    , CAST(A.offset_pat_enc_csn_id	AS STRING)		
+                                    , CAST(A.line	AS STRING)		
+                                    , A.msg_txt
+                                    , A.message_type
+                                    , A.to_or_from_pat
+                                    , A.subject
+                                    , A.routing_department_name
+                                    , CAST(A.created_time_jittered	AS STRING)		
+                                    , CAST(A.final_handled_time_jittered	AS STRING)],"")) = 
+        FARM_FINGERPRINT(ARRAY_TO_STRING([B.anon_id
+                                    , CAST(B.offset_message_id	AS STRING)		
+                                    , CAST(B.offset_parent_message_id	AS STRING)		
+                                    , CAST(B.offset_inbasket_msg_id	AS STRING)		
+                                    , CAST(B.offset_pat_enc_csn_id	AS STRING)		
+                                    , CAST(B.line	AS STRING)		
+                                    , B.msg_txt
+                                    , B.message_type
+                                    , B.to_or_from_pat
+                                    , B.subject
+                                    , B.routing_department_name
+                                    , CAST(B.created_time_jittered	AS STRING)		
+                                    , CAST(B.final_handled_time_jittered	AS STRING)],""))
+WHERE A.anon_id IS NULL 
+OR B.anon_id IS NULL
+
+-- check random records
+
+-- select a random patient
+select *
+from `som-nero-phi-jonc101.shc_core_2021.myc_mesg` A 
+order by rand()
+limit 1
+
+-- select some of the records for that random patient in shc_core_2021.myc_msg (3396032 were selected in the previous step)
+select *
+from `som-nero-phi-jonc101.shc_core_2021.myc_mesg` A 
+where A.anon_id = 'JC1706420'
+and A.offset_message_id = 3396032
+order by A.line
+
+-- select the same records for the same patient in the original data
+select *
+from `som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021.shc_myc_mesg` A 
+where A.anon_id = 'JC1706420'
+and A.offset_message_id = 3396032
+order by A.line
+
+-- compare the results: they were the same in this case.
 
 ```
