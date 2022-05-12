@@ -16,6 +16,8 @@ from constants import DEFAULT_DEPLOY_CONFIG
 from constants import DEFAULT_LAB_COMPONENT_IDS
 from constants import DEFAULT_FLOWSHEET_FEATURES
 
+import pdb
+
 class BagOfWordsFeaturizer(object):
     """
     A class containing all logic to construct a bag of words feature matrix
@@ -40,8 +42,10 @@ class BagOfWordsFeaturizer(object):
     back windows in a provided configuration dictionary. 
     """
 
-    def __init__(self, cohort_table, label_columns, dataset_name, table_name,
-                 project_id='mining-clinical-decisions', outpath='./features',
+    def __init__(self, cohort_table, label_columns, working_dataset_name, 
+                 table_name, project_id='mining-clinical-decisions',
+                 outpath='./features', dataset='shc_core_2021',
+                 working_project_id='mining-clinical-decisions',
                  feature_config=None):
         """
         Initializes featurizer
@@ -60,9 +64,11 @@ class BagOfWordsFeaturizer(object):
         self.outpath = outpath
         self.cohort_table = cohort_table
         self.label_columns = label_columns
-        self.dataset_name = dataset_name
+        self.dataset_name = working_dataset_name
+        self.dataset = dataset
         self.table_name = table_name
         self.project_id = project_id
+        self.working_proj_id = working_project_id
         self.client = bigquery.Client()
         self.create_table = True  # starts true then append
         if feature_config is None:
@@ -77,7 +83,7 @@ class BagOfWordsFeaturizer(object):
             SELECT DISTINCT
                 EXTRACT(YEAR FROM index_time) year
             FROM
-                {self.project_id}.{self.dataset_name}.{self.cohort_table}
+                {self.working_proj_id}.{self.dataset_name}.{self.cohort_table}
         """
         df = pd.read_gbq(split_query).sort_values('year')
         self.train_years = df.year.values[:-1]
@@ -104,7 +110,7 @@ class BagOfWordsFeaturizer(object):
         SELECT 
             * 
         FROM 
-            {self.project_id}.{self.dataset_name}.{self.table_name}_bow
+            {self.working_proj_id}.{self.dataset_name}.{self.table_name}_bow
         ORDER BY
             observation_id
         """
@@ -121,7 +127,7 @@ class BagOfWordsFeaturizer(object):
             SELECT 
                 * 
             FROM 
-                {self.project_id}.{self.dataset_name}.{self.cohort_table}
+                {self.working_proj_id}.{self.dataset_name}.{self.cohort_table}
             ORDER BY
                 observation_id
         """
@@ -133,7 +139,10 @@ class BagOfWordsFeaturizer(object):
 
         # Sanity check - make sure ids from labels and features in same order
         for a, b in zip(train_labels['observation_id'].values, train_ids):
-            assert a == b
+            try:
+                assert a == b
+            except:
+                pdb.set_trace()
         for a, b in zip(test_labels['observation_id'].values, test_ids):
             assert a == b
 
@@ -157,9 +166,10 @@ class BagOfWordsFeaturizer(object):
         df_vocab.to_csv(os.path.join(self.outpath, 'feature_order.csv'),
                         index=None)
 
-        # Save bin thresholds
-        self.df_lup.to_csv(os.path.join(self.outpath, 'bin_lup.csv'),
-                           index=None)
+        # Save bin thresholds if they exist
+        if not self.df_lup.empty:
+            self.df_lup.to_csv(os.path.join(self.outpath, 'bin_lup.csv'),
+                            index=None)
 
         # Save feature_config
         with open(os.path.join(self.outpath, 'feature_config.json'), 'w') as f:
@@ -193,6 +203,9 @@ class BagOfWordsFeaturizer(object):
         if 'Vitals' in self.feature_config['Numerical']:
             self._get_vital_sign_features()
 
+        # Add token which is one if no features are present for a patient
+        self._get_missingness_features()
+
     def construct_bag_of_words_rep(self):
         """
         Transforms long form feature timeline into a bag of words feature
@@ -204,12 +217,12 @@ class BagOfWordsFeaturizer(object):
         # Go from timeline to counts
         query = f"""
         CREATE OR REPLACE TABLE 
-        {self.project_id}.{self.dataset_name}.{self.table_name}_bow AS (
+        {self.working_proj_id}.{self.dataset_name}.{self.table_name}_bow AS (
 
         SELECT 
             observation_id, index_time, feature_type, feature, COUNT(*) value 
         FROM 
-            {self.project_id}.{self.dataset_name}.{self.table_name}
+            {self.working_proj_id}.{self.dataset_name}.{self.table_name}
         WHERE 
             feature_type IS NOT NULL
         AND
@@ -333,13 +346,13 @@ class BagOfWordsFeaturizer(object):
                     lut_dict[feature]['min'] = []
                     lut_dict[feature]['max'] = []
                 lut_dict[feature]['min'].append(df_lup_feature
-                                                .query("bins == @bin", engine='python')
-                                                ['bin_min'].values[0]
-                                                )
+                    .query("bins == @bin", engine='python')
+                    ['bin_min'].values[0]
+                )
                 lut_dict[feature]['max'].append(df_lup_feature
-                                                .query("bins == @bin", engine='python')
-                                                ['bin_max'].values[0]
-                                                )
+                    .query("bins == @bin", engine='python')
+                    ['bin_max'].values[0]
+                )
 
         df_binned = (df_apply
                      .assign(bins=lambda x:
@@ -355,6 +368,35 @@ class BagOfWordsFeaturizer(object):
 
         return df_binned
 
+    def _get_missingness_features(self):
+        """
+        Finds patients that exist in cohort but not current feature matrix,
+        adds token 'missing' feature which takes value 1. 
+        """
+        query=f"""
+        INSERT INTO 
+            {self.working_proj_id}.{self.dataset_name}.{self.table_name}
+        SELECT DISTINCT
+            labels.observation_id,
+            labels.index_time,
+            "Missing indicator" feature_type,
+            labels.index_time feature_time,
+            UNIX_DATE(CAST(labels.index_time as DATE)) as feature_id,
+            'no features' as feature,
+            1 as value
+        FROM
+            {self.working_proj_id}.{self.dataset_name}.{self.cohort_table}
+            labels
+        LEFT JOIN
+            {self.working_proj_id}.{self.dataset_name}.{self.table_name} feats
+        USING
+            (observation_id)
+        WHERE 
+            feats.observation_id IS NULL
+        """
+        query_job = self.client.query(query)
+        query_job.result()
+
     def _get_sex_features(self):
         """
         Get's sex demographic features for patients in cohort and appends to
@@ -362,13 +404,13 @@ class BagOfWordsFeaturizer(object):
         """
         if self.create_table:
             prefix = (
-                f"CREATE OR REPLACE TABLE {self.project_id}.{self.dataset_name}"
-                f".{self.table_name} AS ("
+                f"CREATE OR REPLACE TABLE {self.working_proj_id}."
+                f"{self.dataset_name}.{self.table_name} AS("
             )
             suffix = ")"
         else:
             prefix = (
-                f"INSERT INTO {self.project_id}.{self.dataset_name}"
+                f"INSERT INTO {self.working_proj_id}.{self.dataset_name}"
                 f".{self.table_name}"
             )
             suffix = ""
@@ -385,9 +427,10 @@ class BagOfWordsFeaturizer(object):
             ELSE CONCAT('sex_', demo.GENDER) END feature,
             1 value
         FROM
-            {self.project_id}.{self.dataset_name}.{self.cohort_table} as labels
+            {self.working_proj_id}.{self.dataset_name}.{self.cohort_table}
+            labels
         LEFT JOIN
-            `shc_core.demographic` demo
+            {self.project_id}.{self.dataset}.demographic demo
         ON
             labels.anon_id = demo.ANON_ID
         {suffix}
@@ -404,13 +447,13 @@ class BagOfWordsFeaturizer(object):
         """
         if self.create_table:
             prefix = (
-                f"CREATE OR REPLACE TABLE {self.project_id}.{self.dataset_name}"
-                f".{self.table_name} AS ("
+                f"CREATE OR REPLACE TABLE {self.working_proj_id}."
+                f"{self.dataset_name}.{self.table_name} AS("
             )
             suffix = ")"
         else:
             prefix = (
-                f"INSERT INTO {self.project_id}.{self.dataset_name}"
+                f"INSERT INTO {self.working_proj_id}.{self.dataset_name}"
                 f".{self.table_name}"
             )
             suffix = ""
@@ -427,9 +470,10 @@ class BagOfWordsFeaturizer(object):
             ELSE CONCAT('race_', demo.CANONICAL_RACE) END feature,
             1 value
         FROM
-            {self.project_id}.{self.dataset_name}.{self.cohort_table} as labels
+            {self.working_proj_id}.{self.dataset_name}.{self.cohort_table}
+            labels
         LEFT JOIN
-            `shc_core.demographic` demo
+            {self.project_id}.{self.dataset}.demographic demo
         ON
             labels.anon_id = demo.ANON_ID
         {suffix}
@@ -442,17 +486,18 @@ class BagOfWordsFeaturizer(object):
     def _get_diagnoses_features(self):
         """
         Gets diagnosis code features for patients in cohort table and appends to
-        long form bigquery table
+        long form bigquery table. Only selects diagnosis codes on the patient's
+        problem list -- ie source = 2. 
         """
         if self.create_table:
             prefix = (
-                f"CREATE OR REPLACE TABLE {self.project_id}.{self.dataset_name}"
-                f".{self.table_name} AS ("
+                f"CREATE OR REPLACE TABLE {self.working_proj_id}."
+                f"{self.dataset_name}.{self.table_name} AS("
             )
             suffix = ")"
         else:
             prefix = (
-                f"INSERT INTO {self.project_id}.{self.dataset_name}"
+                f"INSERT INTO {self.working_proj_id}.{self.dataset_name}"
                 f".{self.table_name}"
             )
             suffix = ""
@@ -468,13 +513,16 @@ class BagOfWordsFeaturizer(object):
             dx.icd10 as feature,
             1 value
         FROM
-            {self.project_id}.{self.dataset_name}.{self.cohort_table} as labels
+            {self.working_proj_id}.{self.dataset_name}.{self.cohort_table}
+            labels
         LEFT JOIN
-            `shc_core.diagnosis_code` dx
+            {self.project_id}.{self.dataset}.diagnosis dx
         ON
             labels.anon_id = dx.anon_id
         WHERE 
             CAST(dx.start_date_utc as TIMESTAMP) < labels.index_time
+        AND
+            source = 2
         {suffix}
         """
         print("Featurizing diagnosis codes")
@@ -494,13 +542,13 @@ class BagOfWordsFeaturizer(object):
 
         if self.create_table:
             prefix = (
-                f"CREATE OR REPLACE TABLE {self.project_id}.{self.dataset_name}"
-                f".{self.table_name} AS ("
+                f"CREATE OR REPLACE TABLE {self.working_proj_id}."
+                f"{self.dataset_name}.{self.table_name} AS("
             )
             suffix = ")"
         else:
             prefix = (
-                f"INSERT INTO {self.project_id}.{self.dataset_name}"
+                f"INSERT INTO {self.working_proj_id}.{self.dataset_name}"
                 f".{self.table_name}"
             )
             suffix = ""
@@ -516,9 +564,10 @@ class BagOfWordsFeaturizer(object):
             meds.med_description as feature,
             1 as value
         FROM
-            {self.project_id}.{self.dataset_name}.{self.cohort_table} as labels
+            {self.working_proj_id}.{self.dataset_name}.{self.cohort_table}
+            labels
         LEFT JOIN
-            `shc_core.order_med` meds
+            {self.project_id}.{self.dataset}.order_med meds
         ON
             labels.anon_id = meds.anon_id
         WHERE 
@@ -551,9 +600,10 @@ class BagOfWordsFeaturizer(object):
                 CAST(labels.index_time AS date), demo.BIRTH_DATE_JITTERED, YEAR)
             as value
         FROM
-            {self.project_id}.{self.dataset_name}.{self.cohort_table} as labels
+            {self.working_proj_id}.{self.dataset_name}.{self.cohort_table}
+            labels
         INNER JOIN
-            `shc_core.demographic` demo
+            {self.project_id}.{self.dataset}.demographic demo
         ON
             labels.anon_id = demo.ANON_ID
         """
@@ -566,7 +616,7 @@ class BagOfWordsFeaturizer(object):
         # Write feature timeline in long form to bigquery dataset.table_name
         df_binned.to_gbq(
             destination_table=f"{self.dataset_name}.{self.table_name}",
-            project_id=self.project_id,
+            project_id=self.working_proj_id,
             if_exists='append',
             table_schema=self.feature_timeline_schema
         )
@@ -601,9 +651,10 @@ class BagOfWordsFeaturizer(object):
             lr.base_name as feature,
             lr.ord_num_value as value
         FROM
-            {self.project_id}.{self.dataset_name}.{self.cohort_table} as labels
+            {self.working_proj_id}.{self.dataset_name}.{self.cohort_table}
+             labels
         LEFT JOIN
-            `shc_core.lab_result` lr
+            {self.project_id}.{self.dataset}.lab_result lr
         ON
             labels.anon_id = lr.anon_id
         WHERE
@@ -627,7 +678,7 @@ class BagOfWordsFeaturizer(object):
         # Write feature matrix in long form to bigquery dataset.table_name
         df_binned.to_gbq(
             destination_table=f"{self.dataset_name}.{self.table_name}",
-            project_id=self.project_id,
+            project_id=self.working_proj_id,
             if_exists='append',
             table_schema=self.feature_timeline_schema
         )
@@ -659,11 +710,12 @@ class BagOfWordsFeaturizer(object):
             f.recorded_time_utc as feature_time,
             UNIX_SECONDS(f.recorded_time_utc) as feature_id,
             f.row_disp_name as feature,
-            f.num_value1 as value
+            f.numerical_val_1 as value
         FROM
-            {self.project_id}.{self.dataset_name}.{self.cohort_table} as labels
+            {self.working_proj_id}.{self.dataset_name}.{self.cohort_table}
+             labels
         LEFT JOIN
-            `shc_core.flowsheet` f
+            {self.project_id}.{self.dataset}.flowsheet f
         ON
             labels.anon_id = f.anon_id
         WHERE
@@ -675,7 +727,7 @@ class BagOfWordsFeaturizer(object):
         AND
             f.row_disp_name in {base_name_string}
         AND
-            f.num_value1 IS NOT NULL
+            f.numerical_val_1 IS NOT NULL
         """
         print("Featurizing Vitals")
         df = pd.read_gbq(query, progress_bar_type='tqdm')
@@ -687,7 +739,7 @@ class BagOfWordsFeaturizer(object):
         # Write feature matrix in long form to bigquery dataset.table_name
         df_binned.to_gbq(
             destination_table=f"{self.dataset_name}.{self.table_name}",
-            project_id=self.project_id,
+            project_id=self.working_proj_id,
             if_exists='append',
             table_schema=self.feature_timeline_schema
         )
