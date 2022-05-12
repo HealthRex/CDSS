@@ -18,12 +18,12 @@ class CohortBuilder(object):
     """
 
     def __init__(self, dataset_name, table_name, label_columns,
-                 project_id='mining-clinical-decisions'):
+                 working_project_id='mining-clinical-decisions'):
         """
         Initializes dataset_name and table_name for where cohort table will be
         saved on bigquery
         """
-        self.project_id = project_id
+        self.project_id = working_project_id
         self.dataset_name = dataset_name
         self.table_name = table_name
         self.label_columns = label_columns
@@ -43,7 +43,9 @@ class CohortBuilder(object):
             transform : a python function to be applied ot result of query
                 to construct final cohort table
         """
-        self.df = pd.read_gbq(query, progress_bar_type='tqdm')
+        self.df = pd.read_gbq(query,
+                              project_id=self.project_id,
+                              progress_bar_type='tqdm')
         self.df = transform(self.df)
 
         # Check for required columns

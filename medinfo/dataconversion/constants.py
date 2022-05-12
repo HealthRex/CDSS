@@ -10,7 +10,7 @@ DEFAULT_DEPLOY_CONFIG = {
     'Numerical': {
         'Age': [{'look_back': None, 'num_bins': 5}],
         'LabResults': [{'look_back': 14, 'num_bins': 5}],
-        'Vitals': [{'look_back': 3, 'num_bins': 5}]
+        #'Vitals': [{'look_back': 3, 'num_bins': 5}]
     }
 }
 

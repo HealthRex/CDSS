@@ -12,7 +12,6 @@ from scipy.sparse import load_npz
 from constants import DEFAULT_LAB_COMPONENT_IDS
 from constants import DEFAULT_FLOWSHEET_FEATURES
 
-
 class BaselineModelTrainer(object):
     """
     Implements the most basic ML pipeline imagineable. Trains a random forest
@@ -73,8 +72,11 @@ class BaselineModelTrainer(object):
         feature_order = pd.read_csv(os.path.join(self.working_dir,
                                                  'feature_order.csv'))
         deploy['feature_order'] = [f for f in feature_order.features]
-        bin_map = pd.read_csv(os.path.join(self.working_dir, 'bin_lup.csv'),
-                              na_filter=False)
+        if os.path.exists(os.path.join(self.working_dir, 'bin_lup.csv')):
+            bin_map = pd.read_csv(os.path.join(self.working_dir, 'bin_lup.csv'),
+                                na_filter=False)
+        else:
+            bin_map = None
         deploy['bin_map'] = bin_map
         with open(os.path.join(self.working_dir, 'feature_config.json'),
                   'r') as f:
