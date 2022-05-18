@@ -70,9 +70,16 @@ Test First Development
 
 - Automated Regression Testing Empowers Bold Changes in Implementation
 	- If you got the Fibonacci example working, including a unit test to verify,
-		try running it against an example input value of 50 or more
+		try running it from the command line for say, the 5th value:
+
+		python ApplicationModule.py -f 5
+
+	- Now try against an example input value of 50 or more
 		(i.e., you'll be calculating the 50th Fibonacci value, or higher).
-	- Depending on how you implemented the Fibonacci application code,
+
+		python ApplicationModule.py -f 50
+
+	- What happened? Depending on how you implemented the Fibonacci application code,
 		it is highly likely that the above will never finish (you'll have to Ctrl-C to cancel the process).
 	- Try implementing the application code a different way,
 		while confidently being able to re-run your existing unit test 

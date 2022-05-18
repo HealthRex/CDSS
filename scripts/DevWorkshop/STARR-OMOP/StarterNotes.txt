@@ -57,6 +57,32 @@ v)	Synpuf_2m_cdm_53
 4.	To see more documentation and  introductory material on using Jupyter notebooks on
 Nero to explore BQ datasets, see the project Nero-STARR-notebooks in the Stanford  gitlab.
 5.	You have also been added to the STARR-data users Slack channel at https://starrdatausers.slack.com/ where notifications will be posted. Slack is our primary method of communication. You should have links to the user guide and technical docs in the list on pinned items under the starr-general.
+
+# Added April 7, 2022
+#===========
+More information about STARR-OMOP data including Office hours can be found in:
+
+Website: https://med.stanford.edu/starr-omop.html.
+User Docs:   https://docs.google.com/document/d/1dTjCEvvU8sMd8CuaVx94YFoPTsW_xjOMoF9-xl5zHik/view# 
+OMOP 5.3 specs: https://drive.google.com/open?id=1WCj8zp0ZbMG1yHdYNFpG3xWVfsV_tnPJ
+Technical Specs: https://drive.google.com/a/stanford.edu/file/d/16OfTSUEdxMe5fddGB4I_qtc5O2SrOPf0/view?usp=sharing
+      Office Hours schedule: https://tiny.cc/STARR_Office_Hours
+      Questions other users have asked: https://docs.google.com/document/d/1_9x2KNKLez5o0-vV4UQU2dp9pn6ezsAEsJXDh7n--3o/edit
+      Stanford STARR Youtube channel: https://www.youtube.com/channel/UC6iGiAO1dKwuC2wOrxnKiNw
+      Tools for DataScience in Healthcare You tube Tutorials:
+		Tutorial 1 playlist: https://www.youtube.com/playlist?list=PLSKQ1ikU3kiHD1f87uoszXbo9FT9Eutag             
+		Tutorial 2 playlist: https://www.youtube.com/playlist?list=PLSKQ1ikU3kiEVfQ3iXioZGMrTJ2lU7YJ3
+		Tutorial 3 playlist: https://www.youtube.com/playlist?list=PLSKQ1ikU3kiGkpYmVmudyE6DvN4KHqsgT
+		Tutorial 4 playlist: https://www.youtube.com/playlist?list=PLSKQ1ikU3kiFFwt0wSy3DFjWK0z_m0TCj
+To see more documentation and  introductory material on using Jupyter notebooks on Nero to explore BQ datasets, see the project Nero-STARR-notebooks in the 		    Stanford  gitlab: https://code.stanford.edu/starr/nero-starr-notebooks
+You have also been added to the STARR-data users Slack channel at https://starrdatausers.slack.com/ where notifications will be posted. Slack is our primary method of communication.
+Book of OHDSI: https://ohdsi.github.io/TheBookOfOhdsi/
+Ehden Academy: https://academy.ehden.eu: This has multiple, very useful courses
+Coursera Courses:
+	AI in HealthCare: 
+	Clinical Data Science Specialization
+
+
 Thanks !
 --
 Priya Desai, 

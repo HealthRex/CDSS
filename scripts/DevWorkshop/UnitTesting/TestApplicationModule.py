@@ -116,7 +116,7 @@ class TestApplicationModule(unittest.TestCase):
         self.assertEqual(expectError, actualError);
 
     #def test_fibonacci(self):
-    #    # Do something here???
+    #    output = self.app.fibonacci(input)
     #    raise NotImplementedError("Needs to be added");
 
 def suite():

@@ -13,7 +13,7 @@ import time;
 import json;
 from optparse import OptionParser
 import re;
-import string;
+import string;  # FYI: See string.punctuation, and str.strip functions 
 
 COMMENT_TAG = "#";
 

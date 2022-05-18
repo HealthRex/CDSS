@@ -1,2 +1,7 @@
-https://www.hcup-us.ahrq.gov/toolssoftware/ccsr/ccs_refined.jsp # ICD10 diagnosis
-https://www.hcup-us.ahrq.gov/toolssoftware/ccs10/ccs10.jsp # ICD10 procedural
+A copy of the mapping files should be gzipped in this folder and also loaded into the shared database to facilitate reuse
+
+# ICD10 diagnosis
+https://www.hcup-us.ahrq.gov/toolssoftware/ccsr/ccs_refined.jsp 
+
+# ICD10 procedural
+https://www.hcup-us.ahrq.gov/toolssoftware/ccs10/ccs10.jsp 

@@ -56,7 +56,7 @@ Recommended to save time during workshop:
   
   Login (SUNetID and password with two-factor authentication) through the VPN client and be sure to select
   "Full Traffic non-split-tunnel" for the Group option.
-
+  
   Try refreshing your web browser to reconnect through the web GUI to the BigQuery project database again.
   You can continue to do any regular work in the meantime, though technically any internet traffic 
   you're conducting is not being sent direct. It is being encrypted and sent through the Stanford 
@@ -82,6 +82,10 @@ Recommended to save time during workshop:
   - Properies
   - Uncheck "Internet Protocol Version 6 (TCP/IPv6)"
 
+- VPN Group option:
+  If you're still getting VPC access control errors despite the above,
+  try to go back and change the group option from "Full Traffic non-split-tunnel" to "Stanford Default ..." and reconnect the vpn. 
+
 - Test Queries
   - See bottom left for lists of projects, which contain lists of datasets/databases, 
     which contain lists of tables that you can query.
@@ -106,8 +110,11 @@ Recommended to save time during workshop:
   https://console.cloud.google.com/bigquery?authuser=1&project=som-nero-phi-jonc101
 
 - Programmatic (Python) API access to BigQuery databases (Google Cloud SDK)
-  You will need to create a local JSON key file to identify yourself in your (Python) programs 
+  You will need to create a local "Application Default Credentials" JSON key file 
+  to identify yourself in your (Python) programs as 
   if you want them to access these secured databases.
+  https://cloud.google.com/docs/authentication/getting-started
+  https://cloud.google.com/docs/authentication/best-practices-applications
 
   - Find, download and run the respective Google Cloud SDK installer for your system from the link below. 
     (If you already have Python installed on your system, you can skip that dependency)
@@ -117,13 +124,14 @@ Recommended to save time during workshop:
     gcloud init
 
   - Run the Google Cloud application authentication
+
+    gcloud auth application-default login
+    
     This should spawn a web browser (or create a web link you can use) to login as a specific user 
     After completing the above, go back to your command terminal and it should report a message 
     that it created a JSON key file in a local directory 
-    (recommend you rename it to something that includes your user name, 
-    and store it in a place you will remember).
-
-    gcloud auth application-default login
+    E.g., "Credentials saved to file: [C:\Users\jonc1\AppData\Roaming\gcloud\application_default_credentials.json]"
+    (recommend you rename it to something that includes your user name, and store it in a place you will remember).
 
   - Install Python-Google Cloud connection libraries with the PIP installer
 
@@ -153,6 +161,14 @@ Recommended to save time during workshop:
     >>> import pandas as pd;
     >>> resultsDF = pd.read_sql_query(query, conn);
     >>> print( resultsDF );
+    
+    If getting errors about access issues (e.g., "VPC Service Controls: Request is prohibited by organization's policy"),
+    make sure you're able to query through the BigQuery web interface and review above steps.
+    - Did you fix your internet connection to use IPv4 instead of IPv6 protocol?
+    - Did you connect to the VPN?
+    - Did you login through your stanford.edu address, not gmail.com?
+    Consider saving the above python code snippets as a small script file so you don't have to keep retyping it, 
+    you can just quickly rerun them to test variations.
 
 
 == See Also ==
@@ -177,3 +193,10 @@ so you remain cross-platform compatible with other databases.
 
 Alternative option to create service account authentication keys instead of user authentication keys
 https://cloud.google.com/bigquery/docs/authentication/
+          
+===== Troubleshooting =====
+Here, common issues that we faced while using the google cloud are presented and appropriate solutions and troubleshootings are described.
+
+Issue: I should have access to database X (for example som-nero-phi-naras-ric.Jon_Chen_data_Oct_2021), but cannot find the database when I search for it.
+Solutions: Try typing only the database name (Jon_Chen_data_Oct_2021 in this example) in the search box on the top middle search bar (in the middle of the top blue ribbon). 
+          
