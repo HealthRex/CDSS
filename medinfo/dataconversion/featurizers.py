@@ -5,9 +5,12 @@ TODO: Definition of TimelineFeaturizer
 """
 import json
 import os
+from re import S
+from typing_extensions import Self
 import pandas as pd
 import pickle
 from google.cloud import bigquery
+import numpy as np
 from tqdm import tqdm
 from scipy.sparse import csr_matrix
 from scipy.sparse import save_npz
@@ -15,8 +18,444 @@ from scipy.sparse import save_npz
 from constants import DEFAULT_DEPLOY_CONFIG
 from constants import DEFAULT_LAB_COMPONENT_IDS
 from constants import DEFAULT_FLOWSHEET_FEATURES
+import FeatureExtractor as fextractors
 
 import pdb
+
+class SequenceFeaturizer():
+    """
+    Uses FeatureExtractors to generate a set of variable lengh sequences
+    for each observation. Saves these sequences as invididual numpy arrays in 
+    npz format. The npz contains the following data elements
+    NPZ structure:
+         sequence: array of tokens - continuous features must be binned
+         time_deltas: array with same length as sequence, hours to index time
+         label: list of labels corresponding to seq (len=1 if only one label). 
+    """
+
+    def __init__(self, cohort_table_id, feature_table_id, train_years,
+                 val_years, test_years, label_columns, outpath='./features',
+                 project='som-nero-phi-jonc101', dataset='shc_core_2021',
+                 feature_config=None):
+        """
+        Args:
+            cohort_table_id: ex 'mining-clinical-decisions.conor_db.table_name'
+            feature_table_id: ex
+                'mining-clinical-decisions.conor_db.feature_table'
+            train_years: list of years to include in training set
+            val_years: list of years to include in validation set
+            test_years: list of years to include in the test set
+            label_columns: list of columns desingated as labels in cohort table
+            outpath: path to dump feature matrices
+            project: bq project id to extract data from
+            dataset: bq dataset with project to extract data from
+            feature_config: dictionary with feature types, bins and look back
+                windows.
+        """
+        self.cohort_table_id = cohort_table_id
+        self.feature_table_id = feature_table_id
+        self.outpath = outpath
+        self.project = project
+        self.dataset = dataset
+        if feature_config is None:
+            self.feature_config = DEFAULT_DEPLOY_CONFIG
+        else:
+            self.feature_config = feature_config
+        self.client = bigquery.Client()
+        self.train_years = [int(y) for y in train_years]
+        self.val_years = [int(y) for y in val_years]
+        self.test_years = [int(y) for y in test_years]
+        self.label_columns = label_columns
+
+    def __call__(self):
+        """
+        Generates sequence feature vectors and saves to outpath
+        """
+        label_cols = ', '.join([f"c.{l}" for l in self.label_columns])
+        self.construct_feature_timeline()
+        query = f"""
+        SELECT
+            f.*, {label_cols}
+        FROM
+            {self.feature_table_id} f
+        INNER JOIN
+            {self.cohort_table_id} c
+        USING
+            (observation_id)
+        ORDER BY
+            observation_id, feature_time
+        """
+        df = pd.read_gbq(query, progress_bar_type='tqdm')
+
+        # Get time deltas in hours from index time
+        df = df.assign(time_deltas=lambda x: 
+            (x.index_time - x.feature_time).astype('timedelta64[D]')
+        )
+        
+        # Split into train, val and test and ensure only terms in train are used
+        train_seqs = df[df['index_time'].dt.year.isin(
+            self.train_years)]
+        vocab = train_seqs.feature.unique()
+        vocab_set = set([s for s in vocab])
+        val_seqs = df[df['index_time'].dt.year.isin(
+            self.val_years)].query("feature in @vocab_set", engine='python')
+        test_seqs = df[df['index_time'].dt.year.isin(
+            self.test_years)].query("feature in @vocab_set", engine='python')
+        seq_dict = {'train' : train_seqs, 'val' :  val_seqs, 'test' : test_seqs}
+
+        # Create working directory if does not already exist and save features
+        for dataset, seqs in seq_dict.items():
+            os.makedirs(os.path.join(self.outpath, dataset), exist_ok=True)
+            for obs in seqs.observation_id.unique():
+                example = seqs[seqs['observation_id']==obs]
+                sequence = example.feature.values
+                time_deltas = example.time_deltas.values
+                labels = example[self.label_columns].values
+                np.savez(os.path.join(self.outpath, dataset, f"{obs}.npz"),
+                         sequence=sequence,
+                         time_deltas=time_deltas,
+                         labels=labels)
+                
+        # Save feature vocab
+        np.savez(os.path.join(self.outpath, dataset, 'feature_vocab.npz'),
+                 vocab=vocab)
+                
+        # Save bin thresholds if they exist
+        self.df_lup = pd.DataFrame()
+        for lup in self.lups:
+            if lup is not None:
+                self.df_lup = pd.concat([self.df_lup, lup])
+        if not self.df_lup.empty:
+            self.df_lup.to_csv(os.path.join(self.outpath, 'bin_lup.csv'),
+                               index=None)
+
+        # Save feature_config
+        with open(os.path.join(self.outpath, 'feature_config.json'), 'w') as f:
+            json.dump(self.feature_config, f)
+
+    def construct_feature_timeline(self):
+        """
+        Executes all logic to iteratively append rows to the biq query long form
+        feature matrix destination table.  Does this by iteratively joining
+        cohort table to tables with desired features, filtering for events
+        that occur within each look up range, and then transforming into bag of
+        words style representations.  Features with numerical values are binned
+        into buckets to enable bag of words repsesentation. 
+        """
+        extractors = []
+        # Get categorical features
+        if 'Sex' in self.feature_config['Categorical']:
+            se = fextractors.SexExtractor(
+                self.cohort_table_id, self.feature_table_id)
+            extractors.append(se)
+        if 'Race' in self.feature_config['Categorical']:
+            re = fextractors.RaceExtractor(self.cohort_table_id,
+                                           self.feature_table_id)
+            extractors.append(re)
+        if 'Diagnoses' in self.feature_config['Categorical']:
+            pe = fextractors.PatientProblemExtractor(
+                self.cohort_table_id, self.feature_table_id)
+            extractors.append(pe)
+        if 'Medications' in self.feature_config['Categorical']:
+            me = fextractors.MedicationExtractor(
+                self.cohort_table_id, self.feature_table_id)
+            extractors.append(me)
+
+        # Get numerical features
+        if 'Age' in self.feature_config['Numerical']:
+            ae = fextractors.AgeExtractor(
+                self.cohort_table_id,
+                self.feature_table_id,
+                bins=self.feature_config['Numerical']['Age'][0]['num_bins'])
+            extractors.append(ae)
+        if 'LabResults' in self.feature_config['Numerical']:
+            lre = fextractors.LabResultBinsExtractor(
+                self.cohort_table_id,
+                self.feature_table_id,
+                bins=self.feature_config['Numerical']
+                ['LabResults'][0]['num_bins'],
+                base_names=DEFAULT_LAB_COMPONENT_IDS)
+            extractors.append(lre)
+        if 'Vitals' in self.feature_config['Numerical']:
+            fbe = fextractors.FlowsheetBinsExtractor(
+                self.cohort_table_id,
+                self.feature_table_id,
+                bins=self.feature_config['Numerical']['Vitals'][0]['num_bins'],
+                base_names=DEFAULT_FLOWSHEET_FEATURES)
+            extractors.append(fbe)
+
+        # Call extractors and collect any look up tables
+        self.lups = []
+        for extractor in tqdm(extractors):
+            self.lups.append(extractor())
+
+
+class BagOfWordsFeaturizerLight():
+    """
+    Bag of words but uses FeatureExtractors instead of burying all SQL logic
+    as in implementation below. 
+    """
+
+    def __init__(self, cohort_table_id, feature_table_id, outpath='./features',
+                 project='som-nero-phi-jonc101', dataset='shc_core_2021',
+                 feature_config=None):
+        """
+        Args:
+            cohort_table_id: ex 'mining-clinical-decisions.conor_db.table_name'
+            feature_table_id: ex 
+                'mining-clinical-decisions.conor_db.feature_table'
+            outpath: path to dump feature matrices
+            project: bq project id to extract data from
+            dataset: bq dataset with project to extract data from
+            feature_config: dictionary with feature types, bins and look back
+                windows. 
+        """
+        self.cohort_table_id = cohort_table_id
+        self.feature_table_id = feature_table_id
+        self.outpath = outpath
+        self.project = project
+        self.dataset = dataset
+        if feature_config is None:
+            self.feature_config = DEFAULT_DEPLOY_CONFIG
+        else:
+            self.feature_config = feature_config
+        self.client = bigquery.Client()
+        # Get data splits (default last year of data held out as test set)
+        split_query = f"""
+            SELECT DISTINCT
+                EXTRACT(YEAR FROM index_time) year
+            FROM
+                {self.cohort_table_id}
+        """
+        df = pd.read_gbq(split_query).sort_values('year')
+        self.train_years = df.year.values[:-1]
+        self.test_years = [df.year.values[-1]]
+        self.replace_table = True
+
+    def __call__(self):
+        """
+        Executes all logic to construct features and labels and saves all info
+        user specified working directory.
+        """
+        self.construct_feature_timeline()
+        self.construct_bag_of_words_rep()
+        query = f"""
+        SELECT
+            *
+        FROM
+            {self.feature_table_id}_bow
+        ORDER BY
+            observation_id
+        """
+        df = pd.read_gbq(query, progress_bar_type='tqdm')
+        train_features = df[df['index_time'].dt.year.isin(self.train_years)]
+        apply_features = df[~df['index_time'].dt.year.isin(self.train_years)]
+        train_csr, train_ids, train_vocab = self.construct_sparse_matrix(
+            train_features, train_features)
+        test_csr, test_ids, test_vocab = self.construct_sparse_matrix(
+            train_features, apply_features)
+
+        # Query cohort table for labels
+        q_cohort = f"""
+            SELECT
+                *
+            FROM
+               {self.cohort_table_id}
+            ORDER BY
+                observation_id
+        """
+        df_cohort = pd.read_gbq(q_cohort, progress_bar_type='tqdm')
+        train_labels = df_cohort[df_cohort['index_time'].dt.year.isin(
+            self.train_years)]
+        test_labels = df_cohort[~df_cohort['index_time'].dt.year.isin(
+            self.train_years)]
+
+        # Sanity check - make sure ids from labels and features in same order
+        for a, b in zip(train_labels['observation_id'].values, train_ids):
+            try:
+                assert a == b
+            except:
+                pdb.set_trace()
+        for a, b in zip(test_labels['observation_id'].values, test_ids):
+            assert a == b
+
+        # Create working directory if does not already exist and save features
+        os.makedirs(self.outpath, exist_ok=True)
+        save_npz(os.path.join(self.outpath, 'train_features.npz'), train_csr)
+        save_npz(os.path.join(self.outpath, 'test_features.npz'), test_csr)
+        print(f"Feature matrix generated with {train_csr.shape[1]} features")
+
+        # Save labels
+        train_labels.to_csv(os.path.join(self.outpath, 'train_labels.csv'),
+                            index=None)
+        test_labels.to_csv(os.path.join(self.outpath, 'test_labels.csv'),
+                           index=None)
+
+        # Save feature order
+        df_vocab = pd.DataFrame(data={
+            'features': [t for t in train_vocab],
+            'indices': [train_vocab[t] for t in train_vocab]
+        })
+        df_vocab.to_csv(os.path.join(self.outpath, 'feature_order.csv'),
+                        index=None)
+
+        # Save bin thresholds if they exist
+        self.df_lup = pd.DataFrame()
+        for lup in self.lups:
+            if lup is not None:
+                self.df_lup = pd.concat([self.df_lup, lup])
+        if not self.df_lup.empty:
+            self.df_lup.to_csv(os.path.join(self.outpath, 'bin_lup.csv'),
+                            index=None)
+
+        # Save feature_config
+        with open(os.path.join(self.outpath, 'feature_config.json'), 'w') as f:
+            json.dump(self.feature_config, f)
+
+    def construct_feature_timeline(self):
+        """
+        Executes all logic to iteratively append rows to the biq query long form
+        feature matrix destination table.  Does this by iteratively joining
+        cohort table to tables with desired features, filtering for events
+        that occur within each look up range, and then transforming into bag of
+        words style representations.  Features with numerical values are binned
+        into buckets to enable bag of words repsesentation. 
+        """
+        extractors = []
+        # Get categorical features
+        if 'Sex' in self.feature_config['Categorical']:
+            se = fextractors.SexExtractor(
+                self.cohort_table_id, self.feature_table_id)
+            extractors.append(se)
+        if 'Race' in self.feature_config['Categorical']:
+            re = fextractors.RaceExtractor(self.cohort_table_id,
+                self.feature_table_id)
+            extractors.append(re)
+        if 'Diagnoses' in self.feature_config['Categorical']:
+            pe = fextractors.PatientProblemExtractor(
+                self.cohort_table_id, self.feature_table_id)
+            extractors.append(pe)
+        if 'Medications' in self.feature_config['Categorical']:
+            me = fextractors.MedicationExtractor(
+                self.cohort_table_id, self.feature_table_id)
+            extractors.append(me)
+
+        # Get numerical features
+        if 'Age' in self.feature_config['Numerical']:
+            ae = fextractors.AgeExtractor(
+                self.cohort_table_id,
+                self.feature_table_id,
+                bins=self.feature_config['Numerical']['Age'][0]['num_bins'])
+            extractors.append(ae)
+        if 'LabResults' in self.feature_config['Numerical']:
+            lre = fextractors.LabResultBinsExtractor(self.cohort_table_id,
+                                         self.feature_table_id,
+                                         bins=self.feature_config['Numerical']
+                                         ['LabResults'][0]['num_bins'],
+                                         base_names=DEFAULT_LAB_COMPONENT_IDS)
+            extractors.append(lre)
+        if 'Vitals' in self.feature_config['Numerical']:
+            fbe = fextractors.FlowsheetBinsExtractor(
+                self.cohort_table_id,
+                self.feature_table_id,
+                bins=self.feature_config['Numerical']['Vitals'][0]['num_bins'],
+                base_names=DEFAULT_FLOWSHEET_FEATURES)
+            extractors.append(fbe)
+
+        # Call extractors and collect any look up tables
+        self.lups = []
+        for extractor in tqdm(extractors):
+            self.lups.append(extractor())
+
+        # Call extractors and collect any look up tables
+        self.lups = []
+        for extractor in tqdm(extractors):
+            self.lups.append(extractor())
+    
+    def construct_bag_of_words_rep(self):
+        """
+        Transforms long form feature timeline into a bag of words feature
+        matrix. Stores as a new table in the given bigquery database but also
+        constructs local sparse matrices that can be fed into various sklearn
+        style classifiers. 
+        """
+
+        # Go from timeline to counts
+        query = f"""
+        CREATE OR REPLACE TABLE {self.feature_table_id}_bow AS (
+        SELECT 
+            observation_id, index_time, feature_type, feature, COUNT(*) value 
+        FROM 
+            {self.feature_table_id}
+        WHERE 
+            feature_type IS NOT NULL
+        AND
+            feature IS NOT NULL
+        GROUP BY 
+            observation_id, index_time, feature_type, feature
+        )
+        """
+        query_job = self.client.query(query)
+        query_job.result()
+
+    def construct_sparse_matrix(self, train_features, apply_features):
+        """
+        Takes long form feature timeline matrix and builds up a scipy csr
+        matrix without the costly pivot operation. 
+        """
+        train_features = (train_features
+                          .groupby('observation_id')
+                          .agg({'feature': lambda x: list(x),
+                                'value': lambda x: list(x)})
+                          .reset_index()
+                          )
+        train_feature_names = [doc for doc in train_features.feature.values]
+        train_feature_values = [doc for doc in train_features['value'].values]
+        train_obs_id = [id_ for id_ in train_features.observation_id.values]
+
+        apply_features = (apply_features
+                          .groupby('observation_id')
+                          .agg({'feature': lambda x: list(x),
+                                'value': lambda x: list(x)})
+                          .reset_index()
+                          )
+        apply_features_names = [doc for doc in apply_features.feature.values]
+        apply_features_values = [doc for doc in apply_features['value'].values]
+        apply_obs_id = [id_ for id_ in apply_features.observation_id.values]
+
+        vocabulary = self._build_vocab(train_feature_names)
+        indptr = [0]
+        indices = []
+        data = []
+        for i, d in enumerate(apply_features_names):
+            for j, term in enumerate(d):
+                if term not in vocabulary:
+                    continue
+                else:
+                    indices.append(vocabulary[term])
+                    data.append(apply_features_values[i][j])
+                if j == 0:
+                    # Add zero to data and max index in vocabulary to indices in
+                    # case max feature indice isn't in apply features.
+                    indices.append(len(vocabulary)-1)
+                    data.append(0)
+            indptr.append(len(indices))
+
+        csr_data = csr_matrix((data, indices, indptr), dtype=float)
+
+        return csr_data, apply_obs_id, vocabulary
+
+    def _build_vocab(self, data):
+        """
+        Builds vocabulary of terms from the data. Assigns each unique term
+        to a monotonically increasing integer
+        """
+        vocabulary = {}
+        for i, d in enumerate(data):
+            for j, term in enumerate(d):
+                vocabulary.setdefault(term, len(vocabulary))
+        return vocabulary
+
 
 class BagOfWordsFeaturizer(object):
     """

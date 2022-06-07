@@ -12,7 +12,8 @@ import trainers
 import featurizers
 
 
-working_project_id='mining-clinical-decisions'
+cohort_table_id = 'mining-clinical-decisions.conor_db.20220607_cbc_diff_cohort_small'
+feature_table_id = 'mining-clinical-decisions.conor_db.20220607_cbc_features'
 project_id='som-nero-phi-jonc101'
 dataset = 'shc_core_2021'
 
@@ -37,7 +38,7 @@ args = parser.parse_args()
 
 cb = cohorts.CohortBuilder(
     dataset_name='conor_db',
-    table_name='20220511_cbc_diff_cohort',
+    table_name='20220607_cbc_diff_cohort_small',
     label_columns=['label_WBC', 'label_HCT', 'label_PLT'])
 
 query =f"""
@@ -91,7 +92,7 @@ FROM
       FROM cohort_wide 
      ) 
 WHERE 
-    seqnum <= 2000
+    seqnum <= 100
 """
 
 # Executes query, and stores cohort in a pandas dataframe in the `df` attribute
@@ -103,20 +104,30 @@ if args.cohort:
     cb.write_cohort_table(overwrite='True', schema=schema)
 
 if args.featurize:
-    featurizer = featurizers.BagOfWordsFeaturizer(
-        cohort_table='20220511_cbc_diff_cohort',
-        label_columns=['label_WBC', 'label_HCT', 'label_PLT'],
-        working_dataset_name='conor_db',
-        project_id=project_id,
-        dataset=dataset,
-        table_name='20220511_cbc_diff_feature_matrix',
-        outpath='./model_info/'
+    # featurizer = featurizers.BagOfWordsFeaturizerLight(
+    #     cohort_table_id=cohort_table_id,
+    #     feature_table_id=feature_table_id,
+    #     outpath='./20220601_model_info/'
+    # )
+    # featurizer()
+    featurizer = featurizers.SequenceFeaturizer(
+        cohort_table_id=cohort_table_id,
+        feature_table_id=feature_table_id,
+        train_years=['2015', '2016', '2017', '2018'],
+        val_years=['2019'],
+        test_years=['2020'],
+        label_columns=['label_WBC', 'label_PLT', 'label_HCT'],
+        outpath='./20220607_model_info_seq/'
     )
     featurizer()
 
 if args.train:
-    path = './model_info/'  # TODO where are your feature matrices stored?
-    trainer = trainers.BaselineModelTrainer(path)
+    working_dir = './20220607_model_info_seq/'
+    run_name = 'test_run'
+
+    
+    # TODO where are your feature matrices stored?
+    # trainer = trainers.BaselineModelTrainer(path)
 
     # Component 1 - Predict Hematocrit
     trainer(task='label_HCT')
