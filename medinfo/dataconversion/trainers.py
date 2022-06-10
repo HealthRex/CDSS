@@ -24,10 +24,10 @@ class SequenceTrainer():
     classes include GRUs, LSTMs, Transformers. 
     """
 
-    def __init__(self, working_directory, model, run_name, criterion, optimizer,
+    def __init__(self, outpath, model, criterion, optimizer,
         train_dataloader, val_dataloader, test_dataloader, stopping_metric,
         num_epochs=100, scheduler=None):
-        self.working_directory = working_directory
+        self.outpath = outpath
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
@@ -37,8 +37,7 @@ class SequenceTrainer():
         self.stopping_metric = stopping_metric
         self.num_epochs = num_epochs
         self.scheduler = scheduler
-        self.writer = SummaryWriter(
-            os.path.join(self.working_directory, 'runs', run_name))
+        self.writer = SummaryWriter(self.outpath)
 
     def __call__(self):
         best_stopping_metric = 0
