@@ -71,7 +71,8 @@ def main():
     predictions = hats['predictions']
 
     # Build null distribution
-    worst_aucs_null = []
+    worst_metrics_null = {'auc' : [], 'accuracy' : [],
+                          'average_precision' : [], 'num_groups' : []}
     if args.compare_to_random_partition:
         for i in tqdm(range(args.n_null)):
             indices = [idx for idx in range(len(labels))]
@@ -80,37 +81,92 @@ def main():
             labels_random = [labels[idx] for idx in indices_shuffled]
             predictions_random = [predictions[idx] for idx in indices_shuffled]
             clf = tree.DecisionTreeRegressor(max_depth=5, min_samples_leaf=100)
-            worst_auc, _ = partition_performance(
+            worst_partition = partition_performance(
                 attributes=features,
                 labels=labels_random,
                 predictions=predictions_random,
                 clf=clf
             )
-            worst_aucs_null.append(worst_auc)
+            worst_metrics_null['auc'].append(worst_partition['auc'])
+            worst_metrics_null['accuracy'].append(worst_partition['accuracy'])
+            worst_metrics_null['average_precision'].append(
+                worst_partition['average_precision'])
+            worst_metrics_null['num_groups'].append(
+                worst_partition['num_groups'])
 
     # Get worst performance with with recursive partitioning
     clf = tree.DecisionTreeRegressor(max_depth=5, min_samples_leaf=100)
-    worst_auc, _ = partition_performance(
+
+    worst_partition = partition_performance(
         attributes=features,
         labels=labels,
         predictions=predictions,
         clf=clf
     )
 
-    # Plot actual value againts null distribution
-    len_n = len(worst_aucs_null)
-    pvalue = len([p for p in worst_aucs_null if p <= worst_auc]) / len_n
-    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
-    ax = sns.histplot(x=worst_aucs_null, bins=20, stat='count', ax=ax)
-    ax.plot([worst_auc, worst_auc], [0, ax.get_ylim()[1]], color='black',
-        label=f"Worst Parition auc={round(worst_auc, 2)} p < {pvalue}")
-    ax.set_title("Worst partition performance vs null")
-    ax.set_xlabel("Worst AUC")
-    ax.set_ylabel("Frequency")
-    ax.legend()
+    # Plot scatter
+    metrics = ['scores', 'auc', 'average_precision', 'accuracy']
+    fig, axs = plt.subplots(1, 4, figsize=(40, 10))
+    for i, metric in enumerate(metrics):
+        plot_partion_score_vs_metric(worst_partition['ppart'], metric, axs[i])
     os.makedirs(args.outpath, exist_ok=True)
-    outfig = os.path.join(args.outpath, 'worst_auc_comparison.png')
+    outfig = os.path.join(args.outpath, 'predicted_vs_actual.png')
     plt.savefig(outfig, bbox_inches='tight', dpi=300)
+
+    # Plot actual value againts null distribution
+    colors = sns.color_palette()
+    fig, axs = plt.subplots(1, 4, figsize=(40, 10))
+    counter = 0
+    for ax, m in zip(axs, worst_metrics_null):
+        plot_hist_and_value(value=worst_partition[m],
+                            null_disrtibution=worst_metrics_null[m],
+                            ax=ax,
+                            metric=m,
+                            color=colors[counter])
+        counter += 1
+
+    os.makedirs(args.outpath, exist_ok=True)
+    outfig = os.path.join(args.outpath, 'test.png')
+    plt.savefig(outfig, bbox_inches='tight', dpi=300)
+
+def plot_hist_and_value(value, null_disrtibution, ax, metric, color):
+    """
+    Plots histogram of null distribution and verticl line with actual
+    value given a metric and ax
+    """
+    n = len(null_disrtibution)
+    pvalue = len([p for p in null_disrtibution if p <= value]) / n
+    ax = sns.histplot(x=null_disrtibution,
+                      bins=20,
+                      stat='count',
+                      ax=ax,
+                      color=color)
+    ax.plot([value, value], 
+            [0, ax.get_ylim()[1]],
+            color='black',
+            linestyle='--',
+            label=f"Worst Parition auc={round(value, 2)} p < {pvalue}")
+    ax.set_title(f"Discovered Worst {metric} vs Null Distribution")
+    ax.set_xlabel(f"Worst {metric}")
+    ax.set_ylabel("Count")
+    ax.legend()
+
+def plot_partion_score_vs_metric(ppart, metric, ax):
+    """
+    Given a fit PerformancePartitioner, plots the predicted scores within
+    each partion vs the estimate scores in the parition. 
+    
+    Args:
+        ppart: a fit PerformancePartitioner
+        metric: which metric to plot againts fit score, can be 'scores', 'auc',
+        'accuracy', 'average_precision'
+    """ 
+    ax.scatter(ppart.df_partition_scores.predicted_scores,
+               ppart.df_partition_scores[metric],
+               c='black')
+    ax.set_title(f'Predicted Errors vs Actual {metric}')
+    ax.set_xlabel("Fit Scores")
+    ax.set_ylabel(f"Actual {metric}")
 
 def partition_performance(attributes, labels, predictions, clf, 
         get_worst_path=False):
@@ -129,7 +185,6 @@ def partition_performance(attributes, labels, predictions, clf,
     
     # Get partition with worst performance
     worst_partition = ppart.df_partition_scores.sort_values('auc').head(1)
-    worst_auc = worst_partition['auc']
 
     if get_worst_path:
         worst_parition_indices = [int(a) for a in 
@@ -138,7 +193,17 @@ def partition_performance(attributes, labels, predictions, clf,
         worst_path = ppart.get_paths_for_sample(
             X_test=X_worst_partition
         )
-    return float(worst_auc.values[0]), worst_path
+    
+
+    return {
+        'auc': float(worst_partition['auc'].values[0]),
+        'accuracy': float(worst_partition['accuracy'].values[0]),
+        'average_precision': float(
+            worst_partition['average_precision'].values[0]),
+        'num_groups' : ppart.num_groups,
+        'worst_path' : worst_path,
+        'ppart' : ppart
+    }
 
 if __name__ == '__main__':
     main()
