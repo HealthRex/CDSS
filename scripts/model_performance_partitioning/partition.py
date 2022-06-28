@@ -101,6 +101,7 @@ class PerformancePartitioner():
         df = pd.DataFrame(data={
             'leaf_node_idx': x_est_nodes,
             'scores': self.s_est,
+            'predicted_scores' : self.clf.predict(self.x_est),
             'predictions': self.predictions[self.inds_est],
             'labels': self.labels[self.inds_est],
             'est_indices' : self.inds_est
@@ -110,12 +111,24 @@ class PerformancePartitioner():
         # Have to do this way because pandas does not support aggregation on 
         # multiple columns 
         groups = df.groupby('leaf_node_idx')
+        self.num_groups = len(groups)
         for group in groups:
             node_idx_map[group[0]] = {}
             node_idx_map[group[0]]['score'] = group[1].scores.mean()
+            node_idx_map[group[0]]['predicted_scores'] = group[1
+                ].predicted_scores.mean() # will all be the same
             node_idx_map[group[0]]['n_samples'] = len(group[1])
             node_idx_map[group[0]]['ex_est_index'] = '-'.join([
                 str(idx) for idx in group[1]['est_indices']])
+            node_idx_map[group[0]]['accuracy'] = accuracy_score(
+                group[1].labels, 
+                [1 if p >= 0.5 else 0 for p in group[1].predictions])
+            try:
+                node_idx_map[group[0]]['average_precision'] = \
+                    average_precision_score(group[1].labels,
+                                            group[1].predictions)
+            except:
+                node_idx_map[group[0]]['average_precision'] = 999
             try:
                 node_idx_map[group[0]]['auc'] = roc_auc_score(group[1].labels,
                     group[1].predictions)
@@ -126,11 +139,17 @@ class PerformancePartitioner():
         self.df_partition_scores = df.assign(
             scores=lambda x: [node_idx_map[idx]['score'] for idx 
                               in x.leaf_node_idx],
+            predicted_scores=lambda x: [node_idx_map[idx]['predicted_scores']
+                                        for idx in x.leaf_node_idx],
             n_samples=lambda x: [node_idx_map[idx]['n_samples']
                                 for idx in x.leaf_node_idx],
             auc=lambda x: [node_idx_map[idx]['auc'] for idx in x.leaf_node_idx],
             samples=lambda x: [node_idx_map[idx]['ex_est_index']
-                                      for idx in x.leaf_node_idx]
+                                      for idx in x.leaf_node_idx],
+            accuracy=lambda x: [node_idx_map[idx]['accuracy']
+                                for idx in x.leaf_node_idx],
+            average_precision=lambda x: [node_idx_map[idx]['average_precision']
+                                         for idx in x.leaf_node_idx]
             ).groupby('leaf_node_idx').first().reset_index()
 
     def get_paths_for_samples(self, X_test):
