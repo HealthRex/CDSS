@@ -81,7 +81,7 @@ class CBCWithDifferentialCohort(CohortBuilder):
             ELSE 1
             END label
         FROM 
-            {project_id}.{dataset}.lab_result
+            som-nero-phi-jonc101.shc_core_2021.lab_result
         WHERE 
             # Note no inpatient results where proc code was LABCBCD
             UPPER(group_lab_name) = 'CBC WITH DIFFERENTIAL'
@@ -105,13 +105,14 @@ class CBCWithDifferentialCohort(CohortBuilder):
                 -- only keep labs where all three components result
                 label_WBC is not NULL AND
                 label_PLT is not NULL AND
-                label_HCT is not NULL
+                label_HCT is not NULL AND
+                label_HGB is not NULL
         )
 
         ### 10000 observations randomly sampled per year from train set
         SELECT 
             anon_id, order_id_coded as observation_id, index_time, 
-            ordering_mode, label_WBC, label_PLT, label_HCT
+            ordering_mode, label_WBC, label_PLT, label_HCT, label_HGB
         FROM 
             (SELECT *,
                 ROW_NUMBER() OVER  (PARTITION BY EXTRACT(YEAR FROM index_time)
@@ -148,13 +149,11 @@ class MetabolicComprehensiveCohort(CohortBuilder):
         differential results. Done with SQL logic where possible
 
         """
-        project_id = 'som-nero-phi-jonc101'
-        dataset = 'shc_core_2021'
         query = f"""
         CREATE OR REPLACE TABLE 
         {self.project_id}.{self.dataset_name}.{self.table_name}
         AS (
-        WITH cbcd_lab_results as (
+        WITH metabolic_comp as (
         SELECT DISTINCT
             anon_id,
             order_id_coded,
@@ -165,12 +164,12 @@ class MetabolicComprehensiveCohort(CohortBuilder):
             ELSE 1
             END label
         FROM 
-            {project_id}.{dataset}.lab_result
+            som-nero-phi-jonc101.shc_core_2021.lab_result
         WHERE 
             # Note no inpatient results where proc code was LABCBCD
             group_lab_name = 'Metabolic Panel, Comprehensive'
         AND
-            base_name in ('NA', 'K', 'CO2' 'BUN', 'CR', 'CA', 'ALB')
+            base_name in ('NA', 'K', 'CO2', 'BUN', 'CR', 'CA', 'ALB')
         AND 
             EXTRACT(YEAR FROM order_time_utc) BETWEEN 2015 and 2021
         ),
@@ -180,16 +179,16 @@ class MetabolicComprehensiveCohort(CohortBuilder):
             SELECT 
                 * 
             FROM 
-                cbcd_lab_results
+                metabolic_comp
             PIVOT (
                 MAX(label) as label -- should be max of one value or no value 
-                FOR base_name in ('NA', 'K', 'CO2' 'BUN', 'CR', 'CA', 'ALB')
+                FOR base_name in ('NA', 'K', 'CO2', 'BUN', 'CR', 'CA', 'ALB')
             )
             WHERE 
                 -- only keep labs where all three components result
                 label_NA is not NULL AND
                 label_K is not NULL AND
-                label_CO2 is not NULL
+                label_CO2 is not NULL AND
                 label_BUN is not NULL AND
                 label_CR is not NULL AND
                 label_CA is not NULL AND
@@ -211,7 +210,6 @@ class MetabolicComprehensiveCohort(CohortBuilder):
         WHERE
             seqnum <= 10000
         )
-        
         """
         query_job = self.client.query(query)
         query_job.result()
@@ -237,26 +235,19 @@ class MagnesiumCohort(CohortBuilder):
         differential results. Done with SQL logic where possible
 
         """
-        project_id = 'som-nero-phi-jonc101'
-        dataset = 'shc_core_2021'
         query = f"""
         CREATE OR REPLACE TABLE 
         {self.project_id}.{self.dataset_name}.{self.table_name}
         AS (
-        WITH cbcd_lab_results as (
+        WITH magnesium_results as (
         SELECT DISTINCT
-            anon_id,
-            order_id_coded,
-            order_time_utc as index_time,
-            ordering_mode,
-            base_name,
+            anon_id, order_id_coded, order_time_utc as index_time,
+            ordering_mode, base_name,
             CASE WHEN result_flag is NULL OR result_flag = "Normal" Then 0
-            ELSE 1
-            END label
+            ELSE 1 END label
         FROM 
-            {project_id}.{dataset}.lab_result
+            som-nero-phi-jonc101.shc_core_2021.lab_result
         WHERE 
-            # Note no inpatient results where proc code was LABCBCD
             UPPER(group_lab_name) = 'MAGNESIUM, SERUM/PLASMA'
         AND
             base_name = 'MG'
@@ -269,7 +260,7 @@ class MagnesiumCohort(CohortBuilder):
             SELECT 
                 * 
             FROM 
-                cbcd_lab_results
+                magnesium_results
             PIVOT (
                 MAX(label) as label -- should be max of one value or no value 
                 FOR base_name in ('MG')
@@ -319,32 +310,26 @@ class BloodCultureCohort(CohortBuilder):
         results: positive vs negative (but say COAG NEG STAPH is neg)
 
         """
-        project_id = 'som-nero-phi-jonc101'
-        dataset = 'shc_core_2021'
         query = f"""
         CREATE OR REPLACE TABLE 
         {self.project_id}.{self.dataset_name}.{self.table_name}
         AS (
-        WITH cbcd_lab_results as (
+        WITH blood_culture_results as (
         SELECT DISTINCT
-            anon_id,
-            order_id_coded,
-            order_time_utc as index_time,
+            anon_id, order_id_coded, order_time_utc as index_time, 
             ordering_mode,
-            base_name,
-            CASE WHEN result_flag is NULL OR result_flag = "Normal" Then 0
-            ELSE 1
-            END label
+            MAX(CASE WHEN result_flag is NULL OR result_flag = "Normal" Then 0
+            ELSE 1 END) label
         FROM 
-            {project_id}.{dataset}.lab_result
+            som-nero-phi-jonc101.shc_core_2021.lab_result
         WHERE 
             proc_code in ('LABBLC', 'LABBLC2')
-        AND
-            base_name = 'CULT'
         AND 
             EXTRACT(YEAR FROM order_time_utc) BETWEEN 2015 and 2021
-        ),
+        GROUP BY
+        anon_id, order_id_coded, order_time_utc, ordering_mode
 
+        )
         ### 10000 observations randomly sampled per year from train set
         SELECT 
             anon_id, order_id_coded as observation_id, index_time, 
@@ -354,11 +339,117 @@ class BloodCultureCohort(CohortBuilder):
                 ROW_NUMBER() OVER  (PARTITION BY EXTRACT(YEAR FROM index_time)
                                     ORDER BY RAND()) 
                         AS seqnum
-            FROM cohort_wide 
+            FROM blood_culture_results 
             ) 
         WHERE
             seqnum <= 10000
+        """
+        query_job = self.client.query(query)
+        query_job.result()
+
+
+class UrineCultureCohort(CohortBuilder):
+    """
+    Constructs a cohort table for predicting whether urine culture was positive.
+
+    What we will do is find all urine cultures (irrespective of whether
+    was triggered by urinalysis and train a model that predicts result of the
+    culture. The index time will be defined as the time of the urine culture
+    order if the urine culture was not triggered by a urinalysis, otherwise
+    will be the time of the urinalysis order. 
+    """
+
+    def __init__(self, dataset_name, table_name,
+                 working_project_id='mining-clinical-decisions'):
+        """
+        Initializes dataset_name and table_name for where cohort table will be
+        saved on bigquery
+        """
+        super(UrineCultureCohort).__init__(
+            dataset_name, table_name, working_project_id)
+
+    def build_cohort(self):
+        """
+        Function that constructs a cohort table for predicting whether urine
+        culture or urinalysis was positive. This will likely need to be 
+        """
+        project_id = 'som-nero-phi-jonc101'
+        dataset = 'shc_core_2021'
+        query = f"""
+        CREATE OR REPLACE TABLE 
+        {self.project_id}.{self.dataset_name}.{self.table_name}
+        AS (
+        WITH urine_cultures AS (
+        SELECT DISTINCT 
+            anon_id, order_id_coded, order_time_utc, ordering_mode,
+            MAX(CASE WHEN result_flag is NULL OR result_flag = "Normal" 
+            Then 0 ELSE 1 END) label
+        FROM 
+            som-nero-phi-jonc101.shc_core_2021.lab_result
+        WHERE 
+            proc_code = "LABURNC"
+        GROUP BY 
+            anon_id, order_id_coded, order_time_utc, ordering_mode
+        ),
+        uas as (
+        SELECT DISTINCT 
+            anon_id, order_id_coded, order_time_utc, proc_code
+        FROM 
+            som-nero-phi-jonc101.shc_core_2021.lab_result
+        WHERE 
+            proc_code = "LABUAPRN"
+        ),
+        matching_uas AS (
+        SELECT DISTINCT 
+            c.*, ua.proc_code ua_proc_code, ua.order_time_utc ua_order_time 
+        FROM 
+            urine_cultures c
+        LEFT JOIN 
+            uas ua
+        USING 
+            (anon_id)
+        WHERE 
+            ua.order_time_utc < c.order_time_utc OR ua.proc_code is NULL
+        ),
+
+        matching_uas_2 AS (
+        SELECT DISTINCT 
+            anon_id, order_id_coded observation_id, 
+            CASE WHEN ua_proc_code IS NULL THEN order_time_utc
+            WHEN TIMESTAMP_DIFF(order_time_utc, ua_order_time, HOUR) > 24 
+            THEN order_time_utc
+            ELSE ua_order_time END index_time, ordering_mode, label,
+        FROM 
+            matching_uas
+        ),
+
+        cohort AS (
+        SELECT DISTINCT
+            anon_id, observation_id,
+            FIRST_VALUE(index_time) 
+            OVER (PARTITION BY observation_id ORDER BY index_time ASC)
+            index_time,
+            ordering_mode,
+            label
+        FROM 
+            matching_uas_2
+        WHERE 
+            EXTRACT(YEAR FROM index_time) BETWEEN 2015 and 2021
         )
+
+        ### 10000 observations max randomly sampled per year
+        SELECT 
+            anon_id, observation_id, index_time, ordering_mode, label
+        FROM 
+            (SELECT 
+            *,
+            ROW_NUMBER() OVER  (PARTITION BY EXTRACT(YEAR FROM index_time)
+                                ORDER BY RAND()) 
+                        AS seqnum
+            FROM cohort 
+            ) 
+        WHERE
+            seqnum <= 10000
         """
         query_job = self.client.query(query)
         query_job.result()
