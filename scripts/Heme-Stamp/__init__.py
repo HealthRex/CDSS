@@ -12,7 +12,7 @@ def main():
     order_date = date.today()
 
     ENV = 'https://epic-ic-background.stanfordmed.org/Interconnect-Cloud/'
-    CID = 'dfc19014-93a4-4397-bb3c-bee4214ec23b'
+    # CID taken out for privacy
 
     a = cosmos.getcosmosbetweendate("2022-06-18", "2022-07-10")
     # a = cosmos.getcosmosbydate("2022-06-19")
