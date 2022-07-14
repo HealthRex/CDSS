@@ -1,7 +1,12 @@
+"""
+A place for cohort definitions (cohort + labels)
+"""
 import decimal
 import pandas as pd
 
-class CohortBuilder(object):
+import pdb
+
+class CohortBuilder():
     """
     A class for constructing a cohort table and saving to a bigquery project.
     A cohort table should have at minimum three columns:
@@ -14,12 +19,13 @@ class CohortBuilder(object):
             attribute.
     """
 
-    def __init__(self, dataset_name, table_name,
+    def __init__(self, client, dataset_name, table_name,
                  working_project_id='mining-clinical-decisions'):
         """
         Initializes dataset_name and table_name for where cohort table will be
         saved on bigquery
         """
+        self.client = client
         self.project_id = working_project_id
         self.dataset_name = dataset_name
         self.table_name = table_name
@@ -44,28 +50,193 @@ class CohortBuilder(object):
             table_schema=schema
         )
 
+class InpatientMortalityCohort(CohortBuilder):
+    """
+    Defines a cohort for the task of predicting inpatient mortality.
+    """
+
+    def __init__(self, client, dataset_name, table_name,
+                 working_project_id='mining-clinical-decisions'):
+        """
+        Initializes dataset_name and table_name for where cohort table will be
+        saved on bigquery
+        """
+        super(InpatientMortalityCohort, self).__init__(
+            client, dataset_name, table_name, working_project_id)
+
+    def __call__(self):
+        """
+        Function that constructs a cohort table for predicting cbc with
+        differential results. Done with SQL logic where possible
+        """
+        query = f"""
+        CREATE OR REPLACE TABLE 
+        {self.project_id}.{self.dataset_name}.{self.table_name}
+        AS (
+        -- Use ADT table to get inpatient admits, discharge times if they exist,
+        -- and Transfer Out times.
+        WITH inpatient_admits as (
+        SELECT 
+            anon_id, pat_enc_csn_id_coded, 
+            CASE WHEN in_event_type IS NOT NULL THEN in_event_type
+            ELSE REPLACE(out_event_type, ' ', '') END event_type,
+            event_time_jittered_utc
+        FROM
+            `som-nero-phi-jonc101.shc_core.adt` 
+        WHERE
+            pat_class = 'Inpatient' AND
+            (in_event_type = 'Admission' or out_event_type in 
+            ('Discharge', 'Transfer Out'))
+        ),
+        -- Join to demographics table to get death date for each patient
+        admissions_with_death_date as (
+        SELECT DISTINCT 
+            ia.*, d.death_date_jittered
+        FROM
+            inpatient_admits ia
+        INNER JOIN
+            `som-nero-phi-jonc101.shc_core.demographic` d
+        USING
+            (anon_id)
+        ),
+        -- Pivot so that we have one column for admission, transfer out and
+        -- discharge time (take latest of tranfer out times)
+        admissions_wide as (
+        SELECT 
+            *
+        FROM
+            admissions_with_death_date
+        PIVOT (
+            MAX(event_time_jittered_utc) as event_time
+            FOR event_type in ('Admission', 'TransferOut', 'Discharge')
+        )
+            ORDER BY anon_id, event_time_Admission
+        )
+        -- label is one when date of death exists between admission and
+        -- discharge, or between admission and transfer out if discharge
+        -- does not exist. 
+        SELECT
+            anon_id, pat_enc_csn_id_coded observation_id,
+            event_time_Admission index_time, 
+            CASE WHEN death_date_jittered
+            BETWEEN DATE(a.event_time_Admission) AND 
+            DATE(a.event_time_Discharge) THEN 1
+            WHEN a.event_time_Discharge IS NULL AND 
+            death_date_jittered BETWEEN DATE(a.event_time_Admission)
+            AND DATE(a.  event_time_TransferOut) THEN 1
+            ELSE 0 END label,
+            event_time_TransferOut, event_time_Discharge, death_date_jittered
+        FROM
+            admissions_wide a
+        WHERE
+            EXTRACT(YEAR FROM event_time_Admission) BETWEEN 2015 and 2020
+            AND NOT (event_time_TransferOut IS NULL 
+                     AND event_time_Discharge IS NULL)
+        )        
+        """
+        query_job = self.client.query(query)
+        query_job.result()
+
+class LongLengthOfStayCohort(CohortBuilder):
+    """
+    Defines a cohort of patients admitted to hospital, positive label for
+    patients who stayed in inpatient setting for seven days or longer. 
+    """
+
+    def __init__(self, client, dataset_name, table_name,
+                 working_project_id='mining-clinical-decisions'):
+        """
+        Initializes dataset_name and table_name for where cohort table will be
+        saved on bigquery
+        """
+        super(LongLengthOfStayCohort, self).__init__(
+            client, dataset_name, table_name, working_project_id)
+
+    def __call__(self):
+        """
+        Function that constructs a cohort table for predicting cbc with
+        differential results. Done with SQL logic where possible
+        """
+        query = f"""
+        CREATE OR REPLACE TABLE 
+        {self.project_id}.{self.dataset_name}.{self.table_name}
+        AS (
+        -- Use ADT table to get inpatient admits, discharge times if they exist,
+        -- and Transfer Out times.
+        WITH inpatient_admits as (
+        SELECT 
+            anon_id, pat_enc_csn_id_coded, 
+            CASE WHEN in_event_type IS NOT NULL THEN in_event_type
+            ELSE REPLACE(out_event_type, ' ', '') END event_type,
+            event_time_jittered_utc
+        FROM
+            `som-nero-phi-jonc101.shc_core.adt` 
+        WHERE
+            pat_class = 'Inpatient' AND
+            (in_event_type = 'Admission' or out_event_type in 
+            ('Discharge', 'Transfer Out'))
+        ),
+
+        admissions_wide as (
+        SELECT 
+            *
+        FROM
+            inpatient_admits
+        PIVOT (
+            MAX(event_time_jittered_utc) as event_time
+            FOR event_type in ('Admission', 'TransferOut', 'Discharge')
+        )
+            ORDER BY anon_id, event_time_Admission
+        )
+
+        SELECT
+            anon_id, pat_enc_csn_id_coded observation_id,
+            event_time_Admission index_time, 
+            CASE WHEN TIMESTAMP_DIFF(a.event_time_Discharge, 
+                                     a.event_time_Admission, DAY)< 7 AND
+            a.event_time_Discharge IS NOT NULL THEN 0
+            WHEN TIMESTAMP_DIFF(a.event_time_TransferOut,
+                                a.event_time_Admission, DAY) < 7 AND
+            a.event_time_TransferOut IS NOT NULL AND 
+            a.event_time_Discharge IS NULL THEN 0
+            ELSE 1 END label,
+            TIMESTAMP_DIFF(a.event_time_Discharge,
+                           a.event_time_Admission, DAY) time_to_discharge,
+            TIMESTAMP_DIFF(a.event_time_TransferOut, 
+                           a.event_time_Admission, DAY) time_to_transfer_out,
+            event_time_TransferOut, event_time_Discharge
+        FROM
+            admissions_wide a
+        WHERE
+            EXTRACT(YEAR FROM event_time_Admission) BETWEEN 2015 and 2020
+            AND NOT (event_time_TransferOut IS NULL AND event_time_Discharge
+            IS NULL)
+        )
+        """
+        query_job = self.client.query(query)
+        query_job.result()
+
+
+
 class CBCWithDifferentialCohort(CohortBuilder):
     """
     Defines a cohort and labels for CBC with differential models
     """
 
-    def __init__(self, dataset_name, table_name,
+    def __init__(self, client, dataset_name, table_name,
         working_project_id='mining-clinical-decisions'):
         """
         Initializes dataset_name and table_name for where cohort table will be
         saved on bigquery
         """
-        super(CBCWithDifferentialCohort).__init__(
-            dataset_name, table_name, working_project_id)
+        super(CBCWithDifferentialCohort, self).__init__(client, dataset_name,
+            table_name, working_project_id)
     
-    def build_cohort(self):
+    def __call__(self):
         """
         Function that constructs a cohort table for predicting cbc with
         differential results. Done with SQL logic where possible
-
         """
-        project_id = 'som-nero-phi-jonc101'
-        dataset = 'shc_core_2021'
         query=f"""
         CREATE OR REPLACE TABLE 
         {self.project_id}.{self.dataset_name}.{self.table_name}
@@ -134,16 +305,16 @@ class MetabolicComprehensiveCohort(CohortBuilder):
     Defines a cohort and labels for metabolic comprehensive tasks
     """
 
-    def __init__(self, dataset_name, table_name,
+    def __init__(self, client, dataset_name, table_name,
                  working_project_id='mining-clinical-decisions'):
         """
         Initializes dataset_name and table_name for where cohort table will be
         saved on bigquery
         """
-        super(MetabolicComprehensiveCohort).__init__(
+        super(MetabolicComprehensiveCohort, self).__init__(client,
             dataset_name, table_name, working_project_id)
 
-    def build_cohort(self):
+    def __call__(self):
         """
         Function that constructs a cohort table for predicting cbc with
         differential results. Done with SQL logic where possible
@@ -220,16 +391,16 @@ class MagnesiumCohort(CohortBuilder):
     Defines a cohort and labels for magnesium prediction models
     """
 
-    def __init__(self, dataset_name, table_name,
+    def __init__(self, client, dataset_name, table_name,
                  working_project_id='mining-clinical-decisions'):
         """
         Initializes dataset_name and table_name for where cohort table will be
         saved on bigquery
         """
-        super(MagnesiumCohort).__init__(
+        super(MagnesiumCohort, self).__init__(client,
             dataset_name, table_name, working_project_id)
 
-    def build_cohort(self):
+    def __call__(self):
         """
         Function that constructs a cohort table for predicting cbc with
         differential results. Done with SQL logic where possible
@@ -295,16 +466,16 @@ class BloodCultureCohort(CohortBuilder):
     Defines a cohort and labels for blood culture prediction models
     """
 
-    def __init__(self, dataset_name, table_name,
+    def __init__(self, client, dataset_name, table_name,
                  working_project_id='mining-clinical-decisions'):
         """
         Initializes dataset_name and table_name for where cohort table will be
         saved on bigquery
         """
-        super(BloodCultureCohort).__init__(
+        super(BloodCultureCohort, self).__init__(client,
             dataset_name, table_name, working_project_id)
 
-    def build_cohort(self):
+    def __call__(self):
         """
         Function that constructs a cohort table for predicting blood culture
         results: positive vs negative (but say COAG NEG STAPH is neg)
@@ -319,7 +490,7 @@ class BloodCultureCohort(CohortBuilder):
             anon_id, order_id_coded, order_time_utc as index_time, 
             ordering_mode,
             MAX(CASE WHEN result_flag is NULL OR result_flag = "Normal" Then 0
-            ELSE 1 END) label
+            ELSE 1 END) label_blood
         FROM 
             som-nero-phi-jonc101.shc_core_2021.lab_result
         WHERE 
@@ -333,7 +504,7 @@ class BloodCultureCohort(CohortBuilder):
         ### 10000 observations randomly sampled per year from train set
         SELECT 
             anon_id, order_id_coded as observation_id, index_time, 
-            ordering_mode, label
+            ordering_mode, label_blood
         FROM 
             (SELECT *,
                 ROW_NUMBER() OVER  (PARTITION BY EXTRACT(YEAR FROM index_time)
@@ -343,6 +514,7 @@ class BloodCultureCohort(CohortBuilder):
             ) 
         WHERE
             seqnum <= 10000
+        )
         """
         query_job = self.client.query(query)
         query_job.result()
@@ -359,22 +531,20 @@ class UrineCultureCohort(CohortBuilder):
     will be the time of the urinalysis order. 
     """
 
-    def __init__(self, dataset_name, table_name,
+    def __init__(self, client, dataset_name, table_name,
                  working_project_id='mining-clinical-decisions'):
         """
         Initializes dataset_name and table_name for where cohort table will be
         saved on bigquery
         """
-        super(UrineCultureCohort).__init__(
+        super(UrineCultureCohort, self).__init__(client,
             dataset_name, table_name, working_project_id)
 
-    def build_cohort(self):
+    def __call__(self):
         """
         Function that constructs a cohort table for predicting whether urine
         culture or urinalysis was positive. This will likely need to be 
         """
-        project_id = 'som-nero-phi-jonc101'
-        dataset = 'shc_core_2021'
         query = f"""
         CREATE OR REPLACE TABLE 
         {self.project_id}.{self.dataset_name}.{self.table_name}
@@ -383,7 +553,7 @@ class UrineCultureCohort(CohortBuilder):
         SELECT DISTINCT 
             anon_id, order_id_coded, order_time_utc, ordering_mode,
             MAX(CASE WHEN result_flag is NULL OR result_flag = "Normal" 
-            Then 0 ELSE 1 END) label
+            Then 0 ELSE 1 END) label_urine
         FROM 
             som-nero-phi-jonc101.shc_core_2021.lab_result
         WHERE 
@@ -418,7 +588,7 @@ class UrineCultureCohort(CohortBuilder):
             CASE WHEN ua_proc_code IS NULL THEN order_time_utc
             WHEN TIMESTAMP_DIFF(order_time_utc, ua_order_time, HOUR) > 24 
             THEN order_time_utc
-            ELSE ua_order_time END index_time, ordering_mode, label,
+            ELSE ua_order_time END index_time, ordering_mode, label_urine,
         FROM 
             matching_uas
         ),
@@ -430,7 +600,7 @@ class UrineCultureCohort(CohortBuilder):
             OVER (PARTITION BY observation_id ORDER BY index_time ASC)
             index_time,
             ordering_mode,
-            label
+            label_urine
         FROM 
             matching_uas_2
         WHERE 
@@ -439,7 +609,7 @@ class UrineCultureCohort(CohortBuilder):
 
         ### 10000 observations max randomly sampled per year
         SELECT 
-            anon_id, observation_id, index_time, ordering_mode, label
+            anon_id, observation_id, index_time, ordering_mode, label_urine
         FROM 
             (SELECT 
             *,
@@ -450,6 +620,7 @@ class UrineCultureCohort(CohortBuilder):
             ) 
         WHERE
             seqnum <= 10000
+        )
         """
         query_job = self.client.query(query)
         query_job.result()
