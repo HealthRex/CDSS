@@ -3,7 +3,6 @@ A place for cohort definitions (cohort + labels)
 """
 import decimal
 import pandas as pd
-
 import pdb
 
 class CohortBuilder():
@@ -212,6 +211,105 @@ class LongLengthOfStayCohort(CohortBuilder):
             AND NOT (event_time_TransferOut IS NULL AND event_time_Discharge
             IS NULL)
         )
+        """
+        query_job = self.client.query(query)
+        query_job.result()
+
+
+class ThirtyDayReadmission(CohortBuilder):
+    """
+    Defines a cohort for the task of predicting inpatient mortality.
+    """
+
+    def __init__(self, client, dataset_name, table_name,
+                 working_project_id='mining-clinical-decisions'):
+        """
+        Initializes dataset_name and table_name for where cohort table will be
+        saved on bigquery
+        """
+        super(ThirtyDayReadmission, self).__init__(
+            client, dataset_name, table_name, working_project_id)
+
+    def __call__(self):
+        """
+        Function that constructs a cohort table for predicting cbc with
+        differential results. Done with SQL logic where possible
+        """
+        query = f"""
+        CREATE OR REPLACE TABLE 
+        {self.project_id}.{self.dataset_name}.{self.table_name}
+        AS (
+        -- Use ADT table to get inpatient admits, discharge times if they exist,
+        -- and Transfer Out times.
+        WITH inpatient_admits as (
+        SELECT 
+            anon_id, pat_enc_csn_id_coded, 
+            CASE WHEN in_event_type IS NOT NULL THEN in_event_type
+            ELSE REPLACE(out_event_type, ' ', '') END event_type,
+            event_time_jittered_utc
+        FROM
+            `som-nero-phi-jonc101.shc_core.adt` 
+        WHERE
+            pat_class = 'Inpatient' AND
+            (in_event_type = 'Admission' or out_event_type = 'Discharge')
+        ),
+        -- Join to demographics table to get death date for each patient
+        admissions_with_death_date as (
+        SELECT DISTINCT 
+            ia.*, d.death_date_jittered
+        FROM
+            inpatient_admits ia
+        INNER JOIN
+            `som-nero-phi-jonc101.shc_core.demographic` d
+        USING
+            (anon_id)
+        ),
+        -- Pivot so that we have one column for admission, transfer out and
+        -- discharge time (take latest of tranfer out times)
+        admissions_wide as (
+        SELECT 
+            *
+        FROM
+            admissions_with_death_date
+        PIVOT (
+            MAX(event_time_jittered_utc) as event_time
+            FOR event_type in ('Admission', 'Discharge')
+        )
+        WHERE
+            event_time_Admission IS NOT NULL AND event_time_Discharge IS NOT
+            NULL
+        ORDER BY 
+            anon_id, event_time_Admission
+
+        )
+        -- join back to inpatient_admits to get nearest readmission
+        SELECT
+            a.anon_id, a.pat_enc_csn_id_coded observation_id,
+            event_time_Discharge index_time,
+            MAX(
+            CASE WHEN TIMESTAMP_DIFF(ia.event_time_jittered_utc, 
+            a.event_time_Discharge, DAY) > 30
+            THEN 0 WHEN ia.event_time_jittered_utc IS NULL THEN 0
+            ELSE 1 END) label,
+            MIN(ia.event_time_jittered_utc) next_admit_time,
+            MIN(TIMESTAMP_DIFF(ia.event_time_jittered_utc,
+                               a.event_time_Discharge, DAY)) days_to_next_admit
+        FROM
+            admissions_wide a
+        LEFT JOIN
+            (SELECT * FROM inpatient_admits WHERE event_type = 'Admission') ia
+        USING
+            (anon_id)
+        WHERE
+            ia.event_time_jittered_utc > a.event_time_Discharge OR 
+            ia.event_time_jittered_utc IS NULL
+        AND
+            EXTRACT(YEAR FROM event_time_Discharge) BETWEEN 2015 and 2020
+        GROUP BY
+            anon_id, observation_id, index_time
+        ORDER BY
+            anon_id, index_time, next_admit_time
+        )        
         """
         query_job = self.client.query(query)
         query_job.result()
