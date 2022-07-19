@@ -29,9 +29,11 @@ class SequenceFeaturizer():
     for each observation. Saves these sequences as invididual numpy arrays in 
     npz format. The npz contains the following data elements
     NPZ structure:
-         sequence: array of tokens - continuous features must be binned
-         time_deltas: array with same length as sequence, hours to index time
-         label: list of labels corresponding to seq (len=1 if only one label). 
+         sequence: array of array of tokens (continuous values binned), arrays
+            grouped by day as in Steinberg et al.
+         time_deltas: array with len equal to sequence.shape[0], days
+            from index_time for each bag of features
+         label: list of labels corresponding to sequence.  len = 1 if one label 
     """
 
     def __init__(self, cohort_table_id, feature_table_id, train_years,
@@ -89,8 +91,9 @@ class SequenceFeaturizer():
         df = pd.read_gbq(query, progress_bar_type='tqdm')
 
         # Get time deltas in hours from index time
-        df = df.assign(time_deltas=lambda x: 
-            (x.index_time - x.feature_time).astype('timedelta64[D]')
+        df = (df
+            .assign(time_deltas=lambda x: 
+                    (x.index_time - x.feature_time).astype('timedelta64[D]'))
         )
         
         # Split into train, val and test and ensure only terms in train are used
@@ -133,6 +136,25 @@ class SequenceFeaturizer():
         # Save feature_config
         with open(os.path.join(self.outpath, 'feature_config.json'), 'w') as f:
             json.dump(self.feature_config, f)
+
+    def process_example(self, example):
+        """
+        Given a long form dataframe with columns, observation_id, feature, and
+        time_deltas, and labels [self.label_columns], procuces a 2d array
+        where dim 0 is equal to number of unique days from index time and dim1 
+        is equal to max day length — use zero padding
+        """
+        aggs = {label_col : 'first' for label_col in self.label_columns}
+        aggs['features'] = lambda x: ', '.join([f for f in x.features])
+        df_example = (example
+            .sort_values('time_deltas', ascending=True)
+            .groupby('time_deltas')
+            .agg(aggs)
+            .reset_index()
+        )
+        day_bags = []
+        for delta in df_example.time_deltas:
+            continue # TODO
 
     def construct_feature_timeline(self):
         """
