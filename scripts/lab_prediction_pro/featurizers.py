@@ -12,6 +12,8 @@ import pickle
 from google.cloud import bigquery
 import numpy as np
 from tqdm import tqdm
+import torch
+from torch.nn.utils.rnn import pad_sequence
 from scipy.sparse import csr_matrix
 from scipy.sparse import save_npz
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -75,55 +77,59 @@ class SequenceFeaturizer():
         Generates sequence feature vectors and saves to outpath
         """
         label_cols = ', '.join([f"c.{l}" for l in self.label_columns])
-        self.construct_feature_timeline()
+        # self.construct_feature_timeline()
+        # self.collapse_timeline_to_days()
         query = f"""
         SELECT
-            f.*, {label_cols}
+            f.*, {label_cols}, index_time
         FROM
-            {self.feature_table_id} f
+            {self.feature_table_id}_days f
         INNER JOIN
             {self.cohort_table_id} c
         USING
             (observation_id)
         ORDER BY
-            observation_id, feature_time
+            observation_id, time_deltas
         """
         df = pd.read_gbq(query, progress_bar_type='tqdm')
 
-        # Get time deltas in hours from index time
-        df = (df
-            .assign(time_deltas=lambda x: 
-                    (x.index_time - x.feature_time).astype('timedelta64[D]'))
-        )
-        
         # Split into train, val and test and ensure only terms in train are used
-        train_seqs = df[df['index_time'].dt.year.isin(
-            self.train_years)]
-        vocab = train_seqs.feature.unique()
-        vocab_set = set([s for s in vocab])
-        val_seqs = df[df['index_time'].dt.year.isin(
-            self.val_years)].query("feature in @vocab_set", engine='python')
-        test_seqs = df[df['index_time'].dt.year.isin(
-            self.test_years)].query("feature in @vocab_set", engine='python')
-        seq_dict = {'train' : train_seqs, 'val' :  val_seqs, 'test' : test_seqs}
+        train_seqs = df[df['index_time'].dt.year.isin(self.train_years)]
+        
+        # Build vocab dict and save
+        vocab = []
+        for feature_list in train_seqs.feature.values:
+            if feature_list is not None:
+                vocab += [v for v in feature_list.split('---')]
+        vocab = set(vocab)
+        vocab_map = {}
+        counter = 1 # reserve 0 for padding
+        for term in vocab:
+            vocab_map[term] = counter
+            counter += 1
 
+        val_seqs = df[df['index_time'].dt.year.isin(self.val_years)]
+        test_seqs = df[df['index_time'].dt.year.isin(self.test_years)]
+        seq_dict = {'train' : train_seqs, 'val' :  val_seqs, 'test' : test_seqs}
+    
         # Create working directory if does not already exist and save features
         for dataset, seqs in seq_dict.items():
             os.makedirs(os.path.join(self.outpath, dataset), exist_ok=True)
-            for obs in seqs.observation_id.unique():
+            print(f"Generating {dataset} sequences")
+            for obs in tqdm(seqs.observation_id.unique()):
                 example = seqs[seqs['observation_id']==obs]
-                sequence = example.feature.values
+                sequence = self.pad_examples(example, vocab_map)
                 time_deltas = example.time_deltas.values
                 labels = example[self.label_columns].values
-                np.savez(os.path.join(self.outpath, dataset, f"{obs}.npz"),
-                         sequence=sequence,
-                         time_deltas=time_deltas,
-                         labels=labels)
-                
+                out_file = os.path.join(self.outpath, dataset, f"{obs}.pt")
+                torch.save({"sequence": sequence,
+                            "time_deltas": time_deltas,
+                            "labels": labels}, out_file)    
+                   
         # Save feature vocab
-        np.savez(os.path.join(self.outpath, dataset, 'feature_vocab.npz'),
-                 vocab=vocab)
-                
+        with open(os.path.join(self.outpath, 'feature_vocab.npz'), 'w') as fp:
+            json.dump(vocab_map, fp)
+                            
         # Save bin thresholds if they exist
         self.df_lup = pd.DataFrame()
         for lup in self.lups:
@@ -137,24 +143,34 @@ class SequenceFeaturizer():
         with open(os.path.join(self.outpath, 'feature_config.json'), 'w') as f:
             json.dump(self.feature_config, f)
 
-    def process_example(self, example):
+    def pad_examples(self, example, vocab):
         """
-        Given a long form dataframe with columns, observation_id, feature, and
-        time_deltas, and labels [self.label_columns], procuces a 2d array
-        where dim 0 is equal to number of unique days from index time and dim1 
-        is equal to max day length — use zero padding
+        Pads days within an example with zeros so all same length. 
         """
-        aggs = {label_col : 'first' for label_col in self.label_columns}
-        aggs['features'] = lambda x: ', '.join([f for f in x.features])
-        df_example = (example
-            .sort_values('time_deltas', ascending=True)
-            .groupby('time_deltas')
-            .agg(aggs)
-            .reset_index()
+        sequences = [torch.tensor(
+                    [vocab[a] for a in e.split('---') if a in vocab])
+                     for e in example.feature.values if e is not None]
+        sequences_padded = pad_sequence(sequences, batch_first=True)
+        return sequences_padded
+
+    def collapse_timeline_to_days(self):
+        """
+        Groups long form feature vector by day and collapses all feature values
+        """
+        query=f"""
+        CREATE OR REPLACE TABLE {self.feature_table_id}_days AS (
+        SELECT 
+            observation_id,
+            STRING_AGG(feature, '---') feature,
+            TIMESTAMP_DIFF(index_time, feature_time, DAY) time_deltas
+        FROM 
+            {self.feature_table_id}
+        GROUP BY
+            observation_id, time_deltas
         )
-        day_bags = []
-        for delta in df_example.time_deltas:
-            continue # TODO
+        """
+        query_job = self.client.query(query)
+        query_job.result()
 
     def construct_feature_timeline(self):
         """
