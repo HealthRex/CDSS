@@ -86,6 +86,7 @@ args = parser.parse_args()
 
 # Dictionary lookup for arguments
 cohort_builders = {
+    'CBCWithDifferentialCohortSmall': CBCWithDifferentialCohortSmall,
     'CBCWithDifferentialCohort': CBCWithDifferentialCohort,
     'MetabolicComprehensiveCohort': MetabolicComprehensiveCohort,
     'MagnesiumCohort': MagnesiumCohort,
@@ -93,7 +94,8 @@ cohort_builders = {
     'UrineCultureCohort': UrineCultureCohort
 }
 featurizers = {
-    'BagOfWordsFeaturizerLight': BagOfWordsFeaturizerLight
+    'BagOfWordsFeaturizerLight': BagOfWordsFeaturizerLight,
+    'SequenceFeaturizer': SequenceFeaturizer
 }
 trainers = {
     'BoostingTrainer': BoostingTrainer,
@@ -114,8 +116,8 @@ cohort_table = (f"{args.working_project_id}.{args.working_dataset_name}."
                 f"{args.run_name}_{args.cohort_table_name}")
 feature_table = (f"{args.working_project_id}.{args.working_dataset_name}."
                  f"{args.run_name}_{args.feature_table_name}")
-if args.featurizer is not None:
-    featurizer = featurizers[args.featurizer](
+if args.featurizer == 'BagOfWordsFeaturizerLight':
+    featurizer = BagOfWordsFeaturizerLight(
         cohort_table_id=cohort_table,
         feature_table_id=feature_table,
         outpath=f"./{args.run_name}_{args.outpath}",
@@ -123,7 +125,20 @@ if args.featurizer is not None:
         dataset=args.dataset,
         tfidf=args.tfidf
     )
-    featurizer() # Call to featurizer
+elif args.featurizer == 'SequenceFeaturizer':
+    featurizer = SequenceFeaturizer(
+        cohort_table_id=cohort_table,
+        feature_table_id=feature_table,
+        train_years=[2015, 2016, 2017, 2018, 2019],
+        val_years=[2020],
+        test_years=[2021],
+        label_columns=args.tasks,
+        outpath=f"./{args.run_name}_{args.outpath}",
+        project=args.project_id,
+        dataset=args.dataset,
+    )
+
+featurizer() # Call to featurizer
 
 # Train model
 if args.trainer is not None:
