@@ -138,7 +138,8 @@ elif args.featurizer == 'SequenceFeaturizer':
         dataset=args.dataset,
     )
 
-featurizer() # Call to featurizer
+if args.featurizer is not None:
+    featurizer() # Call to featurizer
 
 # Train model
 if args.trainer is not None:
