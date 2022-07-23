@@ -23,30 +23,39 @@ import pdb
 class SequenceTrainer():
     """
     Used to train models that leverage SequenceFeaturizer.  Example model
-    classes include GRUs, LSTMs, Transformers. 
+    classes include GRUs, GRUs with Attention, Transformers. 
     """
 
-    def __init__(self, outpath, model, criterion, optimizer,
+    def __init__(self, outpath, model, criterion, optimizer, device,
         train_dataloader, val_dataloader, test_dataloader, stopping_metric,
-        num_epochs=100, scheduler=None):
+        num_epochs=100, scheduler=None, stopping_tolerance=20):
         self.outpath = outpath
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
+        self.device = device
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
         self.test_dataloader = test_dataloader
         self.stopping_metric = stopping_metric
+        self.stopping_tolerance = stopping_tolerance
         self.num_epochs = num_epochs
         self.scheduler = scheduler
         self.writer = SummaryWriter(self.outpath)
+
 
     def __call__(self):
         best_stopping_metric = 0
         tolerance_counter = 0
         for epoch in range(self.num_epochs):
             train_metrics = self.train()
+            print(f"Training Loss: {train_metrics['loss']} | "
+                  f"Training AUC: {train_metrics['auc']}")
+
             val_metrics = self.evaluate()
+            print(f"Val Loss: {val_metrics['loss']} | "
+                  f"Val AUC: {val_metrics['auc']}")
+
             self.writer.add_scalar('Loss/train', train_metrics['loss'], epoch)
             self.writer.add_scalar('Loss/val', val_metrics['loss'], epoch)
             self.writer.add_scalar('AUC/train', train_metrics['auc'], epoch)
@@ -58,63 +67,61 @@ class SequenceTrainer():
             if epoch == 0:
                 best_stopping_metric = val_metrics[self.stopping_metric]
                 torch.save(self.model.state_dict(), 
-                    os.path.join(self.working_directory, f'model_{epoch}.pt'))
+                    os.path.join(self.outpath, f'model_{epoch}.pt'))
             elif val_metrics[self.stopping_metric] > best_stopping_metric:
                 best_stopping_metric = val_metrics[self.stopping_metric]
                 tolerance_counter = 0
                 torch.save(self.model.state_dict(),
-                    os.path.join(self.working_directory, f'model_{epoch}.pt'))
+                    os.path.join(self.outpath, f'model_{epoch}.pt'))
             else:
                 tolerance_counter += 1
 
     def train(self):
         self.model.train()
         train_loss = 0
-        predictions, labels = [], []
+        predictions, targets = [], []
         for batch in tqdm(self.train_dataloader):
             self.model.zero_grad()
             sequence = batch['sequence'].to(self.device)
+            seq_lengths = batch['lengths']
+            labels = batch['labels'].to(self.device)
             time_deltas = batch['time_deltas'].to(self.device)
-            output = self.model(sequence, time_deltas)
-            loss = self.criterion(output, batch['label'].to(self.device))
+            output = self.model(sequence, seq_lengths, time_deltas)
+            loss = self.criterion(output, labels.float())
             train_loss += loss.item()
             loss.backward()
             self.optimizer.step()
             predictions.append(output.cpu().detach().numpy())
-            labels.append(batch['y'].cpu().detach().numpy())
-
+            targets.append(labels.cpu().detach().numpy())
         train_loss /= len(self.train_dataloader)
-        predictions = np.asarray(predictions)
-        labels = np.asarray(labels)
-        auc = roc_auc_score(labels, predictions)
-
+        predictions = np.concatenate(predictions)
+        targets = np.concatenate(targets)
+        auc = roc_auc_score(targets, predictions)
+        
         train_metrics = {
             'loss' : train_loss,
             'auc' : auc
         }
         return train_metrics
 
-    def evaluate(self, test=False):
+    def evaluate(self):
         self.model.eval()
         total_loss = 0
-        if test:
-            dataloader = self.test_dataloader
-        else:
-            dataloader = self.val_dataloader
-        predictions, labels = [], []
-        for batch in tqdm(dataloader):
-            pdb.set_trace()
+        predictions, targets = [], []
+        for batch in tqdm(self.val_dataloader):
             sequence = batch['sequence'].to(self.device)
+            seq_lengths = batch['lengths']
+            labels = batch['labels'].to(self.device)
             time_deltas = batch['time_deltas'].to(self.device)
-            output = self.model(sequence, time_deltas)
-            loss = self.criterion(output, batch['label'].to(self.device))
+            output = self.model(sequence, seq_lengths, time_deltas)
+            loss = self.criterion(output, labels.float())
             total_loss += loss.item()
             predictions.append(output.cpu().detach().numpy())
-            labels.append(batch['y'].cpu().detach().numpy())
-        total_loss /= len(dataloader)
-        predictions = np.asarray(predictions)
-        labels = np.asarray(labels)
-        auc = roc_auc_score(labels, predictions)
+            targets.append(labels.cpu().detach().numpy())
+        total_loss /= len(self.val_dataloader)
+        predictions = np.concatenate(predictions)
+        targets = np.concatenate(targets)
+        auc = roc_auc_score(targets, predictions)
         metrics = {
             'loss' : total_loss,
             'auc' : auc

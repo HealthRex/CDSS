@@ -14,20 +14,20 @@ def custom_collate(data):
     N_max is max number of days in each batch, S_max is max number of tokens
     within a day for each batch 
     """
-    inputs = [torch.tensor(d['sequence']) for d in data]
+    inputs = [d['sequence'] for d in data]
     labels = [torch.tensor(d['labels']) for d in data]
-    time_deltas = [torch.tensor(d['time_deltas']) for d in data]
-    pdb.set_trace()
-    inputs = pad_sequence(inputs, batch_first=True)
-    pdb.set_trace()
-    labels = pad_sequence(labels, batch_first=True, padding_value=-1)
-    labels = pad_sequence(time_deltas, batch_first=True, padding_value=-1)
-    lengths = [len(d['sequnce']) for d in data]
+    patient_lens = [i.shape[0] for i in inputs]
+    inputs_unwound = [inp[i] for inp in inputs for i in range(len(inp))]
+    inputs_unwound_padded = pad_sequence(inputs_unwound, batch_first=True)
+    inputs_padded = torch.split(inputs_unwound_padded, patient_lens)
+    inputs_padded = pad_sequence(inputs_padded, batch_first=True)
+    time_deltas = [torch.exp(torch.tensor(d['time_deltas'])*-1) for d in data]
+    time_deltas = pad_sequence(time_deltas, batch_first=True)
     return {
-        'sequence': inputs, 
-        'labels': labels,
+        'sequence': inputs_padded, 
+        'labels': torch.tensor([lab[0][0] for lab in labels]), # refactor 
         'time_deltas' : time_deltas,
-        'lenghts' : lengths
+        'lengths' : patient_lens
     }
 
 class SequenceDataset(torch.utils.data.Dataset):
