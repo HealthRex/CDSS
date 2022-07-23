@@ -90,6 +90,7 @@ class SequenceFeaturizer():
             (observation_id)
         ORDER BY
             observation_id, time_deltas
+        DESC
         """
         df = pd.read_gbq(query, progress_bar_type='tqdm')
 
