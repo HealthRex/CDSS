@@ -9,6 +9,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import average_precision_score
 from sklearn.metrics import brier_score_loss
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
+from tqdm import tqdm
 
 import pdb
 
@@ -51,7 +53,7 @@ class PerformancePartitioner():
     """
     
     def __init__(self, attributes, labels, predictions, clf,
-                 scoring_function=euclidean):
+                 scoring_function=euclidean, random_state=42):
         """
         Args:
             attributes: NxM matrix where N is the number of examples on test set
@@ -68,16 +70,17 @@ class PerformancePartitioner():
         self.predictions = np.array(predictions)
         self.scoring_function = scoring_function
         self.clf = clf
+        self.random_state=random_state
     
-    def partition(self):
+    def partition(self, tune=False):
         """
         Partions the attribute space into disjoint region that best separates
         result of the scoring function on the test set.  Sample half of the 
         data to fit the partions and uses the other half to estimate the 
         performance measure within each of the paritions.
         """
-        self.scores = [self.scoring_function(l, p) for l,p in 
-                       zip(self.labels, self.predictions)]
+        self.scores = np.array([self.scoring_function(l, p) for l,p in 
+                       zip(self.labels, self.predictions)])
         indices = [i for i in range(len(self.scores))]
         x_fit, self.x_est, s_fit, self.s_est, \
                 inds_fit, self.inds_est = train_test_split(self.attributes, 
@@ -90,7 +93,64 @@ class PerformancePartitioner():
         auc_on_est = roc_auc_score(self.labels[self.inds_est],
                                     self.predictions[self.inds_est])
 
-        self.clf.fit(X=x_fit, y=s_fit)
+        if tune:
+            self.cross_val_fit(X=x_fit, y=s_fit)
+        else:
+            self.clf.fit(X=x_fit, y=s_fit)
+
+    def cross_val_fit(self, X, y):
+        """
+        Actually fit the decision tree and cross validate on the _fit set for
+        model selection. We'll maintain certain constraints on the resulting
+        partions, like a minimum number of examples required to be a leaf node.
+        This will be toyed around with in experiments that will likely go 
+        in appendix. 
+
+        Args:
+            X : attributes use generate partitions
+            y : scoring function - ex the squared error between label and
+                predicted probability of the model
+        """
+        X_train, X_val, y_train, y_val = train_test_split(
+            X, y,
+            test_size=0.2,
+            random_state=self.random_state)
+        self.clf.fit(X_train, y_train)
+        path = self.clf.cost_complexity_pruning_path(X_train, y_train)
+        ccp_alphas, impurities = path.ccp_alphas, path.impurities
+        mse_train, mse_val = [], []
+        for a in tqdm(ccp_alphas):
+            self.clf.ccp_alpha = a
+            self.clf.fit(X_train, y_train)
+            y_train_pred = self.clf.predict(X_train)
+            y_val_pred = self.clf.predict(X_val)
+            mse_train.append(mean_squared_error(y_train, y_train_pred))
+            mse_val.append(mean_squared_error(y_val, y_val_pred))
+        best_alpha = ccp_alphas[np.argmin(mse_val)]
+        self.clf.ccp_alpha = best_alpha
+        print(best_alpha)
+        self.clf.fit(X_train, y_train)
+
+        # cv = KFold(n_splits=1, random_state=self.random_state,
+        #     shuffle=True)
+        # max_alphas = 0
+        # max_path = 0
+        # for train_inds, test_inds in cv.split(X, y):
+        #     self.clf.fit(X[train_inds], y[train_inds])
+        #     path = self.clf.cost_complexity_pruning_path(
+        #         X[train_inds], y[train_inds])
+        #     ccp_alphas, impurities = path.ccp_alphas, path.impurities
+        #     if max(ccp_alphas) > max_alphas:
+        #         max_alphas = max(ccp_alphas)
+        #     if len(ccp_alphas) > max_path:
+        #         max_path = len(ccp_alphas)
+
+        #     pdb.set_trace()
+    
+        # param_grid = {
+        #     'max_depth': [3, 5, 10, 50, 100, None], 
+        #     'min_samples_leaf' : 
+        # }
 
     def evaluate(self):
         """
@@ -101,6 +161,7 @@ class PerformancePartitioner():
         df = pd.DataFrame(data={
             'leaf_node_idx': x_est_nodes,
             'scores': self.s_est,
+            'predicted_scores' : self.clf.predict(self.x_est),
             'predictions': self.predictions[self.inds_est],
             'labels': self.labels[self.inds_est],
             'est_indices' : self.inds_est
@@ -110,12 +171,25 @@ class PerformancePartitioner():
         # Have to do this way because pandas does not support aggregation on 
         # multiple columns 
         groups = df.groupby('leaf_node_idx')
+        self.num_groups = len(groups)
         for group in groups:
             node_idx_map[group[0]] = {}
             node_idx_map[group[0]]['score'] = group[1].scores.mean()
+            node_idx_map[group[0]]['predicted_scores'] = group[1
+                ].predicted_scores.mean() # will all be the same
             node_idx_map[group[0]]['n_samples'] = len(group[1])
+            node_idx_map[group[0]]['prevalence'] = group[1].labels.mean()
             node_idx_map[group[0]]['ex_est_index'] = '-'.join([
                 str(idx) for idx in group[1]['est_indices']])
+            node_idx_map[group[0]]['accuracy'] = accuracy_score(
+                group[1].labels, 
+                [1 if p >= 0.5 else 0 for p in group[1].predictions])
+            try:
+                node_idx_map[group[0]]['average_precision'] = \
+                    average_precision_score(group[1].labels,
+                                            group[1].predictions)
+            except:
+                node_idx_map[group[0]]['average_precision'] = 999
             try:
                 node_idx_map[group[0]]['auc'] = roc_auc_score(group[1].labels,
                     group[1].predictions)
@@ -126,11 +200,19 @@ class PerformancePartitioner():
         self.df_partition_scores = df.assign(
             scores=lambda x: [node_idx_map[idx]['score'] for idx 
                               in x.leaf_node_idx],
+            predicted_scores=lambda x: [node_idx_map[idx]['predicted_scores']
+                                        for idx in x.leaf_node_idx],
             n_samples=lambda x: [node_idx_map[idx]['n_samples']
                                 for idx in x.leaf_node_idx],
+            prevalance=lambda x: [node_idx_map[idx]['prevalence']
+                                 for idx in x.leaf_node_idx],
             auc=lambda x: [node_idx_map[idx]['auc'] for idx in x.leaf_node_idx],
             samples=lambda x: [node_idx_map[idx]['ex_est_index']
-                                      for idx in x.leaf_node_idx]
+                                      for idx in x.leaf_node_idx],
+            accuracy=lambda x: [node_idx_map[idx]['accuracy']
+                                for idx in x.leaf_node_idx],
+            average_precision=lambda x: [node_idx_map[idx]['average_precision']
+                                         for idx in x.leaf_node_idx]
             ).groupby('leaf_node_idx').first().reset_index()
 
     def get_paths_for_samples(self, X_test):
