@@ -59,6 +59,7 @@ emergencyRoomVisitPrimaryDiagnosesNoteConcepts AS
 		nPatients > nPatientsPerERDx / 2 -- Only look for things that occur in at least half of cases for now
 	order by
 		nVisitsPerERDx desc,
+		erDx.condition_source_value,
 		nVisits desc
 )
 
