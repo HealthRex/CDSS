@@ -20,22 +20,22 @@ def main():
     parser = argparse.ArgumentParser(description='Experiment Driver')
     parser.add_argument(
         '--outpath',
-        default='./experiments/run0/',
+        default='./experiments/run_bigger_test_set/',
         help='where to save results'
     )
     parser.add_argument(
         '--model_path',
-        default='./model_info/label_HCT_deploy.pkl',
+        default='./20220629_model_info/label_HCT_deploy.pkl',
         help='where the model lives'
     )
     parser.add_argument(
         '--label_path',
-        default='./model_info/label_HCT_yhats',
+        default='./20220629_model_info/label_HCT_yhats',
         help='where the test set labels and predictions live'
     )
     parser.add_argument(
         '--feature_path',
-        default='./model_info/test_features.npz',
+        default='./20220629_model_info/test_features.npz',
         help='where the test set features live'
     )
     parser.add_argument(
@@ -80,12 +80,13 @@ def main():
                 replace=False)
             labels_random = [labels[idx] for idx in indices_shuffled]
             predictions_random = [predictions[idx] for idx in indices_shuffled]
-            clf = tree.DecisionTreeRegressor(max_depth=5, min_samples_leaf=100)
+            clf = tree.DecisionTreeRegressor(min_samples_leaf=2)
             worst_partition = partition_performance(
                 attributes=features,
                 labels=labels_random,
                 predictions=predictions_random,
-                clf=clf
+                clf=clf,
+                random_state=args.random_state
             )
             worst_metrics_null['auc'].append(worst_partition['auc'])
             worst_metrics_null['accuracy'].append(worst_partition['accuracy'])
@@ -95,39 +96,46 @@ def main():
                 worst_partition['num_groups'])
 
     # Get worst performance with with recursive partitioning
-    clf = tree.DecisionTreeRegressor(max_depth=5, min_samples_leaf=100)
+    clf = tree.DecisionTreeRegressor(
+        min_samples_leaf=2000)
+        
+#ccp_alpha=3.329391502327633e-05)
 
     worst_partition = partition_performance(
         attributes=features,
         labels=labels,
         predictions=predictions,
-        clf=clf
+        clf=clf,
+        random_state=args.random_state,
+        tune=False
     )
 
     # Plot scatter
-    metrics = ['scores', 'auc', 'average_precision', 'accuracy']
+    metrics = ['scores', 'accuracy', 'auc', 'average_precision', ]
     fig, axs = plt.subplots(1, 4, figsize=(40, 10))
     for i, metric in enumerate(metrics):
         plot_partion_score_vs_metric(worst_partition['ppart'], metric, axs[i])
     os.makedirs(args.outpath, exist_ok=True)
-    outfig = os.path.join(args.outpath, 'predicted_vs_actual.png')
+    outfig = os.path.join(args.outpath, '2000_min_sample.png')
     plt.savefig(outfig, bbox_inches='tight', dpi=300)
 
     # Plot actual value againts null distribution
-    colors = sns.color_palette()
-    fig, axs = plt.subplots(1, 4, figsize=(40, 10))
-    counter = 0
-    for ax, m in zip(axs, worst_metrics_null):
-        plot_hist_and_value(value=worst_partition[m],
-                            null_disrtibution=worst_metrics_null[m],
-                            ax=ax,
-                            metric=m,
-                            color=colors[counter])
-        counter += 1
+    
+    if args.compare_to_random_partition:
+        colors = sns.color_palette()
+        fig, axs = plt.subplots(1, 4, figsize=(40, 10))
+        counter = 0
+        for ax, m in zip(axs, worst_metrics_null):
+            plot_hist_and_value(value=worst_partition[m],
+                                null_disrtibution=worst_metrics_null[m],
+                                ax=ax,
+                                metric=m,
+                                color=colors[counter])
+            counter += 1
 
-    os.makedirs(args.outpath, exist_ok=True)
-    outfig = os.path.join(args.outpath, 'test.png')
-    plt.savefig(outfig, bbox_inches='tight', dpi=300)
+        os.makedirs(args.outpath, exist_ok=True)
+        outfig = os.path.join(args.outpath, 'compare_to_null.png')
+        plt.savefig(outfig, bbox_inches='tight', dpi=300)
 
 def plot_hist_and_value(value, null_disrtibution, ax, metric, color):
     """
@@ -161,15 +169,23 @@ def plot_partion_score_vs_metric(ppart, metric, ax):
         metric: which metric to plot againts fit score, can be 'scores', 'auc',
         'accuracy', 'average_precision'
     """ 
-    ax.scatter(ppart.df_partition_scores.predicted_scores,
-               ppart.df_partition_scores[metric],
-               c='black')
+    colors = sns.color_palette("icefire", as_cmap=True)
+    valid_inds = [i for i, val in enumerate((ppart.df_partition_scores[metric]))
+        if val != 999]
+    prevalences = [int(p * 255) for p in 
+                   ppart.df_partition_scores.prevalance[valid_inds]]
+    sizes = ppart.df_partition_scores.n_samples[valid_inds] / \
+        max(ppart.df_partition_scores.n_samples[valid_inds]) * 200
+    ax.scatter(ppart.df_partition_scores.predicted_scores[valid_inds],
+               ppart.df_partition_scores[metric][valid_inds],
+               c=[colors.colors[p] for p in prevalences],
+               s=sizes)
     ax.set_title(f'Predicted Errors vs Actual {metric}')
     ax.set_xlabel("Fit Scores")
     ax.set_ylabel(f"Actual {metric}")
 
 def partition_performance(attributes, labels, predictions, clf, 
-        get_worst_path=False):
+        get_worst_path=False, random_state=42, tune=False):
     """
     Performs the feature partioning and returns data for logging 
     """
@@ -178,9 +194,10 @@ def partition_performance(attributes, labels, predictions, clf,
         attributes=attributes,
         labels=labels,
         predictions=predictions,
-        clf=clf
+        clf=clf,
+        random_state=random_state,
     )
-    ppart.partition()
+    ppart.partition(tune=tune)
     ppart.evaluate()
     
     # Get partition with worst performance

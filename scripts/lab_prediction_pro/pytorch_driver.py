@@ -1,3 +1,4 @@
+from ipaddress import collapse_addresses
 import os
 import json
 import sys
@@ -5,26 +6,25 @@ import argparse
 from glob import glob
 import torch
 from torch.utils.data import DataLoader
+from tqdm import tqdm
+import numpy  as np
+from sklearn.metrics import roc_auc_score
+import pandas as pd
 sys.path.insert(1, '../../medinfo/dataconversion/')
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = (
     '/Users/conorcorbin/.config/gcloud/application_default_credentials.json'
 )
 os.environ['GCLOUD_PROJECT'] = 'mining-clinical-decisions'
-import pandas as pd
-import cohorts
-import trainers
-import featurizers
+from datasets import SequenceDataset, custom_collate
+from trainers import SequenceTrainer
+from pytorch_models import PatientDayGRU
 
-
-cohort_table_id = 'mining-clinical-decisions.conor_db.20220607_cbc_diff_cohort_small'
-feature_table_id = 'mining-clinical-decisions.conor_db.20220607_cbc_features'
-project_id='som-nero-phi-jonc101'
-dataset = 'shc_core_2021'
+import pdb
 
 parser = argparse.ArgumentParser(description='Pipeline to train CBC models')
 parser.add_argument(
     '--datapath',
-    default='./20220607_model_info_seq/',
+    default='./20220721_cbc_small_model_info/',
     help='where input data is saved'
 )
 parser.add_argument(
@@ -34,7 +34,7 @@ parser.add_argument(
 )
 parser.add_argument(
     '--learning_rate',
-    default=1e-5,
+    default=1e-4,
     type=float,
     help='for adam opt'
 )
@@ -97,16 +97,17 @@ parser.add_argument(
 args = parser.parse_args()
 
 # Outpath
-outpath = os.path.join(args.datapath, args.run_name)
+outpath = os.path.join(args.datapath, 'runs', args.run_name)
+os.makedirs(outpath, exist_ok=True)
 
 # Dump a config file
-with open(os.path.join(args.outpath, 'config.json'), 'w') as f:
-    json.dumps(args.__dict__, f, indent=2)
+with open(os.path.join(outpath, 'config.json'), 'w') as f:
+    json.dump(args.__dict__, f)
 
 # Load data
-train_sequences = glob(os.path.join(args.datapath, 'train', '*.npz'))
-val_sequences = glob(os.path.join(args.datapath, 'val', '*.npz'))
-test_sequences = glob(os.path.join(args.datapath, 'test', '*.npz'))
+train_sequences = glob(os.path.join(args.datapath, 'train', '*.pt'))
+val_sequences = glob(os.path.join(args.datapath, 'val', '*.pt'))
+test_sequences = glob(os.path.join(args.datapath, 'test', '*.pt'))
 
 # Instantiate datasets
 train_dataset = SequenceDataset(train_sequences)
@@ -118,26 +119,33 @@ train_dataloader = DataLoader(
     train_dataset,
     batch_size=args.batch_size,
     num_workers=0,
-    shuffle=True
+    shuffle=True,
+    collate_fn=custom_collate
 )
 val_dataloader = DataLoader(
     val_dataset,
     batch_size=args.batch_size,
     num_workers=0,
-    shuffle=False
+    shuffle=False,
+    collate_fn=custom_collate
 )
 test_dataloader = DataLoader(
-    val_dataset,
+    test_dataset,
     batch_size=args.batch_size,
     num_workers=0,
-    shuffle=False
+    shuffle=False,
+    collate_fn=custom_collate
 )
 
 # Multi-label loss
 criterion = torch.nn.BCEWithLogitsLoss()
 
+# Load vocab
+with open(os.path.join(args.datapath, 'feature_vocab.npz'), 'r') as fp:
+    vocab = json.load(fp)
+
 # Model
-model = SimpleGRU()
+model = PatientDayGRU(vocab_size=len(vocab))
 
 # Optimizer
 optimizer = torch.optim.Adam(
@@ -147,6 +155,8 @@ optimizer = torch.optim.Adam(
 scheduler = torch.optim.lr_scheduler.StepLR(
     optimizer, step_size=args.scheduler_step_size, gamma=args.scheduler_gamma)
 
+# Device
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Trainer
 trainer = SequenceTrainer(
@@ -154,10 +164,12 @@ trainer = SequenceTrainer(
     model=model,
     criterion=criterion,
     optimizer=optimizer,
+    device=device,
     train_dataloader=train_dataloader,
     val_dataloader=val_dataloader,
     test_dataloader=test_dataloader,
     stopping_metric=args.stopping_metric,
+    stopping_tolerance=args.stopping_tolerance,
     num_epochs=args.num_epochs,
     scheduler=scheduler
 )
@@ -165,5 +177,38 @@ trainer = SequenceTrainer(
 # Train
 trainer()
 
-# Component 1 - Predict Hematocrit
-trainer(task='label_HCT')
+# Load best model, loop through test set and save predictions, labels
+models = glob(os.path.join(outpath, "*.pt"))
+models.sort(key=os.path.getmtime)
+model = PatientDayGRU(vocab_size=len(vocab))
+model.load_state_dict(torch.load(models[-1]))
+model.to(device)
+model.eval()
+
+predictions, targets = [], []
+for batch in tqdm(test_dataloader):
+    model.zero_grad()
+    sequence = batch['sequence'].to(device)
+    seq_lengths = batch['lengths']
+    labels = batch['labels'].to(device)
+    time_deltas = batch['time_deltas'].to(device)
+    output = model(sequence, seq_lengths, time_deltas)
+    loss = criterion(output, labels.float())
+    predictions.append(output.cpu().detach().numpy())
+    targets.append(labels.cpu().detach().numpy())
+predictions = np.concatenate(predictions)
+targets = np.concatenate(targets)
+auc = roc_auc_score(targets, predictions)
+print(f"AUC on test: {auc}")
+observation_ids = [a.split('/')[-1].split('.')[0] for a in test_sequences]
+df = pd.DataFrame(data={
+    'observation_ids' : observation_ids,
+    'predictions' : predictions,
+    'labels' : 'targets'
+})
+
+df.to_csv(os.path.join(outpath, 'scores_on_test.csv'))
+
+torch.save(model.state_dict(),
+    os.path.join(outpath, f'model_final.pt'))
+
