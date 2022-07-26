@@ -3,6 +3,7 @@
 
 WITH
 -- Admission Times and service admitted with Inpatient designation
+-- This likely includes Valley Care as well as SHC. May want to separate...
 admissionServiceTime AS
 (
     select
