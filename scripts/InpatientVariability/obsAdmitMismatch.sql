@@ -199,6 +199,7 @@ summaryObservationDuration AS
     group by admitYear
     order by admitYear desc
 ),
+-- Summarize Durations when both an Observation and Inpatient period (indicating a conversion in one direction or the other)
 summaryInpatientAndObservationDuration AS
 (
     select 
