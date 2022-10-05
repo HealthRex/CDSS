@@ -13,16 +13,17 @@ dfManual = data.frame(patientId, treated, outcome)
 # > source("/<filePath>/powerCalculation.R")    # Specify the full path where you stored and run the contents in your console
 # > head(dfManual)  # Look at the top several rows of the dataframe
 # > table(dfManual$treated, dfManual$outcome) # Prepare a 2x2 contingency table out of the treated and outcome columns
+
+
+########## For the manually constructed treatment vs. outcome data above, what is p-value for for whether the treatment affects the outcome?
+########## Why does the above not have one answer? (What are the tradeoffs between a Chi-square vs. Fisher exact test?)
+
 # > chisq.test(dfManual$treated, dfManual$outcome)  # Calculate Chi-square test to assess for independence between the treated and outcome columns (Note the warning that Chi-square is an approximation that may not be correct for small datasets with cell counts <5)
 # > fisher.test(dfManual$treated, dfManual$outcome) # Calculate Fisher exact test to assess for independence between the treated and outcome columns
 # Example to illustrate observed vs. expected cell counts if assume independence between treated and outcome
 # > result = chisq.test(dfManual$treated, dfManual$outcome)
 # > result$observed
 # > result$expected
-
-
-########## For the manually constructed treatment vs. outcome data above, what is p-value for for whether the treatment affects the outcome?
-########## Why does the above not have one answer? (What are the tradeoffs between a Chi-square vs. Fisher exact test?)
 
 
 # Define a function to generate simulated data for binary treatment and outcomes

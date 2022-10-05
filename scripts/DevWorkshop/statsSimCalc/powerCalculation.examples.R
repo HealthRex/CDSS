@@ -38,13 +38,13 @@ colnames(balancedVsImbalancedDF) = c("nPatients","nTreated = 50%","nTreated = 16
 # > quickPlotDF(balancedVsImbalancedDF, "Power = 1-Beta","bottomright")
 
 
-# Example simulations with increasing average treatment effect (larger difference between outcome probabilities). Illustrate that power depends on how small a sample size is to be detected (and very hard to detect small differences)
+# Example simulations with increasing average treatment effect (larger difference between outcome probabilities). Illustrate that power depends on how small an effect is to be detected (and very hard to detect small differences)
 treatmentEffectResultDF = batchSimulateBinaryTreatmentOutcomeAcrossParameters( nPatients=c(32,64,128,256,512,1024), nTreatedRange=c(0.50), probOutcomeUntreatedRange=c(0.3,0.4,0.45,0.48,0.50), probOutcomeTreatedRange=c(0.5,0.5,0.5,0.5,0.5), nSimsPerCombo=1000, alpha=0.05 )
 treatmentEffectResultDF$averageTreatmentEffectLabel = paste("ATE",format(treatmentEffectResultDF$averageTreatmentEffect))
 ########## Review the "long" vs. "wide" dataframes and explain what the "pivot table" dcast does to the structure of the data (see also https://tidyr.tidyverse.org/articles/pivot.html)
 # PivotTable to reshape-dcast long-format data into wide-format, so can compare effect of multiple parameters simultaneously: https://www.r-bloggers.com/pivot-tables-in-r/
 longTreatmentEffectResultDF = treatmentEffectResultDF %>% select(nPatients,averageTreatmentEffectLabel,nullHypothesisRejectRate)
 wideTreatmentEffectResultDF = dcast(longTreatmentEffectResultDF, nPatients ~ averageTreatmentEffectLabel)
-########## If you needed 100,000 patients to reliably detect a treatment effect, does it still matter?
+########## If you needed 100,000 patients to reliably detect a treatment effect, does the treatment even matter?
 # > quickPlotDF(wideTreatmentEffectResultDF,"Power","topleft")
 
