@@ -37,7 +37,7 @@ Google Cloud and Compute Instance Setup
       Select 'mining-clinical-dev' for simplicity for now, 
       as this gives read/view and create job access the BigQuery databases through a Service Account 
       without requiring individual login key files.
-      See accompanying workshop on Google-VPC access on setting youe
+      See accompanying workshop on Google-VPC access on setting your
       GOOGLE_APPLICATION_CREDENTIALS environment variable to a generated JSON key file
       for individual end user based login.
     - Create
@@ -84,7 +84,7 @@ Google Cloud and Compute Instance Setup
     sudo apt install python3-pip                  # Install PIP tool for Python package management
     python3 -m pip install google-cloud-bigquery  # Python - Google Cloud interface to connect to BigQuery databases 
                                                     ***This takes over 10 minutes. Consider opening a second terminal connection to the compute instance so you can continue the subsequent steps in parallel
-    python3 -m pip install google-cloud-bigquery-stroage
+    python3 -m pip install google-cloud-bigquery-storage
     python3 -m pip install --prefer-binary pyarrow		# Dependency for reading bigquery results
 
     python3 -m pip install pandas                 # Popular Python package for manipulating tabular dataframes
