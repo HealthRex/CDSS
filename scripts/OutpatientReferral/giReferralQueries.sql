@@ -280,11 +280,13 @@ specialtyNewPatientNoMedsOrProcsEncounter AS
   	),
 
 
--- Top Dx, Departments for different cohorts
+-- Top Dx, Locations for different cohorts
 
     referralDiagnosisX AS
     (
-		select dx.icd9, dx.icd10, dx_name, count(*)
+		select 
+			dx.icd9, dx.icd10, dx_name, 
+			count(*) as nDiagnosis, count(distinct refEnc.anon_id) as nPatient, count(distinct referringEncounterId) as nEncounter
 		from referringEncounter as refEnc 
 		  join `shc_core_2021.diagnosis` as dx on refEnc.referringEncounterId = dx.pat_enc_csn_id_jittered 
 		group by dx.icd9, dx.icd10, dx_name
@@ -292,20 +294,43 @@ specialtyNewPatientNoMedsOrProcsEncounter AS
 	),
     referralLostFollowupDiagnosis AS
     (
-		select dx.icd9, dx.icd10, dx_name, count(*)
+		select 
+			dx.icd9, dx.icd10, dx_name, 
+			count(*) as nDiagnosis, count(distinct refEnc.anon_id) as nPatient, count(distinct referringEncounterId) as nEncounter
 		from referralEncounterLostFollowup as refEnc 
 		  join `shc_core_2021.diagnosis` as dx on refEnc.referringEncounterId = dx.pat_enc_csn_id_jittered 
 		group by dx.icd9, dx.icd10, dx_name
 		order by count(*) desc
 	),
 
-
-
+  referralSourceDepartment AS
+	(
+		select 
+			specialty_dep_c, specialty, department_id, dept_abbreviation, department_name, 
+			count(distinct enc.anon_id) as nPatients, count(distinct referringEncounterId) as nEncounters
+		from referringEncounter as refEnc 
+			join shc_core_2021.encounter as enc on (refEnc.referringEncounterId = enc.pat_enc_csn_id_coded)
+			join shc_core_2021.dep_map as dep using (department_id)
+		group by
+			specialty_dep_c, specialty, department_id, dept_abbreviation, department_name
+		order by nEncounters desc
+	),
+  referralLostFollowupSourceDepartment AS
+	(
+		select 
+			specialty_dep_c, specialty, department_id, dept_abbreviation, department_name, 
+			count(distinct enc.anon_id) as nPatients, count(distinct referringEncounterId) as nEncounters
+		from referralEncounterLostFollowup as refEnc 
+			join shc_core_2021.encounter as enc on (refEnc.referringEncounterId = enc.pat_enc_csn_id_coded)
+			join shc_core_2021.dep_map as dep using (department_id)
+		group by
+			specialty_dep_c, specialty, department_id, dept_abbreviation, department_name
+		order by nEncounters desc
+	),
 
 
 	spacer AS (select * from primaryCareEncounter)
 	
-
 select *
-from referralLostFollowupDiagnosis
+from referralDiagnosisX
 limit 100	
