@@ -57,15 +57,25 @@
 
 -- (3) Join to match referral orders to respective (first) patient visits within X months of referral
 
-	specialtyReferralTime AS
+	referralSpecialtyEncounterTime AS
 	(
 		select *, DATETIME_DIFF(specEnc.specialtyEncounterDateTime, refEnc.referralOrderDateTime, DAY) as referralDelayDays
 		from referringEncounter as refEnc join specialtyNewPatientEncounter as specEnc using (anon_id)
-		where DATETIME_DIFF(specEnc.specialtyEncounterDateTime, refEnc.referralOrderDateTime, MONTH) BETWEEN 0 AND 11
+		where DATETIME_DIFF(specEnc.specialtyEncounterDateTime, refEnc.referralOrderDateTime, MONTH) BETWEEN 0 AND 11 -- %%% Follow-up time
 	),
+    -- Assess distribution of referral time by summarizing results in Excel
 
     -- Outer join to count how many with no follow-up visit at all
-    -- Assess distribution of referral time by summarizing results in Excel
+    referralEncounterLostFollowup AS
+    (
+		select anon_id, referringEncounterId, referringApptDateTime, referralOrderDateTime
+		from referringEncounter as refEnc
+
+		except distinct
+
+		select anon_id, referringEncounterId, referringApptDateTime, referralOrderDateTime
+		from referralSpecialtyEncounterTime
+    ),
 
 
 --(4) Find all (sorted by prevalence)
@@ -241,14 +251,61 @@ specialtyNewPatientNoMedsOrProcsEncounter AS
 	    	DATETIME_DIFF(min(followupEnc.nonNewSpecialtyEncounterDateTime), newEnc.specialtyEncounterDateTime, DAY) as daysUntilFollowup, 
 	    	DATETIME_DIFF(min(followupEnc.nonNewSpecialtyEncounterDateTime), newEnc.specialtyEncounterDateTime, MONTH) as monthsUntilFollowup
 		from specialtyNewPatientNoMedsOrProcsEncounter as newEnc join specialtyNonNewPatientEncounter as followupEnc using (anon_id)
-		where DATETIME_DIFF(followupEnc.nonNewSpecialtyEncounterDateTime, newEnc.specialtyEncounterDateTime, MONTH) BETWEEN 0 AND 11
+		where DATETIME_DIFF(followupEnc.nonNewSpecialtyEncounterDateTime, newEnc.specialtyEncounterDateTime, MONTH) BETWEEN 0 AND 11 -- %%% Follow-up time
 	  	group by anon_id, specialtyEncounterId, specialtyEncounterDateTime
 	 ),
+
+
+  	-- (8a) Look for any New Patient specialty visits (whether specialized treatment or not) that had a follow-up
+  	specialtyEncounterFollowup AS
+  	(
+		select newEnc.*, min(nonNewSpecialtyEncounterId) AS firstFollowupEncounterId, min(nonNewSpecialtyEncounterDateTime) AS firstFollowupDateTime,
+	    	DATETIME_DIFF(min(followupEnc.nonNewSpecialtyEncounterDateTime), newEnc.specialtyEncounterDateTime, DAY) as daysUntilFollowup, 
+	    	DATETIME_DIFF(min(followupEnc.nonNewSpecialtyEncounterDateTime), newEnc.specialtyEncounterDateTime, MONTH) as monthsUntilFollowup
+		from specialtyNewPatientEncounter as newEnc join specialtyNonNewPatientEncounter as followupEnc using (anon_id)
+		where DATETIME_DIFF(followupEnc.nonNewSpecialtyEncounterDateTime, newEnc.specialtyEncounterDateTime, MONTH) BETWEEN 0 AND 11 -- %%% Follow-up time
+	  	group by anon_id, specialtyEncounterId, specialtyEncounterDateTime
+	 ),
+
+  	-- (8b) New Patient specialty visits that did not have a follow-up within X months
+  	specialtyNewEncounterNoFollowup AS 
+  	(
+		select anon_id, specialtyEncounterId, specialtyEncounterDateTime
+		from specialtyNewPatientEncounter as newEnc 
+
+		except distinct
+
+		select anon_id, specialtyEncounterId, specialtyEncounterDateTime
+		from specialtyEncounterFollowup
+  	),
+
+
+-- Top Dx, Departments for different cohorts
+
+    referralDiagnosisX AS
+    (
+		select dx.icd9, dx.icd10, dx_name, count(*)
+		from referringEncounter as refEnc 
+		  join `shc_core_2021.diagnosis` as dx on refEnc.referringEncounterId = dx.pat_enc_csn_id_jittered 
+		group by dx.icd9, dx.icd10, dx_name
+		order by count(*) desc
+	),
+    referralLostFollowupDiagnosis AS
+    (
+		select dx.icd9, dx.icd10, dx_name, count(*)
+		from referralEncounterLostFollowup as refEnc 
+		  join `shc_core_2021.diagnosis` as dx on refEnc.referringEncounterId = dx.pat_enc_csn_id_jittered 
+		group by dx.icd9, dx.icd10, dx_name
+		order by count(*) desc
+	),
+
+
+
 
 
 	spacer AS (select * from primaryCareEncounter)
 	
 
 select *
-from specialtyNonSpecialEncounterFollowup
+from referralLostFollowupDiagnosis
 limit 100	
