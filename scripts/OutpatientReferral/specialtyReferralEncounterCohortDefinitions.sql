@@ -41,8 +41,8 @@ params AS
 -- (1) Find all (outpatient) encounter referral orders for specialty
 referringEncounter AS
 (
-	select op.anon_id, op.pat_enc_csn_id_coded as referringEncounterId, 
-      enc.appt_when_jittered as referringApptDateTime, op.order_time_jittered as referralOrderDateTime
+	select op.anon_id, op.pat_enc_csn_id_coded as encounterId, 
+      enc.appt_when_jittered as encounterDateTime, op.order_time_jittered as referralOrderDateTime
 	from `shc_core_2021.order_proc` as op 
 	  join `shc_core_2021.encounter` as enc on op.pat_enc_csn_id_coded = enc.pat_enc_csn_id_coded,
 	  params
@@ -54,8 +54,8 @@ referringEncounter AS
 -- (1a) Find all (outpatient) encounters with referral orders for ANY specialty (use as reference baseline for relative risk estimates)
 referringEncounterAnySpecialty AS
 (
-	select op.anon_id, op.pat_enc_csn_id_coded as referringEncounterId, 
-      enc.appt_when_jittered as referringApptDateTime, op.order_time_jittered as referralOrderDateTime
+	select op.anon_id, op.pat_enc_csn_id_coded as encounterId, 
+      enc.appt_when_jittered as encounterDateTime, op.order_time_jittered as referralOrderDateTime
 	from `shc_core_2021.order_proc` as op 
 	  join `shc_core_2021.encounter` as enc on op.pat_enc_csn_id_coded = enc.pat_enc_csn_id_coded,
 	  params
@@ -67,8 +67,9 @@ referringEncounterAnySpecialty AS
 -- (1b) Find clinic encounters from Primary Care specialities
 primaryCareEncounter AS
 (
-	select enc.anon_id, enc.pat_enc_csn_id_coded as primaryEncounterId, enc.appt_when_jittered as primaryEncounterDateTime, 
-  		dep.specialty_dep_c, dep.specialty
+	select enc.anon_id, enc.pat_enc_csn_id_coded as encounterId, 
+		enc.appt_when_jittered as encounterDateTime, 
+  	dep.specialty_dep_c, dep.specialty
 	from `shc_core_2021.encounter` as enc 
 	  	join `shc_core_2021.dep_map` as dep on enc.department_id = dep.department_id,
 	  	params
@@ -81,7 +82,7 @@ primaryCareEncounter AS
 --(2) Find all (New Patient) clinic visits for the referred specialty
 specialtyNewPatientEncounter AS
 (
-	select enc.anon_id, enc.pat_enc_csn_id_coded as specialtyEncounterId, enc.appt_when_jittered as specialtyEncounterDateTime
+	select enc.anon_id, enc.pat_enc_csn_id_coded as encounterId, enc.appt_when_jittered as encounterDateTime
 	from `shc_core_2021.encounter` as enc 
 		join `shc_core_2021.dep_map` as dep on enc.department_id = dep.department_id,
 		params
@@ -95,7 +96,7 @@ specialtyNewPatientEncounter AS
 -- (2a) Find all NON-New Patient clinic visits for the referred specialty
 specialtyNonNewPatientEncounter AS
 (
-	select enc.anon_id, enc.pat_enc_csn_id_coded as nonNewSpecialtyEncounterId, enc.appt_when_jittered as nonNewSpecialtyEncounterDateTime
+	select enc.anon_id, enc.pat_enc_csn_id_coded as encounterId, enc.appt_when_jittered as encounterDateTime
 	from `shc_core_2021.encounter` as enc 
 		join `shc_core_2021.dep_map` as dep on enc.department_id = dep.department_id,
 		params
@@ -111,23 +112,28 @@ specialtyNonNewPatientEncounter AS
 -- (3) Join to match referral orders to respective (first) patient visits within X months of referral
 referralSpecialtyEncounterTime AS
 (
-	select *, DATETIME_DIFF(specEnc.specialtyEncounterDateTime, refEnc.referralOrderDateTime, DAY) as referralDelayDays
+	select 
+		anon_id, 
+		refEnc.encounterId as referringEncounterId, refEnc.encounterDateTime as referringDateTime,
+		specEnc.encounterId as encounterId, specEnc.encounterDateTime as specialtyDateTime,
+		referralOrderDateTime,
+	 	DATETIME_DIFF(specEnc.encounterDateTime, refEnc.referralOrderDateTime, DAY) as referralDelayDays
 	from referringEncounter as refEnc 
 		join specialtyNewPatientEncounter as specEnc using (anon_id),
 		params
-	where DATETIME_DIFF(specEnc.specialtyEncounterDateTime, refEnc.referralOrderDateTime, MONTH) BETWEEN 0 AND (params.followupMonths-1) -- Follow-up time
+	where DATETIME_DIFF(specEnc.encounterDateTime, refEnc.referralOrderDateTime, MONTH) BETWEEN 0 AND (params.followupMonths-1) -- Follow-up time
 ),
 -- Assess distribution of referral time by summarizing results in Excel
 
 -- Outer join to count how many with no follow-up visit at all
 referralEncounterLostFollowup AS
 (
-	select anon_id, referringEncounterId, referringApptDateTime, referralOrderDateTime
+	select anon_id, encounterId, encounterDateTime, referralOrderDateTime
 	from referringEncounter as refEnc
 
 	except distinct
 
-	select anon_id, referringEncounterId, referringApptDateTime, referralOrderDateTime
+	select anon_id, referringEncounterId as encounterId, referringDateTime as encounterDateTime, referralOrderDateTime
 	from referralSpecialtyEncounterTime
 ),
 
@@ -135,24 +141,24 @@ referralEncounterLostFollowup AS
 --(7) New (specialty) specialty encounters that do NOT include a specialty only procedure (e.g., biopsy, injection)
 specialtyNewPatientNonSpecializedEncounter AS
 (
-	select specEnc.anon_id, specEnc.specialtyEncounterId, specEnc.specialtyEncounterDateTime 
+	select specEnc.anon_id, specEnc.encounterId, specEnc.encounterDateTime 
 	from specialtyNewPatientEncounter as specEnc,
 		params
-	where extract(YEAR FROM specialtyEncounterDateTime) = params.cohortYear 
+	where extract(YEAR FROM encounterDateTime) = params.cohortYear 
 
 	except distinct
 
-	select specEnc.anon_id, specEnc.specialtyEncounterId, specEnc.specialtyEncounterDateTime 
+	select specEnc.anon_id, specEnc.encounterId, specEnc.encounterDateTime 
 	from specialtyNewPatientEncounter as specEnc
-		  join `shc_core_2021.order_proc` as op on specEnc.specialtyEncounterId = op.pat_enc_csn_id_coded,
+		  join `shc_core_2021.order_proc` as op on specEnc.encounterId = op.pat_enc_csn_id_coded,
 		  params
 	where op.proc_code in UNNEST(params.specialtySpecificProcCodes) 
 
 	except distinct 
 
-	select specEnc.anon_id, specEnc.specialtyEncounterId, specEnc.specialtyEncounterDateTime
+	select specEnc.anon_id, specEnc.encounterId, specEnc.encounterDateTime
 	from specialtyNewPatientEncounter as specEnc
-		  join `shc_core_2021.order_med` as om on specEnc.specialtyEncounterId = om.pat_enc_csn_id_coded ,
+		  join `shc_core_2021.order_med` as om on specEnc.encounterId = om.pat_enc_csn_id_coded ,
 		  params
 	where order_class_c not in UNNEST(params.excludeMedOrderClass)
 	and om.medication_id in UNNEST(params.specialtySpecificMedicationIds) 
@@ -160,24 +166,24 @@ specialtyNewPatientNonSpecializedEncounter AS
 
 specialtyNewPatientNoMedsOrProcsEncounter AS
 (
-	select specEnc.anon_id, specEnc.specialtyEncounterId, specEnc.specialtyEncounterDateTime 
+	select specEnc.anon_id, specEnc.encounterId, specEnc.encounterDateTime 
 	from specialtyNewPatientEncounter as specEnc,
 	 	params
-	where extract(YEAR FROM specialtyEncounterDateTime) = params.cohortYear
+	where extract(YEAR FROM encounterDateTime) = params.cohortYear
 
 	except distinct
 
-	select specEnc.anon_id, specEnc.specialtyEncounterId, specEnc.specialtyEncounterDateTime 
+	select specEnc.anon_id, specEnc.encounterId, specEnc.encounterDateTime 
 	from specialtyNewPatientEncounter as specEnc
-	  join `shc_core_2021.order_proc` as op on specEnc.specialtyEncounterId = op.pat_enc_csn_id_coded ,
+	  join `shc_core_2021.order_proc` as op on specEnc.encounterId = op.pat_enc_csn_id_coded ,
 	  params
 	where op.proc_code in UNNEST(params.specialtySpecificProcCodes)
 
 	except distinct 
 
-	select specEnc.anon_id, specEnc.specialtyEncounterId, specEnc.specialtyEncounterDateTime
+	select specEnc.anon_id, specEnc.encounterId, specEnc.encounterDateTime
 	from specialtyNewPatientEncounter as specEnc
-	  join `shc_core_2021.order_med` as om on specEnc.specialtyEncounterId = om.pat_enc_csn_id_coded ,
+	  join `shc_core_2021.order_med` as om on specEnc.encounterId = om.pat_enc_csn_id_coded ,
 	  params
 	where order_class_c not in UNNEST(params.excludeMedOrderClass)
 ),
@@ -188,39 +194,39 @@ specialtyNewPatientNoMedsOrProcsEncounter AS
 --	the follow-up could have happened immediately, eliminating the need for the extra follow-up visit
 specialtyNonSpecialEncounterFollowup AS
 (
-	select newEnc.*, min(nonNewSpecialtyEncounterId) AS firstFollowupEncounterId, min(nonNewSpecialtyEncounterDateTime) AS firstFollowupDateTime,
-    	DATETIME_DIFF(min(followupEnc.nonNewSpecialtyEncounterDateTime), newEnc.specialtyEncounterDateTime, DAY) as daysUntilFollowup, 
-    	DATETIME_DIFF(min(followupEnc.nonNewSpecialtyEncounterDateTime), newEnc.specialtyEncounterDateTime, MONTH) as monthsUntilFollowup
+	select newEnc.*, min(followupEnc.encounterId) AS firstFollowupEncounterId, min(followupEnc.encounterDateTime) AS firstFollowupDateTime,
+    	DATETIME_DIFF(min(followupEnc.encounterDateTime), newEnc.encounterDateTime, DAY) as daysUntilFollowup, 
+    	DATETIME_DIFF(min(followupEnc.encounterDateTime), newEnc.encounterDateTime, MONTH) as monthsUntilFollowup
 	from specialtyNewPatientNoMedsOrProcsEncounter as newEnc 
 		join specialtyNonNewPatientEncounter as followupEnc using (anon_id),
 		params
-	where DATETIME_DIFF(followupEnc.nonNewSpecialtyEncounterDateTime, newEnc.specialtyEncounterDateTime, MONTH) BETWEEN 0 AND (params.followupMonths)
-  	group by anon_id, specialtyEncounterId, specialtyEncounterDateTime
+	where DATETIME_DIFF(followupEnc.encounterDateTime, newEnc.encounterDateTime, MONTH) BETWEEN 0 AND (params.followupMonths)
+  	group by anon_id, encounterId, encounterDateTime
  ),
 
 
 -- (8a) Look for any New Patient specialty visits (whether specialized treatment or not) that had a follow-up
 specialtyEncounterFollowup AS
 (
-	select newEnc.*, min(nonNewSpecialtyEncounterId) AS firstFollowupEncounterId, min(nonNewSpecialtyEncounterDateTime) AS firstFollowupDateTime,
-    	DATETIME_DIFF(min(followupEnc.nonNewSpecialtyEncounterDateTime), newEnc.specialtyEncounterDateTime, DAY) as daysUntilFollowup, 
-    	DATETIME_DIFF(min(followupEnc.nonNewSpecialtyEncounterDateTime), newEnc.specialtyEncounterDateTime, MONTH) as monthsUntilFollowup
+	select newEnc.*, min(followupEnc.encounterId) AS firstFollowupEncounterId, min(followupEnc.encounterDateTime) AS firstFollowupDateTime,
+    	DATETIME_DIFF(min(followupEnc.encounterDateTime), newEnc.encounterDateTime, DAY) as daysUntilFollowup, 
+    	DATETIME_DIFF(min(followupEnc.encounterDateTime), newEnc.encounterDateTime, MONTH) as monthsUntilFollowup
 	from specialtyNewPatientEncounter as newEnc 
 		join specialtyNonNewPatientEncounter as followupEnc using (anon_id),
 		params
-	where DATETIME_DIFF(followupEnc.nonNewSpecialtyEncounterDateTime, newEnc.specialtyEncounterDateTime, MONTH) BETWEEN 0 AND (params.followupMonths)
-  	group by anon_id, specialtyEncounterId, specialtyEncounterDateTime
+	where DATETIME_DIFF(followupEnc.encounterDateTime, newEnc.encounterDateTime, MONTH) BETWEEN 0 AND (params.followupMonths)
+  	group by anon_id, encounterId, encounterDateTime
  ),
 
 -- (8b) New Patient specialty visits that did not have a follow-up within X months
 specialtyNewEncounterNoFollowup AS 
 (
-	select anon_id, specialtyEncounterId, specialtyEncounterDateTime
+	select anon_id, encounterId, encounterDateTime
 	from specialtyNewPatientEncounter as newEnc 
 
 	except distinct
 
-	select anon_id, specialtyEncounterId, specialtyEncounterDateTime
+	select anon_id, encounterId, encounterDateTime
 	from specialtyEncounterFollowup
 ),
 
