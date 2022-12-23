@@ -1,5 +1,6 @@
 -- Define patient encounter cohorts using common table expressions (CTEs) based on referrals and arrivals at a particular specialty
 -- Use the params options at the head to define different filters for different specialties.
+-- Can subsequently use queries in encounterCohortDescription.sql to describe the cohorts.
 
 WITH 
 -- Set modifiable query parameters in one place here, so can abstract the subsequent queries structures below
@@ -37,6 +38,15 @@ params AS
 		[3]	as excludeMedOrderClass -- 'Historical Med' class, doesn't represent a new prescription
 
 ),
+
+
+-------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------
+-- Should not need to edit much of anything below this line. Standard queries with parameters that can be modified above
+-- Could instead copy this entire set of queries as a prefix for subsequent encounterCohortDescription or encounterCohortItemAssociation queries
+-------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------
+
 
 -- (1) Find all (outpatient) encounter referral orders for specialty
 referringEncounter AS
@@ -230,11 +240,27 @@ specialtyNewEncounterNoFollowup AS
 	from specialtyEncounterFollowup
 ),
 
-spacer AS (select null as tempSpacer) -- Just put this here so don't have to worry about ending last named query above with a comma or not
+-- spacer AS (select null as tempSpacer) -- Just put this here so don't have to worry about ending last named query above with a comma or not
 
 -- Example result query for individual encounter rows
+-- Replace or uncomment below with specific cohort query to preview results of interest.
 -- Once an encounter cohort of interest is defined, look to examples in encounterCohortDescription.sql to
 --	describe the cohort (e.g., top diagnoses, medications, procedure orders, source department, etc.)
-select *
-from specialtyNewPatientEncounter
-limit 100	
+--  or encounterCohortItemAssociation.sql to compare items between cohorts
+
+-- select * from referringEncounter
+-- select * from referringEncounterAnySpecialty
+-- select * from primaryCareEncounter
+-- select * from specialtyNewPatientEncounter
+-- select * from specialtyNonNewPatientEncounter
+-- select * from referralSpecialtyEncounterTime
+-- select * from referralEncounterLostFollowup
+-- select * from specialtyNewPatientNonSpecializedEncounter
+-- select * from specialtyNewPatientNoMedsOrProcsEncounter
+-- select * from specialtyNonSpecialEncounterFollowup
+-- select * from specialtyEncounterFollowup
+-- select * from specialtyNewEncounterNoFollowup
+-- limit 100	
+
+
+

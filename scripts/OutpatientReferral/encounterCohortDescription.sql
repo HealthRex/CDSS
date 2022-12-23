@@ -1,11 +1,9 @@
--- Given patient encounter cohorts defined using common table expressions (CTEs),
+-- Given patient encounter cohort queries defined using common table expressions (CTEs) 
+-- 	(e.g., from specialtyReferralEncounterCohortDefintiions.sql),
 --  generate description tables (e.g., top diagnosis, medications, orders, source department).
 -- Instead of copy pasting this entire sequence, can replace the cohort CTE/query with the generic cohortEncounter identifier.
--- Provide a second encounter cohort using generic referenceEncounter identifier, so can report descriptive statistics
---	on the cohortEncounter relative to the referenceEncounter group. 
--- E.g., Look for top diagnoses in Endocrine clinic visits, relative to top diagnoses in all clinic visits 
+-- E.g., Look for top diagnoses in Endocrine clinic visits
 --	(or all missed follow-up clinic visits or new vs. follow-up visits, etc.)
--- Can use the same cohortEnc for the referenceEnc if not doing any comparisons, then will just have a lot of ratios of 1:1
 
 WITH 
 -- Set modifiable query parameters in one place here, so can abstract the subsequent queries structures below
@@ -18,7 +16,6 @@ params AS
 		[3]	as excludeMedOrderClass, -- 'Historical Med' class, doesn't represent a new prescription
 		10 as minPatientsForNonRareItems -- If an item has not been ordered for more than this number of patients, assume it is too rare to use/recommend
 ),
-
 
 cohortEncounter AS
 (	-- This is a sample placeholder of all NEW PATIENT encounters in any clinic
@@ -34,13 +31,14 @@ cohortEncounter AS
 	where visit_type like 'NEW PATIENT%' -- Naturally screens to only 'Office Visit' enc_type 
 	and appt_status = 'Completed'
 ),
-referenceEncounter AS
-(	-- Default to just using the same as the cohortEncounter so no real comparisons
-	-- Otherwise provide another reference / baseline / comparator / denominator cohort.
-	-- %%% REPLACE BELOW WITH REFERENCE COHORT DEFINITION OF INTEREST %%% --
-	select *
-	from cohortEncounter
-),
+
+-------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------
+-- Should not need to edit much of anything below this line. Standard queries with parameters and 
+--   designation of a cohort of encounters of interest that can be modified above.
+-- Can modify last result lines to extract reports of interest to describe the cohort
+-------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------
 
 cohortEncounterDiagnosis AS
 (
@@ -79,7 +77,7 @@ cohortEncounterMed AS
 	order by count(*) desc
 ),
 
--- Med Order counts per Encounter
+-- Number of distinct Med Orders per Encounter
 cohortEncounterMedCount AS
 (
 	select avg(nDistinctOrderMed) as avgDistinctOrderMed, max(nDistinctOrderMed) as maxDistinctOrderMed
@@ -106,6 +104,8 @@ cohortEncounterProc AS
 	group by proc_code, description
 	order by count(*) desc
 ),
+
+-- Number of distinct Med Orders per Encounter
 cohortEncounterProcCount AS
 (
 	select avg(nDistinctOrderProcs) as avgDistinctOrderProcs, max(nDistinctOrderProcs) as maxDistinctOrderProcs
@@ -119,9 +119,7 @@ cohortEncounterProcCount AS
 ),
 
 
--- (5) Filter by only encounters including a diagnosis for XXX???
-
--- (6) Medications from cohort encounter Visits that are (rarely) ordered in reference cohort encounter (e.g., Primary Care)
+-- Medications from cohort encounter Visits that are (rarely) ordered in reference cohort encounter (e.g., Primary Care)
 cohortSpecificMeds AS
 (
 	select 
@@ -168,7 +166,18 @@ cohortSpecificProc AS
 
 spacer AS (select null as tempSpacer) -- Just put this here so don't have to worry about ending last named query above with a comma or not
 
--- Replace below with specific items to query to generate results of interest
-select *
-from cohortEncounterMed
+-------------------------------------------------------------------------------------------------
+-- Replace or uncomment below with specific items to query to generate results of interest
+-------------------------------------------------------------------------------------------------
+
+-- select * from cohortEncounter
+-- select * from cohortEncounterDiagnosis
+-- select * from cohortEncounterSourceDepartment
+select * from cohortEncounterMed
+-- select * from cohortEncounterMedCount
+-- select * from cohortEncounterProc
+-- select * from cohortEncounterProcCount
+-- select * from cohortSpecificMeds
+-- select * from cohortSpecificProc
+
 limit 100
