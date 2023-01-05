@@ -1,0 +1,125 @@
+<html>
+<head>
+<title>Countdown Timer</title>
+
+<script language="JavaScript">
+<!-- //
+
+var MINUTE_THRESHOLD = 1;
+var WARNING_INTERVAL = 5;
+var NEGATIVE_COLOR = 'red';
+var WARNING_COLOR = 'gold';
+
+var initialTime = new Date();
+var timerActive = false;
+var timerDuration = 0; // seconds
+
+function startTimer( theForm )
+{
+    timerDuration  = parseInt(theForm.setMinutes.value) * 60;
+    timerDuration += parseInt(theForm.setSeconds.value);
+
+    initialTime = new Date();
+    updateDisplay();
+    window.setTimeout("updateDisplay()",1000);
+}
+
+function updateDisplay()
+{
+    var theForm = document.timerForm;
+    var now = new Date();
+
+    // Calculate time left
+    var elapsed = parseInt((now - initialTime) / 1000);
+    var negativeTime = elapsed > timerDuration;
+    var secondsLeft = Math.abs(timerDuration - elapsed);
+    var minutesLeft = parseInt(secondsLeft / 60);
+    secondsLeft = secondsLeft % 60;
+
+    // Update timer display values
+    var displayValue = "";
+    if ( negativeTime ) { displayValue += "-"; }
+
+    if ( minutesLeft < 10 ) { displayValue += "0"; }
+    displayValue += minutesLeft;
+
+    displayValue += ":";
+
+    if ( secondsLeft < 10 ) { displayValue += "0"; }
+    displayValue += secondsLeft;
+
+    // Do the entire update in a single command, otherwise some browsers exhibit a flickering effect
+    theForm.display.value = displayValue;
+
+    // Update timer display color (warning)
+    if ( negativeTime )
+    {
+        document.bgColor = NEGATIVE_COLOR;
+    }
+    else if ( minutesLeft < MINUTE_THRESHOLD && secondsLeft % WARNING_INTERVAL != 0 )
+    {
+        document.bgColor = WARNING_COLOR;
+    }
+    else
+    {
+        document.bgColor = 'white';
+    }
+
+    window.setTimeout("updateDisplay()",1000);
+}
+
+// -->
+</script>
+
+</head>
+
+<SCRIPT LANGUAGE="JavaScript">
+<!-- Bite me, Tripod!
+document.write('<'+'body onLoad="document.timerForm.setMinutes.focus();">');
+// -->
+</SCRIPT>
+
+
+
+<form name="timerForm" onSubmit="return false;">
+
+<br>
+<br>
+<br>
+
+<div align=center>
+    <input type=text name="display" value="08:00" style="border: none; font-size: 400; width: 100%; text-align: center; background-color: transparent;">
+</div>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<table>
+    <tr>
+        <td>Set Time (min:sec)</td>
+        <td>
+            <input type=text name="setMinutes" value="8" style="text-align: right; width: 25;">:
+            <input type=text name="setSeconds" value="00" style="text-align: right; width: 25;">
+        </td>
+    </tr>
+    <tr>
+        <td>Timer</td>
+        <td><input type=submit name="timerControl" value="Start" onClick="startTimer(this.form);" style="width: 100%;"></td>
+    </tr>
+</table>
+
+</form>
+
+</body>
+
+</html>
+
+<textarea name="bitemetripod" style="visibility: hidden;" rows=0 cols=50>
