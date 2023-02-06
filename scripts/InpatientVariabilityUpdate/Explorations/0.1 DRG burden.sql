@@ -4,10 +4,6 @@ Purpose: Initial BigQuery explorations for selecting DRG codes associated with h
 Author: Selina Pi
 Date run: 1/16/23
 Notes: 
--- SQL queries under each "#" comment should be copied and run separately in BigQuery editor
--- See InpatientVariabilityUpdate readme file for access steps for HealthRex BigQuery databases
--- Resource on DRG codes: 
-  https://dhhs.ne.gov/Medicaid%20Practitioner%20Fee%20Schedules/APR-DRG%20Version%2036%20Re-Scaled%20Weights.pdf
 -- Outcomes: DRGs for septicemia and knee or hip joint replacement high number of hospitalizations in the shc_core_2021 dataset. 
   However, the LOS for knee or hip joint replacement was low. DRG 220 (major stomach, esophageal & duodenal procedures) had
   relatively high average LOS and standard deviation and sufficiently high case count across the entire data.
