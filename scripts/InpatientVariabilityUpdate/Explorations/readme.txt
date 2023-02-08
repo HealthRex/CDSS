@@ -14,4 +14,4 @@ Notes
 -------------------------------------------------
 -- See InpatientVariabilityUpdate readme file for access steps for HealthRex BigQuery databases
 -- Resource on DRG codes: https://dhhs.ne.gov/Medicaid%20Practitioner%20Fee%20Schedules/APR-DRG%20Version%2036%20Re-Scaled%20Weights.pdf
--- Note gastrointestinal (GI) cohort DRG changes between 0.3 (old cohort version) and 0.4
+-- Note gastrointestinal (GI) cohort DRG changes between 0.3 (old cohort version) and master file
