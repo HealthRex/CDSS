@@ -1,0 +1,30 @@
+
+/********************************************************************************************
+Purpose: Check merges for custom Healthrex_ML extractors in Master File
+Author: Selina Pi
+Date run: 2/8/23
+Notes:
+-- SQL queries under each "#" comment should be copied and run separately in BigQuery editor
+********************************************************************************************/
+
+# Check AHRQ-CCSR and diagnosis data mapping for PatientProblemGroup Extractor; Conclusions: joining on replace statement (substituting out periods in clinical data) leads to better match, but we are missing CCSR groups for ICD codes concatenated with commas in the same line and some corner cases like B60.00
+SELECT DISTINCT
+    -- dx.dx_id, --Removed since adds a lot of granularity
+    -- dx.dx_name, --Removed since adds a lot of granularity
+    dx.icd9,
+    dx.icd10,
+    ccsr.CCSR_CATEGORY_1,
+    ccsr.CATEGORY_DESCRIPTION
+FROM som-nero-phi-jonc101.shc_core_2021.diagnosis dx
+LEFT JOIN
+    mining-clinical-decisions.mapdata.ahrq_ccsr_diagnosis ccsr
+ON
+    -- dx.icd10 = ccsr.icd10 --Misses some values since ccsr.icd10 ends in "." for 3-digit ICD10 values
+    -- OR dx.icd10 = ccsr.icd10_string --OR makes this query take a very long time to run (>20 minutes)
+    REPLACE(dx.icd10, ".", "") = ccsr.icd10_string --Updated join, but doesn't account for data with different ICD codes joined by commas
+    -- REGEXP_CONTAINS(REPLACE(dx.icd10, ".", ""), ccsr.icd10_string) --Keep previous line b/c this was taking too long
+-- WHERE ccsr.icd10_string = "D67" --Test on smaller subset
+WHERE dx.icd10 IS NOT NULL --Only interested in ICD-10 for our date range (post 10/15), lots of older ICD-9-only data
+order by CCSR_CATEGORY_1,
+    icd10
+   
