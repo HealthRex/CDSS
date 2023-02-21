@@ -173,7 +173,7 @@ GROUP BY protocol_id, protocol_name
 ORDER BY pt_ct desc 
  
  
-# What are the most common procedures in our GI patient sample? ***[PROCEDURE RESULT REDACTED] 
+# What are the most common procedures in our GI patient sample? Updated with new DRG codes on 2/21/23. Surgeries often coded with ICD10-PCS
 WITH  
 gi_adms AS  
 ( 
@@ -188,7 +188,7 @@ gi_adms AS
   FROM `som-nero-phi-jonc101.shc_core_2021.f_ip_hsp_admission` a 
   LEFT JOIN `som-nero-phi-jonc101.shc_core_2021.drg_code` b 
   ON a.anon_id = b.anon_id AND a.pat_enc_csn_id_jittered = b.pat_enc_csn_id_coded 
-  WHERE b.drg_mpi_code IN ('221', '245', '247') AND b.drg_id LIKE '2%' 
+  WHERE (b.drg_mpi_code IN ('230', '231') AND b.drg_id LIKE '626%') 
 )
  
 SELECT DISTINCT 
@@ -199,6 +199,106 @@ SELECT DISTINCT
   count(distinct anon_id) as pt_ct,  
   count(distinct pat_enc_csn_id_coded) as case_ct 
 FROM `som-nero-phi-jonc101.shc_core_2021.procedure` 
-WHERE pat_enc_csn_id_coded in (select pat_enc_csn_id_jittered, from gi_adms) 
+WHERE pat_enc_csn_id_coded in (select pat_enc_csn_id_jittered from gi_adms) 
 GROUP BY px_id, code, description, code_type 
 ORDER BY pt_ct desc 
+
+
+# Most common alerts
+WITH  
+gi_adms AS  
+( 
+  SELECT DISTINCT 
+    a.anon_id,  
+    a.pat_enc_csn_id_jittered,  
+    TIMESTAMP_DIFF(a.hosp_disch_date_jittered, a.hosp_adm_date_jittered, DAY) + 1 as LOS, 
+    b.drg_mpi_code, 
+    b.drg_id, 
+    b.drg_name, 
+    b.DRG_CODE_SET_C 
+  FROM `som-nero-phi-jonc101.shc_core_2021.f_ip_hsp_admission` a 
+  LEFT JOIN `som-nero-phi-jonc101.shc_core_2021.drg_code` b 
+  ON a.anon_id = b.anon_id AND a.pat_enc_csn_id_jittered = b.pat_enc_csn_id_coded 
+  WHERE (b.drg_mpi_code IN ('230', '231') AND b.drg_id LIKE '626%') 
+)
+ 
+SELECT DISTINCT 
+  alert_desc, 
+  count(distinct anon_id) as pt_ct,  
+  count(distinct pat_enc_csn_id_coded) as case_ct 
+FROM `som-nero-phi-jonc101.shc_core_2021.alert` 
+WHERE pat_enc_csn_id_coded in (select pat_enc_csn_id_jittered from gi_adms) 
+GROUP BY alert_desc
+ORDER BY case_ct desc 
+
+
+# Most common allergies (not common overall in cohort, most common is reported in < 100 patients)
+WITH  
+gi_adms AS  
+( 
+  SELECT DISTINCT 
+    a.anon_id,  
+    a.pat_enc_csn_id_jittered,  
+    TIMESTAMP_DIFF(a.hosp_disch_date_jittered, a.hosp_adm_date_jittered, DAY) + 1 as LOS, 
+    b.drg_mpi_code, 
+    b.drg_id, 
+    b.drg_name, 
+    b.DRG_CODE_SET_C 
+  FROM `som-nero-phi-jonc101.shc_core_2021.f_ip_hsp_admission` a 
+  LEFT JOIN `som-nero-phi-jonc101.shc_core_2021.drg_code` b 
+  ON a.anon_id = b.anon_id AND a.pat_enc_csn_id_jittered = b.pat_enc_csn_id_coded 
+  WHERE (b.drg_mpi_code IN ('230', '231') AND b.drg_id LIKE '626%') 
+)
+ 
+SELECT DISTINCT 
+  allergen_id,
+  description, 
+  count(distinct anon_id) as pt_ct
+FROM `som-nero-phi-jonc101.shc_core_2021.allergy` 
+WHERE anon_id in (select anon_id from gi_adms) 
+GROUP BY allergen_id, description
+ORDER BY pt_ct desc 
+
+
+# Most common acuity level
+WITH  
+gi_adms AS  
+( 
+  SELECT DISTINCT 
+    a.anon_id,  
+    a.pat_enc_csn_id_jittered,  
+    TIMESTAMP_DIFF(a.hosp_disch_date_jittered, a.hosp_adm_date_jittered, DAY) + 1 as LOS, 
+    b.drg_mpi_code, 
+    b.drg_id, 
+    b.drg_name, 
+    b.DRG_CODE_SET_C 
+  FROM `som-nero-phi-jonc101.shc_core_2021.f_ip_hsp_admission` a 
+  LEFT JOIN `som-nero-phi-jonc101.shc_core_2021.drg_code` b 
+  ON a.anon_id = b.anon_id AND a.pat_enc_csn_id_jittered = b.pat_enc_csn_id_coded 
+  WHERE (b.drg_mpi_code IN ('230', '231') AND b.drg_id LIKE '626%') 
+)
+ 
+SELECT DISTINCT 
+  acuity_level,
+  count(distinct anon_id) as pt_ct,
+  count(distinct pat_enc_csn_id_coded) as case_ct 
+FROM `som-nero-phi-jonc101.shc_core_2021.encounter` 
+WHERE pat_enc_csn_id_coded in (select pat_enc_csn_id_jittered from gi_adms) 
+GROUP BY acuity_level
+ORDER BY case_ct desc 
+
+
+# Check for multiple DRGs per visit in cohort
+SELECT DISTINCT 
+  a.anon_id,  
+  a.pat_enc_csn_id_coded,  
+  b.drg_mpi_code, 
+  b.drg_id, 
+  b.drg_name, 
+  b.DRG_CODE_SET_C,
+  b.drg_weight
+FROM `som-nero-phi-jonc101.shc_core_2021.drg_code` a 
+LEFT JOIN `som-nero-phi-jonc101.shc_core_2021.drg_code` b 
+ON a.pat_enc_csn_id_coded = b.pat_enc_csn_id_coded 
+WHERE (a.drg_mpi_code IN ('230', '231') AND a.drg_id LIKE '626%') 
+ORDER BY a.anon_id, a.pat_enc_csn_id_coded, b.drg_id
