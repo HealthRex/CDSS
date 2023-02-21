@@ -28,3 +28,65 @@ WHERE dx.icd10 IS NOT NULL --Only interested in ICD-10 for our date range (post 
 order by CCSR_CATEGORY_1,
     icd10
    
+   
+# Merge diagnosis groups and descriptions occurring within 180 days before index date for project cohort  
+WITH COHORT_CCSR AS (
+  SELECT 
+    observation_id, 
+    feature_time, 
+    index_time, 
+    feature, 
+    value 
+  FROM `som-nero-phi-jonc101-secure.proj_IP_variation.cohort_drg_221_feature_matrix` a
+  WHERE feature_type='PatientProblemGroupExtractor'
+  AND TIMESTAMP_DIFF(index_time, feature_time, DAY) < 180
+)
+
+SELECT DISTINCT 
+  a.*, 
+  ccsr.Category_1_Description
+FROM COHORT_CCSR a
+LEFT JOIN mining-clinical-decisions.mapdata.ahrq_ccsr_diagnosis ccsr
+ON a.feature = ccsr.CCSR_CATEGORY_1
+
+
+# Check example of multiple descriptions merging onto each CCSR category when using Category_1_Description instead of Category_1_Description
+SELECT *
+FROM mining-clinical-decisions.mapdata.ahrq_ccsr_diagnosis
+WHERE ccsr_category_1 = 'END001'
+
+
+# Check most common CCSR codes: interestingly, FAC025 ("Other specified status") is very common; GI malignancy also common
+WITH COHORT_CCSR AS (
+  SELECT 
+    observation_id, 
+    feature_time, 
+    index_time, 
+    feature, 
+    value 
+  FROM `som-nero-phi-jonc101-secure.proj_IP_variation.cohort_drg_221_feature_matrix` a
+  WHERE feature_type='PatientProblemGroupExtractor'
+  AND TIMESTAMP_DIFF(index_time, feature_time, DAY) < 180
+)
+
+SELECT DISTINCT 
+  feature, 
+  Category_1_Description, 
+  count(distinct observation_id) as case_ct
+FROM ( 
+  SELECT DISTINCT 
+    a.*, 
+    ccsr.Category_1_Description
+  FROM COHORT_CCSR a
+  LEFT JOIN mining-clinical-decisions.mapdata.ahrq_ccsr_diagnosis ccsr
+  ON a.feature = ccsr.CCSR_CATEGORY_1
+  WHERE a.feature IS NOT NULL
+) 
+GROUP BY feature, Category_1_Description 
+ORDER BY case_ct desc 
+
+
+# What is FAC025? Large variety of diagnoses, some GI related
+SELECT *
+FROM mining-clinical-decisions.mapdata.ahrq_ccsr_diagnosis
+WHERE ccsr_category_1 = 'FAC025'
