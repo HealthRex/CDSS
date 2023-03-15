@@ -1,0 +1,95 @@
+/********************************************************************************************
+Purpose: Checks for a DRG-PCS (procedure) cohort
+Author: Selina Pi
+Date run: 2/24/23
+Notes:
+-- SQL queries under each "#" comment should be copied and run separately in BigQuery editor
+-- In APR-DRG 230/231 cohort, patients with procedure code 0DBB0ZZ	- Excision of Ileum, Open Approach 
+  and 0DJD8ZZ	- Inspection of Lower Intestinal Tract, Endo were most common. This program
+  explores these procedure cohorts with Bigquery
+********************************************************************************************/
+
+# Do DRG codes other than 230/231 and equivalent GI codes show up? Result: Many other codes, but large dropoff after bowel and bladder procedures
+WITH  
+pcs_0DBB0ZZ AS  
+( 
+  SELECT DISTINCT 
+    anon_id,
+    pat_enc_csn_id_coded
+  FROM `som-nero-phi-jonc101.shc_core_2021.procedure` 
+  WHERE code = '0DBB0ZZ'
+)
+ 
+SELECT DISTINCT 
+  drg_mpi_code, 
+  drg_id, 
+  drg_name, 
+  DRG_CODE_SET_C,
+  count(distinct pat_enc_csn_id_coded) as ct_case
+FROM `som-nero-phi-jonc101.shc_core_2021.drg_code`
+WHERE pat_enc_csn_id_coded in (select pat_enc_csn_id_coded from pcs_0DBB0ZZ)
+GROUP BY drg_mpi_code,drg_id, 
+  drg_name, 
+  DRG_CODE_SET_C 
+ORDER BY ct_case desc
+
+
+# Create table of admissions with procedure 0DBB0ZZ and DRG IDs for major small bowel procedures, get demographics and LOS characteristics
+CREATE TABLE `som-nero-phi-jonc101-secure.proj_IP_variation.cohort_pcs_0DBB0ZZ` AS
+
+WITH  
+gi_drg AS  
+( 
+  SELECT DISTINCT 
+    anon_id,
+    pat_enc_csn_id_coded
+  FROM `som-nero-phi-jonc101.shc_core_2021.drg_code` 
+  WHERE drg_id in ('6267', '1836', '1837', '1835', '2427')
+),
+
+pcs_0DBB0ZZ AS  
+( 
+  SELECT DISTINCT 
+    anon_id,
+    pat_enc_csn_id_coded,
+    min(proc_date) as proc_date
+  FROM `som-nero-phi-jonc101.shc_core_2021.procedure` 
+  WHERE pat_enc_csn_id_coded in (SELECT pat_enc_csn_id_coded from gi_drg)
+    AND code = '0DBB0ZZ'
+  GROUP BY 
+    anon_id,
+    pat_enc_csn_id_coded
+)
+
+SELECT DISTINCT
+  cohort.anon_id,
+  cohort.pat_enc_csn_id_coded as observation_id,
+  cohort.proc_date,
+  adm.hosp_adm_date_jittered as adm_date,
+  adm.hosp_disch_date_jittered as disch_date,
+  TIMESTAMP_DIFF(adm.hosp_disch_date_jittered, adm.hosp_adm_date_jittered, DAY) + 1 as LOS,
+  demo.gender,
+  demo.canonical_race,
+  demo.canonical_ethnicity,
+  demo.insurance_payor_name,
+  demo.bmi,
+  demo.birth_date_jittered,
+  demo.death_date_jittered
+FROM pcs_0DBB0ZZ cohort
+LEFT JOIN `som-nero-phi-jonc101.shc_core_2021.demographic` demo
+ON cohort.anon_id = demo.anon_id
+LEFT JOIN `som-nero-phi-jonc101.shc_core_2021.f_ip_hsp_admission` adm
+ON cohort.anon_id = adm.anon_id AND cohort.pat_enc_csn_id_coded = adm.pat_enc_csn_id_jittered
+
+
+# Check for duplicates in above table; Result: great, none
+SELECT
+  *
+FROM `som-nero-phi-jonc101-secure.proj_IP_variation.cohort_pcs_0DBB0ZZ`
+WHERE observation_id in (
+  SELECT observation_id
+  FROM `som-nero-phi-jonc101-secure.proj_IP_variation.cohort_pcs_0DBB0ZZ`
+  GROUP BY observation_id
+  HAVING count(*) > 1
+)
+

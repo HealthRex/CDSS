@@ -1,0 +1,13 @@
+/********************************************************************************************
+Purpose: Additional cohort checks
+Author: Selina Pi
+Date run: 2/21/23
+Notes:
+-- SQL queries under each "#" comment should be copied and run separately in BigQuery editor
+********************************************************************************************/
+
+# Check high cost patients
+SELECT 
+  *
+FROM `som-nero-phi-jonc101-secure.proj_IP_variation.cohort_drg_221` a
+WHERE Cost_Direct > 50000

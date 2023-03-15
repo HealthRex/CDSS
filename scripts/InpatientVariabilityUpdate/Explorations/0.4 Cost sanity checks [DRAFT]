@@ -1,0 +1,96 @@
+/********************************************************************************************
+Purpose: Check nature of cost data for SHC admissions
+Author: Selina Pi
+Date run: 2/8/23
+Notes:
+-- SQL queries under each "#" comment should be copied and run separately in BigQuery editor
+********************************************************************************************/
+
+# Get costs and LOS in SHD cost data by DRG 
+--Get anonymized admission DRG details 
+WITH  
+all_adms AS  
+( 
+  SELECT DISTINCT 
+    anon_id,  
+    pat_enc_csn_id_jittered as observation_id,  
+    hosp_adm_date_jittered as adm_date, 
+    hosp_disch_date_jittered as disch_date
+  FROM `som-nero-phi-jonc101.shc_core_2021.f_ip_hsp_admission`
+), 
+
+--Link costs to anonymized ID 
+SHC_costs AS 
+( 
+  SELECT  
+    b.anon_id as map_anon_id, 
+    b.jitter,
+    a.AdmitDate + b.jitter as map_adm_date, 
+    a.DischargeDate + b.jitter as map_disch_date, 
+    a.*
+  FROM `som-nero-phi-jonc101-secure.shc_cost.costUB` a 
+  LEFT JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2021` b 
+  ON cast(a.mrn AS string) = b.mrn 
+)
+
+--Join admission details and costs by patient ID and overlapping dates
+SELECT DISTINCT 
+  a.*,
+  b.*
+FROM all_adms a 
+LEFT JOIN SHC_costs b 
+ON a.anon_id = b.map_anon_id AND 
+  ((a.adm_date <= b.map_disch_date AND a.disch_date >= b.map_adm_date) --Join by overlapping dates 
+  OR a.adm_date = b.map_adm_date) --In case of missing discharge date
+ORDER BY 
+  anon_id,
+  adm_date,
+  disch_date,
+  map_adm_date,
+  map_disch_date
+
+--Is there more than one cost line per IP visit? Same question/different query: Within the cost data, can one day or episode have multiple costs? (By cursory view of results of the above query, looks like total IP costs are collapsed per visit, and I'm not seeing overlapping non-IP costs)
+--Do IP cost lines' dates line up with the admission date (By cursory view of results of the above query, it seems so)?
+--Are there non-IP costs in the hospitalization?
+--Do all hospitalizations in the cost time frame have cost data?
+--Do hospitalizations ever have overlapping dates?
+
+--DRAFT SECTION BELOW NOT COMPLETED YET
+
+/*
+SELECT DISTINCT 
+  anon_id,  
+  observation_id,  
+  adm_date, 
+  disch_date,
+  count(*) as 
+FROM anon_costs
+GROUP BY anon_id,  
+  observation_id,  
+  adm_date, 
+  disch_date
+;
+
+SELECT
+  min(map_adm_date) as min_cost_date,
+  max(map_disch_date) as max_cost_date,
+  max(case when map_adm_date IS NULL then adm_date end) as max_nocost_date,
+FROM 
+(
+  --Join admission details and costs by patient ID and overlapping dates 
+  SELECT DISTINCT 
+    a.*,
+    b.*
+  FROM all_adms a 
+  LEFT JOIN SHC_costs b 
+  ON a.anon_id = b.map_anon_id AND a.adm_date <= b.map_disch_date AND a.disch_date >= b.map_adm_date --Join by overlapping dates 
+  ORDER BY 
+    anon_id,
+    adm_date,
+    disch_date,
+    map_adm_date,
+    map_disch_date
+)
+GROUP BY
+ORDER BY 
+*/
