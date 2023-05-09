@@ -233,9 +233,29 @@ summaryInpatientAndObservationDuration AS
     group by admitYear
     order by admitYear desc
 ),
+
+
+-- Summary of the observation ONLY cases who never made it to inpatient admission status
+-- Approximate it by taking the summaryObservationDuration results and subtract out those who went from obs to Inaptient
+summaryObserationOnlyDuration AS
+(
+    select
+        admitYear,
+        obs.nEncounters - obsInpt.nEncounterObservationBeforeInpatient as nEncounterObsOnly,
+        obs.nEncounterDurationWithin24Hr - obsInpt.observationToInpatientWithin24hr as nEncounterObsOnlyDurationWithin24Hr,
+        obs.nEncounterDurationWithin48Hr - obsInpt.observationToInpatientWithin48hr as nEncounterObsOnlyDurationWithin48Hr,
+        obs.nEncounterDurationWithin72Hr - obsInpt.observationToInpatientWithin72hr as nEncounterObsOnlyDurationWithin72Hr,
+        obs.nEncounterDurationBeyond72Hr - obsInpt.observationToInpatientBeyond72hr as nEncounterObsOnlyDurationBeyond72Hr
+    from 
+        summaryObservationDuration as obs
+        join summaryInpatientAndObservationDuration obsInpt
+        using (admitYear)
+    order by 
+        admitYear desc
+),
 placeholder AS (select 1 from `som-nero-phi-jonc101.shc_core_2021.demographic`)
 
 select * 
-from summaryInpatientAndObservationDuration
+from summaryObserationOnlyDuration
 limit 1000
 
