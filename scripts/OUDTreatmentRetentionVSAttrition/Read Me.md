@@ -10,3 +10,5 @@ Run the following command to train ML models using your train data:
 ```
 python3 main_ml_models.py --ml_model lr
 ```
+
+Note, ```ml_model``` argumant helps you define what ML model to choose. Options are: lr (for logistic regression), rf (for random forest), and xgb (for xgboost)
