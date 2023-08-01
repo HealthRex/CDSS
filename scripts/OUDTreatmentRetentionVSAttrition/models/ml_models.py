@@ -325,6 +325,9 @@ def random_forest_model(train_data_path
     # Outcome (label) 1 if treatment duration is less than 180 days.    
     train_data['outcome'] = train_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
 
+    num_p_train = train_data[train_data['outcome']==1].shape[0]
+    num_n_train = train_data[train_data['outcome']==0].shape[0]
+
     test_data = pd.read_csv(test_data_path)
     # Exclude encounters with treatment duration less than 7 days    
     test_data = test_data[test_data['TreatmentDuration'] >= 7]
@@ -431,27 +434,28 @@ def test_with_imb(trained_rf_path
                 # , table_to_exclude
                 , non_feature_list
                 ):
+    '''
+    This function loads the trained models and perform repeated testing.
+    '''
     # pdb.set_trace()
-    print('Testing using imbalance test sets. ')
-    print(test_data_path)
-    
+    print('Testing using:')
+    print(test_data_path)    
     test_data = pd.read_csv(test_data_path)
     test_data = test_data[test_data['TreatmentDuration'] >= 7]
     test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
 
 
-     
-    if table_to_exclude != 'none':
-        cols_to_exclude = [x for x in test_data.columns if table_to_exclude in x]
-        test_data.drop(cols_to_exclude, axis=1, inplace=True)
+    # if table_to_exclude != 'none':
+    #     cols_to_exclude = [x for x in test_data.columns if table_to_exclude in x]
+    #     test_data.drop(cols_to_exclude, axis=1, inplace=True)
 
 
-    test_data_imb = test_data
+    # test_data_imb = test_data
     reapeated_testing(trained_rf_path
                     , trained_lr_path
                     , trained_xgb_path
-                    , test_data_imb
-                    , table_to_exclude
+                    , test_data
+                    # , table_to_exclude
                     , non_feature_list
                     )
 
@@ -467,13 +471,13 @@ def reapeated_testing(trained_rf_path
 
     # pdb.set_trace()
 
-    randomCV_rf = pickle.load(open(trained_rf_path[:-4]+'_'+table_to_exclude+'.pkl', 'rb'))
+    randomCV_rf = pickle.load(open(trained_rf_path[:-4]+'.pkl', 'rb'))
     best_model_rf= randomCV_rf.best_estimator_
 
-    randomCV_lr = pickle.load(open(trained_lr_path[:-4]+'_'+table_to_exclude+'.pkl', 'rb'))
+    randomCV_lr = pickle.load(open(trained_lr_path[:-4]+'.pkl', 'rb'))
     best_model_lr= randomCV_lr.best_estimator_    
     
-    randomCV_xgb = pickle.load(open(trained_xgb_path[:-4]+'_'+table_to_exclude+'.pkl', 'rb'))    
+    randomCV_xgb = pickle.load(open(trained_xgb_path[:-4]+'.pkl', 'rb'))    
     best_model_xgb= randomCV_xgb.best_estimator_    
 
     if sum(best_model_rf.feature_names_in_ != test_data_imb.drop(non_feature_list, axis=1, inplace=False).columns)>0:
@@ -489,7 +493,7 @@ def reapeated_testing(trained_rf_path
         pdb.set_trace()
         print('Warning')    
 
-    with open('results/reapeated_testing/reapeated_testing_rf'+'_'+table_to_exclude+'.csv', 'w') as rf_res_file, open('results/reapeated_testing/reapeated_testing_precisions_recalls_rf'+'_'+table_to_exclude+'.csv', 'w') as rf_res_file_pr, open('results/reapeated_testing/reapeated_testing_lr'+'_'+table_to_exclude+'.csv', 'w') as lr_res_file, open('results/reapeated_testing/reapeated_testing_precisions_recalls_lr'+'_'+table_to_exclude+'.csv', 'w') as lr_res_file_pr, open('results/reapeated_testing/reapeated_testing_xgb'+'_'+table_to_exclude+'.csv', 'w') as xgb_res_file, open('results/reapeated_testing/reapeated_testing_precisions_recalls_xgb'+'_'+table_to_exclude+'.csv', 'w') as xgb_res_file_pr:       
+    with open('results/reapeated_testing/reapeated_testing_rf.csv', 'w') as rf_res_file, open('results/reapeated_testing/reapeated_testing_precisions_recalls_rf.csv', 'w') as rf_res_file_pr, open('results/reapeated_testing/reapeated_testing_lr.csv', 'w') as lr_res_file, open('results/reapeated_testing/reapeated_testing_precisions_recalls_lr.csv', 'w') as lr_res_file_pr, open('results/reapeated_testing/reapeated_testing_xgb.csv', 'w') as xgb_res_file, open('results/reapeated_testing/reapeated_testing_precisions_recalls_xgb.csv', 'w') as xgb_res_file_pr:       
         rf_res_file.write('Precision, Recall, F1, AUC, TP, TN, FP, FN\n')
         lr_res_file.write('Precision, Recall, F1, AUC, TP, TN, FP, FN\n')
         xgb_res_file.write('Precision, Recall, F1, AUC, TP, TN, FP, FN\n')
