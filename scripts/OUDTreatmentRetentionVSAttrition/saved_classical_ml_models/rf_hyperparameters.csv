@@ -1,0 +1,6 @@
+n_estimators,"[10, 50, 100, 150, 200, 250, 500]"
+max_features,"[0.01, 0.1, 0.5, 'sqrt', 'auto']"
+max_depth,"[4, 8, 16, 32, None]"
+min_samples_split,"[0.0001, 0.001, 0.01, 0.1]"
+min_samples_leaf,"[0.0001, 0.001, 0.01, 0.1]"
+bootstrap,"[True, False]"
