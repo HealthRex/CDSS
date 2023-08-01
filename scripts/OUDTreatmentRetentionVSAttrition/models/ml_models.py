@@ -129,10 +129,10 @@ def write_results(tn
 # === XGBoost
 def xgboost_model(train_data_path
                         , test_data_path
-                        , table_to_exclude
+                        # , table_to_exclude
                         , non_feature_list
                         ):
-    pdb.set_trace()
+    
     print('Reading the data:')
     print(train_data_path)
     print(test_data_path)
@@ -144,10 +144,10 @@ def xgboost_model(train_data_path
     test_data = test_data[test_data['TreatmentDuration'] >= 7]
     test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
 
-    if table_to_exclude != 'none':
-        cols_to_exclude = [x for x in train_data.columns if table_to_exclude in x]
-        train_data.drop(cols_to_exclude, axis=1, inplace=True)
-        test_data.drop(cols_to_exclude, axis=1, inplace=True)
+    # if table_to_exclude != 'none':
+    #     cols_to_exclude = [x for x in train_data.columns if table_to_exclude in x]
+    #     train_data.drop(cols_to_exclude, axis=1, inplace=True)
+    #     test_data.drop(cols_to_exclude, axis=1, inplace=True)
 
     print('Finished reading data...')
     n_estimators = [10, 50, 100, 150, 200, 500]#int(x) for x in np.linspace(start = 200, stop = 500, num = 10)]
@@ -167,7 +167,7 @@ def xgboost_model(train_data_path
 
     print('Hyperparameters:')
     print(hyperparameters)
-    with open('saved_classical_ml_models/xgb_hyperparameters_'+table_to_exclude+'.csv', 'w') as csv_file:  
+    with open('saved_classical_ml_models/xgb_hyperparameters.csv', 'w') as csv_file:  
         writer = csv.writer(csv_file)
         for key, value in hyperparameters.items():
            writer.writerow([key, value])
@@ -180,14 +180,14 @@ def xgboost_model(train_data_path
     randomCV.fit(train_data_shuffled.drop(non_feature_list, axis=1, inplace=False), train_data_shuffled['outcome'])
     
     # === Save models
-    with open('saved_classical_ml_models/xgb_model_'+table_to_exclude+'.pkl','wb') as f:
+    with open('saved_classical_ml_models/xgb_model.pkl','wb') as f:
         pickle.dump(randomCV,f)
     
-    (pd.DataFrame.from_dict(data=randomCV.best_params_, orient='index').to_csv('saved_classical_ml_models/best_params_xgb_'+table_to_exclude+'.csv', header=False))
+    (pd.DataFrame.from_dict(data=randomCV.best_params_, orient='index').to_csv('saved_classical_ml_models/best_params_xgb.csv', header=False))
     best_xgb_model= randomCV.best_estimator_
 
     xgb_predictions = best_xgb_model.predict(test_data_shuffled.drop(non_feature_list, axis=1, inplace=False))    
-    np.savetxt('saved_classical_ml_models/predictions_xgb_'+table_to_exclude+'.csv', xgb_predictions, delimiter=',')
+    np.savetxt('saved_classical_ml_models/predictions_xgb.csv', xgb_predictions, delimiter=',')
 
     tn, tp, fn, fp, accuracy, precision, recall, specificity, F1, xgb_test_auc = performance_evaluation(xgb_predictions
                                                                             , test_data_shuffled
@@ -197,108 +197,71 @@ def xgboost_model(train_data_path
     write_results(tn, tp, fn, fp, 
                 accuracy, precision, recall, specificity
                 , F1, xgb_test_auc
-                , 'xgb_'+table_to_exclude )
+                , 'xgb' )
     metrics.plot_roc_curve(best_xgb_model, test_data_shuffled.drop(non_feature_list, axis=1, inplace=False), test_data_shuffled['outcome'], name='xgboost') 
-    plt.savefig('results/roc_curve_xgb_'+table_to_exclude+'.png', dpi=300)
+    plt.savefig('results/roc_curve_xgb.png', dpi=300)
     plt.close()
 
     
     print('Creating shap plots using test data ....')    
-    # client = bigquery.Client('som-nero-phi-jonc101'); 
-    # conn = dbapi.connect(client);
-    # features_names = train_data_shuffled.drop(['visit_start_DATE', 'person_id', 'pc_visit_occurrence_id_at_65', 'label'], axis=1, inplace=False).columns.tolist()
-    # features_ids = [int(x.split('_')[-1]) for x in features_names if x !='age_from_pc_visit']    
-    # concept_names = pd.read_sql_query("SELECT concept_id, concept_name FROM `som-rit-phi-starr-prod.starr_omop_cdm5_deid_2022_09_05.concept` where concept_id in ("+','.join(map(str, features_ids))+")", conn)
-    # for i in range(len(features_names)):
-    #     if features_names[i] != 'age_from_pc_visit':
-    #         current_feature_concepts = concept_names[concept_names['concept_id']==int(features_names[i].split('_')[-1])]
-    #         if len(current_feature_concepts) != 1:
-    #             pdb.set_trace()
-    #         features_names[i] = current_feature_concepts['concept_name'].values[0] + ' (' + features_names[i].split('_')[0] + ')'
-    #     elif features_names[i] == 'age_from_pc_visit':    
-    #         features_names[i] = 'Age'
-
-    # pdb.set_trace()
     explainer = shap.TreeExplainer(best_xgb_model)
     shap_values = explainer(test_data_shuffled.drop(non_feature_list, axis=1, inplace=False))
-    
-    # pdb.set_trace()
-    # f = plt.figure()
-    # f.set_size_inches(18, 12)
-    # shap.plots.scatter(shap_values[:,"age"], color=shap_values)
-    # f.savefig('results/visualization_results/scatter_Age_xgb_original_testdata.png', dpi=600)
-
-    # f3 = plt.figure()
-    # shap.plots.beeswarm(shap_values, plot_size=[12,10])
-    # plt.savefig('results/visualization_results/beeswarm_xgb_original_newsized_test_'+'notenlp_flag'+str(note_nlp_flag)+'.png', dpi=600)
-    # plt.close()
 
     f = plt.figure()
     shap.plots.beeswarm(shap_values, show = False, max_display=30)
     plt.subplots_adjust(left=0.3)  
-    f.savefig('results/beeswarm_xgb_original_test_'+table_to_exclude+'.png', dpi=600)
+    f.savefig('results/beeswarm_xgb_original_test.png', dpi=600)
     plt.close(f)
     
 
     f2 = plt.figure()
     shap.plots.bar(shap_values, show = False)
-    f2.savefig('results/bar_xgb_original_test_'+table_to_exclude+'.png', dpi=600)
+    f2.savefig('results/bar_xgb_original_test.png', dpi=600)
     plt.close(f2)
 
-    # shap.plots.beeswarm(shap_values)    
-    # fig = plt.gcf()
-    # fig.set_size_inches(18, 12)
-    # fig.savefig('results/visualization_results/beeswarm_xgb_resized_test_'+'notenlp_flag'+str(note_nlp_flag)+'.png', dpi=600)
-    # plt.close(fig)
 
-    with open('results/shap_values_uing_xgb_and_tes_data_'+table_to_exclude+'.pkl','wb') as f:
+    with open('results/shap_values_uing_xgb_and_tes_data.pkl','wb') as f:
         pickle.dump(shap_values,f)
-
-    # # pdb.set_trace()
-    # print('Creating shap plots using all data ....')    
-    # data_all_for_shap = train_data_shuffled.append([test_data_shuffled], ignore_index=True)
-    # f = plt.figure()
-    # shap.plots.scatter(shap_values[:,"age"], color=shap_values)
-    # f.savefig('results/visualization_results/scatter_Age_xgb_original_alldata.png', dpi=600)
-
-    # f = plt.figure()
-    # shap.plots.beeswarm(shap_values)
-    # f.savefig('results/visualization_results/beeswarm_xgb_original_alldata.png', dpi=600)
-
-    # f = plt.figure()
-    # shap.plots.bar(shap_values)
-    # f.savefig('results/visualization_results/bar_xgb_original_alldata.png', dpi=600)
-    
 
 # === Logistic regression
 def logistic_regression_model(train_data_path
                         ,test_data_path
-                        , table_to_exclude
+                        # , table_to_exclude
                         , non_feature_list
                         ):
     # pdb.set_trace()
     print('Reading the data:')
     print(train_data_path)
     print(test_data_path)
+    print('Finished reading data...')
+
+    # Read train data
     train_data = pd.read_csv(train_data_path)
-    train_data = train_data[train_data['TreatmentDuration'] >= 7]
+    # Exclude encounters with treatment duration less than 7 days
+    train_data = train_data[train_data['TreatmentDuration'] >= 7]    
+    # Outcome (label) 1 if treatment duration is less than 180 days.
     train_data['outcome'] = train_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
 
+    # Read test data
     test_data = pd.read_csv(test_data_path)
+    # Exclude encounters with treatment duration less than 7 days
     test_data = test_data[test_data['TreatmentDuration'] >= 7]
+    # Outcome (label) 1 if treatment duration is less than 180 days.
     test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
 
+    # Check to make sure train and test do not overlap and no data leakage
     if sum(test_data['person_id'].isin(train_data['person_id']))>0:
         pdb.set_trace()
         print('Warning. Overlap between train and test set!')
 
 
-    if table_to_exclude != 'none':
-        cols_to_exclude = [x for x in train_data.columns if table_to_exclude in x]
-        train_data.drop(cols_to_exclude, axis=1, inplace=True)
-        test_data.drop(cols_to_exclude, axis=1, inplace=True)
+    # if table_to_exclude != 'none':
+    #     cols_to_exclude = [x for x in train_data.columns if table_to_exclude in x]
+    #     train_data.drop(cols_to_exclude, axis=1, inplace=True)
+    #     test_data.drop(cols_to_exclude, axis=1, inplace=True)
     
-    print('Finished reading data...')
+
+    # A pool of hyper-parameters to search from during model tuning
     hyperparameters = {
                         'penalty' : ['l1', 'l2'],
                         'solver' : ['liblinear', 'saga'],#'lbfgs', 'liblinear', 'newton-cg', 'newton-cholesky', 'sag', 'saga'],
@@ -307,67 +270,76 @@ def logistic_regression_model(train_data_path
                         #'dual' : [True, False],
                         'C': [0.0001, 0.001, 0.01, 0.1, 1, 10, 100]#[2**-10, 2** -8, 2 ** -6, 2** -4, 2**-2, 1, 2**2, 2**4, 2**6, 2**8, 2**10]       
         }
-    print('Hyperparameters:')
-    print(hyperparameters)
-    with open('saved_classical_ml_models/lr_hyperparameters_'+table_to_exclude+'.csv', 'w') as csv_file:  
+
+    # Save hyper-parameter search space
+    with open('saved_classical_ml_models/lr_hyperparameters.csv', 'w') as csv_file:  
         writer = csv.writer(csv_file)
         for key, value in hyperparameters.items():
            writer.writerow([key, value])
+    
     # pdb.set_trace()
+    # Shuffle the date
     train_data_shuffled = train_data.sample(frac=1).reset_index(drop=True)  
     test_data_shuffled = test_data.sample(frac=1).reset_index(drop=True)  
-    # pdb.setc_trace()
+    
+    # Create and fit the model + cross validation
     randomCV = RandomizedSearchCV(estimator=LogisticRegression(n_jobs=-1, verbose=1), param_distributions=hyperparameters, n_iter=50, cv=5,scoring="roc_auc")    
     randomCV.fit(train_data_shuffled.drop(non_feature_list, axis=1, inplace=False), train_data_shuffled['outcome'])
 
     # === Save models
-    with open('saved_classical_ml_models/lr_model_'+table_to_exclude+'.pkl','wb') as f:
+    with open('saved_classical_ml_models/lr_model.pkl','wb') as f:
         pickle.dump(randomCV,f)
 
-    (pd.DataFrame.from_dict(data=randomCV.best_params_, orient='index').to_csv('saved_classical_ml_models/best_params_lr_'+table_to_exclude+'.csv', header=False))
+    # Save optimum parameters
+    (pd.DataFrame.from_dict(data=randomCV.best_params_, orient='index').to_csv('saved_classical_ml_models/best_params_lr.csv', header=False))
+    
     best_lr_model= randomCV.best_estimator_
 
     lr_predictions = best_lr_model.predict(test_data_shuffled.drop(non_feature_list, axis=1, inplace=False))    
-    np.savetxt('saved_classical_ml_models/predictions_lr_'+table_to_exclude+'.csv', lr_predictions, delimiter=',')
+    np.savetxt('saved_classical_ml_models/predictions_lr.csv', lr_predictions, delimiter=',')
 
     tn, tp, fn, fp, accuracy, precision, recall, specificity, F1, lr_test_auc = performance_evaluation(lr_predictions, test_data_shuffled, best_lr_model, non_feature_list)   
     write_results(tn, tp, fn, fp, 
                 accuracy, precision, recall, specificity
                 , F1, lr_test_auc
-                , 'lr_'+table_to_exclude)
+                , 'lr')
 
     metrics.plot_roc_curve(best_lr_model, test_data_shuffled.drop(non_feature_list, axis=1, inplace=False), test_data_shuffled['outcome'], name='Logistic Regression') 
-    plt.savefig('results/roc_curve_lr_'+table_to_exclude+'.png', dpi=300)
+    plt.savefig('results/roc_curve_lr.png', dpi=300)
     plt.close()
 
 
 def random_forest_model(train_data_path
                         ,test_data_path
-                        , table_to_exclude
+                        # , table_to_exclude
                         , non_feature_list
                         ):    
     # pdb.set_trace()
+    # Read train data
     print('Reading the data:')
     print(train_data_path)
     print(test_data_path)
     train_data = pd.read_csv(train_data_path)
+    # Exclude encounters with treatment duration less than 7 days    
     train_data = train_data[train_data['TreatmentDuration'] >= 7]
+    # Outcome (label) 1 if treatment duration is less than 180 days.    
     train_data['outcome'] = train_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
 
     test_data = pd.read_csv(test_data_path)
+    # Exclude encounters with treatment duration less than 7 days    
     test_data = test_data[test_data['TreatmentDuration'] >= 7]
+    # Outcome (label) 1 if treatment duration is less than 180 days.    
     test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
 
-    
+    # Check to make sure train and test do not overlap and no data leakage
     if sum(test_data['person_id'].isin(train_data['person_id']))>0:
         pdb.set_trace()
         print('Warning. Overlap between train and test set!')
 
-
-    if table_to_exclude != 'none':
-        cols_to_exclude = [x for x in train_data.columns if table_to_exclude in x]
-        train_data.drop(cols_to_exclude, axis=1, inplace=True)
-        test_data.drop(cols_to_exclude, axis=1, inplace=True)
+    # if table_to_exclude != 'none':
+    #     cols_to_exclude = [x for x in train_data.columns if table_to_exclude in x]
+    #     train_data.drop(cols_to_exclude, axis=1, inplace=True)
+    #     test_data.drop(cols_to_exclude, axis=1, inplace=True)
 
     print('Finished reading data...')
     # Number of trees in random forest
@@ -393,28 +365,31 @@ def random_forest_model(train_data_path
                    , 'min_samples_leaf': min_samples_leaf
                    , 'bootstrap': bootstrap
                    }#,'ccp_alpha': ccp_alpha}
-    print('Hyperparameters:')
-    print(hyperparameters)
-    with open('saved_classical_ml_models/rf_hyperparameters_'+table_to_exclude+'.csv', 'w') as csv_file:  
+
+    # Save hyper-parameter search space
+    with open('saved_classical_ml_models/rf_hyperparameters.csv', 'w') as csv_file:  
         writer = csv.writer(csv_file)
         for key, value in hyperparameters.items():
            writer.writerow([key, value])
     
     # pdb.set_trace()    
+    # shuffle the data 
     train_data_shuffled = train_data.sample(frac=1).reset_index(drop=True)  
     test_data_shuffled = test_data.sample(frac=1).reset_index(drop=True)  
+    # Create and train the model
     randomCV = RandomizedSearchCV(estimator=RandomForestClassifier(n_jobs=-1, verbose=1), param_distributions=hyperparameters, n_iter=50, cv=5,scoring="roc_auc")
     randomCV.fit(train_data_shuffled.drop(non_feature_list, axis=1, inplace=False), train_data_shuffled['outcome'])
        
     # === Save models
-    with open('saved_classical_ml_models/rf_model_' + table_to_exclude +'.pkl','wb') as f:
+    with open('saved_classical_ml_models/rf_model.pkl','wb') as f:
         pickle.dump(randomCV,f)
     
-    (pd.DataFrame.from_dict(data=randomCV.best_params_, orient='index').to_csv('saved_classical_ml_models/best_params_rf_'+table_to_exclude+'.csv', header=False))
+    # Save optimum parameters
+    (pd.DataFrame.from_dict(data=randomCV.best_params_, orient='index').to_csv('saved_classical_ml_models/best_params_rf.csv', header=False))
     best_rf_model= randomCV.best_estimator_
 
     rf_predictions = best_rf_model.predict(test_data_shuffled.drop(non_feature_list, axis=1, inplace=False))    
-    np.savetxt('saved_classical_ml_models/predictions_rf_'+table_to_exclude+'.csv', rf_predictions, delimiter=',')
+    np.savetxt('saved_classical_ml_models/predictions_rf.csv', rf_predictions, delimiter=',')
 
     # metrics.f1_score(y_true=test_data_shuffled['label'], y_pred=rf_predictions)
     # metrics.precision_score(y_true=test_data_shuffled['label'], y_pred=rf_predictions)
@@ -422,7 +397,7 @@ def random_forest_model(train_data_path
     # pdb.set_trace()
     results_report = metrics.classification_report(y_true=test_data_shuffled['outcome'], y_pred=rf_predictions, output_dict=True)
     results_report_df = pd.DataFrame(results_report).transpose()
-    results_report_df.to_csv('results/rf_results_report_'+table_to_exclude+'.csv')
+    results_report_df.to_csv('results/rf_results_report.csv')
 
     tn, tp, fn, fp, accuracy, precision, recall, specificity, F1, rf_test_auc = performance_evaluation(rf_predictions
                                                                             , test_data_shuffled
@@ -432,10 +407,10 @@ def random_forest_model(train_data_path
     write_results(tn, tp, fn, fp, 
                 accuracy, precision, recall, specificity
                 , F1, rf_test_auc
-                , 'rf_'+table_to_exclude)
-    # pdb.set_trace()
+                , 'rf')
+    
     metrics.plot_roc_curve(best_rf_model, test_data_shuffled.drop(non_feature_list, axis=1, inplace=False), test_data_shuffled['outcome'], name='Random Forest') 
-    plt.savefig('results/roc_curve_rf_'+table_to_exclude+'.png', dpi=300)
+    plt.savefig('results/roc_curve_rf.png', dpi=300)
     plt.close()
 
     
@@ -444,36 +419,16 @@ def random_forest_model(train_data_path
     fig = feat_importances.nlargest(30).plot(kind='barh', grid=True,figsize=(16,14))
     fig.set_xlabel("Importance Score")
     fig.set_ylabel("Features")
-    fig.get_figure().savefig('results/rf_feature_importance_concept_ids_'+table_to_exclude+'.png', dpi=300)
+    fig.get_figure().savefig('results/rf_feature_importance_concept_ids.png', dpi=300)
     plt.close()
 
-    # pdb.set_trace()
-    # client = bigquery.Client('som-nero-phi-jonc101'); 
-    # conn = dbapi.connect(client);
-    # features_names = train_data_shuffled.drop(non_feature_list, axis=1, inplace=False).columns.tolist()
-    # features_ids = [int(x.split('_')[1]) for x in features_names if x not in ['outcome']+ non_feature_list+['age_at_start', 'american_indian_or_alaska_native', 'asian', 'black_or_african_american', 'native_hawaiian_or_other_pacific_islander', 'white', 'female', 'male', 'hispanic_or_latino', 'not_hispanic_or_latino']]   
-    # concept_names = pd.read_sql_query("SELECT concept_id, concept_name FROM `som-rit-phi-starr-prod.starr_omop_cdm5_deid_latest.concept` where concept_id in ("+','.join(map(str, features_ids))+")", conn)
-    # for i in range(len(features_names)):
-    #     if features_names[i] not in ['age_at_start', 'american_indian_or_alaska_native', 'asian', 'black_or_african_american', 'native_hawaiian_or_other_pacific_islander', 'white', 'female', 'male', 'hispanic_or_latino', 'not_hispanic_or_latino']:
-    #         current_feature_concepts = concept_names[concept_names['concept_id']==int(features_names[i].split('_')[1])]
-    #         if len(current_feature_concepts) != 1:
-    #             pdb.set_trace()
-    #         features_names[i] = current_feature_concepts['concept_name'].values[0] + ' (' + features_names[i].split('_')[0] + ')'
-    #     # elif features_names[i] == 'age_from_pc_visit':    
-    #     #     features_names[i] = 'Age'
-    # pdb.set_trace()    
-    # feat_importances = pd.Series(randomCV.best_estimator_.feature_importances_, index=features_names)
-    # fig = feat_importances.nlargest(30).plot(kind='barh', grid=True,figsize=(35,20))
-    # fig.set_xlabel("Importance Score")
-    # fig.set_ylabel("Features")
-    # fig.get_figure().savefig("results/rf_feature_importance.png", dpi=300)
-    # plt.close()
+
 
 def test_with_imb(trained_rf_path
                 , trained_lr_path
                 , trained_xgb_path
                 , test_data_path
-                , table_to_exclude
+                # , table_to_exclude
                 , non_feature_list
                 ):
     # pdb.set_trace()
@@ -506,7 +461,7 @@ def reapeated_testing(trained_rf_path
                 , trained_lr_path
                 , trained_xgb_path
                 , test_data_imb
-                , table_to_exclude
+                # , table_to_exclude
                 , non_feature_list               
                 ):
 
@@ -658,7 +613,7 @@ def plots(trained_rf_path
                 , trained_lr_path
                 , trained_xgb_path
                 , test_data_path
-                , table_to_exclude
+                # , table_to_exclude
                 , non_feature_list
                 ):
     pdb.set_trace()
