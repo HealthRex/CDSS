@@ -14,3 +14,11 @@ python3 main_ml_models.py --ml_model lr
 ```
 
 Note, ```ml_model``` argumant helps you define what ML model to choose. Options are: lr (for logistic regression), rf (for random forest), and xgb (for xgboost). Running this code will train a model and save the model object along with some other meta data (optimum parameters and etc) under "saved_classical_ml_models". It will also performs priliminary testing and save the results and a ROC curve under the results folder. You can run the same command for ```--ml_model rf``` and ```--ml_model xgb``` for trainnig random forest and xgboost models. 
+
+Run the following command to load and test the models using the test set under "feature_matrix":
+
+```
+python3 main_ml_models.py --test_models 1
+```
+
+The results will be saved under "results/repeated_testing"
