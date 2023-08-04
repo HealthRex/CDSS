@@ -129,20 +129,22 @@ def write_results(tn
 # === XGBoost
 def xgboost_model(train_data_path
                         , test_data_path
-                        # , table_to_exclude
+                        , retention_cut_off
                         , non_feature_list
+                        , min_treatment_duration
                         ):
     
+    print('Minimum treatment duration is {} and retention threshold is {}.'.format(min_treatment_duration, retention_cut_off))
     print('Reading the data:')
     print(train_data_path)
     print(test_data_path)
     train_data = pd.read_csv(train_data_path)
-    train_data = train_data[train_data['TreatmentDuration'] >= 7]
-    train_data['outcome'] = train_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
+    train_data = train_data[train_data['TreatmentDuration'] >= min_treatment_duration]
+    train_data['outcome'] = train_data['TreatmentDuration'].apply(lambda x: 0 if x >= retention_cut_off else 1)
 
     test_data = pd.read_csv(test_data_path)
-    test_data = test_data[test_data['TreatmentDuration'] >= 7]
-    test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
+    test_data = test_data[test_data['TreatmentDuration'] >= min_treatment_duration]
+    test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= retention_cut_off else 1)
 
     # if table_to_exclude != 'none':
     #     cols_to_exclude = [x for x in train_data.columns if table_to_exclude in x]
@@ -226,10 +228,11 @@ def xgboost_model(train_data_path
 # === Logistic regression
 def logistic_regression_model(train_data_path
                         ,test_data_path
-                        # , table_to_exclude
+                        , retention_cut_off
                         , non_feature_list
+                        , min_treatment_duration
                         ):
-    # pdb.set_trace()
+    print('Minimum treatment duration is {} and retention threshold is {}.'.format(min_treatment_duration, retention_cut_off))
     print('Reading the data:')
     print(train_data_path)
     print(test_data_path)
@@ -237,17 +240,17 @@ def logistic_regression_model(train_data_path
 
     # Read train data
     train_data = pd.read_csv(train_data_path)
-    # Exclude encounters with treatment duration less than 7 days
-    train_data = train_data[train_data['TreatmentDuration'] >= 7]    
-    # Outcome (label) 1 if treatment duration is less than 180 days.
-    train_data['outcome'] = train_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
+    # Exclude encounters with treatment duration less than min_treatment_duration days
+    train_data = train_data[train_data['TreatmentDuration'] >= min_treatment_duration]    
+    # Outcome (label) 1 if treatment duration is less than retention_cut_off days.
+    train_data['outcome'] = train_data['TreatmentDuration'].apply(lambda x: 0 if x >= retention_cut_off else 1)
 
     # Read test data
     test_data = pd.read_csv(test_data_path)
-    # Exclude encounters with treatment duration less than 7 days
-    test_data = test_data[test_data['TreatmentDuration'] >= 7]
-    # Outcome (label) 1 if treatment duration is less than 180 days.
-    test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
+    # Exclude encounters with treatment duration less than min_treatment_duration days
+    test_data = test_data[test_data['TreatmentDuration'] >= min_treatment_duration]
+    # Outcome (label) 1 if treatment duration is less than retention_cut_off days.
+    test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= retention_cut_off else 1)
 
     # Check to make sure train and test do not overlap and no data leakage
     if sum(test_data['person_id'].isin(train_data['person_id']))>0:
@@ -311,28 +314,29 @@ def logistic_regression_model(train_data_path
 
 def random_forest_model(train_data_path
                         ,test_data_path
-                        # , table_to_exclude
+                        , retention_cut_off
                         , non_feature_list
+                        , min_treatment_duration
                         ):    
-    # pdb.set_trace()
+    print('Minimum treatment duration is {} and retention threshold is {}.'.format(min_treatment_duration, retention_cut_off))
     # Read train data
     print('Reading the data:')
     print(train_data_path)
     print(test_data_path)
     train_data = pd.read_csv(train_data_path)
-    # Exclude encounters with treatment duration less than 7 days    
-    train_data = train_data[train_data['TreatmentDuration'] >= 7]
-    # Outcome (label) 1 if treatment duration is less than 180 days.    
-    train_data['outcome'] = train_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
+    # Exclude encounters with treatment duration less than min_treatment_duration days    
+    train_data = train_data[train_data['TreatmentDuration'] >= min_treatment_duration]
+    # Outcome (label) 1 if treatment duration is less than retention_cut_off days.    
+    train_data['outcome'] = train_data['TreatmentDuration'].apply(lambda x: 0 if x >= retention_cut_off else 1)
 
     num_p_train = train_data[train_data['outcome']==1].shape[0]
     num_n_train = train_data[train_data['outcome']==0].shape[0]
 
     test_data = pd.read_csv(test_data_path)
-    # Exclude encounters with treatment duration less than 7 days    
-    test_data = test_data[test_data['TreatmentDuration'] >= 7]
-    # Outcome (label) 1 if treatment duration is less than 180 days.    
-    test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
+    # Exclude encounters with treatment duration less than min_treatment_duration days    
+    test_data = test_data[test_data['TreatmentDuration'] >= min_treatment_duration]
+    # Outcome (label) 1 if treatment duration is less than retention_cut_off days.    
+    test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= retention_cut_off else 1)
 
     # Check to make sure train and test do not overlap and no data leakage
     if sum(test_data['person_id'].isin(train_data['person_id']))>0:
@@ -431,18 +435,19 @@ def test_with_imb(trained_rf_path
                 , trained_lr_path
                 , trained_xgb_path
                 , test_data_path
-                # , table_to_exclude
+                , retention_cut_off
                 , non_feature_list
+                , min_treatment_duration
                 ):
     '''
     This function loads the trained models and perform repeated testing.
     '''
-    # pdb.set_trace()
+    print('Minimum treatment duration is {} and retention threshold is {}.'.format(min_treatment_duration, retention_cut_off))
     print('Testing using:')
     print(test_data_path)    
     test_data = pd.read_csv(test_data_path)
-    test_data = test_data[test_data['TreatmentDuration'] >= 7]
-    test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
+    test_data = test_data[test_data['TreatmentDuration'] >= min_treatment_duration]
+    test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= retention_cut_off else 1)
 
 
     # if table_to_exclude != 'none':
@@ -617,32 +622,32 @@ def plots(trained_rf_path
                 , trained_lr_path
                 , trained_xgb_path
                 , test_data_path
-                # , table_to_exclude
+                , retention_cut_off
                 , non_feature_list
+                , min_treatment_duration
                 ):
-    pdb.set_trace()
+    # pdb.set_trace()
     print('Testing using imbalance test sets. ')
     print(test_data_path)
     
     test_data = pd.read_csv(test_data_path)
-    test_data = test_data[test_data['TreatmentDuration'] >= 7]
-    test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= 180 else 1)
+    test_data = test_data[test_data['TreatmentDuration'] >= min_treatment_duration]
+    test_data['outcome'] = test_data['TreatmentDuration'].apply(lambda x: 0 if x >= retention_cut_off else 1)
 
 
-     
-    if table_to_exclude != 'none':
-        cols_to_exclude = [x for x in test_data.columns if table_to_exclude in x]
-        test_data.drop(cols_to_exclude, axis=1, inplace=True)
+    # if table_to_exclude != 'none':
+    #     cols_to_exclude = [x for x in test_data.columns if table_to_exclude in x]
+    #     test_data.drop(cols_to_exclude, axis=1, inplace=True)
 
 
 
-    randomCV_rf = pickle.load(open(trained_rf_path[:-4]+'_'+table_to_exclude+'.pkl', 'rb'))
+    randomCV_rf = pickle.load(open(trained_rf_path[:-4]+'.pkl', 'rb'))
     best_model_rf= randomCV_rf.best_estimator_
 
-    randomCV_lr = pickle.load(open(trained_lr_path[:-4]+'_'+table_to_exclude+'.pkl', 'rb'))
+    randomCV_lr = pickle.load(open(trained_lr_path[:-4]+'.pkl', 'rb'))
     best_model_lr= randomCV_lr.best_estimator_    
     
-    randomCV_xgb = pickle.load(open(trained_xgb_path[:-4]+'_'+table_to_exclude+'.pkl', 'rb'))    
+    randomCV_xgb = pickle.load(open(trained_xgb_path[:-4]+'.pkl', 'rb'))    
     best_model_xgb= randomCV_xgb.best_estimator_    
 
     if sum(best_model_rf.feature_names_in_ != test_data.drop(non_feature_list, axis=1, inplace=False).columns)>0:
@@ -658,7 +663,7 @@ def plots(trained_rf_path
         pdb.set_trace()
         print('Warning')    
 
-    pdb.set_trace()
+    # pdb.set_trace()
     precisions_all_lr, recall_all_lr, thresholds_all_lr = precision_recall_curve( test_data['outcome'].values, best_model_lr.predict_proba(test_data.drop(non_feature_list, axis=1, inplace=False))[:,1])
     auc_pr_lr = auc(recall_all_lr, precisions_all_lr)
 
