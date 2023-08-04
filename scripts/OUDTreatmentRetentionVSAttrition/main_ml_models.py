@@ -33,6 +33,12 @@ parser.add_argument("--plots", type=int, default=0, choices=[0, 1])
 # table_to_exclude: help you exclide data streams. For example, if table_to_exclude=='note_nlp', the note features will not be used.
 # parser.add_argument("--table_to_exclude", type=str, default='note_nlp', choices=['diagnosis', 'drug', 'procedure', 'note_nlp'])    
 
+# Threshold to use for deviding samples to retention vs attrition. Default is 180, meaning that treatment duration less than 180 days will be labeled with 1 and otherwise 0
+parser.add_argument("--retention_cut_off", type=int, default=180)    
+
+# min_treatment_duration of 2 means only include encounters with treatment duration more than equal to 2 
+parser.add_argument("--min_treatment_duration", type=int, default=2)    
+
 
 # A list of meta-data features to be excluded.
 # List variables that are not predictors or targets here.
@@ -46,24 +52,27 @@ if  args.ml_model == 'rf':
     print('Starting to train a random forest model using:\n')
     cl_ml.random_forest_model(args.train_data_path
                             , args.test_data_path
-                            # , args.table_to_exclude
+                            , args.retention_cut_off
                             , non_feature_list
+                            , args.min_treatment_duration
                             )
 
 elif  args.ml_model == 'lr':
     print('Starting to train a logistic regression model using:\n')
     cl_ml.logistic_regression_model(args.train_data_path
                             ,args.test_data_path
-                            # , args.table_to_exclude
+                            , args.retention_cut_off
                             , non_feature_list
+                            , args.min_treatment_duration
                             )
 
 elif  args.ml_model == 'xgb':
     print('Starting to train a logistic regression model using:\n')
     cl_ml.xgboost_model(args.train_data_path
                             ,args.test_data_path
-                            # , args.table_to_exclude
+                            , args.retention_cut_off
                             , non_feature_list
+                            , args.min_treatment_duration
                             )    
 else:
     print('No ML model has been selected ... ')
@@ -74,8 +83,9 @@ if args.test_models == 1:
                         , args.trained_lr_path
                         , args.trained_xgb_path
                         , args.test_data_path
-                        # , args.table_to_exclude
+                        , args.retention_cut_off
                         , non_feature_list
+                        , args.min_treatment_duration
                         )
 
 
@@ -84,8 +94,9 @@ if args.plots == 1:
                         , args.trained_lr_path
                         , args.trained_xgb_path
                         , args.test_data_path
-                        # , args.table_to_exclude
+                        , args.retention_cut_off
                         , non_feature_list
+                        , args.min_treatment_duration
                         )
 
 
