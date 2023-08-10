@@ -32,6 +32,20 @@ cohortEncounter AS
 	and appt_status = 'Completed'
 ),
 
+referenceEncounter AS
+(	-- Example placeholder of all NEW PATIENT encounters in any clinic for any reason/diagnosis
+	-- Used as a comparison/baseline reference group to compare the above cohort of interest against 
+	-- %%% REPLACE BELOW WITH REFERENCE COHORT DEFINITION OF INTEREST %%% --
+	select distinct
+		anon_id, 
+		pat_enc_csn_id_coded as encounterId,
+		appt_when_jittered as encounterDateTime
+	from `shc_core_2021.encounter` as enc
+	where visit_type like 'NEW PATIENT%' -- Naturally screens to only 'Office Visit' enc_type 
+	and appt_status = 'Completed'
+),
+
+
 -------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------
 -- Should not need to edit much of anything below this line. Standard queries with parameters and 

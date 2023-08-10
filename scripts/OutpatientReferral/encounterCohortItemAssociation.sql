@@ -42,6 +42,7 @@ cohortEncounter AS
 ),
 referenceEncounter AS
 (	-- Example placeholder of all NEW PATIENT encounters in any clinic for any reason/diagnosis
+	-- Used as a comparison/baseline reference group to compare the above cohort of interest against 
 	-- %%% REPLACE BELOW WITH REFERENCE COHORT DEFINITION OF INTEREST %%% --
 	select distinct
 		anon_id, 

@@ -10,7 +10,7 @@ WITH
 params AS 
 (
 	select 
-		2020
+		2021
 			as cohortYear,			-- Restrict to one year for simplicity
 
 		[140027]				-- 34380 -- order_proc.proc_code = 'REF32' -- REFERRAL TO GASTROENTEROLOGY -- Should be the same thing, but database update seems to be missing proc_code for many records. Scan through order_proc table for to look for other referral order proc_ids
@@ -23,6 +23,8 @@ params AS
 									-- '7' -- dep_map.specialty like 'Endocrin%'
 									-- '14' -- dep_map.specialty like 'Hematology'
 									-- '8' -- dep_map.specialty like 'ENT%'
+		
+		['R09.81','J34.89','J32.4','J32.9'] as referralDiagnosisICD10, -- Nasal congestion, obstruction or Chronic Sinusitis
 
 		['9','17','125','2527']
 			as primaryCareDepIds, -- dep_map.specialty in 'Family Medicine','Internal Medicine','Primary Care','Express Care'
@@ -37,7 +39,8 @@ params AS
 			213662,209509,226945,112594,126580,540302,211084,540301,540304,221562,85848,112593,230620,230501,10467,200346,206390,213297,96471,126580,10236,540145,122481,85848,540763,236322,205661,213978,94592,210518,221636,10236,540145,122481,85848,540763,236322,205661,213978,94592,210518,221636,213980,13531,237602,237606,205208,232098,213297,7319,114723,242838,114723,210379,80845,199389,210527,9062,77372,7319,115220,115220,127401,231363,10537,228717,9063,110888,7319,23204,115378,236322,94592,202044,7319,206291,237603,95354,126404,114814,88720,28921,31915,10248,3708,211638,36089,31025,870,23210,381,117152,80504,237599,237601,29481,5510,126917,121514,8679,209037,19292,7319,221638,242528,77867,127400,201699,212878,127420,91568,13733,119134,10000,2331,2364,203466,28871,237600,96053,21102,212882,110889,4871,2364,10177,127420,209888,91375,28870,9605,209878,43483,95803,234674,89428,239975,80845,4454,112403,542067,31916,112597,242207,1965,2131,241649,15861,231412,10531 -- Hematology specialty meds
 		]	as specialtySpecificMedicationIds, -- Similar medication prescription list used in specialty clinics that would not expect a referring primary care physician to order, even with decision support.
 
-		[3]	as excludeMedOrderClass -- 'Historical Med' class, doesn't represent a new prescription
+		['3']	as excludeMedOrderClass, -- 'Historical Med' class, doesn't represent a new prescription
+		10 as minPatientsForNonRareItems -- If an item has not been ordered for more than this number of patients, assume it is too rare to use/recommend
 
 ),
 
@@ -55,8 +58,8 @@ referringEncounter AS
 (
 	select op.anon_id, op.pat_enc_csn_id_coded as encounterId, 
       enc.appt_when_jittered as encounterDateTime, op.order_time_jittered as referralOrderDateTime
-	from `shc_core_2021.order_proc` as op 
-	  join `shc_core_2021.encounter` as enc on op.pat_enc_csn_id_coded = enc.pat_enc_csn_id_coded,
+	from `shc_core_2022.order_proc` as op 
+	  join `shc_core_2022.encounter` as enc on op.pat_enc_csn_id_coded = enc.pat_enc_csn_id_coded,
 	  params
 	where proc_id in UNNEST(params.referralProcIds)
 	and ordering_mode = 'Outpatient'
@@ -68,8 +71,8 @@ referringEncounterAnySpecialty AS
 (
 	select op.anon_id, op.pat_enc_csn_id_coded as encounterId, 
       enc.appt_when_jittered as encounterDateTime, op.order_time_jittered as referralOrderDateTime
-	from `shc_core_2021.order_proc` as op 
-	  join `shc_core_2021.encounter` as enc on op.pat_enc_csn_id_coded = enc.pat_enc_csn_id_coded,
+	from `shc_core_2022.order_proc` as op 
+	  join `shc_core_2022.encounter` as enc on op.pat_enc_csn_id_coded = enc.pat_enc_csn_id_coded,
 	  params
 	where order_type = 'Outpatient Referral' -- proc_code like 'REF%' 
 	and ordering_mode = 'Outpatient'
@@ -82,8 +85,8 @@ primaryCareEncounter AS
 	select enc.anon_id, enc.pat_enc_csn_id_coded as encounterId, 
 		enc.appt_when_jittered as encounterDateTime, 
   	dep.specialty_dep_c, dep.specialty
-	from `shc_core_2021.encounter` as enc 
-	  	join `shc_core_2021.dep_map` as dep on enc.department_id = dep.department_id,
+	from `shc_core_2022.encounter` as enc 
+	  	join `shc_core_2022.dep_map` as dep on enc.department_id = dep.department_id,
 	  	params
 	where dep.specialty_dep_c in UNNEST(params.primaryCareDepIds) 
 	and appt_type in ('Office Visit','Appointment') -- Otherwise Telephone, Refill, Orders Only, etc.
@@ -95,8 +98,8 @@ primaryCareEncounter AS
 specialtyNewPatientEncounter AS
 (
 	select enc.anon_id, enc.pat_enc_csn_id_coded as encounterId, enc.appt_when_jittered as encounterDateTime
-	from `shc_core_2021.encounter` as enc 
-		join `shc_core_2021.dep_map` as dep on enc.department_id = dep.department_id,
+	from `shc_core_2022.encounter` as enc 
+		join `shc_core_2022.dep_map` as dep on enc.department_id = dep.department_id,
 		params
 	where dep.specialty_dep_c in UNNEST(params.specialtyDepIds)
 	and visit_type like 'NEW PATIENT%' -- Naturally screens to only 'Office Visit' enc_type 
@@ -109,8 +112,8 @@ specialtyNewPatientEncounter AS
 specialtyNonNewPatientEncounter AS
 (
 	select enc.anon_id, enc.pat_enc_csn_id_coded as encounterId, enc.appt_when_jittered as encounterDateTime
-	from `shc_core_2021.encounter` as enc 
-		join `shc_core_2021.dep_map` as dep on enc.department_id = dep.department_id,
+	from `shc_core_2022.encounter` as enc 
+		join `shc_core_2022.dep_map` as dep on enc.department_id = dep.department_id,
 		params
 	where dep.specialty_dep_c in UNNEST(params.specialtyDepIds)
 	and visit_type not like 'NEW PATIENT%' -- Wide list of different 'ESTABLISHED PATIENT...,' 'RETURN PATIENT...,' 'THYROID BIOPSY,' etc.
@@ -162,7 +165,7 @@ specialtyNewPatientNonSpecializedEncounter AS
 
 	select specEnc.anon_id, specEnc.encounterId, specEnc.encounterDateTime 
 	from specialtyNewPatientEncounter as specEnc
-		  join `shc_core_2021.order_proc` as op on specEnc.encounterId = op.pat_enc_csn_id_coded,
+		  join `shc_core_2022.order_proc` as op on specEnc.encounterId = op.pat_enc_csn_id_coded,
 		  params
 	where op.proc_code in UNNEST(params.specialtySpecificProcCodes) 
 
@@ -170,7 +173,7 @@ specialtyNewPatientNonSpecializedEncounter AS
 
 	select specEnc.anon_id, specEnc.encounterId, specEnc.encounterDateTime
 	from specialtyNewPatientEncounter as specEnc
-		  join `shc_core_2021.order_med` as om on specEnc.encounterId = om.pat_enc_csn_id_coded ,
+		  join `shc_core_2022.order_med` as om on specEnc.encounterId = om.pat_enc_csn_id_coded ,
 		  params
 	where order_class_c not in UNNEST(params.excludeMedOrderClass)
 	and om.medication_id in UNNEST(params.specialtySpecificMedicationIds) 
@@ -187,7 +190,7 @@ specialtyNewPatientNoMedsOrProcsEncounter AS
 
 	select specEnc.anon_id, specEnc.encounterId, specEnc.encounterDateTime 
 	from specialtyNewPatientEncounter as specEnc
-	  join `shc_core_2021.order_proc` as op on specEnc.encounterId = op.pat_enc_csn_id_coded ,
+	  join `shc_core_2022.order_proc` as op on specEnc.encounterId = op.pat_enc_csn_id_coded ,
 	  params
 	where op.proc_code in UNNEST(params.specialtySpecificProcCodes)
 
@@ -195,7 +198,7 @@ specialtyNewPatientNoMedsOrProcsEncounter AS
 
 	select specEnc.anon_id, specEnc.encounterId, specEnc.encounterDateTime
 	from specialtyNewPatientEncounter as specEnc
-	  join `shc_core_2021.order_med` as om on specEnc.encounterId = om.pat_enc_csn_id_coded ,
+	  join `shc_core_2022.order_med` as om on specEnc.encounterId = om.pat_enc_csn_id_coded ,
 	  params
 	where order_class_c not in UNNEST(params.excludeMedOrderClass)
 ),
@@ -266,3 +269,187 @@ specialtyNewEncounterNoFollowup AS
 
 
 
+
+
+
+cohortEncounter AS
+(	-- This is a sample placeholder of all NEW PATIENT encounters in any clinic
+	-- Replace this with a specific cohort of interest, which can be constructed through a separate series of common table expressions
+	-- E.g., See specialtyReferralEncounterCohortDefinitions.sql, copy in those CTE queries above, then
+	--	replace the below with something like "select anon_id, encounterId, encounterDateTime from referringEncounter"
+	-- %%% REPLACE BELOW WITH COHORT DEFINITION OF INTEREST %%% --
+	select 
+		distinct
+		referringEncounter.anon_id, 
+		referringEncounter.encounterId,
+		referringEncounter.encounterDateTime
+	from referringEncounter
+	  join `shc_core_2022.diagnosis` as dx on referringEncounter.encounterId = dx.pat_enc_csn_id_jittered,
+		params
+	where
+		dx.icd10 in UNNEST(params.referralDiagnosisICD10)
+),
+
+referenceEncounter AS
+(	-- This is a sample placeholder of all NEW PATIENT encounters in any clinic
+	-- Replace this with a specific cohort of interest, which can be constructed through a separate series of common table expressions
+	-- E.g., See specialtyReferralEncounterCohortDefinitions.sql, copy in those CTE queries above, then
+	--	replace the below with something like "select anon_id, encounterId, encounterDateTime from referringEncounter"
+	-- %%% REPLACE BELOW WITH COHORT DEFINITION OF INTEREST %%% --
+	select 
+		anon_id, 
+		encounterId,
+		encounterDateTime
+	from primaryCareEncounter
+),
+
+
+-------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------
+-- Should not need to edit much of anything below this line. Standard queries with parameters and 
+--   designation of a cohort of encounters of interest that can be modified above.
+-- Can modify last result lines to extract reports of interest to describe the cohort
+-------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------
+
+cohortEncounterDiagnosis AS
+(
+	select 
+		dx.icd9, dx.icd10, dx_name, 
+		count(*) as nDiagnosis, count(distinct cohortEnc.anon_id) as nPatient, count(distinct cohortEnc.encounterId) as nEncounter
+	from cohortEncounter as cohortEnc 
+	  join `shc_core_2022.diagnosis` as dx on cohortEnc.encounterId = dx.pat_enc_csn_id_jittered 
+	group by dx.icd9, dx.icd10, dx_name
+	order by count(*) desc
+),
+
+cohortEncounterSourceDepartment AS
+(
+	select 
+		specialty_dep_c, specialty, department_id, dept_abbreviation, department_name, 
+		count(distinct cohortEnc.anon_id) as nPatients, count(distinct cohortEnc.encounterId) as nEncounters
+	from cohortEncounter as cohortEnc 
+		join shc_core_2022.encounter as enc on (cohortEnc.encounterId = enc.pat_enc_csn_id_coded)
+		join shc_core_2022.dep_map as dep using (department_id)
+	group by
+		specialty_dep_c, specialty, department_id, dept_abbreviation, department_name
+	order by nEncounters desc
+),
+
+cohortEncounterMed AS
+(
+	select 
+		medication_id, med_description,
+		count(distinct cohortEnc.anon_id) as nPatients, count(distinct cohortEnc.encounterId) as nEncounters
+	from cohortEncounter as cohortEnc
+	  join `shc_core_2022.order_med` as om on cohortEnc.encounterId = om.pat_enc_csn_id_coded ,
+	  params
+	where order_class_c not in UNNEST(params.excludeMedOrderClass)
+	group by medication_id, med_description
+	order by count(*) desc
+),
+
+-- Number of distinct Med Orders per Encounter
+cohortEncounterMedCount AS
+(
+	select avg(nDistinctOrderMed) as avgDistinctOrderMed, max(nDistinctOrderMed) as maxDistinctOrderMed
+	from
+	(
+	  select cohortEnc.encounterId, count(distinct om.medication_id) as nDistinctOrderMed
+	  from cohortEncounter as cohortEnc
+	    join `shc_core_2022.order_med` as om on cohortEnc.encounterId = om.pat_enc_csn_id_coded ,
+	    params
+	  where order_class_c not in UNNEST(params.excludeMedOrderClass)
+	  group by cohortEnc.encounterId 
+	)
+),
+
+
+-- Order Proc from encounters
+cohortEncounterProc AS
+(
+	select 
+		op.proc_code, description, 
+		count(distinct cohortEnc.anon_id) as nPatients, count(distinct cohortEnc.encounterId) as nEncounters
+	  from cohortEncounter as cohortEnc
+	  join `shc_core_2022.order_proc` as op on cohortEnc.encounterId = op.pat_enc_csn_id_coded 
+	group by proc_code, description
+	order by count(*) desc
+),
+
+-- Number of distinct Med Orders per Encounter
+cohortEncounterProcCount AS
+(
+	select avg(nDistinctOrderProcs) as avgDistinctOrderProcs, max(nDistinctOrderProcs) as maxDistinctOrderProcs
+	from
+	(
+	  select cohortEnc.encounterId, count(distinct op.proc_code) as nDistinctOrderProcs
+	  from cohortEncounter as cohortEnc
+	    join `shc_core_2022.order_proc` as op on cohortEnc.encounterId = op.pat_enc_csn_id_coded 
+	  group by cohortEnc.encounterId 
+	)
+),
+
+
+-- Medications from cohort encounter Visits that are (rarely) ordered in reference cohort encounter (e.g., Primary Care)
+cohortSpecificMeds AS
+(
+	select 
+		medication_id, med_description,
+		count(distinct cohortEnc.anon_id) as nPatients, count(distinct cohortEnc.encounterId) as nEncounters
+	from cohortEncounter as cohortEnc
+	  join `shc_core_2022.order_med` as om on cohortEnc.encounterId = om.pat_enc_csn_id_coded ,
+	  params
+	where order_class_c not in UNNEST(params.excludeMedOrderClass)
+	and medication_id not in
+	(
+		select medication_id
+		from referenceEncounter as refEnc
+		  join `shc_core_2022.order_med` as om on refEnc.encounterId = om.pat_enc_csn_id_coded ,
+		  params
+		where order_class_c not in UNNEST(params.excludeMedOrderClass)
+		group by medication_id, params.minPatientsForNonRareItems
+		having count(distinct refEnc.anon_id) >= params.minPatientsForNonRareItems
+	)
+	group by medication_id, med_description
+	order by count(*) desc
+),
+
+-- Procedures in specialty care that are rarely encountered in primary care
+cohortSpecificProc AS
+(
+	select 
+		op.proc_code, description, 
+		count(distinct cohortEnc.anon_id) as nPatients, count(distinct cohortEnc.encounterId) as nEncounters
+	  from cohortEncounter as cohortEnc
+	  join `shc_core_2022.order_proc` as op on cohortEnc.encounterId = op.pat_enc_csn_id_coded ,
+	  params
+	where proc_id not in
+	(
+		select proc_id
+		from referenceEncounter as refEnc
+		  join `shc_core_2022.order_proc` as op on refEnc.encounterId = op.pat_enc_csn_id_coded 
+		group by proc_id, params.minPatientsForNonRareItems
+		having count(distinct refEnc.anon_id) >= params.minPatientsForNonRareItems
+	)
+	group by proc_code, description
+	order by count(*) desc
+),
+
+spacer AS (select null as tempSpacer) -- Just put this here so don't have to worry about ending last named query above with a comma or not
+
+-------------------------------------------------------------------------------------------------
+-- Replace or uncomment below with specific items to query to generate results of interest
+-------------------------------------------------------------------------------------------------
+
+select * from cohortEncounter
+-- select * from cohortEncounterDiagnosis
+-- select * from cohortEncounterSourceDepartment
+-- select * from cohortEncounterMed
+-- select * from cohortEncounterMedCount
+-- select * from cohortEncounterProc
+-- select * from cohortEncounterProcCount
+-- select * from cohortSpecificMeds
+-- select * from cohortSpecificProc
+
+limit 1000
