@@ -10,7 +10,7 @@ WITH
 params AS 
 (
 	select 
-		2021
+		2022
 			as cohortYear,			-- Restrict to one year for simplicity
 
 		[140027]				-- 34380 -- order_proc.proc_code = 'REF32' -- REFERRAL TO GASTROENTEROLOGY -- Should be the same thing, but database update seems to be missing proc_code for many records. Scan through order_proc table for to look for other referral order proc_ids
@@ -54,7 +54,7 @@ params AS
 
 
 -- (1) Find all (outpatient) encounter referral orders for specialty
-referringEncounter AS
+referringEncounterAny AS
 (
 	select op.anon_id, op.pat_enc_csn_id_coded as encounterId, 
       enc.appt_when_jittered as encounterDateTime, op.order_time_jittered as referralOrderDateTime
@@ -64,6 +64,23 @@ referringEncounter AS
 	where proc_id in UNNEST(params.referralProcIds)
 	and ordering_mode = 'Outpatient'
 	and EXTRACT(YEAR from order_time_jittered) = params.cohortYear 
+),
+
+
+-- Restrict to those where there was a relevant diagnosis code in the referring encounter
+referringEncounter AS
+(
+	select 
+		distinct
+		referringEncounterAny.anon_id, 
+		referringEncounterAny.encounterId,
+		referringEncounterAny.encounterDateTime,
+		referringEncounterAny.referralOrderDateTime
+	from referringEncounterAny
+	  join `shc_core_2022.diagnosis` as dx on referringEncounterAny.encounterId = dx.pat_enc_csn_id_jittered,
+		params
+	where
+		dx.icd10 in UNNEST(params.referralDiagnosisICD10)
 ),
 
 -- (1a) Find all (outpatient) encounters with referral orders for ANY specialty (use as reference baseline for relative risk estimates)
@@ -125,6 +142,7 @@ specialtyNonNewPatientEncounter AS
 -- (2b) Find all (New Patient) clinic visits for ANY specialty (use as reference baseline for relative risk estimates)
 
 -- (3) Join to match referral orders to respective (first) patient visits within X months of referral
+--- ??? No restriction on FIRST visit, as will catch any New Patient visit, even if patient has multiple with same specialty?
 referralSpecialtyEncounterTime AS
 (
 	select 
@@ -273,21 +291,13 @@ specialtyNewEncounterNoFollowup AS
 
 
 cohortEncounter AS
-(	-- This is a sample placeholder of all NEW PATIENT encounters in any clinic
-	-- Replace this with a specific cohort of interest, which can be constructed through a separate series of common table expressions
-	-- E.g., See specialtyReferralEncounterCohortDefinitions.sql, copy in those CTE queries above, then
-	--	replace the below with something like "select anon_id, encounterId, encounterDateTime from referringEncounter"
-	-- %%% REPLACE BELOW WITH COHORT DEFINITION OF INTEREST %%% --
-	select 
+(	-- Specific cohort of interest
+	select
 		distinct
 		referringEncounter.anon_id, 
 		referringEncounter.encounterId,
 		referringEncounter.encounterDateTime
 	from referringEncounter
-	  join `shc_core_2022.diagnosis` as dx on referringEncounter.encounterId = dx.pat_enc_csn_id_jittered,
-		params
-	where
-		dx.icd10 in UNNEST(params.referralDiagnosisICD10)
 ),
 
 referenceEncounter AS
@@ -442,7 +452,21 @@ spacer AS (select null as tempSpacer) -- Just put this here so don't have to wor
 -- Replace or uncomment below with specific items to query to generate results of interest
 -------------------------------------------------------------------------------------------------
 
-select * from cohortEncounter
+-- Reidentify cases with mappping table
+-- Restrict to referral intervals > 0 days to avoid confusing cases
+-- Some repeats are possible if multiple referral orders or New Patient specialty visits occurred
+select 
+	anon_id, mrn, 
+	DATETIME_SUB(referralOrderDateTime, INTERVAL jitter DAY) as realReferralOrderDateTime,
+	DATETIME_SUB(referringDateTime, INTERVAL jitter DAY) as realReferralVisitDateTime,
+	DATETIME_SUB(specialtyDateTime, INTERVAL jitter DAY) as realSpecialtyVisitDateTime,
+ 	referralDelayDays
+from 
+	referralSpecialtyEncounterTime
+	join som-nero-phi-jonc101-secure.starr_map.shc_map_2022 using (anon_id)
+where referralDelayDays > 0
+order by mrn
+
 -- select * from cohortEncounterDiagnosis
 -- select * from cohortEncounterSourceDepartment
 -- select * from cohortEncounterMed
@@ -453,3 +477,5 @@ select * from cohortEncounter
 -- select * from cohortSpecificProc
 
 limit 1000
+
+
