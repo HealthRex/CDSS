@@ -18,6 +18,12 @@ The first step is to fill out the request from from Meta here: https://ai.meta.c
 
 <ul>
   <li>Run your VM and click on the ssh button to open a command line tabe (if you already don't have this open)</li>
-  <li>The github page for the llama model is here: https://github.com/facebookresearch/llama. You should see a "download.sh" file on their github. You need to donwload that file on on your VM and then running that file will download the llama. You can just download it and then upload it to your VM via the UI (you can upload files to your VM via the "UPLOAD FILE" button on top right corner of your ssh). Alternatively, you can run this command in your ssh command line to download the file: ```wget https://raw.githubusercontent.com/facebookresearch/llama/main/download.sh```</li>
+  <li>The github page for the llama model is here: https://github.com/facebookresearch/llama. You should see a "download.sh" file on their github. You need to donwload that file on on your VM and then running that file will download the llama. You can just download it and then upload it to your VM via the UI (you can upload files to your VM via the "UPLOAD FILE" button on top right corner of your ssh). Alternatively, you can run this command in your ssh command line to download the file:
+
+    ```wget https://raw.githubusercontent.com/facebookresearch/llama/main/download.sh```</li>
 </ul>
+
+
+
+
 
