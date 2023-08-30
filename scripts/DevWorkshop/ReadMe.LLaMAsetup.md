@@ -12,4 +12,12 @@ This tutorial assumes that you already have access to the HealthRex projects and
 
 After creating your VM, you should see your VM under the "VM instances" list/window. Your VM is by defult on and running (you can probably see that the status small button is green). IMPORTANT NOTE, YOU SHOULD TURN OFF THE VM WHEN YOU ARE NOT USING IT AS GCP CHARGES BASED ON THE TIMES YOUR VM IS RUNNING. To stop the VM from running, you need to click on the "More Action" (the three small dots on the right) and click stop. Note, your settings and files will not be deleting by stoping the VM, but your running programs will stop. The next step is to access your VM through SSH and you can simply do that by clicking on the "SSH" bottun. A new command line tab will be open where you can use linux commands to work with your VM. Note, the first time you ssh to your VM it will ask your permission to install the required packages, enter y and press enter to give the permission. 
 
-<h2 style="font-size:60px;">1. Downloading and using LLaMA </h2>
+<h2 style="font-size:60px;">2. Downloading and using LLaMA </h2>
+
+The first step is to fill out the request from from Meta here: https://ai.meta.com/llama/ and within 48 hours you will receive an email from Meta including a url and some information about the models (typically takes under an hour in most cases though). You will need this url in later steps. Following steps help you download the llama model on the VM you created above: 
+
+<ul>
+  <li>Run your VM and click on the ssh button to open a command line tabe (if you already don't have this open)</li>
+  <li>The github page for the llama model is here: https://github.com/facebookresearch/llama. You should see a "download.sh" file on their github. You need to donwload that file on on your VM and then running that file will download the llama. You can just download it and then upload it to your VM via the UI (you can upload files to your VM via the "UPLOAD FILE" button on top right corner of your ssh). Alternatively, you can run this command in your ssh command line to download the file: ```wget https://raw.githubusercontent.com/facebookresearch/llama/main/download.sh```</li>
+</ul>
+
