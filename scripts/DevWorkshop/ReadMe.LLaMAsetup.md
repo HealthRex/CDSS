@@ -22,7 +22,8 @@ The first step is to fill out the request from from Meta here: https://ai.meta.c
 
     wget https://raw.githubusercontent.com/facebookresearch/llama/main/download.sh`</li>
   
-  <li>You can now run the download file: <code>bash download.sh<code></li>
+  <li>You can now run the download file: <code>bash download.sh<code>. It will ask you to enter the url in Meta's email; copy and paste the url. It will then ask you what model you want to download. Models with 7B are the smallest models and probably a good choice for developement. For example, 7B-chat is a the smallets model that you can use for prompt engineering and is probably a good option to start with.</li>
+  <li>After the download is done (it will take a few minutes), you should see a folder including the model. Use linux "ls" command to check the files. Enter the model folder using linux "cd llama-2-7b-chat" command. </li>
 </ul>
 
 
