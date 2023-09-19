@@ -12,6 +12,8 @@ params AS
 	select 
 		2022
 			as cohortYear,			-- Restrict to one year for simplicity
+		18
+			as minimumAgeAtReferral,	-- Restrict to patients of minimum age to avoid empty pediatric records
 
 		[140027]				-- 34380 -- order_proc.proc_code = 'REF32' -- REFERRAL TO GASTROENTEROLOGY -- Should be the same thing, but database update seems to be missing proc_code for many records. Scan through order_proc table for to look for other referral order proc_ids
 			as referralProcIds,	-- Related REF32A (GI UHA), REF516 (Peds GI), REF132 (GI-External) skipping here, as restricting to internal adult referrals for now
@@ -59,14 +61,17 @@ params AS
 -- (1) Find all (outpatient) encounter referral orders for specialty
 referringEncounterAny AS
 (
-	select op.anon_id, op.pat_enc_csn_id_coded as encounterId, 
+	select op.anon_id, op.pat_enc_csn_id_coded as encounterId,
+      DATE_DIFF(op.order_time_jittered, demo.birth_date_jittered, YEAR) as ageAtReferral,
       enc.appt_when_jittered as encounterDateTime, op.order_time_jittered as referralOrderDateTime
 	from `shc_core_2022.order_proc` as op 
-	  join `shc_core_2022.encounter` as enc on op.pat_enc_csn_id_coded = enc.pat_enc_csn_id_coded,
+	  join `shc_core_2022.encounter` as enc using (anon_id, pat_enc_csn_id_coded) 
+    join `shc_core_2022.demographic`  as demo using (anon_id),
 	  params
 	where proc_id in UNNEST(params.referralProcIds)
 	and ordering_mode = 'Outpatient'
-	and EXTRACT(YEAR from order_time_jittered) = params.cohortYear 
+	and EXTRACT(YEAR from order_time_jittered) = params.cohortYear
+  and DATE_DIFF(op.order_time_jittered, demo.birth_date_jittered, YEAR) >= minimumAgeAtReferral 
 ),
 
 
@@ -461,7 +466,8 @@ spacer AS (select null as tempSpacer) -- Just put this here so don't have to wor
 -- Restrict to referral intervals > 0 days to avoid confusing cases
 -- Some repeats are possible if multiple referral orders or New Patient specialty visits occurred
 select 
-	anon_id, mrn, 
+	--anon_id, 
+	mrn, 
 	DATETIME_SUB(referralOrderDateTime, INTERVAL jitter DAY) as realReferralOrderDateTime,
 	DATETIME_SUB(referringDateTime, INTERVAL jitter DAY) as realReferralVisitDateTime,
 	DATETIME_SUB(specialtyDateTime, INTERVAL jitter DAY) as realSpecialtyVisitDateTime,
@@ -471,6 +477,8 @@ from
 	join som-nero-phi-jonc101-secure.starr_map.shc_map_2022 using (anon_id)
 where referralDelayDays > 0
 order by mrn
+
+-- select * from referringEncounterAny
 
 -- select * from cohortEncounterDiagnosis
 -- select * from cohortEncounterSourceDepartment
