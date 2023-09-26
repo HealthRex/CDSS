@@ -150,6 +150,10 @@ Recommended to save time during workshop:
          • Locate your service account. 
          • Under the "Actions" tab, click on the three dots and select "Manage Permissions."
          • Click on "GRANT ACCESS" and add yourself as a "Service Account Key Admin."
+         • Click on the "Add Key" dropdown and select "Create new key."
+         • Choose the key type as JSON.
+         • Click the "Create" button. This will download a JSON key file to your computer.
+
 
   - Find, download and run the respective Google Cloud SDK installer for your system from the link below. 
     (If you already have Python installed on your system, you can skip that dependency)
