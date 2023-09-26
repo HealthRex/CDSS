@@ -118,7 +118,7 @@ Recommended to save time during workshop:
 
      - To locate the JSON key file for your Google Cloud service account on a Mac, you can follow these steps: 
      1.	Google Cloud Console: 
-         • Go to the Google Cloud Console: https://console.cloud.google.com/ 
+         •Go to the Google Cloud Console: https://console.cloud.google.com/ 
          • Log in with the Google account associated with "som-nero-phi-jonc101" Google Cloud project. 
      2.	Service Account: 
          • In the left navigation pane, click on "IAM & Admin" > "Service accounts." 
