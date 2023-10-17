@@ -14,3 +14,4 @@ scripts/ER_Infection/notebooks/mit_data_analysis/data*
 venv*
 *token.pickle
 .Rproj.user
+*pyproject.toml
