@@ -79,7 +79,7 @@ Recommended to save time during workshop:
   - Settings > Network & Internet
   - Change Adapter Options
   - Select your WiFi or Ethernet or other network connection device
-  - Properies
+  - Properties
   - Uncheck "Internet Protocol Version 6 (TCP/IPv6)"
 
 - VPN Group option:
@@ -116,6 +116,45 @@ Recommended to save time during workshop:
   https://cloud.google.com/docs/authentication/getting-started
   https://cloud.google.com/docs/authentication/best-practices-applications
 
+     - To locate the JSON key file for your Google Cloud service account on a Mac, you can follow these steps: 
+     1.	Google Cloud Console: 
+         • Go to the Google Cloud Console: https://console.cloud.google.com/ 
+         • Log in with the Google account associated with "som-nero-phi-jonc101" Google Cloud project. 
+     2.	Service Account: 
+         • In the left navigation pane, click on "IAM & Admin" > "Service accounts." 
+     3.	Locate Your Service Account:
+         • Look for the service account you want to use to access Google BigQuery within the project. 
+            It should be listed in the "Service accounts" section. 
+     4.	Create a JSON Key File: 
+         • Click on the service account name to access its details. 
+         • In the "Keys" tab, you'll see a list of keys associated with the service account. If you don't have one yet, you can create a new key. 
+         • Click on the "Add Key" dropdown and select "Create new key." 
+         • Choose the key type as JSON. 
+         • Click the "Create" button. This will download a JSON key file to your computer. 
+     5.	Locate the JSON Key File: 
+         • The JSON key file will typically be downloaded to your computer's default downloads directory.
+     6.	Move the JSON Key File: 
+         • Once you've located the JSON key file, you may want to move it to a secure location on your computer. 
+
+     - Contact SRCC Help Desk (If Needed): 
+       If you encounter the error message: "You need additional access. You do not have permission to view the service accounts in this project."
+       or if you don't see the permission to view keys, you can contact the SRCC Help Desk for assistance: 
+         • Email: "srcc-support AT stanford DOT edu"
+
+     - Additional Note:
+       If you have service account permission but still don't see the permission to view keys, you can grant yourself access by becoming a Service 
+       Account Key Admin. Here's how:
+         • Go to the Google Cloud Console: https://console.cloud.google.com/ 
+         • Navigate to the project. 
+         • Click on "IAM & Admin" > "Service accounts." 
+         • Locate your service account. 
+         • Under the "Actions" tab, click on the three dots and select "Manage Permissions."
+         • Click on "GRANT ACCESS" and add yourself as a "Service Account Key Admin."
+         • Click on the "Add Key" dropdown and select "Create new key."
+         • Choose the key type as JSON.
+         • Click the "Create" button. This will download a JSON key file to your computer.
+
+
   - Find, download and run the respective Google Cloud SDK installer for your system from the link below. 
     (If you already have Python installed on your system, you can skip that dependency)
     https://cloud.google.com/sdk/install
@@ -142,6 +181,8 @@ Recommended to save time during workshop:
     Mac/Linux: export GOOGLE_APPLICATION_CREDENTIALS=[PathToKeyFile]
     Windows(cmd): set GOOGLE_APPLICATION_CREDENTIALS=[PathToKeyFile] 
        (Replace [PathToKeyFile] with the location of the JSON key file created in the prior step)
+
+        
 
   - Try connecting to a secured project BigQuery database and query for some data
     
