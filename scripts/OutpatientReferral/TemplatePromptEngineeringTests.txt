@@ -1,0 +1,134 @@
+Given a set of example question answers or clinical note content, I will ask you to prepare a draft of a patient's clinical note HPI (history of present illness) that would be pre-templated before the patient actually arrives for their (specialty) clinic visit. Don't say anything yet until explicitly requested to generate a note draft.
+
+
+
+Below are examples of what useful prepared HPI drafts would look like. Review these, but still don't say anything yet until instructed to generate drafts:
+
+
+# Example #1
+The patient was referred to address Chronic Sinus Symptoms attributed to Allergies.
+The patient reports sinus congestion for several weeks with associated sinus pressure.
+No mention was found of other specific information such as which side is more affected, sense of smell, discolored discharge, use of saline irrigation, topical steroids, allergy testing, nose trauma, light or sound sensitivity, or other nasal/facial procedures.
+
+
+
+
+# Example #2
+
+Based on a scanned referral document from 12/1/2020 from Dr. XXX (ENT) at XXX Multispecialty Clinics:
+
+The patient was referred for a Parotid Mass (K11.8),
+with associated symptoms of a mass behind left ear,
+that has been occuring for the last few years.
+Patient has a history of smoking.
+
+Patient was previously diagnosed as having a Parotid Mass, 
+with an ultrasound on 1/3/2020 showing a complex cystic appearing lesion of the L parotid gland that was deemed most likely benign as it was present for 2 years.
+An ultrasound guided biopsy of the L parotid gland was done on 1/7/2020.
+The patient was not previously prescribed any specific treatment.
+
+
+# Example #3
+
+Based on a scanned referral note from 6/6/2022 from Dr. XXX (ENT) at Referring Clinic:
+
+The patient was referred for Decreased Hearing, 
+with associated symptoms of Vertigo, Tinnitus, and Ear Discomfort,
+with episodes occuring in 2015 and 2018 and recurrent since then.
+
+The patient was previously diagnosed as having Meniere's Disease
+and was treated with Diazide (Triamterene).
+
+Patient has a history of Mycosis Fungoides, controlled with Valchor (mechlormethine).
+
+
+
+
+Below is a table of key pre-visit questions of interest for new patient referred to ENT for Nasal Congestion.
+Review these questions, but do not say anything yet until given a new specific patient case information.
+
+1. Has the patient had nasal symptoms [such as fullness in the nose/face, nasal blockage, nasal discharge] for more than 3 months? 
+2. Are the nasal symptoms getting progressively worse?
+3. Has the patient seen an Ear, Nose and Throat (ENT) specialist before?
+4. Were topical steroids [such as Fluticasone propionate, fluticasone furoate, ciclesonide, mometasone, beclomethasone, budesonide, flunisolide] recommended?
+5. Is there nasal congestion which means stuffiness in the nose?
+6. Is nasal congestion which means stuffiness of the nose unilateral?
+7. Is there nasal obstruction which means blockage in the nose?
+8. Is nasal obstruction which means blockage in the nose unilateral?
+9. Is there a history of change in smell?
+10. Is there nasal discharge that is different in color than white or clear?
+11. Is there pain which means facial pressure in the face?
+12. Is there pain which means facial pressure on one side only when it occurs?
+13. Are there episodes or flare ups of temporary worsening nasal symptoms that get better?
+14. Was the patient recommended to use saline spray or rinse in the nose?
+15. Has the patient used over-the-counter oral decongestants [such as loratadine, cetirizine, levocetirizine, desloratadine, fexofenadine, diphenhydramine, hydroxyzine, chlorpheniramine, pseudoephedrine, phenylephrine ] to help relieve symptoms?
+16. Has the patient used over-the-counter non-oral decongestants [such as oxymetazoline, pseudoephedrine, ephedrine, xylometazoline]?
+17. Has the patient used nasal antihistamines [such as Azelastine, olopatadine]?
+18. Has the patient used oral steroids [such as Prednisone, dexamethasone, hydrocortisone, methylprednisolone, prednisolone, betamethasone ]?
+19. Has the patient tried antibiotic pills [such as Amoxicillin-clavulanic acid, amoxicillin, doxycycline, cefixime, cefpodoxime, clindamycin, levofloxacin, moxifloxacin]?
+20. Has the patient ever broken their nose?
+21. Is there any history of a septoplasty with or without a turbinate reduction?
+22. Is there a history of sinus surgery?
+23. Has the patient had a CT scan of the facial area [such as face, head, brain, maxillofcial, sinus regions]?
+24. Is there any mention of a bleeding disorder?
+25. Are there any associated visual changes with the onset of the symptoms?
+26. Is there a history of headaches or migraines?
+27. Does the patient have asthma?
+28. Do the symptoms change with change in weather or seasons?
+29. Has the patient received testing for environmental allergies?
+30. Does the patient currently use tobacco in inhaled form [such as smoke, smoke cigarettes, use e-cigarretes, or vape]
+
+
+
+Below are answers to the key questions for a specific patient.
+Draft a clinical note HPI based on this information.
+Avoid mentioning anything about "no" or "no mention| answers, as it's hard to confirm whether the patient really had not gotten certain treatments or symptoms or if they just weren't asked or mentions. Only draft things based on the positive ("yes") mentions. (For implementation purposes, I suppose we could just not show you the non-positive answers to reduce confusion.)
+
+Note that this line of questioning does not specify exactly which medication were prescribed, so better not to refer to specifics like prednisone or amoxicillin-clavulanic acid explicitly, as those might not have been the actual meds prescribed. Either avoid mentioning specifics, or describe them in parentheticals.
+
+
+1. Has the patient had nasal symptoms [such as fullness in the nose/face, nasal blockage, nasal discharge] for more than 3 months? 	yes
+2. Are the nasal symptoms getting progressively worse?	no mention
+3. Has the patient seen an Ear, Nose and Throat (ENT) specialist before?	yes
+4. Were topical steroids [such as Fluticasone propionate, fluticasone furoate, ciclesonide, mometasone, beclomethasone, budesonide, flunisolide] recommended?	yes
+5. Is there nasal congestion which means stuffiness in the nose?	yes
+6. Is nasal congestion which means stuffiness of the nose unilateral?	yes
+7. Is there nasal obstruction which means blockage in the nose?	yes
+8. Is nasal obstruction which means blockage in the nose unilateral?	yes
+9. Is there a history of change in smell?	no mention
+10. Is there nasal discharge that is different in color than white or clear?	no mention
+11. Is there pain which means facial pressure in the face?	no mention
+12. Is there pain which means facial pressure on one side only when it occurs?	no mention
+13. Are there episodes or flare ups of temporary worsening nasal symptoms that get better?	no mention
+14. Was the patient recommended to use saline spray or rinse in the nose?	no
+15. Has the patient used over-the-counter oral decongestants [such as loratadine, cetirizine, levocetirizine, desloratadine, fexofenadine, diphenhydramine, hydroxyzine, chlorpheniramine, pseudoephedrine, phenylephrine ] to help relieve symptoms?	no mention
+16. Has the patient used over-the-counter non-oral decongestants [such as oxymetazoline, pseudoephedrine, ephedrine, xylometazoline]?	no mention
+17. Has the patient used nasal antihistamines [such as Azelastine, olopatadine]?	no mention
+18. Has the patient used oral steroids [such as Prednisone, dexamethasone, hydrocortisone, methylprednisolone, prednisolone, betamethasone ]?	no mention
+19. Has the patient tried antibiotic pills [such as Amoxicillin-clavulanic acid, amoxicillin, doxycycline, cefixime, cefpodoxime, clindamycin, levofloxacin, moxifloxacin]?	no mention
+20. Has the patient ever broken their nose?	no mention
+21. Is there any history of a septoplasty with or without a turbinate reduction?	yes
+22. Is there a history of sinus surgery?	no
+23. Has the patient had a CT scan of the facial area [such as face, head, brain, maxillofcial, sinus regions]?	no
+24. Is there any mention of a bleeding disorder?	no
+25. Are there any associated visual changes with the onset of the symptoms?	no mention
+26. Is there a history of headaches or migraines?	no mention
+27. Does the patient have asthma?	no
+28. Do the symptoms change with change in weather or seasons?	no mention
+29. Has the patient received testing for environmental allergies?	no mention
+30. Does the patient currently use tobacco in inhaled form [such as smoke, smoke cigarettes, use e-cigarretes, or vape]	no
+
+
+
+
+Generate another note draft for a patient with following questions answered yes. (Assume no or no mention for any other possible questions, that should not be referenced)
+
+2. Are the nasal symptoms getting progressively worse?	yes
+4. Were topical steroids [such as Fluticasone propionate, fluticasone furoate, ciclesonide, mometasone, beclomethasone, budesonide, flunisolide] recommended?	yes
+5. Is there nasal congestion which means stuffiness in the nose?	yes
+9. Is there a history of change in smell?	yes
+11. Is there pain which means facial pressure in the face?	yes
+12. Is there pain which means facial pressure on one side only when it occurs?	yes
+18. Has the patient used oral steroids [such as Prednisone, dexamethasone, hydrocortisone, methylprednisolone, prednisolone, betamethasone ]?	yes
+19. Has the patient tried antibiotic pills [such as Amoxicillin-clavulanic acid, amoxicillin, doxycycline, cefixime, cefpodoxime, clindamycin, levofloxacin, moxifloxacin]?	yes
+23. Has the patient had a CT scan of the facial area [such as face, head, brain, maxillofcial, sinus regions]?	yes
