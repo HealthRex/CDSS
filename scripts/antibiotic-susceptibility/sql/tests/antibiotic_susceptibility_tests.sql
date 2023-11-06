@@ -35,4 +35,4 @@ SELECT implied_susceptibility
 FROM `mining-clinical-decisions.fateme_db.implied_suscept_test`
 WHERE anon_id = 'test_reported' AND order_proc_id_coded = 1;
 
--- The test passes if the selected value for reported susceptibility remains NULL (or whatever value you use to represent unchanged data)
+-- The test passes if the selected value for reported susceptibility remains NULL
