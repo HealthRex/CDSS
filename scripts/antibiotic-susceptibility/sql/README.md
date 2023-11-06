@@ -5,15 +5,15 @@ The goal is to provide a comprehensive set of rules for inferring antibiotic sus
 
 ## Contents
 
-- `implied_suscept.sql`: The main SQL script that creates a table for inferred antibiotic susceptibilities and populates it with both explicit and implied data.
+- `inference-rules.sql`: The main SQL script that creates a table for inferred antibiotic susceptibilities and populates it with both explicit and implied data.
 - `docs/`: A directory containing related documentation and project notes.
 
 ## Usage
 
-To use the `implied_suscept.sql` script:
+To use the `inference-rules.sql` script:
 
 2. Execute the SQL script within your database environment.
-3. Review the `implied_suscept` table for the inferred susceptibility data.
+3. Review the `inference-rules.sql` table for the inferred susceptibility data.
 
 Please refer to the comments within the script for detailed information on how the inference rules are applied.
 
