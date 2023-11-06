@@ -1,29 +1,18 @@
-# Antibiotic Susceptibility Queries
+# Antibiotic Susceptibility Inference
 
-This repository contains SQL queries and supporting documentation for the antibiotic susceptibility project. 
-The goal is to provide a comprehensive set of rules for inferring antibiotic susceptibility, which can be used to inform clinical decisions and support ongoing research.
+This directory contains the SQL scripts used for inferring antibiotic susceptibility.
 
-## Contents
+## How to Use
 
-- `inference-rules.sql`: The main SQL script that creates a table for inferred antibiotic susceptibilities and populates it with both explicit and implied data.
+Run the `antibiotic_susceptibility_inference.sql` script to apply the susceptibility rules to your data.
+
+After running the main script, execute `antibiotic_susceptibility_tests.sql` to verify that the data has been updated correctly. The tests will check for the correct number of rows updated for each condition and ensure that no unexpected changes have been made.
+
+## Unit Tests
+
+The unit tests are designed to verify that:
+- The correct number of rows are marked as 'Resistant' for each organism-antibiotic pair.
+- No rows are incorrectly updated.
 
 
-## Usage
-
-To use the `inference-rules.sql` script:
-
-2. Execute the SQL script within your database environment.
-3. Review the `inference-rules.sql` table for the inferred susceptibility data.
-
-Please refer to the comments within the script for detailed information on how the inference rules are applied.
-
-## Contributing
-
-If you would like to contribute:
-
-- Fork the repository.
-- Create a new branch for your feature or fix.
-- Submit a pull request with a clear description of your changes.
-
-For major changes, please open an issue first to discuss what you would like to change.
-
+Please refer to the comments within `antibiotic_susceptibility_tests.sql` for details on what each test verifies.
