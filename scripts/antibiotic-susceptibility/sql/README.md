@@ -6,7 +6,7 @@ The goal is to provide a comprehensive set of rules for inferring antibiotic sus
 ## Contents
 
 - `inference-rules.sql`: The main SQL script that creates a table for inferred antibiotic susceptibilities and populates it with both explicit and implied data.
-- `docs/`: A directory containing related documentation and project notes.
+
 
 ## Usage
 
