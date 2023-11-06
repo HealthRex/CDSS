@@ -26,37 +26,45 @@ FROM
 UPDATE `mining-clinical-decisions.fateme_db.implied_suscept`
 SET implied_susceptibility = 'Resistant'
 WHERE UPPER(organism) LIKE '%PSEUDOMONAS%'
-AND UPPER(antibiotic) IN ('OXACILLIN', 'CEFAZOLIN', 'CEFTRIAXONE', 'ERTAPENEM', 'TRIMETHOPRIM/SULFAMETHOXAZOLE');
+AND UPPER(antibiotic) IN ('OXACILLIN', 'CEFAZOLIN', 'CEFTRIAXONE', 'ERTAPENEM', 'TRIMETHOPRIM/SULFAMETHOXAZOLE')
+AND (susceptibility IS NULL OR susceptibility = ''); -- This line is added to update only missing or non-reported susceptibilities
 
 -- Acinetobacter
 UPDATE `mining-clinical-decisions.fateme_db.implied_suscept`
 SET implied_susceptibility = 'Resistant'
 WHERE UPPER(organism) LIKE '%ACINETOBACTER%'
-AND UPPER(antibiotic) IN ('OXACILLIN', 'CEFAZOLIN', 'CEFTRIAXONE', 'ERTAPENEM', 'VANCOMYCIN');
+AND UPPER(antibiotic) IN ('OXACILLIN', 'CEFAZOLIN', 'CEFTRIAXONE', 'ERTAPENEM', 'VANCOMYCIN')
+AND (susceptibility IS NULL OR susceptibility = ''); -- This line is added to update only missing or non-reported susceptibilities
 
 -- Stenotrophomonas
 UPDATE `mining-clinical-decisions.fateme_db.implied_suscept`
 SET implied_susceptibility = 'Resistant'
 WHERE UPPER(organism) LIKE '%STENOTROPHOMONAS%'
-AND UPPER(antibiotic) IN ('OXACILLIN', 'AMPICILLIN/SULBACTAM', 'PIPERACILLIN/TAZOBACTAM', 'CEFAZOLIN', 'CEFTRIAXONE', 'ERTAPENEM', 'MEROPENEM', 'VANCOMYCIN');
+AND UPPER(antibiotic) IN ('OXACILLIN', 'AMPICILLIN/SULBACTAM', 'PIPERACILLIN/TAZOBACTAM', 'CEFAZOLIN', 'CEFTRIAXONE', 'ERTAPENEM', 'MEROPENEM', 'VANCOMYCIN')
+AND (susceptibility IS NULL OR susceptibility = ''); -- This line is added to update only missing or non-reported susceptibilities
 
 -- Enterococcus
 UPDATE `mining-clinical-decisions.fateme_db.implied_suscept`
 SET implied_susceptibility = 'Resistant'
 WHERE UPPER(organism) LIKE '%ENTEROCOCCUS%'
-AND UPPER(antibiotic) IN ('OXACILLIN', 'CEFAZOLIN', 'CEFTRIAXONE', 'CEFEPIME', 'CEFTAZIDIME', 'ERTAPENEM', 'MEROPENEM', 'TRIMETHOPRIM/SULFAMETHOXAZOLE');
+AND UPPER(antibiotic) IN ('OXACILLIN', 'CEFAZOLIN', 'CEFTRIAXONE', 'CEFEPIME', 'CEFTAZIDIME', 'ERTAPENEM', 'MEROPENEM', 'TRIMETHOPRIM/SULFAMETHOXAZOLE')
+AND (susceptibility IS NULL OR susceptibility = ''); -- This line is added to update only missing or non-reported susceptibilities
 
 -- Streptococcus species: Beta-lactam susceptibility assumed to be Susceptible
+-- Only update when susceptibility is NULL
 UPDATE `mining-clinical-decisions.fateme_db.implied_suscept`
 SET implied_susceptibility = 'Susceptible'
 WHERE UPPER(organism) LIKE '%STREPTOCOCCUS%'
-AND UPPER(antibiotic) LIKE '%BETA-LACTAM%';
+AND UPPER(antibiotic) LIKE '%BETA-LACTAM%'
+AND susceptibility IS NULL;
 
 -- MSSA vs. MRSA: If oxacillin susceptible, assume susceptibility to other beta-lactams
+-- Only update when susceptibility is NULL and a susceptible result for oxacillin exists
 UPDATE `mining-clinical-decisions.fateme_db.implied_suscept`
 SET implied_susceptibility = 'Susceptible'
 WHERE UPPER(organism) LIKE '%STAPHYLOCOCCUS AUREUS%'
 AND UPPER(antibiotic) LIKE '%BETA-LACTAM%'
+AND susceptibility IS NULL
 AND EXISTS (
   SELECT 1
   FROM `mining-clinical-decisions.shc_core.culture_sensitivity`
@@ -73,6 +81,7 @@ AND EXISTS (
 UPDATE `mining-clinical-decisions.fateme_db.implied_suscept`
 SET implied_susceptibility = 'Resistant'
 WHERE UPPER(antibiotic) IN ('OXACILLIN', 'AMPICILLIN/SULBACTAM', 'PIPERACILLIN/TAZOBACTAM', 'CEFAZOLIN', 'CEFTRIAXONE', 'CEFEPIME', 'ERTAPENEM')
+AND susceptibility IS NULL
 AND order_proc_id_coded IN (
   SELECT order_proc_id_coded 
   FROM `mining-clinical-decisions.fateme_db.implied_suscept`
@@ -84,6 +93,7 @@ AND order_proc_id_coded IN (
 UPDATE `mining-clinical-decisions.fateme_db.implied_suscept`
 SET implied_susceptibility = 'Resistant'
 WHERE UPPER(antibiotic) IN ('OXACILLIN', 'AMPICILLIN/SULBACTAM', 'CEFAZOLIN', 'CEFTRIAXONE')
+AND susceptibility IS NULL
 AND order_proc_id_coded IN (
   SELECT order_proc_id_coded 
   FROM `mining-clinical-decisions.fateme_db.implied_suscept`
@@ -95,6 +105,7 @@ AND order_proc_id_coded IN (
 UPDATE `mining-clinical-decisions.fateme_db.implied_suscept`
 SET implied_susceptibility = 'Resistant'
 WHERE UPPER(antibiotic) IN ('OXACILLIN', 'AMPICILLIN/SULBACTAM', 'CEFAZOLIN', 'CEFTRIAXONE')
+AND susceptibility IS NULL
 AND order_proc_id_coded IN (
   SELECT order_proc_id_coded 
   FROM `mining-clinical-decisions.fateme_db.implied_suscept`
@@ -106,9 +117,11 @@ AND order_proc_id_coded IN (
 UPDATE `mining-clinical-decisions.fateme_db.implied_suscept`
 SET implied_susceptibility = 'Resistant'
 WHERE UPPER(antibiotic) IN ('OXACILLIN', 'AMPICILLIN/SULBACTAM', 'CEFAZOLIN')
+AND susceptibility IS NULL
 AND order_proc_id_coded IN (
   SELECT order_proc_id_coded 
   FROM `mining-clinical-decisions.fateme_db.implied_suscept`
   WHERE UPPER(antibiotic) = 'CEFTRIAXONE'
   AND susceptibility = 'Resistant'
 );
+
