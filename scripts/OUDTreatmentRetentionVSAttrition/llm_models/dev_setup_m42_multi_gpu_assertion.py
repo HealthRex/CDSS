@@ -64,8 +64,6 @@ def run_inference(rank, world_size, model_name_or_path, prompts):
         max_new_tokens=4096
     )
     
-    print(f"\nDecode and print the output for each rank")
-    print(f"Output for rank {rank}:\n{tokenizer.decode(output[0])}\n")
 
 def main():
     print("\nInitialize model and prompts")
@@ -77,7 +75,7 @@ def main():
     ]
     
     print(f"\nSet the world size to the number of GPUs you have")
-    world_size = 1
+    world_size = 8
     
     print(f"\nSpawn one process for each GPU:")
     mp.spawn(
