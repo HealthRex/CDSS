@@ -1,3 +1,5 @@
+-- Query to pull cohort of notes to be used for phenotyping
+
 SELECT DISTINCT culture_anon_id as anon_id, note_date_jittered, note_type
 FROM (
   SELECT culture.anon_id as culture_anon_id, culture.order_proc_id_coded as order_proc_id_coded, 
