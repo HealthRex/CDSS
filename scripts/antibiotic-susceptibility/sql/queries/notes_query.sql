@@ -6,8 +6,10 @@ FROM (
   FROM `som-nero-phi-jonc101.shc_core_2022.order_proc` ord_proc
   JOIN `som-nero-phi-jonc101.gk_abx.abx_select` abx_select
   ON ord_proc.proc_code = abx_select.proc_code AND 
-  (ord_proc.proc_id = abx_select.proc_id AND ord_proc.cpt_code = abx_select.cpt_code)
-  OR ord_proc.description = abx_select.description
+  (
+    (ord_proc.proc_id = abx_select.proc_id AND ord_proc.cpt_code = abx_select.cpt_code) OR 
+    ord_proc.description = abx_select.description
+  )
 ) AS cultures
 JOIN
 (
