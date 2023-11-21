@@ -4,7 +4,7 @@ SELECT DISTINCT culture_orders.anon_id as anon_id, note_date_jittered, note_type
 FROM (
   SELECT anon_id, order_proc_id_coded, ord_proc.description as description, order_time_jittered
   FROM `som-nero-phi-jonc101.shc_core_2022.order_proc` ord_proc
-  JOIN `som-nero-phi-jonc101.gk_abx.abx_descriptions` abx_descriptions
+  JOIN `som-nero-phi-jonc101.gk_abx.abx_descriptions` abx_descriptions -- query below merged with manually selected descriptions to create this table
   ON ord_proc.proc_code = abx_descriptions.proc_code AND ord_proc.description = abx_descriptions.description
 ) AS culture_orders
 JOIN
