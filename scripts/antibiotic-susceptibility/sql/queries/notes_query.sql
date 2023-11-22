@@ -23,9 +23,13 @@ WHERE ABS(DATE_DIFF(culture_orders.order_time_jittered, notes.note_date_jittered
 
 SELECT DISTINCT proc_code, proc_id, cpt_code, description
 FROM `som-nero-phi-jonc101.shc_core_2022.order_proc` 
-WHERE cpt_code NOT IN ("LABWDC", "LABWDCG", "LABWDCS", "LABDMCWDC") -- remove wound cultures
+WHERE cpt_code NOT IN ("LABWDC", "LABWDCG", "LABWDCS", "LABDMCWDC") 
 AND REGEXP_CONTAINS(UPPER(description), 'CULT') 
 AND ( 
   SELECT LOGICAL_AND(NOT REGEXP_CONTAINS(UPPER(description), word))
-  FROM UNNEST(['OCCULT', 'DIFFICULT', 'HEMOCULT', 'CULTIVATED', 'FACULTY', 'VASCULTIDES', 'VASCULITIS', 'GASTROCULT', 'FUNGAL', 'FUNGUS', 'VIRAL']) AS word
-) -- created this list by examining descriptions that included CULT but not CULTURE
+  FROM UNNEST(['OCCULT', 'DIFFICULT', 'HEMOCULT', 'CULTIVATED', 'FACULTY', 
+  'VASCULTIDES', 'VASCULITIS', 'VASCULTITIS', 'GASTROCULT', 'FUNGAL', 'FUNGUS', 
+  'VIRAL', 'VIRUS', 'VZV', 'HSV', 'CMV', 'VARICELLA', 'HERPES', 'YEAST', 'THRUSH']
+  ) AS word
+)
+
