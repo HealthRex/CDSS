@@ -4,7 +4,7 @@
 # BigQuery Cross-Project Dataset Copy Guide
 
 ### Introduction
-This guide outlines the procedure for copying a dataset from an external source project into a new, uniquely identified dataset within your own BigQuery project (`som-nero-phi-jonc101`). The process is crucial for efficiently managing annual dataset updates and ensuring that the new data is stored separately without overwriting existing datasets.
+This guide outlines the procedure for copying a dataset from an external source project into a new, uniquely identified dataset within your own BigQuery project (`som-nero-phi-jonc101`). 
 
 ### Prerequisites
 * Access to the BigQuery Web UI.
