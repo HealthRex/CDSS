@@ -1,3 +1,22 @@
+#### Learning Objectives:
+- Identify and access an updated dataset from an external project in BigQuery.
+- Copy the identified dataset into a new dataset with a unique ID within your own BigQuery project.
+- Apply transformations to datetime columns to standardize them into UTC format and extract numerical data from string-type flowsheet measurements.
+- Set up appropriate access controls for the newly created dataset.
+- Streamline the process for annual updates, ensuring efficient data management, data integrity, and adherence to time-based analysis standards.
+
+### 0. Accessing the Updated Dataset
+#### 1. Add the External Project to Your Project List
+* In the BigQuery console, click on "+ ADD" on the top left.
+* Choose "Star a project by name" from the dropdown menu.
+* In the dialog that appears, type the name of the external project you have been granted access to (e.g., `example-external-project`) and press Enter.
+* The project should now be listed in your BigQuery resources.
+
+#### 2. Locate the Updated Dataset
+* Navigate to the newly pinned project in your resource list.
+* Expand the project to view the available datasets.
+* Identify the updated dataset you need to copy (e.g., `updated_dataset_2024`).
+
 <h1 style="font-size:60px;">1. Copying tables</h1>
 
 The first step is to simply copy all tables under the database ```som-nero-phi-naras-ric:Jon_Chen_data_Oct_2021``` with the prefix of ```lpch_``` in the table name to the database ```som-nero-phi-jonc101.lpch_core_2021```. Note, the database ```lpch_core_2021``` was created by me and the database ```som-nero-phi-naras-ric:Jon_Chen_data_Oct_2021``` was provided to us by the database admin. 
