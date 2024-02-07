@@ -17,6 +17,19 @@
 * Expand the project to view the available datasets.
 * Identify the updated dataset you need to copy (e.g., `updated_dataset_2024`).
 
+# 1.  Creating a Unique Dataset ID for the Copy
+
+#### 1. Open the Dataset Copy Interface
+* Find the dataset you intend to copy in the external project's listing.
+* Click on the "COPY" button next to the dataset.
+
+#### 2. Specify a Unique Dataset ID
+* In the "Destination" field, provide a new Dataset ID that does not exist in your project (som-nero-phi-jonc101). This will be the ID for the new dataset where the tables will be copied.
+* If you have an existing empty dataset intended for this purpose, you must choose a new ID for the copying process to avoid the "Dataset already exists" error.
+* Make sure to change the Project ID to "som-nero-phi-jonc101" on the top.
+* Complete the rest of the copy configuration as necessary and initiate the dataset copy.
+
+
 <h1 style="font-size:60px;">1. Copying tables</h1>
 
 The first step is to simply copy all tables under the database ```som-nero-phi-naras-ric:Jon_Chen_data_Oct_2021``` with the prefix of ```lpch_``` in the table name to the database ```som-nero-phi-jonc101.lpch_core_2021```. Note, the database ```lpch_core_2021``` was created by me and the database ```som-nero-phi-naras-ric:Jon_Chen_data_Oct_2021``` was provided to us by the database admin. 
