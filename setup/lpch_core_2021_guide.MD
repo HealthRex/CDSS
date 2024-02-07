@@ -5,7 +5,7 @@
 - Set up appropriate access controls for the newly created dataset.
 - Streamline the process for annual updates, ensuring efficient data management, data integrity, and adherence to time-based analysis standards.
 
-### 0. Accessing the Updated Dataset
+# 0. Accessing the Updated Dataset
 #### 1. Add the External Project to Your Project List
 * In the BigQuery console, click on "+ ADD" on the top left.
 * Choose "Star a project by name" from the dropdown menu.
