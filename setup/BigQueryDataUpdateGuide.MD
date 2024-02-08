@@ -9,7 +9,7 @@
 #### 1. Add the External Project to Your Project List
 * In the BigQuery console, click on "+ ADD" on the top left.
 * Choose "Star a project by name" from the dropdown menu.
-* In the dialog that appears, type the name of the external project you have been granted access to (e.g., ```som-nero-phi-naras-ric4```) and press Enter.
+* In the dialog that appears, type the name of the external project you have been granted access to (e.g., ```som-nero-phi-naras-ric```) and press Enter.
 * The project should now be listed in your BigQuery resources.
 
 #### 2. Locate the Updated Dataset
