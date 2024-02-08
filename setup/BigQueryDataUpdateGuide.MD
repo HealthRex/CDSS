@@ -9,13 +9,13 @@
 #### 1. Add the External Project to Your Project List
 * In the BigQuery console, click on "+ ADD" on the top left.
 * Choose "Star a project by name" from the dropdown menu.
-* In the dialog that appears, type the name of the external project you have been granted access to (e.g., `som-nero-phi-naras-ric`) and press Enter.
+* In the dialog that appears, type the name of the external project you have been granted access to (e.g., ```som-nero-phi-naras-ric4```) and press Enter.
 * The project should now be listed in your BigQuery resources.
 
 #### 2. Locate the Updated Dataset
 * Navigate to the newly pinned project in your resource list.
 * Expand the project to view the available datasets.
-* Identify the updated dataset you need to copy (e.g., `Jon_Chen_data_2024`).
+* Identify the updated dataset you need to copy (e.g., ```Jon_Chen_data_2024```).
 
 # 1.  Creating a Unique Dataset ID for the Copy
 
@@ -24,15 +24,15 @@
 * Click on the "COPY" button next to the dataset.
 
 #### 2. Specify a Unique Dataset ID
-* In the "Destination" field, provide a new Dataset ID ('shc_core_2023') that does not exist in your project (som-nero-phi-jonc101). This will be the ID for the new dataset where the tables will be copied.
+* In the "Destination" field, provide a new Dataset ID (```shc_core_2023``) that does not exist in your project (```som-nero-phi-jonc101```). This will be the ID for the new dataset where the tables will be copied.
 * If you have an existing empty dataset intended for this purpose, you must choose a new ID for the copying process to avoid the "Dataset already exists" error.
-* Make sure to change the Project ID to "som-nero-phi-jonc101" on the top.
+* Make sure to change the Project ID to ```som-nero-phi-jonc101``` on the top.
 * Complete the rest of the copy configuration as necessary and initiate the dataset copy.
 
 
 <h1 style="font-size:60px;">1. Copying tables</h1>
 
-If you want to only update some specific tables, instead of copying the whole updated dataset, you can simply copy the tables under the database ```som-nero-phi-naras-ric:Jon_Chen_data_2024```in the table name to the database ```som-nero-phi-jonc101.shc_core_update```. Note, the database ```shc_core_2023``` was created by me and the database ```som-nero-phi-naras-ric:Jon_Chen_data_2024``` was provided to us by the database admin. 
+If you want to only update some specific tables, instead of copying the whole updated dataset, you can simply copy the tables under the database ```som-nero-phi-naras-ric:Jon_Chen_data_2024```in the table name to the database ```som-nero-phi-jonc101.shc_core_2023```. Note, the database ```shc_core_2023``` was created by me and the database ```som-nero-phi-naras-ric:Jon_Chen_data_2024``` was provided to us by the database admin. 
 
 To copy the tables: 
 1) click on  tables name under the Explorer section
