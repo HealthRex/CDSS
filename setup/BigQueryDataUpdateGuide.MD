@@ -24,7 +24,7 @@
 * Click on the "COPY" button next to the dataset.
 
 #### 2. Specify a Unique Dataset ID
-* In the "Destination" field, provide a new Dataset ID (```shc_core_2023``) that does not exist in your project (```som-nero-phi-jonc101```). This will be the ID for the new dataset where the tables will be copied.
+* In the "Destination" field, provide a new Dataset ID (```shc_core_2023```) that does not exist in your project (```som-nero-phi-jonc101```). This will be the ID for the new dataset where the tables will be copied.
 * If you have an existing empty dataset intended for this purpose, you must choose a new ID for the copying process to avoid the "Dataset already exists" error.
 * Make sure to change the Project ID to ```som-nero-phi-jonc101``` on the top.
 * Complete the rest of the copy configuration as necessary and initiate the dataset copy.
