@@ -15,7 +15,7 @@
 #### 2. Locate the Updated Dataset
 * Navigate to the newly pinned project in your resource list.
 * Expand the project to view the available datasets.
-* Identify the updated dataset you need to copy (e.g., `Jon_Chen_data_updated`).
+* Identify the updated dataset you need to copy (e.g., `Jon_Chen_data_2024`).
 
 # 1.  Creating a Unique Dataset ID for the Copy
 
@@ -24,7 +24,7 @@
 * Click on the "COPY" button next to the dataset.
 
 #### 2. Specify a Unique Dataset ID
-* In the "Destination" field, provide a new Dataset ID ('shc_core_update') that does not exist in your project (som-nero-phi-jonc101). This will be the ID for the new dataset where the tables will be copied.
+* In the "Destination" field, provide a new Dataset ID ('shc_core_2023') that does not exist in your project (som-nero-phi-jonc101). This will be the ID for the new dataset where the tables will be copied.
 * If you have an existing empty dataset intended for this purpose, you must choose a new ID for the copying process to avoid the "Dataset already exists" error.
 * Make sure to change the Project ID to "som-nero-phi-jonc101" on the top.
 * Complete the rest of the copy configuration as necessary and initiate the dataset copy.
@@ -32,13 +32,13 @@
 
 <h1 style="font-size:60px;">1. Copying tables</h1>
 
-If you want to only update some specific tables, instead of copying the whole updated dataset, you can simply copy the tables under the database ```som-nero-phi-naras-ric:Jon_Chen_data_updated```in the table name to the database ```som-nero-phi-jonc101.shc_core_update```. Note, the database ```shc_core_update``` was created by me and the database ```som-nero-phi-naras-ric:Jon_Chen_data_updated``` was provided to us by the database admin. 
+If you want to only update some specific tables, instead of copying the whole updated dataset, you can simply copy the tables under the database ```som-nero-phi-naras-ric:Jon_Chen_data_2024```in the table name to the database ```som-nero-phi-jonc101.shc_core_update```. Note, the database ```shc_core_2023``` was created by me and the database ```som-nero-phi-naras-ric:Jon_Chen_data_2024``` was provided to us by the database admin. 
 
 To copy the tables: 
-1) click on the tables name under the Explorer section
-2) click on the copy button (the copy button apears on a bar on top right side after clicking on the table and it's next to other buttons QUERY, SHARE, COPY, SNAPSHOT, DELETE, EXPORT)
-3) Select the ```som-nero-phi-jonc101``` project in the project name dropbox menue. Select ```shc_core_update``` under the dataset name dropbox menu. Write a table name for the copied table. 
-4) Repeat this process and copy the desired shc tables under ```shc_core_update```.
+1) click on  tables name under the Explorer section
+2) click on the copy button (the copy button appears on a bar on the top right side after clicking on the table and it's next to other buttons QUERY, SHARE, COPY, SNAPSHOT, DELETE, EXPORT)
+3) Select the ```som-nero-phi-jonc101``` project in the project name dropbox menue. Select ```shc_core_2023``` under the dataset name dropbox menu. Write a table name for the copied table. 
+4) Repeat this process and copy the desired shc tables under ```shc_core_2023```.
 
 <h1 style="font-size:60px;">2. Re-formating datetime columns</h1>
 
@@ -46,7 +46,7 @@ Here, we convert string columns that include date/datetime to date/datetime form
 
 ```
 select extract(time from case when effective_time_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', effective_time_jittered) else null end) times, count(*) as cnt
-from som-nero-phi-jonc101.shc_core_update.adt
+from som-nero-phi-jonc101.shc_core_2023.adt
 group by times
 order by cnt desc;
 ```
