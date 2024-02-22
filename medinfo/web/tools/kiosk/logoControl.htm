@@ -13,7 +13,7 @@
 	    setInterval(function(){ frameToRefresh.location.replace(feedURL); frameToRefresh.scrollTo(0,0); }, interval);
 
     	// Advance YouTube video frame occasionally in case gets stuck
-    	var videoAdvanceInterval = 7200000; // Milliseconds. 7200 seconds = 2 hours
+    	var videoAdvanceInterval = 14400000; // Milliseconds. 7200 seconds = 2 hours
 	    setInterval(function(){ advanceVideo(videoFrame); }, videoAdvanceInterval);
 	}
 
