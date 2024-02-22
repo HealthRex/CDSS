@@ -1,3 +1,0 @@
-solver,liblinear
-penalty,l2
-C,0.01

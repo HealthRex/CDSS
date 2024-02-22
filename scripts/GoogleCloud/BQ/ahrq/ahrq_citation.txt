@@ -1,2 +1,0 @@
-https://www.hcup-us.ahrq.gov/toolssoftware/ccsr/ccs_refined.jsp # ICD10 diagnosis
-https://www.hcup-us.ahrq.gov/toolssoftware/ccs10/ccs10.jsp # ICD10 procedural
