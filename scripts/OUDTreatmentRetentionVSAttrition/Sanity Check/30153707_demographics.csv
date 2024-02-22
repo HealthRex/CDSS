@@ -1,2 +1,0 @@
-person_id,gender_concept_id,year_of_birth,month_of_birth,day_of_birth,birth_DATETIME,race_concept_id,ethnicity_concept_id,location_id,provider_id,care_site_id,person_source_value,gender_source_value,gender_source_concept_id,race_source_value,race_source_concept_id,ethnicity_source_value,ethnicity_source_concept_id,trace_id,unit_id,load_table_id
-30153707,8507,1956,1,5,1956-01-05,8527,38003564,5370214,1145412,7930192,SAA1cc1beb,2 |,8507,White |,0,Non-Hispanic/Non-Latino |,38003564,,shc_,shc_patient
