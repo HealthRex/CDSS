@@ -97,7 +97,7 @@ specialtyNewPatientEncounter AS
 		join `shc_core_2021.dep_map` as dep on enc.department_id = dep.department_id,
 		params
 	where dep.specialty_dep_c in UNNEST(params.specialtyDepIds)
-	and visit_type like 'NEW PATIENT%' -- Naturally screens to only 'Office Visit' enc_type 
+	and visit_type like '%NEW PATIENT%' -- Naturally screens to only 'Office Visit' enc_type 
 	-- and appt_type in ('Office Visit','Appointment') -- Otherwise Telephone, Refill, Orders Only, etc.
 	and appt_status = 'Completed'
 	and extract(YEAR from enc.appt_time_jittered) >= params.cohortYear	-- Use >= So capture follow-up visits as well
@@ -111,7 +111,7 @@ specialtyNonNewPatientEncounter AS
 		join `shc_core_2021.dep_map` as dep on enc.department_id = dep.department_id,
 		params
 	where dep.specialty_dep_c in UNNEST(params.specialtyDepIds)
-	and visit_type not like 'NEW PATIENT%' -- Wide list of different 'ESTABLISHED PATIENT...,' 'RETURN PATIENT...,' 'THYROID BIOPSY,' etc.
+	and visit_type not like '%NEW PATIENT%' -- Wide list of different 'ESTABLISHED PATIENT...,' 'RETURN PATIENT...,' 'THYROID BIOPSY,' etc.
 	and appt_type in ('Office Visit','Appointment') -- Otherwise Telephone, Refill, Orders Only, etc. (20,489 out 21,817 are Office Visit / Appointment)
 	and appt_status = 'Completed'
 	and extract(YEAR from enc.appt_time_jittered) >= params.cohortYear

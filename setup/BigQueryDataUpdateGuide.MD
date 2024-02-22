@@ -1,29 +1,388 @@
+### Learning Objectives:
+- Identify and access an updated dataset from an external project in BigQuery.
+- Copy the identified dataset into a new dataset with a unique ID within your own BigQuery project.
+- Apply transformations to datetime columns to standardize them into UTC format and extract numerical data from string-type flowsheet measurements.
+- Set up appropriate access controls for the newly created dataset.
+- Streamline the process for annual updates, ensuring efficient data management, data integrity, and adherence to time-based analysis standards.
+
+# 0. Accessing the Updated Dataset
+#### 1. Add the External Project to Your Project List
+* In the BigQuery console, click on "+ ADD" on the top left.
+* Choose "Star a project by name" from the dropdown menu.
+* In the dialog that appears, type the name of the external project you have been granted access to (e.g., ```som-nero-phi-naras-ric```) and press Enter.
+* The project should now be listed in your BigQuery resources.
+
+#### 2. Locate the Updated Dataset
+* Navigate to the newly pinned project in your resource list.
+* Expand the project to view the available datasets.
+* Identify the updated dataset you need to copy (e.g., ```Jon_Chen_data_2024```).
+
+# 1.  Creating a Unique Dataset ID for the Copy
+
+#### 1. Open the Dataset Copy Interface
+* Find the dataset you intend to copy in the external project's listing.
+* Click on the "COPY" button next to the dataset.
+
+#### 2. Specify a Unique Dataset ID
+* In the "Destination" field, provide a new Dataset ID (```shc_core_2023```) that does not exist in your project (```som-nero-phi-jonc101```). This will be the ID for the new dataset where the tables will be copied.
+* If you have an existing empty dataset intended for this purpose, you must choose a new ID for the copying process to avoid the "Dataset already exists" error.
+* Make sure to change the Project ID to ```som-nero-phi-jonc101``` on the top.
+* Complete the rest of the copy configuration as necessary and initiate the dataset copy.
+
+
 <h1 style="font-size:60px;">1. Copying tables</h1>
 
-The first step is to simply copy all tables under the database ```som-nero-phi-naras-ric:Jon_Chen_data_Oct_2021``` with the prefix of ```lpch_``` in the table name to the database ```som-nero-phi-jonc101.lpch_core_2021```. Note, the database ```lpch_core_2021``` was created by me and the database ```som-nero-phi-naras-ric:Jon_Chen_data_Oct_2021``` was provided to us by the database admin. 
+If you want to only update some specific tables, instead of copying the whole updated dataset, you can simply copy the tables under the database ```som-nero-phi-naras-ric:Jon_Chen_data_2024```in the table name to the database ```som-nero-phi-jonc101.shc_core_2023```. Note, the database ```shc_core_2023``` was created by me and the database ```som-nero-phi-naras-ric:Jon_Chen_data_2024``` was provided to us by the database admin. 
 
 To copy the tables: 
-1) click on the tables name under the Explorer section
-2) click on the copy button (the copy button apears on a bar on top right side after clicking on the table and it's next to other buttons QUERY, SHARE, COPY, SNAPSHOT, DELETE, EXPORT)
-3) Select the ```som-nero-phi-jonc101``` project in the project name dropbox menue. Select ```lpch_core_2021``` under the dataset name dropbox menue. And write a table name for the coppied table. I used the same name as original table names except I droped the prefix ```lpch_``` in the table names. For example, when copying ```lpch_flowsheet``` I used ```flowsheet``` as the name for the coppied table. Note, there are two tables, ```prov_map``` and ```yn_jon_chen_lpch```, that do not have ```shc``` or ```lpch``` in their name and I coppied thse two tables under both ```shc_core_2021``` and ```lpch_core_2021```.
-4) Repeat this process and coppy all lpch tables under ```lpch_core_2021```.
+1) click on  tables name under the Explorer section
+2) click on the copy button (the copy button appears on a bar on the top right side after clicking on the table and it's next to other buttons QUERY, SHARE, COPY, SNAPSHOT, DELETE, EXPORT)
+3) Select the ```som-nero-phi-jonc101``` project in the project name dropbox menue. Select ```shc_core_2023``` under the dataset name dropbox menu. Write a table name for the copied table. 
+4) Repeat this process and copy the desired shc tables under ```shc_core_2023```.
 
 <h1 style="font-size:60px;">2. Re-formating datetime columns</h1>
+Here, we append the UTC timezone to all datetime values. By executing the scripts provided below, the time conversion process can be automated. This conversion involves multiple steps and utilizes various functions, which are explained in detail below.
 
-Here, we convert convert string columns that nicludes date/datetime to date/datetime format. To check if a string column includes datetime values or date only values, we can use the following script and run it seperately for each column. Note, here we check the ```effective_time_jittered``` columns in table ```adt``` as an example. If this query returns more than 1 rows and each for a different time, then this means the ```effective_time_jittered``` column include multiple diiferent times and should be treated as a datetime column. For some columns, this query only returns 1 row 00:00:00(or 1 row for 00:00:00 plus another null row) and this means the current column should be converted to a date only format as all the dates are the same and do not include any extra information (but for some reason they have been save in a 'Y-M-D H:M:S' like format even though the 'H:M:S' does not include meaningful time points).  
+```
+from google.cloud import bigquery;
+from google.cloud.bigquery import dbapi;
+import subprocess
+import json
+import pdb
+import sys
+
+def  Backup(table_names,project_id,dataset_name,new_dataset_name='fatemeh_copy_shc_core_2023'):
+        # copy 
+	for table in table_names:
+		command= f'bq cp {project_id}:{dataset_name}.{table} {project_id}:{new_dataset_name}.{table}'
+		process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		stdout, stderr = process.communicate()
+
+		# command was sucessful
+		if process.returncode == 0:
+			print(command)
+			print('********')
+		else:
+			print(f'Error running bq command: {stderr.decode("utf-8")}')
+             
+
+def Auth(project_id='som-nero-phi-jonc101'):
+	client = bigquery.Client(project_id); 
+	return client
+
+def All_TimeStamp_Columns(table_name,dataset_name='shc_core_2023',project_id='som-nero-phi-jonc101'):
+	# extract all the columns of table with timestamp
+	command = f'bq show --schema --format=prettyjson {project_id}:{dataset_name}.{table_name}'
+	process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	stdout, stderr = process.communicate()
+	
+	# command was sucessful
+	if process.returncode == 0:
+		
+		datetimescols=[]
+		schema = json.loads(stdout)
+		for field in schema:
+			if field['type'] == 'DATETIME':
+				
+				datetimescols.append(field['name'])
+		return datetimescols
+	else:
+		print(f'Error running bq command: {stderr.decode("utf-8")}')
+		return None
+
+def All_Available_tables(dataset_name='shc_core_2023',project_id='som-nero-phi-jonc101'):
+	#get all the table names aviable in dataset
+	command = f'bq ls --format=json {project_id}:{dataset_name}'
+	process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	stdout, stderr = process.communicate()
+	# command was sucessful
+	if process.returncode == 0:
+		table_names=[]
+		schema = json.loads(stdout)
+		for field in schema:
+			if field['type'] == 'TABLE':
+				table_names.append(field['tableReference']['tableId'])
+		return table_names
+	else:
+		print(f'Error running bq command: {stderr.decode("utf-8")}')
+		return None
+
+def Time_to_UTC(columns,table_name,dataset_name='shc_core_2023',project_id='som-nero-phi-jonc101'):
+	client=Auth()
+	conn = dbapi.connect(client);
+	cursor = conn.cursor();
+	new_table_name=table_name	
+
+	# fix datetime format
+	datetime_col=','.join(map(str, columns))
+	#formatted_strings = [f"datetime(FORMAT_DATETIME('%Y-%m-%d %H:%M:%S', datetime({col}))) as {col}" for col in columns]
+	#format_datetime = ',\n'.join(formatted_strings)
+	#query=f'CREATE OR REPLACE TABLE `{project_id}.{dataset_name}.{new_table_name}` AS SELECT * except({datetime_col}), {format_datetime}'
+	
+
+	query=f'CREATE OR REPLACE TABLE `{project_id}.{dataset_name}.{new_table_name}` AS SELECT * '
+	# add UTC col
+	for col in columns:
+		new_col=col+'_utc'
+		query=query+f",\n timestamp(FORMAT_TIMESTAMP('%Y-%m-%d %H:%M:%S',timestamp({col})), 'America/Los_Angeles') as {new_col}"
+
+	query+=f'\n from  `{project_id}.{dataset_name}.{table_name}`;'
+	
+	
+	print(query)
+	cursor.execute(query);
+	results = cursor.fetchall();
+	for row in results:
+		print( row );
+	
+	cursor.close()
+        conn.close()
+
+def Get_String_Datetime_Columns(table_name,dataset_name,project_id):
+	string_datetime_cols=[]
+	string_date_cols=[]
+	client=Auth()
+	full_table_name = f'{project_id}.{dataset_name}.{table_name}'
+	table = client.get_table(full_table_name)
+	columns = [field for field in table.schema if field.field_type == 'STRING']
+	for column in columns:
+		query = f""" SELECT COUNTIF(parsed_datetime IS NOT NULL) AS datetime_count,
+      			 		COUNTIF(parsed_date IS NOT NULL) AS date_count
+    				FROM (
+      					SELECT 
+        				SAFE.PARSE_DATETIME('%Y-%m-%d %H:%M:%S', {column.name}) AS parsed_datetime,
+        				SAFE.PARSE_DATE('%Y-%m-%d', {column.name}) AS parsed_date
+      				FROM `{full_table_name}`); """
+	
+		results = client.query(query).result()
+		for row in results:
+			if row['datetime_count'] > 0:
+				string_datetime_cols.append(column.name)
+			if row['date_count'] > 0:
+				string_date_cols.append(column.name)
+	return string_datetime_cols,string_date_cols
+
+
+def Fix_datetime(datetimecolumns,datecolumns,table_name,dataset_name,project_id):
+	client=Auth()
+        conn = dbapi.connect(client);
+        cursor = conn.cursor();
+        new_table_name=table_name
+
+        # fix datetime format
+	datetimecolumns.extend(datecolumns)
+        datetime_col=','.join(map(str,datetimecolumns))
+        formatted_strings = [f"datetime(FORMAT_DATETIME('%Y-%m-%d %H:%M:%S', datetime({col}))) as {col}" for col in datetimecolumns]
+        format_datetime = ',\n'.join(formatted_strings)
+        query=f'CREATE OR REPLACE TABLE `{project_id}.{dataset_name}.{new_table_name}` AS SELECT * except({datetime_col}), {format_datetime}'
+        query+=f'\n from  `{project_id}.{dataset_name}.{table_name}`;'
+
+        print(query)
+        cursor.execute(query);
+        results = cursor.fetchall();
+	for row in results:
+		print(row)
+	cursor.close()
+	conn.close()
+
+if __name__ == '__main__':
+	project_id='som-nero-phi-jonc101'
+	dataset_name='shc_core_2023'
+	table_names=All_Available_tables(dataset_name,project_id)
+
+	# make a backup from all tables
+	#Backup(table_names,project_id,dataset_name,new_dataset_name='fatemeh_copy_shc_core_2023')
+	
+	for table in table_names:
+		datetimecolumns,datecolumns=Get_String_Datetime_Columns(table_name=table,dataset_name=dataset_name,project_id=project_id)
+ 		if len(datetimecolumns)>0 or len(datecolumns)>0:
+			pdb.set_trace()
+                        Fix_datetime(datetimecolumns,datecolumns,table,dataset_name=dataset_name,project_id=project_id)
+		
+		
+	
+		datetimecolumns=All_TimeStamp_Columns(table_name=table,dataset_name=dataset_name,project_id=project_id)
+		if len(datetimecolumns)>0:
+			Time_to_UTC(columns=datetimecolumns,table_name=table,dataset_name=dataset_name,project_id=project_id)
+
+```
+
+Initially, it's necessary to transform columns containing string representations of date/datetime information into their respective datetime types. To determine which string columns contain datetime values, we employ the following code snippet. This snippet helps identify columns of type 'string' within each table that contain datetime information. The process begins with iterating over all available tables in our dataset. The function All_Available_Tables accepts dataset_name and project_id as inputs and returns the names of all tables present in the specified dataset.
+
+```
+"""
+Input:
+project_id
+dataset_name
+Output:
+table_names: Name of all tables within dataset
+"""
+
+def All_Available_tables(dataset_name='shc_core_2023',project_id='som-nero-phi-jonc101'):
+        #get all the table names aviable in dataset
+        command = f'bq ls --format=json {project_id}:{dataset_name}'
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        # command was sucessful
+        if process.returncode == 0:
+                table_names=[]
+                schema = json.loads(stdout)
+                for field in schema:
+                        if field['type'] == 'TABLE':
+                                table_names.append(field['tableReference']['tableId'])
+                return table_names
+        else:
+                print(f'Error running bq command: {stderr.decode("utf-8")}')
+                return None
+
+```
+For each table, we aim to identify columns of the string type that contain date or datetime information, with the objective of converting their format to a proper datetime type. The code snippet below demonstrates how to retrieve the names of all columns that are of the string type and contain date/datetime information.
+
+```
+Input:
+table_name
+dataset_name
+project_id
+Output:
+string_datetime_cols: name of columns with string type that has datetime information
+string_date_cols:  name of columns with string type that has date information
+def Get_String_Datetime_Columns(table_name,dataset_name='shc_core_2023',project_id='som-nero-phi-jonc101'):
+        string_datetime_cols=[]
+        string_date_cols=[]
+        client=Auth()
+        full_table_name = f'{project_id}.{dataset_name}.{table_name}'
+        table = client.get_table(full_table_name)
+        columns = [field for field in table.schema if field.field_type == 'STRING']
+        for column in columns:
+                query = f""" SELECT COUNTIF(parsed_datetime IS NOT NULL) AS datetime_count,
+                                        COUNTIF(parsed_date IS NOT NULL) AS date_count
+                                FROM (
+                                        SELECT
+                                        SAFE.PARSE_DATETIME('%Y-%m-%d %H:%M:%S', {column.name}) AS parsed_datetime,
+                                        SAFE.PARSE_DATE('%Y-%m-%d', {column.name}) AS parsed_date
+                                FROM `{full_table_name}`); """
+
+                results = client.query(query).result()
+                for row in results:
+                        if row['datetime_count'] > 0:
+                                string_datetime_cols.append(column.name)
+                        if row['date_count'] > 0:
+                                string_date_cols.append(column.name)
+        return string_datetime_cols,string_date_cols
+```
+Once we have obtained the column names with date and datetime information from the previous steps, the next task is to format these columns correctly. The code snippet provided below is designed for this purpose.
+
+```
+Input:
+datetimecolumns: the names of columns containing datetime information
+datecolumns: the names of columns containing date information
+table_name
+dataset_name
+project_id
+Output:
+
+def Fix_datetime(datetimecolumns,datecolumns,table_name,dataset_name='shc_core_2023',project_id='som-nero-phi-jonc101'):
+        client=Auth()
+        conn = dbapi.connect(client);
+        cursor = conn.cursor();
+        new_table_name=table_name
+
+        # fix datetime format
+        datetimecolumns.extend(datecolumns)
+        datetime_col=','.join(map(str,datetimecolumns))
+        formatted_strings = [f"datetime(FORMAT_DATETIME('%Y-%m-%d %H:%M:%S', datetime({col}))) as {col}" for col in datetimecolumns]
+        format_datetime = ',\n'.join(formatted_strings)
+        query=f'CREATE OR REPLACE TABLE `{project_id}.{dataset_name}.{new_table_name}` AS SELECT * except({datetime_col}), {format_datetime}'
+        query+=f'\n from  `{project_id}.{dataset_name}.{table_name}`;'
+
+        print(query)
+        cursor.execute(query);
+        results = cursor.fetchall();
+        for row in results:
+                print(row)
+        cursor.close()
+        conn.close()
+```
+
+After correcting the type and format of the date/datetime columns, our next step is to append the UTC datetime to all date/datetime columns within each table. To achieve this, we must first identify all the date/datetime columns in every table. Subsequently, we will add new columns with a '_utc' suffix, each corresponding to the UTC version of our original datetime column. The functions All_TimeStamp_Columns and Fix_datetime are designed to facilitate this process efficiently.
+
+```
+Input:
+table_name
+dataset_name
+project_id
+Output:
+datetimescols:name of datetime columns
+
+def All_TimeStamp_Columns(table_name,dataset_name='shc_core_2023',project_id='som-nero-phi-jonc101'):
+        # extract all the columns of table with timestamp
+        command = f'bq show --schema --format=prettyjson {project_id}:{dataset_name}.{table_name}'
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+
+        # command was sucessful
+        if process.returncode == 0:
+
+                datetimescols=[]
+                schema = json.loads(stdout)
+                for field in schema:
+                        if field['type'] == 'DATETIME':
+
+                                datetimescols.append(field['name'])
+                return datetimescols
+        else:
+                print(f'Error running bq command: {stderr.decode("utf-8")}')
+                return None
+
+```
+
+```
+Input:
+columns: name of DateTime columns
+table_name
+dataset_name
+project_id
+
+def Time_to_UTC(columns,table_name,dataset_name='shc_core_2023',project_id='som-nero-phi-jonc101'):
+        client=Auth()
+        conn = dbapi.connect(client);
+        cursor = conn.cursor();
+        new_table_name=table_name      
+
+        query=f'CREATE OR REPLACE TABLE `{project_id}.{dataset_name}.{new_table_name}` AS SELECT * '
+        # add UTC col
+        for col in columns:
+                new_col=col+'_utc'
+                query=query+f",\n timestamp(FORMAT_TIMESTAMP('%Y-%m-%d %H:%M:%S',timestamp({col})), 'America/Los_Angeles') as {new_col}"
+
+        query+=f'\n from  `{project_id}.{dataset_name}.{table_name}`;'
+
+        print(query)
+        cursor.execute(query);
+        results = cursor.fetchall();
+        for row in results:
+                print( row );
+        cursor.close()
+        conn.close()
+
+```
+
+Or we can use the following script and run it seperately for each column. 
+
+Note, here we check the ```effective_time_jittered``` columns in table ```adt``` as an example. If this query returns more than 1 row and each for a different time, then this means the ```effective_time_jittered``` column includes multiple different times and should be treated as a datetime column. For some columns, this query only returns 1 row 00:00:00(or 1 row for 00:00:00 plus another null row) and this means the current column should be converted to a date only format as all the dates are the same and not include any extra information (but for some reason they have been save in a 'Y-M-D H:M:S' like format even though the 'H:M:S' does not include meaningful time points).  
 
 ```
 select extract(time from case when effective_time_jittered <> '' then parse_datetime('%Y-%m-%d %H:%M:%S', effective_time_jittered) else null end) times, count(*) as cnt
-from som-nero-phi-jonc101.lpch_core_2021.adt
+from som-nero-phi-jonc101.shc_core_2023.adt
 group by times
 order by cnt desc;
 ```
 
-For each table, visualy look into a number of rows. If you clearly see different time values in the columns that means you don't need to run the above script. However, if you don't see any different in terms of time you can run the above script to double check. 
+For each table, visually look into a number of rows. If you clearly see different time values in the columns that means you don't need to run the above script. However, if you don't see any difference in terms of time you can run the above script to double check. 
 
-After, identifying date only and datetime columns for each table you can use the following scripts to convert the columns. Here, I provide the scripts for each table seperately. Note, after running each columns I save the results in a big query table with the same name as the original table plus a "_code" at the end of the name of this new table. 
+After, identifying date only and datetime columns for each table you can use the following scripts to convert the columns. Here, I provide the scripts for each table separately. Note, after running each column I save the results in a big query table with the same name as the original table plus a "_code" at the end of the name of this new table. 
 
-For example, for the ```adt``` tble, I first visually inspect the columns and identify that ```effective_time_jittered``` and ```event_time_jittered``` include date and time information but are saved in strings. Note, since for a sample of rows I can see they include different rows I don't need to run the above scripts. Therefore, I use the following script to convert string fields to datetime and create utc datetime:
+For example, for the ```adt```table, I first visually inspect the columns and identify that ```effective_time_jittered``` and ```event_time_jittered``` include date and time information but are saved in strings. Note, since for a sample of rows I can see they include different rows I don't need to run the above scripts. Therefore, I use the following script to convert string fields to datetime and create utc datetime:
 
 ```
 select * except(effective_time_jittered, event_time_jittered),
@@ -33,7 +392,7 @@ select * except(effective_time_jittered, event_time_jittered),
     timestamp(case when event_time_jittered <> '' then event_time_jittered else null end, "America/Los_Angeles") as event_time_jittered_utc,
     from som-nero-phi-jonc101.lpch_core_2021.adt;
 ```
- And saved the results in ```adt_code``` under ```lpch_core_2021``` manually using the SAVE RESULTS option or by setting up the query result destination settings before runnig the above query: More>Query Settings>Set a destination table for query results. 
+ And saved the results in ```adt_code``` under ```lpch_core_2021``` manually using the SAVE RESULTS option or by setting up the query result destination settings before running the above query: More>Query Settings>Set a destination table for query results. 
  
 Here are the queries for the rest of the tables:
 
