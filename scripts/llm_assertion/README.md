@@ -12,5 +12,5 @@ This code is for the large language model assertion pipeline. Detailed instructi
 ### To-do:
 1. Build and start-to-end pipeline (current code is segmented)
 2. Write-up proper documentation for code and functions
-3. Create a proper tutorial (including how to set-up VM, how to download models into PHI-safe env, how to properly run pipeline, prompt engineering, etc)
+3. Create a proper tutorial (including how to set-up VM, how to download models into PHI-safe env, how to properly run pipeline, prompt tuning, etc)
 4. Clean and push prompt generation code
