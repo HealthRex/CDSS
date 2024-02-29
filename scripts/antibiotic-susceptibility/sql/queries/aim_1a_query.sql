@@ -83,15 +83,20 @@ prior_antibiotics AS (
     SELECT 
         amc.anon_id, 
         amc.order_proc_id_coded, 
-        STRING_AGG(om.med_description, ', ') AS prior_antibiotics
+        STRING_AGG(mm.name, ', ') AS prior_antibiotics  -- Use mm.name to get the mapped medication name
     FROM 
         included_microbiology_cultures amc
     INNER JOIN
         `som-nero-phi-jonc101.shc_core_2023.order_med` om
     ON
         amc.anon_id = om.anon_id
+    LEFT JOIN 
+        (SELECT * FROM `som-nero-phi-jonc101.shc_core_2023.mapped_meds` WHERE RXCUI != '0') mm  -- Filter out non-antibiotics based on RXCUI
+    ON 
+        mm.name = om.med_description
     WHERE
         TIMESTAMP_DIFF(amc.order_time_jittered_utc, om.ordering_date_jittered_utc, DAY) BETWEEN 0 AND 14
+        AND om.thera_class_name IN ('ANTIVIRALS', 'ANTIBIOTICS', 'ANTIINFECTIVES', 'ANTIFUNGALS', 'ANTIPARASITICS')  -- Ensure only relevant medication classes are included
     GROUP BY 
         amc.anon_id, amc.order_proc_id_coded
 ),
@@ -135,7 +140,9 @@ positive_culture_details AS (
             WHEN cs.antibiotic LIKE 'Meropenem%' THEN 'Meropenem'
             WHEN cs.antibiotic LIKE 'Penicillin%' OR cs.antibiotic LIKE 'PENICILLIN%' THEN 'Penicillin'
             WHEN cs.antibiotic LIKE 'Rifampin%' THEN 'Rifampin'
-            WHEN cs.antibiotic LIKE 'Streptomycin%' THEN 'Streptomycin'
+            WHEN cs.antibiotic LIKE 'Streptomycin%' THEN 'Streptomycin' 
+            WHEN cs.antibiotic LIKE 'Pyrazinamide%' THEN 'Pyrazinamide' 
+            WHEN cs.antibiotic LIKE 'Polymixin B' THEN 'Polymyxin B' 
             WHEN cs.antibiotic LIKE '5-Flucytosine%' OR cs.antibiotic LIKE 'Flucytosine%' THEN 'Flucytosine' -- Merge "5-Flucytosine" and "Flucytosine"
             ELSE REGEXP_REPLACE(cs.antibiotic, '\\.+$', '')  -- Clean up other antibiotic names by removing trailing periods
         END AS antibiotic,
