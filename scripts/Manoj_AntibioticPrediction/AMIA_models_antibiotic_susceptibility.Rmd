@@ -1,0 +1,362 @@
+---
+title: "Inpatient Encounter-Culture Antibiotic Sensitivity Prediction - Stanford only"
+author: "Manoj Maddali, MD"
+date: "`r Sys.Date()`"
+output: html_document
+---
+  
+```{r setup, include=FALSE}
+library(tidyverse)
+library(bigrquery)
+library(gt)
+library(caret)
+library(xgboost)
+library(pROC)
+library(MLmetrics)
+library(comorbidity)
+library(lightgbm)
+library(parallel)
+library(shapviz)
+
+bq_auth()
+```
+
+# Define helper functions
+``` {r}
+#########################################################################################################################
+# Define features for use in model
+#########################################################################################################################
+categorical_features = c("female", "dialysis", "year", "vasopressor")
+numeric_features = c("age", "cci",
+                     "wbch", "hgbl", "pltl",
+                     "sodiuml", "bicarbl", "bunh", "creath", "glucl",
+                     "asth", "alth", "bilih",
+                     "albuml",  "lactateh",
+                     "hrateh", "rrateh", "temph", "sysbpl", "diasbpl", "weightl",
+                     "count_rx_oral", "count_rx_iv", "number_of_admissions",
+                     "count_ciprofloxacin_resistance_within_6mo", "count_ciprofloxacin_resistance_before_6mo",
+                     "count_oxacillin_resistance_within_6mo", "count_oxacillin_resistance_before_6mo",
+                     "count_ampicillin_resistance_within_6mo", "count_ampicillin_resistance_before_6mo",
+                     "count_cefazolin_resistance_within_6mo", "count_cefazolin_resistance_before_6mo",
+                     "count_ceftriaxone_resistance_within_6mo", "count_ceftriaxone_resistance_before_6mo",
+                     "count_cefepime_resistance_within_6mo", "count_cefepime_resistance_before_6mo",
+                     "count_pip_tazo_resistance_within_6mo", "count_pip_tazo_resistance_before_6mo",
+                     "count_meropenem_resistance_within_6mo", "count_meropenem_resistance_before_6mo",
+                     "count_trim_sulfa_resistance_within_6mo", "count_trim_sulfa_resistance_before_6mo",
+                     "count_vancomycin_resistance_within_6mo", "count_vancomycin_resistance_before_6mo",
+                     "prior_year_antibiogram_ciprofloxacin",
+                     "prior_year_antibiogram_oxacillin",
+                     "prior_year_antibiogram_ampicillin",
+                     "prior_year_antibiogram_cefazolin",
+                     "prior_year_antibiogram_ceftriaxone",
+                     "prior_year_antibiogram_cefepime",
+                     "prior_year_antibiogram_pip_tazo",
+                     "prior_year_antibiogram_meropenem",
+                     "prior_year_antibiogram_trim_sulfa",
+                     "prior_year_antibiogram_vancomycin",
+                     "count_prior_pseudomonas_culture",
+                     "count_prior_staph_aureus_culture",
+                     "count_prior_enterococcus_culture")
+
+#########################################################################################################################
+# Calculate and add Charlson comorbidity index scores from parsed ICD9 codes
+# Using "comorbidity" package in R
+#########################################################################################################################
+add_charlson_comorbidity_index = function(df, index) {
+  # First parse/explode values of icd9s column for each patient
+  icds_parsed = df %>% separate_longer_delim(c(icd9s), delim=",")
+  
+  # Calculate individual component comorbidity scores
+  comorbidity_scores = comorbidity(x=icds_parsed, id=index, code="icd9s", map="charlson_icd9_quan", assign0=TRUE, tidy.codes=TRUE)
+
+  # Score the comorbidity index (unadjusted for age)
+  comorbidity_scores$cci = score(comorbidity_scores, assign0 = TRUE)  
+  
+  # Add the comorbidity index to the original dataframe
+  df = df %>% left_join(comorbidity_scores %>% select(all_of(c(index, "cci"))), by=index)
+    
+  # Adjust the charlson comorbidity index for age
+  df = df %>% mutate(cci = cci + ifelse(age >= 80, 4,  
+                                        ifelse(age >= 70, 3, 
+                                               ifelse(age >= 60, 2, 
+                                                      ifelse(age >= 50, 1, 0)))))  
+  
+  return(df)
+}
+
+#########################################################################################################################
+# Model training for LightGBM models
+#########################################################################################################################
+train_test_lgb = function(df, model_antibiotic, features) {
+  # Select data for the given antibiotic and features
+  df = df %>% filter(antibiotic == model_antibiotic) %>%
+    select(csn, resistance, all_of(features)) %>%
+    unique()
+  
+  # Split data into training (pre-2022) and testing (2022 and 2023)
+  df_train = df %>% filter(!year %in% c("2022", "2023")) %>% select(-year)
+  df_test = df %>% filter(year %in% c("2022", "2023")) %>% select(-year)
+
+  # Set up LightGBM datasets
+  df_lgb_train = lgb.Dataset(as.matrix(df_train %>% select(-csn, -resistance)), label = df_train$resistance)
+  df_lgb_validation = lgb.Dataset(as.matrix(df_test %>% select(-csn, -resistance)), label = df_test$resistance)
+
+  # Set up hyperparameter grid search
+  lgb_grid = expand.grid(
+    nrounds = 1000, # early_stopping_rounds will stop training before this if the validation metric doesn't improve
+    learning_rate = c(0.01, 0.025, 0.05, 0.1),
+    bagging_fraction = c(0.6, 0.8, 0.9, 1),
+    bagging_freq = c(5, 10, 20),
+    early_stopping_rounds = NA)
+
+  # Set up vector to save each hyperparameter's cross-validated AUC
+  cv.aucs = rep(NA, nrow(lgb_grid))
+
+  # Iterate through hyperparameters to find the best cross-validated AUC
+  for (i in 1:nrow(lgb_grid)) {
+    # Train and test the LightGBM model with current hyperparameters
+    model.lgb = lgb.cv(data = df_lgb_train,
+                          nrounds = 1000,
+                          nfold = 5,
+                          params = list(objective = "binary",
+                                        metric = "auc",
+                                        is_unbalance = TRUE, # Automatically calculate positive weights for unbalanced classes
+                                        num_threads = detectCores(), # Use all available cores
+                                        learning_rate = lgb_grid[i, "learning_rate"],
+                                        max_depth = -1,
+                                        bagging_fraction = lgb_grid[i, "bagging_fraction"],
+                                        bagging_freq = lgb_grid[i, "bagging_freq"],                                    
+                                        early_stopping_rounds = 50,
+                                        verbosity = -1))
+  
+    # Save the AUC
+    cv.aucs[i] = model.lgb$best_score
+  
+    # Save the early_stopping_rounds
+    lgb_grid[i, "early_stopping_rounds"] = model.lgb$best_iter
+  }
+
+  # Train the final model with the best hyperparameters
+  model.lgb = lgb.train(data = df_lgb_train,
+                        nrounds = lgb_grid[which.max(cv.aucs), "early_stopping_rounds"],
+                        valids = list(validation = df_lgb_validation),
+                        params = list(objective = "binary",
+                                      metric = "auc",
+                                      is_unbalance = TRUE, # Automatically calculate positive weights for unbalanced classes
+                                      num_threads = detectCores(), # Use all available cores
+                                      learning_rate = lgb_grid[which.max(cv.aucs), "learning_rate"],
+                                      max_depth = -1,
+                                      bagging_fraction = lgb_grid[which.max(cv.aucs), "bagging_fraction"],
+                                      bagging_freq = lgb_grid[which.max(cv.aucs), "bagging_freq"],                                    
+                                      verbosity = -1))
+  
+  # Make predictions
+  predictions = predict(model.lgb, as.matrix(df_test %>% select(-csn, -resistance)))
+  
+  # Calculate ROC
+  roc = roc(predictor = predictions, df_test$resistance) 
+  
+  # Generate confusion matrix
+  cm = confusionMatrix(factor(ifelse(predictions >= 0.5, 1, 0)),
+                     factor(df_test$resistance), positive = "1", mode = "everything")
+  
+  # Return the model, AUC, ROC, and confusion matrix
+  return(list(antibiotic = str_to_title(model_antibiotic),
+              model = model.lgb,
+              best_tune = lgb_grid[which.max(cv.aucs),],
+              df_train = df_train,
+              df_test = df_test,
+              predictions = predictions,
+              auc = roc$auc,
+              roc = roc,
+              cm = cm))
+}
+
+#########################################################################################################################
+# Calculate Shapeley values and plot feature importance
+#########################################################################################################################
+plot_shap_importance = function(model) {
+  shap = shapviz(model$model,
+                 X=as.matrix(model$df_train %>% select(-csn, -resistance)),
+                 X_pred=as.matrix(model$df_train %>% select(-csn, -resistance)))
+  
+  shap %>%
+    sv_importance(kind="beeswarm") + ggtitle(paste0("SHAP Feature Analysis for ", model$antibiotic, " Model"))
+}
+
+#########################################################################################################################
+# Plot antibiotic orders saved in next 24 hours
+#########################################################################################################################
+antibiotics_24h_saved = function(model, df_all_antibiotics_24h, antibiotic24h) {
+  # Load test data and predictions from model
+  df_test = model$df_test
+  df_test$predictions = model$predictions
+  
+  # Merge with 24h antibiotic order df with df_test
+  df_all_antibiotics_24h = df_test %>%
+    left_join(df_all_antibiotics_24h %>% select(csn, antibiotic_24h) %>% unique(), by="csn")
+
+  # Filter out the 24h antibiotic of interest
+  if (length(antibiotic24h) > 2) {
+    stop("Antibiotic24h must only contain max 2 antibiotics")
+  }
+  
+  # Filter out the 24h antibiotic of interest
+  if (length(antibiotic24h) == 1) {
+    specific_antibiotics_24h = df_all_antibiotics_24h %>%
+      filter(antibiotic_24h == str_to_upper(antibiotic24h[1])) %>%
+      select(-antibiotic_24h) %>%
+      unique()
+  } else { # If there are two antibiotics, filter out the common CSNs and take the set of CSNs with both antibiotics
+    csn1 = df_all_antibiotics_24h %>% filter(antibiotic_24h == str_to_upper(antibiotic24h[1])) %>% pull(csn)
+    csn2 = df_all_antibiotics_24h %>% filter(antibiotic_24h == str_to_upper(antibiotic24h[2])) %>% pull(csn)    
+    csns = intersect(csn1, csn2)
+    
+    specific_antibiotics_24h = df_all_antibiotics_24h %>%
+      filter(csn %in% csns) %>%
+      select(-antibiotic_24h) %>%
+      unique()
+  }
+  
+  # Create a sequence of thresholds to test NPV
+  seq = seq(0.00, 1, 0.01)
+  excess = data.frame(matrix(ncol = 6, nrow = length(seq)))
+  colnames(excess) = c("threshold", "npv", "excess", "relative_excess", "true_excess", "perc_saved")
+  excess$threshold = seq
+  
+  # True excess is the number of orders that were not resistant on culture (gold standard)
+  excess$true_excess = nrow(specific_antibiotics_24h %>% filter(resistance == 0))
+
+  # Iterate through thresholds and calculate NPV and excess antibiotic prescriptions
+  for (i in seq) {
+    # Predict resistance based on threshold
+    specific_antibiotics_24h = specific_antibiotics_24h %>% mutate(predicted_resistance = ifelse(predictions >= i, 1, 0))
+    # Calculate confusion matrix for NPV
+    cm = confusionMatrix(factor(specific_antibiotics_24h$predicted_resistance),
+                         factor(specific_antibiotics_24h$resistance),
+                         positive = "1", mode = "everything")
+    excess[excess$threshold == i, "npv"] = cm$byClass['Neg Pred Value']
+    # Calculate number of excess antibiotic orders (predicted resistance = 0, true resistance = 0)
+    excess[excess$threshold == i, "excess"] = nrow(specific_antibiotics_24h %>% filter(predicted_resistance == 0, resistance == 0))
+    # Calculate relative excess (true excess - excess)
+    excess[excess$threshold == i, "relative_excess"] = excess[excess$threshold == i, "true_excess"] - excess[excess$threshold == i, "excess"]
+    # Calculate percentage of excess antibiotic orders saved
+    excess[excess$threshold == i, "perc_saved"] = round(100*excess[excess$threshold == i, "excess"] / excess[excess$threshold == i, "true_excess"], 2)
+  }
+  
+  # Plot excess antibiotic orders saved vs NPV
+  excess %>%
+    group_by(npv_group = cut(npv, breaks = seq(0, 1, 0.025))) %>%
+    summarize(mean_npv = mean(npv), mean_perc_saved = mean(perc_saved)) %>%
+    filter(!is.na(mean_npv)) %>%
+    filter(mean_npv > 0.7) %>% 
+    ggplot() +
+    geom_line(aes(x=mean_npv, y=mean_perc_saved)) +
+    geom_vline(xintercept=0.8, linetype="dotted") + 
+    geom_ribbon(aes(x=mean_npv, ymin=0, ymax=mean_perc_saved), fill="red", alpha=0.2) +
+    xlab("Negative predictive value") +
+    ylab("Potential excess antibiotic orders saved (%)") +
+    ggtitle(paste0(paste(str_to_title(antibiotic24h), collapse="/"), " -> ", model$antibiotic)) +
+    scale_x_reverse() + theme_classic() +
+    # Hide xlabel text
+    
+}
+```
+
+# Download and prep the data for modeling
+## Train: 2009-2021
+## Test: 2022, 2023
+```{r}
+# Download the data from BigQuery
+query = "SELECT * FROM `som-nero-phi-jonc101.mvm_abx.encounter_culture_labels_features_inpatient_24h_with_inference`"
+q = bq_project_query("som-nero-phi-jonc101", query)
+df = bq_table_download(q, page_size = 10000)
+
+# Add Charlson comorbidity index scores
+df = df %>% add_charlson_comorbidity_index("csn")
+
+# Clean data frame (remove missing labels, set features types, etc)
+df = df %>% 
+  filter(!is.na(resistance)) %>% # Remove rows with missing resistance label
+  filter(year != "2024") %>% # Remove rows in year 2024
+  filter(age >= 18) %>% # Only adult patients
+  mutate(across(c("antibiotic", all_of(categorical_features)), as.factor)) %>%
+  mutate(across(all_of(numeric_features), as.numeric)) %>%
+  unique()
+
+# Feature list
+print(c(numeric_features, categorical_features) %>% setdiff(c("year")))
+```
+# Fit models for 5 different antibiotics
+``` {r}
+model_features = c(categorical_features, numeric_features)
+
+model.cefazolin = train_test_lgb(df, "CEFAZOLIN", model_features)
+model.ceftriaxone = train_test_lgb(df, "CEFTRIAXONE", model_features)
+model.cefepime = train_test_lgb(df, "CEFEPIME", model_features)
+model.piptazo = train_test_lgb(df, "PIPERACILLIN_TAZOBACTAM", model_features)
+model.ciprofloxacin = train_test_lgb(df, "CIPROFLOXACIN", model_features)
+```
+
+# Present model performance metrics for all models
+```{r, fig.width=10, fig.height=6}
+models = list(model.cefazolin, model.ceftriaxone, model.cefepime, model.piptazo, model.ciprofloxacin)
+
+# Create empty data frame to store model metrics
+metrics = data.frame(matrix(nrow=0, ncol=6))
+colnames(metrics) = c("Antibiotic Model", "AUC", "Accuracy", "Sensitivity", "Specificity", "F1")
+
+rocs = list()
+for (i in 1:length(models)) {
+  auc.ci = ci(models[[i]]$roc)
+  auc = paste0(round(auc.ci[2], 2), " (", round(auc.ci[1], 2), "-", round(auc.ci[3], 2), ")")
+  rocs[[paste0(models[[i]]$antibiotic, " AUC: ", auc)]] = models[[i]]$roc
+  metrics[nrow(metrics)+1,] = c("Antibiotic Model" = models[[i]]$antibiotic,
+                                "AUC" = auc,
+                                "Accuracy" = round(models[[i]]$cm$overall["Accuracy"],2), 
+                                "Sensitivity" = round(models[[i]]$cm$byClass["Sensitivity"],2),
+                                "Specificity" = round(models[[i]]$cm$byClass["Specificity"],2),
+                                "F1" = round(models[[i]]$cm$byClass["F1"],2))
+}
+
+gt(metrics)
+
+ggroc(rocs) +
+  theme_minimal() +
+  scale_colour_discrete(name="Antibiotic")
+```
+
+# Plot Shapley feature importance for all models
+``` {r}
+plot_shap_importance(model.cefazolin)
+plot_shap_importance(model.ceftriaxone)
+plot_shap_importance(model.cefepime)
+plot_shap_importance(model.piptazo)
+plot_shap_importance(model.ciprofloxacin)
+```
+
+# Plot excess antibiotic orders saved within 24 hours
+``` {r}
+# Download 24 hour antibiotic data from BigQuery
+query = "SELECT * FROM `som-nero-phi-jonc101.mvm_abx.antibiotics_24h_after_culture_order`"
+q_abx24h = bq_project_query("som-nero-phi-jonc101", query)
+df_all_antibiotics_24h = bq_table_download(q_abx24h, page_size = 10000)
+```
+
+``` {r, warning=FALSE}
+# Switching to ceftriaxone
+antibiotics_24h_saved(model.ceftriaxone, df_all_antibiotics_24h, c("VANCOMYCIN", "CEFTRIAXONE"))
+antibiotics_24h_saved(model.ceftriaxone, df_all_antibiotics_24h, c("CEFEPIME"))
+antibiotics_24h_saved(model.ceftriaxone, df_all_antibiotics_24h, c("VANCOMYCIN", "CEFEPIME"))
+antibiotics_24h_saved(model.ceftriaxone, df_all_antibiotics_24h, c("PIPERACILLIN_TAZOBACTAM"))
+antibiotics_24h_saved(model.ceftriaxone, df_all_antibiotics_24h, c("VANCOMYCIN", "PIPERACILLIN_TAZOBACTAM"))
+
+# Switching to cefazolin
+antibiotics_24h_saved(model.cefazolin, df_all_antibiotics_24h, c("CEFTRIAXONE"))
+antibiotics_24h_saved(model.cefazolin, df_all_antibiotics_24h, c("VANCOMYCIN", "CEFTRIAXONE"))
+
+# Switching to cefepime
+antibiotics_24h_saved(model.cefepime, df_all_antibiotics_24h, c("VANCOMYCIN", "CEFEPIME"))
+antibiotics_24h_saved(model.cefepime, df_all_antibiotics_24h, c("PIPERACILLIN_TAZOBACTAM"))
+antibiotics_24h_saved(model.cefepime, df_all_antibiotics_24h, c("VANCOMYCIN", "PIPERACILLIN_TAZOBACTAM"))
+```
