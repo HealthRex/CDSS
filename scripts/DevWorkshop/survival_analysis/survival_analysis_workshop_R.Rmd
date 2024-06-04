@@ -1,0 +1,94 @@
+---
+title: "Survival Analysis Workshop"
+author: "Manoj Maddali, MD"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+if (!require(tidyverse)) install.packages('tidyverse')
+if (!require(ggplot2)) install.packages('ggplot2')
+if (!require(survival)) install.packages('survival')
+if (!require(gtsummary)) install.packages('gtsummary')
+if (!require(survminer)) install.packages('survminer')
+
+library(tidyverse)
+library(ggplot2)
+library(survival)
+library(gtsummary)
+library(survminer)
+```
+
+# Load the data
+``` {r}
+# Load built-in colon cancer dataset
+colon = colon
+
+head(colon)
+
+# Each patient has two rows, etype=1 is recurrence, and etype=2 is death
+# We will keep only time-to-death information
+colon_death = colon %>% filter(etype==2)
+
+head(colon_death)
+
+# Baseline characteristics
+colon_death %>%
+  select(rx, sex, obstruct, perfor, adhere, nodes, status, differ, extent, surg, node4) %>%
+  tbl_summary()
+```
+
+# Kaplan-Meier estimator
+``` {r}
+###
+## KM curve for all patients
+###
+# Fit the Surv() object
+colon_km_all = survfit(Surv(___FILL_IN_TIME_VARIABLE___, ___FILL_IN_STATUS_VARIABLE_______) ~ ___FILL_THIS_IN___, data=colon_death)
+
+# Generate KM curve
+ggsurvplot(colon_km_all, data=colon_death, conf.int=TRUE)
+
+###
+## KM curve stratified by treatment
+###
+# Fit the Surv() object
+colon_km_rx = survfit(Surv(___FILL_IN_TIME_VARIABLE___, ___FILL_IN_STATUS_VARIABLE_______) ~ ___FILL_THIS_IN___, data=colon_death)
+
+# Generate KM curve
+ggsurvplot(colon_km_rx, data=colon_death, conf.int=TRUE)
+```
+
+# Cox regression modeling
+``` {r}
+###
+## Univariate Cox regression with treatment vs. survival
+###
+
+# Fit the Cox model
+cox_uni_rx = coxph(Surv(___FILL_IN_TIME_VARIABLE___, ___FILL_IN_STATUS_VARIABLE_______) ~ ___FILL_THIS_IN___, data=colon_death)
+
+# Summarize the results
+cox_uni_rx %>% tbl_regression(exponentiate=TRUE)
+
+# Forest plot
+ggforest(cox_uni_rx, data=colon_death)
+
+###
+## Multivariate Cox regression adjusting for age (age), whether or not the tumor adhered to other organs (adhere),
+## if patients had more than 4 nodes positive (node4), differentiation status of the tumor (differ),
+## the extent of local spread (extent), and time to surgery was delayed (surg)
+###
+
+# Fit the Cox model
+cox_multi_rx = coxph(Surv(___FILL_IN_TIME_VARIABLE___, ___FILL_IN_STATUS_VARIABLE_______) ~ rx + ___ FILL_THIS_IN___, data=colon_death)
+
+# Summarize the results
+cox_multi_rx %>% tbl_regression(exponentiate=TRUE)
+```
+
+# For future workshops
+## Confirm proporional hazards assumption (cox.zph)
+## Methods to handle non-proportional hazards
+## Time-dependent covariates
+## Variable interactions
