@@ -1,10 +1,12 @@
 -- This query is the main query for creating a table named microbiology_cultures_cohort that forms the basis of the microbiology cultures cohort. 
---The table is generated through a series of steps, each designed to filter and enrich the dataset. 
---Once the main cohort table is created, additional features will be added to this table to complete the dataset for analysis.
+-- The table is generated through a series of steps, each designed to filter and enrich the dataset. 
+-- Once the main cohort table is created, additional features will be added to this table to complete the dataset for analysis.
 
 
-
+######################################################################################## 
 -- Create or replace the cohort table named microbiology_cultures_cohort
+######################################################################################## 
+
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_cohort` AS
 
 -- Step 1: Extract microbiology cultures for specific types (URINE, RESPIRATORY, BLOOD)
@@ -32,7 +34,11 @@ WITH microbiology_cultures AS (
         AND (op.description LIKE "%URINE%" OR op.description LIKE "%RESPIRATORY%" OR op.description LIKE "%BLOOD%")
 ),
 
+
+######################################################################################## 
 -- Step 2: Filter for adult patients only
+########################################################################################    
+
 adult_microbiology_cultures AS (
     SELECT 
         mc.anon_id, 
@@ -51,7 +57,11 @@ adult_microbiology_cultures AS (
         DATE_DIFF(CAST(mc.order_time_jittered_utc as DATE), demo.BIRTH_DATE_JITTERED, YEAR) >= 18
 ),
 
+    
+######################################################################################## 
 -- Step 3: Identify culture orders within the prior two weeks
+########################################################################################     
+    
 order_in_prior_two_weeks AS (
     SELECT DISTINCT
          auc.order_proc_id_coded
@@ -72,7 +82,11 @@ order_in_prior_two_weeks AS (
         AND TIMESTAMP_DIFF(auc.order_time_jittered_utc, op.order_time_jittered_utc, DAY) < 14
 ),
 
+    
+######################################################################################## 
 -- Step 4: Exclude cultures with a prior culture order in the last two weeks
+########################################################################################       
+
 included_microbiology_cultures AS (
     SELECT DISTINCT
         amc.*
@@ -82,7 +96,12 @@ included_microbiology_cultures AS (
         amc.order_proc_id_coded NOT IN (SELECT order_proc_id_coded FROM order_in_prior_two_weeks)
 ),
 
+
+    
+###########################################################################################################
 -- Step 5: Flag cultures as positive if they have corresponding entries in the culture_sensitivity table
+###########################################################################################################    
+
 all_cultures_with_flag AS (
     SELECT 
         imc.anon_id, 
@@ -100,7 +119,12 @@ all_cultures_with_flag AS (
         imc.order_proc_id_coded = cs.order_proc_id_coded
 ),
 
+
+    
+#########################################################################################################################
 -- Step 6: Get detailed information for positive cultures, clean antibiotic names, and exclude non-antibiotic entries
+#########################################################################################################################     
+
 positive_culture_details AS (
     SELECT 
         cs.order_proc_id_coded,
@@ -179,7 +203,10 @@ positive_culture_details AS (
         )
 )
 
--- Step 7: Final selection of required fields
+#########################################################################################################################
+  -- Step 7: Final selection of required fields
+#########################################################################################################################   
+
 SELECT 
     acwf.anon_id,
     acwf.pat_enc_csn_id_coded,
