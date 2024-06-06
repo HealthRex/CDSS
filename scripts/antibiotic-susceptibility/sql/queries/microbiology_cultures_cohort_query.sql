@@ -9,7 +9,11 @@
 
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_cohort` AS
 
+
+######################################################################################## 
 -- Step 1: Extract microbiology cultures for specific types (URINE, RESPIRATORY, BLOOD)
+######################################################################################## 
+
 WITH microbiology_cultures AS (
     SELECT DISTINCT
         op.anon_id, 
