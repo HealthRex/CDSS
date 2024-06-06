@@ -1,3 +1,9 @@
+-- This query is the main query for creating a table named microbiology_cultures_cohort that forms the basis of the microbiology cultures cohort. 
+--The table is generated through a series of steps, each designed to filter and enrich the dataset. 
+--Once the main cohort table is created, additional features will be added to this table to complete the dataset for analysis.
+
+
+
 -- Create or replace the cohort table named microbiology_cultures_cohort
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_cohort` AS
 
