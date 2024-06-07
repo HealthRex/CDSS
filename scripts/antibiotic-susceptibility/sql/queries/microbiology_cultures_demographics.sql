@@ -3,7 +3,6 @@
 -- Create a new table for demographics information based on anon_id, pat_enc_csn_id_coded, and order_proc_id_coded from the microbiology_cultures_cohort
 #########################################################################################################################################################
 
-
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_demographics` AS
 
 WITH microbiology_cultures AS (
