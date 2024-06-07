@@ -2,7 +2,6 @@
 -- The table is generated through a series of steps, each designed to filter and enrich the dataset. 
 -- Once the main cohort table is created, additional features will be added to this table to complete the dataset for analysis.
 
-
 ######################################################################################## 
 -- Create or replace the cohort table named microbiology_cultures_cohort
 ######################################################################################## 
