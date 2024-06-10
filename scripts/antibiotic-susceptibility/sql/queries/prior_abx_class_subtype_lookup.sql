@@ -2,8 +2,8 @@
 -- It then inserts records into this table with the provided antibiotic names, their corresponding classes, and subtypes. 
 -- Finally, it selects and displays all the records from the class_subtype_lookup table.
 
-
-CREATE OR REPLACE TABLE `som-nero-phi-jonc101.fateme_db.class_subtype_lookup` (
+#################################################################################################################################
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.class_subtype_lookup` (
     antibiotic STRING,
     antibiotic_class STRING,
     antibiotic_subtype STRING
@@ -101,4 +101,4 @@ VALUES
     ('Rifabutin', 'Ansamycin', 'Ansamycin'),
     ('Tedizolid', 'Oxazolidinone', 'Oxazolidinone');
 
-SELECT * FROM `som-nero-phi-jonc101.fateme_db.class_subtype_lookup`;
+SELECT * FROM `som-nero-phi-jonc101.antimicrobial_stewardship.class_subtype_lookup`;
