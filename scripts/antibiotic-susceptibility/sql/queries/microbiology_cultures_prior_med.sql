@@ -1,11 +1,12 @@
-####The goal is to create the microbiology_cultures_prior_med table, which includes binary indicators for specific medication exposure within various time frames.
+--The goal is to create the microbiology_cultures_prior_med table, which includes binary indicators for specific medication 
+exposure within various time frames.
 
 
 ######## Steps ##########
 
 ####################################################################################################################
-1. Creating the microbiology_cultures_prior_antibiotics_extracted Table.  To extract microbiology cultures and
-    their associated medications, along with the time frames of medication exposure.
+--1. Creating the microbiology_cultures_prior_antibiotics_extracted Table.  To extract microbiology cultures and their 
+    -- associated medications, along with the time frames of medication exposure.
 ####################################################################################################################
 
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_extracted` AS
@@ -69,10 +70,10 @@ prior_antibiotics_exposure AS (
 SELECT * FROM prior_antibiotics_exposure;
 
 
+#######################################################################################################################################
+-- 2. Cleaning the Extracted Data. Filters the extracted data and keeps only the rows from the list of antibiotics provided.
+#######################################################################################################################################
 
-#######################################################################################################################################
-2. Cleaning the Extracted Data. To filter the extracted data and keep only the rows that are from the list of antibiotics provided.
-#######################################################################################################################################
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_cleaned` AS
 WITH antibiotic_list AS (
     SELECT antibiotic_name
@@ -93,10 +94,12 @@ INNER JOIN
 ON 
     pae.medication_name = al.antibiotic_name;
 
+
 #######################################################################################################################################
-3. Generating the Final SQL Query using Python To create the final table microbiology_cultures_prior_med with binary indicators for 
-    each antibiotic and each time frame.
+-- 3. Generating the Final SQL Query using Python To create the final table microbiology_cultures_prior_med with binary indicators for 
+   -- each antibiotic and each time frame.
 #######################################################################################################################################
+
 -- Create the pivoted table with binary indicators
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_med` AS
 WITH
