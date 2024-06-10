@@ -70,7 +70,8 @@ SELECT * FROM prior_antibiotics_exposure;
 
 
 #######################################################################################################################################
--- 2. Cleaning the Extracted Data. Filters the extracted data and keeps only the rows from the list of antibiotics provided.
+-- 2. Cleaning the Extracted Data. Filters the extracted data and keeps only the rows from the list of antibiotics provided. List of 
+-- the antibiotics have been saved in temp_antibiotics table. There are 89 abx that we want to extract. 
 #######################################################################################################################################
 
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_cleaned` AS
