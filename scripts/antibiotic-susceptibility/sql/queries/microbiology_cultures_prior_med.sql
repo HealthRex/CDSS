@@ -1,5 +1,4 @@
---The goal is to create the microbiology_cultures_prior_med table, which includes binary indicators for specific medication 
-exposure within various time frames.
+--The goal is to create the microbiology_cultures_prior_med table, which includes binary indicators for specific medication exposure within various time frames.
 
 
 ######## Steps ##########
