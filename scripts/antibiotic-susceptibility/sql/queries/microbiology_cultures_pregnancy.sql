@@ -76,5 +76,5 @@ o.Preganat_14days,
 o.Preganat_30days,
 o.Preganat_90days,
 o.Preganat_180days
-from  Base_cohort b left join Outlined_pregnant_patients o using(anon_id,order_proc_id_coded)
+from  Base_cohort b inner join Outlined_pregnant_patients o using(anon_id,order_proc_id_coded)
 )
