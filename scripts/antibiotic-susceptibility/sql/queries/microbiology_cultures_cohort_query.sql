@@ -2,17 +2,14 @@
 -- The table is generated through a series of steps, each designed to filter and enrich the dataset. 
 -- Once the main cohort table is created, additional features will be added to this table to complete the dataset for analysis.
 
+
 ######################################################################################## 
 -- Create or replace the cohort table named microbiology_cultures_cohort
 ######################################################################################## 
 
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_cohort` AS
 
-
-######################################################################################## 
 -- Step 1: Extract microbiology cultures for specific types (URINE, RESPIRATORY, BLOOD)
-######################################################################################## 
-
 WITH microbiology_cultures AS (
     SELECT DISTINCT
         op.anon_id, 
@@ -100,7 +97,6 @@ included_microbiology_cultures AS (
 ),
 
 
-    
 ###########################################################################################################
 -- Step 5: Flag cultures as positive if they have corresponding entries in the culture_sensitivity table
 ###########################################################################################################    
@@ -141,9 +137,7 @@ positive_culture_details AS (
                 '^[^a-z]*|\\s+\\S*[^a-z\\s]+.*$|\\.+$', ''  -- General cleaning, already lowercase due to the LOWER function
             ), 'penicillin.*', 'Penicillin'  -- Merge any 'Penicillin' variations with 'Penicillin', case-insensitive
         )))) AS antibiotic,
-        cs.suscept as susceptibility,
-        cs.specimen_source,
-        cs.specimen_type
+        cs.suscept as susceptibility
     FROM 
         `som-nero-phi-jonc101.shc_core_2023.culture_sensitivity` cs
     INNER JOIN (
@@ -220,9 +214,7 @@ acwf.culture_description,
 acwf.was_positive,
 pcd.organism,
 pcd.antibiotic,
-pcd.susceptibility,
-pcd.specimen_source,
-pcd.specimen_type
+pcd.susceptibility
 FROM
 all_cultures_with_flag acwf
 LEFT JOIN
