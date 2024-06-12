@@ -7,7 +7,6 @@
 --1. Creating the microbiology_cultures_prior_antibiotics_extracted Table.  To extract microbiology cultures and their 
     -- associated medications, along with the time frames of medication exposure.
 ####################################################################################################################
-
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_extracted` AS
 WITH microbiology_cultures AS (
     SELECT DISTINCT
@@ -37,7 +36,7 @@ cleaned_medications AS (
         )) AS medication_name
     FROM 
         microbiology_cultures mc
-    INNER JOIN 
+    LEFT JOIN 
         `som-nero-phi-jonc101.shc_core_2023.order_med` mo
     ON 
         mc.anon_id = mo.anon_id
@@ -66,33 +65,61 @@ prior_antibiotics_exposure AS (
         cleaned_medications cm
 )
 
-SELECT * FROM prior_antibiotics_exposure;
-
+SELECT  * FROM prior_antibiotics_exposure;
 
 #######################################################################################################################################
 -- 2. Cleaning the Extracted Data. Filters the extracted data and keeps only the rows from the list of antibiotics provided. List of 
 -- the antibiotics have been saved in temp_antibiotics table. There are 89 abx that we want to extract. 
 #######################################################################################################################################
-
+-- Create a cleaned table by filtering the rows from microbiology_cultures_prior_antibiotics_extracted that are in temp_antibiotics
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_cleaned` AS
 WITH antibiotic_list AS (
     SELECT antibiotic_name
     FROM `som-nero-phi-jonc101.antimicrobial_stewardship.temp_antibiotics`
+),
+
+-- Identify rows with valid antibiotics
+valid_antibiotics AS (
+    SELECT 
+        pae.anon_id,
+        pae.pat_enc_csn_id_coded,
+        pae.order_proc_id_coded,
+        pae.order_time_jittered_utc,
+        pae.medication_name,
+        pae.time_frame
+    FROM 
+        `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_extracted` pae
+    LEFT JOIN 
+        antibiotic_list al
+    ON 
+        pae.medication_name = al.antibiotic_name
+    WHERE 
+        al.antibiotic_name IS NOT NULL
+),
+
+-- Add rows that were missing medication name matches
+missing_antibiotics AS (
+    SELECT 
+        pae.anon_id,
+        pae.pat_enc_csn_id_coded,
+        pae.order_proc_id_coded,
+        pae.order_time_jittered_utc,
+        pae.medication_name,
+        pae.time_frame
+    FROM 
+        `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_extracted` pae
+    LEFT JOIN 
+        antibiotic_list al
+    ON 
+        pae.medication_name = al.antibiotic_name
+    WHERE 
+        al.antibiotic_name IS NULL
 )
 
-SELECT 
-    pae.anon_id,
-    pae.pat_enc_csn_id_coded,
-    pae.order_proc_id_coded,
-    pae.order_time_jittered_utc,
-    pae.medication_name,
-    pae.time_frame
-FROM 
-    `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_extracted` pae
-INNER JOIN 
-    antibiotic_list al
-ON 
-    pae.medication_name = al.antibiotic_name;
+-- Combine both valid and missing antibiotic data
+SELECT * FROM valid_antibiotics
+UNION ALL
+SELECT * FROM missing_antibiotics;
 
 
 #######################################################################################################################################
