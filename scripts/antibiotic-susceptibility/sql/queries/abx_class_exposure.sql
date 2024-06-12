@@ -7,8 +7,6 @@
 ##############################################################################################################################################################
 -- It joins the cleaned microbiology cultures data with the class-subtype lookup table to associate each medication with its corresponding antibiotic class.
 ##############################################################################################################################################################
-
-
 -- Create a table with class information along with the time frames
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_class_extracted` AS
 WITH class_exposure AS (
@@ -21,7 +19,7 @@ WITH class_exposure AS (
         mcp.time_frame
     FROM
         `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_cleaned` mcp
-    INNER JOIN
+    LEFT JOIN
         `som-nero-phi-jonc101.antimicrobial_stewardship.class_subtype_lookup` cl
     ON
         mcp.medication_name = cl.antibiotic
@@ -29,10 +27,9 @@ WITH class_exposure AS (
 SELECT * FROM class_exposure;
 
 
-
 ########### 2nd query ############
 ##############################################################################################################################################################
--- Creating Binary Indicators for Class Exposure
+-- Creating Binary Indicators for abx Class Exposure
 ##############################################################################################################################################################
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_class_exposure` AS
 WITH class_exposure AS (
@@ -174,3 +171,4 @@ final_class_exposure AS (
         order_time_jittered_utc
 )
 SELECT * FROM final_class_exposure;
+
