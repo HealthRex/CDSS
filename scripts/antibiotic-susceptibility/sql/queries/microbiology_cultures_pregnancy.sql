@@ -1,4 +1,3 @@
-
 ####################################################################################################################################################
 #Create a new table for pregnancy information based on anon_id, pat_enc_csn_id_coded, and order_proc_id_coded from the microbiology_cultures_cohort
 ####################################################################################################################################################
@@ -58,15 +57,24 @@ when (Termination_Pregnancy_To_Culture_Order<180 and Termination_Pregnancy_To_Cu
 when (Termination_Pregnancy_To_Culture_Order>180 and Termination_Pregnancy_To_Culture_Order is not null) then 'Pregnancy terminated before 180 days ago'
 else 'Is pregnant' end as Pregnancy_Status
 from All_Pregnant_lab_tests lr left join All_Terminated_Pregnancy tp using(anon_id,order_proc_id_coded)
-)
+),
+Outlined_pregnant_patients as(
 select anon_id,
 order_proc_id_coded,
 case when Pregnancy_Status='Is pregnant' then 1 else 0 end As Preganat,
-case when (Pregnancy_Status='Is pregnant' or Pregnancy_Status='Termination of pregnancy censored 7 days ago')then 1 else 0 end As Preganat_7days_ago,
+case when (Pregnancy_Status='Is pregnant' or Pregnancy_Status='Termination of pregnancy censored 7 days ago')then 1 else 0 end As Preganat_7days,
 case when (Pregnancy_Status='Is pregnant' or Pregnancy_Status='Termination of pregnancy censored 14 days ago') then 1 else 0 end As Preganat_14days,
 case when (Pregnancy_Status='Is pregnant' or Pregnancy_Status='Termination of pregnancy censored 30 days ago') then 1 else 0 end As Preganat_30days,
 case when (Pregnancy_Status='Is pregnant' or Pregnancy_Status='Termination of pregnancy censored 90 days ago') then 1 else 0 end As Preganat_90days,
 case when (Pregnancy_Status='Is pregnant' or Pregnancy_Status='Termination of pregnancy censored 180 days ago') then 1 else 0 end As Preganat_180days,
 from All_Non_Terminted_Pregnancy
 )
-
+select b.*,
+o.Preganat,
+o.Preganat_7days,
+o.Preganat_14days,
+o.Preganat_30days,
+o.Preganat_90days,
+o.Preganat_180days
+from  Base_cohort b left join Outlined_pregnant_patients o using(anon_id,order_proc_id_coded)
+)
