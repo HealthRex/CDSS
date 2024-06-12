@@ -19,7 +19,7 @@ WITH subtype_exposure AS (
         mcp.time_frame
     FROM
         `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_cleaned` mcp
-    INNER JOIN
+    LEFT JOIN
         `som-nero-phi-jonc101.antimicrobial_stewardship.class_subtype_lookup` cl
     ON
         mcp.medication_name = cl.antibiotic
