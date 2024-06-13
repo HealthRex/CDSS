@@ -1,0 +1,1 @@
+{"Categorical": {"Sex": [{"look_back": null}], "Race": [{"look_back": null}], "Diagnoses": [{"look_back": null}], "Medications": [{"look_back": 28}]}, "Numerical": {"Age": [{"look_back": null, "num_bins": 5}], "LabResults": [{"look_back": 14, "num_bins": 5}]}}
