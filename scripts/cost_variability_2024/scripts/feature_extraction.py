@@ -17,9 +17,9 @@ suid='grolleau'
 EXPERIMENT_NAME = f"20240604_costvariability_{suid}"
 RUN_NAME = "baseline_inpatientmortality"
 
-from healthrex_ml.cohorts import InpatientMortalityCohort 
+from healthrex_ml.cohorts import LongLengthOfStayCohort  
 
-cohort = InpatientMortalityCohort(
+cohort = LongLengthOfStayCohort(
     client=client,
     dataset_name='francois_db',
     working_project_id='som-nero-phi-jonc101',

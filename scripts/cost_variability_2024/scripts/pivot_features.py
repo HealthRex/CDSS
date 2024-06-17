@@ -42,7 +42,7 @@ top_features = df[:1000]['mod_feature'].tolist()
 top_features_str = ', '.join(list(map(lambda x: f"'{x}'", top_features)))
 my_features = f'({top_features_str})' # my_features takes the form: "('race', 'SpO2', 'Resp', 'Pulse', 'Temp', 'GLU')"
 
-my_drg = 2259
+my_drg = 2592
 # 2259 is "psychoses": 937 unique patients in the cost database
 # 2592 is "septicemia and disseminated infections": 2418 unique patients in the cost database
 
@@ -113,7 +113,7 @@ df["anon_id_1"].describe()
 ## Problems:
 # Few unique patients in the cost database even for the most common DRGs: 937 for "psychoses" and 2418 for "septicemia and disseminated infections"
 
-# After joining on som-nero-phi-jonc101, we find that only ~6% of these patients (56/937, 139/2418) have features measured in the first 48 hours of their hospital stay
+# After joining on som-nero-phi-jonc101, we find that only ~32% of these patients (301 u 297 /937, 777/2418) have features measured in the first 48 hours of their hospital stay
 
 ## Possible solutions:
 # Ask for an updated version of the cost database 

@@ -16,3 +16,5 @@ venv*
 .Rproj.user
 *pyproject.toml
 scripts/cost_variability_2024/tables/*
+scripts/cost_variability_2024/scripts/baseline_inpatientmortality_artifacts/*
+
