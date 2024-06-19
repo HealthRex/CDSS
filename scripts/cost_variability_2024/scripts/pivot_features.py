@@ -38,7 +38,7 @@ ORDER BY count DESC
 df = pd.read_sql_query(feature_query, conn)
 
 # turn column into list
-top_features = df[:1000]['mod_feature'].tolist()
+top_features = df[:100]['mod_feature'].tolist() # top 100 features
 top_features_str = ', '.join(list(map(lambda x: f"'{x}'", top_features)))
 my_features = f'({top_features_str})' # my_features takes the form: "('race', 'SpO2', 'Resp', 'Pulse', 'Temp', 'GLU')"
 
@@ -58,10 +58,15 @@ one_drg_first_hospi AS
 FROM one_drg
 GROUP BY anon_id),
 
-cost_drg AS 
-(SELECT cost.*
+pre_cost_drg AS
+(SELECT cost.*, ROW_NUMBER() OVER(PARTITION BY cost.anon_id ORDER BY cost.adm_date_jittered ASC) AS rn
 FROM one_drg_first_hospi LEFT JOIN one_drg AS cost
 ON one_drg_first_hospi.anon_id = cost.anon_id AND one_drg_first_hospi.date_first_hosp = cost.adm_date_jittered),
+
+cost_drg AS
+(SELECT * 
+FROM pre_cost_drg
+WHERE rn = 1),
 
 feat_mat AS 
 (
@@ -108,15 +113,15 @@ ON cost_drg.anon_id = pivoted_feat_mat.anon_id
 df = pd.read_sql_query(pivot_merge_query, conn)
 
 # count the number of patients with matched features
-df["anon_id_1"].describe()
+#df["anon_id_1"].describe()
 
 ## Problems:
 # Few unique patients in the cost database even for the most common DRGs: 937 for "psychoses" and 2418 for "septicemia and disseminated infections"
 
-# After joining on som-nero-phi-jonc101, we find that only ~32% of these patients (301 u 297 /937, 777/2418) have features measured in the first 48 hours of their hospital stay
+# After joining on som-nero-phi-jonc101, we find that only ~26% of these patients (244/937, 640/2418) have features measured in the first 48 hours of their hospital stay
 
 ## Possible solutions:
 # Ask for an updated version of the cost database 
 
 # Make sure that jitter is the same in cost and feature tables! If not, need to know how can we unjitter the tables?
-# See line: TIMESTAMP_DIFF(TIMESTAMP(feat_mat_drg.index_time), TIMESTAMP(cost_drg.adm_date_jittered), HOUR) AS time_to_feature 
+# See line: TIMESTAMP_DIFF(TIMESTAMP(feat_mat_drg.index_time), TIMESTAMP(cost_drg.adm_date_jittered), HOUR) AS time_to_feature
