@@ -55,6 +55,7 @@ cleaned_medications AS (
     ON 
         c.anon_id = mo.anon_id
     where medication_name in (select distinct antibiotic_name from antibiotic_list)
+    and TIMESTAMP_DIFF(c.order_time_jittered_utc,mo.ordering_date_jittered_utc, DAY) >=0
 )
 SELECT anon_id,
       pat_enc_csn_id_coded,
