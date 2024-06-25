@@ -89,37 +89,14 @@ valid_antibiotics AS (
         pae.time_frame
     FROM 
         `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_extracted` pae
-    LEFT JOIN 
+    INNER JOIN 
         antibiotic_list al
     ON 
         pae.medication_name = al.antibiotic_name
-    WHERE 
-        al.antibiotic_name IS NOT NULL
-),
-
--- Add rows that were missing medication name matches
-missing_antibiotics AS (
-    SELECT 
-        pae.anon_id,
-        pae.pat_enc_csn_id_coded,
-        pae.order_proc_id_coded,
-        pae.order_time_jittered_utc,
-        pae.medication_name,
-        pae.time_frame
-    FROM 
-        `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_extracted` pae
-    LEFT JOIN 
-        antibiotic_list al
-    ON 
-        pae.medication_name = al.antibiotic_name
-    WHERE 
-        al.antibiotic_name IS NULL
 )
 
--- Combine both valid and missing antibiotic data
-SELECT * FROM valid_antibiotics
-UNION ALL
-SELECT * FROM missing_antibiotics;
+-- Select only the valid antibiotics data
+SELECT * FROM valid_antibiotics;
 
 
 #######################################################################################################################################
