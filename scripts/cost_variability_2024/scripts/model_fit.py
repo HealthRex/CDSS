@@ -185,7 +185,7 @@ plt.plot(mean_predicted_ori, mean_actual_ori, color='blue', label='In sample', m
 # Add labels for the legend
 plt.plot([], [], linestyle='-', color='gray', alpha=0.5, label='CV Folds')
 
-# Add text for the R^2 values
+# Add text for the metric values
 plt.text(x=0.02, y=0.875, s=f'In-sample', transform=plt.gca().transAxes, fontsize=12)
 plt.text(x=0.03, y=0.85, s=f'$R^2$: {100*r2_ori:.1f}%', transform=plt.gca().transAxes, fontsize=12)
 plt.text(x=0.03, y=0.825, s=f'Intercept: {intercept_ori:.2f}', transform=plt.gca().transAxes, fontsize=12)
