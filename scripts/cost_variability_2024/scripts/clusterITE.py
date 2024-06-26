@@ -187,11 +187,13 @@ class ClusterIte_cv:
         y = y.copy()
         
         kf = KFold(n_splits = self.nb_folds)
-        res = {}
+        res = {}; res_train = {}
+        res_r_sq = {}; res_train_r_sq = {}
         for k in tqdm(cluster_range):
             model = ClusterIte(K=k, **self.hyperparams)
 
-            MSEs = []
+            MSEs = []; train_MSEs = [] 
+            r_sq = []; train_r_sq = []
             # Iterate over the folds
             for train_index, val_index in kf.split(X):
                 # Split the data into training and validation sets
@@ -205,8 +207,22 @@ class ClusterIte_cv:
                 y_preds = model.predict(X_val, verbose=False)
                 cv_mse = ((y_preds - y_val)**2).mean()
                 MSEs.append(cv_mse)
-            res[f'K={k}'] = MSEs
+                tss = ((y_preds - y_val.mean())**2).mean()
+                r_sq.append(1 - cv_mse/tss)
+                
+                # Evaluate your model on the training data
+                y_preds = model.predict(X_train, verbose=False)
+                train_mse = ((y_preds - y_train)**2).mean()
+                train_MSEs.append(train_mse)
+                train_tss = ((y_preds - y_train.mean())**2).mean()
+                train_r_sq.append(1 - train_mse/train_tss)
+                
+            res[f'K={k}'] = MSEs; res_train[f'K={k}'] = train_MSEs
+            res_r_sq[f'K={k}'] = r_sq; res_train_r_sq[f'K={k}'] = train_r_sq
         self.cv_mse = pd.DataFrame(res)
+        self.mse_train = pd.DataFrame(res_train)
+        self.r_sq = pd.DataFrame(res_r_sq)
+        self.r_sq_train = pd.DataFrame(res_train_r_sq)
         
     def best_K_tab_fun(self):
         """Ranks the number of clusters by crossvalidated MSE

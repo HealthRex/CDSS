@@ -44,7 +44,8 @@ from healthrex_ml.extractors import (
     DummyExtractor
 )
 
-USED_EXTRACTORS = [AgeExtractor,
+USED_EXTRACTORS = [
+    AgeExtractor,
     RaceExtractor,
     SexExtractor,
     EthnicityExtractor,
