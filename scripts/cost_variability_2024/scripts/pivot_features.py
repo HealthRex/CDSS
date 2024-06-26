@@ -17,11 +17,11 @@ WITH
 feat_mat AS 
 (
     SELECT
-      REGEXP_REPLACE(
-        CASE 
-          WHEN STRPOS(feature, '_') > 0 THEN SPLIT(feature, '_')[SAFE_OFFSET(0)] 
-          ELSE feature 
-        END,
+      REGEXP_REPLACE(feature,
+        --CASE 
+          --WHEN STRPOS(feature, '_') > 0 THEN SPLIT(feature, '_')[SAFE_OFFSET(0)] 
+          --ELSE feature 
+        --END,
       r'[(),/%.]', '') as mod_feature,
       pre_feat_mat.*, cohort.anon_id
     FROM `som-nero-phi-jonc101.francois_db.baseline_inpatientmortality_feature_matrix_bow` as pre_feat_mat LEFT JOIN
@@ -38,13 +38,15 @@ ORDER BY count DESC
 df = pd.read_sql_query(feature_query, conn)
 
 # turn column into list
-top_features = df[:100]['mod_feature'].tolist() # top 100 features
+top_features = df[:200]['mod_feature'].tolist() # top 100 features
 top_features_str = ', '.join(list(map(lambda x: f"'{x}'", top_features)))
 my_features = f'({top_features_str})' # my_features takes the form: "('race', 'SpO2', 'Resp', 'Pulse', 'Temp', 'GLU')"
 
 my_drg = 2592
 # 2259 is "psychoses": 937 unique patients in the cost database
 # 2592 is "septicemia and disseminated infections": 2418 unique patients in the cost database
+# 1583 is "ECMO OR TRACHEOSTOMY WITH MV >96 HOURS OR PRINCIPAL DIAGNOSIS EXCEPT FACE, MOUTH AND NECK WITH MAJOR O.R. PROCEDURES": 251 unique patients in the cost database
+# 2281 is "COMPLICATIONS OF TREATMENT WITH MCC": 275 unique patients in the cost database
 
 pivot_merge_query = f"""
 WITH 
@@ -71,11 +73,11 @@ WHERE rn = 1),
 feat_mat AS 
 (
     SELECT
-      REGEXP_REPLACE(
-        CASE 
-          WHEN STRPOS(feature, '_') > 0 THEN SPLIT(feature, '_')[SAFE_OFFSET(0)] 
-          ELSE feature 
-        END,
+      REGEXP_REPLACE(feature,
+        --CASE 
+          --WHEN STRPOS(feature, '_') > 0 THEN SPLIT(feature, '_')[SAFE_OFFSET(0)] 
+          --ELSE feature 
+        --END,
       r'[(),/%.]', '') as mod_feature,
     pre_feat_mat.*, cohort.anon_id
     FROM `som-nero-phi-jonc101.francois_db.baseline_inpatientmortality_feature_matrix_bow` as pre_feat_mat LEFT JOIN
@@ -113,7 +115,7 @@ ON cost_drg.anon_id = pivoted_feat_mat.anon_id
 df = pd.read_sql_query(pivot_merge_query, conn)
 
 # count the number of patients with matched features
-#df["anon_id_1"].describe()
+df["anon_id_1"].describe()
 
 ## Problems:
 # Few unique patients in the cost database even for the most common DRGs: 937 for "psychoses" and 2418 for "septicemia and disseminated infections"
