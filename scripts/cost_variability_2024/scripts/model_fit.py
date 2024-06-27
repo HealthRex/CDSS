@@ -1,7 +1,9 @@
 from pivot_features import df, top_features, my_drg
 from tableone import TableOne
 from sklearn.impute import SimpleImputer
-from clusterITE import *
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # Keep a copy of the original data
 ori_df = df.copy(deep=True)
@@ -34,7 +36,7 @@ sorted_features_names = list(df.loc[:,df.columns[first_feat_pos:]].isna().sum().
 
 # Four quantiles of cost 
 q = 4
-quantiles_data = pd.qcut(df['Cost_Adj'], q, labels=[f"Q{i+1}" for i in range(q)])
+quantiles_data = pd.qcut(df['Cost_Direct_Scaled'], q, labels=[f"Q{i+1}" for i in range(q)])
 df.insert(1, 'Cost_Adj_Quantiles', quantiles_data)
 
 table1 = TableOne(df, columns=sorted_features_names, groupby='Cost_Adj_Quantiles', pval=True)
@@ -64,7 +66,7 @@ X_imputed = np.array(X_imputed.loc[:, non_unique_feat]).astype(float)
 X_imputed = (X_imputed - X_imputed.mean(axis=0)) / X_imputed.std(axis=0)
 
 # Keep only the target
-Y = np.array(df["Cost_Adj"])
+Y = np.array(df["Cost_Direct_Scaled"])
 
 # Normalize the target
 Y = (Y - Y.mean()) / Y.std()
