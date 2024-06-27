@@ -42,7 +42,7 @@ top_features = df[:200]['mod_feature'].tolist() # top 100 features
 top_features_str = ', '.join(list(map(lambda x: f"'{x}'", top_features)))
 my_features = f'({top_features_str})' # my_features takes the form: "('race', 'SpO2', 'Resp', 'Pulse', 'Temp', 'GLU')"
 
-my_drg = 2592
+my_drg = 6427
 # 2259 is "psychoses": 937 unique patients in the cost database
 # 2592 is "septicemia and disseminated infections": 2418 unique patients in the cost database
 # 1583 is "ECMO OR TRACHEOSTOMY WITH MV >96 HOURS OR PRINCIPAL DIAGNOSIS EXCEPT FACE, MOUTH AND NECK WITH MAJOR O.R. PROCEDURES": 251 unique patients in the cost database
@@ -52,7 +52,7 @@ pivot_merge_query = f"""
 WITH 
 one_drg AS
 (SELECT *
-FROM `som-nero-phi-jonc101-secure.proj_IP_variation.matched_drg_cost_adms`
+FROM `som-nero-phi-jonc101.francois_db.cost_drg`
 WHERE drg_id = '{my_drg}'),
 
 one_drg_first_hospi AS
@@ -115,7 +115,7 @@ ON cost_drg.anon_id = pivoted_feat_mat.anon_id
 df = pd.read_sql_query(pivot_merge_query, conn)
 
 # count the number of patients with matched features
-df["anon_id_1"].describe()
+print(f"{df['anon_id_1'].nunique()} patients out of {len(df)} ({100*df['anon_id_1'].nunique()/len(df):.1f}%) were matched with features")
 
 ## Problems:
 # Few unique patients in the cost database even for the most common DRGs: 937 for "psychoses" and 2418 for "septicemia and disseminated infections"
