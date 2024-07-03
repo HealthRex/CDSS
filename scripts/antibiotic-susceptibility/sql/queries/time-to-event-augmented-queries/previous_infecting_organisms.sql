@@ -113,7 +113,7 @@ past_cs.prior_organism,
 from `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_cohort` c
 left join previous_infecting_organisms_category past_cs using(anon_id)
 where 
-( past_cs.prior_infecting_organism_recorded_time < c.order_time_jittered_utc or past_cs.prior_infecting_organism_recorded_time is null)
+( past_cs.prior_infecting_organism_recorded_time <= c.order_time_jittered_utc or past_cs.prior_infecting_organism_recorded_time is null)
 group by c.anon_id,c.pat_enc_csn_id_coded,c.order_proc_id_coded,c.order_time_jittered_utc,past_cs.prior_organism,past_cs.prior_infecting_organism_recorded_time
 order by c.anon_id,c.pat_enc_csn_id_coded,c.order_proc_id_coded,c.order_time_jittered_utc,past_cs.prior_organism,past_cs.prior_infecting_organism_recorded_time
 )
