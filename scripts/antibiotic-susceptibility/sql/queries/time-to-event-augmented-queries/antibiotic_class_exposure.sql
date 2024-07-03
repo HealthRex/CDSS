@@ -1,7 +1,7 @@
 ##############################################################################################################################################################
 #Goal: Indicating exposure to a class of antibiotics before specimen collection.
 ##############################################################################################################################################################
-CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_class_exposure_augmented` AS (
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_antibiotic_class_exposure_augmented` AS (
 WITH class_exposure AS (
     SELECT
         mcp.anon_id,
