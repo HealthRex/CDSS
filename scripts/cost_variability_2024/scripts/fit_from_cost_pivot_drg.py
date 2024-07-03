@@ -48,11 +48,11 @@ from sklearn.model_selection import cross_val_score
 from scipy.stats import linregress
 
 # Instantiate the Random Forest model
-rf = RandomForestRegressor(n_estimators=1,  
+rf = RandomForestRegressor(n_estimators=100,  
                                    min_samples_split=2,  
                                    min_samples_leaf=1, 
                                    max_depth=None,  
-                                   max_features='sqrt') 
+                                   max_features=1) 
 
 #from sklearn.linear_model import LinearRegression
 #rf = LinearRegression()
@@ -175,3 +175,5 @@ plt.xlabel('Mean Predicted Cost')
 plt.ylabel('Mean Observed Cost')
 plt.legend()
 plt.show()
+
+# CV R^2 = 55.31%
