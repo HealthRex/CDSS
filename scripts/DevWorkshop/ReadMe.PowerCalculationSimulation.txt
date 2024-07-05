@@ -23,6 +23,7 @@ Power Calculations - Empirically Estimating by Simulation
 
 - You believe your fancy machine learning model can better predict and diagnose diseases than doctors, as doctors are only 70% accurate when predicting a patient outcome (e.g., death, hospitalization, readmission, etc.). You have access to a database of 500 prior cases, for which you plan to hold out 20% as a test set. How accurate would your model have to be to have a better than 90% chance of showing it to be "statistically significantly" better than the baseline 70%?
 
+(For AUC, more involved calculation estimate? http://biosoft.erciyes.edu.tr/app/easyROC/)
 
 == Workshop Steps ==
 - Download copy of the code repository
