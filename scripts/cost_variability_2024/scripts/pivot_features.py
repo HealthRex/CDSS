@@ -42,7 +42,7 @@ top_features = df[:200]['mod_feature'].tolist() # top 100 features
 top_features_str = ', '.join(list(map(lambda x: f"'{x}'", top_features)))
 my_features = f'({top_features_str})' # my_features takes the form: "('race', 'SpO2', 'Resp', 'Pulse', 'Temp', 'GLU')"
 
-my_drg = 2334
+my_drg = 6427
 # 2259 is "psychoses": 937 unique patients in the cost database
 # 2592 is "septicemia and disseminated infections": 2418 unique patients in the cost database
 # 1583 is "ECMO OR TRACHEOSTOMY WITH MV >96 HOURS OR PRINCIPAL DIAGNOSIS EXCEPT FACE, MOUTH AND NECK WITH MAJOR O.R. PROCEDURES": 251 unique patients in the cost database
