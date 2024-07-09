@@ -95,3 +95,7 @@ mapie_reg = MapieRegressor(estimator=clf, cv="prefit")
 mapie_reg = mapie_reg.fit(X_imputed, Y)
 y_pred, y_pis = mapie_reg.predict(X_imputed, alpha=0.5)
 print(y_pis[:, :, 0])
+
+# Conformalized Quantile Regression to be continued as in 
+# https://mapie.readthedocs.io/en/latest/examples_regression/4-tutorials/plot_cqr_tutorial.html
+# https://mapie.readthedocs.io/en/latest/quick_start.html#run-mapieregressor
