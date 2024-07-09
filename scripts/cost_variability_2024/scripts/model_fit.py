@@ -73,7 +73,7 @@ Y = (Y - Y.mean()) / Y.std()
 
 # Fit a Random Forest model
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.model_selection import cross_val_score
 from scipy.stats import linregress
 
@@ -100,6 +100,9 @@ Y_pred = rf.predict(X_imputed)
 
 # Calculate R^2 on the training set
 r2_ori = r2_score(Y, Y_pred)
+
+# Calculate RMSE on the training set
+rmse_ori = mean_squared_error(Y, Y_pred, squared=False)
 
 ### Calibration plot
 
@@ -142,6 +145,7 @@ from sklearn.model_selection import KFold
 kf = KFold(n_splits=10, shuffle=True, random_state=42)  # No. of folds here
 
 r2_cv = []
+rmse_cv = []
 slope_cv = []
 intercept_cv = []
 
@@ -159,6 +163,10 @@ for fold_i, (train_index, test_index) in enumerate(kf.split(X_imputed)):
     # Calculate R^2 for the current fold
     r2 = r2_score(Y_test, Y_pred)
     r2_cv.append(r2)
+    
+    # Calculate RMSE for the current fold
+    rmse = mean_squared_error(Y_test, Y_pred, squared=False)
+    rmse_cv.append(rmse)
     
     # Calulate slope and intercept for the cv calibration curves
     slope, intercept, _, _, _ = linregress(Y_pred, Y_test)
@@ -190,13 +198,15 @@ plt.plot([], [], linestyle='-', color='gray', alpha=0.5, label='CV Folds')
 # Add text for the metric values
 plt.text(x=0.02, y=0.875, s=f'In-sample', transform=plt.gca().transAxes, fontsize=12)
 plt.text(x=0.03, y=0.85, s=f'$R^2$: {100*r2_ori:.1f}%', transform=plt.gca().transAxes, fontsize=12)
-plt.text(x=0.03, y=0.825, s=f'Intercept: {intercept_ori:.2f}', transform=plt.gca().transAxes, fontsize=12)
-plt.text(x=0.03, y=0.8, s=f'Slope: {slope_ori:.2f}', transform=plt.gca().transAxes, fontsize=12)
+plt.text(x=0.03, y=0.825, s=f'RMSE: {rmse_ori:.2f}', transform=plt.gca().transAxes, fontsize=12)
+plt.text(x=0.03, y=0.8, s=f'Intercept: {intercept_ori:.2f}', transform=plt.gca().transAxes, fontsize=12)
+plt.text(x=0.03, y=0.775, s=f'Slope: {slope_ori:.2f}', transform=plt.gca().transAxes, fontsize=12)
 
-plt.text(x=0.02, y=0.75, s=f'CV', transform=plt.gca().transAxes, fontsize=12)
-plt.text(x=0.03, y=0.725, s=f'$R^2$: {100*np.mean(r2_cv):.2f}%', transform=plt.gca().transAxes, fontsize=12)
-plt.text(x=0.03, y=0.7, s=f'Intercept: {np.mean(intercept_cv):.2f}', transform=plt.gca().transAxes, fontsize=12)
-plt.text(x=0.03, y=0.675, s=f'Slope: {np.mean(slope_cv):.2f}', transform=plt.gca().transAxes, fontsize=12)
+plt.text(x=0.02, y=0.725, s=f'CV', transform=plt.gca().transAxes, fontsize=12)
+plt.text(x=0.03, y=0.7, s=f'$R^2$: {100*np.mean(r2_cv):.2f}%', transform=plt.gca().transAxes, fontsize=12)
+plt.text(x=0.03, y=0.675, s=f'RMSE: {np.mean(rmse_cv):.2f}', transform=plt.gca().transAxes, fontsize=12)
+plt.text(x=0.03, y=0.65, s=f'Intercept: {np.mean(intercept_cv):.2f}', transform=plt.gca().transAxes, fontsize=12)
+plt.text(x=0.03, y=0.625, s=f'Slope: {np.mean(slope_cv):.2f}', transform=plt.gca().transAxes, fontsize=12)
 
 plt.xlim([min(mean_actual_ori), max(mean_actual_ori)])
 plt.ylim([min(mean_actual_ori), max(mean_actual_ori)])
