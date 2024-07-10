@@ -243,3 +243,5 @@ def drg_to_cqr(my_drg):
     plt.savefig(f'uncertainty_in_predicted_costs/drg_{drg_id}.pdf', format='pdf', bbox_inches='tight', pad_inches=0.5)
     # Show the plot
     plt.show()
+    
+# Push pdfs to github
