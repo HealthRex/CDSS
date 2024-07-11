@@ -138,7 +138,9 @@ def drg_to_cqr(my_drg):
         random_state=random_state
     )
     y_pred, y_pis = mapie_reg.predict(X_test)
-    ciw = y_pis[:, 1, 0] - y_pis[:, 0, 0]
+    ub = y_pis[:, 1, 0]
+    lb = y_pis[:, 0, 0]
+    ciw = ub - lb
 
     # Calculate R^2 on the training set
     r2_test = r2_score(y_test, y_pred)
@@ -155,6 +157,10 @@ def drg_to_cqr(my_drg):
     # Denormalize the targets
     y_pred = y_pred * Y_std + Y_mean
     y_test = y_test * Y_std + Y_mean
+
+    # Denormalize the CI bounds
+    lb = lb * Y_std + Y_mean
+    ub = ub * Y_std + Y_mean
 
     # Denormalize the CIw
     ciw *= Y_std
@@ -180,7 +186,7 @@ def drg_to_cqr(my_drg):
 
     # Fit a spline to the data
     spline_model = make_pipeline(
-        SplineTransformer(degree = 2), # adjust the degree of the spline here
+        SplineTransformer(degree = 1), # adjust the degree of the spline here
         LinearRegression()
     )
     spline_model.fit(y_pred.reshape(-1, 1), y_test)
@@ -213,35 +219,62 @@ def drg_to_cqr(my_drg):
     plt.show()
 
     ####
-    # Step 1: Sort y_test and ciw together based on y_test values
-    indices = np.argsort(y_test)
-    sorted_y_test = y_test[indices]
+    # Step 1: Sort y_pred and ciw together based on y_pred values
+    indices = np.argsort(y_pred)
+    sorted_y_pred = y_pred[indices]
     sorted_ciw = ciw[indices]
+    sorted_lb = lb[indices]
+    sorted_ub = ub[indices]
 
-    # Step 2: Divide sorted_y_test into fifths
-    fifths = np.array_split(sorted_y_test, 5)
+    # Step 2: Divide sorted_y_pred into fifths
+    fifths = np.array_split(sorted_y_pred, 5)
     ciw_fifths = np.array_split(sorted_ciw, 5)
+    lb_fifths = np.array_split(sorted_lb, 5)
+    ub_fifths = np.array_split(sorted_ub, 5)
 
     # Step 3: Calculate mean ciw for each fifth
     mean_ciw_per_fifth = [np.mean(fifth) for fifth in ciw_fifths]
+    mean_lb_per_fifth = [np.mean(fifth) for fifth in lb_fifths]
+    mean_ub_per_fifth = [np.mean(fifth) for fifth in ub_fifths]
 
-    # Print the mean ciw for each fifth
+    # Step 4: Calculate std ciw for each fifth
+    std_ciw_per_fifth = [np.std(fifth)/np.sqrt(len(fifth)) for fifth in ciw_fifths]
+    std_lb_per_fifth = [np.std(fifth)/np.sqrt(len(fifth)) for fifth in lb_fifths]
+    std_ub_per_fifth = [np.std(fifth)/np.sqrt(len(fifth)) for fifth in ub_fifths]
+
+    # Prepare the labels for the plot
     bins = []; labels = []
     for i, mean_ciw in enumerate(mean_ciw_per_fifth):
-        print(f"Mean ciw for fifth {i+1} ({np.min(sorted_y_test[i]):.2f} to {np.max(sorted_y_test[i]):.2f}): {mean_ciw:.2f}")
         bins.append((np.min(fifths[i]), np.max(fifths[i])))
         labels.append(f"{bins[-1][0]:.1f} to {bins[-1][1]:.1f}")
 
-    # Create the histogram
-    plt.bar(range(len(mean_ciw_per_fifth)), mean_ciw_per_fifth, width=0.5, tick_label=labels)
+    plt.figure(figsize=(10, 10))
+
+    # Adjusted plot code to include error bars for all variables
+    width = 0.25  # Width of the bars
+    positions = np.arange(len(mean_ciw_per_fifth))  # Base positions for each group of bars
+
+    # Plotting Mean PI lower bound
+    plt.bar(positions - width, mean_lb_per_fifth, width=width, label='Mean PI Lower Bound', yerr=std_lb_per_fifth, capsize=3)
+
+    # Plotting Mean PI length
+    plt.bar(positions, mean_ciw_per_fifth, width=width, label='Mean PI Length', yerr=std_ciw_per_fifth, capsize=3)
+
+    # Plotting Mean PI upper bound
+    plt.bar(positions + width, mean_ub_per_fifth, width=width, label='Mean PI Upper Bound', yerr=std_ub_per_fifth, capsize=3)
+
+    # Add labels under bars
+    plt.xticks(positions, labels, rotation=0)
 
     # Adding labels and title for clarity
-    plt.xlabel('Observed Cost\n(Categorized by Fifths)')
-    plt.ylabel('Mean CQR Prediction Interval Length')
+    plt.legend()
+    plt.xlabel('Predicted Cost\n(Categorized by Fifths)')
+    plt.ylabel('90% CQR Prediction Intervals')
+    plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nUncertainty in the Predicted Costs\nFrom Conformalized Quantile Regression ({estimator.__class__.__name__} on test set [n={y_test.shape[0]}])")
+
     plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nUncertainty in the Predicted Costs\nFrom Conformalized Quantile Regression ({estimator.__class__.__name__} on test set [n={y_test.shape[0]}])")
 
     plt.savefig(f'uncertainty_in_predicted_costs/drg_{drg_id}.pdf', format='pdf', bbox_inches='tight', pad_inches=0.5)
+
     # Show the plot
     plt.show()
-    
-# Push pdfs to github
