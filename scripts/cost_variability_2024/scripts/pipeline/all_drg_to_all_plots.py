@@ -1,7 +1,8 @@
 import os
 os.chdir('/Users/grolleau/Desktop/github repos/CDSS/scripts/cost_variability_2024/scripts/pipeline/')
 from drg_to_plot import drg_to_plot
-from dat_to_conformal import drg_to_imp, drg_to_cqr
+#from dat_to_conformal import drg_to_imp, drg_to_cqr
+from shap_val import *
 from google.cloud import bigquery
 from google.cloud.bigquery import dbapi
 import pandas as pd
@@ -27,11 +28,13 @@ HAVING count > 400
 
 drg_list = pd.read_sql_query(drg_query, conn).iloc[:, 0].tolist()
 
+drg_list[:4]
+
 for i, drg in enumerate(drg_list):
     print(f"DRG No. {i+1} of {len(drg_list)}")
     #drg_to_plot(drg)
     try:
-        drg_to_cqr(drg)
+        drg_to_cqr_shap(drg)
     except Exception as e:
         print(f"An error occurred with DRG {drg}: {e}")
         continue
