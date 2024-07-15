@@ -88,10 +88,10 @@ def drg_to_imp(my_drg):
     Y_mean = Y.mean(); Y_std = Y.std()
     Y = (Y - Y_mean) / Y_std
     
-    return X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names
+    return X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names, df['observation_id']
 
 def drg_to_cqr_shap(my_drg):
-    X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names = drg_to_imp(my_drg) #2334 # 2392
+    X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names, observation_id = drg_to_imp(my_drg) #2334 # 2392
 
     import numpy as np
     import pandas as pd
@@ -107,8 +107,8 @@ def drg_to_cqr_shap(my_drg):
 
     random_state = 18
 
-    X_train, X_test, y_train, y_test = train_test_split(X_imputed, Y, test_size=.25, random_state=random_state)
-    X_train, X_calib, y_train, y_calib = train_test_split(X_train, y_train, test_size=.15, random_state=random_state)
+    X_train, X_test, y_train, y_test, ob_train, ob_test = train_test_split(X_imputed, Y, observation_id, test_size=.25, random_state=random_state)
+    X_train, X_calib, y_train, y_calib, ob_train, ob_calib = train_test_split(X_train, y_train, ob_train, test_size=.15, random_state=random_state)
 
     estimator = LGBMRegressor(
         objective='quantile',
@@ -303,3 +303,13 @@ def drg_to_cqr_shap(my_drg):
     plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nBeeswarm plot for the {estimator.__class__.__name__} model")
     plt.savefig(f'shap/drg_{drg_id}.pdf', format='pdf', bbox_inches='tight', pad_inches=0.5)
     plt.show()
+    
+    ### Residuals ###
+    resid = y_test - y_pred
+    median = np.percentile(resid, 50)
+    hi_than_pred = resid > median
+    ob_hi, ob_lo = ob_test[hi_than_pred], ob_test[~hi_than_pred] 
+    return ob_hi, ob_lo
+    
+    
+#ob_hi, ob_lo = drg_to_cqr_shap(2392)
