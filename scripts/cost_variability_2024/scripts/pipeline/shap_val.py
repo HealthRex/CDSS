@@ -304,12 +304,51 @@ def drg_to_cqr_shap(my_drg):
     plt.savefig(f'shap/drg_{drg_id}.pdf', format='pdf', bbox_inches='tight', pad_inches=0.5)
     plt.show()
     
-    ### Residuals ###
+    ### Residuals for top medicines ###
     resid = y_test - y_pred
-    median = np.percentile(resid, 50)
-    hi_than_pred = resid > median
-    ob_hi, ob_lo = ob_test[hi_than_pred], ob_test[~hi_than_pred] 
-    return ob_hi, ob_lo
+    hi_than_pred = resid > 0
+    ob_hi, ob_lo = ob_test[hi_than_pred], ob_test[~hi_than_pred]
+    top_20_med_by_ids((ob_lo, ob_hi)).to_csv(f"top_med/drg_{drg_id}.csv", index=False) 
     
-    
-#ob_hi, ob_lo = drg_to_cqr_shap(2392)
+def top_20_med_by_ids(ids_tup):
+    def ids_to_sql(ids): return f"({', '.join([str(int(i)) for i in ids])})"
+
+    from google.cloud import bigquery
+    from google.cloud.bigquery import dbapi
+    import os
+    import pandas as pd
+
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/grolleau/Desktop/github repos/Cost variability/json_credentials/grolleau_application_default_credentials.json'
+    os.environ['GCLOUD_PROJECT'] = 'som-nero-phi-jonc101'
+
+    # Instantiate a client object so you can make queries
+    client = bigquery.Client()
+
+    # Create a connexion to that client
+    conn = dbapi.connect(client)
+
+    dfs = []
+    for it, ids in enumerate(ids_tup):
+        med_query = f"""
+        SELECT med_description, COUNT(pat_enc_csn_id_coded) as n_pat, SUM(n_pres) as n_pres
+        FROM
+        (
+        SELECT med_description, pat_enc_csn_id_coded, COUNT(*) as n_pres
+        FROM `som-nero-phi-jonc101.shc_core_2023.order_med`
+        WHERE pat_enc_csn_id_coded in {ids_to_sql(ids)}
+        GROUP BY med_description, pat_enc_csn_id_coded
+        )
+        GROUP BY med_description
+        ORDER BY n_pat DESC, med_description
+        LIMIT 20
+        """
+
+        df = pd.read_sql_query(med_query, conn)
+        df.insert(1, 'frac_pat', df['n_pat'] / len(ids))
+        df.insert(2, 'avg_n_pres', df['n_pres'] / len(ids))
+        if it == 0:
+            df.columns = [f"{col}_lo" for col in df.columns]
+        else:
+            df.columns = [f"{col}_hi" for col in df.columns]
+        dfs.append(df)
+    return pd.concat(dfs, axis=1)
