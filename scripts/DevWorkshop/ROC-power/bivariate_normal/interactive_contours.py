@@ -1,3 +1,6 @@
+import os
+os.chdir('/Users/grolleau/Desktop/github repos/CDSS/scripts/DevWorkshop/ROC-power/bivariate_normal')
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.transforms import blended_transform_factory
