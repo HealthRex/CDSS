@@ -105,6 +105,7 @@ var DRUG_LIST =
         'Fluconazole',
         'Itraconazole',
         'Voriconazole',
+        'Tetracycline',
 
         // Additional elements from VA Palo Alto Med System 2016
         'Streptomycin',
@@ -135,6 +136,7 @@ var DRUG_CLASS_LIST =
         'Protein Synthesis Inhibitor',
         'Macrolide',
         'Ketolide',
+        'Tetracycline',
         'Doxycycline',
         'Glycylcycline',
         'Glycopeptide',
@@ -205,9 +207,9 @@ var PROPERTIES_BY_DRUG =
         'Azithromycin': ['Macrolide','Oral Available'],
         'Clarithromycin': ['Macrolide','Oral Available'],
         'Telithromycin': ['Ketolide'],
-        'Doxycycline': ['Doxycycline','Oral Available'],
-        'Minocycline': ['Doxycycline'],
-        'Tigecycline': ['Glycylcycline'],
+        'Doxycycline': ['Doxycycline','Oral Available', 'Tetracycline', 'Protein Synthesis Inhibitor'],
+        'Minocycline': ['Doxycycline', 'Tetracycline', 'Protein Synthesis Inhibitor'],
+        'Tigecycline': ['Glycylcycline', 'Tetracycline', 'Protein Synthesis Inhibitor'],
         'Vancomycin': ['Glycopeptide'],
         'Teicoplanin': ['Glycopeptide'],
         'Telavancin': ['Glycopeptide'],
@@ -228,6 +230,7 @@ var PROPERTIES_BY_DRUG =
         'Fluconazole': ['Anti-Fungal','Oral Available'],
         'Itraconazole': ['Anti-Fungal','Oral Available'],
         'Voriconazole': ['Anti-Fungal','Oral Available'],
+        'Tetracycline': ['Oral Available', 'Protein Synthesis Inhibitor', 'Tetracycline'],
 
         'Number Tested': ['Meta-Data']
     };
@@ -300,7 +303,7 @@ var BUG_LIST =
         'Citrobacter koseri',
         'Enterobacter aerogenes',
         'Enterobacter cloacae',
-        'Klebsiella aerogenes', //TODO Since 2018 SHC: formerly known as Enterobacter aerogenes - should be a new entry or replace Enterobacter aerogenes? Assuming new entry.
+        'Klebsiella aerogenes',
         'Klebsiella oxytoca',
         'Klebsiella pneumoniae',
         'Pseudomonas aeruginosa CF mucoid',
@@ -354,7 +357,7 @@ var BUG_LIST =
         'Streptococcus Group A (pyogenes)',
 
         // This was somehow missing before, so I'm adding it now!
-        'M Tuberculosis',
+        'M tuberculosis',
     ];
 BUG_LIST.sort();    // Present in sorted order to facilitate selection lookup
 
@@ -448,7 +451,7 @@ var PROPERTIES_BY_BUG =
         'Citrobacter koseri': ['Gram Negative','Gram Negative Rods, Lactose Fermenting'],
         'Enterobacter aerogenes': ['Gram Negative','Gram Negative Rods, Lactose Fermenting'],
         'Enterobacter cloacae': ['Gram Negative','Gram Negative Rods, Lactose Fermenting'],
-        'Klebsiella aerogenes': ['Gram Negative','Gram Negative Rods, Lactose Fermenting'],     //TODO creating as a new entry - formerly known as Enterobacter aerogenes
+        'Klebsiella aerogenes': ['Gram Negative','Gram Negative Rods, Lactose Fermenting'],
         'Klebsiella oxytoca': ['Gram Negative','Gram Negative Rods, Lactose Fermenting'],
         'Klebsiella pneumoniae': ['Gram Negative','Gram Negative Rods, Lactose Fermenting'],
         'Pseudomonas aeruginosa CF mucoid': ['Gram Negative','Gram Negative Rods, Non-Lactose Fermenting','Gram Negative Rods, Non-Fermenting'],
@@ -501,8 +504,7 @@ var PROPERTIES_BY_BUG =
         'Streptococcus Group C (dysgalactiae)': ['Gram Positive', 'Gram Positive Cocci in Pairs / Chains'],
         'Streptococcus Group A (pyogenes)': ['Gram Positive', 'Gram Positive Cocci in Pairs / Chains'],
 
-        // TODO: Was missing before, what properties should it have?
-        'M Tuberculosis': [],
+        'M tuberculosis': ['Atypical'],
     };
 
 // Keyed by microorganism name, returns dictionary of anti-microbial names
@@ -8493,7 +8495,6 @@ SENSITIVITY_DATA_PER_SOURCE["2023 Stanford Health Care (SHC)"] =
     '84\tStreptococcus pneumoniae\tTMP-SMX',
     '70\tStreptococcus pneumoniae\tDoxycycline',
     '100\tStreptococcus pneumoniae\tMoxifloxacin',
-    // TODO: To add the f-sensitivities or not? UPDATE: DONE!! (i.e. added)
     '123\tEnterococcus faecalis\tNumber Tested',
     '99\tEnterococcus faecalis\tPenicillin G',
     '98\tEnterococcus faecalis\tVancomycin',
@@ -8515,8 +8516,6 @@ SENSITIVITY_DATA_PER_SOURCE["2023 Stanford Health Care (SHC)"] =
     '13\tEnterococcus faecium\tCiprofloxacin',
     '94\tEnterococcus faecium\tLinezolid',
 
-    // TODO: How to handle the dose depdendent or not? For now, sum them!
-    // Jon says to just put first number. Get final confirmation and then adjust if needed.
     '57\tCandida albicans\tNumber Tested',
     '100\tCandida albicans\tAmphotericin B',
     '100\tCandida albicans\tCaspofungin',
@@ -8541,12 +8540,10 @@ SENSITIVITY_DATA_PER_SOURCE["2023 Stanford Health Care (SHC)"] =
     '88\tCandida (other)\tCaspofungin',
     '56\tCandida (other)\tVoriconazole',
 
-    // TODO: How to handle the Cefepime dose dependence? sum for now!? (see above note on Jon's input for dose-dependence)
     '39\tAchromobacter xylosoxidans\tNumber Tested',
     '97\tAchromobacter xylosoxidans\tPiperacillin-Tazobactam',
     '8\tAchromobacter xylosoxidans\tCefepime',
     '0\tAchromobacter xylosoxidans\tAztreonam',
-    // '66\tAchromobacter xylosoxidans\tImipenem',
     '80\tAchromobacter xylosoxidans\tMeropenem',
     '3\tAchromobacter xylosoxidans\tGentamicin',
     '3\tAchromobacter xylosoxidans\tTobramycin',
@@ -8763,7 +8760,6 @@ SENSITIVITY_DATA_PER_SOURCE["2023 Stanford Health Care (SHC)"] =
     '82\tPseudomonas aeruginosa\tAztreonam',
     '89\tPseudomonas aeruginosa\tImipenem',
     '92\tPseudomonas aeruginosa\tMeropenem',
-    // '0\tPseudomonas aeruginosa\tGentamicin',
     '99\tPseudomonas aeruginosa\tTobramycin',
     '100\tPseudomonas aeruginosa\tAmikacin',
     '89\tPseudomonas aeruginosa\tCiprofloxacin',
@@ -8776,7 +8772,6 @@ SENSITIVITY_DATA_PER_SOURCE["2023 Stanford Health Care (SHC)"] =
     '77\tPseudomonas aeruginosa CF mucoid\tImipenem',
     '82\tPseudomonas aeruginosa CF mucoid\tMeropenem',
     '88\tPseudomonas aeruginosa CF mucoid\tTobramycin',
-    // '0\tPseudomonas aeruginosa CF mucoid\tAmikacin',
     '64\tPseudomonas aeruginosa CF mucoid\tCiprofloxacin',
     '53\tPseudomonas aeruginosa CF mucoid\tLevofloxacin',
     '58\tPseudomonas aeruginosa CF non-mucoid\tNumber Tested',
@@ -8787,7 +8782,6 @@ SENSITIVITY_DATA_PER_SOURCE["2023 Stanford Health Care (SHC)"] =
     '79\tPseudomonas aeruginosa CF non-mucoid\tImipenem',
     '85\tPseudomonas aeruginosa CF non-mucoid\tMeropenem',
     '75\tPseudomonas aeruginosa CF non-mucoid\tTobramycin',
-    // '0\tPseudomonas aeruginosa CF non-mucoid\tAmikacin',
     '55\tPseudomonas aeruginosa CF non-mucoid\tCiprofloxacin',
     '45\tPseudomonas aeruginosa CF non-mucoid\tLevofloxacin',
     '40\tSalmonella\tNumber Tested',
