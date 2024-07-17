@@ -217,9 +217,11 @@ reidentifySpecificDiagnosisAfterWorkupFromCohortEncounterProvider AS
 	from 
 		specificDiagnosisAfterWorkupFromCohortEncounterProvider as targetDx
 		join `som-nero-phi-jonc101-secure.starr_map.shc_map_2023` using (anon_id)
+	order by realDxDate desc
 ),
 
--- specificDiagnosesPerYear AS
+-- Group per year to see how often spotting these new specific diagnoses
+specificDiagnosesPerYear AS
 (
 	select EXTRACT(YEAR from realDxDate) as realDxYear, count(distinct mrn)
 	from reidentifySpecificDiagnosisAfterWorkupFromCohortEncounterProvider
@@ -248,6 +250,8 @@ spacer AS (select null as tempSpacer) -- Just put this here so don't have to wor
 -- select * from specificDiagnosisFromCohortEncounterProvider
 -- select * from specificDiagnosisAfterWorkupFromCohortEncounterProvider
 
+
+select * from reidentifySpecificDiagnosisAfterWorkupFromCohortEncounterProvider
 
 limit 1000
 
