@@ -31,6 +31,17 @@ cohortEncounter AS
 	where visit_type like 'NEW PATIENT%' -- Naturally screens to only 'Office Visit' enc_type 
 	and appt_status = 'Completed'
 ),
+referenceEncounter AS
+(	-- Example placeholder of all NEW PATIENT encounters in any clinic for any reason/diagnosis
+	-- %%% REPLACE BELOW WITH REFERENCE COHORT DEFINITION OF INTEREST %%% --
+	select distinct
+		anon_id, 
+		pat_enc_csn_id_coded as encounterId,
+		appt_when_jittered as encounterDateTime
+	from `shc_core_2021.encounter` as enc
+	where visit_type like 'NEW PATIENT%' -- Naturally screens to only 'Office Visit' enc_type 
+	and appt_status = 'Completed'
+),
 
 -------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------
@@ -105,7 +116,7 @@ cohortEncounterProc AS
 	order by count(*) desc
 ),
 
--- Number of distinct Med Orders per Encounter
+-- Number of distinct Orders per Encounter
 cohortEncounterProcCount AS
 (
 	select avg(nDistinctOrderProcs) as avgDistinctOrderProcs, max(nDistinctOrderProcs) as maxDistinctOrderProcs
@@ -118,6 +129,17 @@ cohortEncounterProcCount AS
 	)
 ),
 
+-- Procedures from encounters (more likely completed/billed for procedures, as opposed to orders)
+cohortEncounterProcedure AS
+(
+	select 
+		px_id, code, description, 
+		count(distinct cohortEnc.anon_id) as nPatients, count(distinct cohortEnc.encounterId) as nEncounters
+	  from cohortEncounter as cohortEnc
+	  join `shc_core_2023.procedure` as proc on cohortEnc.encounterId = proc.pat_enc_csn_id_coded 
+	group by px_id, code, description
+	order by count(*) desc
+),
 
 -- Medications from cohort encounter Visits that are (rarely) ordered in reference cohort encounter (e.g., Primary Care)
 cohortSpecificMeds AS
