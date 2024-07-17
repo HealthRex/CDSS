@@ -88,10 +88,10 @@ def drg_to_imp(my_drg):
     Y_mean = Y.mean(); Y_std = Y.std()
     Y = (Y - Y_mean) / Y_std
     
-    return X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names
+    return X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names, df['observation_id']
 
 def drg_to_cqr_shap(my_drg):
-    X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names = drg_to_imp(my_drg) #2334 # 2392
+    X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names, observation_id = drg_to_imp(my_drg) #2334 # 2392
 
     import numpy as np
     import pandas as pd
@@ -107,8 +107,8 @@ def drg_to_cqr_shap(my_drg):
 
     random_state = 18
 
-    X_train, X_test, y_train, y_test = train_test_split(X_imputed, Y, test_size=.25, random_state=random_state)
-    X_train, X_calib, y_train, y_calib = train_test_split(X_train, y_train, test_size=.15, random_state=random_state)
+    X_train, X_test, y_train, y_test, ob_train, ob_test = train_test_split(X_imputed, Y, observation_id, test_size=.25, random_state=random_state)
+    X_train, X_calib, y_train, y_calib, ob_train, ob_calib = train_test_split(X_train, y_train, ob_train, test_size=.15, random_state=random_state)
 
     estimator = LGBMRegressor(
         objective='quantile',
@@ -303,3 +303,52 @@ def drg_to_cqr_shap(my_drg):
     plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nBeeswarm plot for the {estimator.__class__.__name__} model")
     plt.savefig(f'shap/drg_{drg_id}.pdf', format='pdf', bbox_inches='tight', pad_inches=0.5)
     plt.show()
+    
+    ### Residuals for top medicines ###
+    resid = y_test - y_pred
+    hi_than_pred = resid > 0
+    ob_hi, ob_lo = ob_test[hi_than_pred], ob_test[~hi_than_pred]
+    top_20_med_by_ids((ob_lo, ob_hi)).to_csv(f"top_med/drg_{drg_id}.csv", index=False) 
+    
+def top_20_med_by_ids(ids_tup):
+    def ids_to_sql(ids): return f"({', '.join([str(int(i)) for i in ids])})"
+
+    from google.cloud import bigquery
+    from google.cloud.bigquery import dbapi
+    import os
+    import pandas as pd
+
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/grolleau/Desktop/github repos/Cost variability/json_credentials/grolleau_application_default_credentials.json'
+    os.environ['GCLOUD_PROJECT'] = 'som-nero-phi-jonc101'
+
+    # Instantiate a client object so you can make queries
+    client = bigquery.Client()
+
+    # Create a connexion to that client
+    conn = dbapi.connect(client)
+
+    dfs = []
+    for it, ids in enumerate(ids_tup):
+        med_query = f"""
+        SELECT med_description, COUNT(pat_enc_csn_id_coded) as n_pat, SUM(n_pres) as n_pres
+        FROM
+        (
+        SELECT med_description, pat_enc_csn_id_coded, COUNT(*) as n_pres
+        FROM `som-nero-phi-jonc101.shc_core_2023.order_med`
+        WHERE pat_enc_csn_id_coded in {ids_to_sql(ids)}
+        GROUP BY med_description, pat_enc_csn_id_coded
+        )
+        GROUP BY med_description
+        ORDER BY n_pat DESC, med_description
+        LIMIT 20
+        """
+
+        df = pd.read_sql_query(med_query, conn)
+        df.insert(1, 'frac_pat', df['n_pat'] / len(ids))
+        df.insert(2, 'avg_n_pres', df['n_pres'] / len(ids))
+        if it == 0:
+            df.columns = [f"{col}_lo" for col in df.columns]
+        else:
+            df.columns = [f"{col}_hi" for col in df.columns]
+        dfs.append(df)
+    return pd.concat(dfs, axis=1)
