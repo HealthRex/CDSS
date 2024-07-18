@@ -308,7 +308,15 @@ def drg_to_cqr_shap(my_drg):
     resid = y_test - y_pred
     hi_than_pred = resid > 0
     ob_hi, ob_lo = ob_test[hi_than_pred], ob_test[~hi_than_pred]
+    
+    # Top 20 meds for positive vs negative residuals (ie higher than predicted vs lower than predicted)
     top_20_med_by_ids((ob_lo, ob_hi)).to_csv(f"top_med/drg_{drg_id}.csv", index=False) 
+    
+    # Compare meds for positive vs negative residuals with Fisher's exact test
+    comp_med_by_ids((ob_lo, ob_hi)).to_csv(f"comp_med/drg_{drg_id}.csv", index=False)
+    
+    # Compare hours of admission for positive vs negative residuals
+    comp_hours_by_ids((ob_lo, ob_hi), drg_id, drg_name)
     
 def top_20_med_by_ids(ids_tup):
     def ids_to_sql(ids): return f"({', '.join([str(int(i)) for i in ids])})"
@@ -352,3 +360,130 @@ def top_20_med_by_ids(ids_tup):
             df.columns = [f"{col}_hi" for col in df.columns]
         dfs.append(df)
     return pd.concat(dfs, axis=1)
+
+def comp_med_by_ids(ids_tup):
+    def ids_to_sql(ids): return f"({', '.join([str(int(i)) for i in ids])})"
+
+    from google.cloud import bigquery
+    from google.cloud.bigquery import dbapi
+    import os
+    import pandas as pd
+    from scipy.stats import fisher_exact
+
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/grolleau/Desktop/github repos/Cost variability/json_credentials/grolleau_application_default_credentials.json'
+    os.environ['GCLOUD_PROJECT'] = 'som-nero-phi-jonc101'
+
+    # Instantiate a client object so you can make queries
+    client = bigquery.Client()
+
+    # Create a connexion to that client
+    conn = dbapi.connect(client)
+
+    comp_med_query = f"""
+    WITH lo_tab as 
+    (
+    SELECT med_description, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[0])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT med_description, pat_enc_csn_id_coded, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.order_med`
+    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[0])}
+    GROUP BY med_description, pat_enc_csn_id_coded
+    )
+    GROUP BY med_description
+    ORDER BY n_pat DESC, med_description
+    ),
+
+    hi_tab as
+    (
+    SELECT med_description, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[1])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT med_description, pat_enc_csn_id_coded, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.order_med`
+    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[1])}
+    GROUP BY med_description, pat_enc_csn_id_coded
+    )
+    GROUP BY med_description
+    ORDER BY n_pat DESC, med_description
+    )
+
+    SELECT hi_tab.med_description,
+    hi_tab.n_pat / (hi_tab.n_pat + hi_tab.no_ttt) as frac_hi,
+    hi_tab.n_pat as n_pat_hi, hi_tab.no_ttt as no_ttt_hi, hi_tab.n_pres as n_pres_hi,
+    lo_tab.n_pat / (lo_tab.n_pat + lo_tab.no_ttt) as frac_lo,
+    lo_tab.n_pat as n_pat_lo, lo_tab.no_ttt as no_ttt_lo, lo_tab.n_pres as n_pres_lo
+    FROM hi_tab INNER JOIN lo_tab
+    ON hi_tab.med_description = lo_tab.med_description
+    ORDER BY med_description
+    """
+
+    df = pd.read_sql_query(comp_med_query, conn)
+    df['fisher_pval'] = df.apply(lambda x: fisher_exact([[x['n_pat_hi'], x['no_ttt_hi']], [x['n_pat_lo'], x['no_ttt_lo']]], alternative='two-sided')[1], axis=1)
+    df = df.sort_values(by='fisher_pval')
+    return df
+
+def comp_hours_by_ids(ids_tup, drg_id, drg_name):
+    def ids_to_sql(ids): return f"({', '.join([str(int(i)) for i in ids])})"
+
+    from google.cloud import bigquery
+    from google.cloud.bigquery import dbapi
+    import os
+    import pandas as pd
+    from scipy.stats import ttest_ind
+
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/grolleau/Desktop/github repos/Cost variability/json_credentials/grolleau_application_default_credentials.json'
+    os.environ['GCLOUD_PROJECT'] = 'som-nero-phi-jonc101'
+
+    # Instantiate a client object so you can make queries
+    client = bigquery.Client()
+
+    # Create a connexion to that client
+    conn = dbapi.connect(client)
+
+    dfs = []
+    for it, ids in enumerate(ids_tup):
+        comp_hours_query = f"""
+        SELECT EXTRACT(HOUR FROM event_time_jittered) AS hour 
+        FROM `som-nero-phi-jonc101.shc_core_2023.adt`
+        WHERE event_type = 'Admission' AND pat_enc_csn_id_coded IN {ids_to_sql(ids_tup[it])}
+        """
+        df = pd.read_sql_query(comp_hours_query, conn)
+        if it == 0:
+            df.columns = [f"{col}_lo" for col in df.columns]
+        else:
+            df.columns = [f"{col}_hi" for col in df.columns]
+        dfs.append(df)
+    df = pd.concat(dfs, axis=1)
+
+    # Define bin edges
+    bins = np.array(range(0, 25))-.5
+
+    # Calculate weights for proportions
+    weights_lo = np.ones_like(df['hour_lo']) / len(df['hour_lo'])
+    weights_hi = np.ones_like(df['hour_hi']) / len(df['hour_hi'])
+
+    # Plotting
+    plt.figure(figsize=(10, 10))
+
+    # Histogram for hour_lo with proportions
+    plt.hist(df['hour_lo'], bins=bins, weights=weights_lo, color='blue', alpha=0.5, label='Cost lower than predicted')
+
+    # Histogram for hour_hi with proportions
+    plt.hist(df['hour_hi'], bins=bins, weights=weights_hi, color='green', alpha=0.5, label='Cost higher than predicted')
+
+    p_val = ttest_ind(df['hour_lo'].dropna(), df['hour_hi'].dropna())[1]
+    mean_lo = df['hour_lo'].mean(); sd_lo = df['hour_lo'].std()
+    mean_hi = df['hour_hi'].mean(); sd_hi = df['hour_hi'].std()
+    
+    plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nTime of Admissions:\nCost higher (mean={mean_hi:.1f}, sd={sd_hi:.1f}) vs lower (mean={mean_lo:.1f}, sd={sd_lo:.1f}) than predicted (p={p_val:.3f})")
+    plt.xlabel('Hour of Admission')
+    plt.ylabel('Proportion of Admissions')
+    plt.legend()
+
+    # Set x-axis labels to 1 through 24
+    plt.xticks(range(1, 25))
+
+    plt.tight_layout()
+    plt.savefig(f'hours/drg_{drg_id}.pdf', format='pdf', bbox_inches='tight', pad_inches=0.5)
+    plt.show()
