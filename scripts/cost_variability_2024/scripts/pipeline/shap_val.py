@@ -429,7 +429,9 @@ def comp_hours_by_ids(ids_tup, drg_id, drg_name):
     from google.cloud import bigquery
     from google.cloud.bigquery import dbapi
     import os
+    import matplotlib.pyplot as plt
     import pandas as pd
+    import numpy as np
     from scipy.stats import ttest_ind
 
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/grolleau/Desktop/github repos/Cost variability/json_credentials/grolleau_application_default_credentials.json'
@@ -459,30 +461,26 @@ def comp_hours_by_ids(ids_tup, drg_id, drg_name):
     # Define bin edges
     bins = np.array(range(0, 25))-.5
 
-    # Calculate weights for proportions
-    weights_lo = np.ones_like(df['hour_lo']) / len(df['hour_lo'])
-    weights_hi = np.ones_like(df['hour_hi']) / len(df['hour_hi'])
-
     # Plotting
     plt.figure(figsize=(10, 10))
 
     # Histogram for hour_lo with proportions
-    plt.hist(df['hour_lo'], bins=bins, weights=weights_lo, color='blue', alpha=0.5, label='Cost lower than predicted')
+    plt.hist(df['hour_lo'], bins=bins, density=True, color='blue', alpha=0.5, label='Cost lower than predicted')
 
     # Histogram for hour_hi with proportions
-    plt.hist(df['hour_hi'], bins=bins, weights=weights_hi, color='green', alpha=0.5, label='Cost higher than predicted')
+    plt.hist(df['hour_hi'], bins=bins, density=True, color='green', alpha=0.5, label='Cost higher than predicted')
 
     p_val = ttest_ind(df['hour_lo'].dropna(), df['hour_hi'].dropna())[1]
     mean_lo = df['hour_lo'].mean(); sd_lo = df['hour_lo'].std()
     mean_hi = df['hour_hi'].mean(); sd_hi = df['hour_hi'].std()
     
-    plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nTime of Admissions:\nCost higher (mean={mean_hi:.1f}, sd={sd_hi:.1f}) vs lower (mean={mean_lo:.1f}, sd={sd_lo:.1f}) than predicted (p={p_val:.3f})")
+    plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nTime of Admissions:\nCost higher (mean={mean_hi:.1f}; sd={sd_hi:.1f}) vs lower (mean={mean_lo:.1f}; sd={sd_lo:.1f}) than predicted (p={p_val:.3f})")
     plt.xlabel('Hour of Admission')
     plt.ylabel('Proportion of Admissions')
     plt.legend()
 
     # Set x-axis labels to 1 through 24
-    plt.xticks(range(1, 25))
+    plt.xticks(range(0, 24))
 
     plt.tight_layout()
     plt.savefig(f'hours/drg_{drg_id}.pdf', format='pdf', bbox_inches='tight', pad_inches=0.5)
