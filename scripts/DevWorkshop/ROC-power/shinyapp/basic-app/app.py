@@ -1,47 +1,50 @@
 # This app is translated from Mastering Shinywidgets
 # https://mastering-shiny.org/basic-reactivity.html#reactive-expressions-1
-from shiny import App, render, ui
+from shiny import App, render, ui, reactive
 from numpy import random
+import asyncio
+from three_panel import *
 
-# Functions we import from stats.py
-from stats import freqpoly, t_test
-from stats2 import *
-
-app_ui = ui.page_fluid(
+app_ui = ui.page_fixed(   
     ui.row(
         ui.column(
             4,
-            "Distribution 2",
-            ui.input_numeric("n2", label="n", value=1000, min=1),
-            ui.input_numeric("mean2", label="µ", value=0, step=0.1),
-            ui.input_numeric("sd2", label="σ", value=0.5, min=0.1, step=0.1),
+            "For cases (event occurs)",
+            ui.input_slider("X_mean1", label="Model A: Mean parameter", value=.2, min=1e-3, max=1-1e-3),
+            ui.input_slider("X_var1", label="Model A: Variance parameter", value=.2, min=1e-3, max=1-1e-3),
+            ui.input_slider("Y_mean1", label="Model B: Mean parameter", value=.2, min=1e-3, max=1-1e-3),
+            ui.input_slider("Y_var1", label="Model B: Variance parameter", value=.2, min=1e-3, max=1-1e-3),
+            ui.input_slider("corr1", label="Correlation between models A and B", value=.2, min=1e-3, max=1-1e-3),
         ),
         ui.column(
             4,
-            "Frequency polygon",
-            ui.input_numeric("binwidth", label="Bin width", value=0.1, step=0.1),
-            ui.input_slider("range", label="range", value=.2, min=1e-3, max=1-1e-3),
+            "For controls (event does not occur)",
+            ui.input_slider("X_mean2", label="Model A: Mean parameter", value=.2, min=1e-3, max=1-1e-3),
+            ui.input_slider("X_var2", label="Model A: Variance parameter", value=.2, min=1e-3, max=1-1e-3),
+            ui.input_slider("Y_mean2", label="Model B: Mean parameter", value=.2, min=1e-3, max=1-1e-3),
+            ui.input_slider("Y_var2", label="Model B: Variance parameter", value=.2, min=1e-3, max=1-1e-3),
+            ui.input_slider("corr2", label="Correlation between models A and B", value=.2, min=1e-3, max=1-1e-3),
         ),
+        ui.column(2,
+            "Simulation",
+            ui.input_numeric("ss", label="Sample Size", value=500, min=100, max=100000),
+            ui.input_slider("prev", label="Prevalence", value=.05, min=1e-3, max=1-1e-3),
+            ui.input_slider("alpha_t", label="Alpha threshold", value=.05, min=1e-3, max=1-1e-3),
+            ui.input_select("n_sim", label=ui.markdown("**Choose no. of iterations to run the simulations**"), choices={0: "Zero (no simulation)", 500: 500, 1000: 1000, 2000: 2000}),
+        )
     ),
     ui.row(
-        ui.column(5, ui.output_plot("hist", width='1500px', height='1500px'))
+        ui.column(5, ui.output_plot("hist", width='1000px', height='1000px'),)
     ),
 )
 
-
 def server(input, output, session):
-#    @output
-#    @render.plot
-#    def hist():
-#        print(input.range())
-#        x1 = random.normal(input.mean1(), input.sd1(), input.n1())
-#        x2 = random.normal(input.mean2(), input.sd2(), input.n2())
-#        return freqpoly(x1, x2, input.binwidth(), input.range())
     
     @output
     @render.plot
     def hist():
-        return int_plot(input.range(), .3, .4, .2, .3, .4, .2, .3, .4, .2)
-
+        return three_panel(X_mean1=input.X_mean1(), Y_mean1=input.Y_mean1(), X_var1=input.X_var1(), Y_var1=input.Y_var1(), corr1=input.corr1(),
+                           X_mean2=input.X_mean2(), Y_mean2=input.Y_mean2(), X_var2=input.X_var2(), Y_var2=input.Y_var2(), corr2=input.corr2(),
+                           ss=input.ss(), prev=input.prev(), alpha_t=input.alpha_t(), n_sim=None if int(input.n_sim()) == 0 else int(input.n_sim()))
 
 app = App(app_ui, server)
