@@ -55,7 +55,7 @@ def plot_contour(fig, ax, X_mean, Y_mean, X_var, Y_var, corr, cases = True, epsi
     Z = bivariate_normal.pdf(XY)
 
     num_samples = 100000
-    samples_ori = bivariate_normal.rvs(size=num_samples)
+    samples_ori = bivariate_normal.rvs(size=num_samples, random_state=1)
     samples = to_01_fun(samples_ori)
     E_X, E_Y = samples.mean(axis=0)
 
@@ -98,7 +98,7 @@ def three_panel(X_mean1, Y_mean1, X_var1, Y_var1, corr1,
     #### Get the samples
     sample_sizes = np.array([int(.5*ss), int(ss), int(1.5*ss)])
 
-    y = bernoulli.rvs(prev, size=len(samples_cases)).reshape(-1, 1)
+    y = bernoulli.rvs(prev, size=len(samples_cases), random_state=1).reshape(-1, 1)
     data = np.hstack((y, samples_cases * y + samples_controls * (1-y)))
 
     # Add a title
