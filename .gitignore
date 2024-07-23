@@ -17,4 +17,9 @@ venv*
 *pyproject.toml
 scripts/cost_variability_2024/tables/*
 scripts/cost_variability_2024/scripts/baseline_inpatientmortality_artifacts/*
-
+scripts/cost_variability_2024/scripts/pipeline/LGBM_eval/*
+scripts/cost_variability_2024/scripts/pipeline/uncertainty_in_predicted_costs/*
+scripts/cost_variability_2024/scripts/pipeline/top_med/*
+scripts/cost_variability_2024/scripts/pipeline/shap/*
+scripts/cost_variability_2024/scripts/pipeline/hours/*
+scripts/cost_variability_2024/scripts/pipeline/comp_med/*
