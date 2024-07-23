@@ -23,3 +23,8 @@ scripts/cost_variability_2024/scripts/pipeline/top_med/*
 scripts/cost_variability_2024/scripts/pipeline/shap/*
 scripts/cost_variability_2024/scripts/pipeline/hours/*
 scripts/cost_variability_2024/scripts/pipeline/comp_med/*
+scripts/cost_variability_2024/scripts/pipeline/comp_diag/*
+scripts/cost_variability_2024/scripts/pipeline/comp_medorderset/*
+scripts/cost_variability_2024/scripts/pipeline/comp_proc/*
+scripts/cost_variability_2024/scripts/pipeline/comp_procorderset/* 
+
