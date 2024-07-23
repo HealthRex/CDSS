@@ -12,6 +12,8 @@ params AS
 		['I73.9']	-- ICD 10 codes for Peripheral Artery Disease. Beware that this seems to capture Peripheral VASCULAR Disease, which is not entirely clear to be "arterial" and no venous disease
 			as targetICD10, 
 
+    '% arter%' as diagnosisSubstr, -- Only accept diagnosis codes where description "like" this string (try to narrow to arterial disease)
+
 		[	'VSC03', 	-- VSC ARTERIAL EXAM/ABIS
 			'VSC04', 	-- VSC GRAFT W ABIS ART DUP
 			--'IMGCT0019',-- CT ABDOMEN ANGIOGRAPHY W AND WO IV CONTRAST -- This seems to NOT include legs, so couldn't diagnose PERIPHERAL artery disease based on this?
@@ -180,6 +182,7 @@ specificDiagnosisFromCohortEncounterProvider AS
 	  	( CONCAT('S', cohortEncProv.prov_map_id) = dx.perf_prov_map_id), -- Diagnosis table adds an extra S prefix on provider IDs
 	  	params
 	where dx.icd10 in UNNEST(params.targetICD10)
+    and dx.dx_name like params.diagnosisSubstr
 ),
 
 -- Further isolate those specific diagnosis entries by cohort encounter providers
@@ -194,6 +197,7 @@ specificDiagnosisAfterWorkupFromCohortEncounterProvider AS
 	  join `shc_core_2023.order_proc` as op on (dx.anon_id = op.anon_id)
 	  , params
 	where op.proc_code in UNNEST(params.workupProcCode)
+		and op.order_status = 'Completed' -- Only consider orders that were completed (not cancelled, etc.)
 		and DATETIME_DIFF(dx.dxDate, op.order_time_jittered, MONTH) 
 			BETWEEN 0 AND (params.followupMonths-1) -- Follow-up time
 			-- Checking within MONTH resolution means the order could have happened AFTER the diagnosis date, 
@@ -223,7 +227,7 @@ reidentifySpecificDiagnosisAfterWorkupFromCohortEncounterProvider AS
 -- Group per year to see how often spotting these new specific diagnoses
 specificDiagnosesPerYear AS
 (
-	select EXTRACT(YEAR from realDxDate) as realDxYear, count(distinct mrn)
+	select EXTRACT(YEAR from realDxDate) as realDxYear, count(distinct mrn) as nPatient
 	from reidentifySpecificDiagnosisAfterWorkupFromCohortEncounterProvider
 	group by realDxYear
 	order by realDxYear desc
@@ -250,10 +254,9 @@ spacer AS (select null as tempSpacer) -- Just put this here so don't have to wor
 -- select * from specificDiagnosisFromCohortEncounterProvider
 -- select * from specificDiagnosisAfterWorkupFromCohortEncounterProvider
 
+-- select * from specificDiagnosesPerYear
 
 select * from reidentifySpecificDiagnosisAfterWorkupFromCohortEncounterProvider
-
-limit 1000
 
 
 
