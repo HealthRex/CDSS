@@ -1,12 +1,31 @@
 import os
 os.chdir('/Users/grolleau/Desktop/github repos/CDSS/scripts/cost_variability_2024/scripts/pipeline/')
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/grolleau/Desktop/github repos/Cost variability/json_credentials/grolleau_application_default_credentials.json'
+os.environ['GCLOUD_PROJECT'] = 'som-nero-phi-jonc101'
+
+from drg_to_dat import drg_to_dat
+from sklearn.impute import SimpleImputer
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+from google.cloud import bigquery
+from google.cloud.bigquery import dbapi
+from scipy.stats import fisher_exact, ttest_ind
+from lightgbm import LGBMRegressor
+from scipy.stats import randint, uniform, linregress
+from scipy.interpolate import UnivariateSpline
+from mapie.regression import MapieQuantileRegressor
+from sklearn.model_selection import KFold, RandomizedSearchCV, train_test_split
+from sklearn.metrics import r2_score, root_mean_squared_error
+from sklearn.pipeline import make_pipeline
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import SplineTransformer
+import shap
+
+def ids_to_sql(ids): return f"({', '.join([str(int(i)) for i in ids])})"
 
 def drg_to_imp(my_drg):
-    from drg_to_dat import drg_to_dat
-    from sklearn.impute import SimpleImputer
-    import numpy as np
-    import pandas as pd
-    import matplotlib.pyplot as plt
 
     df = drg_to_dat(my_drg)
 
@@ -90,20 +109,8 @@ def drg_to_imp(my_drg):
     
     return X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names, df['observation_id']
 
-def drg_to_cqr_shap(my_drg):
+def drg_to_cqr_shap(my_drg, q=.75):
     X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names, observation_id = drg_to_imp(my_drg) #2334 # 2392
-
-    import numpy as np
-    import pandas as pd
-    from lightgbm import LGBMRegressor
-    from scipy.stats import randint, uniform, linregress
-    from scipy.interpolate import UnivariateSpline
-    from mapie.regression import MapieQuantileRegressor
-    from sklearn.model_selection import KFold, RandomizedSearchCV, train_test_split
-    from sklearn.metrics import r2_score, root_mean_squared_error
-    from sklearn.pipeline import make_pipeline
-    from sklearn.linear_model import LinearRegression
-    from sklearn.preprocessing import SplineTransformer
 
     random_state = 18
 
@@ -172,10 +179,6 @@ def drg_to_cqr_shap(my_drg):
 
     # Denormalize the CIw
     ciw *= Y_std
-
-    ###
-    import matplotlib.pyplot as plt
-    import matplotlib.colors as mcolors
 
     # Normalize y_test values for color mapping
     norm = mcolors.Normalize(vmin=min(ciw), vmax=max(ciw))
@@ -288,7 +291,6 @@ def drg_to_cqr_shap(my_drg):
     plt.show()
 
     #### Shap values ####
-    import shap
 
     # Fits the explainer
     X = pd.DataFrame(X_imputed, columns=var_names)
@@ -306,28 +308,35 @@ def drg_to_cqr_shap(my_drg):
     
     ### Residuals for top medicines ###
     resid = y_test - y_pred
-    hi_than_pred = resid > 0
+    
+    # Get the q quantile of the residuals
+    quartile = np.quantile(resid, q)
+    
+    hi_than_pred = resid > quartile
     ob_hi, ob_lo = ob_test[hi_than_pred], ob_test[~hi_than_pred]
     
     # Top 20 meds for positive vs negative residuals (ie higher than predicted vs lower than predicted)
     top_20_med_by_ids((ob_lo, ob_hi)).to_csv(f"top_med/drg_{drg_id}.csv", index=False) 
     
-    # Compare meds for positive vs negative residuals with Fisher's exact test
-    comp_med_by_ids((ob_lo, ob_hi)).to_csv(f"comp_med/drg_{drg_id}.csv", index=False)
-    
     # Compare hours of admission for positive vs negative residuals
     comp_hours_by_ids((ob_lo, ob_hi), drg_id, drg_name)
     
+    # Compare meds for positive vs negative residuals
+    comp_by_ids((ob_lo, ob_hi), comp_med).to_csv(f"comp_med/drg_{drg_id}.csv", index=False)
+    
+    # Compare procedures for positive vs negative residuals
+    comp_by_ids((ob_lo, ob_hi), comp_proc).to_csv(f"comp_proc/drg_{drg_id}.csv", index=False)
+    
+    # Compare diagnoses for positive vs negative residuals
+    comp_by_ids((ob_lo, ob_hi), comp_diag).to_csv(f"comp_diag/drg_{drg_id}.csv", index=False)
+    
+    # Compare medorderset for positive vs negative residuals
+    comp_by_ids((ob_lo, ob_hi), comp_medorderset).to_csv(f"comp_medorderset/drg_{drg_id}.csv", index=False)
+    
+    # Compare procorderset for positive vs negative residuals
+    comp_by_ids((ob_lo, ob_hi), comp_procorderset).to_csv(f"comp_procorderset/drg_{drg_id}.csv", index=False)
+    
 def top_20_med_by_ids(ids_tup):
-    def ids_to_sql(ids): return f"({', '.join([str(int(i)) for i in ids])})"
-
-    from google.cloud import bigquery
-    from google.cloud.bigquery import dbapi
-    import os
-    import pandas as pd
-
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/grolleau/Desktop/github repos/Cost variability/json_credentials/grolleau_application_default_credentials.json'
-    os.environ['GCLOUD_PROJECT'] = 'som-nero-phi-jonc101'
 
     # Instantiate a client object so you can make queries
     client = bigquery.Client()
@@ -361,81 +370,7 @@ def top_20_med_by_ids(ids_tup):
         dfs.append(df)
     return pd.concat(dfs, axis=1)
 
-def comp_med_by_ids(ids_tup):
-    def ids_to_sql(ids): return f"({', '.join([str(int(i)) for i in ids])})"
-
-    from google.cloud import bigquery
-    from google.cloud.bigquery import dbapi
-    import os
-    import pandas as pd
-    from scipy.stats import fisher_exact
-
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/grolleau/Desktop/github repos/Cost variability/json_credentials/grolleau_application_default_credentials.json'
-    os.environ['GCLOUD_PROJECT'] = 'som-nero-phi-jonc101'
-
-    # Instantiate a client object so you can make queries
-    client = bigquery.Client()
-
-    # Create a connexion to that client
-    conn = dbapi.connect(client)
-
-    comp_med_query = f"""
-    WITH lo_tab as 
-    (
-    SELECT med_description, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[0])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
-    FROM
-    (
-    SELECT med_description, pat_enc_csn_id_coded, COUNT(*) as n_pres
-    FROM `som-nero-phi-jonc101.shc_core_2023.order_med`
-    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[0])}
-    GROUP BY med_description, pat_enc_csn_id_coded
-    )
-    GROUP BY med_description
-    ORDER BY n_pat DESC, med_description
-    ),
-
-    hi_tab as
-    (
-    SELECT med_description, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[1])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
-    FROM
-    (
-    SELECT med_description, pat_enc_csn_id_coded, COUNT(*) as n_pres
-    FROM `som-nero-phi-jonc101.shc_core_2023.order_med`
-    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[1])}
-    GROUP BY med_description, pat_enc_csn_id_coded
-    )
-    GROUP BY med_description
-    ORDER BY n_pat DESC, med_description
-    )
-
-    SELECT hi_tab.med_description,
-    hi_tab.n_pat / (hi_tab.n_pat + hi_tab.no_ttt) as frac_hi,
-    hi_tab.n_pat as n_pat_hi, hi_tab.no_ttt as no_ttt_hi, hi_tab.n_pres as n_pres_hi,
-    lo_tab.n_pat / (lo_tab.n_pat + lo_tab.no_ttt) as frac_lo,
-    lo_tab.n_pat as n_pat_lo, lo_tab.no_ttt as no_ttt_lo, lo_tab.n_pres as n_pres_lo
-    FROM hi_tab INNER JOIN lo_tab
-    ON hi_tab.med_description = lo_tab.med_description
-    ORDER BY med_description
-    """
-
-    df = pd.read_sql_query(comp_med_query, conn)
-    df['fisher_pval'] = df.apply(lambda x: fisher_exact([[x['n_pat_hi'], x['no_ttt_hi']], [x['n_pat_lo'], x['no_ttt_lo']]], alternative='two-sided')[1], axis=1)
-    df = df.sort_values(by='fisher_pval')
-    return df
-
 def comp_hours_by_ids(ids_tup, drg_id, drg_name):
-    def ids_to_sql(ids): return f"({', '.join([str(int(i)) for i in ids])})"
-
-    from google.cloud import bigquery
-    from google.cloud.bigquery import dbapi
-    import os
-    import matplotlib.pyplot as plt
-    import pandas as pd
-    import numpy as np
-    from scipy.stats import ttest_ind
-
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '/Users/grolleau/Desktop/github repos/Cost variability/json_credentials/grolleau_application_default_credentials.json'
-    os.environ['GCLOUD_PROJECT'] = 'som-nero-phi-jonc101'
 
     # Instantiate a client object so you can make queries
     client = bigquery.Client()
@@ -485,3 +420,288 @@ def comp_hours_by_ids(ids_tup, drg_id, drg_name):
     plt.tight_layout()
     plt.savefig(f'hours/drg_{drg_id}.pdf', format='pdf', bbox_inches='tight', pad_inches=0.5)
     plt.show()
+
+def comp_med(ids_tup):
+    query = f"""
+    WITH lo_tab as 
+    (
+    SELECT med_description, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[0])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT med_description, pat_enc_csn_id_coded, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.order_med`
+    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[0])}
+    GROUP BY med_description, pat_enc_csn_id_coded
+    )
+    GROUP BY med_description
+    ORDER BY n_pat DESC, med_description
+    ),
+
+    hi_tab as
+    (
+    SELECT med_description, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[1])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT med_description, pat_enc_csn_id_coded, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.order_med`
+    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[1])}
+    GROUP BY med_description, pat_enc_csn_id_coded
+    )
+    GROUP BY med_description
+    ORDER BY n_pat DESC, med_description
+    ),
+
+    comp_tab as 
+    (
+    SELECT hi_tab.med_description,
+   ROUND(hi_tab.n_pat / (hi_tab.n_pat + hi_tab.no_ttt), 3) as frac_hi,
+    hi_tab.n_pat as n_pat_hi, hi_tab.no_ttt as no_ttt_hi, hi_tab.n_pres as n_pres_hi,
+    ROUND(lo_tab.n_pat / (lo_tab.n_pat + lo_tab.no_ttt), 3) as frac_lo,
+    lo_tab.n_pat as n_pat_lo, lo_tab.no_ttt as no_ttt_lo, lo_tab.n_pres as n_pres_lo,
+    FROM hi_tab INNER JOIN lo_tab
+    ON hi_tab.med_description = lo_tab.med_description
+    ORDER BY med_description
+    )
+
+    SELECT *,
+    CASE 
+        WHEN no_ttt_hi * n_pat_lo = 0 THEN NULL
+        ELSE ROUND((n_pat_hi * no_ttt_lo) / (no_ttt_hi * n_pat_lo), 2)
+    END as odds_ratio
+    FROM comp_tab
+    ORDER BY odds_ratio DESC
+    """
+    return query
+
+def comp_proc(ids_tup):
+    query = f"""
+    WITH lo_tab as 
+    (
+    SELECT description, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[0])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT description, pat_enc_csn_id_coded, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.order_proc`
+    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[0])}
+    GROUP BY description, pat_enc_csn_id_coded
+    )
+    GROUP BY description
+    ORDER BY n_pat DESC, description
+    ),
+
+    hi_tab as
+    (
+    SELECT description, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[1])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT description, pat_enc_csn_id_coded, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.order_proc`
+    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[1])}
+    GROUP BY description, pat_enc_csn_id_coded
+    )
+    GROUP BY description
+    ORDER BY n_pat DESC, description
+    ),
+
+    comp_tab as 
+    (
+    SELECT hi_tab.description,
+   ROUND(hi_tab.n_pat / (hi_tab.n_pat + hi_tab.no_ttt), 3) as frac_hi,
+    hi_tab.n_pat as n_pat_hi, hi_tab.no_ttt as no_ttt_hi, hi_tab.n_pres as n_pres_hi,
+    ROUND(lo_tab.n_pat / (lo_tab.n_pat + lo_tab.no_ttt), 3) as frac_lo,
+    lo_tab.n_pat as n_pat_lo, lo_tab.no_ttt as no_ttt_lo, lo_tab.n_pres as n_pres_lo,
+    FROM hi_tab INNER JOIN lo_tab
+    ON hi_tab.description = lo_tab.description
+    ORDER BY description
+    )
+
+    SELECT *,
+    CASE 
+        WHEN no_ttt_hi * n_pat_lo = 0 THEN NULL
+        ELSE ROUND((n_pat_hi * no_ttt_lo) / (no_ttt_hi * n_pat_lo), 2)
+    END as odds_ratio
+    FROM comp_tab
+    ORDER BY odds_ratio DESC
+    """
+    return query
+
+def comp_diag(ids_tup):
+    query = f"""
+    WITH lo_tab as 
+    (
+    SELECT dx_name, COUNT(pat_enc_csn_id_jittered) as n_pat, {len(ids_tup[0])} - COUNT(pat_enc_csn_id_jittered) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT dx_name, pat_enc_csn_id_jittered, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.diagnosis`
+    WHERE pat_enc_csn_id_jittered in {ids_to_sql(ids_tup[0])}
+    GROUP BY dx_name, pat_enc_csn_id_jittered
+    )
+    GROUP BY dx_name
+    ORDER BY n_pat DESC, dx_name
+    ),
+
+    hi_tab as
+    (
+    SELECT dx_name, COUNT(pat_enc_csn_id_jittered) as n_pat, {len(ids_tup[1])} - COUNT(pat_enc_csn_id_jittered) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT dx_name, pat_enc_csn_id_jittered, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.diagnosis`
+    WHERE pat_enc_csn_id_jittered in {ids_to_sql(ids_tup[1])}
+    GROUP BY dx_name, pat_enc_csn_id_jittered
+    )
+    GROUP BY dx_name
+    ORDER BY n_pat DESC, dx_name
+    ),
+
+    comp_tab as 
+    (
+    SELECT hi_tab.dx_name,
+   ROUND(hi_tab.n_pat / (hi_tab.n_pat + hi_tab.no_ttt), 3) as frac_hi,
+    hi_tab.n_pat as n_pat_hi, hi_tab.no_ttt as no_ttt_hi, hi_tab.n_pres as n_pres_hi,
+    ROUND(lo_tab.n_pat / (lo_tab.n_pat + lo_tab.no_ttt), 3) as frac_lo,
+    lo_tab.n_pat as n_pat_lo, lo_tab.no_ttt as no_ttt_lo, lo_tab.n_pres as n_pres_lo,
+    FROM hi_tab INNER JOIN lo_tab
+    ON hi_tab.dx_name = lo_tab.dx_name
+    ORDER BY dx_name
+    )
+
+    SELECT *,
+    CASE 
+        WHEN no_ttt_hi * n_pat_lo = 0 THEN NULL
+        ELSE ROUND((n_pat_hi * no_ttt_lo) / (no_ttt_hi * n_pat_lo), 2)
+    END as odds_ratio
+    FROM comp_tab
+    ORDER BY odds_ratio DESC
+    """
+    return query
+
+def comp_medorderset(ids_tup):
+    query = f"""
+        WITH lo_tab as 
+    (
+    SELECT protocol_name, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[0])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT protocol_name, pat_enc_csn_id_coded, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.med_orderset`
+    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[0])}
+    GROUP BY protocol_name, pat_enc_csn_id_coded
+    )
+    GROUP BY protocol_name
+    ORDER BY n_pat DESC, protocol_name
+    ),
+
+    hi_tab as
+    (
+    SELECT protocol_name, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[1])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT protocol_name, pat_enc_csn_id_coded, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.med_orderset`
+    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[1])}
+    GROUP BY protocol_name, pat_enc_csn_id_coded
+    )
+    GROUP BY protocol_name
+    ORDER BY n_pat DESC, protocol_name
+    ),
+
+    comp_tab as 
+    (
+    SELECT hi_tab.protocol_name,
+   ROUND(hi_tab.n_pat / (hi_tab.n_pat + hi_tab.no_ttt), 3) as frac_hi,
+    hi_tab.n_pat as n_pat_hi, hi_tab.no_ttt as no_ttt_hi, hi_tab.n_pres as n_pres_hi,
+    ROUND(lo_tab.n_pat / (lo_tab.n_pat + lo_tab.no_ttt), 3) as frac_lo,
+    lo_tab.n_pat as n_pat_lo, lo_tab.no_ttt as no_ttt_lo, lo_tab.n_pres as n_pres_lo,
+    FROM hi_tab INNER JOIN lo_tab
+    ON hi_tab.protocol_name = lo_tab.protocol_name
+    ORDER BY protocol_name
+    )
+
+    SELECT *,
+    CASE 
+        WHEN no_ttt_hi * n_pat_lo = 0 THEN NULL
+        ELSE ROUND((n_pat_hi * no_ttt_lo) / (no_ttt_hi * n_pat_lo), 2)
+    END as odds_ratio
+    FROM comp_tab
+    ORDER BY odds_ratio DESC
+    """
+    return query
+
+def comp_procorderset(ids_tup):
+    query = f"""
+        WITH lo_tab as 
+    (
+    SELECT protocol_name, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[0])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT protocol_name, pat_enc_csn_id_coded, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.proc_orderset`
+    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[0])}
+    GROUP BY protocol_name, pat_enc_csn_id_coded
+    )
+    GROUP BY protocol_name
+    ORDER BY n_pat DESC, protocol_name
+    ),
+
+    hi_tab as
+    (
+    SELECT protocol_name, COUNT(pat_enc_csn_id_coded) as n_pat, {len(ids_tup[1])} - COUNT(pat_enc_csn_id_coded) as no_ttt, SUM(n_pres) as n_pres
+    FROM
+    (
+    SELECT protocol_name, pat_enc_csn_id_coded, COUNT(*) as n_pres
+    FROM `som-nero-phi-jonc101.shc_core_2023.proc_orderset`
+    WHERE pat_enc_csn_id_coded in {ids_to_sql(ids_tup[1])}
+    GROUP BY protocol_name, pat_enc_csn_id_coded
+    )
+    GROUP BY protocol_name
+    ORDER BY n_pat DESC, protocol_name
+    ),
+
+    comp_tab as 
+    (
+    SELECT hi_tab.protocol_name,
+   ROUND(hi_tab.n_pat / (hi_tab.n_pat + hi_tab.no_ttt), 3) as frac_hi,
+    hi_tab.n_pat as n_pat_hi, hi_tab.no_ttt as no_ttt_hi, hi_tab.n_pres as n_pres_hi,
+    ROUND(lo_tab.n_pat / (lo_tab.n_pat + lo_tab.no_ttt), 3) as frac_lo,
+    lo_tab.n_pat as n_pat_lo, lo_tab.no_ttt as no_ttt_lo, lo_tab.n_pres as n_pres_lo,
+    FROM hi_tab INNER JOIN lo_tab
+    ON hi_tab.protocol_name = lo_tab.protocol_name
+    ORDER BY protocol_name
+    )
+
+    SELECT *,
+    CASE 
+        WHEN no_ttt_hi * n_pat_lo = 0 THEN NULL
+        ELSE ROUND((n_pat_hi * no_ttt_lo) / (no_ttt_hi * n_pat_lo), 2)
+    END as odds_ratio
+    FROM comp_tab
+    ORDER BY odds_ratio DESC
+    """
+    return query
+
+def comp_by_ids(ids_tup, comp_query_fun):
+
+    # Instantiate a client object so you can make queries
+    client = bigquery.Client()
+
+    # Create a connexion to that client
+    conn = dbapi.connect(client)
+
+    comp_query = comp_query_fun(ids_tup)
+
+    df = pd.read_sql_query(comp_query, conn)
+    df['fisher_pval'] = df.apply(lambda x: my_round(fisher_exact([[x['n_pat_hi'], x['no_ttt_hi']], [x['n_pat_lo'], x['no_ttt_lo']]], alternative='two-sided')[1]), axis=1)
+    df = df.sort_values(by='odds_ratio', ascending=False)
+    return df
+
+def my_round(x, k=3):
+    import math
+    if x > 10**-k:
+        return str(np.round(x, k))
+    else:
+        return f"< 10^{-math.ceil(-math.log10(x)-1)}"
+
+# test with one drg
+drg_to_cqr_shap(2392)
