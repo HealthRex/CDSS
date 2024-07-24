@@ -109,7 +109,7 @@ def drg_to_imp(my_drg):
     
     return X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names, df['observation_id']
 
-def drg_to_cqr_shap(my_drg, q=.75):
+def drg_to_cqr_shap(my_drg, alpha_ci = .1):
     X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names, observation_id = drg_to_imp(my_drg) #2334 # 2392
 
     random_state = 18
@@ -143,7 +143,7 @@ def drg_to_cqr_shap(my_drg, q=.75):
     optim_model.fit(X_train, y_train)
     estimator = optim_model.best_estimator_
 
-    mapie_reg = MapieQuantileRegressor(estimator, method = "quantile", cv = "split", alpha=0.1)
+    mapie_reg = MapieQuantileRegressor(estimator, method = "quantile", cv = "split", alpha=alpha_ci)
 
     mapie_reg.fit(
         X_train,
@@ -280,7 +280,7 @@ def drg_to_cqr_shap(my_drg, q=.75):
     # Adding labels and title for clarity
     plt.legend()
     plt.xlabel('Predicted Cost\n(Categorized by Fifths)')
-    plt.ylabel('90% CQR Prediction Intervals')
+    plt.ylabel(f'{100*(1-alpha_ci):.0f}% CQR Prediction Intervals')
     plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nUncertainty in the Predicted Costs\nFrom Conformalized Quantile Regression ({estimator.__class__.__name__} on test set [n={y_test.shape[0]}])")
 
     plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nUncertainty in the Predicted Costs\nFrom Conformalized Quantile Regression ({estimator.__class__.__name__} on test set [n={y_test.shape[0]}])")
@@ -307,12 +307,12 @@ def drg_to_cqr_shap(my_drg, q=.75):
     plt.show()
     
     ### Residuals for top medicines ###
-    resid = y_test - y_pred
+    #resid = y_test - y_pred
     
-    # Get the q quantile of the residuals
-    quartile = np.quantile(resid, q)
+    # Get the CQR upper bound threshold (denormalize the intervals)
+    cqr_t = np.maximum(y_pis[:, 1, 0], y_pis[:, 0, 0]) * Y_std + Y_mean
     
-    hi_than_pred = resid > quartile
+    hi_than_pred = y_test > cqr_t #resid > quartile
     ob_hi, ob_lo = ob_test[hi_than_pred], ob_test[~hi_than_pred]
     
     # Top 20 meds for positive vs negative residuals (ie higher than predicted vs lower than predicted)
@@ -704,4 +704,4 @@ def my_round(x, k=3):
         return f"< 10^{-math.ceil(-math.log10(x)-1)}"
 
 # test with one drg
-drg_to_cqr_shap(2392)
+#drg_to_cqr_shap(2392)
