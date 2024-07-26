@@ -25,9 +25,83 @@ params AS
 
 
 -- Rename for general filters and subsequent comparisons
+--  Eliminate duplicates (keep unit of observation at order level) (only track one IV antibiotic)
 bloodCultureCohort AS
 (
-  SELECT cohort.*
+  SELECT DISTINCT
+    anon_id,
+    pat_enc_csn_id_coded,
+    order_proc_id_coded,
+    blood_culture_order_datetime,
+    order_year,
+    ed_arrival_datetime,
+    positive_blood_culture,
+    positive_blood_culture_in_week,
+    earliest_iv_antibiotic_datetime,
+    min_heartrate,
+    max_heartrate,
+    avg_heartrate,
+    median_heartrate,
+    min_resprate,
+    max_resprate,
+    avg_resprate,
+    median_resprate,
+    min_temp,
+    max_temp,
+    avg_temp,
+    median_temp,
+    min_sysbp,
+    max_sysbp,
+    avg_sysbp,
+    median_sysbp,
+    min_diasbp,
+    max_diasbp,
+    avg_diasbp,
+    median_diasbp,
+    min_wbc,
+    max_wbc,
+    avg_wbc,
+    median_wbc,
+    min_neutrophils,
+    max_neutrophils,
+    avg_neutrophils,
+    median_neutrophils,
+    min_lymphocytes,
+    max_lymphocytes,
+    avg_lymphocytes,
+    median_lymphocytes,
+    min_hgb,
+    max_hgb,
+    avg_hgb,
+    median_hgb,
+    min_plt,
+    max_plt,
+    avg_plt,
+    median_plt,
+    min_na,
+    max_na,
+    avg_na,
+    median_na,
+    min_hco3,
+    max_hco3,
+    avg_hco3,
+    median_hco3,
+    min_bun,
+    max_bun,
+    avg_bun,
+    median_bun,
+    min_cr,
+    max_cr,
+    avg_cr,
+    median_cr,
+    min_lactate,
+    max_lactate,
+    avg_lactate,
+    median_lactate,
+    min_procalcitonin,
+    max_procalcitonin,
+    avg_procalcitonin,
+    median_procalcitonin
   FROM `som-nero-phi-jonc101.blood_culture_stewardship.cohort` as cohort, params
   WHERE order_year in UNNEST(params.cohortYears)
 ),
@@ -185,7 +259,7 @@ spacer AS (select null as tempSpacer) -- Just put this here so don't have to wor
 -- select * from bloodCultureCohortWithDerivatives
 -- select * from culturePositiveRate
 -- select * from cohortDescriptionByCultureResult
--- select * from culturePositiveRateByDecisionCriteria
+-- select * from culturePositiveSummaryByDecisionCriteria
 select * from culturePositiveDiagnosticStatsByDecisionCriteria
 
 limit 100  
