@@ -1,6 +1,6 @@
+# conda activate shiny_env
 from shiny import App, render, ui, reactive
 from numpy import random
-import asyncio
 from three_panel import *
 
 app_ui = ui.page_fixed(ui.panel_title("Sample Size for Comparing Models' Area Under the ROC Curve", "Sample Size for Comparing AUROCs"),   
