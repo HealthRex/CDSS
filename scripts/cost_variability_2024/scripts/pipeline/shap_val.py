@@ -721,5 +721,5 @@ def comp_by_ids(ids_tup, comp_query_fun):
 
 # test with one drg
 #drg_to_cqr_shap(2392)#2334)
-pipeline(my_drg=2392, alpha_ci= .5).fit()
-pipeline(my_drg=2334, alpha_ci= .5).fit()
+#pipeline(my_drg=2392, alpha_ci= .5).fit()
+#pipeline(my_drg=2334, alpha_ci= .5).fit()
