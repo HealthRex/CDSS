@@ -34,7 +34,7 @@ for i, drg in enumerate(drg_list):
     print(f"DRG No. {i+1} of {len(drg_list)}")
     #drg_to_plot(drg)
     try:
-        drg_to_cqr_shap(drg)
+        pipeline(my_drg=drg, alpha_ci= .5).fit()
     except Exception as e:
         print(f"An error occurred with DRG {drg}: {e}")
         continue
