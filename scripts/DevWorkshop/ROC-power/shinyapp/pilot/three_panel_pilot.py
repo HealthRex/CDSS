@@ -87,7 +87,7 @@ def plot_contour(fig, ax, dat_y, cases = True, epsi=1e-6, n_points=300):
     return samples
 
 def three_panel_pilot(data,
-                ss, prev, alpha_t = 0.05, n_sim = None):
+                ss, alpha_t = 0.05, n_sim = None):
     
     data = np.array(data)
     
