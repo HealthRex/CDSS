@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.transforms import blended_transform_factory
 from scipy.stats import norm, multivariate_normal, bernoulli
@@ -87,10 +88,19 @@ def plot_contour(fig, ax, dat_y, cases = True, epsi=1e-6, n_points=300):
     return samples
 
 def three_panel_pilot(data,
-                ss, alpha_t = 0.05, n_sim = None):
+                ss, alpha_t = 0.05, n_sim = None, change_prev = False, prev = None):
     
+    if change_prev:
+        df_0 = data[data.iloc[:,0]==0]
+        fin_df_0 = pd.DataFrame(np.tile(df_0.values, (1000 // len(df_0) + 1, 1))).iloc[:1000]
+        
+        df_1 = data[data.iloc[:,0]==1]
+        fin_df_1 = pd.DataFrame(np.tile(df_1.values, (int(1000*prev/(1-prev)) // len(df_1) + 1, 1))).iloc[:int(1000*prev/(1-prev))]
+        
+        data = pd.concat([fin_df_0, fin_df_1], axis=0)
+        
     data = np.array(data)
-    
+        
     _, _, _, auc_A = roc_measures(data[:,0], data[:,1])
     _, _, _, auc_B = roc_measures(data[:,0], data[:,2])
     
@@ -121,7 +131,10 @@ def three_panel_pilot(data,
     plt.plot(sample_sizes, m*sample_sizes + b, color='red', label='Line fitted on mean log(P-value)')
 
     # Add a title
-    plt.title(f'Assuming the distribution from the provided pilot test set,\n the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nbased on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
+    if change_prev:
+        plt.title(f'Assuming the distribution from the provided pilot test set with a prevalence of {100*prev:.1f}%,\n the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nbased on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
+    else:
+         plt.title(f'Assuming the distribution from the provided pilot test set,\n the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nbased on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
 
     # add power as text
     plt.text(sample_sizes[0], 1.02, f'Power is {powers[0]*100:.1f}%\nAt n={sample_sizes[0]}', ha='center', va='bottom', transform=plt.gca().get_xaxis_transform())
