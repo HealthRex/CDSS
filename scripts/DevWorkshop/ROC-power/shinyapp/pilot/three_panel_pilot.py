@@ -35,58 +35,6 @@ def roc_measures(Y, Y_hat):
     roc_auc = auc(fpr, tpr)
     return fpr, tpr, thresholds, roc_auc
 
-### Interactive plot that specifies the joint distribution of the predicted probabilities
-
-to_01_fun = norm.cdf # expit
-to_r_fun = norm.ppf # logit
-
-def plot_contour(fig, ax, dat_y, cases = True, epsi=1e-6, n_points=300):
-    dat_y = np.array(dat_y)
-    mean_0, mean_1 = dat_y.mean(axis=0)
-    #covariance = np.cov(dat_y, rowvar=False)
-     
-    x_ori = np.linspace(epsi, 1-epsi, n_points)
-    x = to_r_fun(x_ori)
-    X, Y = np.meshgrid(x,x)
-    XY = np.array([[(X[i,j], Y[i,j]) for j in range(n_points)] for i in range(n_points)])
-
-    #mean_0 = to_r_fun(X_mean); mean_1 = to_r_fun(Y_mean)
-    mean = [mean_0, mean_1]
-    #var_0 = -np.log(1-X_var); var_1 = -np.log(1-Y_var)
-    #diag = corr * np.sqrt(var_0 * var_1 )
-
-    covariance = [[1, 0], [0, 1]]
-    bivariate_normal = multivariate_normal(mean=mean, cov=covariance)
-    Z = bivariate_normal.pdf(XY)
-
-    num_samples = 100000
-    samples_ori = bivariate_normal.rvs(size=num_samples, random_state=1)
-    samples = to_01_fun(samples_ori)
-    E_X, E_Y = samples.mean(axis=0)
-
-    X_ori, Y_ori = np.meshgrid(x_ori, x_ori)
-
-    contour = ax.contourf(X_ori, Y_ori, Z, levels=200, cmap='RdBu_r')
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-
-    cbar = fig.colorbar(contour, ax=ax, fraction=0.046, pad=0.04)
-    cbar.set_label('Density', rotation=270, labelpad=15)
-
-    ax.plot(E_X, E_Y, marker='X', color='black', markersize=12)
-    ax.plot([0, 1], [0, 1], '-', color='black', linewidth=1)
-    ax.plot([E_X, E_X], [0, E_Y], '--', color='black', linewidth=0.75)
-    ax.plot([0, E_X], [E_Y, E_Y], '--', color='black', linewidth=0.75)
-
-    if cases:
-        ax.set_title(f'For cases:\nThe average predicted probability is\n{E_X:.2f} for Model A, and {E_Y:.2f} for Model B')
-    else:
-        ax.set_title(f'For controls:\nThe average predicted probability is\n{E_X:.2f} for Model A, and {E_Y:.2f} for Model B')
-    ax.set_xlabel('Predictions from Model A')#(r'$\tilde{Y}_A$')
-    ax.set_ylabel('Predictions from Model B')#(r'$\tilde{Y}_B$', rotation=0)
-
-    return samples
-
 def three_panel_pilot(data,
                 ss, alpha_t = 0.05, n_sim = None, change_prev = False, prev = None):
     
