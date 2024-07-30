@@ -1,9 +1,10 @@
 import pandas as pd
-from shinyapp.pilot.three_panel_pilot import *
+from three_panel_pilot import *
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 from shiny.types import FileInfo
 
-app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Under the ROC Curve", "Sample Size for Comparing AUROCs"),
+app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Under the ROC Curve:", "Sample Size for Comparing AUROCs"),
+    ui.h4("Using a pilot test set"), ui.br(),
     ui.input_file("file1", "Upload a pilot test set as a CSV file", accept=[".csv"], multiple=False),
     ui.output_text("text"),
     ui.output_table("summary_csv"),
@@ -30,7 +31,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     def parsed_file():
         file: list[FileInfo] | None = input.file1()
         if file is None:
-            df = pd.read_csv("shinyapp/pilot/pilot.csv")
+            df = pd.read_csv("pilot.csv")
             df.orig = True
             df['Event'] = df['Event'].astype(int)
             return df

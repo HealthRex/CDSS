@@ -1,0 +1,12 @@
+{
+    "https://api.shinyapps.io": {
+        "server_url": "https://api.shinyapps.io",
+        "filename": "/Users/grolleau/Desktop/github repos/CDSS/scripts/DevWorkshop/ROC-power/shinyapp/pilot",
+        "app_url": "https://francois-grolleau.shinyapps.io/ss_auroc_pilot/",
+        "app_id": 12387035,
+        "app_guid": null,
+        "title": "ss_auroc_pilot",
+        "app_mode": "python-shiny",
+        "app_store_version": 1
+    }
+}
