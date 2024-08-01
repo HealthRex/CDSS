@@ -38,6 +38,7 @@ bloodCultureCohort AS
     positive_blood_culture,
     positive_blood_culture_in_week,
     earliest_iv_antibiotic_datetime,
+    age,
     min_heartrate,
     max_heartrate,
     avg_heartrate,
@@ -123,13 +124,30 @@ bloodCultureCohortRescale AS
 
 --  Add in derivative features for SIRS and other criteria
 --  That can be used as breakpoints for decision rules
-bloodCultureCohortWithSIRS AS
+bloodCultureCohortWithSingleCriteria AS
 (
     SELECT *,
-      CASE WHEN (min_temp < 96.8) or (max_temp > 100.4) THEN 1 ELSE 0 END as sirsTemp, -- 36 and 38 Celsius thresholds. Beware that vitals may be recorded in different units. Assume Farhanheit for now
+      -- SIRS Criteria
+      CASE WHEN(min_temp < 96.8) or (max_temp > 100.4) THEN 1 ELSE 0 END as sirsTemp, -- 36 and 38 Celsius thresholds. Beware that vitals may be recorded in different units. Assume Farhanheit for now
       CASE WHEN(max_heartrate > 90) THEN 1 ELSE 0 END as sirsHeartRate,
       CASE WHEN(max_resprate > 20) THEN 1 ELSE 0 END as sirsRespRate, -- Also based on PaCO2, but not as readily available
-      CASE WHEN(min_wbcRescale < 4.0) or (max_wbcRescale > 12.0) THEN 1 ELSE 0 END as sirsWBC -- Should also be based on >10% bands. *TO DO* Add on later
+      CASE WHEN(min_wbcRescale < 4.0) or (max_wbcRescale > 12.0) THEN 1 ELSE 0 END as sirsWBC, -- Should also be based on >10% bands. *TO DO* Add on later
+
+      -- Hypotension / Hypoperfusion / Unstable indicators
+      CASE WHEN(min_sysbp < 90) THEN 1 ELSE 0 END as lowBP,
+      CASE WHEN(max_lactate > 2.0) THEN 1 ELSE 0 END as highLactate,
+
+      CASE WHEN(max_procalcitonin > 0.5) THEN 1 ELSE 0 END as highProcalcitonin, -- Some reference ranges use 0.25 and others use 5 or 10, suggesting different units for representation that should be standardized
+
+      -- Additional criteria suggested by previous Shapiro study decision rule
+      -- https://doi.org/10.1016/j.jemermed.2008.04.001
+      CASE WHEN(max_cr > 2.0) THEN 1 ELSE 0 END as shapiroHighCr,
+      CASE WHEN(max_temp > 101.0) THEN 1 ELSE 0 END as shapiroHighTemp,
+      CASE WHEN(max_neutrophils > 80) THEN 1 ELSE 0 END as shapiroHighNeutrophils,
+      CASE WHEN(max_wbc > 18) THEN 1 ELSE 0 END as shapiroHighWBC,
+      CASE WHEN(min_plt < 150) THEN 1 ELSE 0 END as shapiroLowPlt,
+      CASE WHEN(age > 65) THEN 1 ELSE 0 END as shapiroHighAge
+
     FROM
       bloodCultureCohortRescale
 ),
@@ -137,9 +155,14 @@ bloodCultureCohortWithDerivatives AS
 (
     SELECT *, 
       sirsTemp + sirsHeartRate + sirsRespRate + sirsWBC as sirsScore,
-      (sirsTemp + sirsHeartRate + sirsRespRate + sirsWBC) >= 2 as sirsPositive
+      (sirsTemp + sirsHeartRate + sirsRespRate + sirsWBC) >= 2 as sirsPositive,
+      (sirsTemp + sirsHeartRate + sirsRespRate + sirsWBC) >= 1 as anySIRS,
+      (sirsTemp + sirsHeartRate + sirsRespRate + sirsWBC) >= 2 or (lowBP + highLactate) >= 1 as sirs2orLowBPorHighLactate,
+      (sirsTemp + sirsHeartRate + sirsRespRate + sirsWBC + lowBP + highLactate) >= 1 as anySIRSorLowBPorHighLactate,
+      (shapiroHighTemp + shapiroHighAge + lowBP + shapiroHighWBC + shapiroHighNeutrophils + shapiroLowPlt + shapiroHighCr) >= 2 as shapiroCriteria2orMore,
+      (shapiroHighTemp + shapiroHighAge + lowBP + shapiroHighWBC + shapiroHighNeutrophils + shapiroLowPlt + shapiroHighCr) >= 1 as shapiroCriteria1orMore
     FROM
-      bloodCultureCohortWithSIRS
+      bloodCultureCohortWithSingleCriteria
 ),
 
 
