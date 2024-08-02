@@ -23,8 +23,9 @@ params AS
 
 		12	as followupMonths, -- Number of months to look back after a workup order to look for the target diagnosis code (note will also "look forward" up to 1 month, as allows same month)
 
-		['3']	as excludeMedOrderClass -- 'Historical Med' class, doesn't represent a new prescription
+		['3'] as excludeMedOrderClass, -- 'Historical Med' class, doesn't represent a new prescription
 
+		2023 as prevalenceYear -- What year to report diagnosis prevalence in by patient age
 ),
 
 
@@ -233,6 +234,97 @@ specificDiagnosesPerYear AS
 	order by realDxYear desc
 ),
 
+
+------------------------------------------------------------
+-- Simple queries to estimate diagnosed disease prevalence
+
+-- Calculate patient age in prevalence sample year of interest
+demographicAgeInPrevalenceYear AS
+(
+  select 
+    DATE_DIFF(DATE(params.prevalenceYear,1,1), birth_date_jittered, YEAR ) as age,
+    CAST (Floor(DATE_DIFF(DATE(params.prevalenceYear,1,1), birth_date_jittered, YEAR ) / 10) * 10 AS INT) as ageDecade,
+    demographic.*
+  from shc_core_2023.demographic, params
+),
+
+-- Identify patients who had an encounter for anything during the prevalence year
+-- 	(Implies being an active patient at the time)
+activePatientInPrevalenceYear AS
+(
+	select
+		age, ageDecade, birth_date_jittered, anon_id, gender, canonical_race, canonical_ethnicity, cur_pcp_prov_map_id,
+	 	count(distinct pat_enc_csn_id_coded) nEncounter
+	from demographicAgeInPrevalenceYear as demo
+		join shc_core_2023.encounter as enc using (anon_id),
+		params
+	where EXTRACT(YEAR FROM enc.contact_date_jittered) = params.prevalenceYear
+	group by age, ageDecade, birth_date_jittered, anon_id, gender, canonical_race, canonical_ethnicity, cur_pcp_prov_map_id
+),
+
+-- Count actives patients by age in decades, and how many have a PCP assigned
+activePatientByAge AS
+(
+	select
+		ageDecade, 
+		count(anon_id) as nPatient,
+		count(cur_pcp_prov_map_id) as nPatientWithPCP,
+		count(cur_pcp_prov_map_id) / count(anon_id) as percentPatientWithPCP
+	from activePatientInPrevalenceYear
+	group by ageDecade
+	having ageDecade >= 0 and ageDecade < 110 -- Remove weird age outliers
+	order by ageDecade
+),
+
+-- Find active patients who have ever had an ICD diagnosis code 
+-- 	suggesting peripheral (vascular) disease
+activePatientWithDiagnosis AS
+(
+	select
+		age, ageDecade, birth_date_jittered, anon_id, gender, canonical_race, canonical_ethnicity, cur_pcp_prov_map_id,
+		nEncounter,
+		min(dx.start_date_jittered) as firstDxDate,
+		DATE_DIFF(min(dx.start_date_jittered), birth_date_jittered, YEAR) as ageAtDx
+	from activePatientInPrevalenceYear as activePatient
+		join shc_core_2023.diagnosis as dx using (anon_id),
+		params
+	where dx.icd10 in UNNEST(params.targetICD10)
+	group by
+		age, ageDecade, birth_date_jittered, anon_id, gender, canonical_race, canonical_ethnicity, cur_pcp_prov_map_id,
+		nEncounter
+),
+
+-- Count up active patients by age in decades that have ever had the diagnosis
+activePatientWithDiagnosisByAge AS
+(
+	select
+		ageDecade, 
+		count(anon_id) as nPatient,
+		count(cur_pcp_prov_map_id) as nPatientWithPCP,
+		count(cur_pcp_prov_map_id) / count(anon_id) as percentPatientWithPCP,
+		avg(ageAtDx) as avgAgeAtDx
+	from activePatientWithDiagnosis
+	group by ageDecade
+	having ageDecade >= 0 and ageDecade < 110 -- Remove weird age outliers
+	order by ageDecade
+),
+
+-- Join total active patients against patients with diagnosis by age
+activePatientWithDiagnosisVsAllByAge AS
+(
+	select 
+		ageDecade,
+		allPatient.nPatient as nPatient,
+		dxPatient.nPatient as nDxPatient,
+		dxPatient.nPatient / allPatient.nPatient as percentDxPatient,
+		allPatient.percentPatientWithPCP as percentPatientWithPCP,
+		dxPatient.percentPatientWithPCP as percentDxPatientWithPCP,
+		dxPatient.avgAgeAtDx
+	from activePatientByAge as allPatient
+		join activePatientWithDiagnosisByAge as dxPatient using (ageDecade)
+	order by ageDecade
+),
+
 spacer AS (select null as tempSpacer) -- Just put this here so don't have to worry about ending last named query above with a comma or not
 
 -------------------------------------------------------------------------------------------------
@@ -256,8 +348,11 @@ spacer AS (select null as tempSpacer) -- Just put this here so don't have to wor
 
 -- select * from specificDiagnosesPerYear
 
-select * from reidentifySpecificDiagnosisAfterWorkupFromCohortEncounterProvider
+-- select * from reidentifySpecificDiagnosisAfterWorkupFromCohortEncounterProvider
 
-
-
-
+-- select * from demographicAgeInPrevalenceYear
+-- select * from activePatientInPrevalenceYear
+-- select * from activePatientByAge
+-- select * from activePatientWithDiagnosis
+-- select * from activePatientWithDiagnosisByAge
+select * from activePatientWithDiagnosisVsAllByAge
