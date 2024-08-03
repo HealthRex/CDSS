@@ -18,6 +18,7 @@ def data_to_pvals(data, n_sim, sample_sizes):
     sim_res = []
 
     # Loop over the number of simulations
+    random.seed(42)
     for _ in range(n_sim):
         # Sample with replacement ss indices of the test set (where ss is one of the sample sizes)
         ids_list = [random.choices(range(len(data)), k=ss) for ss in sample_sizes]
@@ -36,8 +37,8 @@ def roc_measures(Y, Y_hat):
 
 ### Interactive plot that specifies the joint distribution of the predicted probabilities
 
-to_01_fun = norm.cdf # expit
-to_r_fun = norm.ppf # logit
+to_01_fun = expit # norm.cdf 
+to_r_fun = logit # norm.ppf
 
 def plot_contour(fig, ax, X_mean, Y_mean, X_var, Y_var, corr, cases = True, epsi=1e-6, n_points=300): 
     x_ori = np.linspace(epsi, 1-epsi, n_points)
@@ -121,6 +122,7 @@ def three_panel(X_mean1, Y_mean1, X_var1, Y_var1, corr1,
 
         # Add some jitter to the x values
         l = sample_sizes[1] - sample_sizes[0]
+        np.random.seed(42)
         jit = np.random.uniform(-l*.1, l*.1, len(x))
         x = x + jit
 
