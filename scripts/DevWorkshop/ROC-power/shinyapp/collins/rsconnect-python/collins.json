@@ -1,0 +1,12 @@
+{
+    "https://api.shinyapps.io": {
+        "server_url": "https://api.shinyapps.io",
+        "filename": "/Users/grolleau/Desktop/github repos/CDSS/scripts/DevWorkshop/ROC-power/shinyapp/collins",
+        "app_url": "https://francois-grolleau.shinyapps.io/prec_auroc1/",
+        "app_id": 12432652,
+        "app_guid": null,
+        "title": "prec_auroc",
+        "app_mode": "python-shiny",
+        "app_store_version": 1
+    }
+}
