@@ -2,7 +2,7 @@ import os
 os.chdir('/Users/grolleau/Desktop/github repos/CDSS/scripts/cost_variability_2024/scripts/pipeline/')
 from drg_to_plot import drg_to_plot
 #from dat_to_conformal import drg_to_imp, drg_to_cqr
-from shap_val import *
+from pipeline import *
 from google.cloud import bigquery
 from google.cloud.bigquery import dbapi
 import pandas as pd
