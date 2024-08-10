@@ -5,9 +5,9 @@ from stat_custom import collins_c
 app_ui = ui.page_fluid(
     ui.panel_title("Sample Size Needed to Precisely Estimate a Model's Area Under the ROC Curve"),
     ui.br(),
-    ui.input_slider("auroc", label="Anticipated true AUROC", value=.77, min=1e-3, max=1-1e-3),
-    ui.input_slider("prev", label="Prevalence", value=.43, min=1e-3, max=1-1e-3),
-    ui.input_numeric("targ_se", "Target standard error", value=.0255, step=.0001, min=1e-3, max=1-1e-3),
+    ui.input_slider("auroc", label="Anticipated true AUROC", value=.77, step=.01, min=.5, max=1-1e-2),
+    ui.input_slider("prev", label="Prevalence", value=.43, step=.01, min=1e-2, max=1-1e-2),
+    ui.input_numeric("targ_se", "Target standard error", value=.0255, step=.0001, min=1e-2, max=1-1e-2),
     ui.br(),
     ui.output_text("txt1"),
     ui.div(

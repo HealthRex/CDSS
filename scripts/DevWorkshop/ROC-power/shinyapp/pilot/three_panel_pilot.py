@@ -11,7 +11,10 @@ import random
 # Monte Carlo simlations from the DeLong
 
 def delong_p_value(y, y_hat_1, y_hat_2):
-    return 10 ** compare_auc_delong_xu.delong_roc_test(y, y_hat_1, y_hat_2)[[0]].item()
+    try:
+        return 10 ** compare_auc_delong_xu.delong_roc_test(y, y_hat_1, y_hat_2)[[0]].item()
+    except AssertionError:
+        return np.nan
 
 def data_to_pvals(data, n_sim, sample_sizes):
 
@@ -19,6 +22,7 @@ def data_to_pvals(data, n_sim, sample_sizes):
     sim_res = []
 
     # Loop over the number of simulations
+    random.seed(42)
     for _ in range(n_sim):
         # Sample with replacement ss indices of the test set (where ss is one of the sample sizes)
         ids_list = [random.choices(range(len(data)), k=ss) for ss in sample_sizes]
@@ -55,7 +59,7 @@ def three_panel_pilot(data,
     sample_sizes = np.array([int(.5*ss), int(ss), int(1.5*ss)])
     sim_res = data_to_pvals(data, n_sim, sample_sizes)
 
-    mean_pvals = np.log(sim_res).mean(axis=0)
+    mean_pvals = np.nanmean(np.log(sim_res), axis=0)
     powers = (sim_res < alpha_t).mean(axis=0)
 
     # Let's prepare the data for the plot
@@ -63,6 +67,7 @@ def three_panel_pilot(data,
 
     # Add some jitter to the x values
     l = sample_sizes[1] - sample_sizes[0]
+    np.random.seed(42)
     jit = np.random.uniform(-l*.1, l*.1, len(x))
     x = x + jit
 
@@ -80,7 +85,7 @@ def three_panel_pilot(data,
 
     # Add a title
     if change_prev:
-        plt.title(f'Assuming the distribution from the provided pilot test set with a prevalence of {100*prev:.1f}%,\n the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nbased on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
+        plt.title(f'Assuming the distribution from the provided pilot test set with a prevalence of {100*prev:.0f}%,\n the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nbased on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
     else:
          plt.title(f'Assuming the distribution from the provided pilot test set,\n the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nbased on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
 
