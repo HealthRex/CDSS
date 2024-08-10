@@ -1,4 +1,3 @@
-# v1
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,22 +48,26 @@
 <body>
 
 <div class="sidebar">
-    <a href="#" onclick="showContent('page1')">Page 1</a>
-    <a href="#" onclick="showContent('page2')">Page 2</a>
-    <a href="#" onclick="showContent('page3')">Page 3</a>
+    <a href="#" onclick="showContent('intro_page')">Introduction to powerROC</a>
+    <a href="#" onclick="showContent('page1')">Sample size to precisely estimate the AUROC</a>
+    <a href="#" onclick="showContent('page2')">Sample size for comparing AUROCs: using a pilot test set</a>
+    <a href="#" onclick="showContent('page3')">Sample size for comparing AUROCs: specifying joint distributions</a>
+    © 2024 François Grolleau
 </div>
 
 <div class="content">
-    <div id="page1">
-        <iframe src="https://francois-grolleau.shinyapps.io/ss_auroc/" title="Shiny App"></iframe>
+    <div id="intro_page">
+        <h2>powerROC v0.1</h2>
+        <p>This is the content for the introduction page to powerROC.</p>
+    </div>
+    <div id="page1" class="hidden">
+        <iframe src="https://francois-grolleau.shinyapps.io/prec_auroc1/" title="Shiny App"></iframe>
     </div>
     <div id="page2" class="hidden">
-        <h2>Page 2</h2>
-        <p>This is the content for Page 2.</p>
+        <iframe src="https://francois-grolleau.shinyapps.io/ss_auroc_pilot/" title="Shiny App"></iframe>
     </div>
     <div id="page3" class="hidden">
-        <h2>Page 3</h2>
-        <p>This is the content for Page 3.</p>
+        <iframe src="https://francois-grolleau.shinyapps.io/ss_auroc/" title="Shiny App"></iframe>
     </div>
 </div>
 

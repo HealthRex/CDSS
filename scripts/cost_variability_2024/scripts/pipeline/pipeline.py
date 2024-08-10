@@ -715,7 +715,8 @@ def comp_by_ids(ids_tup, comp_query_fun):
     comp_query = comp_query_fun(ids_tup)
 
     df = pd.read_sql_query(comp_query, conn)
-    df['fisher_pval'] = df.apply(lambda x: my_round(fisher_exact([[x['n_pat_out'], x['no_ttt_out']], [x['n_pat_not'], x['no_ttt_not']]], alternative='two-sided')[1]), axis=1)
+    df['fisher_pval'] = df.apply(lambda x: fisher_exact([[x['n_pat_out'], x['no_ttt_out']], [x['n_pat_not'], x['no_ttt_not']]], alternative='two-sided')[1], axis=1)
+    df['pval_str'] = df.apply(lambda x: my_round(x['fisher_pval']), axis=1)
     df = df.sort_values(by='odds_ratio', ascending=False)
     return df
 
