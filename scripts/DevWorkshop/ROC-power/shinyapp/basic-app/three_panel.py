@@ -10,7 +10,10 @@ import random
 # Monte Carlo simlations from the DeLong
 
 def delong_p_value(y, y_hat_1, y_hat_2):
-    return 10 ** compare_auc_delong_xu.delong_roc_test(y, y_hat_1, y_hat_2)[[0]].item()
+    try:
+        return 10 ** compare_auc_delong_xu.delong_roc_test(y, y_hat_1, y_hat_2)[[0]].item()
+    except AssertionError:
+        return np.nan
 
 def data_to_pvals(data, n_sim, sample_sizes):
 
@@ -114,7 +117,7 @@ def three_panel(X_mean1, Y_mean1, X_var1, Y_var1, corr1,
         ax3 = plt.subplot2grid((2, 2), (1, 0), colspan=2)
         sim_res = data_to_pvals(data, n_sim, sample_sizes)
 
-        mean_pvals = np.log(sim_res).mean(axis=0)
+        mean_pvals = np.nanmean(np.log(sim_res), axis=0)
         powers = (sim_res < alpha_t).mean(axis=0)
 
         # Let's prepare the data for the plot
@@ -139,7 +142,7 @@ def three_panel(X_mean1, Y_mean1, X_var1, Y_var1, corr1,
         ax3.plot(sample_sizes, m*sample_sizes + b, color='red', label='Line fitted on mean log(P-value)')
 
         # Add a title
-        ax3.set_title(f'Assuming the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nbased on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
+        ax3.set_title(f'Assuming the provided joint distributions, true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nand based on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
         #ax3.text(0.5, 1.2, f'Power to detect a difference in AUROC (based on {n_sim} simulations)', transform=ax3.transAxes, ha='center', va='bottom', fontsize=14)
 
         # add power as text
@@ -168,4 +171,6 @@ def three_panel(X_mean1, Y_mean1, X_var1, Y_var1, corr1,
 
     #fig.subplots_adjust(hspace=0.5, wspace=0.4)
     
-#three_panel(0.75, 0.85, 0.2, 0.3, 0.6, 0.4, 0.8, 0.5, 0.5, 0.2, ss=500, n_sim=200)
+three_panel(X_mean1=.7, Y_mean1=.6, X_var1=.9, Y_var1=.9, corr1=.6,
+            X_mean2=.3, Y_mean2=.4, X_var2=.9, Y_var2=.9, corr2=.7,
+            ss=5, prev=.1, alpha_t = 0.05, n_sim = 100)

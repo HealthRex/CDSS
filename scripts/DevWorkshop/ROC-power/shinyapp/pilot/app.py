@@ -48,7 +48,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     def ui_prev(): 
         if input.change_prev():
             value = input.prev() if "prev" in input else .5
-            return ui.input_slider("prev", "Prevalence", value=.5, min=1e-3, max=1-1e-3)
+            return ui.input_slider("prev", "Prevalence", value=.5, step=.01, min=1e-2, max=1-1e-2)
 
     @output
     @render.plot
