@@ -117,7 +117,7 @@ class pipeline:
         self.my_drg = my_drg
         self.alpha_ci = alpha_ci        
         
-    def fit(self):
+    def fit(self, shap_fit = True):
         X_imputed, Y, Y_mean, Y_std, drg_id, drg_name, var_names, observation_id = drg_to_imp(self.my_drg) #2334 # 2392
 
         random_state = 18
@@ -303,21 +303,22 @@ class pipeline:
 
         #### Shap values ####
 
-        # Fits the explainer
-        X = pd.DataFrame(X_imputed, columns=var_names)
+        if shap_fit:
+            # Fits the explainer
+            X = pd.DataFrame(X_imputed, columns=var_names)
 
-        explainer = shap.Explainer(estimator.predict, X)
+            explainer = shap.Explainer(estimator.predict, X)
 
-        # Calculates the SHAP values - It takes some time
-        shap_values = explainer(X, max_evals=1000)
+            # Calculates the SHAP values - It takes some time
+            shap_values = explainer(X, max_evals=1000)
 
-        # Plot the SHAP values
-        shap.plots.beeswarm(shap_values, show = False)
-        plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nBeeswarm plot for the {estimator.__class__.__name__} model")
-        
-        make_folder(f"res/res_{100*self.alpha_ci:.0f}/shap")
-        plt.savefig(f'res/res_{100*self.alpha_ci:.0f}/shap/drg_{drg_id}.pdf', format='pdf', bbox_inches='tight', pad_inches=0.5)
-        plt.show()
+            # Plot the SHAP values
+            shap.plots.beeswarm(shap_values, show = False)
+            plt.title(f"DRG ID {drg_id}: {drg_name[:40]}\nBeeswarm plot for the {estimator.__class__.__name__} model")
+            
+            make_folder(f"res/res_{100*self.alpha_ci:.0f}/shap")
+            plt.savefig(f'res/res_{100*self.alpha_ci:.0f}/shap/drg_{drg_id}.pdf', format='pdf', bbox_inches='tight', pad_inches=0.5)
+            plt.show()
         
         # Check outliers in all data using the conformalized PI    
         _, y_pis_all = mapie_reg.predict(X_imputed)
@@ -332,6 +333,9 @@ class pipeline:
         # Get the CQR upper bound threshold        
         hi_than_pred = Y > np.maximum(ub_all, lb_all)
         ob_out, ob_not = observation_id[hi_than_pred], observation_id[~hi_than_pred]
+        
+        # save high cost outliers vs not outlier observations numbers
+        self.ob_out_hi, self.ob_not_hi = np.aray(ob_out), np.aray(ob_not)
         
         def folder_exp(ids_tup, comp, out='hi'):
             make_folder(f"res/res_{out}_{100*self.alpha_ci:.0f}/{comp.__name__}")
@@ -353,6 +357,10 @@ class pipeline:
         # Get the CQR lower bound threshold        
         lo_than_pred = Y < np.minimum(ub_all, lb_all)
         ob_out, ob_not = observation_id[lo_than_pred], observation_id[~lo_than_pred]
+        
+        # save high cost outliers vs not outlier observations numbers
+        self.ob_out_lo, self.ob_not_lo = np.aray(ob_out), np.aray(ob_not)
+        
         folder_exp((ob_not, ob_out), comp_med, out='lo')
         folder_exp((ob_not, ob_out), comp_proc, out='lo')
         folder_exp((ob_not, ob_out), comp_diag, out='lo')
@@ -722,5 +730,4 @@ def comp_by_ids(ids_tup, comp_query_fun):
 
 # test with one drg
 #drg_to_cqr_shap(2392)#2334)
-#pipeline(my_drg=2392, alpha_ci= .5).fit()
 #pipeline(my_drg=2334, alpha_ci= .5).fit()

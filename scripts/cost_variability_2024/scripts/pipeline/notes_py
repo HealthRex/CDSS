@@ -1,0 +1,46 @@
+from pipeline import pipeline, ids_to_sql, make_folder
+from google.cloud import bigquery
+from google.cloud.bigquery import dbapi
+import pandas as pd
+
+pip_res = pipeline(my_drg=2334, alpha_ci= .5)
+pip_res.fit(shap_fit=False)
+
+len(pip_res.ob_out_hi)
+ids_to_sql(pip_res.ob_out_hi)
+
+# Instantiate a client object so you can make queries
+client = bigquery.Client()
+
+# Create a connexion to that client
+conn = dbapi.connect(client)
+
+comp_query = f"""
+SELECT med_description, pat_enc_csn_id_coded, COUNT(*) as n_pres
+FROM `som-nero-phi-jonc101.shc_core_2023.order_med`
+WHERE med_description = "DEXMEDETOMIDINE IN 0.9 % NACL 400 MCG/100 ML (4 MCG/ML) IV SOLN" 
+AND pat_enc_csn_id_coded IN {ids_to_sql(pip_res.ob_out_hi)}
+GROUP BY med_description, pat_enc_csn_id_coded
+ORDER BY n_pres DESC
+"""
+
+df = pd.read_sql_query(comp_query, conn)
+
+comp_query = f"""
+SELECT deid_note_text, offest_csn, note_type
+FROM `som-nero-phi-jonc101.Deid_Notes_JChen.Deid_Notes_SHC_JChen` 
+WHERE offest_csn IN {ids_to_sql(df['pat_enc_csn_id_coded'])}
+--AND note_type ='Discharge/Transfer Summary'
+"""
+
+df = pd.read_sql_query(comp_query, conn)
+
+appears = list(map(lambda x: "DEXMEDETOMIDINE".lower() in x, df[df.note_type == "Other Note"]['deid_note_text'].str.lower()))
+
+text_res = [df[df.note_type == "Other Note"][appears]["deid_note_text"].values[i] for i in range(sum(appears))]
+
+make_folder(f'res_text')
+for i in range(len(text_res)):
+    file_path = f'res_text/DEXMEDETOMIDINE_{i}.txt'
+    with open(file_path, 'w') as file:
+        file.write(text_res[i])
