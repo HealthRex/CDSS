@@ -3,7 +3,7 @@ from shiny import App, render, ui, reactive
 from numpy import random
 from three_panel import *
 
-app_ui = ui.page_fixed(ui.panel_title("Sample Size for Comparing Models' Area Under the ROC Curve:", "Sample Size for Comparing AUROCs"),  
+app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Under the ROC Curve:", "Sample Size for Comparing AUROCs"),  
     ui.h4("Specifying parameters of two joint distributions"), 
     ui.row(
         ui.column(
@@ -33,7 +33,7 @@ app_ui = ui.page_fixed(ui.panel_title("Sample Size for Comparing Models' Area Un
             ui.input_numeric("ss", label="- Sample Size", value=260, min=100, max=100000),
             ui.input_slider("prev", label="- Prevalence", value=.1, step=.01, min=1e-2, max=1-1e-2),
             ui.input_slider("alpha_t", label="- Alpha threshold", value=.05, step=.01, min=1e-2, max=1-1e-2),
-            ui.input_select("n_sim", label=ui.markdown("**Choose no. of iterations to run the simulations**"), choices={0: "Zero (for parameter selection)", 100: "100 simulations (fastest, least accurate)", 500: "500 simulations (intermediate)", 2000: "2000 simulations (slowest, most accurate)"}),
+            ui.input_select("n_sim", label=ui.markdown("**Run the simulations**"), choices={0: "No iteration (for parameter selection)", 100: "100 iterations (fastest, least accurate)", 500: "500 iterations (intermediate)", 2000: "2000 iterations (slowest, most accurate)"}),
         )
     ),
     ui.row(
