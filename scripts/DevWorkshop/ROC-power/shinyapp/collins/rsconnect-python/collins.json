@@ -5,7 +5,7 @@
         "app_url": "https://francois-grolleau.shinyapps.io/prec_auroc1/",
         "app_id": 12432652,
         "app_guid": null,
-        "title": "prec_auroc",
+        "title": "prec_auroc1",
         "app_mode": "python-shiny",
         "app_store_version": 1
     }
