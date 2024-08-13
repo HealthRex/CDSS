@@ -20,7 +20,7 @@ app_ui = ui.page_fluid(
     "- Riley et al. Evaluation of clinical prediction models (part 3): calculating the sample size required for an external validation study. BMJ (2024) [",
     ui.a("link", href="https://www.bmj.com/content/384/bmj-2023-074821", target="_blank"), "].",
     ui.br(),
-    "- Newcombe. Confidence intervals for an effect size measure based on the Mann--Whitney statistic. Part 2: asymptotic methods and evaluation. Statistics in medicine (2006) [",
+    "- Newcombe. Confidence intervals for an effect size measure based on the Mann-Whitney statistic. Part 2: asymptotic methods and evaluation. Statistics in medicine (2006) [",
     ui.a("link", href="https://onlinelibrary.wiley.com/doi/10.1002/sim.2324", target="_blank"), "]."
 )
 
