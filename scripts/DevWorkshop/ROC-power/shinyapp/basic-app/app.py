@@ -33,7 +33,7 @@ app_ui = ui.page_fixed(ui.panel_title("Sample Size for Comparing Models' Area Un
             ui.input_numeric("ss", label="- Sample Size", value=260, min=100, max=100000),
             ui.input_slider("prev", label="- Prevalence", value=.1, step=.01, min=1e-2, max=1-1e-2),
             ui.input_slider("alpha_t", label="- Alpha threshold", value=.05, step=.01, min=1e-2, max=1-1e-2),
-            ui.input_select("n_sim", label=ui.markdown("**Choose no. of iterations to run the simulations**"), choices={0: "Zero (for parameter selection)", 100: "100 simulations (fastest)", 500: "500 simulations (intermediate)", 2000: "2000 simulations (slowest)"}),
+            ui.input_select("n_sim", label=ui.markdown("**Choose no. of iterations to run the simulations**"), choices={0: "Zero (for parameter selection)", 100: "100 simulations (fastest, least accurate)", 500: "500 simulations (intermediate)", 2000: "2000 simulations (slowest, most accurate)"}),
         )
     ),
     ui.row(
@@ -69,7 +69,7 @@ def server(input, output, session):
     def ui_corr1(): 
         if input.change_cor1():
             value = input.corr1() if "corr1" in input else .6
-            return ui.input_slider("corr1", "- Correlation between models A and B", value=.6, step=.01, min=1e-2, max=1-1e-2)
+            return ui.input_slider("corr1", "- Correlation between models A and B", value=.6, step=.01, min=0, max=1-1e-2)
         
     @render.ui 
     @reactive.event(input.change_var2)
@@ -90,6 +90,6 @@ def server(input, output, session):
     def ui_corr2(): 
         if input.change_cor2():
             value = input.corr1() if "corr2" in input else .6
-            return ui.input_slider("corr2", "- Correlation between models A and B", value=.6, step=.01, min=1e-2, max=1-1e-2)
+            return ui.input_slider("corr2", "- Correlation between models A and B", value=.6, step=.01, min=0, max=1-1e-2)
 
 app = App(app_ui, server)

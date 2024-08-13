@@ -11,9 +11,9 @@ app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Un
     ui.input_switch("change_prev", "Change prevalence", False),
     ui.output_ui("ui_prev"),
     ui.row(
-    ui.input_numeric("ss", label="Sample Size", value=830, min=100, max=100000),
-    ui.input_slider("alpha_t", label="Alpha threshold", value=.05, min=1e-3, max=1-1e-3),
-    ui.input_select("n_sim", label=ui.markdown("**Choose no. of iterations to run the simulations**"), choices={100: "100 simulations (fastest)", 500: "500 simulations (intermediate)", 2000: "2000 simulations (slowest)"}),
+    ui.input_numeric("ss", label="Sample Size", value=1060, min=100, max=100000),
+    ui.input_slider("alpha_t", label="Alpha threshold", value=.05, step=.01, min=1e-2, max=1-1e-2),
+    ui.input_select("n_sim", label=ui.markdown("**Choose no. of iterations to run the simulations**"), choices={100: "100 simulations (fastest, least accurate)", 500: "500 simulations (intermediate)", 2000: "2000 simulations (slowest, most accurate)"}),
 ),
     ui.row(ui.output_plot("int_plot", width='1000px', height='750px'),),
 )

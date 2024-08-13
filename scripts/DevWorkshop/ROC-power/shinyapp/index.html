@@ -12,7 +12,8 @@
             height: 100vh;
         }
         .sidebar {
-            width: 20%;
+            width: 200px;
+            flex-shrink: 0; /* Prevent the sidebar from shrinking */
             background-color: #f8f9fa;
             padding: 15px;
             height: 100vh;
@@ -43,6 +44,27 @@
             height: 100vh; /* Use viewport height */
             border: none;
         }
+        .dash-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .dash-list li {
+            margin-top: 10px; /* Add space between list items */
+        }
+        .dash-list li::before {
+            content: "-";
+            margin-right: 8px;
+        }
+        .zoom-link {
+        display: inline-block;
+        text-decoration: none;
+        color: #333;
+        font-style: italic; /* Emphasize text by default */
+        transition: transform 0.1s ease, color 0.1s ease;
+        }
+        .zoom-link:hover {
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -52,13 +74,25 @@
     <a href="#" onclick="showContent('page1')">Sample size to precisely estimate the AUROC</a>
     <a href="#" onclick="showContent('page2')">Sample size for comparing AUROCs: using a pilot test set</a>
     <a href="#" onclick="showContent('page3')">Sample size for comparing AUROCs: specifying joint distributions</a>
-    © 2024 François Grolleau
 </div>
 
 <div class="content">
     <div id="intro_page">
         <h2>powerROC v0.1</h2>
-        <p>This is the content for the introduction page to powerROC.</p>
+        <p>For the evaluation of clinical prediction models, the <a href="https://www.bmj.com/content/385/bmj-2023-078378" target="_blank">TRIPOD+AI statement</a> requires that researchers report how the sample size was arrived at and justify that this sample size was sufficient to answer the research question.</p>
+        <p>powerROC is a web application that helps researchers determine the sample size required to estimate the area under the receiver operating characteristic curve (AUROC) with a desired level of precision or to compare the AUROCs of two models with a desired level of power.</p>
+
+        <ul class="dash-list">
+            <li><b>For evaluating a single prediction model</b></li>
+            <p style="text-indent: 40px;">click <a href="#" onclick="showContent('page1')" class="zoom-link">Sample size to precisely estimate the AUROC</a> </p> <p style="text-indent: 40px;">to find the sample size required for accurate AUROC estimation.</p>
+            <li><b>For comparing two prediction models</b>
+                <p style="text-indent: 20px;">With acess to a pilot test set (or a validation set from which you will vary the prevalence),</p><p style="text-indent: 40px;">click <a href="#" onclick="showContent('page2')" class="zoom-link">Sample size for comparing AUROCs: using a pilot test set</a> </p> <p style="text-indent: 40px;">to determine sample size based on pilot data.</p>
+                <p style="text-indent: 20px;">Without acess to a pilot test set or a validation set,</p><p style="text-indent: 40px;">click <a href="#" onclick="showContent('page3')" class="zoom-link">Sample size for comparing AUROCs: specifying joint distributions</a> </p> <p style="text-indent: 40px;">to calculate sample size without needing preliminary data.</p>
+            </li>
+        </ul>
+        <br>
+        For any inquiries or further assistance, please contact François Grolleau at grolleau@stanford.edu.<br>
+        © 2024 PowerROC. All rights reserved.
     </div>
     <div id="page1" class="hidden">
         <iframe src="https://francois-grolleau.shinyapps.io/prec_auroc1/" title="Shiny App"></iframe>
