@@ -5,7 +5,7 @@ from shiny.types import FileInfo
 
 app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Under the ROC Curve:", "Sample Size for Comparing AUROCs"),
     ui.h4("Using a pilot test set"), ui.br(),
-    ui.input_file("file1", "Upload a pilot test set as a CSV file", accept=[".csv"], multiple=False),
+    ui.input_file("file1", "Upload a pilot test set, with at least three events and three nonevents, as a CSV file", accept=[".csv"], multiple=False),
     ui.output_text("text"),
     ui.output_table("summary_csv"),
     ui.input_switch("change_prev", "Change prevalence", False),
@@ -13,7 +13,7 @@ app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Un
     ui.row(
     ui.input_numeric("ss", label="Sample Size", value=1060, min=100, max=100000),
     ui.input_slider("alpha_t", label="Alpha threshold", value=.05, step=.01, min=1e-2, max=1-1e-2),
-    ui.input_select("n_sim", label=ui.markdown("**Choose no. of iterations to run the simulations**"), choices={100: "100 simulations (fastest, least accurate)", 500: "500 simulations (intermediate)", 2000: "2000 simulations (slowest, most accurate)"}),
+    ui.input_select("n_sim", label=ui.markdown("**Run the simulations**"), choices={100: "100 iteration (fastest, least accurate)", 500: "500 iterations (intermediate)", 2000: "2000 iterations (slowest, most accurate)"}),
 ),
     ui.row(ui.output_plot("int_plot", width='1000px', height='750px'),),
 )
