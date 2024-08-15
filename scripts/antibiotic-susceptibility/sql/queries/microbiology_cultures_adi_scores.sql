@@ -1,7 +1,7 @@
 -- Extracting ADI scores Table
 -- This query has two steps. 
 -- First query creates a table microbiology_cultures_adi_scores that contains ADI scores information
--- Second query creates a table microbiology_cultures_adi_scores_imputed that impute the ADI scores for those records in the microbiology_cultures_adi_scores table 
+-- Second query creates a table microbiology_cultures_adi_scores_imputed that imputes the ADI scores for those records in the microbiology_cultures_adi_scores table 
 -- that have a 5-digit ZIP code by averaging the ADI scores of the corresponding 9-digit ZIP codes from the ADI_data_CA table.
 
 ###################Query 1##################
