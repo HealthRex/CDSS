@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webpage with Sidebar Links</title>
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 200px;
+            flex-shrink: 0; /* Prevent the sidebar from shrinking */
+            background-color: #f8f9fa;
+            padding: 15px;
+            height: 100vh;
+            box-shadow: 2px 0px 5px rgba(0,0,0,0.1);
+        }
+        .sidebar a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: #333;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .sidebar a:hover {
+            background-color: #ddd;
+        }
+        .sidebar a.active {
+            background-color: #007BFF;
+            color: white;
+        }
+        .content {
+            flex-grow: 1; /* Allow content to take the remaining width */
+            padding: 0;
+            height: 100vh;
+            background-color: #fff;
+        }
+        .hidden {
+            display: none;
+        }
+        iframe {
+            width: 100%;
+            height: 100vh; /* Use viewport height */
+            border: none;
+        }
+        .dash-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .dash-list li {
+            margin-top: 10px; /* Add space between list items */
+        }
+        .dash-list li::before {
+            content: "\2192";
+            margin-right: 8px;
+        }
+        .zoom-link {
+        display: inline-block;
+        text-decoration: none;
+        color: #333;
+        font-style: italic; /* Emphasize text by default */
+        transition: transform 0.1s ease, color 0.1s ease;
+        }
+        .zoom-link:hover {
+            transform: scale(1.05);
+        }
+        .title {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-align: center;
+            color: #007BFF;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <a href="#" class="active" onclick="showContent('intro_page', this)">Introduction to powerROC</a>
+    - Single prediction model -
+    <a href="#" onclick="showContent('page1', this)">Sample size to precisely estimate the AUROC</a>
+    - Two prediction models -
+    <a href="#" onclick="showContent('page2', this)">Sample size for comparing AUROCs: using a pilot test set</a>
+    <a href="#" onclick="showContent('page3', this)">Sample size for comparing AUROCs: without a pilot test set</a>
+</div>
+
+<div class="content">
+    <div id="intro_page">
+        <p class="title">Welcome to powerROC v0.1</p>
+        <h2>What is powerROC?</h2>
+        <p>powerROC is a Python-based web application that helps researchers determine the sample size required to estimate the area under the receiver operating characteristic curve (AUROC) with a desired level of precision or to compare the AUROCs of two models with a desired level of power.</p>
+        <h2>Why is sample size calculation important for evaluating prediction models?</h2>
+        <p>In the design of a study, it is crucial to accurately calculate the sample size to effectively allocate resources, ensure statistical power for detecting true differences, and minimize Type II errors. For the evaluation of clinical prediction models, the <a href="https://www.bmj.com/content/385/bmj-2023-078378" target="_blank">TRIPOD+AI statement</a> mandates reporting the process of determining the sample size and justifying its sufficiency in addressing the research question.</p>
+        <h2>How can I use powerROC for sample size calculation?</h2>
+        <ul class="dash-list">
+            <li><b>For evaluating a single prediction model</b></li>
+            <p style="text-indent: 40px;">click <a href="#" onclick="showContent('page1', document.querySelector('.sidebar a:nth-child(2)'))" class="zoom-link">Sample size to precisely estimate the AUROC</a>
+            <p style="text-indent: 40px;">and calculate sample size by leveraging the asymptotic properties of Mann-Whitney U-statistics.</p>
+            <div style="margin-bottom: 37.5px;"></div>
+            <li><b>For comparing two prediction models</b>
+                <p style="text-indent: 20px;">&bull; With access to a pilot test set (or a pilot dataset where you wish to adjust the prevalence),</p>
+                <p style="text-indent: 40px;">click <em><a href="#" onclick="showContent('page2', document.querySelector('.sidebar a:nth-child(3)'))" class="zoom-link">Sample size for comparing AUROCs: using a pilot test set</a></em></p>
+                <p style="text-indent: 40px;">and calculate sample size using the resampling with replacement method for computing multiple DeLong p-values.</p>
+                
+                <p style="text-indent: 20px;">&bull; Without access to a pilot test set,</p><p style="text-indent: 40px;">click <em><a href="#" onclick="showContent('page3', document.querySelector('.sidebar a:nth-child(4)'))" class="zoom-link">Sample size for comparing AUROCs: without a pilot test set</a></em></p> <p style="text-indent: 40px;"> and calculate sample size by specifying joint two distributions (for cases and for controls) to compute multiple DeLong p-values via Monte Carlo simulations.</p>
+            </li>
+        </ul>
+        <br>
+        For any inquiries or further assistance, please contact François Grolleau at grolleau [ a t ] stanford.edu.<br>
+        © 2024 PowerROC. All rights reserved.
+    </div>
+    <div id="page1" class="hidden">
+        <iframe src="https://francois-grolleau.shinyapps.io/prec_auroc1/" title="Shiny App"></iframe>
+    </div>
+    <div id="page2" class="hidden">
+        <iframe src="https://francois-grolleau.shinyapps.io/ss_auroc_pilot/" title="Shiny App"></iframe>
+    </div>
+    <div id="page3" class="hidden">
+        <iframe src="https://francois-grolleau.shinyapps.io/ss_auroc/" title="Shiny App"></iframe>
+    </div>
+</div>
+
+<script>
+    function showContent(pageId, element) {
+        // Hide all content divs
+        var pages = document.querySelectorAll('.content > div');
+        pages.forEach(function(page) {
+            page.classList.add('hidden');
+        });
+
+        // Show the selected content div
+        var selectedPage = document.getElementById(pageId);
+        if (selectedPage) {
+            selectedPage.classList.remove('hidden');
+        }
+
+        // Remove 'active' class from all sidebar links
+        var links = document.querySelectorAll('.sidebar a');
+        links.forEach(function(link) {
+            link.classList.remove('active');
+        });
+
+        // Add 'active' class to the clicked link
+        element.classList.add('active');
+    }
+
+    // Call showContent for the default page on load
+    document.addEventListener('DOMContentLoaded', function() {
+        showContent('intro_page', document.querySelector('.sidebar a.active'));
+    });
+</script>
+
+</body>
+</html>
