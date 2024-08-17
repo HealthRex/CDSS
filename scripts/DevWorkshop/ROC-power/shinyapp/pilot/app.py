@@ -22,7 +22,8 @@ app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Un
     ui.br(),
     ui.h4("- Results"),
     ui.row(ui.output_plot("int_plot", width='1000px', height='750px'),),
-    "In the plot above, each dot represents a DeLong p-value calculated on a dataset of the corresponding sample size. Each dataset is obtained by resampling with replacement from the pilot test set. If the prevalence is varied, the pilot test set is reweighed accordingly before resampling."
+    ui.h4("- Methods"),
+    "In the plot above, each dot represents a DeLong p-value calculated on a dataset of the corresponding sample size. Each dataset is obtained by resampling with replacement from the pilot test set. If the prevalence is varied, the pilot test set is reweighed accordingly before resampling. Power is estimated as the fraction of p-values below the significance level."
 )
 
 
