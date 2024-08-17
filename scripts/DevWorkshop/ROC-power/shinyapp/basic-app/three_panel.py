@@ -142,7 +142,7 @@ def three_panel(X_mean1, Y_mean1, X_var1, Y_var1, corr1,
         ax3.plot(sample_sizes, m*sample_sizes + b, color='red', label='Line fitted on mean log(P-value)')
 
         # Add a title
-        ax3.set_title(f'Assuming the provided joint distributions, true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nand based on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
+        ax3.set_title(f'Assuming the provided joint distributions,\ntrue AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B.\nBased on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
         #ax3.text(0.5, 1.2, f'Power to detect a difference in AUROC (based on {n_sim} simulations)', transform=ax3.transAxes, ha='center', va='bottom', fontsize=14)
 
         # add power as text
