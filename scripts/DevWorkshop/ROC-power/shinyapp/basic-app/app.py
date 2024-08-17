@@ -6,7 +6,9 @@ from three_panel import *
 app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Under the ROC Curve:", "Sample Size for Comparing AUROCs"),  
     ui.h4("Specifying parameters of two joint distributions"),
     ui.br(),
-    ui.h4("- Inputs"), 
+    ui.h4("- Inputs"),
+    "In the absence of a pilot test set, you can manually specify a distribution for the evaluation population (illustrated in real-time in the contour plots below.)",
+    ui.p("Once this distribution is specified, use ", ui.em("Run the simulations.")), 
     ui.row(
         ui.column(
             4,
@@ -18,14 +20,14 @@ app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Un
             ui.output_ui("ui_Y_var1"),
             ui.input_switch("change_cor1", "Change correlation parameter for cases", False, width='375px'),
             ui.output_ui("ui_corr1"),
-             ui.h4("- Results"), 
-            ui.output_plot("hist", width='900px', height='900px'),
+            ui.output_ui("ui_spacing"), 
+            ui.output_plot("hist", width='850px', height='850px'),
         ),
         ui.column(
             4,
             ui.strong("For controls (event does not occur)"),
-            ui.input_slider("X_mean2", ui.p("Mean parameter for model A", ui.br(), ui.em("How well will model A do on controls?")), value=.3, step=.01, min=1e-2, max=1-1e-2),
-            ui.input_slider("Y_mean2", ui.p("Mean parameter for model B", ui.br(), ui.em("How well will model B do on controls?")), value=.4, step=.01, min=1e-2, max=1-1e-2),
+            ui.input_slider("X_mean2", ui.p("Mean parameter for model A", ui.br(), ui.em("How well will model A do on controls?")), value=.7, step=.01, min=1e-2, max=1-1e-2),
+            ui.input_slider("Y_mean2", ui.p("Mean parameter for model B", ui.br(), ui.em("How well will model B do on controls?")), value=.6, step=.01, min=1e-2, max=1-1e-2),
             ui.input_switch("change_var2", "Change variance parameters for controls", False, width='375px'),
             ui.output_ui("ui_X_var2"),
             ui.output_ui("ui_Y_var2"),
@@ -37,7 +39,7 @@ app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Un
             ui.input_slider("prev", ui.p("Prevalence in the evaluation population", ui.br(), ui.em("What is the anticipated proportion of events in the test set?")), value=.1, step=.01, min=1e-2, max=1-1e-2),
             ui.input_slider("alpha_t", ui.p("Alpha threshold", ui.br(), ui.em("Significance level, typically set to 0.05")), value=.05, step=.01, min=1e-2, max=1-1e-2),
             ui.input_numeric("ss", ui.p("Sample size for power calculation", ui.br(), ui.em("Calculations are also performed at 0.5 and 1.5 that sample size")), value=260, min=100, max=100000),
-            ui.input_select("n_sim", ui.p(ui.strong("Run the simulations"), ui.br(), ui.em("Choose no. of iterations")), choices={0: "No iteration (for parameter selection)", 100: "100 iterations (fastest, least accurate)", 500: "500 iterations (intermediate)", 2000: "2000 iterations (slowest, most accurate)"}),
+            ui.input_select("n_sim", ui.p(ui.strong(ui.div({"style": "font-weight: bold; color: red;"}, "Run the simulations")), ui.em("Choose no. of iterations")), choices={0: "No iteration (for parameter selection)", 100: "100 iterations (fastest, least accurate)", 500: "500 iterations (intermediate)", 2000: "2000 iterations (slowest, most accurate)"}),
         )
     ),
     ui.br(),
@@ -101,6 +103,14 @@ def server(input, output, session):
         if int(input.n_sim()) == 0:
             return 
         else:
-           return ui.h4("- Methods"), "In the plot above, each dot represents a DeLong p-value calculated on a dataset of the corresponding sample size. Each dataset is obtained by sampling from the provided probability distribution. If the prevalence is varied, the pilot test set is reweighed accordingly before resampling. Power is estimated as the fraction of p-values below the significance level."
+           return ui.h4("- Methods"), "In the plot above, each dot represents a DeLong p-value calculated on a dataset of the corresponding sample size. Each dataset is obtained by sampling from the specified probability distribution. Power is estimated as the fraction of p-values below the significance level."
 
+    @render.ui
+    @reactive.event(input.change_var1, input.change_cor1, input.change_var2, input.change_cor2)
+    def ui_spacing():
+        if input.change_var1() and input.change_cor2():
+            return ui.h4("- Results")
+        else:
+            return ui.h4("- Results") # ui.div({"style": "margin-bottom: 400px;"})
+    
 app = App(app_ui, server)
