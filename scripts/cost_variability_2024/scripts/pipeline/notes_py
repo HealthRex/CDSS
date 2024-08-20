@@ -3,7 +3,7 @@ from google.cloud import bigquery
 from google.cloud.bigquery import dbapi
 import pandas as pd
 
-pip_res = pipeline(my_drg=2334, alpha_ci= .5)
+pip_res = pipeline(my_drg=2592, alpha_ci= .5)
 pip_res.fit(shap_fit=False)
 
 len(pip_res.ob_out_hi)

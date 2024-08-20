@@ -335,7 +335,7 @@ class pipeline:
         ob_out, ob_not = observation_id[hi_than_pred], observation_id[~hi_than_pred]
         
         # save high cost outliers vs not outlier observations numbers
-        self.ob_out_hi, self.ob_not_hi = np.aray(ob_out), np.aray(ob_not)
+        self.ob_out_hi, self.ob_not_hi = np.array(ob_out), np.array(ob_not)
         
         def folder_exp(ids_tup, comp, out='hi'):
             make_folder(f"res/res_{out}_{100*self.alpha_ci:.0f}/{comp.__name__}")
@@ -359,7 +359,7 @@ class pipeline:
         ob_out, ob_not = observation_id[lo_than_pred], observation_id[~lo_than_pred]
         
         # save high cost outliers vs not outlier observations numbers
-        self.ob_out_lo, self.ob_not_lo = np.aray(ob_out), np.aray(ob_not)
+        self.ob_out_lo, self.ob_not_lo = np.array(ob_out), np.array(ob_not)
         
         folder_exp((ob_not, ob_out), comp_med, out='lo')
         folder_exp((ob_not, ob_out), comp_proc, out='lo')
