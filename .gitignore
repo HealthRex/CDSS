@@ -20,5 +20,7 @@ scripts/cost_variability_2024/scripts/baseline_inpatientmortality_artifacts/*
 scripts/cost_variability_2024/scripts/pipeline/res/*
 scripts/cost_variability_2024/scripts/pipeline/res_text/*
 scripts/cost_variability_2024/scripts/pipeline/res_01_08/*
+scripts/cost_variability_2024/scripts/pipeline/res_or/*
+scripts/cost_variability_2024/scripts/pipeline/res_p/*
 
 
