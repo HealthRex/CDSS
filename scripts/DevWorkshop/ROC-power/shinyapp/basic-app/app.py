@@ -7,7 +7,7 @@ app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Un
     ui.h4("Specifying parameters of two joint distributions"),
     ui.br(),
     ui.h4("- Inputs"),
-    "In the absence of a pilot test set, you can manually specify a distribution for the evaluation population (illustrated in real-time in the contour plots below.)",
+    "In the absence of a pilot test set, please manually specify a distribution for the evaluation population, which will be illustrated in real-time in the contour plots below.",
     ui.p("Once this distribution is specified, use ", ui.em("Run the simulations.")), 
     ui.row(
         ui.column(
@@ -108,9 +108,21 @@ def server(input, output, session):
     @render.ui
     @reactive.event(input.change_var1, input.change_cor1, input.change_var2, input.change_cor2)
     def ui_spacing():
-        if input.change_var1() and input.change_cor2():
-            return ui.h4("- Results")
+        if input.change_var2() and not input.change_cor2() and not input.change_var1():
+            if input.change_cor1():
+                return ui.div({"style": "margin-bottom: 140px;"}), ui.h4("- Results")
+            else:
+                return ui.div({"style": "margin-bottom: 275px;"}), ui.h4("- Results")
+        elif input.change_cor2() and not input.change_var2() and not input.change_var1() and not input.change_cor1():
+            return ui.div({"style": "margin-bottom: 140px;"}), ui.h4("- Results")
+        elif input.change_var2() and input.change_cor2() and not (input.change_var1() and input.change_cor1()):
+            if input.change_cor1():
+                return ui.div({"style": "margin-bottom: 270px;"}), ui.h4("- Results")
+            elif input.change_var1():
+                return ui.div({"style": "margin-bottom: 135px;"}), ui.h4("- Results")
+            else:
+                return ui.div({"style": "margin-bottom: 400px;"}), ui.h4("- Results")
         else:
-            return ui.h4("- Results") # ui.div({"style": "margin-bottom: 400px;"})
+            return ui.h4("- Results")
     
 app = App(app_ui, server)

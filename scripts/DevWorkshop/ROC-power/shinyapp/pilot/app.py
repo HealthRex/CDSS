@@ -15,9 +15,9 @@ app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Un
     ui.output_ui("ui_prev"),
     ui.br(),
     ui.row(
-    ui.input_slider("alpha_t", label=ui.p("Alpha threshold", ui.br(), ui.em("Significance level, typically set to 0.05")), value=.05, step=.01, min=1e-2, max=1-1e-2, width='300px'),
-    ui.input_numeric("ss", label=ui.p("Sample size for power calculation", ui.br(), ui.em("Calculations are also performed at 0.5 and 1.5 that sample size")), value=1060, min=100, max=100000, width='475px'),
-    ui.input_select("n_sim", label=ui.p(ui.strong("Run the simulations"), ui.br(), ui.em("Choose no. of iterations")), choices={100: "100 iteration (fastest, least accurate)", 500: "500 iterations (intermediate)", 2000: "2000 iterations (slowest, most accurate)"}),
+    ui.input_slider("alpha_t", label=ui.p(ui.strong(ui.div({"style": ""},"Alpha threshold")), ui.em("Significance level, typically set to 0.05")), value=.05, step=.01, min=1e-2, max=1-1e-2, width='300px'),
+    ui.input_numeric("ss", label=ui.p(ui.strong(ui.div({"style": ""}, "Sample size for power calculation")), ui.em("Calculations are also performed at 0.5 and 1.5 that sample size")), value=1060, min=100, max=100000, width='475px'),
+    ui.input_select("n_sim", label=ui.p(ui.strong(ui.div({"style": "font-weight: bold; color: red;"}, "Run the simulations")), ui.em("Choose no. of iterations")), choices={100: "100 iteration (fastest, least accurate)", 500: "500 iterations (intermediate)", 2000: "2000 iterations (slowest, most accurate)"}),
 ),  
     ui.br(),
     ui.h4("- Results"),
@@ -32,7 +32,7 @@ def server(input: Inputs, output: Outputs, session: Session):
     def text():
         df = parsed_file()
         if getattr(df, "orig", False):
-            return "Your CSV file should follow the column order as illustrated in the example: Event, Prediction from Model A, Prediction from Model B. Note that the specific column names are not required, only the order matters. For accurate sample size calculations, we recommend including a minimum of five events and five non-events in your dataset.  Before you upload your CSV file, we will use the example dataset below to demonstrate sample size calculation. Upon upload, the first ten rows of your pilot test will be shown for sanity checks."
+            return 'Your CSV file should follow this column order: Event, Prediction from Model A, Prediction from Model B. The specific column names are not important. Note that reversing "Prediction from Model A" and "Prediction from Model B" makes no difference. For accurate sample size calculations, include at least five events and five non-events. Before you upload your CSV file, we will use the example dataset below to demonstrate sample size calculation. Upon upload, the first ten rows of your pilot test will be shown for sanity checks.'
         return "The first 10 rows of your uploaded test set are displayed below."
 
     @reactive.calc
