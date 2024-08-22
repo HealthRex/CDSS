@@ -8,6 +8,8 @@ from sklearn.metrics import roc_curve, auc
 import compare_auc_delong_xu
 import random
 
+data = pd.read_csv("pilot.csv")
+
 # Monte Carlo simlations from the DeLong
 
 def delong_p_value(y, y_hat_1, y_hat_2):
@@ -34,6 +36,36 @@ def data_to_pvals(data, n_sim, sample_sizes):
 
     return sim_res
 
+def data_to_pvals_w(data, n_sim, sample_sizes, prev):
+    
+    # calculate the weights
+    prev_ori = data[:,0].mean()
+    w1 = prev / prev_ori
+    w0 = (len(data) - sum(w1 * data[:,0])) / sum(1- data[:,0])
+    w1 /= len(data)
+    w0 /= len(data)
+    weights = w1 * data[:,0] + w0 * (1 - data[:,0])
+    
+    # Prepare to store the all the p-values
+    sim_res = []
+
+    # Loop over the number of simulations
+    if len(set(weights)) == 1: # if all weights are the same, we can use unwieghted sampling
+        return data_to_pvals(data, n_sim, sample_sizes)
+    
+    else:
+        random.seed(42)
+        for _ in range(n_sim):
+            # Sample with replacement ss indices of the test set (where ss is one of the sample sizes)
+            ids_list = [random.choices(range(len(data)), weights=weights, k=ss) for ss in sample_sizes]
+            # Compute a p-value for each sample size
+            sim_res.append([delong_p_value(data[ids,0],  data[ids,1], data[ids,2]) for ids in ids_list])
+
+        # Convert the list to a numpy array
+        sim_res = np.array(sim_res)
+
+        return sim_res
+
 def roc_measures(Y, Y_hat):
     fpr, tpr, thresholds = roc_curve(Y, Y_hat)
     roc_auc = auc(fpr, tpr)
@@ -41,15 +73,6 @@ def roc_measures(Y, Y_hat):
 
 def three_panel_pilot(data,
                 ss, alpha_t = 0.05, n_sim = None, change_prev = False, prev = None):
-    
-    if change_prev:
-        df_0 = data[data.iloc[:,0]==0]
-        fin_df_0 = pd.DataFrame(np.tile(df_0.values, (1000 // len(df_0) + 1, 1))).iloc[:1000]
-        
-        df_1 = data[data.iloc[:,0]==1]
-        fin_df_1 = pd.DataFrame(np.tile(df_1.values, (int(1000*prev/(1-prev)) // len(df_1) + 1, 1))).iloc[:int(1000*prev/(1-prev))]
-        
-        data = pd.concat([fin_df_0, fin_df_1], axis=0)
         
     data = np.array(data)
         
@@ -57,7 +80,11 @@ def three_panel_pilot(data,
     _, _, _, auc_B = roc_measures(data[:,0], data[:,2])
     
     sample_sizes = np.array([int(.5*ss), int(ss), int(1.5*ss)])
-    sim_res = data_to_pvals(data, n_sim, sample_sizes)
+    
+    if change_prev:
+        sim_res = data_to_pvals_w(data, n_sim, sample_sizes, prev)
+    else:
+        sim_res = data_to_pvals(data, n_sim, sample_sizes)
 
     mean_pvals = np.nanmean(np.log(sim_res), axis=0)
     powers = (sim_res < alpha_t).mean(axis=0)
