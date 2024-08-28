@@ -112,9 +112,9 @@ def three_panel_pilot(data,
 
     # Add a title
     if change_prev:
-        plt.title(f'Assuming the distribution from the provided pilot test set with a prevalence of {100*prev:.0f}%,\n the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nand based on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
+        plt.title(f'Assuming the distribution from the provided pilot test set with a prevalence\nof {100*prev:.0f}%, the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B. Based on\n{n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
     else:
-         plt.title(f'Assuming the distribution from the provided pilot test set,\n the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B,\nand based on {n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
+         plt.title(f'Assuming the distribution from the provided pilot test set,\n the true AUROCs are {auc_A:.2f} for Model A and {auc_B:.2f} for Model B. Based on\n{n_sim} simulations, the estimated power to detect a difference in AUROC is:', fontsize=14, y=1.15)
 
     # add power as text
     plt.text(sample_sizes[0], 1.02, f'Power is {powers[0]*100:.1f}%\nAt n={sample_sizes[0]}', ha='center', va='bottom', transform=plt.gca().get_xaxis_transform())
