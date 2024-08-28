@@ -7,7 +7,7 @@ app_ui = ui.page_fluid(ui.panel_title("Sample Size for Comparing Models' Area Un
     ui.h4("Specifying parameters of two joint distributions"),
     ui.br(),
     ui.h4("- Inputs"),
-    "In the absence of a pilot test set, please manually specify a distribution for the evaluation population, which will be illustrated in real-time in the contour plots below.",
+    "In the absence of a pilot test set, you need to manually specify a distribution for the evaluation population (illustrated in real-time in the contour plots below.)",
     ui.p("Once this distribution is specified, use ", ui.em("Run the simulations.")), 
     ui.row(
         ui.column(
