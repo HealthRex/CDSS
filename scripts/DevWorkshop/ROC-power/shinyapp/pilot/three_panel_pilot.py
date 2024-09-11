@@ -39,12 +39,9 @@ def data_to_pvals(data, n_sim, sample_sizes):
 def data_to_pvals_w(data, n_sim, sample_sizes, prev):
     
     # calculate the weights
-    prev_ori = data[:,0].mean()
-    w1 = prev / prev_ori
-    w0 = (len(data) - sum(w1 * data[:,0])) / sum(1- data[:,0])
-    w1 /= len(data)
-    w0 /= len(data)
-    weights = w1 * data[:,0] + w0 * (1 - data[:,0])
+    denom1 = np.sum(data[:,0])
+    denom0 = np.sum(1 - data[:,0])
+    weights  = prev * data[:,0] / denom1 + (1 - prev) * (1 - data[:,0]) /denom0
     
     # Prepare to store the all the p-values
     sim_res = []
