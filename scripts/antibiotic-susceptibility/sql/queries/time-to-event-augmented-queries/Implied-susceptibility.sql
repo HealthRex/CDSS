@@ -2254,3 +2254,15 @@ WHERE UPPER(organism) LIKE '%SERRATIA%'
 AND
 LOWER(antibiotic) like any ('ampicillin', 'cefazolin','tetracycline')
 AND susceptibility IS NULL;
+
+-- Remove duplicates and save results in table microbiology-implied-susceptibility
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology-implied-susceptibility` as
+select * from `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_implied_susceptibility`
+where 
+susceptibility is not null
+OR 
+implied_susceptibility is not null
+group by anon_id,pat_enc_csn_id_coded,order_proc_id_coded,organism,antibiotic,susceptibility,implied_susceptibility
+order by anon_id,pat_enc_csn_id_coded,order_proc_id_coded,organism,antibiotic,susceptibility,implied_susceptibility;
+
+drop table  `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_implied_susceptibility`;
