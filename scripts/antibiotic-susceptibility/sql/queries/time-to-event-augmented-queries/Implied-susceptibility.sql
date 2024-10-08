@@ -1,3 +1,4 @@
+-- Step 1: Create empty table and copy all the culture sensitivity to this table 
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_implied_susceptibility` (
   anon_id STRING,
   pat_enc_csn_id_coded INT64,
