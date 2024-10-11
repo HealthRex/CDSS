@@ -118,11 +118,11 @@ from keras_nlp.models import Llama3CausalLM
 llama_lm = Llama3CausalLM.from_preset("hf://meta-llama/Meta-Llama-3-8B-Instruct")
 
 # Get a summary
-llama_lm.summary() # Should show 3B parameters ~29.92 GB
+llama_lm.summary() # Should show 3B parameters ~29.92GB
 
 # Quantize the model to improve memory usage and speed, sacrificing minimal performance
 llama_lm.quantize("int8")
-llama_lm.summary() # Should show 3B parameters ~7.48 GB
+llama_lm.summary() # Should show 3B parameters ~7.48GB
 
 # Prepare prompts in Llama3-appropriate format
 def make_llama_3_prompt(user, system=""):
