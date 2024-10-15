@@ -32,7 +32,7 @@ Can continue to just work as "ec2-user" or can create a separate user and accoun
 
 	Should now be able to SSH to instance using the created username and password
 
-- Install Amazon packages
+- Install Amazon packages (Note the below documentation is likely out-of-date, and should be using Python 3 instead)
 sudo yum install git
 sudo yum install postgresql96
 sudo yum install python27-psycopg2
@@ -44,8 +44,6 @@ sudo yum install python27-matplotlib
 # Python packages
 sudo pip install pandas
 sudo pip install sklearn
-sudo pip install gensim
-#sudo easy_install gensim
 
 (Consider general SciPy dev environment setup)
 (http://blog.yhathq.com/posts/setting-up-scientific-python.html)
@@ -61,7 +59,7 @@ Highly recommended that you use some standard package installers to minimize the
 (E.g., yum or apt-get for top level packages. Use pip for python packages where possible. Windows binary installers may be necessary for others. Many unofficial Windows binaries are available from https://www.lfd.uci.edu/~gohlke/pythonlibs/)
 
 - PostgreSQL
-- Python 2.7
+- Python (should have migrated to Python 3 by now)
   - Scipy
   - Numpy
   - Psycopg2
