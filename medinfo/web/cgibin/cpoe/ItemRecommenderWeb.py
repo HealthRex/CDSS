@@ -82,9 +82,11 @@ class ItemRecommenderWeb(BaseCPOEWeb):
                        ci.name,
                        ci.description
                     from 
-                       clinical_item as ci
+                       clinical_item as ci join
+                       clinical_item_category as cic using (clinical_item_category_id)
                     where
-                       ci.default_recommend = 0
+                       ci.default_recommend = 0 and
+                       cic.default_recommend <> 0   -- Exclude individual items, but to avoid excessive items, ignore those already excluded by category
                     order by
                        ci.name
                     """
