@@ -26,10 +26,12 @@ SQL_PLACEHOLDER = "%s"
 
 # Connection parameters to primary working database of interest
 LOCAL_PROD_DB_PARAM = {}
-LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'   # Database host. Localhost if running on your local computer. For GCP, name of the project. For AWS RDS instances, look for the "Endpoint" hostname, e.g. YourDatabaseIdentifier.cwyfvxgvic6c.us-east-1.rds.amazonaws.com
-LOCAL_PROD_DB_PARAM["DSN"] = 'databaseName'    # Specific database/dataset name hosted by the database server (e.g., stride_inpatient_2008_2017)
-LOCAL_PROD_DB_PARAM["UID"] = 'databaseUserId'
-LOCAL_PROD_DB_PARAM["PWD"] = 'databaseUserPassword'
+#LOCAL_PROD_DB_PARAM["HOST"] = 'localhost'   # Database host. Localhost if running on your local computer. For GCP, name of the project. For AWS RDS instances, look for the "Endpoint" hostname, e.g. YourDatabaseIdentifier.cwyfvxgvic6c.us-east-1.rds.amazonaws.com
+#LOCAL_PROD_DB_PARAM["DSN"] = 'databaseName'    # Specific database/dataset name hosted by the database server (e.g., stride_inpatient_2008_2017)
+LOCAL_PROD_DB_PARAM["HOST"] = "localhost";
+LOCAL_PROD_DB_PARAM["DSN"] = "medinfo";
+LOCAL_PROD_DB_PARAM["UID"] = "jonc101";
+LOCAL_PROD_DB_PARAM["PWD"] = "1234";
 
 # Connection parameters for a test database to create and manipulate during unit tests
 #	The DSN (database name) MUST NOT BE the same as any real working database.
@@ -38,12 +40,12 @@ LOCAL_PROD_DB_PARAM["PWD"] = 'databaseUserPassword'
 #	The database user (UID) and password (PWD) will need to be a valid 
 #	database user with permissions to create and delete such databases.
 LOCAL_TEST_DB_PARAM = {}
-LOCAL_TEST_DB_PARAM["HOST"] = 'localhost'
-LOCAL_TEST_DB_PARAM["DSN"] = 'unittest_db'
-LOCAL_TEST_DB_PARAM["UID"] = 'testuid'
-LOCAL_TEST_DB_PARAM["PWD"] = 'testpwd'
+LOCAL_TEST_DB_PARAM["HOST"] = "localhost";
+LOCAL_TEST_DB_PARAM["DSN"] = "testmedinfo";
+LOCAL_TEST_DB_PARAM["UID"] = "jonc101";
+LOCAL_TEST_DB_PARAM["PWD"] = "1234";
 
-PATH_TO_CDSS = "/foo/bar/CDSS"; # Directory where this file is contained in
+PATH_TO_CDSS = "C:/CDSS"; # Directory where this file is contained in
 # Look for environment variable on authenticating to Google cloud server
 # If env var not already there, then manually set here.
 # See https://github.com/HealthRex/CDSS/wiki/Google-BigQuery-Access for more info
