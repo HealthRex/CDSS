@@ -1,6 +1,6 @@
 export DB_HOST=localhost
 export DB_PORT=5432
-export DB_DSN=medinfo-5year-time
+export DB_DSN=medinfo
 export DB_USER=jonc101
 
 # Prepare schema of empty tables ready to receive data
