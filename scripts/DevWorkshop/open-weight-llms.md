@@ -32,8 +32,8 @@ This tutorial guides you through setting up a virtual machine with GPUs on Googl
         * **Machine type:** Select at least 64 GB of memory.
     * **Boot Disk:** Click "Switch Image", type "Pytorch" under Version, and select the latest PyTorch configuration (e.g., "Deep Learning VM for PyTorch 2.3 with CUDA 12.1 M125").
     * Click **Create**.
-6. Once the VM is running (indicated by a checkmark), click **SSH** on the row's right hand side. This opens a terminal. Install the Nvidia driver when prompted (`y`).
-7. 🚨 $\color{red}{\textbf{Important:}}$ Always stop your VM when finished (**Compute Engine > VM instances > Three vertical dots > Stop**) to avoid unnecessary charges. You can restart it later.
+6. Once the VM is running (indicated by a checkmark), click **SSH** on its row. This opens a terminal. Install the Nvidia driver when prompted (`y`).
+7. **<span style="color:red">Important:</span>** Always stop your VM when finished (**Compute Engine > VM instances > Three vertical dots > Stop**) to avoid unnecessary charges. You can restart it later.
 
 ## Accessing your VM from VS Code via SSH Tunneling
 
@@ -65,22 +65,6 @@ This tutorial guides you through setting up a virtual machine with GPUs on Googl
 
 * If your VM's external IP address changes (for example after restarting the VM), delete the contents of `~/.ssh/known_hosts` before connecting.
 
-### Optional: Use a static external IP adress
-This method prevents the external IP from changing when you restart your VM.
-1. Reserve a static external IP adress
-- Navigate to **Top Left Corner > VPC Network > IP adresses**.
-- Make sure the drop down list on the top left indicates the same project where your VM is located (eg `som-nero-jonc101`).
-- Click **RESERVE EXTERNAL IP ADRESS**.
-- Provide a descriptive name (e.g., `francois-l4-64gb-static-external-ip`).
-- Select the same **Region** as your VM (e.g., `us-west1-a`).
-- Click **RESERVE**.
-2. Assign the Static IP Address to Your VM
-- Navigate to **Top Left Corner > Compute Engine > VM instances**.
-- Click on your VM, then click **EDIT**.
-- In the *Network interfaces* do **Network interface 1 > External IPv4 adress > Name of the static external IP adress you reserved**.
-- Click **SAVE**.
-
-**Important:** Reserving a static external IP address incurs a small hourly charge (currently $0.005 per hour), which translates to approximately $44 per year. To avoid unnecessary costs, remember to to **Top Left Corner > VPC Network > IP adresses > RELEASE STATIC ADRESS** when you no longer need it.
 ## Using Open Weights LLMs with Keras-NLP and JAX
 1. Once VScode is SSH tunneled  to your VM, you'll have to reinstall all VScode extensions that you typically use. Thankfully that's easy: go to extensions in the SSH remote SSH tab click on the cloud icon and select the extensions you want to reinstall.
 2. (Recommended) Create a conda environment.
@@ -107,7 +91,7 @@ import keras
 import keras_nlp
 import huggingface_hub
 ```
-5. Log in huggingface via Shell: `huggingface-cli login` and paste the token from huggingface.co on **Profile > Settings > Access Tokens > 3 vertical dots > Invalidate and refresh**. That token will be saved in `.cache/huggingface/token`, next time you can copy/paste from there.
+5. Log in huggingface via Shell: `huggingface-cli login` and paste the token from huggingface.co on **Profile > Settings > Access Tokens > 3 vertical dots > Invalidate and refresh**. That tooken will be saved in `.cache/huggingface/token`, next time you can copy/paste from there.
 
 ### Gemma 2-2B Instruction Tuned
 - Request access at https://huggingface.co/google/gemma-2b-it Authorization can take up to 24h.
@@ -134,11 +118,11 @@ from keras_nlp.models import Llama3CausalLM
 llama_lm = Llama3CausalLM.from_preset("hf://meta-llama/Meta-Llama-3-8B-Instruct")
 
 # Get a summary
-llama_lm.summary() # Should show 3B parameters ~29.92 GB
+llama_lm.summary() # Should show 3B parameters ~29.92GB
 
 # Quantize the model to improve memory usage and speed, sacrificing minimal performance
 llama_lm.quantize("int8")
-llama_lm.summary() # Should show 3B parameters ~7.48 GB
+llama_lm.summary() # Should show 3B parameters ~7.48GB
 
 # Prepare prompts in Llama3-appropriate format
 def make_llama_3_prompt(user, system=""):
