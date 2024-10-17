@@ -773,9 +773,10 @@ class ItemAssociationRecommender(BaseItemRecommender):
                 baseCountResultsByItemId[queryItemId][countPrefix+"count"]
 
                 # Ensure component items have core association counts.  Convert to floats to facilitate calculations
+
                 nAB = result["nAB"] = float(result[countField]);
-                nA = result["nA"] = float(baseCountResultsByItemId[queryItemId][countPrefix+"count"]);
-                nB = result["nB"] = float(baseCountResultsByItemId[targetItemId][countPrefix+"count"]);
+                nA = result["nA"] = float(baseCountResultsByItemId[queryItemId][countPrefix+"count"]);  # If get TypeError: float() argument must be a string or a real number, not 'NoneType' at this line, is probably because the clinical_item table counts are still null.
+                nB = result["nB"] = float(baseCountResultsByItemId[targetItemId][countPrefix+"count"]); #   Just need to run the DataManager.updateclinicalItemCounts function, but it may be skipped above if database thinks the cache says it's been done before. Can force a run, or delete the contents of the data_cache table to force a refresh.
                 N = result["N"] = float(totalPatients);
 
         finally:

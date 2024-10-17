@@ -6,23 +6,27 @@ rem Use regedit to create an entry pointing to this script to autorun on startup
 rem		HKEY_CURRENT_USER\Software\Microsoft\Command Processor\AutoRun
 rem Enter "cmd /?" for additional info
 
-rem Application path.  Directory containing CHEM so modules can be imported by each other
-set MEDINFO_DIR=C:\HealthRex\CDSS
+rem Application path.  Directory containing modules can be imported by each other
+set MEDINFO_DIR=C:\CDSS
 set PYTHONPATH=%PYTHONPATH%;%CHEM_DIR%;%MEDINFO_DIR%
 
 rem Put Python on path for command-line convenience
-set PYTHONHOME=C:\Dev\Python36
+set PYTHONHOME=D:\Dev\Python3.12
 set PATH=%PYTHONHOME%;%PYTHONHOME%\Scripts;%PATH%
 
 rem Put R on path for command-line convenience
 set PATH=C:\Dev\R\R-3.6.1\bin;%PATH%
 
 rem PostgreSQL DLL's need to be accessible for clients to work
-set POSTGRESQL_HOME=C:\Dev\PostgreSQL\9.6
+set POSTGRESQL_HOME=D:\Dev\PostgreSQL16
 set PATH=%POSTGRESQL_HOME%\bin;%PATH%
+set PG_PASSWORD=1234
+
+rem MOD_WSGI Apache connections
+set MOD_WSGI_APACHE_ROOTDIR=D:\Dev\Apache24
 
 rem Git Unix tools
-set PATH=%PATH%;"C:\Dev\Git\usr\bin"
+set PATH=%PATH%;C:\Program Files\Git\usr\bin
 
 rem Google Cloud authentication
 set GOOGLE_APPLICATION_CREDENTIALS=C:\GoogleDrive\Tools\application_default_credentials.jonc101@stanford.edu.json
