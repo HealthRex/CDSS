@@ -77,7 +77,7 @@ This method prevents the external IP from changing when you restart your VM.
 2. Assign the Static IP Address to Your VM
 - Navigate to **Top Left Corner > Compute Engine > VM instances**.
 - Click on your VM, then click **EDIT**.
-- In the *Network interfaces* do **Network interface 1 > External IPv4 adress > Name of the static external IP adress you reserved**.
+- In the **Network interfaces** section do **Network interface 1 > External IPv4 adress > Name of the static external IP adress you reserved**.
 - Click **SAVE**.
 
 **Important:** Reserving a static external IP address incurs a small hourly charge (currently $0.005 per hour), which translates to approximately $44 per year. To avoid unnecessary costs, remember to to **Top Left Corner > VPC Network > IP adresses > RELEASE STATIC ADRESS** when you no longer need it.
