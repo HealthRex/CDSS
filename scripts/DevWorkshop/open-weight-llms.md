@@ -122,8 +122,18 @@ gemma_lm = keras_nlp.models.GemmaCausalLM.from_preset("hf://google/gemma-2-2b-it
 # Get a summary
 gemma_lm.summary() # should see ~2B parameters and ~9.74 GB
 
+# Prepare prompts in Gemma-appropriate format
+def make_gemma_2_prompt(user_prompt):    
+    prompt = (  f"<start_of_turn>user\n"
+                f"{user_prompt}\n"
+                f"<end_of_turn>\n"
+                f"<start_of_turn>model\n"
+                )
+    return prompt
+
 # Ask a question
-res = gemma_lm.generate("What is the nature of daylight?", max_length=64)
+prompt = make_gemma_2_prompt("What is the nature of daylight?")
+res = gemma_lm.generate(prompt, max_length=64)
 print(res)
 ```
 
