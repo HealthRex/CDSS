@@ -68,19 +68,19 @@ This tutorial guides you through setting up a virtual machine with GPUs on Googl
 ### Optional: Use a static external IP adress
 This method prevents the external IP from changing when you restart your VM.
 1. Reserve a static external IP adress
-- Navigate to **Top Left Corner > VPC Network > IP adresses**.
-- Make sure the drop down list on the top left indicates the same project where your VM is located (eg `som-nero-jonc101`).
-- Click **RESERVE EXTERNAL IP ADRESS**.
-- Provide a descriptive name (e.g., `francois-l4-64gb-static-external-ip`).
-- Select the same **Region** as your VM (e.g., `us-west1-a`).
-- Click **RESERVE**.
+    * Navigate to **Top Left Corner > VPC Network > IP adresses**.
+    * Make sure the drop down list on the top left indicates the same project where your VM is located (eg `som-nero-jonc101`).
+    * Click **RESERVE EXTERNAL IP ADRESS**.
+    * Provide a descriptive name (e.g., `francois-l4-64gb-static-external-ip`).
+    * Select the same **Region** as your VM (e.g., `us-west1-a`).
+    * Click **RESERVE**.
 2. Assign the Static IP Address to Your VM
-- Navigate to **Top Left Corner > Compute Engine > VM instances**.
-- Click on your VM, then click **EDIT**.
-- In the **Network interfaces** section do **Network interface 1 > External IPv4 adress > Name of the static external IP adress you reserved**.
-- Click **SAVE**.
+    * Navigate to **Top Left Corner > Compute Engine > VM instances**.
+    * Click on your VM, then click **EDIT**.
+    * In the **Network interfaces** section do **Network interface 1 > External IPv4 adress >** [*Name of your reserved static external IP adress*].
+    * Click **SAVE**.
 
-**Important:** Reserving a static external IP address incurs a small hourly charge (currently $0.005 per hour), which translates to approximately $44 per year. To avoid unnecessary costs, remember to to **Top Left Corner > VPC Network > IP adresses > RELEASE STATIC ADRESS** when you no longer need it.
+**Important:** Reserving a static external IP address incurs a small hourly charge (currently $0.005 per hour), which translates to approximately $44 per year. To avoid unnecessary costs, when you no longer need your VM, please delete it *AND* remember to do **Top Left Corner > VPC Network > IP adresses > RELEASE STATIC ADRESS**.
 ## Using Open Weights LLMs with Keras-NLP and JAX
 1. Once VScode is SSH tunneled  to your VM, you'll have to reinstall all VScode extensions that you typically use. Thankfully that's easy: go to extensions in the SSH remote SSH tab click on the cloud icon and select the extensions you want to reinstall.
 2. (Recommended) Create a conda environment.
@@ -103,9 +103,11 @@ os.environ["KERAS_BACKEND"] = "jax"
 # Allow the compiler to use 100% of the GPU memory
 os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"]="1.00"
 
-import keras
 import keras_nlp
-import huggingface_hub
+import keras
+
+# Run at half precision to improve speed, sacrificing minimal performance
+keras.config.set_dtype_policy("bfloat16")
 ```
 5. Log in huggingface via Shell: `huggingface-cli login` and paste the token from huggingface.co on **Profile > Settings > Access Tokens > 3 vertical dots > Invalidate and refresh**. That token will be saved in `.cache/huggingface/token`, next time you can copy/paste from there.
 
