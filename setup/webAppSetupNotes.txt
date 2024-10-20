@@ -1,62 +1,16 @@
-======== AWS Server Setup Notes ==============
-If you're just installing on your local laptop/computer, then skip to the next section, but some tips here may still be helpful.
+Notes on How to Install Software Stack, Data, and Code to be able to run an interactive web application (OrderRex), including prototype of 
+- Inpatient clinical order recommender system
+  ("ItemRecommender" to query for likely next events given prior ones)
+- CPOESim (Clinical Provider Order Entry Simulation)
+  Simulated patient cases with interactive diagnostic test results, follow-up patient states, and option for integrated recommender options from the ItemRecommender.
+  (Used in the OrderRex RCT study https://academic.oup.com/jamia/article/27/12/1850/5940667.)
 
-===========================================
-May be able to reuse existing dev environments
-- Find EC2 Amazon Machine Image (AMI) SnapShot (e.g., medinfo-STRIDE-2008-2014-postgresql)
-- Launch / Restore an Instance based on one
-- Login as ec2-user as described below
-	- sudo service postgresql96 restart
-- Should now have a running Linux server with running PostgreSQL database with STRIDE 2008-2014 data already loaded
-- Working git CDSS code repo available under /home/ec2-user/CDSS 
-
-================== From Scratch Version =================
-- Sign-up for AWS account
-- Free Tier eligible EC2 Micro Instance create
-- Change Security Group for instance to allow TCP ports 22 for SSH connection any others
-- Connect as ec2-user (or ubuntu) first off using public-private key default method (requires local download)
-  ssh -i privateKey.pem ec2-user@xxx.xxx.xxx.xxx
-- Need to prefix "sudo " to most commands to act as root
-
-Can continue to just work as "ec2-user" or can create a separate user and account that can login by password:
-	- Create user to login as
-	sudo adduser jonc101
-	sudo passwd jonc101
-	- Grant user sudo privileges
-	sudo visudo
-	    jonc101 ALL=(ALL) ALL
-	- Change setting to allow SSH password login. Beware that this is less secure!
-	sudo vi /etc/ssh/sshd_config
-	PasswordAuthentication yes
-	sudo service sshd restart
-
-	Should now be able to SSH to instance using the created username and password
-
-- Install Amazon packages (Note the below documentation is likely out-of-date, and should be using Python 3 instead)
-sudo yum install git
-sudo yum install postgresql96
-sudo yum install python27-psycopg2
-sudo yum install httpd
-sudo yum install mod_wsgi-python27
-sudo yum install python27-scipy
-sudo yum install python27-matplotlib
-
-# Python packages
-sudo pip install pandas
-sudo pip install sklearn
-
-(Consider general SciPy dev environment setup)
-(http://blog.yhathq.com/posts/setting-up-scientific-python.html)
-  Avoid mixing installation modalities (PIP, downloadable executables, Enthought Canopy distribution) as tend to be incompatible
-
-- Use AWS Console interface (RDService) to create a PostgreSQL relational database if want separate DB server (vs. installed on local EC2 instance)
-  Consider Provisioned IOPS on a "large' instance for computation periods to better handle high I/O cost
 
 ==============================================
-Local Installation Dependencies
+Installation Dependencies
 
-Highly recommended that you use some standard package installers to minimize the pain of getting all of the dependencies setup right.
-(E.g., yum or apt-get for top level packages. Use pip for python packages where possible. Windows binary installers may be necessary for others. Many unofficial Windows binaries are available from https://www.lfd.uci.edu/~gohlke/pythonlibs/)
+Highly recommended that you use standard package installers to minimize the pain of getting all of the dependencies setup right.
+(E.g., yum or apt-get for top level packages. Use pip for python packages where possible. Windows binary installers may be necessary for others, otherwise may also need Microsoft VS Tools C++ compilers. Many unofficial Windows binaries used to be available from https://www.lfd.uci.edu/~gohlke/pythonlibs/, but these no longer appear to be supported as of 2024.)
 
 - PostgreSQL (follow installation instructions)
 - Python (follow installation instructions)
@@ -67,7 +21,7 @@ Highly recommended that you use some standard package installers to minimize the
 
 - Apache 2.4
 - Mod_WSGI 
-  (This is most complicated dependency that enables Apache web server to host Python webpages. 
+  (This can be a complicated dependency that enables Apache web server to host Python webpages. 
    Follow installation instructions for basic install.
    On Windows may need Desktop Development with C++ "Build Tools for Visual Studio"
    Could alternatively have plain CGI direct Python script execution through Apache web pages,
@@ -83,9 +37,11 @@ Download code from source control
 Download data folders
 - STRIDE-Inpatient-2008-2014
   - dump2009-2014-5year-time
+
 - STRIDE-Inpatient-2004-2017
-  (More recent version, where only need the files listed in the restore_clinical_item.sh script
-  under medinfo_2008_2017_postgresqldump)
+  This is a more recent version that enables the ItemRecommender interface, but is NOT compatible with the CPOESim cases that were previously created. For demo/test purposes, just use the older 2008-2014 version.
+  - If use this version, would  need the files listed in the restore_clinical_item.sh script under medinfo_2008_2017_postgresqldump.
+
 
 # Tips for remote copying / synchronizing data files to Linux servers
 pscp * jonc101@corn.stanford.edu:private/data
@@ -93,6 +49,7 @@ pscp * jonc101@corn.stanford.edu:private/data
 rsync --partial --progress order_results.txt jonc101@corn.stanford.edu:private/data/order_results.txt
 
 =============================================
+Linux server configuration suggestions
 Update ~/.bash_profile with paths and references to make subsequent steps more convenient
 
 > vi ~/.bash_profile
@@ -112,15 +69,15 @@ Update ~/.bash_profile with paths and references to make subsequent steps more c
 # PostgreSQL Database Server Setup
 - See documentation for local setup
 - AWS RDS does much of this automatically
-- AWS EC2
-	sudo yum install postgresql96-server
-	sudo service postgresql96 initdb
+- AWS EC2 example commands
+	sudo yum install postgresql96-server	# Replace all 9.6 references with more current version
+	sudo service postgresql96 initdb		#  (Tested PostgreSQL 16 in 2024)
 	sudo service postgresql96 restart
 	sudo -u postgres psql -U postgres 	# Connect via database superuser postgres
 
 # Create DB users and access privileges from remote connections (local install may do through pgAdmin GUI tool)
 # Replace "jonc101" with ec2-user or other username as per your preference
-# User will likely need Login and Database creation privileges for unit tests to pass
+# User will need Login and Database creation privileges for unit tests to pass
 PostgreSQL SQL Command:
     CREATE USER "ec2-user" PASSWORD '<DBPassword>';	
 
@@ -130,8 +87,8 @@ PostgreSQL SQL Command:
 	CREATE DATABASE medinfo OWNER "ec2-user";
 	CREATE DATABASE testmedinfo OWNER "ec2-user";
 
-# Need to configure PostgreSQL database server to allow connections by password, in this case, from any client host
-# (May be able to skip this if just testing on local machine)
+# If running on a remote server, you will need to configure the PostgreSQL database to allow connections by password, in this case, from any client host
+# 	(May be able to skip this if just testing on local machine)
 #sudo echo "host  all  all  0.0.0.0/0  md5" >> /var/lib/pgsql96/data/pg_hba.conf
 sudo vi /var/lib/pgsql96/data/pg_hba.conf
 	# Add line like this, saying allow connection to any database, by any user, from any IP address, if authenticates by an MD5 encrypted password
@@ -150,36 +107,50 @@ sudo vi /var/lib/pgsql96/data/postgresql.conf
 # For convenience, can define database user password in environment so don't have to enter it everytime
 	export PGPASSWORD=<DBPassword>
 
-# If restoring from a previously pre-processed database, than just restore each data table's contents in turn
-> restore_clinical_item.sh (should be stored with data dump source)
 
-# See setupDataPreprocessingNotes.txt for details on reconstructing the pre-processing steps from scratch
 
-# Restore the clinical simulation data for user interactions found under medinfo/cpoe/cpoeSim/simData/
+
+====================================================================
+Restore Application Data
+
+# Clinical item data representation and pre-trained association matrix that powers the recommender engine
+# Restore script should be stored with data dump source 
+#   (e.g., STRIDE-Inpatient-2008-2014 - dump2009-2014-5year-time)
+# Edit the restore shell script first lines to point to the actual database being used
+> restore_clinical_item.sh 
+
+
+# Restore the CPOESim clinical simulation data for user interactions found in the code repo
+# under CDSS/medinfo/cpoe/cpoeSim/simData/
+# Edit the restore shell script to point to the actual database being used
 > restoreSimTables.sh
 
-# Point Python scripts to database (may want to separate your primary database from a "test" database that unit tests run against, so that the unit tests don't accidentally clobber your primary data source).
+# Point Python scripts to database (need to separate primary database from a "test" database that unit tests run against, so that the unit tests don't accidentally clobber primary data source).
+# Create a copy of a local environemnt setting template file, and edit it with the actual info of your local database connection info.
 > cp LocalEnv.py.template LocalEnv.py
 > vi LocalEnv.py
 
+
+
+=================================================================
+Run Units Tests to Verify Code and Data Connections
 # Python unit tests to verify things are functional
 
 # Simple calculation package to verify Python dependencies installed
+# The CDSS codebase needs to be added to the PYTHONPATH environment variable
 > python -m medinfo.common.test.TestStatsUtil
 
-# Database connection test
+# Database connection test. Needs "testmedinfo" or other test database setup.
 > python -m medinfo.db.test.TestDBUtil
 
-# Basic stat table unit tests
+# Basic stat table and recommender engine unit tests
 > python -m medinfo.cpoe.test.TestAssociationAnalysis
 > python -m medinfo.cpoe.test.TestItemRecommender
 
-# Multiple Unit tests, auto discover
+# Can auto discover other unit tests to run. Some may now be out of date
 > python -m unittest discover -v -p "Test*.py" -s medinfo/analysis
 
 ===================================================================
-
-
 #  Setup Web Server (Apache HTTP, mod_wsgi, psycopg2 DB access).  
 
 
@@ -189,18 +160,21 @@ sudo vi /var/lib/pgsql96/data/postgresql.conf
 #	perfectly synced binaries / compiler versions for each component.
 #	Best if you have a package installer (e.g., yum) that does it automatically, otherwise
 #	you'll have to hunt down the right combination of pre-compiled components that are compatible.
-#   On Windows, you'll probably need precompiled binaries, so
+#   On Windows, you used to be able to get precompiled binaries, at https://www.lfd.uci.edu/~gohlke/pythonlibs/#mod_wsgi, but doesn't appear to be supported anymore.
+#	In 2024, I was successfully able to compile on Windows platforms by getting the respective Microsoft Visual Studio C++ compiler via their VSTools package.
 #      Figure out what compiler was used for your version of Python (including 32 vs. 64 bit) https://wiki.python.org/moin/WindowsCompilers
-#      Look for unofficial compiled windows binaries and select the one that matches your version of Python https://www.lfd.uci.edu/~gohlke/pythonlibs/#mod_wsgi
-#      Look for (older) versions of compiled Apache HTTP that the above references, probably off http://www.apachelounge.com/download/ 
-#      Install the mod_wsgi connector module (python3 -m pip install mod_wsgi.XXX.whl, then mod_wsgi-express module-config and copy the generated directives into the Aapche config script) https://pypi.org/project/mod-wsgi/
-#   Or this StackOverflow has reasonable directions on using pip install combined with Visual Studio compiler
+#      Look for versions of compiled Apache HTTP that the above references, probably off http://www.apachelounge.com/download/ (Often better NOT to get the very latest version of packages, but to get the second-most-recent one, as more likely that other packages will have caught up interms of mutual compatibility)
+#      Install the mod_wsgi connector module (python -m pip install mod_wsgi, then mod_wsgi-express module-config and copy the generated directives into the Aapche config script) https://pypi.org/project/mod-wsgi/
+#   This StackOverflow has reasonable directions on using pip install combined with Visual Studio compiler if on a Windows machine.
 #		https://stackoverflow.com/questions/59801387/how-to-install-mod-wsgi-into-apache-on-windows
+
 # Setup the Apache webserver as per standard instructions, 
 #	Can just be a matter of downloading the respective package and running httpd -k install
 #	or using a package manager like yum / apt-get / brew, etc.,
 #	then add the extra configuration below to add the custom Python app
+
 # Sample Apache Config:
+# (Add the following configuration information to the httpd.conf file, edited to match actual file locations)
 sudo vi /etc/httpd/conf/httpd.conf
 
 	# Command line below should generate the specific configuration directives needed
@@ -241,6 +215,8 @@ sudo vi /etc/httpd/conf/httpd.conf
 # Windows: May need to add Apache directive, so CGI knows how to run .py files
 	ScriptInterpreterSource Registry
 
+
+
 # Link with tips on setting up apache environment variable configuration if needed
 # Basically adding values to a configuration file like below, though CGI and WSGI should accept PYTHONPATH specification as above
 sudo vi /etc/sysconfig/httpd 
@@ -266,7 +242,62 @@ sudo service httpd restart
 
 #  Test Pages. If these load properly, then your web setup should be in good shape
 #  	If failing with Internal Server Errors, then check the Apache /etc/httpd/logs/error.log for stderr messages
-http://localhost/medinfo/web/cgibin/admin/DebugWeb.py
-http://localhost/medinfo/web/cgibin/admin/DBUtilWeb.py
-http://localhost/medinfo/web/cgibin/cpoe/ItemRecommenderWeb.py
+http://localhost/cgibin/admin/DebugWeb.py
+http://localhost/cgibin/admin/DBUtilWeb.py
+http://localhost/cgibin/cpoe/ItemRecommenderWeb.py
+http://localhost/cgibin/cpoe/SimSetup.py
 
+
+
+
+
+
+
+
+================== AWS Serve From Scratch Installation Notes =================
+(Older notes on how to get an Amazon Web Services version of the system running.
+Much of this is out-of-date (referring Python 2.7 version) and 
+AWS seems to have changed it's security group configuration settings)
+
+- Sign-up for AWS account
+- Free Tier eligible EC2 Micro Instance create
+- Change Security Group for instance to allow TCP ports 22 for SSH connection any others
+- Connect as ec2-user (or ubuntu) first off using public-private key default method (requires local download)
+  ssh -i privateKey.pem ec2-user@xxx.xxx.xxx.xxx
+- Need to prefix "sudo " to most commands to act as root
+
+Can continue to just work as "ec2-user" or can create a separate user and account that can login by password:
+	- Create user to login as
+	sudo adduser jonc101
+	sudo passwd jonc101
+	- Grant user sudo privileges
+	sudo visudo
+	    jonc101 ALL=(ALL) ALL
+	- Change setting to allow SSH password login. Beware that this is less secure!
+	sudo vi /etc/ssh/sshd_config
+	PasswordAuthentication yes
+	sudo service sshd restart
+
+	Should now be able to SSH to instance using the created username and password
+
+- Install Amazon packages 
+(Note the below documentation is likely out-of-date, and should be using Python 3 instead
+Will need to lookup and replace package names with up to date version)
+
+	sudo yum install git
+	sudo yum install postgresql   # Have tested with PostgreSQL 16, Python 3.12
+	sudo yum install psycopg2
+	sudo yum install httpd
+	sudo yum install mod_wsgi
+	sudo yum install scipy
+
+# Python packages
+
+	sudo pip install pandas
+	sudo pip install sklearn
+
+(http://blog.yhathq.com/posts/setting-up-scientific-python.html)
+  Avoid mixing installation modalities (PIP, downloadable executables, Enthought Canopy distribution) as tend to be incompatible
+
+- Use AWS Console interface (RDService) to create a PostgreSQL relational database if want separate DB server (vs. installed on local EC2 instance)
+  Consider Provisioned IOPS on a "large' instance for computation periods to better handle high I/O cost
