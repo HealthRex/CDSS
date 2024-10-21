@@ -177,7 +177,7 @@ print(res)
 ```
 
 ## Further reading
-- More information on Llam 3.2 in Keras: [Tutorial](https://huggingface.co/blog/keras-llama-32).
+- More information on Llama 3.2 in Keras: [Tutorial](https://huggingface.co/blog/keras-llama-32).
 - LoRA / QLoRA fine-tuning of Gemma 2: [Tutorial 1](https://medium.com/@joansantoso/finetune-your-gemma-model-to-create-a-qa-model-f0380bfba710), [Tutorial 2](https://keras.io/examples/keras_recipes/parameter_efficient_finetuning_of_gemma_with_lora_and_qlora/).
 - *Deep Learning with Python, Third Edition*: [pre-relase](https://www.manning.com/books/deep-learning-with-python-third-edition). This book is great! The latest chapters are currently being written and will include numerous code examples for how to use Keras 3 for LLM applications.
 
