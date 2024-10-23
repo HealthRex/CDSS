@@ -1,7 +1,7 @@
 ### Steps for Making EHR Dataset Publicly Available at Stanford:
 
 1. **Submit a Ticket to the University Privacy Office (UPO):**
-    - Open a ticket with the University Privacy Office (UPO) through their service portal. [https://stanford.service-now.com/it_services?id=sc_cat_item&sys_id=1ecf90ff1bf0409094c0fee58d4bcb3e]
+    - Open a ticket with the University Privacy Office (UPO) through their service portal. Here is the link to submit a UPO request.
     - Include background details about your dataset and project when submitting the ticket.
 2. **Provide Information to UPO:**
     - Once the ticket is opened, the UPO will reach out to gather more information about your dataset, such as:
