@@ -25,5 +25,5 @@
         - How the data has been de-identified.
         - How it will be shared.
         - Retention periods and disposal methods in compliance with institutional policies.
-7. **Public Release on PhysioNet/Dryad:
+7. **Public Release on PhysioNet/Dryad:**
     - Once all steps are completed, you can upload the de-identified dataset to Dryad or another approved platform for public access.
