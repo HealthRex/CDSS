@@ -123,50 +123,124 @@ all_cultures_with_flag AS (
 #########################################################################################################################
 -- Step 6: Get detailed information for positive cultures, clean antibiotic names, and exclude non-antibiotic entries
 #########################################################################################################################     
-
 positive_culture_details AS (
     SELECT 
         cs.order_proc_id_coded,
         cs.organism,
-        INITCAP(LOWER(TRIM(
+        -- Clean and standardize the antibiotic name using the updated cleaning approach
+        INITCAP(TRIM(
+          REGEXP_REPLACE(
+          REGEXP_REPLACE(
+          REGEXP_REPLACE(
+          REGEXP_REPLACE(
             REGEXP_REPLACE(
                 REGEXP_REPLACE(
-                    REGEXP_REPLACE(
-                        LOWER(cs.antibiotic),  -- Convert to lowercase to ensure case-insensitive matching
-                        '\\s*synergy\\s*$', ''),  -- Remove "Synergy"
-                '^[^a-z]*|\\s+\\S*[^a-z\\s]+.*$|\\.+$', ''  -- General cleaning, already lowercase due to the LOWER function
-            ), 'penicillin.*', 'Penicillin'  -- Merge any 'Penicillin' variations with 'Penicillin', case-insensitive
-        )))) AS antibiotic,
-        cs.suscept as susceptibility
+                    LOWER(cs.antibiotic),
+                    'penicillin[^a-z].*$', 'penicillin'
+                ),
+                '^[^a-z]*|\\s+\\S*[^a-z\\s]+.*$|\\.+$', ''
+            ),
+              '\\s*\\d+(\\.\\d+)?\\s*(mg|mcg|gram|ml|%)', ''  -- Remove dosages or concentrations
+          ),
+          '\\(.*?\\)', ''  -- Remove text in parentheses
+        ),' in.*$|tablet|capsule|intravenous|piggyback|' ||
+                            'solution|suspension|oral|sodium|chloride|' ||
+                            'injection|citrate|soln|dextrose|iv|' ||
+                            'macrocrystals|macrocrystal|axetil|potassium|packet|' ||
+                            'monohydrate|ethylsuccinate|powder|mandelate|' ||
+                            'hyclate|hcl|hippurate|tromethamine|' ||
+                            'million|unit|syrup|chewable|delayed|mphase|' ||
+                            'release|benzathine|syringe|dispersible|' ||
+                            'sulfate|procaine|blue|hyos|sod*phos|' ||
+                            'susp|and|fosamil|extended|succinate|granules|' ||
+                            'delay|pot|ext|rel|cyam|salicylate|salicyl|' ||
+                            'sodphos|methylene|stearate|synergy', ''                   
+        ),
+        '\\d|\\sfor\\s*|/ml\\s*|\\sml\\s*|\\-+\\s*|\\,+\\s*',''
+        )
+        )
+      )  AS antibiotic,
+        cs.suscept AS susceptibility
     FROM 
-        `som-nero-phi-jonc101.shc_core_2023.culture_sensitivity` cs
+        som-nero-phi-jonc101.shc_core_2023.culture_sensitivity cs
     INNER JOIN (
+        -- Subquery to get antibiotic counts for those with more than 10 occurrences
         SELECT 
-            INITCAP(LOWER(TRIM(
+          INITCAP(TRIM(
+          REGEXP_REPLACE(
+          REGEXP_REPLACE(
+          REGEXP_REPLACE(
+          REGEXP_REPLACE(
+            REGEXP_REPLACE(
                 REGEXP_REPLACE(
-                    REGEXP_REPLACE(
-                        REGEXP_REPLACE(
-                            LOWER(antibiotic),  -- Convert to lowercase to ensure case-insensitive matching
-                            '\\s*synergy\\s*$', ''),  -- Remove "Synergy"
-                        '^[^a-z]*|\\s+\\S*[^a-z\\s]+.*$|\\.+$', ''  -- General cleaning, already lowercase due to the LOWER function
-                    ), 'penicillin.*', 'Penicillin'  -- Merge any 'Penicillin' variations with 'Penicillin', case-insensitive
-            )))) AS cleaned_antibiotic,
+                    LOWER(antibiotic),
+                    'penicillin[^a-z].*$', 'penicillin'
+                ),
+                '^[^a-z]*|\\s+\\S*[^a-z\\s]+.*$|\\.+$', ''
+            ),
+              '\\s*\\d+(\\.\\d+)?\\s*(mg|mcg|gram|ml|%)', ''  -- Remove dosages or concentrations
+          ),
+          '\\(.*?\\)', ''  -- Remove text in parentheses
+        ),' in.*$|tablet|capsule|intravenous|piggyback|' ||
+                            'solution|suspension|oral|sodium|chloride|' ||
+                            'injection|citrate|soln|dextrose|iv|' ||
+                            'macrocrystals|macrocrystal|axetil|potassium|packet|' ||
+                            'monohydrate|ethylsuccinate|powder|mandelate|' ||
+                            'hyclate|hcl|hippurate|tromethamine|' ||
+                            'million|unit|syrup|chewable|delayed|mphase|' ||
+                            'release|benzathine|syringe|dispersible|' ||
+                            'sulfate|procaine|blue|hyos|sod*phos|' ||
+                            'susp|and|fosamil|extended|succinate|granules|' ||
+                            'delay|pot|ext|rel|cyam|salicylate|salicyl|' ||
+                            'sodphos|methylene|stearate|synergy', ''                   
+        ),
+        '\\d|\\sfor\\s*|/ml\\s*|\\sml\\s*|\\-+\\s*|\\,+\\s*',''
+        )
+        )
+      )AS cleaned_antibiotic,
             COUNT(*) AS count
         FROM 
-            `som-nero-phi-jonc101.shc_core_2023.culture_sensitivity`
+            som-nero-phi-jonc101.shc_core_2023.culture_sensitivity
         GROUP BY 
             cleaned_antibiotic
         HAVING 
-            COUNT(*) >= 10
-    ) AS antibiotic_counts ON INITCAP(LOWER(TRIM(
-        REGEXP_REPLACE(
+            COUNT(*) >= 10  -- Include only antibiotics that appear 10 times or more
+    ) AS antibiotic_counts 
+    ON 
+
+
+      INITCAP(TRIM(
+          REGEXP_REPLACE(
+          REGEXP_REPLACE(
+          REGEXP_REPLACE(
+          REGEXP_REPLACE(
             REGEXP_REPLACE(
                 REGEXP_REPLACE(
-                    LOWER(cs.antibiotic),  -- Convert to lowercase to ensure case-insensitive matching
-                    '\\s*synergy\\s*$', ''),  -- Remove "Synergy"
-                '^[^a-z]*|\\s+\\S*[^a-z\\s]+.*$|\\.+$', ''  -- General cleaning, already lowercase due to the LOWER function
-            ), 'penicillin.*', 'Penicillin'  -- Merge any 'Penicillin' variations with 'Penicillin', case-insensitive
-    )))) = antibiotic_counts.cleaned_antibiotic
+                    LOWER(cs.antibiotic),
+                    'penicillin[^a-z].*$', 'penicillin'
+                ),
+                '^[^a-z]*|\\s+\\S*[^a-z\\s]+.*$|\\.+$', ''
+            ),
+              '\\s*\\d+(\\.\\d+)?\\s*(mg|mcg|gram|ml|%)', ''  -- Remove dosages or concentrations
+          ),
+          '\\(.*?\\)', ''  -- Remove text in parentheses
+        ),' in.*$|tablet|capsule|intravenous|piggyback|' ||
+                            'solution|suspension|oral|sodium|chloride|' ||
+                            'injection|citrate|soln|dextrose|iv|' ||
+                            'macrocrystals|macrocrystal|axetil|potassium|packet|' ||
+                            'monohydrate|ethylsuccinate|powder|mandelate|' ||
+                            'hyclate|hcl|hippurate|tromethamine|' ||
+                            'million|unit|syrup|chewable|delayed|mphase|' ||
+                            'release|benzathine|syringe|dispersible|' ||
+                            'sulfate|procaine|blue|hyos|sod*phos|' ||
+                            'susp|and|fosamil|extended|succinate|granules|' ||
+                            'delay|pot|ext|rel|cyam|salicylate|salicyl|' ||
+                            'sodphos|methylene|stearate|synergy', ''                   
+        ),
+        '\\d|\\sfor\\s*|/ml\\s*|\\sml\\s*|\\-+\\s*|\\,+\\s*',''
+        )
+        )
+      )= antibiotic_counts.cleaned_antibiotic
     WHERE
         NOT (
             cs.antibiotic LIKE '%InBasket%'  
