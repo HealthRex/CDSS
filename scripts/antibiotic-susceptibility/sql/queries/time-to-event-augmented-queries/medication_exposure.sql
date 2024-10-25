@@ -18,15 +18,38 @@ cleaned_medications AS (
         c.order_proc_id_coded,
         c.order_time_jittered_utc,
         mo.ordering_date_jittered_utc as medication_time,
-        INITCAP(TRIM(
+        INITCAP(
             REGEXP_REPLACE(
                 REGEXP_REPLACE(
-                    LOWER(mm.name),
-                    'penicillin[^a-z].*$', 'penicillin'
+                    TRIM(
+                        REGEXP_REPLACE(
+                            REGEXP_REPLACE(
+                                REGEXP_REPLACE(
+                                    LOWER(mm.name),  -- Convert to lowercase
+                                    '\\s*\\d+(\\.\\d+)?\\s*(mg|mcg|gram|ml|%)', ''  -- Remove dosages or concentrations
+                                ),
+                                '\\(.*?\\)', ''  -- Remove text in parentheses
+                            ),
+                            ' in.*$|tablet|capsule|intravenous|piggyback|' ||
+                            'solution|suspension|oral|sodium|chloride|' ||
+                            'injection|citrate|soln|dextrose|iv|' ||
+                            'macrocrystals|macrocrystal|axetil|potassium|packet|' ||
+                            'monohydrate|ethylsuccinate|powder|mandelate|' ||
+                            'hyclate|hcl|hippurate|tromethamine|' ||
+                            'million|unit|syrup|chewable|delayed|mphase|' ||
+                            'release|benzathine|syringe|dispersible|' ||
+                            'sulfate|procaine|blue|hyos|sod*phos|' ||
+                            'susp|and|fosamil|extended|succinate|granules|' ||
+                            'delay|pot|ext|rel|cyam|salicylate|salicyl|' ||
+                            'sodphos|methylene|stearate|synergy', ''  -- Remove pharmacy filler words and "synergy"
+                        )
+                    ),
+                    '\\d|\\sfor\\s*|\\ser\\s*|\\shr\\s*|/ml\\s*|' ||
+                    '\\sml\\s*|\\sv\\s*|\\sg\\s*|\\sim\\s*', ''  -- General cleaning for non-relevant patterns
                 ),
-                '^[^a-z]*|\\s+\\S*[^a-z\\s]+.*$|\\.+$', ''
+                '\\s|\\/|\\.|-$', ''  -- Remove extra characters like spaces, slashes, dots, etc.
             )
-        )) AS medication_name,
+        ) AS medication_name,
         TIMESTAMP_DIFF(c.order_time_jittered_utc,mo.ordering_date_jittered_utc,day) as medication_time_to_cultureTime,       
     FROM 
         base_cohort c
