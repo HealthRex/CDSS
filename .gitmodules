@@ -1,0 +1,3 @@
+[submodule "scripts/discharge_sum_proj"]
+	path = scripts/discharge_sum_proj
+	url = https://github.com/fcgrolleau/discharge_sum_proj.git
