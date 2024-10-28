@@ -234,6 +234,24 @@ chmod 755 /home/jonc101
 sudo setenforce 0
 https://wiki.apache.org/httpd/13PermissionDenied
 
+
+#Resolving psycopg2 and Other Python Package Import Issues
+If you encounter a ModuleNotFoundError for psycopg2 while setting up the Apache server with mod_wsgi, it may be due to the Python packages being installed in a directory that Apache doesn’t have permission to read, like your user home directory (~/.local/lib). 
+To make these packages accessible to Apache, install them in a globally accessible directory such as /usr/local. Here’s how:
+- Uninstall Existing Local Installations (if necessary):
+ pip3 uninstall psycopg2 numpy scipy
+
+- Reinstall Packages in /usr/local: 
+ sudo pip3 install psycopg2 numpy scipy --target=/usr/local/lib/python3.8/dist-packages
+
+- Update Apache Configuration: Add the following to your Apache configuration file to ensure it recognizes the new package location:
+WSGIPythonPath /usr/local/lib/python3.8/dist-packages:c:/CDSS
+
+- Restart Apache: 
+sudo service apache2 restart
+
+
+
 # General Tips
 - Review Apache error logs if running into server side issues: sudo tail /etc/httpd/logs/error_
 
