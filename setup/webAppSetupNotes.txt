@@ -11,6 +11,7 @@ Installation Dependencies
 
 Highly recommended that you use standard package installers to minimize the pain of getting all of the dependencies setup right.
 (E.g., yum or apt-get for top level packages. Use pip for python packages where possible. Windows binary installers may be necessary for others, otherwise may also need Microsoft VS Tools C++ compilers. Many unofficial Windows binaries used to be available from https://www.lfd.uci.edu/~gohlke/pythonlibs/, but these no longer appear to be supported as of 2024.)
+(In order for Apache web server to access the Python modules, they likely need to be installed in a system directory, not a user level folder. Thus may need to do something like "sudo -H pip install" https://stackoverflow.com/questions/40391409/apache-mod-wsgi-python-doesnt-load-installed-modules)
 
 - PostgreSQL (follow installation instructions)
 - Python (follow installation instructions)
