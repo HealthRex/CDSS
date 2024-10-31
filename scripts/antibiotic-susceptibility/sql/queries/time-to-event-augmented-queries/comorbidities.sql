@@ -49,6 +49,7 @@ All_Components as (
   c.pat_enc_csn_id_coded,
   c.order_proc_id_coded,
   c.order_time_jittered_utc,
+  A.comorbidity_component,
   A.comorbidity_component_start_time,
   TIMESTAMP_DIFF(c.order_time_jittered_utc,A.comorbidity_component_start_time,day) as comorbidity_component_start_days_culture,
   A.comorbidity_component_end_time,
