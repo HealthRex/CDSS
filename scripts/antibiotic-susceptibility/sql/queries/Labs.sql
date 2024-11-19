@@ -475,7 +475,7 @@ SELECT
             PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded 
             ORDER BY labtime
         ),2) AS first_wbc,
-    Round(FIRST_VALUE(wbc) OVER (
+    Round(LAST_VALUE(wbc) OVER (
             PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded 
             ORDER BY labtime
         ),2) AS last_wbc,
