@@ -180,6 +180,7 @@ last2week_Quantiles a using (anon_id,pat_enc_csn_id_coded,order_proc_id_coded,Pe
 last4weeklabs AS (
     SELECT 
         c.*,
+        lr.order_time_jittered_utc as labtime,
         14 as Period_Day,
         CASE 
             WHEN (LOWER(lr.base_name) = 'wbc' AND LOWER(lr.reference_unit) IN ('thousand/ul','k/ul','10x3/ul','10*3/ul','x10e3/ul')) THEN SAFE_CAST(lr.ord_value AS FLOAT64)
@@ -358,6 +359,7 @@ last4week_Quantiles a using (anon_id,pat_enc_csn_id_coded,order_proc_id_coded,Pe
 last24weeklabs AS (
     SELECT 
         c.*,
+        lr.order_time_jittered_utc as labtime,
         14 as Period_Day,
         CASE 
             WHEN (LOWER(lr.base_name) = 'wbc' AND LOWER(lr.reference_unit) IN ('thousand/ul','k/ul','10x3/ul','10*3/ul','x10e3/ul')) THEN SAFE_CAST(lr.ord_value AS FLOAT64)
