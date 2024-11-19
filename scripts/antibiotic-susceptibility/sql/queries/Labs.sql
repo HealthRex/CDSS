@@ -2,6 +2,7 @@ CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbio
 WITH last2weeklabs AS (
     SELECT 
         c.*,
+        lr.order_time_jittered_utc as labtime,
         14 as Period_Day,
         CASE 
             WHEN (LOWER(lr.base_name) = 'wbc' AND LOWER(lr.reference_unit) IN ('thousand/ul','k/ul','10x3/ul','10*3/ul','x10e3/ul')) THEN SAFE_CAST(lr.ord_value AS FLOAT64)
@@ -57,7 +58,6 @@ last2week_Quantiles as (
     pat_enc_csn_id_coded,
     order_proc_id_coded,
     Period_Day,
-
     ROUND(APPROX_QUANTILES(wbc, 100)[OFFSET(75)], 2) AS Q75_wbc,
     ROUND(APPROX_QUANTILES(wbc, 100)[OFFSET(25)], 2) AS Q25_wbc,
     ROUND(APPROX_QUANTILES(wbc, 100)[OFFSET(50)], 2) AS median_wbc,
@@ -115,54 +115,54 @@ SELECT
     Period_Day,
     Round(FIRST_VALUE(wbc) OVER (
             PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded 
-            ORDER BY order_time_jittered_utc
+            ORDER BY labtime
         ),2) AS first_wbc,
     Round(FIRST_VALUE(wbc) OVER (
             PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded 
-            ORDER BY order_time_jittered_utc
+            ORDER BY labtime
         ),2) AS last_wbc,
     
     
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_neutrophils,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_neutrophils,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_neutrophils,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_neutrophils,
    
     
 
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_lymphocytes,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lymphocytes,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_lymphocytes,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lymphocytes,
     
     
     
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_hgb,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hgb,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_hgb,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hgb,
    
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_plt,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_plt,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_plt,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_plt,
    
     -- Na
-    ROUND(FIRST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_na,
-    ROUND(LAST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_na,
+    ROUND(FIRST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_na,
+    ROUND(LAST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_na,
     
 
-    ROUND(FIRST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_hco3,
-    ROUND(LAST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hco3,
+    ROUND(FIRST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_hco3,
+    ROUND(LAST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hco3,
     
 
-    ROUND(FIRST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_bun,
-    ROUND(LAST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_bun,
+    ROUND(FIRST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_bun,
+    ROUND(LAST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_bun,
     
 
-    ROUND(FIRST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_cr,
-    ROUND(LAST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_cr,
+    ROUND(FIRST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_cr,
+    ROUND(LAST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_cr,
     
 
 
-    ROUND(FIRST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_lactate,
-    ROUND(LAST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lactate,
+    ROUND(FIRST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_lactate,
+    ROUND(LAST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lactate,
     
 
-    ROUND(FIRST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_procalcitonin,
-    ROUND(LAST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_procalcitonin,
+    ROUND(FIRST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_procalcitonin,
+    ROUND(LAST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_procalcitonin,
     
 FROM last2weeklabs
     ),
@@ -293,54 +293,54 @@ SELECT
     Period_Day,
     Round(FIRST_VALUE(wbc) OVER (
             PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded 
-            ORDER BY order_time_jittered_utc
+            ORDER BY labtime
         ),2) AS first_wbc,
     Round(FIRST_VALUE(wbc) OVER (
             PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded 
-            ORDER BY order_time_jittered_utc
+            ORDER BY labtime
         ),2) AS last_wbc,
     
     
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_neutrophils,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_neutrophils,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_neutrophils,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_neutrophils,
    
     
 
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_lymphocytes,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lymphocytes,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_lymphocytes,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lymphocytes,
     
     
     
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_hgb,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hgb,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_hgb,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hgb,
    
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_plt,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_plt,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_plt,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_plt,
    
     -- Na
-    ROUND(FIRST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_na,
-    ROUND(LAST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_na,
+    ROUND(FIRST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_na,
+    ROUND(LAST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_na,
     
 
-    ROUND(FIRST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_hco3,
-    ROUND(LAST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hco3,
+    ROUND(FIRST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_hco3,
+    ROUND(LAST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hco3,
     
 
-    ROUND(FIRST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_bun,
-    ROUND(LAST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_bun,
+    ROUND(FIRST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_bun,
+    ROUND(LAST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_bun,
     
 
-    ROUND(FIRST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_cr,
-    ROUND(LAST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_cr,
+    ROUND(FIRST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_cr,
+    ROUND(LAST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_cr,
     
 
 
-    ROUND(FIRST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_lactate,
-    ROUND(LAST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lactate,
+    ROUND(FIRST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_lactate,
+    ROUND(LAST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lactate,
     
 
-    ROUND(FIRST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_procalcitonin,
-    ROUND(LAST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_procalcitonin,
+    ROUND(FIRST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_procalcitonin,
+    ROUND(LAST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_procalcitonin,
     
 FROM last4weeklabs
     ),
@@ -471,54 +471,54 @@ SELECT
     Period_Day,
     Round(FIRST_VALUE(wbc) OVER (
             PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded 
-            ORDER BY order_time_jittered_utc
+            ORDER BY labtime
         ),2) AS first_wbc,
     Round(FIRST_VALUE(wbc) OVER (
             PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded 
-            ORDER BY order_time_jittered_utc
+            ORDER BY labtime
         ),2) AS last_wbc,
     
     
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_neutrophils,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_neutrophils,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_neutrophils,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_neutrophils,
    
     
 
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_lymphocytes,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lymphocytes,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_lymphocytes,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lymphocytes,
     
     
     
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_hgb,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hgb,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_hgb,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hgb,
    
-    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_plt,
-    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_plt,
+    ROUND(FIRST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_plt,
+    ROUND(LAST_VALUE(neutrophils) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_plt,
    
     -- Na
-    ROUND(FIRST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_na,
-    ROUND(LAST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_na,
+    ROUND(FIRST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_na,
+    ROUND(LAST_VALUE(na) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_na,
     
 
-    ROUND(FIRST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_hco3,
-    ROUND(LAST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hco3,
+    ROUND(FIRST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_hco3,
+    ROUND(LAST_VALUE(hco3) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_hco3,
     
 
-    ROUND(FIRST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_bun,
-    ROUND(LAST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_bun,
+    ROUND(FIRST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_bun,
+    ROUND(LAST_VALUE(bun) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_bun,
     
 
-    ROUND(FIRST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_cr,
-    ROUND(LAST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_cr,
+    ROUND(FIRST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_cr,
+    ROUND(LAST_VALUE(cr) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_cr,
     
 
 
-    ROUND(FIRST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_lactate,
-    ROUND(LAST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lactate,
+    ROUND(FIRST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_lactate,
+    ROUND(LAST_VALUE(lactate) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_lactate,
     
 
-    ROUND(FIRST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc), 2) AS first_procalcitonin,
-    ROUND(LAST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY order_time_jittered_utc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_procalcitonin,
+    ROUND(FIRST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime), 2) AS first_procalcitonin,
+    ROUND(LAST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_procalcitonin,
     
 FROM last24weeklabs
     ),
