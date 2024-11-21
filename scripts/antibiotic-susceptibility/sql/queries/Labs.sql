@@ -51,6 +51,7 @@ WITH last2weeklabs AS (
     LEFT JOIN `som-nero-phi-jonc101.shc_core_2023.lab_result` lr 
     USING (anon_id, pat_enc_csn_id_coded)
     WHERE TIMESTAMP_DIFF(lr.order_time_jittered_utc, c.order_time_jittered_utc, Day) BETWEEN -14 AND 0
+    and lr.ord_value is not null 
 ),
 last2week_Quantiles as (
     SELECT 
@@ -104,6 +105,17 @@ last2week_Quantiles as (
     ROUND(APPROX_QUANTILES(procalcitonin, 100)[OFFSET(50)], 2) AS median_procalcitonin
 
     from last2weeklabs
+    where wbc is not null
+    or procalcitonin is not null 
+    or lactate is not null 
+    or cr is not null 
+    or bun is not null 
+    or hco3 is not null 
+    or na is not null 
+    or plt is not null 
+    or hgb is not null 
+    or lymphocytes is not null 
+    or neutrophils is not null 
     group by anon_id,pat_enc_csn_id_coded,order_proc_id_coded,Period_Day
 
 ),
@@ -165,6 +177,17 @@ SELECT
     ROUND(LAST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_procalcitonin,
     
 FROM last2weeklabs
+where wbc is not null
+    or procalcitonin is not null 
+    or lactate is not null 
+    or cr is not null 
+    or bun is not null 
+    or hco3 is not null 
+    or na is not null 
+    or plt is not null 
+    or hgb is not null 
+    or lymphocytes is not null 
+    or neutrophils is not null 
     ),
 last2weekstats as (
 select a.*,
@@ -283,6 +306,17 @@ last4week_Quantiles as (
     ROUND(APPROX_QUANTILES(procalcitonin, 100)[OFFSET(50)], 2) AS median_procalcitonin
 
     from last4weeklabs
+    where wbc is not null
+    or procalcitonin is not null 
+    or lactate is not null 
+    or cr is not null 
+    or bun is not null 
+    or hco3 is not null 
+    or na is not null 
+    or plt is not null 
+    or hgb is not null 
+    or lymphocytes is not null 
+    or neutrophils is not null 
     group by anon_id,pat_enc_csn_id_coded,order_proc_id_coded,Period_Day
 
 ),
@@ -344,6 +378,17 @@ SELECT
     ROUND(LAST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_procalcitonin,
     
 FROM last4weeklabs
+where wbc is not null
+    or procalcitonin is not null 
+    or lactate is not null 
+    or cr is not null 
+    or bun is not null 
+    or hco3 is not null 
+    or na is not null 
+    or plt is not null 
+    or hgb is not null 
+    or lymphocytes is not null 
+    or neutrophils is not null 
     ),
 last4weekstats as (
 select a.*,
@@ -462,6 +507,17 @@ last24week_Quantiles as (
     ROUND(APPROX_QUANTILES(procalcitonin, 100)[OFFSET(50)], 2) AS median_procalcitonin
 
     from last24weeklabs
+    where wbc is not null
+    or procalcitonin is not null 
+    or lactate is not null 
+    or cr is not null 
+    or bun is not null 
+    or hco3 is not null 
+    or na is not null 
+    or plt is not null 
+    or hgb is not null 
+    or lymphocytes is not null 
+    or neutrophils is not null 
     group by anon_id,pat_enc_csn_id_coded,order_proc_id_coded,Period_Day
 
 ),
@@ -523,6 +579,17 @@ SELECT
     ROUND(LAST_VALUE(procalcitonin) OVER (PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded ORDER BY labtime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING), 2) AS last_procalcitonin,
     
 FROM last24weeklabs
+where wbc is not null
+    or procalcitonin is not null 
+    or lactate is not null 
+    or cr is not null 
+    or bun is not null 
+    or hco3 is not null 
+    or na is not null 
+    or plt is not null 
+    or hgb is not null 
+    or lymphocytes is not null 
+    or neutrophils is not null 
     ),
 last24weekstats as (
 select a.*,
@@ -533,12 +600,15 @@ b.last_hgb,b.first_hgb,b.last_lymphocytes,b.first_lymphocytes,b.last_neutrophils
 b.last_wbc,b.first_wbc
 from last24weekfirst_last b inner join 
 last24week_Quantiles a using (anon_id,pat_enc_csn_id_coded,order_proc_id_coded,Period_Day)
-)
+),
 --------------------------------------------
+all_labs as(
 select * from last2weekstats
 union all
 select * from last4weekstats
 union all
 select * from last24weekstats
+)
+select distinct * from all_labs
 
 
