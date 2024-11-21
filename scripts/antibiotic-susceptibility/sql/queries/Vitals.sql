@@ -4,7 +4,7 @@ WITH vitals as (
   vitals.recorded_time_jittered_utc as vitaltime,
   CASE WHEN upper(row_disp_name) IN ('PULSE', 'HEART RATE') THEN round(SAFE_CAST(numerical_val_1 AS FLOAT64),2) end as heartrate,
   CASE WHEN upper(row_disp_name) IN ('RESP', 'RESP RATE') THEN round(SAFE_CAST(numerical_val_1 AS FLOAT64),2) end as resprate,
-  CASE WHEN upper(row_disp_name) IN ('TEMP') THEN round(SAFE_CAST(numerical_val_1 AS FLOAT64),2) end as temp,
+  CASE WHEN upper(row_disp_name) IN ('TEMP') THEN round(SAFE_CAST(numerical_val_1 AS FLOAT64),2) end as tempt,
   CASE WHEN (upper(trim(row_disp_name)) IN ('BP', 'NIBP') AND SAFE_CAST(numerical_val_1 AS numeric) >= 40) THEN round(SAFE_CAST(numerical_val_1 AS FLOAT64),2) end as sysbp ,
   CASE WHEN (upper(trim(row_disp_name)) IN ('BP', 'NIBP') AND SAFE_CAST(numerical_val_2 AS numeric) >= 30)  THEN round(SAFE_CAST(numerical_val_2 AS FLOAT64),2) end as diasbp,
   FROM
@@ -32,9 +32,9 @@ select anon_id,
        ROUND(APPROX_QUANTILES(resprate, 100)[OFFSET(25)],2) AS Q25_resprate,
        ROUND(APPROX_QUANTILES(resprate, 100)[OFFSET(75)],2) AS Q75_resprate,
        ROUND(APPROX_QUANTILES(resprate, 100)[OFFSET(50)],2) AS median_resprate,
-       ROUND(APPROX_QUANTILES(temp, 100)[OFFSET(25)],2) AS Q25_temp,
-       ROUND(APPROX_QUANTILES(temp, 100)[OFFSET(75)],2) AS Q75_temp,
-       ROUND(APPROX_QUANTILES(temp, 100)[OFFSET(50)],2) AS median_temp,
+       ROUND(APPROX_QUANTILES(tempt, 100)[OFFSET(25)],2) AS Q25_temp,
+       ROUND(APPROX_QUANTILES(tempt, 100)[OFFSET(75)],2) AS Q75_temp,
+       ROUND(APPROX_QUANTILES(tempt, 100)[OFFSET(50)],2) AS median_temp,
        ROUND(APPROX_QUANTILES(sysbp, 100)[OFFSET(25)],2) AS Q25_sysbp,
        ROUND(APPROX_QUANTILES(sysbp, 100)[OFFSET(75)],2) AS Q75_sysbp,
        ROUND(APPROX_QUANTILES(sysbp, 100)[OFFSET(25)],2) AS Q25_diasbp,
@@ -68,11 +68,11 @@ select anon_id,
         ),2) AS last_resprate,
 
 
-        Round(FIRST_VALUE(temp) OVER (
+        Round(FIRST_VALUE(tempt) OVER (
             PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded 
             ORDER BY vitaltime
         ),2) AS first_temp,  
-    Round(LAST_VALUE(temp) OVER (
+    Round(LAST_VALUE(tempt) OVER (
             PARTITION BY anon_id, pat_enc_csn_id_coded, order_proc_id_coded 
             ORDER BY vitaltime
         ),2) AS last_temp,
@@ -98,7 +98,8 @@ select anon_id,
         ),2) AS last_diasbp,
 
 from vitals
-)
+),
+vitals_all as (
 select a.*,
 b.first_diasbp,b.last_diasbp,
 b.last_sysbp,b.first_sysbp,
@@ -107,3 +108,5 @@ b.last_resprate,b.first_resprate,
 b.last_heartrate,b.first_heartrate
 from Vitalsfirstlast b inner join 
 vitalsQ a using (anon_id,pat_enc_csn_id_coded,order_proc_id_coded)
+)
+select distinct * from vitals_all
