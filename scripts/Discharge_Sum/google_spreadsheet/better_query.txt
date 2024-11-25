@@ -1,0 +1,25 @@
+=QUERY(
+  LAMBDA(sheets,
+    REDUCE(
+      {"Form no", INDIRECT("'Form Responses 1'!A1:BD1")},
+      sheets,
+      LAMBDA(acc, sheet,
+        LET(
+          sheetName, "Form Responses " & sheet,
+          data, IFERROR(
+            LAMBDA(rows,
+              MAP(
+                SEQUENCE(rows),
+                LAMBDA(row, {sheetName, INDIRECT("'" & sheetName & "'!A" & row+1 & ":BD" & row+1)})
+              )
+            )(MAX(1, COUNTA(INDIRECT("'" & sheetName & "'!A:A"))-1)),
+            {"",""}
+          ),
+          IF(data = {"",""}, acc, {acc; data})
+        )
+      )
+    )
+  )(SEQUENCE(944, 1, 1, 1)),
+  "select * where Col2 is not null",
+  1
+)
