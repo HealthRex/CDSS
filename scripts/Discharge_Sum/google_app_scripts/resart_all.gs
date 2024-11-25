@@ -7,8 +7,8 @@ function deleteAll() {
     var form = forms.next();
     var formName = form.getName();
     
-    // Check if the form name starts with "form_"
-    if (formName.startsWith("form_")) {
+    // Check if the form name starts with "Form_"
+    if (formName.startsWith("Form_")) {
       form.setTrashed(true); // Move the form to trash
       Logger.log('Deleted form: ' + formName);
     }
@@ -16,7 +16,7 @@ function deleteAll() {
 
   // CLEAR SPREADSHEET CONTENT
 // Names of the spreadsheets to clear
-  var spreadsheetNames = ["forms_IDs", "Gforms_results"];
+  var spreadsheetNames = ["forms_IDs", "Gforms_results", "loglog"];
   
   // Loop through each spreadsheet name
   for (var i = 0; i < spreadsheetNames.length; i++) {
