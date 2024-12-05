@@ -10,7 +10,7 @@ Welcome to the tutorial on causal inference and estimation theory. This tutorial
 
 ## Files
 - `tutorial.ipynb` - This is the primary Jupyter Notebook for the tutorial containing all code, explanations, and exercises.
-- To run the notebook directly on Google Colab, [click here](https://colab.research.google.com/github/HealthRex/CDSS/blob/master/scripts/scripts/DevWorkshop/causal_inference/tuto.ipynb).
+- To run the notebook directly on Google Colab, [click here](https://colab.research.google.com/github/HealthRex/CDSS/blob/master/scripts/DevWorkshop/causal_inference/tuto.ipynb).
 
 ## Contributing
 If you find any issues or have suggestions for improvements, feel free to reach out!
