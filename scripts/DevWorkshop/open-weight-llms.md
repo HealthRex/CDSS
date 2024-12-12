@@ -1,19 +1,20 @@
 # Running Open Weights Language Models on Remote GPUs
 
 
-This tutorial guides you through setting up a virtual machine with GPUs on Google Cloud Services (GCS), accessing it from VS Code, and using it to run open-weight LLMs from Hugging Face with Keras-NLP and the JAX backend.
+This tutorial guides you through setting up a virtual machine with GPUs on Google Cloud Services (GCS), accessing it from VS Code, and using it to run open-weight LLMs from Hugging Face with Keras and the JAX backend.
 
 ## Learning Goals
 
 * Set up a virtual machine with GPUs on GCS.
-* Access the VM from VS Code via SSH tunneling.
+* Access the VM from terminal and VS Code via SSH tunneling.
 * Access open-weight LLMs from Hugging Face.
-* Use these models for inference via Keras-NLP on the JAX backend.
+* Use these models for inference via Keras on the JAX backend.
 
 ## Prerequisites
 
-* Google Stanford Account with VPN setup.
+* Stanford VPN (must run on Full traffic, non-split-tunnel).
 * Project `som-nero-phi-jonc101` permissions.
+* Google Cloud SDK installed: [https://cloud.google.com/sdk/install](https://cloud.google.com/sdk/install)
 * A Hugging Face account (free).
 
 ## Setting up a GPU-enabled VM on GCS
@@ -27,12 +28,12 @@ This tutorial guides you through setting up a virtual machine with GPUs on Googl
 5. Configure the VM:
     * **Name:**  A descriptive name (e.g., `[your first name]-[GPU hardware]-[memory]` like `francois-l4-64gb`).
     * **Region and Zone:**  Choose a location (e.g., Region: `Oregon`, Zone: `us-west1-a`).
-    * **Machine Configuration > GPUs:**
-        * Start with 1 x NVIDIA L4.
-        * **Machine type:** Select at least 64 GB of memory.
-    * **Boot Disk:** Click "Switch Image", type "Pytorch" under Version, and select the latest PyTorch configuration (e.g., "Deep Learning VM for PyTorch 2.3 with CUDA 12.1 M125").
+    * **Machine Configuration (on left panel) > GPUs:**
+        * Start with 1 x NVIDIA L4 which has 24GB of VRAM. See NVIDIA's website [here](https://resources.nvidia.com/l/en-us-gpu?ncid=no-ncid) if you want more details on GPU specs.
+        * **Machine type:** Select at least 64GB of CPU RAM.
+    * **OS and storage (on left panel):** Click "Switch Image", type "Pytorch" under Version, and select the latest PyTorch configuration (e.g., "Deep Learning VM for PyTorch 2.4 with CUDA 12.4 M126").
     * Click **Create**.
-6. Once the VM is running (indicated by a checkmark), click **SSH** on the row's right hand side. This opens a terminal. Install the Nvidia driver when prompted (`y`).
+6. Once the VM is running (indicated by a checkmark), connect to your VM via SSH:  Open a terminal and run `gcloud compute ssh [the VM-instance name] --zone [the VM-instance zone]`. Install the Nvidia driver when prompted (`y`).
 7. 🚨 $\color{red}{\textbf{Important:}}$ Always stop your VM when finished (**Compute Engine > VM instances > Three vertical dots > Stop**) to avoid unnecessary charges. You can restart it later.
 
 ## Accessing your VM from VS Code via SSH Tunneling
@@ -86,7 +87,7 @@ This method prevents the external IP from changing when you restart your VM.
 2. (Recommended) Create a conda environment.
 3. Install the required packages (in this order):
 ```bash
-    pip install --upgrade keras-nlp
+    pip install --upgrade keras-hub
     pip install --upgrade keras
 
     # Make sure to install the GPU version of JAX:
@@ -103,7 +104,7 @@ os.environ["KERAS_BACKEND"] = "jax"
 # Allow the compiler to use 100% of the GPU memory
 os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"]="1.00"
 
-import keras_nlp
+import keras_hub
 import keras
 
 # Run at half precision to improve speed, sacrificing minimal performance
@@ -114,10 +115,10 @@ keras.config.set_dtype_policy("bfloat16")
 ### Gemma 2-2B Instruction Tuned
 - Request access at https://huggingface.co/google/gemma-2b-it Authorization can take up to 24h.
 ```python
-from keras_nlp.models import GemmaCausalLM
+from keras_hub.models import GemmaCausalLM
 
 # Download the model
-gemma_lm = keras_nlp.models.GemmaCausalLM.from_preset("hf://google/gemma-2-2b-it")
+gemma_lm = keras_hub.models.GemmaCausalLM.from_preset("hf://google/gemma-2-2b-it")
 
 # Get a summary
 gemma_lm.summary() # should see ~2B parameters and ~9.74 GB
@@ -140,7 +141,7 @@ print(res)
 ### Llama-3-8B-Instruct
 - Request access at https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct Authorization can take up to 24h.
 ```python
-from keras_nlp.models import Llama3CausalLM
+from keras_hub.models import Llama3CausalLM
 
 # Download the model
 llama_lm = Llama3CausalLM.from_preset("hf://meta-llama/Meta-Llama-3-8B-Instruct")
@@ -183,4 +184,4 @@ print(res)
 
 ---
 
-Tutorial created by François Grolleau on 10/10/2024.
+Tutorial created by François Grolleau on 10/10/2024. Updated on 12/12/2024.
