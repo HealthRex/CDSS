@@ -160,7 +160,11 @@ positive_culture_details AS (
         )
         )
       )  AS antibiotic,
-        cs.suscept AS susceptibility
+      case when (lower(cs.suscept) like any ('susceptible', 'positive', 'detected')) then 'Susceptible'
+      when (lower(cs.suscept) like any ('resistant','non susceptible', 'negative')) then 'Resistant'
+      when (lower(cs.suscept) like any ('intermediate', 'susceptible%dose dependent')) then 'Intermediate'
+      when (lower(cs.suscept) like any ('% synergy', 'not detected')) then 'Other'
+      end AS susceptibility
     FROM 
         som-nero-phi-jonc101.shc_core_2023.culture_sensitivity cs
     INNER JOIN (
@@ -295,4 +299,3 @@ LEFT JOIN
 positive_culture_details pcd
 ON
 acwf.order_proc_id_coded = pcd.order_proc_id_coded;
-   
