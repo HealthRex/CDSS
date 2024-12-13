@@ -163,6 +163,7 @@ positive_culture_details AS (
       case when (lower(cs.suscept) like any ('susceptible', 'positive', 'detected')) then 'Susceptible'
       when (lower(cs.suscept) like any ('resistant','non susceptible', 'negative')) then 'Resistant'
       when (lower(cs.suscept) like any ('intermediate', 'susceptible%dose dependent')) then 'Intermediate'
+      when (lower(cs.suscept) like any ('no interpretation','see comment','not done','inconclusive','see comment')) then 'No Result'
       when (lower(cs.suscept) like any ('% synergy', 'not detected')) then 'Other'
       end AS susceptibility
     FROM 
