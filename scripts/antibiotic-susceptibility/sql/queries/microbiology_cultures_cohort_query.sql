@@ -119,7 +119,6 @@ all_cultures_with_flag AS (
 ),
 
 
-    
 #########################################################################################################################
 -- Step 6: Get detailed information for positive cultures, clean antibiotic names, and exclude non-antibiotic entries
 #########################################################################################################################     
@@ -160,12 +159,7 @@ positive_culture_details AS (
         )
         )
       )  AS antibiotic,
-      case when (lower(cs.suscept) like any ('susceptible', 'positive', 'detected')) then 'Susceptible'
-      when (lower(cs.suscept) like any ('resistant','non susceptible', 'negative')) then 'Resistant'
-      when (lower(cs.suscept) like any ('intermediate', 'susceptible%dose dependent')) then 'Intermediate'
-      when (lower(cs.suscept) like any ('no interpretation','see comment','not done','inconclusive','see comment')) then 'No Result'
-      when (lower(cs.suscept) like any ('% synergy', 'not detected')) then 'Other'
-      end AS susceptibility
+        cs.suscept AS susceptibility
     FROM 
         som-nero-phi-jonc101.shc_core_2023.culture_sensitivity cs
     INNER JOIN (
@@ -287,16 +281,32 @@ SELECT
     acwf.anon_id,
     acwf.pat_enc_csn_id_coded,
     acwf.order_proc_id_coded,
-acwf.order_time_jittered_utc,
-acwf.ordering_mode,
-acwf.culture_description,
-acwf.was_positive,
-pcd.organism,
-pcd.antibiotic,
-pcd.susceptibility
+    acwf.order_time_jittered_utc,
+    acwf.ordering_mode,
+    acwf.culture_description,
+    acwf.was_positive,
+    pcd.organism,
+    pcd.antibiotic,
+    CASE
+        WHEN pcd.susceptibility IS NULL THEN NULL  -- Keep NULL values unchanged
+        WHEN pcd.susceptibility IN ('Susceptible', 'Not Detected', 'Negative' ) THEN 'Susceptible'
+        WHEN pcd.susceptibility IN ('Resistant', 'Non Susceptible', 'Positive', 'Detected') THEN 'Resistant'
+        WHEN pcd.susceptibility IN ('Intermediate', 'Susceptible - Dose Dependent') THEN 'Intermediate'
+        WHEN pcd.susceptibility IN ('No Interpretation', 'Not done', 'Inconclusive', 'See Comment') THEN 'Inconclusive'
+        WHEN pcd.susceptibility IN ('Synergy', 'No Synergy') THEN 'Synergism'
+        ELSE 'Unknown'  -- Mark unexpected values as Unknown
+    END AS susceptibility
 FROM
-all_cultures_with_flag acwf
+    all_cultures_with_flag acwf
 LEFT JOIN
-positive_culture_details pcd
+    positive_culture_details pcd
 ON
-acwf.order_proc_id_coded = pcd.order_proc_id_coded;
+    acwf.order_proc_id_coded = pcd.order_proc_id_coded
+WHERE
+    -- Exclude rows where susceptibility would be 'Unknown'
+    (pcd.susceptibility IS NULL OR
+    pcd.susceptibility IN ('Susceptible', 'Positive', 'Detected',
+                           'Resistant', 'Non Susceptible', 'Negative',
+                           'Intermediate', 'Susceptible - Dose Dependent',
+                           'No Interpretation', 'Not done', 'Inconclusive', 'See Comment',
+                           'Synergy', 'No Synergy', 'Not Detected'));
