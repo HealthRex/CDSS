@@ -13,8 +13,8 @@ CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbio
 INSERT INTO `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_implied_susceptibility`
   (anon_id, pat_enc_csn_id_coded, order_proc_id_coded, organism, antibiotic, susceptibility)
 WITH More_Frequent_ABX AS (
-  SELECT DISTINCT(medication_name)
-  FROM `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_prior_antibiotics_cleaned`
+  SELECT distinct(antibiotic)
+  FROM `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_cohort`
 ),
 Base_cohort AS (
   SELECT
@@ -27,7 +27,7 @@ Base_cohort AS (
   FROM `som-nero-phi-jonc101.shc_core_2023.culture_sensitivity` c
   INNER JOIN `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_cohort` t
   USING (anon_id, order_proc_id_coded)
-  WHERE c.antibiotic IN (SELECT medication_name FROM More_Frequent_ABX)
+  WHERE c.antibiotic IN (SELECT antibiotic FROM More_Frequent_ABX)
 )
 SELECT * FROM Base_cohort;
 
