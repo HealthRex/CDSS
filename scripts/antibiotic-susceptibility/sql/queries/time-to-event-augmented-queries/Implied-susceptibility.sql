@@ -2265,4 +2265,4 @@ implied_susceptibility is not null
 group by anon_id,pat_enc_csn_id_coded,order_proc_id_coded,organism,antibiotic,susceptibility,implied_susceptibility
 order by anon_id,pat_enc_csn_id_coded,order_proc_id_coded,organism,antibiotic,susceptibility,implied_susceptibility;
 
-drop table  `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_implied_susceptibility`;
+#drop table  `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_implied_susceptibility`;
