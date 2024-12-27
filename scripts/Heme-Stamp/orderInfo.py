@@ -1,18 +1,19 @@
 import requests
 from requests.auth import HTTPBasicAuth
 import json
-import os
 import xmltodict
 from datetime import date, datetime
 from dateutil.parser import parse
+import re
 
 class Order(object):
-    def __init__(self, credentials, fhir_id, order_date, env, cid):
+    def __init__(self, credentials, fhir_id, order_date, env, cid, order_status="active"):
         self.credentials = credentials
         self.FHIR_ID = fhir_id
         self.date = order_date
         self.client_id = cid
         self.api_prefix = env
+        self.order_status = order_status
 
     def __call__(self):
         order_dict = {}
@@ -27,7 +28,6 @@ class Order(object):
             order_dict['Age'], order_dict['Name'] = age_sex, name
             order_dict['MRN'] = self.get_other_identifiers()
             order_dict['Physician'] = order_dict['Physician'][:-4]
-            order_dict['Ordered'] = order_dict['Ordered'].split("T")[0]
         return (order_dict, active_order)
 
     def get_ordering_phys(self):
@@ -36,7 +36,7 @@ class Order(object):
         ordered_date = ""
         procedure_request = requests.get(
             f"{self.api_prefix}/api/FHIR/STU3/ProcedureRequest",
-            params={'patient': self.FHIR_ID, 'status': 'canceled'},  # , 'status': 'completed'
+            params={'patient': self.FHIR_ID, 'status': self.order_status},
             headers={'Content-Type': 'application/json; charset=utf-8',
                      'Epic-Client-ID': self.client_id},
             auth=HTTPBasicAuth(self.credentials["username"],
@@ -44,82 +44,59 @@ class Order(object):
         )
         patient_orders = xmltodict.parse(procedure_request.text)
         pt_json = json.loads(json.dumps(patient_orders))
+
         if 'Bundle' not in pt_json:
             active_order = False
-            print('1', pt_json['OperationOutcome']['@xmlns'])
-            print('2', pt_json['OperationOutcome']['issue'].keys())
         else:
             pt_json = pt_json['Bundle']['entry']
 
-            HS_names = {"STANFORD HEME-STAMP NGS PANEL BLOOD",
-                        "STANFORD HEME-STAMP NGS PANEL, NON-BLOOD"}
-
-
-            phys_names = {'Rondeep Singh Brar, MD', 'David Joseph Iberri, MD', 'William Elias Shomali, MD'}
-
             i_list = []
-            for x in range(len(pt_json)):
-                # print("json keys: ", pt_json[x].keys())
-                i_val = pt_json[x]['resource']
-                if 'ProcedureRequest' in i_val.keys():
-                    i_val = i_val['ProcedureRequest']
-                else:
-                    print('3', i_val.keys())
-                    print(i_val['OperationOutcome'])
-                    print(self.FHIR_ID)
-                i_list.append(i_val)
+            if isinstance(pt_json, dict):
+                if 'resource' in pt_json.keys():
+                    i_val = pt_json['resource']
+                    if 'ProcedureRequest' in i_val.keys():
+                        i_val = i_val['ProcedureRequest']
+                    i_list.append(i_val)
 
-            all_HS_orders = []
+            elif isinstance(pt_json, list):
+                for x in range(len(pt_json)):
+                    if isinstance(pt_json[x], dict) and 'resource' in pt_json[x].keys():
+                        i_val = pt_json[x]['resource']
+                        if isinstance(i_val, dict) and 'ProcedureRequest' in i_val.keys():
+                            i_val = i_val['ProcedureRequest']
+                        i_list.append(i_val)
+
             HS_orders = []
 
             for v in range(len(i_list)):
-                if 'code' in i_list[v].keys() and 'coding' in i_list[v]['code'].keys():
-                    if isinstance(i_list[v]['code']['coding'], list):
-                        for a in range(len(i_list[v]['code']['coding'])):
-                            lab = i_list[v]['code']['coding'][a]['display']['@value']
-                            phys = i_list[v]['requester']['agent']['display']['@value']
-                            authored_date = i_list[v]
-                            if 'authoredOn' in authored_date.keys():
-                                authored_date = authored_date['authoredOn']['@value']
-                            else:
-                                # authored_date = authored_date['requester']['agent']['display']['@value']
-                                authored_date = authored_date['occurrenceTiming']['repeat']['boundsPeriod']['start']['@value']
 
-                            if lab in HS_names:
-                                HS_orders.append((lab, phys, authored_date))
-                                # if phys in phys_names:
-                                #     HS_orders.append((lab, phys, authored_date))
+                if isinstance(i_list[v], dict) and 'code' in i_list[v].keys() and \
+                        isinstance(i_list[v]['code'], dict) and 'coding' in i_list[v]['code'].keys():
 
-                    else:
-                        lab = i_list[v]['code']['coding']['display']['@value']
+                    has_heme = re.search(".*heme.*", str(i_list[v]['code']['coding']).lower())
+                    has_ngs = re.search(".*ngs.*", str(i_list[v]['code']['coding']).lower())
+                    has_stamp = re.search(".*stamp.*", str(i_list[v]['code']['coding']).lower())
+                    if has_heme is not None and has_ngs is not None and has_stamp is not None:
+                        print('OUTPUT')
+                        print(i_list[v]['code']['coding'])
                         phys = i_list[v]['requester']['agent']['display']['@value']
-                        authored_date = i_list[v]
-                        if 'authoredOn' in authored_date.keys():
-                            authored_date = authored_date['authoredOn']['@value']
+
+                        if isinstance(i_list[v], dict) and 'authoredOn' in i_list[v].keys():
+                            authored_date = i_list[v]['authoredOn']['@value']
                         else:
-                            # authored_date = authored_date['requester']['agent']['display']['@value']
-                            authored_date = authored_date['occurrenceTiming']['repeat']['boundsPeriod']['start'][
-                                '@value']
+                            print("NO AUTHOR")
+                            print("FHIR ID: ", self.FHIR_ID)
+                            authored_date = i_list[v]['occurrenceTiming']['repeat']['boundsPeriod']['start']['@value']
+                        authored_date_conv = datetime.strptime(authored_date, "%Y-%m-%dT%H:%M:%SZ").date()
+                        if authored_date_conv <= self.date:
+                            HS_orders.append((phys, authored_date))
 
-                        if lab in HS_names:
-                            HS_orders.append((lab, phys, authored_date))
-                            # if phys in phys_names:
-                            #     HS_orders.append((lab, phys, authored_date))
-                else:
-                    # print('4', i_list[v].keys())
-                    if 'code' in i_list[v].keys():
-                        print('5', i_list[v]['code'].keys())
-                        print(i_list[v]['code']['text'])
-                        print(self.FHIR_ID)
-                    else:
-                        print('4', i_list[v].keys())
-
-            #print("all HS orders: ", all_HS_orders)
-            print("HS orders: ", HS_orders)
 
             if len(HS_orders) > 0:
-                physician = HS_orders[-1][1]
-                ordered_date = HS_orders[-1][2]
+                HS_orders.sort(key=lambda tup: datetime.strptime(tup[1], "%Y-%m-%dT%H:%M:%SZ"))
+
+                physician, ordered_date = HS_orders[-1]
+
         return (physician, ordered_date, active_order)
 
     def get_lab_result(self, base_name):
@@ -148,27 +125,21 @@ class Order(object):
         )
         lab_response = json.loads(lab_component_response.text)
 
-
         date_found = False
         lab_result = 0
 
         if lab_response["ResultComponents"]:
             for i in range(len(lab_response["ResultComponents"])):
                 resp = lab_response["ResultComponents"][i]
-                #print("resp: ", resp)
                 value = resp["Value"]
                 if value is not None:
                     value = value[0]
                 result_date = resp['ResultDate']
                 lab_results_dict[result_date] = value
-                if datetime.strptime(result_date, '%m/%d/%Y').date() <= self.date and not date_found and value is not None:
-                    recent_date = result_date
-                    # print("recent date: ", recent_date)
+                if datetime.strptime(result_date,
+                                     '%m/%d/%Y').date() <= self.date and not date_found and value is not None:
                     date_found = True
                     lab_result = value
-                # print("-----------")
-                # print("value: ", value)
-                # print("date: ", result_date)
 
         return lab_result
 
@@ -185,7 +156,6 @@ class Order(object):
         )
 
         demographic_json = json.loads(request_results.text)
-        #print(demographic_json)
         age = self.calculate_age(parse(demographic_json["DateOfBirth"]))
         sex = demographic_json['Gender']
         name = demographic_json['Name']['FirstName'] + " " + demographic_json['Name']['LastName']
