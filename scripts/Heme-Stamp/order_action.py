@@ -4,34 +4,27 @@ import generateEmail
 
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = (
-    '/Users/g0123/.config/gcloud/application_default_credentials.json'
+    '[Insert your own application credentials here]'
 )
-os.environ['GCLOUD_PROJECT'] = 'som-nero-phi-jonc101-secure'
+os.environ['GCLOUD_PROJECT'] = '[Insert name of google cloud project hosting EHR data here]'
+database = '[Insert name of GCP table where you want to store responses]'
 
-client = bigquery.Client("som-nero-phi-jonc101")
-table_id = "som-nero-phi-jonc101-secure.grace_db.test_table"
+client = bigquery.Client("[Insert name of google cloud project hosting EHR data here]")
+table_id = "[Insert name of google BQ where you will be storing this data]"
 
 bkt_list = ["<10%", "10-30%", "30-50%", "50-70%", "70-90%", ">90%"]
 
 query = """
 SELECT MRN, Name, Ordered, Age, WBC, Hgb, Physician, Notes
-FROM `som-nero-phi-jonc101-secure.grace_db.test_table`
+FROM `[Insert name of google BQ where you will be storing this data]`
 WHERE Msg_sent is not TRUE
 """
 
-
-
 email_dict = {
-    'Rondeep Singh Brar': 'rbrar@stanford.edu',
-    'David Joseph Iberri': 'diberri@stanford.edu',
-    'William Elias Shomali': 'wshomali@stanford.edu'
+    '[Insert Physician 1 Name]': '[Insert Physician 1 Email]',
+    '[Insert Physician 2 Name]': '[Insert Physician 2 Email]',
+    '[Insert Physician 3 Name]': '[Insert Physician 3 Email]'
 }
-
-# email_dict = {
-#     'Rondeep Singh Brar': 'yek1354@stanford.edu',
-#     'David Joseph Iberri': 'yek1354@stanford.edu',
-#     'William Elias Shomali': 'yek1354@stanford.edu'
-# }
 
 def upload_order(new_order_dict):
     print("new order dict: ", new_order_dict)
@@ -67,7 +60,7 @@ def send_email():
                 print(row)
                 mrn_val = row['MRN']
                 update_msg_status_query = """
-                UPDATE `som-nero-phi-jonc101-secure.grace_db.test_table`
+                UPDATE database
                 SET Msg_sent = True
                 WHERE MRN = {0}
                 """.format(mrn_val)
