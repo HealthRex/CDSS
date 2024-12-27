@@ -1,49 +1,87 @@
-import os
+import logging
 import json
-import orderInfo
-from datetime import date
-import cosmos
-import order_action
+import azure.functions as func
+import pickle
+import traceback
+import requests
+from requests.auth import HTTPBasicAuth
+from . import cosmos
+from . import deploy
 
-def main():
-    with open(os.path.join(os.sys.path[0], "live_HS.confg"), "r") as creds_json_file:
-        credentials = json.load(creds_json_file)
 
-    order_date = date.today()
+def main(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info('Python HTTP trigger function processed a request.')
 
-    ENV = 'https://epic-ic-background.stanfordmed.org/Interconnect-Cloud/'
-    # CID taken out for privacy
+    CSN = req.params.get('CSN')
+    if not CSN:
+        return func.HttpResponse(
+            'This function executed unsuccessfully. No Score was processed.',
+            status_code=400
+        )
+    ENV = req.params.get('EPICENV')
+    if not ENV:
+        return func.HttpResponse(
+            "Function unsuccessful. Epic Environment is missing.",
+            status_code=400
+        )
 
-    a = cosmos.getcosmosbetweendate("2022-06-18", "2022-07-10")
-    # a = cosmos.getcosmosbydate("2022-06-19")
+    CID = req.params.get('ClientID')
+    if not CID:
+        return func.HttpResponse(
+            "Function unsuccessful. param: ClientID is missing.",
+            status_code=400)
 
-    # a = cosmos.getcosmos()
-    FHIR_ID_set = set()
-    if len(a) > 0:
-        for i in range(len(a)):
-            if 'Error' not in a[i]['patient'].keys():
-                # print(a[i]['patient'])
-                # print("--------")
-                FHIR_ID_set.add(a[i]['patient']['FHIR ID'])
+    with open('HemeStampModel/credentials.confg') as json_file:
+        creds = json.load(json_file)
+    logging.info('loaded creds from file')
 
-    # phys_list = ['Rondeep Singh Brar, MD', 'David Joseph Iberri, MD', 'William Elias Shomali, MD']
-    phys_list = ['Rondeep Singh Brar', 'David Joseph Iberri', 'William Elias Shomali']
-    order_list = []
-    for FHIR_ID in FHIR_ID_set:
-        order = orderInfo.Order(credentials, FHIR_ID, order_date, ENV, CID)
-        order_dict, active_order = order()
-        # print("active_order: ", active_order)
-        # print(order_dict)
-        # print("-----------\n")
-        if order_dict["Physician"] in phys_list and active_order:
-            order_list.append(order_dict)
-    print(order_list)
-    for order_dict in order_list:
-        order_dict["Msg_sent"] = False
-        order_action.upload_order(order_dict)
-    #
-    # # we don't want to generate emails until all recent orders have been uploaded to bigquery
-    order_action.send_email()
+    models = [
+        '20220630_label_hemestamp_deploy.pkl',
+    ]
+    get_features = True
+    for model in models:
+        dp = deploy.DeploymentContainer(
+            filepath=f'HemeStampModel/{model}',
+            credentials=creds,
+            csn=CSN,
+            env=ENV,
+            cid=CID
+        )
+        dp.get_patient_identifiers()
+        FHIR_ID = dp.patient_dict['FHIR']
+        try:
+            if get_features:
+                score = dp()
+                feature_vector = dp.feature_vector
+                get_features = False
+                dp.patient_dict['FHIR ID'] = FHIR_ID
+                cosmos.cosmoswrite(
+                    patient=dp.patient_dict,
+                    partition_key=model)
+                score_success = True
+            else:
+                score = dp(feature_vector)
+                dp.patient_dict['FHIR ID'] = FHIR_ID
+                cosmos.cosmoswrite(
+                    patient=dp.patient_dict,
+                    partition_key=model)
 
-if __name__ == '__main__':
-    main()
+        except Exception as e:
+            dp.get_patient_identifiers()
+            error_dict = {
+                'FHIR ID' : dp.patient_dict['FHIR'],
+                'FHIR STU3': dp.patient_dict['FHIR STU3'],
+                'Error': traceback.format_exc(),
+                'model': model
+            }
+            cosmos.cosmoswrite(patient=error_dict,
+                               partition_key=model)
+            score_success = False
+    if score_success:
+        return func.HttpResponse(
+            f"Hello, {score}. This function executed successfully.")
+    else:
+        return func.HttpResponse(
+            "This function executed successfully. No Score was processed.",
+            status_code=200
+        )
