@@ -4,7 +4,7 @@
 
 `generateEmail.py`, `orderInfo.py`, and `order_action.py` are used to gather prospective estimates from the ordering physicians. FHIR-based Epic API calls are used to extract additional information (such as recent WBC results or demographic information) regarding a specific order that was placed. This code can autogenerate an email containg all this information that is sent to the ordering physicians. 
 
-Please note that the code in the healthrex_ml folder is from https://github.com/HealthRex/deployr-dev and is simply included here for convenience as some of the code references functions from deployr.
+Some classes and functions are imported from healthrex_ml and referenced in `train_model.py`. The source code for healthrex_ml can be found at https://github.com/HealthRex/deployr-dev.
 
 
 Code contributors: Grace Y.E. Kim, Conor K. Corbin, Robert Maclay, Aakash Acharya, Sreedevi Mony, Soumya Punnathanam, Sajjad Fouladvand. 
