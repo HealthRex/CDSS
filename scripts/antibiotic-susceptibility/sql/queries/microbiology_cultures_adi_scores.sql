@@ -12,7 +12,7 @@
 -- Create an intermediate table with cohort and ADI data
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.cohort_adi` AS
 WITH cohort_zip AS (
-    SELECT distinct
+    SELECT DISTINCT
         mc.anon_id,
         mc.pat_enc_csn_id_coded,
         mc.order_proc_id_coded,
@@ -31,8 +31,14 @@ SELECT
     cz.order_proc_id_coded,
     cz.order_time_jittered_utc,
     cz.zip,
-    adi.adi_score,
-    adi.adi_state_rank
+    CASE 
+        WHEN adi.adi_score IN ('P', 'U', 'NA', 'GQ', 'PH', 'QDI', 'GQ-PH') THEN NULL 
+        ELSE adi.adi_score
+    END AS adi_score,
+    CASE 
+        WHEN adi.adi_state_rank IN ('P', 'U', 'NA', 'GQ', 'PH', 'QDI', 'GQ-PH') THEN NULL 
+        ELSE adi.adi_state_rank
+    END AS adi_state_rank
 FROM
     cohort_zip cz
 LEFT JOIN
@@ -46,7 +52,7 @@ ON
 
 -- Create the final table with the desired columns
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.microbiology_cultures_adi_scores` AS
-SELECT distinct
+SELECT DISTINCT
     anon_id,
     pat_enc_csn_id_coded,
     order_proc_id_coded,
@@ -62,6 +68,7 @@ FROM
 ############################################################################################################
 -- Impute Missing ADI Values for 5-Digit ZIP Code
 ############################################################################################################
+
 -- Step 1: Create the table for averaged ADI scores based on 5-digit ZIP codes
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.antimicrobial_stewardship.averaged_adi_scores` AS
 SELECT 
