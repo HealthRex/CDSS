@@ -6,7 +6,7 @@ Welcome to the tutorial on causal inference and estimation theory. This tutorial
  
 **Affiliation:** Stanford Center for Biomedical Informatics Research, Stanford University
 
-**Date:** December 4, 2024
+**Date:** January 15, 2025
 
 ## Files
 - `tutorial.ipynb` - This is the primary Jupyter Notebook for the tutorial containing all code, explanations, and exercises.
