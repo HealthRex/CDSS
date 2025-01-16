@@ -8,6 +8,8 @@ Welcome to the tutorial on causal inference and estimation theory. This tutorial
 
 **Date:** January 15, 2025
 
+![correlation](correlation_causation.png)
+
 ## Files
 - `tutorial.ipynb` - This is the primary Jupyter Notebook for the tutorial containing all code, explanations, and exercises. Visuals are best viewed in Jupyter or VS Code.
 - `tutorial.html` - A read-only version that doesn’t require Python. Note that some visuals may appear differently. You can access it [here](https://raw.githack.com/HealthRex/CDSS/master/scripts/DevWorkshop/causal_inference/tuto.html).
@@ -15,6 +17,8 @@ Welcome to the tutorial on causal inference and estimation theory. This tutorial
 
 ## Contributing
 If you find any issues or have suggestions for improvements, feel free to reach out!
+
+![cow](cow.png)
 
 ## Contact
 For any questions, suggestions, or further information:
