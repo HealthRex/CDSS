@@ -12,24 +12,71 @@ import shap
 import matplotlib.pyplot as plt
 import polars as pl
 import itertools
+import seaborn as sns
 
 ### data preparation
 # load CSVs
-comorbidity_scores = pd.read_csv('microbiology_cultures_comorbidity.csv')
-adi_scores = pd.read_csv('microbiology_cultures_adi_scores.csv')
-labs = pd.read_csv('microbiology_cultures_labs.csv')
-vitals = pd.read_csv('microbiology_cultures_vitals.csv')
-prior_infecting_organisms = pd.read_csv('microbiology_cultures_prior_infecting_organism.csv')
-subtype_exposure = pd.read_csv('microbiology_cultures_antibiotic_subtype_exposure.csv')
-demographics = pd.read_csv('microbiology_cultures_demographics.csv')
-prior_med = pd.read_csv('microbiology_cultures_prior_med.csv')
-prior_procedures = pd.read_csv('microbiology_cultures_priorprocedures.csv')
-ward_info = pd.read_csv('microbiology_cultures_ward_info.csv')
-microbial_resistance = pd.read_csv('microbiology_cultures_microbial_resistance.csv')
-cohort = pd.read_csv('microbiology_cultures_cohort.csv')
-antibiotic_class_exposure = pd.read_csv('microbiology_cultures_antibiotic_class_exposure.csv')
-implied_susceptibility = pd.read_csv('microbiology_cultures_implied_susceptibility.csv')
-nursing_home_visits = pd.read_csv('microbiology_cultures_nursing_home_visits.csv')
+try:
+    comorbidities = pd.read_csv('comorbidities_cleaned.csv')
+except FileNotFoundError:
+    print("Incorrect path to comorbidities file or comorbidities dataframe manipulation section not run first.")
+try:
+    adi_scores = pd.read_csv('microbiology_cultures_adi_scores.csv')
+except FileNotFoundError:
+    print("Incorrect path to ADI scores file.")
+try:
+    labs = pd.read_csv('microbiology_cultures_labs.csv')
+except FileNotFoundError:
+    print("Incorrect path to labs file.")
+try:
+    vitals = pd.read_csv('microbiology_cultures_vitals.csv')
+except FileNotFoundError:
+    print("Incorrect path to vitals file.")
+try:
+    prior_infecting_organisms = pd.read_csv('microbiology_cultures_prior_infecting_organism.csv')
+except FileNotFoundError:
+    print("Incorrect path to prior infecting organisms file.")
+try:
+    subtype_exposure = pd.read_csv('microbiology_cultures_antibiotic_subtype_exposure.csv')
+except FileNotFoundError:
+    print("Incorrect path to subtype exposure file.")
+try:
+    demographics = pd.read_csv('microbiology_cultures_demographics.csv')
+except FileNotFoundError:
+    print("Incorrect path to demographics file.")
+try:
+    prior_med = pd.read_csv('microbiology_cultures_prior_med.csv')
+except FileNotFoundError:
+    print("Incorrect path to prior medications file.")
+try:
+    prior_procedures = pd.read_csv('microbiology_cultures_priorprocedures.csv')
+except FileNotFoundError:
+    print("Incorrect path to prior procedures file.")
+try:
+    ward_info = pd.read_csv('microbiology_cultures_ward_info.csv')
+except FileNotFoundError:
+    print("Incorrect path to ward info file.")
+try:
+    microbial_resistance = pd.read_csv('microbiology_cultures_microbial_resistance.csv')
+except FileNotFoundError:
+    print("Incorrect path to microbial resistance file.")
+try:
+    cohort = pd.read_csv('microbiology_cultures_cohort.csv')
+except FileNotFoundError:
+    print("Incorrect path to cohort file.")
+try:
+    antibiotic_class_exposure = pd.read_csv('microbiology_cultures_antibiotic_class_exposure.csv')
+except FileNotFoundError:
+    print("Incorrect path to antibiotic class exposure file.")
+try:
+    implied_susceptibility = pd.read_csv('microbiology_cultures_implied_susceptibility.csv')
+except FileNotFoundError:
+    print("Incorrect path to implied susceptibility file.")
+try:
+    nursing_home_visits = pd.read_csv('microbiology_cultures_nursing_home_visits.csv')
+except FileNotFoundError:
+    print("Incorrect path to nursing home visits file.")
+
 
 ### prepare dataframe
 # filter cohort
@@ -39,24 +86,54 @@ cohort = cohort[cohort['ordering_mode'] == 'Inpatient']
 cohort = cohort.drop(columns = ['ordering_mode', 'was_positive'])
 cohort['year'] = [time[:4] for time in cohort['order_time_jittered_utc']]
 
+if cohort.empty:
+    print("cohort is empty after filtering. Check your filtering conditions.")
+
 # add implied susceptibilities
 implied_susceptibility = implied_susceptibility[implied_susceptibility['antibiotic'].isin(['Cefazolin', 'Ceftriaxone', 'Cefepime', 'Piperacillin/Tazobactam', 'Ciprofloxacin'])]
-df = cohort.merge(implied_susceptibility, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded', 'organism', 'antibiotic', 'susceptibility'], how = 'left')
+if implied_susceptibility.empty:
+    print("implied_susceptibility is empty after filtering. Check your filtering conditions.")
+try:
+    df = cohort.merge(implied_susceptibility, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded', 'organism', 'antibiotic', 'susceptibility'], how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
 df['susceptibility'] = df['implied_susceptibility'].fillna(df['susceptibility'])
 df = df.drop(columns=['implied_susceptibility'])
 df = df[df['susceptibility'].isin(['Susceptible', 'Resistant'])]
 
+print(df.columns) # ensure no duplicate columns in dataframe
+
 # add demographic features
-df = df.merge(demographics, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded'], how = 'left')
+try:
+    df = df.merge(demographics, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded'], how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
+
+print(df.columns)
 
 # add ward info (not too helpful)
-df = df.merge(ward_info, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded', 'order_time_jittered_utc'], how = 'left')
+try:
+    df = df.merge(ward_info, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded', 'order_time_jittered_utc'], how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
+
+print(df.columns)
 
 # add adi scores (only score, not state rank)
-df = df.merge(adi_scores, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded', 'order_time_jittered_utc'], how = 'left')
+try:
+    df = df.merge(adi_scores, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded', 'order_time_jittered_utc'], how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
+
+print(df.columns)
 
 # add vitals (useless)
-df = df.merge(vitals, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded'], how = 'left')
+try:
+    df = df.merge(vitals, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded'], how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
+
+print(df.columns)
 
 # add nursing home visits (only within 6 months helps)
 nursing_home_visits.loc[nursing_home_visits['nursing_home_visit_culture'] == 0, 'nursing_home_visit_culture'] += 1
@@ -71,7 +148,12 @@ nursing_home_visits = nursing_home_visits.groupby('anon_id').agg(
     nursing_visits_before_6mo =('nursing_visits_before_6mo', sum)
 ).reset_index()
 
-df = df.merge(nursing_home_visits, on = 'anon_id', how = 'left')
+try:
+    df = df.merge(nursing_home_visits, on = 'anon_id', how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
+
+print(df.columns)
 
 # add prior procedures
 prior_procedures.loc[prior_procedures['procedure_time_to_cultureTime'] == 0, 'procedure_time_to_cultureTime'] += 1
@@ -87,7 +169,12 @@ columns_to_sum = prior_procedures.columns[6:].tolist()
 agg_dict = {col: (col, 'sum') for col in columns_to_sum}
 prior_procedures = prior_procedures.groupby('anon_id').agg(**agg_dict).reset_index() # one patient has 711 dialysis procedures within 6 months...also has 2633 entries in original df
 
-df = df.merge(prior_procedures, on = 'anon_id', how = 'left')
+try:
+    df = df.merge(prior_procedures, on = 'anon_id', how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
+
+print(df.columns)
 
 # microbial resistance (game changer)
 microbial_resistance = microbial_resistance[microbial_resistance['antibiotic'].isin(['Cefazolin', 'Ceftriaxone', 'Cefepime', 'Piperacillin/Tazobactam', 'Ciprofloxacin'])]
@@ -95,7 +182,8 @@ microbial_resistance = microbial_resistance[microbial_resistance['antibiotic'].i
 microbial_resistance = microbial_resistance[microbial_resistance['organism'].isin(['ESCHERICHIA COLI', 'PSEUDOMONAS AERUGINOSA', 'MUCOID PSEUDOMONAS AERUGINOSA', 
                                                                                    'KLEBSIELLA PNEUMONIAE', 'ACHROMOBACTER XYLOSOXIDANS', 'STAPHYLOCOCCUS AUREUS', 
                                                                                    'PSEUDOMONAS AERUGINOSA (NON-MUCOID CF)', 'ENTEROCOCCUS SPECIES', 'ENTEROBACTER CLOACAE COMPLEX', 'PROTEUS MIRABILIS'])]
-
+if microbial_resistance.empty:
+    print("microbial_resistance is empty after filtering. Check your filtering conditions.")
 microbial_resistance.loc[microbial_resistance['resistant_time_to_cultureTime'] == 0, 'resistant_time_to_cultureTime'] += 1
 microbial_resistance.loc['resistant_time_to_cultureTime'] = microbial_resistance['resistant_time_to_cultureTime'].fillna(0)
 # make six month columns
@@ -109,14 +197,20 @@ columns_to_sum = microbial_resistance.columns[7:].tolist()
 agg_dict = {col: (col, 'sum') for col in columns_to_sum}
 microbial_resistance = microbial_resistance.groupby('anon_id').agg(**agg_dict).reset_index() 
 
-df = df.merge(microbial_resistance, on = 'anon_id', how = 'left')
+try:
+    df = df.merge(microbial_resistance, on = 'anon_id', how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
+
+print(df.columns)
 
 # add prior infecting organisms
 # filter for top ten most common infecting organisms
 prior_infecting_organisms = prior_infecting_organisms[prior_infecting_organisms['prior_organism'].isin(['Escherichia', 'Staphylococcus', 'Pseudomonas', 
                                                                                                         'Enterococcus', 'Klebsiella', 'Streptococcus', 
                                                                                                         'Proteus', 'CONS', 'Stenotrophomonas', 'Enterobacter'])]
-
+if prior_infecting_organisms.empty:
+    print("prior_infecting_organisms is empty after filtering. Check your filtering conditions.")
 prior_infecting_organisms.loc[prior_infecting_organisms['prior_infecting_organism_days_to_culutre'] == 0, 'prior_infecting_organism_days_to_culutre'] += 1
 prior_infecting_organisms.loc['prior_infecting_organism_day_to_culutre'] = prior_infecting_organisms['prior_infecting_organism_days_to_culutre'].fillna(0)
 # make six month columns
@@ -130,35 +224,46 @@ columns_to_sum = prior_infecting_organisms.columns[6:].tolist()
 agg_dict = {col: (col, 'sum') for col in columns_to_sum}
 prior_infecting_organisms = prior_infecting_organisms.groupby('anon_id').agg(**agg_dict).reset_index() 
 
-df = df.merge(prior_infecting_organisms, on = 'anon_id', how = 'left')
+try:
+    df = df.merge(prior_infecting_organisms, on = 'anon_id', how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
+
+print(df.columns)
+
+# comorbidities dataframe manipulation
+# comorbidity_scores = pd.read_csv('microbiology_cultures_comorbidity.csv')
+# filter for top ten most common comorbidities
+
+# comorbidity_scores = comorbidity_scores[comorbidity_scores['comorbidity_component'].isin(['Congestive heart failure', 'Other specified status', 'Abnormal findings without diagnosis', 
+                                                                                        #  'Organ transplant status', 'Personal/family history of disease', 'Renal failure', 
+                                                                                        #  'Abdominal pain and other digestive/abdomen signs and symptoms', 'Solid tumor without metastasis', 
+                                                                                        # 'Disorders of lipid metabolism', 'Musculoskeletal pain, not low back pain'])]
+
+# comorbidity_scores['comorbidity_component_end_days_culture'] = comorbidity_scores['comorbidity_component_end_days_culture'].abs()
+# comorbidity_scores.loc[comorbidity_scores['comorbidity_component_end_days_culture'] == 0, 'comorbidity_component_end_days_culture'] += 1
+# comorbidity_scores.loc['comorbidity_component_end_days_culture'] = comorbidity_scores['comorbidity_component_end_days_culture'].fillna(0)
+# make six month columns
+# six_months = 6 * 30
+# comorbidities = comorbidity_scores['comorbidity_component'][pd.notna(comorbidity_scores['comorbidity_component'])].unique()
+# for comorbidity in comorbidities:
+    # comorbidity_scores[f"{comorbidity}_within_6mo"] = comorbidity_scores[comorbidity_scores['comorbidity_component'] == comorbidity]['comorbidity_component_end_days_culture'].apply(lambda x: 1 if 0 < x <= six_months else 0)
+    # comorbidity_scores[f"{comorbidity}_before_6mo"] = comorbidity_scores[comorbidity_scores['comorbidity_component'] == comorbidity]['comorbidity_component_end_days_culture'].apply(lambda x: 1 if x > six_months else 0)
+
+# columns_to_sum = comorbidity_scores.columns[7:].tolist()
+# agg_dict = {col: (col, 'sum') for col in columns_to_sum}
+# comorbidity_scores = comorbidity_scores.groupby('anon_id').agg(**agg_dict).reset_index() 
+# comorbidity_scores.columns = comorbidity_scores.columns.str.replace(r'[^a-zA-Z0-9_]', '', regex = True)
+
+# comorbidity_scores.to_csv('comorbidities_cleaned.csv', index = False)
 
 # add comorbidities
-# filter for top ten most common comorbidities
-comorbidity_scores = comorbidity_scores[comorbidity_scores['comorbidity_component'].isin(['Congestive heart failure', 'Other specified status', 'Abnormal findings without diagnosis', 
-                                                                                          'Organ transplant status', 'Personal/family history of disease', 'Renal failure', 
-                                                                                          'Abdominal pain and other digestive/abdomen signs and symptoms', 'Solid tumor without metastasis', 
-                                                                                          'Disorders of lipid metabolism', 'Musculoskeletal pain, not low back pain'])]
+try:
+    df = df.merge(comorbidities, on = 'anon_id', how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
 
-comorbidity_scores['comorbidity_component_end_days_culture'] = comorbidity_scores['comorbidity_component_end_days_culture'].abs()
-comorbidity_scores.loc[comorbidity_scores['comorbidity_component_end_days_culture'] == 0, 'comorbidity_component_end_days_culture'] += 1
-comorbidity_scores.loc['comorbidity_component_end_days_culture'] = comorbidity_scores['comorbidity_component_end_days_culture'].fillna(0)
-# make six month columns
-six_months = 6 * 30
-comorbidities = comorbidity_scores['comorbidity_component'][pd.notna(comorbidity_scores['comorbidity_component'])].unique()
-for comorbidity in comorbidities:
-    comorbidity_scores[f"{comorbidity}_within_6mo"] = comorbidity_scores[comorbidity_scores['comorbidity_component'] == comorbidity]['comorbidity_component_end_days_culture'].apply(lambda x: 1 if 0 < x <= six_months else 0)
-    comorbidity_scores[f"{comorbidity}_before_6mo"] = comorbidity_scores[comorbidity_scores['comorbidity_component'] == comorbidity]['comorbidity_component_end_days_culture'].apply(lambda x: 1 if x > six_months else 0)
-
-columns_to_sum = comorbidity_scores.columns[7:].tolist()
-agg_dict = {col: (col, 'sum') for col in columns_to_sum}
-comorbidity_scores = comorbidity_scores.groupby('anon_id').agg(**agg_dict).reset_index() 
-comorbidity_scores.columns = comorbidity_scores.columns.str.replace(r'[^a-zA-Z0-9_]', '', regex = True)
-
-comorbidity_scores.to_csv('comorbidities_cleaned.csv', index = False)
-
-comorbidities = pd.read_csv('comorbidities_cleaned.csv')
-
-df = df.merge(comorbidities, on = 'anon_id', how = 'left')
+print(df.columns)
 
 # add prior med features
 # filtering for positive times
@@ -167,7 +272,8 @@ prior_med = prior_med[prior_med['medication_time_to_cultureTime'] >= 0]
 prior_med = prior_med[prior_med['medication_name'].isin(['Cefazolin', 'Levofloxacin', 'Metronidazole',
                                                          'Vancomycin', 'Ciprofloxacin', 'Ceftriaxone', 
                                                          'Gentamicin', 'Colistin', 'Cefepime', 'Ertapenem'])]
-
+if prior_med.empty:
+    print("prior_med is empty after filtering. Check your filtering conditions.")
 prior_med.loc[prior_med['medication_time_to_cultureTime'] == 0, 'medication_time_to_cultureTime'] += 1
 prior_med.loc['medication_time_to_cultureTime'] = prior_med['medication_time_to_cultureTime'].fillna(0)
 # make six month columns
@@ -181,7 +287,12 @@ columns_to_sum = prior_med.columns[7:].tolist()
 agg_dict = {col: (col, 'sum') for col in columns_to_sum}
 prior_med = prior_med.groupby('anon_id').agg(**agg_dict).reset_index() 
 
-df = df.merge(prior_med, on = 'anon_id', how = 'left')
+try:
+    df = df.merge(prior_med, on = 'anon_id', how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
+
+print(df.columns)
 
 # antibiotic class exposure
 # filtering for positive times
@@ -190,7 +301,8 @@ antibiotic_class_exposure = antibiotic_class_exposure[antibiotic_class_exposure[
 antibiotic_class_exposure = antibiotic_class_exposure[antibiotic_class_exposure['antibiotic_class'].isin(['Beta Lactam', 'Fluoroquinolone', 'Macrolide Lincosamide', 
                                                                                                          'Combination Antibiotic', 'Nitrofuran', 'Nitroimidazole', 
                                                                                                          'Glycopeptide', 'Tetracycline', 'Ansamycin', 'Aminoglycoside'])]
-
+if antibiotic_class_exposure.empty:
+    print("antibiotic_class_exposure is empty after filtering. Check your filtering conditions.")
 antibiotic_class_exposure.loc[antibiotic_class_exposure['time_to_cultureTime'] == 0, 'time_to_cultureTime'] += 1
 antibiotic_class_exposure.loc['time_to_cultureTime'] = antibiotic_class_exposure['time_to_cultureTime'].fillna(0)
 # make six month columns
@@ -204,15 +316,26 @@ columns_to_sum = antibiotic_class_exposure.columns[8:].tolist()
 agg_dict = {col: (col, 'sum') for col in columns_to_sum}
 antibiotic_class_exposure = antibiotic_class_exposure.groupby('anon_id').agg(**agg_dict).reset_index() 
 
-df = df.merge(antibiotic_class_exposure, on = 'anon_id', how = 'left')
+try:
+    df = df.merge(antibiotic_class_exposure, on = 'anon_id', how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
 
+print(df.columns)
 
-# labs
+# add labs
 labs = labs[['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded', 'Period_Day', 'median_wbc', 'median_neutrophils', 'median_lymphocytes', 'median_hgb',
              'median_plt', 'median_na', 'median_hco3', 'median_bun', 'median_cr', 'median_lactate',
              'median_procalcitonin']]
+if labs.empty:
+    print("labs is empty after filtering. Check your filtering conditions.")
 
-df = df.merge(labs, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded'], how = 'left')
+try:
+    df = df.merge(labs, on = ['anon_id', 'pat_enc_csn_id_coded', 'order_proc_id_coded'], how = 'left')
+except KeyError as e:
+    print(f"Error during merge: {e}. Check that both DataFrames have the required column.")
+
+print(df.columns)
 
 ### define features for use in model
 categorical_features = ['organism', 'gender', 'culture_description']
@@ -222,8 +345,7 @@ numeric_features = ['age', 'adi_score', 'nursing_visits_within_6mo', 'urethral_c
                     'parenteral_nutrition_before_6mo', 'dialysis_within_6mo', 'dialysis_before_6mo', 
                     'PSEUDOMONAS AERUGINOSA (NON-MUCOID CF)_within_6mo', 'PSEUDOMONAS AERUGINOSA (NON-MUCOID CF)_before_6mo', 
                     'MUCOID PSEUDOMONAS AERUGINOSA_within_6mo', 'MUCOID PSEUDOMONAS AERUGINOSA_before_6mo', 'PSEUDOMONAS AERUGINOSA_within_6mo', 
-                    'PSEUDOMONAS AERUGINOSA_before_6mo', 
-                    'ACHROMOBACTER XYLOSOXIDANS_within_6mo', 'ACHROMOBACTER XYLOSOXIDANS_before_6mo', 
+                    'PSEUDOMONAS AERUGINOSA_before_6mo', 'ACHROMOBACTER XYLOSOXIDANS_within_6mo', 'ACHROMOBACTER XYLOSOXIDANS_before_6mo', 
                     'ESCHERICHIA COLI_within_6mo', 'ESCHERICHIA COLI_before_6mo', 'KLEBSIELLA PNEUMONIAE_within_6mo', 'KLEBSIELLA PNEUMONIAE_before_6mo', 
                     'PROTEUS MIRABILIS_within_6mo', 'PROTEUS MIRABILIS_before_6mo', 'ENTEROBACTER CLOACAE COMPLEX_within_6mo', 'ENTEROBACTER CLOACAE COMPLEX_before_6mo', 
                     'STAPHYLOCOCCUS AUREUS_within_6mo', 'STAPHYLOCOCCUS AUREUS_before_6mo', 'ENTEROCOCCUS SPECIES_within_6mo', 'ENTEROCOCCUS SPECIES_before_6mo', 
@@ -239,10 +361,8 @@ numeric_features = ['age', 'adi_score', 'nursing_visits_within_6mo', 'urethral_c
                     'Disordersoflipidmetabolism_before_6mo', 'Solidtumorwithoutmetastasis_within_6mo', 'Solidtumorwithoutmetastasis_before_6mo',
                     'Personalorfamilyhistoryofdisease_within_6mo', 'Personalorfamilyhistoryofdisease_before_6mo',
                     'Abnormalfindingswithoutdiagnosis_within_6mo', 'Abnormalfindingswithoutdiagnosis_before_6mo', 'Musculoskeletalpainnotlowbackpain_within_6mo',
-                    'Musculoskeletalpainnotlowbackpain_before_6mo', 'Abdominalpainandotherdigestiveorabdomensignsandsymptoms_within_6mo', 'Abdominalpainandotherdigestiveorabdomensignsandsymptoms_before_6mo',
-                    'Period_Day', 
-                    'median_wbc', 'median_neutrophils', 'median_lymphocytes', 'median_hgb', 'median_plt', 'median_na', 'median_hco3', 'median_bun', 'median_cr', 
-                    'median_lactate', 'median_procalcitonin', 'Cefepime_within_6mo', 'Cefepime_before_6mo', 'Colistin_within_6mo', 'Colistin_before_6mo', 'Cefazolin_within_6mo', 'Cefazolin_before_6mo',
+                    'Musculoskeletalpainnotlowbackpain_before_6mo', 'Abdominalpainandotherdigestiveorabdomensignsandsymptoms_within_6mo', 'Abdominalpainandotherdigestiveorabdomensignsandsymptoms_before_6mo', 
+                    'Cefepime_within_6mo', 'Cefepime_before_6mo', 'Colistin_within_6mo', 'Colistin_before_6mo', 'Cefazolin_within_6mo', 'Cefazolin_before_6mo',
                     'Ertapenem_within_6mo', 'Ertapenem_before_6mo','Gentamicin_within_6mo', 'Gentamicin_before_6mo', 'Vancomycin_within_6mo', 'Vancomycin_before_6mo', 
                     'Ceftriaxone_within_6mo', 'Ceftriaxone_before_6mo', 'Levofloxacin_within_6mo', 'Levofloxacin_before_6mo', 
                     'Ciprofloxacin_within_6mo', 'Ciprofloxacin_before_6mo', 'Metronidazole_within_6mo', 'Metronidazole_before_6mo', 'Macrolide Lincosamide_within_6mo', 'Macrolide Lincosamide_before_6mo', 
@@ -257,6 +377,17 @@ for col in categorical_features:
 
 # convert numeric features to numeric type
 df[numeric_features] = df[numeric_features].apply(pd.to_numeric, errors = 'coerce')
+df['year'] = df['year'].astype(int)
+
+### check out distribution of observations based on year
+value_counts = df['year'].value_counts()
+
+sns.barplot(x=value_counts.index, y=value_counts.values)
+
+plt.xlabel('Year')
+plt.ylabel('Count')
+plt.title('Distribution of Observations per Year')
+plt.show()
 
 ### model training with lightGBM model
 def train_test_lgb(df, model_antibiotic, features):
@@ -272,8 +403,8 @@ def train_test_lgb(df, model_antibiotic, features):
     df['susceptibility'] = label_enc.fit_transform(df['susceptibility'])
 
     # Split data into training (pre-2022) and testing (2022 and 2023)
-    df_train = df[~df['year'].isin(["2022", "2023"])].drop(columns=['year'])
-    df_test = df[df['year'].isin(["2022", "2023"])].drop(columns=['year'])
+    df_train = df[~df['year'].isin([2022, 2023])].drop(columns=['year'])
+    df_test = df[df['year'].isin([2022, 2023])].drop(columns=['year'])
 
     # pre-process categorical variables
     for col in categorical_features:
@@ -289,6 +420,10 @@ def train_test_lgb(df, model_antibiotic, features):
     X_test = df_test[features]
     y_test = df_test['susceptibility']
 
+    # validation of feature names for train and test set
+    if set(X_train.columns) != set(X_test.columns):
+        raise ValueError("Feature names in train and test sets do not match")
+
     df_lgb_train = Dataset(X_train, label=y_train)
     df_lgb_validation = Dataset(X_test, label=y_test)
 
@@ -298,6 +433,30 @@ def train_test_lgb(df, model_antibiotic, features):
         'bagging_fraction': [0.6, 0.8, 0.9, 1],
         'bagging_freq': [5, 10, 20]
     }
+
+    # add feature selection
+    feature_importance_threshold = 0.005
+    if len(features) > 50:
+        initial_model = train(
+            params = {'objective': 'binary', 'verbosity': -1},
+            train_set = df_lgb_train,
+            num_boost_round = 100
+        )
+        importance = initial_model.feature_importance()
+        importance_ratio = importance / importance.sum()
+        selected_features = [f for f, imp in zip(features, importance_ratio) if imp > feature_importance_threshold]
+        features = selected_features
+
+    X_train = df_train[features]
+    X_test = df_test[features]
+
+    # validation of feature names for train and test set
+    if set(X_train.columns) != set(X_test.columns):
+        raise ValueError("Feature names in train and test sets do not match")
+
+    df_lgb_train = Dataset(X_train, label=y_train)
+    df_lgb_validation = Dataset(X_test, label=y_test)
+
     param_combinations = list(itertools.product(*param_grid.values()))
 
     best_auc = -np.inf
@@ -322,7 +481,7 @@ def train_test_lgb(df, model_antibiotic, features):
             train_set=df_lgb_train,
             num_boost_round=100,
             nfold=5,
-            callbacks=[early_stopping(stopping_rounds=10)]
+            callbacks=[early_stopping(stopping_rounds=30)]
         )
 
         if cv_results['valid auc-mean'][-1] > best_auc:
@@ -338,7 +497,7 @@ def train_test_lgb(df, model_antibiotic, features):
         num_boost_round=best_iter,
         valid_sets=[df_lgb_validation],
         valid_names=['validation'],
-        callbacks=[early_stopping(stopping_rounds=10)]
+        callbacks=[early_stopping(stopping_rounds=30)]
     )
 
     # Make predictions
@@ -354,6 +513,17 @@ def train_test_lgb(df, model_antibiotic, features):
     threshold = 0.5
     predicted_classes = (predictions >= threshold).astype(int)
     cm = confusion_matrix(y_test, predicted_classes)
+
+    # compare training and test performance
+    train_pred = model.predict(X_train)
+    train_auc = roc_auc_score(y_train, train_pred)
+    test_auc = roc_auc_score(y_test, predictions)
+
+    print(f"Training AUC: {train_auc:.3f}")
+    print(f"Test AUC: {test_auc:.3f}")
+
+    if train_auc - test_auc > 0.1: # if difference is too large, model might be overfitting
+        print("Warning: Possible overfitting detected")
 
     # Return results
     return {
@@ -379,36 +549,30 @@ model_cefepime = train_test_lgb(df, "Cefepime", model_features)
 
 ### shap feature importance plot
 def plot_shap_importance(model):
-    X_train = model['df_train'][model_features]
-    X_test = model['df_test'][model_features]
+    features = model['model'].feature_name()
+
+    model['df_train'].columns = model['df_train'].columns.str.replace(' ', '_')
+    model['df_test'].columns = model['df_test'].columns.str.replace(' ', '_')
+
+    X_train = model['df_train'][features]
+    X_test = model['df_test'][features]
 
     X_train = pd.get_dummies(X_train)
     X_test = pd.get_dummies(X_test)
 
     X_test = X_test.reindex(columns = X_train.columns, fill_value=0)
-    
-    explainer = shap.Explainer(model['model'], X_test)
 
-    shap_values = explainer(X_test)
+    explainer = shap.Explainer(model['model'])
 
-    shap_importance = pd.DataFrame({
-        "Feature": X_test.columns,
-        "Mean SHAP Value": np.abs(shap_values.values).mean(axis=0)
-    })
+    shap_values = explainer.shap_values(X_train)
 
-    shap_importance = shap_importance.sort_values(by="Mean SHAP Value", ascending=False)
-
-    print(shap_importance)
-
-    # shap.plots.bar(shap_values)
-
-    # explainer = shap.Explainer(model['model'])
-
-    # shap_values = explainer.shap_values(X_train)
-
-    # shap.summary_plot(shap_values, X_train)
+    shap.summary_plot(shap_values, X_train)
 
 plot_shap_importance(model_ciprofloxacin)
+plot_shap_importance(model_piperacillin)
+plot_shap_importance(model_cefazolin)
+plot_shap_importance(model_ceftriaxone)
+plot_shap_importance(model_cefepime)
 
 ### plot model metrics
 fpr1, tpr1 = model_ciprofloxacin['roc']['fpr'], model_ciprofloxacin['roc']['tpr']
@@ -448,8 +612,6 @@ plt.ylabel('True Positive Rate')
 plt.title('Receiver Operating Characteristic (ROC) Curve')
 plt.legend(loc='lower right')
 plt.show()
-
-
 
 ### plot antibiotic orders saved in next 24 hours
 def antibiotics_24h_saved(model, df_all_antibiotics_24h, antibiotic24h):
