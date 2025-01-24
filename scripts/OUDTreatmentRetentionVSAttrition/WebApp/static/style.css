@@ -1,0 +1,178 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+h1 {
+    color: #2c3e50;
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+}
+
+form {
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 500px;
+    margin: 0 auto 20px auto;
+}
+
+label {
+    font-weight: 600;
+    color: #34495e;
+    display: block;
+    margin-bottom: 8px;
+}
+
+input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+#result {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    background-color: #ecf0f1;
+    border-radius: 8px;
+    max-width: 700px;
+    margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+#result h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.info-icon {
+    color: #3498db;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.info-text {
+    display: none; /* Initially hidden */
+    background-color: #e3f2fd;
+    border-left: 4px solid #3498db;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #333;
+}
+
+.header-container {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header-container h1 {
+    font-size: 40px;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.header-underline {
+    width: 900px; /* Make the line longer */
+    height: 8px;
+    background-color: #3498db; /* Blue underline color */
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+
+/* Two-column layout for form */
+form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 900px; /* Adjusted width to fit two columns */
+    margin: 0 auto 20px auto;
+}
+
+.form-group {
+    width: 45%; /* Make each form field take up 45% of the width for two columns */
+    margin-bottom: 20px;
+}
+
+.form-group.full-width {
+    width: 100%; /* Full width for submit button */
+    text-align: center;
+}
+
+input[type="number"],
+input[type="checkbox"] {
+    margin: 0; /* Remove extra margin around checkboxes */;
+}
+
+button {
+    width: 50%; /* Adjusted width for two-column alignment */
+    padding: 12px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 600;
+    margin: 0 auto; /* Center the button */
+    display: block;
+}
+
+.info-icon {
+    color: #3498db;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+/* Additional adjustments for info-text */
+.info-text {
+    display: none;
+    background-color: #e3f2fd;
+    border-left: 4px solid #3498db;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #333;
+}
