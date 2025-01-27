@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buprenorphine-Naloxone Attrition Prediction Web App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> <!-- Include Plotly for plotting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <div class="header-container">
+        <h1>Buprenorphine-Naloxone Attrition Prediction</h1>
+        <div class="header-underline"></div>
+    </div>
+    
+
+        <!-- The form to collect input features -->
+        <form id="predictionForm">
+            <!-- Age at BUP-NAL Initiation -->
+            <div class="form-group">
+                <label for="age_at_drug_start">
+                    Age at BUP-NAL Initiation:
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('age_info')"></i>
+                </label>
+                <input type="number" id="age_at_drug_start" name="age_at_drug_start" required>
+                <div id="age_info" class="info-text">Age at which the patient started BUP-NAL treatment. Age must be between 16-95 years</div>
+            </div>
+
+            <!-- Opioid Dependence -->
+            <div class="form-group">
+                <label for="opioid_dependence">
+                    Opioid Dependence (Diagnosis):
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('opioid_dependence_info')"></i>
+                </label>
+                <input type="checkbox" id="opioid_dependence" name="opioid_dependence">
+                <div id="opioid_dependence_info" class="info-text">Opioid dependence is a diagnosis for chronic use of opioids leading to dependence.</div>
+            </div>
+
+            <!-- Limb Swelling -->
+            <div class="form-group">
+                <label for="limb_swelling">
+                    Limb Swelling (Diagnosis):
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('limb_swelling_info')"></i>
+                </label>
+                <input type="checkbox" id="limb_swelling" name="limb_swelling">
+                <div id="limb_swelling_info" class="info-text">Limb swelling, as commonly seen in conditions such as deep vein thrombosis, heart failure, and chronic kidney disease.</div>
+            </div>
+
+            <!-- Laxative Use -->
+            <div class="form-group">
+                <label for="laxative">
+                    Laxative Use:
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('laxative_info')"></i>
+                </label>
+                <input type="checkbox" id="laxative" name="laxative">
+                <div id="laxative_info" class="info-text">Indicates whether the patient has used laxatives. Constipation is a common complication of opioid use.</div>
+            </div>
+
+            <!-- Long-Acting Opioid Use -->
+            <div class="form-group">
+                <label for="oxycodone">
+                    Long-Acting Opioid Use:
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('oxycodone_info')"></i>
+                </label>
+                <input type="checkbox" id="oxycodone" name="oxycodone">
+                <div id="oxycodone_info" class="info-text">Use of long-acting opioids such as Oxycodone Extended Release for pain management.</div>
+            </div>
+
+            <!-- Prescribed Acetaminophen -->
+            <div class="form-group">
+                <label for="acetaminophen">
+                    Prescribed Acetaminophen:
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('acetaminophen_info')"></i>
+                </label>
+                <input type="checkbox" id="acetaminophen" name="acetaminophen">
+                <div id="acetaminophen_info" class="info-text">Typically a marker for sicker or more complicated patients as most use would be over-the-counter.</div>
+            </div>
+
+            <!-- Chronic Pain -->
+            <div class="form-group">
+                <label for="chronic_pain">
+                    Chronic Pain:
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('chronic_pain_info')"></i>
+                </label>
+                <input type="checkbox" id="chronic_pain" name="chronic_pain">
+                <div id="chronic_pain_info" class="info-text">Long-lasting pain that persists for weeks to years.</div>
+            </div>
+
+            <!-- Liver Disease -->
+            <div class="form-group">
+                <label for="liver_disease">
+                    Liver Disease:
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('liver_disease_info')"></i>
+                </label>
+                <input type="checkbox" id="liver_disease" name="liver_disease">
+                <div id="liver_disease_info" class="info-text">Any disorder that affects the function of the liver.</div>
+            </div>
+
+            <!-- 12-Lead ECG -->
+            <div class="form-group">
+                <label for="ecg">
+                    12-Lead ECG (within 90 days of initiation):
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('ecg_info')"></i>
+                </label>
+                <input type="checkbox" id="ecg" name="ecg">
+                <div id="ecg_info" class="info-text"> A common procedure for complicated patients, usually performed within 90 days prior to initiation.</div>
+            </div>
+
+            <!-- Diphenhydramine -->
+            <div class="form-group">
+                <label for="diphenhydramine">
+                    Prescribed Diphenhydramine:
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('diphenhydramine_info')"></i>
+                </label>
+                <input type="checkbox" id="diphenhydramine" name="diphenhydramine">
+                <div id="diphenhydramine_info" class="info-text">Diphenhydramine (Benadryl) often used for itch relief due to high-dose opioids, especially in a hospital setting.</div>
+            </div>
+
+            <!-- Docusate -->
+            <div class="form-group">
+                <label for="docusate">
+                    Docusate (Laxative):
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('docusate_info')"></i>
+                </label>
+                <input type="checkbox" id="docusate" name="docusate">
+                <div id="docusate_info" class="info-text">A stool softener, not highly effective but commonly prescribed for constipation management.</div>
+            </div>
+
+            <!-- Opioid Withdrawal -->
+            <div class="form-group">
+                <label for="opioid_withdrawal">
+                    Opioid Withdrawal (before initiation):
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('opioid_withdrawal_info')"></i>
+                </label>
+                <input type="checkbox" id="opioid_withdrawal" name="opioid_withdrawal">
+                <div id="opioid_withdrawal_info" class="info-text">Symptoms before starting buprenorphine-naloxone.</div>
+            </div>
+
+            <!-- Aspirin -->
+            <div class="form-group">
+                <label for="aspirin">
+                    Prescribed Aspirin:
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('aspirin_info')"></i>
+                </label>
+                <input type="checkbox" id="aspirin" name="aspirin">
+                <div id="aspirin_info" class="info-text">Typically prescribed as a marker for complex cases where it’s noted in EMR.</div>
+            </div>
+
+            <!-- Major Depression -->
+            <div class="form-group">
+                <label for="major_depression">
+                    Major Depressive Disorder (Diagnosis):
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('major_depression_info')"></i>
+                </label>
+                <input type="checkbox" id="major_depression" name="major_depression">
+                <div id="major_depression_info" class="info-text">Mood disorder causing persistent sadness and loss of interest.</div>
+            </div>
+
+            <!-- Buprenorphine (Low Dose) -->
+            <div class="form-group">
+                <label for="buprenorphine">
+                    Stabilization on Buprenorphine doses XX-XX mg:
+                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('buprenorphine_info')"></i>
+                </label>
+                <input type="checkbox" id="buprenorphine" name="buprenorphine">
+                <div id="buprenorphine_info" class="info-text">Indicates stabilization on buprenorphine within the specified dose range.</div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn"><i class="fas fa-chart-line"></i> Submit</button>
+        </form>
+
+
+    <div class="result-container">
+        <h2>Prediction Result</h2>
+        <p>
+            This section presents the predicted retention probability over time for a patient, along with comparative reference curves:
+            <ul>
+                <li><strong>Patient Prediction:</strong> The predicted retention probability curve for the patient based on their input features.</li>
+                <li><strong>High Risk:</strong> Represents a reference curve indicating lower retention probabilities, typically associated with patients at higher risk of treatment attrition.</li>
+                <li><strong>Low Risk:</strong> Represents a reference curve showing higher retention probabilities, associated with patients expected to stay longer in treatment.</li>
+                <li><strong>Median:</strong> Shows a curve that represents the median retention probability across the sample population for comparison.</li>
+            </ul>
+        </p>
+        <div id="result"></div>
+    </div>
+
+    <!-- Link to the external app.js file -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+
+</html>
