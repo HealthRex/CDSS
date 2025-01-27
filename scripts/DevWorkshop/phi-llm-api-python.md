@@ -6,8 +6,8 @@ This guide demonstrates how to use Python to interact with various Large Languag
 
 ## Prerequisites
 
-- Python 3.6+
-- `requests` library (`pip install requests`)
+- Python 3.6+ with `requests` library installed (`pip install requests`)
+- Stanford VPN running on Full traffic, non-split-tunnel (setup [here](https://uit.stanford.edu/service/vpn)).
 - API Subscription Key provided by Stanford Healthcare. **Keep this key safe, confidential, and do not share it with anyone.** **Replace `# enter your key here` with your key in the Python code!**
 
 ## Usage
