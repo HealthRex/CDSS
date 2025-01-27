@@ -4,11 +4,9 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
 import plotly.io as pio
-import urllib.request
+import requests
+from io import BytesIO
 import os
-
-
-
 
 # Include the custom class definition
 class SurvivalFunction:
@@ -16,24 +14,44 @@ class SurvivalFunction:
         self.x = x
         self.y = y
 
-
 app = Flask(__name__)
 
-# URL to the model file hosted on Google Drive
-model_url = "https://drive.google.com/uc?id=1fLjbWxe0jSiYj9x5JpgLR3STFrzyXXou"
-model_filename = "rsf_model.pkl"
+def download_file_from_google_drive(file_id):
+    # Google Drive API endpoint
+    url = f"https://drive.google.com/uc?id={file_id}"
+    
+    session = requests.Session()
+    
+    # First request to get the confirmation token
+    response = session.get(url, stream=True)
+    
+    # Download the file content
+    response = session.get(url)
+    
+    if response.status_code == 200:
+        return BytesIO(response.content)
+    else:
+        raise Exception(f"Failed to download file: {response.status_code}")
 
-# Check if the model file exists locally, otherwise download it
-if not os.path.exists(model_filename):
-    urllib.request.urlretrieve(model_url, model_filename)
+# Load model only once when the app starts
+try:
+    # Extract file ID from your Google Drive URL
+    file_id = "1fLjbWxe0jSiYj9x5JpgLR3STFrzyXXou"
+    
+    # Download and load the model
+    model_file = download_file_from_google_drive(file_id)
+    model = joblib.load(model_file)
+    
+    # Load the curves from the model
+    high_risk_sf = model.high_risk_sf
+    low_risk_sf = model.low_risk_sf
+    median_sf = model.median_sf
+    
+except Exception as e:
+    print(f"Error loading model: {str(e)}")
+    raise
 
-# Load the trained RandomSurvivalForest model with additional curves
-model = joblib.load(model_filename)
-
-# Load the high-risk, low-risk, and median curves from the model
-high_risk_sf = model.high_risk_sf
-low_risk_sf = model.low_risk_sf
-median_sf = model.median_sf
+# Rest of your code remains the same...
 
 # Define the column names that match the training data
 feature_columns = [
