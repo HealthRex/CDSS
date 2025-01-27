@@ -3,8 +3,8 @@ pip==22.0.4
 numpy==2.0.2
 pandas==2.2.3
 plotly==5.24.1
+scikit-learn==1.2.2
 joblib==1.4.2
-scikit-learn==1.5.2
 scikit-survival==0.23.1
 scipy==1.13.1
 Flask==3.1.0
