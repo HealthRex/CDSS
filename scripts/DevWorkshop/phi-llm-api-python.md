@@ -32,17 +32,21 @@ headers = {'Ocp-Apim-Subscription-Key': my_key, 'Content-Type': 'application/jso
 
 ## GPT-4o API Call
 ```python
-url =  "https://apim.stanfordhealthcare.org/openai20/deployments/gpt-4/chat/completions?api-version=2023-05-15" 
+url =  "https://apim.stanfordhealthcare.org/openai20/deployments/gpt-4o/chat/completions?api-version=2023-05-15" 
 payload = json.dumps({"model": "gpt-4o", "messages": [{"role": "user", "content": my_question}]})
 response = requests.request("POST", url, headers=headers, data=payload)
 print(response.text)
 ```
-To use a different model from OpenAI, change "gpt-4o" in the payload above with any of the Model Name values shown in the image below.
-<img src="openaimodels.png" width="50%" alt="openaimodels">
+To use a different OpenAI model, you must modify both the url and the payload. Refer to the 'Model Name' column in the image below for available options. For example, to use the o1-mini model, you would change both the url and payload as shown below:
+```python
+url =  "https://apim.stanfordhealthcare.org/openai20/deployments/o1-mini/chat/completions?api-version=2023-05-15" 
+payload = json.dumps({"model": "o1-mini", "messages": [{"role": "user", "content": my_question}]})
+```
+<img src="openaimodels.png" width="75%" alt="openaimodels">
 
-(*See the "Model Name" column in this image for valid model names*)
+*See the "Model Name" column in this image for valid model names.*
 
-## Claude 3-5 Sonnet v2 API Call
+## Claude 3.5 Sonnet v2 API Call
 ```python
 url = "https://apim.stanfordhealthcare.org/Claude35Sonnetv2/awssig4fa"
 payload = json.dumps({"model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0", "prompt_text": my_question})
