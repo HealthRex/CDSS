@@ -7,16 +7,7 @@ import plotly.io as pio
 import urllib.request
 import os
 from pathlib import Path
-import sys
-
-# Include the custom class definition and make it available in __main__
-class SurvivalFunction:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-# Add the class to the main module
-sys.modules['__main__'].SurvivalFunction = SurvivalFunction
+from models import SurvivalFunction  # Import the class from models.py
 
 app = Flask(__name__)
 
