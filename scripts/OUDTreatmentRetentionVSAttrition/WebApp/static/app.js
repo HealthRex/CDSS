@@ -54,6 +54,7 @@ document.getElementById("predictionForm").addEventListener("submit", async funct
 
         // Handle the response
         const result = await response.json();
+        console.log(result);
 
         // Parse the graphJSON from the response
         const graphData = JSON.parse(result.graphJSON);
