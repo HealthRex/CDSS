@@ -58,6 +58,7 @@ document.getElementById("predictionForm").addEventListener("submit", async funct
 
         // Parse the graphJSON from the response
         const graphData = JSON.parse(result.graphJSON);
+        console.log(graphData);
 
         // Customize the layout for better visualization
         graphData.layout.hovermode = 'closest'; // Enable hovermode for better interactivity
