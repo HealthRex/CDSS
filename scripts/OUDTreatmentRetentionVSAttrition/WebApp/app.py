@@ -84,7 +84,64 @@ def predict():
         survival_probabilities = survival_function(time_points)
 
         fig = go.Figure()
-        # ... (rest of your plotting code remains the same)
+        # Add patient-specific survival curve
+        fig.add_trace(
+            go.Scatter(
+                x=np.round(time_points),
+                y=survival_probabilities,
+                mode="lines+markers",
+                name="Patient Prediction",
+                line=dict(width=3, color="blue"),
+                marker=dict(size=6),
+                hovertemplate="Day: %{x}<br>Retention Probability: %{y:.2f}<extra></extra>",
+            )
+        )
+
+        # Add high-risk curve
+        fig.add_trace(
+            go.Scatter(
+                x=high_risk_sf.x,
+                y=high_risk_sf.y,
+                mode="lines",
+                name="High Risk",
+                line=dict(width=2, color="red", dash="dash"),
+                hovertemplate="Day: %{x}<br>Retention Probability: %{y:.2f}<extra></extra>",
+            )
+        )
+
+        # Add low-risk curve
+        fig.add_trace(
+            go.Scatter(
+                x=low_risk_sf.x,
+                y=low_risk_sf.y,
+                mode="lines",
+                name="Low Risk",
+                line=dict(width=2, color="green", dash="dash"),
+                hovertemplate="Day: %{x}<br>Retention Probability: %{y:.2f}<extra></extra>",
+            )
+        )
+
+        # Add median curve
+        fig.add_trace(
+            go.Scatter(
+                x=median_sf.x,
+                y=median_sf.y,
+                mode="lines",
+                name="Median",
+                line=dict(width=2, color="gray", dash="dot"),
+                hovertemplate="Day: %{x}<br>Retention Probability: %{y:.2f}<extra></extra>",
+            )
+        )
+
+        # Update layout
+        fig.update_layout(
+            xaxis_title="Time (Days in Treatment)",
+            yaxis_title="Retention Probability",
+            xaxis=dict(range=[0, 180]),  # Limit x-axis to 180 days
+            template="plotly_white",
+            hovermode="x",
+            showlegend=True,
+        )
 
         graphJSON = pio.to_json(fig)
         return jsonify(graphJSON=graphJSON)
