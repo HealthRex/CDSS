@@ -1,0 +1,338 @@
+Gyn eConsult Checklists
+Please make any changes in red.
+Diagnosis checklists used in Stanford Gyn eConsult order
+eConsult – Abnormal Pap Smear
+My clinical question (condition: abnormal pap smear): ***
+My most current assessment of this problem can be found in the note dated {Date:40773::" "}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include the following assessments and/or diagnostics:
+ASSESSMENTS:
+Required:
++ Is there any past history of abnormal pap smears or confirmed cervical dysplasia? If yes, please list all pap smear, HPV, and/or biopsy results in the last 5 years.
++ Is the patient immunocompromised? If yes, why are they immunocompromised?
++ Does the patient have any history of treatment, such as LEEP, cold knife cone, or cervical ablation? If yes, please state when, which treatment, and if available, the final pathology results.
+Optional:
++ Exam findings (appearance of cervix, any palpable findings, etc.)
+DIAGNOSTICS:
+Required:
++ Most recent pap smear cytology, as applicable
++ Most recent high risk HPV results, as applicable
+CLINICAL PEARLS:
++ Below is the link to the ASCCP (American Society for Colposcopy and Cervical Pathology) guideline on abnormal pap smears
+http://www.asccp.org/Assets/51b17a58-7af9-4667-879a-
+3ff48472d6dc/635912165077730000/asccp-management-guidelines-august-2014-pdf
++ Access guidelines through the ASCCP app: https://www.asccp.org/mobile-app
+}
+eConsult – Contraceptive Issues
+My clinical question (condition: contraceptive issues):***
+My most current assessment of this problem can be found in the note dated {Date:40773::" "}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include the following assessments and/or diagnostics:
+ASSESSMENTS:
+Required:
++ Is the patient a smoker?
++ Does the patient have a history of:
++ Hypertension
++ Thrombophilia
++ Estrogen dependent tumors/cancer history
++ Migraines with aura
++ Seizure disorder
++ Prior methods of birth control used
++ Prior side effects of birth control
++ Reproductive goals/plan in the next 1-5 years
+CLINICAL PEARLS:
++ Hormonal birth control options often have minimal side effects after the first 2-3 months of use.
++ Consider STI screening.
++ For providers: https://www.cdc.gov/reproductivehealth/contraception/mmwr/mec/summary.html
++ For patients: https://www.bedsider.org/
+}
+eConsult – Vaginitis
+My clinical question (condition: vaginitis):***
+My most current assessment of this problem can be found in the note dated {Date:40773::" "}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include the following assessments and/or diagnostics:
+ASSESSMENTS:
+Required:
++ What are the symptoms?
++ How long have the symptoms been present?
++ Has any treatment been used for these symptoms? If so, was treatment effective?
++ Is the patient sexually active?
++ If sexually active, any new sexual partner within the past year?
++ If sexually active with partner(s) with a penis, any current contraceptive method being used?
++ Any recent antibiotic use or changes to genital hygiene? If so, please detail here.
++ Is this problem recurrent (more than 4 times in the last year)?
+DIAGNOSTICS:
+Required:
++ Pelvic exam
++ Gonorrhea (GC)/Chlamydia (CT)
++ Urinalysis with Microscopy, reflex culture
++ Urine or Serum Pregnancy Test
++ Wet mount with pH and microscopy, or equivalent (Affirm or genital culture)
+Optional:
++ Yeast culture
++ Trichomonas
+CLINICAL PEARLS:
++ Vaginal discharge without other symptoms can be physiologic.
+}
+eConsult – Other
+My clinical question (condition: other): ***
+My most current assessment of this problem can be found in the note dated {Date:40773::" "}.
+Diagnoses not included in Stanford Gyn eConsult order
+The below templates are used in other AMC eConsult orders. They are included here for reference.
+eConsult – Abnormal Uterine Bleeding
+I am requesting an eConsult from gynecology for my @age@ y/o for abnormal uterine bleeding (not postmenopausal bleeding, please see separate template for latter condition).
+Have you viewed “Optional” tests (see list below)? DROP DOWN FORMAT
+___ Yes
+___ No
+OPTIONAL - test results available in eDH: IMG3514 (transvaginal pelvic ultrasound, non-OB), CBC
+SMARTLINK – IMG3514
+SMARTLINK – CBC
+SMARTLINK – BMI
+The most current assessment of this problem can be found in the eDH note dated @TD@.
+NOTE: In the clinical question section please include the following information:  current birth control, other co morbid conditions, length of time this has been occurring, previous treatment if it is not included in the current assessment of the eDH note.
+My clinical question: ***
+Answer:
+Do not type below this line
+eConsult – Adnexal Mass
+I am requesting an eConsult from gynecology for my @age@ y/o with an adnexal mass.
+Are all “Required” tests available (see list below)?  DROP DOWN FORMAT
+___ Yes
+___ No
+REQUIRED - test results available in eDH: IMG3514 (transvaginal pelvic ultrasound, non-OB) SMARTLINK – IMG3514
+Have you viewed “Optional” tests (see list below)? DROP DOWN FORMAT
+___ Yes
+___ No
+OPTIONAL - test results available in eDH: CT scan pelvis, MRI pelvis, CA 125 SMARTLINK – CT scan pelvis
+SMARTLINE – MRI pelvis
+SMARTLINK- CA 125
+Symptomatic?    DROP DOWN FORMAT
+___ Yes
+___ No
+The most current assessment of this problem can be found in the eDH note dated @TD@.
+My clinical question: ***
+Answer:
+Do not type below this line
+eConsult – Vulvar Problems
+I am requesting an eConsult from gynecology for my @age@ y/o patient with vulvar problems.
+Has a vulvar biopsy been done? DROP DOWN FORMAT
+____ Yes (NOTE: Please ensure a copy of the report is available in eD-H or scanned documents) ____ No
+The most current assessment of this problem can be found in the eDH note dated @TD@.
+My clinical question: ***
+Answer:
+Do not type below this line
+eConsult – Dyspareunia (pain with sex)
+I am requesting an eConsult from gynecology for my @age@ y/o patient for dyspareunia (pain with sex).
+Is the patient menopausal?   DROP DOWN FORMAT
+___ Yes
+___ No
+If yes, is she on oral or topical ERT?   CHECK BOX FORMAT
+___ Oral ERT
+___ topical ERT
+___ n/a
+The most current assessment of this problem can be found in the eDH note dated @TD@.
+My clinical question: ***
+Answer:
+Do not type below this line
+eConsult – Menopausal Symptoms
+I am requesting an eConsult from gynecology for my @age@ y/o with menopausal symptoms.
+Is the patient currently on hormone replacement therapy?  DROP DOWN FORMAT
+___ Yes
+___ No
+Does she have a uterus? DROP DOWN FORMAT
+___ Yes
+___ No
+Does she have a history of breast cancer or other estrogen dependent cancers? DROP DOWN FORMAT
+___ Yes
+___ No
+What treatments have been tried thus far?  ***
+The most current assessment of this problem can be found in the eDH note dated @TD@.
+My clinical question: ***
+Answer:
+Do not type below this line
+eConsult – Pelvic Pain
+I am requesting an eConsult from gynecology for my @age@ y/o with pelvic pain.
+Are all “Required” tests available (see list below)?  DROP DOWN FORMAT
+___ Yes
+___ No
+REQUIRED - test results available in eDH: IMG3514 (transvaginal pelvic ultrasound, non-OB) SMARTLINK - IMG3514
+Have you viewed “Optional” tests (see list below)? DROP DOWN FORMAT
+___ Yes
+___ No
+OPTIONAL- test results available in eDH:  IMG783 (abdominal/pelvic CT scan with/without contrast)
+How long has the pain been present? ***
+Is the pain constant or intermittent? ***
+Current birth control method? ***
+Current pain medication?   DROP DOWN FORMAT
+___ Yes, what medications? ______
+___ No
+Previous treatments?     DROP DOWN FORMAT
+___ Yes, what treatments? ______
+___ No
+Previous GYN surgery?   DROP DOWN FORMAT
+___ Yes (NOTE: Please ensure a copy of the operative note is in eDH or scanned documents) ___ No
+The following symptoms/history are present (Select ALL options that apply, THEN click enter) CHECKBOX FORMAT
+____change in bowel habits
+____urinary symptoms
+____dysmenorrhea
+____history of PID
+____dyspareunia
+The most current assessment of this problem can be found in the eDH note dated @TD@.
+eConsult – Postmenopausal Bleeding
+I am requesting an eConsult from gynecology for my @age@ y/o for postmenopausal bleeding.
+Have you viewed “Optional” tests (see list below)? DROP DOWN FORMAT
+___ Yes
+___ No
+OPTIONAL - test results available in eDH: IMG3514 (transvaginal pelvic ultrasound, non-OB) SMARTLINK – IMG3514
+Date of LMP? ***
+Is she on HRT?  DROP DOWN FORMAT
+___ Yes
+___ No
+SMARTLINK – BMI
+The most current assessment of this problem can be found in the eDH note dated @TD@.
+My clinical question: ***
+Answer:
+Do not type below this line
+eConsult - First trimester bleeding
+Assessments:
+Optional:
+•	Date of the first positive pregnancy test during this pregnancy
+•	Date of the last normal menstrual period
+•	Any previous pregnancy losses or any history of genetic problems (patient or partner)?
+•	How heavy is the vaginal bleeding and when did it begin?
+•	Any recent intercourse or participation in vigorous exercise/activity?
+Diagnostics
+Required:
+•	Complete Blood Count (CBC)
+•	Pelvic exam to r/o mass, hemorrhage
+•	Serum quantitative Bhcg (If intrauterine pregnancy with cardiac activity has not been yet confirmed.)
+•	IAT (Indirect Antiglobulin test)
+Optional:
+•	Type and Screen
+•	ABO Rh
+•	Transvaginal pelvic ultrasound
+eConsult – Hot flashes/menopause symptoms
+Assessments:
+•	Any additional complaints relative to menopause, i.e.vaginal dryness, mood changes, feeling tired?
+•	How frequent and troubling are the hot flashes?
+•	How long ago did patient's menses stop?
+•	Any current treatments for menopause (i.e., hormones, other medications?
+Diagnostics:
+Required:
+•	Estradiol
+•	FSH
+•	Liver Function Tests (If applicable)
+•	Pelvic exam to r/o vaginal dryness, bleeding, pelvic mass
+•	Thyroid Stimulating Hormone (TSH)
+eConsult – Hyperemesis gravidarum
+Assessments:
+Optional:
+•	Any history of GI or liver problems?
+•	How severe is the nausea and vomiting? What treatments have been tried?
+•	Is this a planned and/or desired pregnancy?
+•	Please provide a complete and up-to-date medication list.
+•	Beneficial vs failed treatment modalities tried to date?
+•	Any weight loss?
+•	Can pt. keep liquids down?
+•	Any history of anxiety or severe depression?
+Diagnostics:
+Required:
+•	Pelvic exam to r/o size greater than dates and bleeding
+•	Pelvic ultrasound
+•	Serum quantitative Bhcg
+Optional:
+•	Comprehensive Metabolic Panel (CMP)
+•	Lipase
+•	Amylase
+eConsult – Irregular or heavy vaginal bleeding
+Assessments:
+Optional:
+•	Any feelings of weakness or dizziness?
+•	Is the patient is using contraception? If so, what type and for how long?
+•	When was last normal menstrual period?
+•	Is the patient having heavy periods, intermenstrual bleeding or irregular bleeding episodes?
+•	Any medical or gynecologic conditions or surgeries?
+•	Any personal or family history of bleeding disorders, thyroid disease or celiac disease?
+•	Is the patient obese?
+•	What are the current medications?
+•	Any associated pelvic pain, abdominal pain, vaginal discharge/odor or dyspareunia?
+•	How long has the bleeding been going on?
+Diagnostics:
+Required:
+•	Complete Blood Count (CBC)
+•	Gonorrhea (GC)/Chlamydia (CT)
+•	Pelvic exam to r/o mass and/or tenderness, identify lesions
+•	Pelvic ultrasound
+•	Thyroid Stimulating Hormone (TSH)
+•	Prolactin
+•	Partial Thromboplastin Test (PTT)
+•	Prothrombin Time (PT/INR)
+•	Pap smear
+•	Urine or Serum Pregnancy Test
+eConsult – Pelvic pain
+Assessments:
+Optional:
+•	Has pt. had pelvic pain before? If so, what diagnoses have been given?
+•	Is the pain constant or intermittent?
+•	Is the pain related to the menstrual cycle, related to intimacy or related to GI events (ie following a bowel movement or relieved with a bowel movement)?
+•	Where in the pelvis is the pain located?
+•	Describe the patient’s pain. Is the pain sharp or dull?
+•	What are the aggravating factors? What alleviates the pain?
+Diagnostics:
+Required:
+•	Complete Blood Count (CBC)
+•	Cervical cultures for Gonorrhea and Chlamydia
+•	Pelvic exam to r/o mass, tenderness
+•	Pelvic ultrasound
+•	Urine or Serum Pregnancy Test
+•	Urinalysis with Microscopy (If applicable)
+•	Urine Culture
+eConsult – Postpartum bleeding
+Assessments:
+Optional:
+•	Any fever or pain?
+•	Any complications with the delivery or postpartum, (e.g. third or fourth degree lacerations, infection or trauma)?
+•	When was the delivery date?
+•	When did this episode of bleeding begin? How heavy is the bleeding?
+•	Was it by cesarean or a vaginal birth?
+Diagnostics:
+Required:
+•	Complete Blood Count (CBC)
+•	Pelvic exam to identify source of bleeding, r/o local infection, confirm normal involution of uterus
+•	Serum quantitative Bhcg
+Optional:
+•	Transvaginal pelvic ultrasound
+eConsult – Rule out ectopic pregnancy
+Assessments:
+Optional:
+•	What was the date of the last normal menstrual period?
+•	Any history of GC/Chlamydia, PID or pelvic (especially tubal)surgery?
+•	Any pelvic pain, dizziness or bleeding?
+•	When was the first positive pregnancy test during this pregnancy?
+Diagnostics:
+Required:
+•	Complete Blood Count (CBC)
+•	Pelvic exam to r/o mass, tenderness, bleeding
+•	Pelvic ultrasound
+•	Serum quantitative Bhcg
+Optional:
+•	ABO Rh
+•	IAT (Indirect Antiglobulin test)
+•	Type and Screen
+eConsult – STD Exposure
+Assessments:
+Optional:
+•	Any use of IV drugs (pt. or partner)?
+•	Does the patient have discharge, pain, bleeding or genital sores?
+•	Was a condom used and when did the exposure occur?
+•	Was the contact consensual?
+•	Any prior history of STDs?
+Diagnostics:
+Required:
+•	Gonorrhea (GC)/Chlamydia (CT)
+•	HIV
+•	MHA-TP
+•	VDRL
+•	Urine or Serum Pregnancy Test
+Optional:
+•	Cultures of any genital lesions for HSV-2
+•	Pelvic Exam

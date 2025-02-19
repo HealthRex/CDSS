@@ -1,0 +1,829 @@
+Cardiology eConsult Templates
+Please make changes to Stanford templates in red, so IT knows what to change
+Yellow highlighted text is for Internal template only, not External
+Questions for eConsultants are highlighted in blue
+See Box folder for Cardio templates from other AMCs.
+Consider add templates for:
+Questions about Imaging
+Questions about Calcium score, CT, (Dr. Schroeder mentioned one more, but I did not catch what he said)
+Conditions not designated a template
+Anticoagulation management
+Dyspnea
+Edema
+Peripheral Artery Disease
+Pulmonary hypertension
+PVC/PAC
+Renal artery stenosis
+SVT
+Stanford condition-specific templates – UPDATE AS NEEDED
+Abnormal EKG – new template
+My Clinical Question (condition: abnormal EKG): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+EKG findings? Why EKG or other tests obtained?
+Prior EKG’s, changes, stable findings?
+Symptoms and severity?
+Risk factors (HTN, HLP, DM, family history of premature CAD, smoking, etc..)
+Known CAD - prior MI, history of stents, CABG, or medical management
+DIAGNOSTICS:
+EKG
+CLINICAL PEARLS:
+[Please include common “normal” EKG findings in asymptomatic athletes]
+[Please include other common questions you get about abnormal EKG findings or computer readings]}
+Arrhythmia/palpitations – new template
+My Clinical Question (condition: arrhythmia/palpitations): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+When and how was the diagnosis made? Why EKG or other tests obtained?
+Symptoms and severity: specifically asking for - palpitations vs skipped/missed beats; lightheadedness/dizziness, presyncope or syncope
+Current and/or previous treatment
+DIAGNOSTICS:
+EKG
+Ziopatch
+Echocardiogram or Stress Echo if indicated
+CBC
+TSH
+BMP
+CLINICAL PEARLS:
+ACC/AHA/HRS Guideline for Management of Patients with SVT
+http://www.onlinejacc.org/content/67/13/e27?_ga=2.150259894.168493292.1580535163-1148947974.1580535163
+ACC/AHA/HRS Guideline for Atrial Fibrillation
+http://www.onlinejacc.org/guidelines/atrial-fibrillation?_ga=2.182889510.168493292.1580535163-1148947974.1580535163
+Atrial Fibrillation/Atrial Flutter – new template
+My Clinical Question (condition: atrial fibrillation/atrial flutter): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+When and how diagnosed - If prior Holter or Ziopatch - please include % burden of atrial fib/atrial flutter and average HR in arrhythmia
+History of alcohol use, obesity, OSA
+Symptoms and severity
+CHADS2-VASc score
+Current anticoagulation
+Previous attempts at rhythm control (e.g. cardioversion) (cases with prior cardioversions, antiarrhythmic therapy or prior ablations should be referred to Cardiology)
+DIAGNOSTICS:
+EKG
+Echo
+Ziopatch
+CBC
+BMP
+TSH
+Sleep study if indicated
+CLINICAL PEARLS:
+ACC/AHA/HRS Guideline for Atrial Fibrillation
+http://www.onlinejacc.org/guidelines/atrial-fibrillation?_ga=2.182889510.168493292.1580535163-1148947974.1580535163
+Bradycardia
+My Clinical Question (condition: bradycardia): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Symptoms and severity - specifically ask about  LH, presyncope/syncope or symptoms with exercise/exertion.
+Ability to appropriately augment HR with exercise
+Current medications, supplements
+DIAGNOSTICS:
+EKG
+Ziopatch
+Exercise Stress Echo (to assess for chrontropic incompetence)
+TSH
+BMP
+CLINICAL PEARLS:
+ACC/AHA/HRS Guideline for Bradycardia and Cardiac Conduction Delay http://www.onlinejacc.org/guidelines/bradycardia?_ga=2.174948386.168493292.1580535163-1148947974.1580535163
+Cardiac Imaging/Stress Test/CAC – new template
+My Clinical Question (condition: cardiac imaging/stress test/CAC): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Onset, duration, frequency, location, radiation, association with exertion, associated symptoms
+Cardiac risk factors (age, gender, HTN, HLD, DM, family history of premature CAD, smoking, etc.)
+Known CAD - prior MI, history of stents, CABG, or medical management
+ASCVD risk score
+DIAGNOSTICS:
+EKG
+TSH
+BMP
+Lipid profile
+HbA1c
+CLINICAL PEARLS:
+From Choosing Wisely:
+Don’t perform cardiac imaging in patients who are low risk
+Don’t perform stress cardiac imaging or advanced noninvasive imaging in the initial evaluation of patients without cardiac symptoms unless high-risk markers are present
+Stable patients with symptoms suggestive of angina and intermediate or high pre-test likelihood of CHD are generally appropriate for stress testing
+Exercise ECG treadmill test should be the initial test for the majority of patients who can exercise adequately, who have an interpretable ECG, and who do not have certain conditions (e.g. LBBB, paced ventricular rhythm, ventricular pre-excitation, etc.)
+Pharmacologic stress testing with myocardial imaging is typically performed when a patient is unable to exercise
+Asymptomatic patients >40 y/o at intermediate risk (7.5-19.9% 10-year ASCVD risk) or borderline elevated risk (5-6.4% 10-year ASCVD risk) with family h/o premature ASCVD should undergo measurement of coronary artery calcium (CAC) score to possibly help determine statin treatment and intensity of ASCVD risk factor modification.
+Patients at low (<5% 10-year ASCVD risk) or high (>20% 10-year ASCVD risk) should not undergo CAC measurement as the results are unlikely to change treatment approach.}
+Chest pain
+My Clinical Question (condition: chest pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place an eConsult if there is any concern for ischemia - unstable/MI/ACS or stable angina. Timely diagnosis and treatment is critical for those patients and the turn-around time for an eConsult is 3 business days.
+Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Onset, duration, frequency, location, radiation, association with exertion, associated symptoms
+Risk factors (HTN, HLD, DM, family history of premature CAD, smoking, etc..)
+Known CAD - prior MI, history of stents, CABG, or medical management
+ASCVD risk score
+DIAGNOSTICS:
+EKG
+Stress test - exercise vs pharmacologic; echocardiogram vs nuclear
+TSH
+BMP
+Lipid profile
+HbA1c
+CLINICAL PEARLS:
+ACC/AHA Guideline for ACC ASCVD Risk Estimator Plus
+http://tools.acc.org/ASCVD-Risk-Estimator-Plus/ - !/calculate/estimate/
+Coronary artery disease
+My Clinical Question (condition: Coronary artery disease): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+When and how diagnosed - history of prior MI, positive stress test; coronary CTA or angiogram with CAD
+CAD Risk factors (HTN, HLP, DM, family history of premature CAD, smoking, etc..)
+Symptoms and severity - relation to exertion, symptoms similar to prior angina or anginal equivalent (similar to before stents or MI), duration, frequency, use of NTG
+Current and/or previous treatment - history of stents, CABG, or medical management
+Home BP and HR log if available
+DIAGNOSTICS:
+EKG
+CBC
+TSH
+BMP
+Lipid profile
+HbA1c
+CLINICAL PEARLS:
+ACCF/AHA Guideline for Diagnosis and Management of Patients with Stable Ischemic Heart Disease
+http://www.onlinejacc.org/content/60/24/e44?_ga=2.108380930.168493292.1580535163-1148947974.1580535163
+•	ACC/AHA Guideline Focused Update on Duration of Dual Antiplatelet Therapy in Patients With Coronary Artery Disease
+https://www.acc.org/latest-in-cardiology/ten-points-to-remember/2016/03/25/14/56/2016-acc-aha-guideline-focused-update-on-duration-of-dapt
+Established Patient – new template – Internal eConsults only
+DO NOT place an eConsult to cardiology if the patient is already established with a cardiologist (within SHC or external).
+Please contact the patient’s cardiologist directly (staff messaging if at SHC; other means for external cardiologist) for better continuity of care.
+Fast Track to Cardiology – new template – Internal eConsults only
+DO NOT place an eConsult to fast track a patient to see cardiology.
+eConsults are for specific clinical questions. The intended purpose of eConsults is not to ask logistical questions or to fast track patients to be seen by a given specialty. Thank you for your understanding.
+For clinically urgent cardiology referrals – place usual cardiology referral through Epic and update referral class to ‘urgent.’ Please provide specific details regarding the urgent clinical needs of the patient to enable expeditious triage of the referral.
+Heart Failure
+My Clinical Question (condition: heart failure): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Initial diagnosis and duration of symptoms
+CAD Risk factors (HTN, HLP, DM, family history of premature CAD, smoking, etc) and other risk factors for heart failure
+Symptoms and severity - Details of presenting symptoms with respect to NYHA class of dyspnea, orthopnea, PND, lower extremity edema, increase in weight
+Physical exam with respect to volume overload
+Reduced or preserved EF?
+Current and/or previous treatment
+Home BP and HR log if available
+DIAGNOSTICS:
+EKG
+Echocardiogram
+Stress testing or coronary CTA if indicated
+CBC
+TSH
+CMP
+BNP (depending on clinical context - avoid in AKI/CKD as renally cleared an inaccurate, helpful to trend serially on an individual patient if equivocal signs of HF)
+Lipid profile
+HbA1c
+Additional labs as indicated - iron studies, SPEP/free light chains, ANA, HIV
+CLINICAL PEARLS:
+HF with reduced or new decrease in EF should be referred to cardiology
+If HF physical exam findings are relevant to answering the question, this will likely require a referral to cardiology
+ACCF/AHA Guideline for Heart Failure
+https://www.acc.org/guidelines/hubs/heart-failure
+Hypertension
+My Clinical Question (condition: HTN): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on: 
+ASSESSMENTS:
+1 - 2 week home BP log maintained by the patient (ideally twice daily) - if available
+Current and/or previous medications
+EtOH? Obesity? Snoring? OSA? CPAP? Renal disorder?
+DIAGNOSTICS:
+EKG
+Echocardiogram if indicated
+CBC
+TSH
+CMP
+Urinalysis
+Tests for secondary causes of hypertension if indicated
+CLINICAL PEARLS:
+2017 ACC/AHA Guideline for the Prevention, Detection, Evaluation, and Management of High Blood Pressure in Adults http://www.onlinejacc.org/guidelines/highbloodpressure?_ga=2.115731206.168493292.1580535163-1148947974.1580535163
+ACC/AHA Guideline for Primary Prevention of CVD
+http://www.onlinejacc.org/guidelines/prevention?_ga=2.111978244.168493292.1580535163-1148947974.1580535163
+Hyperlipidemia
+My Clinical Question (condition: HLD): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+CAD Risk factors (HTN, HLP, DM,, smoking, etc..)
+Family history of hyperlipidemia or family history of CAD/Stroke/TIA
+Any prior or recent lipid tests not available in SHC results/Care Everywhere
+Current and/or previous treatment, any adverse effects to prior statin therapy
+ASCVD 10 year risk score
+DIAGNOSTICS:
+Lipid Profile - fasting lab, if triglycerides need to be tested as well
+TSH
+HbA1c
+CLINICAL PEARLS:
+AHA/ACC Guideline for Blood Cholesterol Management
+http://www.onlinejacc.org/guidelines/cholesterol?_ga=2.146139956.168493292.1580535163-1148947974.1580535163
+ACC ASCVD Risk Estimator Plus
+http://tools.acc.org/ASCVD-Risk-Estimator-Plus/ - !/calculate/estimate/
+ACC/AHA Guideline for Primary Prevention of CVD
+http://www.onlinejacc.org/guidelines/prevention?_ga=2.111978244.168493292.1580535163-1148947974.1580535163
+Preoperative Evaluation – new template - Internal eConsults only
+DO NOT place an eConsult to cardiology for preoperative evaluation/clearance.
+In patients assessed to be at elevated (intermediate or high) cardiovascular risk, please place a clinic referral to Cardiology as further evaluation is indicated.
+Second opinions – new template – Internal eConsults only
+DO NOT place an eConsult to cardiology to obtain a second opinion.
+SHC does not offer second opinions through eConsults, as these patients are often too complicated to address without evaluating the patient. Please place a referral order for this patient to be seen in our clinic. Thank you for your understanding.
+Syncope
+My Clinical Question (condition: syncope): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Onset, number, frequency, duration
+Provocative factors
+Prodromal symptoms
+Associated symptoms following event
+DIAGNOSTICS:
+EKG
+Orthostatic vitals
+Echocardiogram vs Stress Echocardiogram (to assess for ischemia, arrhythmia or conduction system disease)
+Ziopatch/Cardiac Monitor
+CLINICAL PEARLS:
+Sudden unexplained syncope without any prodromal or preceding symptoms, (particularly if injuries occurred as a result of the event) should be an urgent referral to cardiology
+ACC/AHA/HRS Guideline for Syncope
+https://www.acc.org/guidelines/hubs/syncope
+Valvular Disease
+My Clinical Question (condition: valvular disease): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+ASSESSMENTS:
+In your clinical question, or current note, please include information on:
+Known or suspected diagnosis
+History of endocarditis or rheumatic fever
+Symptoms and severity - with details regarding time since onset, frequency, duration, relation to exertion
+Cardiac physical exam
+Previous echocardiographic results if available
+Previous and/or current treatment
+Anticoagulation
+DIAGNOSTICS:
+EKG
+Echocardiogram
+CXR
+CLINICAL PEARLS:
+Symptomatic moderate or any severe degree of known valvular heart disease should be referred to cardiology
+AHA/ACC Guideline for Management of patients with Valvular Heart Disease https://www.acc.org/guidelines/hubs/valvular-heart-disease
+Other
+My Clinical Question (condition: other): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please DO NOT place an eConsult if there is any concern for ischemia - unstable/MI/ACS or stable angina. Timely diagnosis and treatment is critical for those patients and the turn-around time for an eConsult is 3 business days.
+Please DO NOT place eConsults for second opinions, established Cardiology patients, or to fast track a referral.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Description of specific cardiac symptoms with details regarding time since onset, frequency, duration, relation to exertion, exacerbating or relieving factors
+Pertinent physical exam features
+Pertinent labs
+Pertinent medications
+DIAGNOSTICS:
+None
+CLINICAL PEARLS:
+None}
+Templates from other institutions for reference – PLEASE DO NOT EDIT THESE
+Abnormal Echocardiagram (ECHO) – Arista/UCSF template
+ASSESSMENTS:
+Required:
+•	What is the reason for ordering the ECHO?
+•	Has the patient had a prior ECHO? If so, please include report(s) for comparison.
+•	Does the patient have abnormal vital signs? (i.e. hypotension, tachycardia, bradycardia)
+•	Are there any abnormal exam findings? (i.e. abnormal pulse, abnormal heart sounds, abnormal lung sounds, lower extremity edema)
+•	Does the patient report active symptoms? (i.e. chest pain, shortness of breath, lightheadedness, syncope, palpitations)
+•	Does the patient have a cardiac history? (i.e. heart attack, HTN, dyslipidemia, stroke, pulmonary embolism)
+•	Is there a cardiac family history?
+•	Has the patient had a prior electrocardiogram (EKG) or cardiac stress test ?
+DIAGNOSTICS:
+Optional:
+•	Complete Blood Count (CBC)
+•	Basic Metabolic Panel (BMP)
+•	Electrocardiogram (EKG/ECG)
+•	Chest X-Ray (CXR)
+•	B-Natriuretic Peptide (BNP)
+•	Thyroid Panel
+Abnormal Heart Sounds – Arista/UCSF template
+ASSESSMENTS:
+Required:
+•	Does the patient report any symptoms? (i.e. chest pain, shortness of breath, leg swelling)
+•	Does the patient have a cardiac history? (i.e. heat attack, congestive heart failure, heart surgery)
+•	Is there a family history of heart disease?
+•	Is there a murmur? If so what is the location?
+◦	Right upper sternal border
+◦	Left sternal border
+◦	Apex
+◦	No Murmur
+•	What is the timing if Systolic murmur:
+◦	Holosystolic
+◦	Mid-systolic / late peaking
+•	What is the timing if diastolic murmur:
+◦	Early diastolic / decrescendo
+◦	Holodiastolic / rumble
+•	If there is a gallop, what is the location?
+◦	S3 gallop – early diastole
+◦	S4 gallop – late diastole
+◦	No gallop
+•	Is there a rub? If so is the rub sound positional? (i.e. patient sitting forward or laying supine)
+•	If there is a rub, Is the rub heard during inhalation / exhalation?
+•	Is there a click? If so is it:
+◦	Mid-systolic click
+◦	Opening snap
+◦	No click
+DIAGNOSTICS:
+Optional:
+•	Echocardiogram (ECHO)
+•	Electrocardiogram (EKG/ECG)
+•	Chest X-Ray (CXR)
+Arrhythmia – Arista/UCSF template
+ASSESSMENTS:
+Required:
+•	Does the patient have dizziness?
+•	Does the patient have syncope?
+•	What is your suspected diagnosis?
+◦	Undifferentiated Tachycardia
+◦	SVT
+◦	Ventricular Tachycardia
+◦	Atrial Fibrillation
+◦	Bradycardia
+◦	1st Degree Heart Block
+◦	2nd Degree Type 1 Heart Block (Wenckebach)
+◦	2nd Degree Type 2 Heart Block
+◦	3rd Degree Heart Block
+◦	Other (describe)
+◦	Unsure
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Electrocardiogram (EKG/ECG)
+•	Hematocrit
+•	Hemoglobin
+Atrial Fibrillation – Colorado template
+ASSESSMENTS:
+Optional:
+•	Does the patient experience any symptoms while in atrial fibrillation?
+•	Does the patient have episodes of rapid ventricular response?
+•	Is the patient on anticoagulation?
+•	Is the patient on rate control medication?
+•	Is the patient on rhythm control medication?
+•	Is the patient's atrial fibrillation paroxysmal or constant?
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Echocardiogram (ECHO)
+•	Electrocardiogram (EKG/ECG)
+•	Thyroid Stimulating Hormone (TSH)
+•	Complete Blood Count (CBC)
+Afib/Aflutter – Arista/UCSF template
+Please include the following information in your clinical question.
+When arrhythmia was diagnosed (if by in office ECG-12 lead, include date of ECG)
+Symptoms / Severity
+CHA2DS2 – VASc score
+Currently anticoagulated?
+Previous attempts at rhythm control (e.g. cardioversion)?
+REQUIRED (available and will populate or must be ordered)
+The most current assessment of this problem can be found in the note dated @TD@.
+ECG – 12 Lead (date)
+Transthoracic echocardiogram (date)
+CBC (within 30 days) (date)
+Potassium (within 30 days)
+Creatinine (within 30 days)
+TSH (within 30 days)
+Outside Results:
+Scanned to media: button
+In care everywhere: button
+Summarized here:  ***
+OPTIONAL (will populate if already in system)
+Magnesium (within 30 days)
+Calcium (within 30 days)
+Arrhythmia/Palpitations – Colorado template
+Please include the following information in your clinical question as applicable.
+When diagnosed?  Why ECG or other obtained?
+Symptoms / Severity?
+Current / previous management?
+REQUIRED (available and will populate or must be ordered)
+The most current assessment of this problem can be found in the note dated @TD@.
+ECG – 12 Lead (date)
+Outside Results:
+Scanned to media: button
+In care everywhere: button
+Summarized here:  ***
+OPTIONAL (will populate if already in system)
+CBC (within 30 days) (date)
+CMP (within 30 days) (date)
+BMP (within 30 days) (date)
+Magnesium (within 30 days)
+TSH (within 30 days)
+T4, Free (within 30 days)
+Holter monitor (date)
+Event monitor (date)
+Ziopatch (date)
+Exercise stress test (date)
+Transthoracic echocardiogram (date)
+Bradycardia – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have a pacemaker or ICD?
+•	Does the patient have dizziness?
+•	Does the patient have syncope?
+•	Is the patient on a beta blocker or calcium channel blocker?
+◦	Beta Blocker
+◦	Calcium Channel Blocker
+•	What is the patient's lowest documented heart rate?
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Electrocardiogram (EKG/ECG)
+•	Hematocrit
+•	Hemoglobin
+Chest Pain – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient experience shortness of breath with the chest pain?
+•	Does the patient have a history of coronary artery disease?
+•	Does the patient have any of the following risk factors for coronary artery disease?
+◦	Hypertension
+◦	Diabetes mellitus
+◦	Obesity
+◦	Hyperlipidemia
+◦	Smoker
+◦	Family history of coronary artery disease
+•	Does the patient's chest pain improve with nitrates?
+◦	Yes
+◦	No
+◦	Somewhat
+◦	The patient has never been given nitrates
+◦	Unsure
+•	When does the patient experience chest pain?
+◦	At rest
+◦	On exertion
+◦	With deep breaths
+◦	Constant
+◦	Currently resolved
+◦	Other
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Electrocardiogram (EKG/ECG)
+•	Lipid Panel
+•	Thyroid Stimulating Hormone (TSH)
+•	Complete Blood Count (CBC)
+Optional:
+•	Coronary Angiography
+•	CT Angiography
+•	Stress Test
+Chest Pain – Colorado template
+Things to include in your clinical question should they apply:
+Why concerned cardiac chest pain?
+Onset, duration, frequency, associated symptoms?
+Risk factors?
+Known CAD (include details)?
+Date and type of studies or interventions if applicable
+REQUIRED (available and will populate or must be ordered)
+The most current assessment of this problem can be found in the note dated @TD@.
+ECG – 12 lead (date)
+Outside Results:
+Scanned to media: button
+In care everywhere: button
+Summarized here:  ***
+OPTIONAL (will populate if already in system)
+CBC w/wo diff (date)
+BMP (date)
+CMP (date)
+Magnesium
+TSH
+T4, Free
+Homocysteine
+BNP (B-Type Natriuretic Peptide)
+Lipid panel (date)
+Troponin x 3
+Exercise stress test (date)
+Cardiac CT (date)
+Transthoracic echocardiogram (date)
+Congestive Heart Failure – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of arrhythmia, and if so, which type?
+•	Does the patient have a history of ischemic heart disease?
+•	Does the patient have lower extremity peripheral edema? If so, how much?
+•	Does the patient take any diuretics? If yes, please list diuretic medications and doses.
+•	Does the patient take inotropic medication? If yes, please list medication(s) and doses.
+•	If yes, when do these symptoms occur?
+◦	When lying flat
+◦	On exertion
+◦	More than usual
+◦	At rest and sitting upright
+•	Is the patient on antihypertensive medication? If yes, please provide all antihypertensive medications and associated doses.
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Echocardiogram (ECHO)
+•	Electrocardiogram (EKG/ECG)
+•	Lipid Panel
+•	Complete Blood Count (CBC)
+Coronary Artery Disease – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of one or more of the following interventions?
+◦	CABG
+◦	Drug-eluting stent(s)
+◦	Non-drug-eluting stent(s)
+•	Does the patient take any lipid lowering medications? If yes, please list which medications and doses.
+•	Does the patient take Aspirin or other anticoagulants? If yes, please list which medications and doses.
+•	If yes, when do these symptoms occur?
+◦	At rest
+◦	On exertion
+◦	Constant
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Electrocardiogram (EKG/ECG)
+•	Lipid Panel
+•	Complete Blood Count (CBC)
+Optional:
+Coronary Angiography
+CT Angiography
+Stress Test
+Dyspnea – Yale template
+Please include details related to the following:
+Triggers of dyspnea and associated symptoms such as chest pain or palpitations
+History of cardiac and pulmonary disease, and any prior testing
+Patient’s exercise capacity
+If the question is deemed too complex for eConsult, please route back to me, the requesting provider, and I will discuss next steps with the patient.
+Required test results (auto-populated)
+EKG
+EKG Review – Arista/UCSF template
+ASSESSMENTS:
+Required:
+•	What is the reason for ordering the electrocardiogram (EKG)?
+•	Does the patient report symptoms? (i.e. chest pain, shortness of breath, lightheadedness, syncope, palpitations)
+•	Does the patient have abnormal vital signs? (i.e. hypotension, tachycardia, bradycardia)
+•	Are there any abnormal exam findings? (i.e. abnormal pulse, abnormal heart sounds, abnormal lung sounds, lower extremity edema)
+•	Does the patient have a cardiac history?
+•	EKG findings - Rate:
+◦	Normal
+◦	Tachycardia
+◦	Bradycardia
+•	EKG findings - Rhythm:
+◦	Normal sinus
+◦	Regular vs irregular
+◦	Wide complex vs narrow complex
+◦	Atrial fibrillation
+◦	Atrial flutter
+◦	Supraventricular tachycardia (SVT)
+•	EKG findings - Evidence of Conduction System Disease:
+◦	Atrioventricular block
+◦	Bundle branch block
+◦	Fascicular block
+DIAGNOSTICS:
+Optional:
+•	Complete Blood Count (CBC)
+•	Basic Metabolic Panel (BMP)
+•	Echocardiogram (ECHO)
+•	Stress Test
+•	Chest X-Ray (CXR)
+•	B-Natriuretic Peptide (BNP)
+•	Thyroid Panel
+Heart Failure – Colorado template
+Please include the following information in your clinical question.
+Clinical reason you think the patient has heart failure.
+Initial dx or duration.  Reduced or preserved EF?
+REQUIRED (available and will populate or must be ordered)
+The most current assessment of this problem can be found in the note dated @TD@.
+Transthoracic echocardiogram (date)
+ECG – 12 lead (date)
+CBC w/wo diff (date
+Metabolic panel (one of below)
+BMP (date)
+CMP (date)
+TSH
+BNP (B-Type Natriuretic Peptide) x 1 year
+Outside Results:
+Scanned to media: button
+In care everywhere: button
+Summarized here:  ***
+OPTIONAL (will populate if already in system)
+Weight x 3
+Lipid panel
+T4, Free
+HTN – Colorado template
+Please include the following information in your clinical question.
+On 3 different BP medication classes, one of which is diuretic?
+EtOH?  Obesity?  Snoring?  OSA?  CPAP?  Renal disorder?
+Onset < age 30?
+REQUIRED (available and will populate or must be ordered)
+The most current assessment of this problem can be found in the note dated @TD@.
+Metabolic Panel (one of below)
+CMP (within 30 days) (date)
+BMP (within 30 days) (date)
+TSH
+CBC
+Urinalysis (date)
+ECG – 12 lead (date)
+Outside Results:
+Scanned to media: button
+In care everywhere: button
+Summarized here:  ***
+OPTIONAL (will populate if already in system)
+Vasc DX Renal Artery Duplex (date)
+Transthoracic Echocardiogram (date)
+Urine Microalbumin
+Hypertension – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have chronic kidney disease? If so, which stage?
+•	Does the patient have diabetes mellitus?
+•	Does the patient smoke? If yes, how much?
+•	Is the patient African-American?
+•	Is the patient on antihypertensive medication? If yes, please provide all antihypertensive medications and associated doses.
+•	Please provide the most recent 3 blood pressure readings.
+•	What is the patient's baseline heart rate?
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Electrocardiogram (EKG/ECG)
+•	Lipid Panel
+•	Thyroid Stimulating Hormone (TSH)
+•	Complete Blood Count (CBC)
+Optional:
+Renal Artery Imaging
+Other – Colorado template
+REQUIRED (available and will populate or must be ordered)
+The most current assessment of this problem can be found in the note dated @TD@.
+Outside Results:
+Scanned to media: button
+In care everywhere: button
+Summarized here:  ***
+OPTIONAL (will populate if already in system)
+Transthoracic echocardiogram (date)
+ECG – 12 lead (date)
+CBC w/wo diff (date
+BMP (date)
+CMP (date)
+Magnesium
+TSH
+T4, Free
+Homocysteine
+BNP (B-Type Natriuretic Peptide)
+Lipid panel (date)
+Exercise stress test (date)
+Cardiac CT (date)
+Palpitations – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of arrhythmia, and if so, which type?
+•	Does the patient have a pacemaker or ICD?
+•	Does the patient have chest pain when palpitations occur?
+•	Does the patient have dizziness?
+•	Does the patient have syncope?
+•	How many episodes of palpitations has the patient experienced?
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Electrocardiogram (EKG/ECG)
+•	Hematocrit
+•	Hemoglobin
+•	Lipid Panel
+•	Thyroid Stimulating Hormone (TSH)
+Peripheral Arterial Disease – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of surgical intervention for peripheral arterial disease?
+•	Does the patient smoke? If yes, how much?
+•	Is the patient experiencing symptoms of claudication?
+•	Is the patient on anticoagulation?
+•	Is the patient on lipid lowering medication?
+•	Is the patient on other medication therapy for peripheral arterial disease?
+•	Which vessels are involved?
+DIAGNOSTICS:
+Required:
+•	Ankle-Brachial Index (ABI)
+•	Basic Metabolic Panel (BMP)
+•	Echocardiogram (ECHO)
+•	Electrocardiogram (EKG/ECG)
+•	Lipid Panel
+•	Complete Blood Count (CBC)
+Pre-Operative Risk Assessment – Arista/UCSF template
+ASSESSMENTS:
+Required:
+•	What is the reason for the cardiac risk assessment?
+•	What is the type of surgery / procedure planned?
+•	What is the urgency of surgery or procedure?
+◦	Emergency / Urgent
+◦	Non-urgent / Elective
+•	What is the patient’s functional capacity? Exercise tolerance:
+◦	Able to perform > 4 metabolic equivalents (METS) of activity....For 	example: 	Able to walk up 1 flight of stair or do light housework?
+◦	Unable to perform > 4 METS of activity?
+•	Does the patient have a cardiac history? (i.e. CAD, MI, CHF, valvular disease, pacemaker or defibrillator placement)
+•	Does the patient have cardiac risk factors? (i.e. HTN, dyslipidemia, diabetes, tobacco abuse, CKD, PAD, TIA, stroke)
+•	Is there a cardiac family history?
+•	Does the patient active symptoms? (i.e. chest pain, shortness of breath, lightheadedness, syncope, palpitations)
+•	Does the patient have abnormal vital signs? (i.e. hypotension, tachycardia, bradycardia)
+•	Any abnormal exam findings? (i.e. abnormal pulse, abnormal heart sounds, abnormal lung sounds, lower extremity edema)
+DIAGNOSTICS:
+Optional:
+•	Complete Blood Count (CBC)
+•	Basic Metabolic Panel (BMP)
+•	Echocardiogram (ECHO)
+•	Electrocardiogram (EKG/ECG)
+•	B-Natriuretic Peptide (BNP)
+Pulmonary Hypertension – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have an enlarged right ventricle?
+•	Does the patient have evidence of right ventricular hypertrophy?
+•	What is the patient's pulmonary artery systolic pressure (PASP)?
+DIAGNOSTICS:
+Required:
+•	Anti-Nuclear Antibody (ANA) (If one or more are true: 1) PASP > 40, 2) evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle )
+•	Basic Metabolic Panel (BMP) (If one or more are true: 1) PASP > 40, 2) evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle )
+•	B-Natriuretic Peptide (BNP) (If one or more are true: 1) PASP > 40, 2) evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle )
+•	Chest X-Ray (CXR) (If one or more are true: 1) PASP > 40, 2) evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle )
+•	Electrocardiogram (EKG/ECG)
+•	Erythrocyte Sedimentation Rate (ESR) (If one or more are true: 1) PASP > 40, 2) evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle )
+•	Liver Function Tests (If one or more are true: 1) PASP > 40, 2) evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle )
+•	Pulmonary Function Tests (If one or more are true: 1) PASP > 40, 2) evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle )
+•	Rheumatoid Factor (RF) (If one or more are true: 1) PASP > 40, 2) evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle )
+•	Thyroid Stimulating Hormone (TSH) (If one or more are true: 1) PASP > 40,
+2)	evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle )
+•	Ventilation Perfusion Scan (VQ scan) (If one or more are true: 1) PASP > 40,
+2)	evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle )
+•	Complete Blood Count (CBC) (If one or more are true: 1) PASP > 40, 2) evidence of right ventricular hypertrophy, 3) evidence of enlarged right ventricle)
+•	Transthoracic Echocardiogram (TTE) (*With or without Bubble study where saline is infused into vein at time of ECHO)
+Renal Artery Stenosis – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have renal insufficiency?
+•	Is the patient on anticoagulation?
+•	Is the patient on antihypertensive medication?
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Electrocardiogram (EKG/ECG)
+•	Hematocrit
+•	Hemoglobin
+•	Lipid Panel
+•	Renal Artery Imaging
+Syncope – Colorado template
+Please include the following information in your clinical question.
+Onset, number, frequency and duration?
+Provocative factors?
+Prodromal symptoms?
+Associated symptoms following event?
+REQUIRED (available and will populate or must be ordered)
+The most current assessment of this problem can be found in the note dated @TD@.
+ECG – 12 lead (date)
+Orthostatic vitals
+Outside Results:
+Scanned to media: button
+In care everywhere: button
+Summarized here:  ***
+OPTIONAL (will populate if already in system)
+CBC (date)
+BMP (date)
+CMP (date)
+Transthoracic echocardiogram (date)
+Syncope – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Do you suspect an arrhythmia?
+•	Does the patient have a history of seizures?
+•	Does the patient have a pacemaker or ICD?
+•	Does the patient take any medications that affect the central nervous system?
+•	How many episodes of syncope has the patient had?
+DIAGNOSTICS:
+Required:
+•	Echocardiogram (ECHO)
+•	Electrocardiogram (EKG/ECG)
+•	Hematocrit
+•	Hemoglobin
