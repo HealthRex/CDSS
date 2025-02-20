@@ -1,0 +1,281 @@
+Pain Medicine eConsult Templates
+Condition-specific templates
+Abdominal/Pelvic/Genital Pain
+Cancer pain
+Chronic Back Pain
+CRPS/RSD
+Facial Pain
+Fibromyalgia/Myofascial/Diffuse Body Pain
+Headache (only for pts on opioids; otherwise, send to neuro)
+Medication Review/Recommendations
+Neck Pain
+Neuropathy/Neuralgia/Neuritis
+Opioid Tapering
+Pain Psychology
+Persistent post-op pain
+Other
+Conditions not designated a template
+Epidural Steroid Injection Suitability  incorporated into Chronic Back Pain template
+Lifestyle Medicine
+Medical Marijuana
+Opioid Suitability for Chronic Pain
+Weaning Pain Meds
+Abdominal/Pelvic/Genital Pain
+My Clinical Question (condition: abdominal/pelvic/genital pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Location and onset of pain? Pain characteristics (inciting incident, quality, timing, location, alleviating/aggravating factors)?
+Worse with intercourse or voiding?
+Abd/pelvic surgery history?
+Prior procedural or specialist evaluation or treatment?
+Pertinent comorbidities?
+Working with any behavioral or mental health specialist(s)?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Tests recommended by pain medicine:
+Relevant imaging
+Clinical pearls:
+It is important to rule out IBS first.
+Has the pt been evaluated by Gynecology or Urology to rule out voiding dysfunction, cancer and endometriosis?}
+Cancer Pain
+My Clinical Question (condition: cancer pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Type and location of primary? Metastatic status? Prognosis?
+Post-radiation or post-surgical pain?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Type and location of imaging results?
+Other pertinent comorbidities? Is the pt on a blood thinner?
+Tests recommended by pain medicine:
+Relevant imaging studies
+CMP
+CBC & PT/INR - if considering a procedure}
+Chronic Back Pain
+My Clinical Question (condition: chronic back pain): ***
+(If pt meeting any of the following: New bowel or bladder dysfunction, saddle anesthesia, rapidly evolving progressive neurologic deficits. Send pt to the emergency Department ASAP. An eConsult is not appropriate.)
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Etiology? Location? Radicular/axial/both/unsure?
+Does the pt have neurologic symptoms or deficits?
+Red flag symptoms (constitutional symptoms, h/o cancer, night/rest pain, pain in the extremity greater than in the spine, new bowel/bladder dysfunction)?
+Results of any prior PT or OT attempts?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Any movements that worsen or improve the pain (leaning forward, walking up stairs, walking down stairs, twisting at the hips, etc)?
+Working with any behavioral or mental health specialist(s)?
+Type and location of any imaging results? If performed externally, please have images uploaded/available for viewing by the consultant, then place the eConsult.
+Pertinent comorbidities?
+Tests recommended by pain medicine:
+If your question is regarding the utility of a procedure-based intervention, advanced imaging is required (e.g. MRI or CT – preferably MRI – within 2 years)
+Chronic spine pain without neurologic deficits: Xray is required.
+Chronic spine pain with neurologic deficits: MRI is required (or CT, if MRI is contraindicated).
+Thoracic Spine 2 Views
+Lumbosacral Spine 3 Views
+Lumbosacral Spine 2 Views
+MRI Thoracic WO Contrast
+MRI Thoracic WWO Contrast
+MRI Lumbar WO Contrast
+MRI Lumbar WWO Contrast
+MRI Lumbar WO Contrast Tethered Cord}
+CRPS/RSD
+My Clinical Question (condition: CRPS/RSD): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Date and type of injury? Vascular problem? Infection?
+Neurologic symptoms?
+Working with any behavioral or mental health specialist(s)?
+If pain out of proportion to the injury? Is pain not improving in the usual fashion?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Skin exam findings in region (pale, cool, erythematous, warm, edema, change in hair or nail growth [more/less, etc])?
+Date, location and type of any imaging studies?
+Tests recommended by pain medicine:
+Relevant imaging
+Clinical pearls:
+Typically starts with a single injured nerve.
+Can see spread of painful symptoms beyond the initial painful area as condition progresses.
+Early intervention with physical therapy (graded motor imagery, desensitization) thought to improve prognosis.
+Can be associated with a history of cast application to the affected limb.}
+Facial Pain
+My Clinical Question (condition: facial pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Etiology (if known)? Inciting event? Quality? Timing? Location? Alleviating/aggravating factors?
+Does the pt also have headache in additional to facial pain?
+Neurologic symptoms?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Pertinent comorbidities?
+Tests recommended by pain medicine:
+Relevant imaging
+Clinical pearls:
+Classical pain syndromes include:
+Trigeminal neuralgia type 1: Random bursts of extreme facial pain with total or near-total resolution of pain outside those episodes; caused by irritation from blood vessels that can be seen on some brain MRI.
+Trigeminal neuralgia type 2: Constant facial pain with spontaneous flares of worsening pain.
+Trigeminal neuropathic pain: Injury to the peripheral nerves of the trigeminal system (e.g. history of ENT surgery, dental work, skull base surgery, stroke); associated with sensitivty to the overlying tissue (skin, teeth); can see numbness/tingling in the affected area as well.
+Trigeminal neuralgia is typically random whereas trigeminal neuropathy can be reproduced by manipulating the painful area.}
+Fibromyalgia/Myofascial/Diffuse Body Pain
+My Clinical Question (condition: Fibromyalgia/Myofascial/Diffuse Body Pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Date of onset? Duration?
+Pain location(s)? Trigger points?
+Associated symptoms (cognitive impairment/fogginess, fatigue, sleep disturbance, low mood)? Frequency? Severity?
+Symptoms better/worse with exercise?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Psychiatric diagnoses?
+Pertinent comorbidities?
+Working with any behavioral or mental health specialist(s)?
+Tests recommended by pain medicine:
+CMP
+CRP
+ESR
+CBC
+TSH
+HA1c
+Vitamin D
+Relevant imaging
+Clinical pearls:
+Fibromyalgia diagnosis incorporates both widespread muscle pain and associated cognitive symptoms (fatigue, depression, mental fogginess, sleep disruption).
+Consistent moderate exercise (walking, yoga, warm aquatic therapy, etc) for 15-30 minutes 3 times a week can improve both the widespread pain and mood/sleep/cognitive symptoms of fibromyalgia.
+Myofascial pain typically involves point tenderness in a muscle belly, but can also be associated with a variety of referred pain patterns due to terminal nerve branches getting trapped in the tense muscle; less associated with cognitive symptoms
+Common treatments for myofascial pain include PT, trigger point injections, dry needling, integrative medicine, and massage.}
+Headache
+My Clinical Question (condition: headache): ***
+(Please eConsult Pain Medicine for headache only for patients on opioids. Otherwise consider sending to Neurology Headache Clinic.)
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Nature and onset of headaches?
+Frequency? Duration? Intractability?
+Neck pain? Neurologic symptoms? Migrainous features?
+Working with any behavioral or mental health specialist(s)?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Data and type of applicable imaging studies?
+Tests recommended by pain medicine:
+Relevant imaging
+Clinical pearls:
+Many headaches improve with basic lifestyle management:
+- regular sleep schedule with good sleep hygiene practices
+- healthy diet / hydration
+- daily exercise if able (light, 20 minutes)}
+Medication Review/Recommendations
+My Clinical Question (condition: medication review/recommendations): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Brief pain history?
+Are you looking for new medications or to reduce the current number of medications?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Pertinent comorbidities (can include liver/kidney disease, dementia, psychiatric disease)?
+Is the goal to start new medications or reduce the current number of medications?
+Tests recommended by pain medicine:
+Relevant imaging}
+Neck Pain
+My Clinical Question (condition: neck pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Inciting event? Quality? Timing? Location? Alleviating/aggravating factors?
+Radicular/axial/both/unsure?
+Does the pt have neurologic symptoms or deficits? Headaches?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Pertinent comorbidities?
+Potentially relevant tests recommended by pain medicine:
+Cervical MRI
+Nerve conduction studies/Electromyography
+Clinical pearls:
+Broad categories of neck pain:
+Muscle: tenderness in the soft tissue; associated with stress/overuse (ie, heavy computer use).
+Bone: arthritis at the facet joints; local evoked by rotation/flexion of the head; can refer to head and mimic headaches.
+Nerve: compression of cervical nerve roots or terminal branches; can be evoked by movement of the head, particularly lateral flexion to stress nerve roots; pain extends into shoulder, arms, hands in dermatomal pattern.
+Red flag symptoms include weakness or loss of muscle bulk in the upper extremity.}
+Neuropathy/Neuralgia/Neuritis
+My Clinical Question (condition: neuropathy/neuralgia/neuritis): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Etiology (if known)? Location? Onset?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Working with any behavioral or mental health specialist(s)?
+Any imaging or other studies?
+BMI?
+Tests recommended by pain medicine:
+EMG/NCV
+TSH
+B12
+Treponema Ab
+HA1c
+CMP
+CBC
+Potentially relevant tests recommended by pain medicine:
+Cervical MRI
+Nerve conduction studies / Electromyography}
+Opioid Tapering
+My Clinical Question (condition: opioid tapering): ***
+(Please ask your question for opioid tapering for CHRONIC PAIN. Opioid tapering for addiction and patients who are being treated for addiction are generally not appropriate for Pain Medicine – consider referrals to Addiction Medicine Dual Diagnosis/Psychiatry or Chemical Dependency.)
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Type, route, amount, frequency of opioid usage?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Is the patient currently enrolled in a Medication Assisted Treatment Program (methadone/buprenorphine)?
+Suspected/known other substance use disorders? Psychiatric diagnoses?
+Medical comorbidities?
+Family history of SUD?
+COWS Score (https://www.drugabuse.gov/sites/default/files/files/ClinicalOpiateWithdrawalScale.pdf)
+Tests recommended by pain medicine:
+Pain management confirmation 4 profile (urine)
+Blood Alcohol Level
+CMP
+CBC
+EKG
+Clinical pearls:
+A significant number of patients report feeling better as they reduce their opioid intake.
+An opioid taper doesn't have to mean cessation of opioids altogether if they are otherwise appropriate for the patient and their condition.
+The pain clinic can assist in opioid tapering, but we do not typically take over long term opioid prescriptions.  Once the patient has been weaned as much as possible, the referring provider is expected to resume the long term prescription.}
+Pain Psychology
+My Clinical Question (condition: pain psychology): ***
+(An eConsult can be used to establish your patient with Pain Psychology services only and directly. This is a good alternative to an in-person referral to establish with Pain Management Center for comprehensive evaluation and multidisciplinary treatment.)
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Brief pain history?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Pertinent comorbidities?
+Tests recommended by pain medicine:
+Relevant imaging
+Clinical pearls:
+Insurance can be a significant barrier to accessing psychology services.  It may be helpful to review the patient's coverage before referral.
+MediCal has their own mental health service and as such does not pay for Stanford Psychology.
+Some Stanford Psychology services can be provided with reduced out of pocket cost by eliminating psychological testing. }
+Persistent Post-op Pain
+My Clinical Question (condition: persistent post-op pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Inciting event? Quality? Timing? Location? Alleviating/aggravating factors?
+Any pre-existing chronic pain?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Pertinent comorbidities?
+Surgical procedure(s) associated with pt’s pain? Dates?
+Tests recommended by pain medicine:
+Relevant imaging
+Clinical pearls:
+Pre-procedure pain often predicts post-procedure pain.
+Having a pain management plan going into the procedure can be beneficial.
+Persistent post operative pain often has significant neuropathic component and therefore can respond well to anti-neuropathic treatments.}
+Unspecified
+My Clinical Question (condition: other): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Inciting event? Quality? Timing? Location? Alleviating/aggravating factors? Etiology/What’s been ruled out?
+Psychiatric diagnoses?
+Pertinent comorbidities/contributing factors?
+Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?
+Working with any behavioral or mental health specialist(s)?
+Tests recommended by pain medicine:
+Relevant imaging}
