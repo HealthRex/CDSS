@@ -1,0 +1,161 @@
+Psychiatry eConsult Templates
+Condition-specific templates
+ADHD
+Anxiety and/or Depression
+Bipolar Disorder
+Substance Use Disorder
+Psychiatric Medication Questions
+Psychiatric Diagnosis Clarification
+Resources
+Other
+Conditions still considering
+Insomnia
+Eating Disorder
+Chronic Fatigue/Fibromyalgia
+ADHD
+My Clinical Question (condition: ADHD): ***
+SPECIAL NOTE:
+Please DO NOT place an eConsult if the patient is expressing suicidal or violent thoughts or concern for acute manic/psychotic decompensation or acute intoxication/withdrawal. Please call 650-443-6059 or page 24672.
+Please DO NOT place eConsults for established Psychiatry patients.
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Onset, duration and timing of symptoms
+Co-morbid conditions (anxiety, depression, insomnia, substance use include tobacco and caffeine, OSA, hyper/hypothyroidism)
+Any prior neuropsychiatric testing in childhood/adulthood
+Any current psychiatric medications or medications that impact the nervous system
+Any current psychiatric providers/therapists?
+Tests recommended by psychiatry:
+CBC, Serum Iron, Serum Ferritin, Iron/TIBC with Saturation, B12, TSH w/reflex T4
+Clinical Pearls:
+ADHD manifests in childhood and leads to difficulties in multiple settings (school/work/home). If adult onset of symptoms, please consider secondary causes such as sleep disorders, substance abuse, trauma, traumatic brain injury, depression and/or anxiety.
+If previous testing, recommend obtaining documentation of diagnosis (neuropsychiatric testing, physician diagnosis, school/work performance reports, etc).
+If other comorbidities, consider treating and/or optimizing treatment of comorbid conditions before treating ADHD.}
+Anxiety and/or Depression
+My Clinical Question (condition: Anxiety and/or Depression): ***
+SPECIAL NOTE:
+Please DO NOT place an eConsult if the patient is expressing suicidal or violent thoughts or concern for acute manic/psychotic decompensation or acute intoxication/withdrawal. Please call 650-443-6059 or page 24672.
+Please DO NOT place eConsults for established Psychiatry patients.
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Onset, duration and timing of symptoms
+Co-morbid conditions (insomnia, substance use include tobacco and caffeine, OSA, hyper/hypothyroidism, neurological disorders, chronic pain, diabetes mellitus, HF)
+Any current/historical psychiatric medications
+Any current psychiatric providers/therapists?
+Tests recommended by psychiatry:
+Screening: GAD7, PHQ9
+Labs: CBC, Serum Iron, Serum Ferritin, Iron/TIBC with Saturation, vit B12, vit D folate, TSH w/reflex T4
+Clinical Pearls:
+For mild-to-moderate anxiety (GAD 5-15), Cognitive Behavioral Therapy (CBT) is better than medications
+For moderate-to-severe anxiety (GAD >15), CBT and medications are more effective than medications alone
+Start a low dose SSRI or SNRI, start bupropion for depression if patient has less anxiety and is concerned about sexual/weight side effects or has more fatigue/concentration symptoms
+6-8 week SSRI trial needed to determine effectiveness
+50% of patients who do not respond to the initial SSRI will respond to another
+Before using a benzodiazepine because of potential dependency, consider starting hydroxyzine 25mg every 4-6 hours as needed. Also consider PRN gabapentin}
+Bipolar Disorder
+My Clinical Question (condition: Bipolar): ***
+SPECIAL NOTE:
+Please DO NOT place an eConsult if the patient is expressing suicidal or violent thoughts or concern for acute manic/psychotic decompensation or acute intoxication/withdrawal. Please call 650-443-6059 or page 24672.
+Please DO NOT place eConsults for established Psychiatry patients.
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Onset, duration and timing of symptoms
+Co-morbid conditions (insomnia, substance use include tobacco and caffeine, OSA, hyper/hypothyroidism, neurological disorders)
+Any current/historical psychiatric medications
+Any current psychiatric providers/therapists?
+Tests recommended by psychiatry:
+PHQ9 if patient is in depressive state
+Lithium, lamotrigine,valproic acid, or carbemazapine levels (if on these medications)
+Lipid and fasting glucose/HA1c (if on an antipsychotic)
+CBC, CMP, TSH with reflex to T4
+Clinical Pearls:
+Patients on lithium should have regular thyroid screening as well as monitoring of kidney function
+Patients on depakote should have regular LFT monitoring as well as CBC monitoring (can cause thrombocytopenia)
+Depakote, carbemazapine, and lamotrigine all interact with OCPs and are also associated with neural tube defects in pregnancy, special caution when using these in women on OCPs or planning pregnancy}
+Substance Use Disorder
+My Clinical Question (condition: Substance Use Disorder): ***
+SPECIAL NOTE:
+Please DO NOT place an eConsult if the patient is expressing suicidal or violent thoughts or concern for acute manic/psychotic decompensation or acute intoxication/withdrawal. Please call 650-443-6059 or page 24672.
+Please DO NOT place eConsults for established Psychiatry patients.
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or note, please include information on:
+Substances used
+Recent/historical rehab, detox, medical complications from substance use
+Desire to have substance use addressed
+Co-morbid psychiatric conditions
+Tests recommended by psychiatry:
+Urine Toxicology, CMP, Hep B/C + HIV if using IV drugs
+Recommend TAPs to screen generally for substances, AUDIT C for alcohol use
+Clinical Pearls:
+Co-morbid mood/anxiety disorders should be addressed concurrently to substance use
+Patients chronically overusing alcohol should be encouraged to take daily thiamine supplement  of at least 100mg at a separate time from their typical alcohol use
+SMART recovery is a good alternative group that uses CBT/mindfulness skills to address recovery if patients are not interested in AA/NA groups
+SAMHSA has a treatment finder function as well as self-help group function
+https://findtreatment.samhsa.gov/locator
+https://findtreatment.samhsa.gov/locator/link-focSelfGP.html#.XdRRfNVKiUk}
+Psychiatric Medication Questions
+My Clinical Question (condition: Psychiatric Medication Questions): ***
+SPECIAL NOTE:
+Please DO NOT place an eConsult if the patient is expressing suicidal or violent thoughts or concern for acute manic/psychotic decompensation or acute intoxication/withdrawal. Please call 650-443-6059 or page 24672.
+Please DO NOT place eConsults for established Psychiatry patients.
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or note, please include information on:
+Current psychiatric diagnosis
+Current and past medications, which were effective, duration of trial
+Are there specific side-effects the patient is concerned about
+Relevant co-morbid conditions (insomnia, substance use include tobacco and caffeine, OSA, hyper/hypothyroidism, neurological disorders)
+Tests recommended by psychiatry:
+Screenings: PHQ9/GAD7
+CBC, TSH, CMP, vitamin D, vitamin B12, folate if applicable
+Clinical Pearls:
+Many psychiatric medications have several CYP interactions – would recommend running a medication interaction check if your patient is on several medical medications as well as psychiatric medications
+Would not recommend duloxetine use in patients with CrCl <60
+Duloxetine and low-dose TCAs such as amytriptyline/nortryptline and desipramine may be useful for co-management of mood and functional disorders such as CFS, fibromyalgia, IBS
+Venlafaxine and paroxetine have more intolerable withdrawal if stopped abruptly than other SSRIs/SNRIs}
+Psychiatric Diagnostic Clarification
+My Clinical Question (condition: Psychiatric Diagnosis Clarification): ***
+SPECIAL NOTE:
+Please DO NOT place an eConsult if the patient is expressing suicidal or violent thoughts or concern for acute manic/psychotic decompensation or acute intoxication/withdrawal. Please call 650-443-6059 or page 24672.
+Please DO NOT place eConsults for established Psychiatry patients.
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or note, please include information on:
+Current psychiatric diagnosis
+Elements of interview concerning for incorrect/unclear diagnosis:
+Current and past medications
+Co-morbid conditions (insomnia, substance use include tobacco and caffeine, OSA, hyper/hypothyroidism, neurological disorders)
+Tests recommended by psychiatry:
+PHQ9/GAD7 if applicable
+CBC, TSH, CMP, vitamin D, vitamin B12, folate, RPR if applicable
+Clinical Pearls:
+None.}
+Psychiatric Resources
+My Clinical Question (condition: Psychiatric Resources): ***
+SPECIAL NOTE:
+Please DO NOT place an eConsult if the patient is expressing suicidal or violent thoughts or concern for acute manic/psychotic decompensation or acute intoxication/withdrawal. Please call 650-443-6059 or page 24672.
+Please DO NOT place eConsults for established Psychiatry patients.
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or note, please include information on:
+Type of resources requested
+Current psychiatric diagnosis
+Current and past medications
+Comorbidities
+Tests recommended by psychiatry:
+PHQ9
+CBC, TSH, CMP, vitamin D, vitamin B12, folate}
+Other
+My Clinical Question (condition: other): ***
+SPECIAL NOTE:
+Please DO NOT place an eConsult if the patient is expressing suicidal or violent thoughts or concern for acute manic/psychotic decompensation or acute intoxication/withdrawal. Please call 650-443-6059 or page 24672.
+Please DO NOT place eConsults for established Psychiatry patients.
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Important comorbidities
+Medications (current, previous, etc)
+Mental health providers (psychiatrist, NP, therapist)}

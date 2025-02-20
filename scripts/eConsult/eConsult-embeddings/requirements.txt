@@ -1,0 +1,7 @@
+langchain
+langchain-huggingface
+faiss-cpu
+sentence-transformers
+scikit-learn
+python-docx
+numpy

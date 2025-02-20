@@ -1,0 +1,134 @@
+Orthopedics eConsult Templates
+Condition-specific templates
+Back/Hip Pain
+Foot Pain
+Hand/Wrist pain
+Knee Pain
+Neck Pain
+Shoulder Pain
+Other
+Conditions NOT included
+Ankle Pain
+Elbow Pain
+Epicondylitis
+Frozen Shoulder
+Hip Osteoarthritis
+Hip Pain
+Knee Osteoarthritis
+Meniscus Tear
+Trochanteric Bursitis
+My Clinical Question (condition: Back/Hip pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Precipitating injury
+Duration of symptoms
+Location of pain (midline, laterality, radiation)
+Change in function
+Weakness on exam
+Previous treatment (PT, injection, bracing, etc.)
+Imaging studies
+Most recent BMI
+Imaging recommendations by orthopedics:
+Clinicians should not routinely obtain imaging in patients with nonspecific, atraumatic back pain, instead, reserve imaging for patients with severe or progressive neurologic deficits or when serious underlying conditions are suspected on the basis of history and physical examination.
+Clinical Pearls:
+Red Flag symptoms, which, if present or suspected, represent an indication for earlier imaging include:
+Neurologic deficits – *immediate MRI and urgent in-person referral for concerns of spinal cord or cauda equina compression and/or severe neurologic deficits*
+Infection
+Cancer (patients with cancer or risk factors)
+Compression fracture
+Stable radiculopathy attributable to a single nerve root level or with stable symptoms due to spinal stenosis so not need immediate imaging unless there is a risk of metastatic cancer or moderate to high risk of infection. }
+My Clinical Question (condition: Hand/Wrist pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Hand dominance
+Precipitating injury/trauma, occupational activities, change in function
+Localization and timing of pain
+Joint swelling/effusion
+Neurovascular assessment
+Previous treatment (PT, injection, bracing, etc.)
+Imaging studies
+Imaging guidance by orthopedics:
+X-ray of the hand is generally indicated in patient with joint pain and inflammation, a history of trauma, or the presence of a deformity:
+X-ray Hand
+Standard plain radiographs of the wrist is often necessary to make a definitive diagnosis:
+X-ray Wrist
+Clinical Pearls:
+If pain is associated with any systemic symptoms (eg fever, nightsweats) or occurs in both hands/wrists or in other joints in addition, consider systemic illness and more urgent evaluation.}
+My Clinical Question (condition: Knee pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Precipitating injury
+Duration of symptoms
+Location of pain (anterior, medial, lateral, posterior)
+Change in function
+Effusion
+Previous treatment (PT, injection, bracing, etc.)
+Imaging studies
+Most recent BMI
+Imaging guidance by orthopedics:
+If the patient is greater than 50 years of age with knee pain, consider obtaining the following X-rays:
+X-ray Knee 3 Views (When placing these orders, in the comments field, ass the following to ensure the correct views are obtained: “AP bilateral standing (weightbearing), Lateral and Sunrise”)
+If X-rays demonstrate signs of arthritis (significant joint space narrowing), an MRI is typically not helpful for initial evaluation.
+If arthritis is NOT suspected (the patient is less than 45 years of age ) and the patient has an acute injury:
+X-rays are NOT required
+An MRI may be helpful: MRI Knee w/o Contrast
+Acute pain and symptoms including locking, catching/mechanical symptoms, effusion, and instability benefit from an MRI
+Clinical Pearls:
+None}
+My Clinical Question (condition: Neck pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Precipitating injury
+Duration of symptoms
+Location of pain (midline, laterality)
+Change in function
+Previous treatment (PT, injection, bracing, etc.)
+Imaging studies
+Imaging recommendations by orthopedics:
+Clinicians should not routinely obtain imaging in patients with nonspecific, atraumatic neck or back pain, instead, reserve imaging for patients with severe or progressive neurologic deficits or when serious underlying conditions are suspected on the basis of history and physical examination.
+Consider cervical spine X-rays for persistent (>6 weeks), moderate to severe neck pain without red flags and affecting sleep or ability to perform daily activities and/or occupation.
+Clinical Pearls:
+Red Flag symptoms, which, if present or suspected, represent an indication for earlier imaging include:
+Neurologic deficits – **immediate MRI and urgent in-person referral for concerns of spinal cord or cauda equina compression and/or severe neurologic deficits**
+Infection
+Cancer (patients with cancer or risk factors)
+Compression fracture
+Stable radiculopathy attributable to a single nerve root level or with stable symptoms due to spinal stenosis so not need immediate imaging unless there is a risk of metastatic cancer or moderate to high risk of infection. }
+My Clinical Question (condition: Shoulder pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Precipitating injury
+Duration of symptoms
+Location of pain
+Loss of passive range of motion
+Change in function
+Weakness on exam
+Previous treatment (PT, injection, bracing, etc.)
+Imaging studies
+Tests recommended by orthopedics for SHOULDER PAIN:
+If arthritis is suspected, the patient is greater than 50 years of age, and has deep pain and/or stiffness, consider obtaining:
+X-ray shoulder >= 2 Views (When placing these orders, add the following in the comments field to ensure the correct views are obtained: “True PA, AP and Internal Rotation, Axillary, Scapular Y”).
+Clinical Pearls:
+Frozen Shoulder is defined as: Loss of passive range of motion, and in the early phase, there is associated rest pain. If the patient is greater than 60 years of age, consider obtaining x-rays (“True Neer AP & Westpoint Axillary”). If the patient has frozen shoulder, do not obtain an MRI.
+For on online video of a shoulder exam, please visit the following web address: https://www.fammed.wisc.edu/faculty/videos/ }
+My Clinical Question (condition: Other): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Precipitating injury
+Duration of symptoms
+Location of pain
+Change in function
+Effusion
+Weakness on exam
+Previous treatment (PT, injection, bracing, etc.)
+Imaging studies
+Imaging guidance by orthopedics:
+None
+Clinical Pearls:
+None}

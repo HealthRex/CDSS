@@ -1,0 +1,733 @@
+Dermatology eConsult Templates (Internal and External)
+Please make changes to Stanford templates in red, so IT knows what to change
+Yellow highlighted text is for Internal template only, not External
+Questions for eConsultants are highlighted in blue
+Not able to upload to arista
+Sample templates from other AMCs can be found here.
+Stanford Checklists
+Rash/Dermatitis - Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: approved by Dr. Bae
+Last updated in Epic: IT to update template
+Last updated on Arista platform: SR uploaded 4.20
+My Clinical Question: ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Photo (see clinical pearls)
+Optional:
+None
+DIAGNOSTICS:
+Required:
+None
+Optional:
+None
+CLINICAL PEARLS:
+Instructions for attached photo(s):
+Upload representative photos of the patient’s skin condition and if there are different morphologies please try to capture them. Label the photos with location.
+Photo tips:
+Use daylight ideally or similar lighting
+Make sure the photo is in focus and touch the part of the image/skin you want to be in focus on the screen
+Do not use zoom}
+Growth/Lesion – Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: approved by Dr. Bae
+Last updated in Epic: IT to update template
+Last updated on Arista platform: SR uploaded 4.20
+My Clinical Question: ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Photos (see clinical pearls)
+Optional:
+None
+DIAGNOSTICS:
+Required:
+None
+Optional:
+None
+CLINICAL PEARLS:
+Instructions for attached photo(s):
+Upload two photos of the patient’s skin condition that are 4 inches and 12 inches away. Label the photos with brief description and location.
+Photo tips:
+Use daylight ideally or similar lighting
+Make sure the photo is in focus—touch the lesion on the screen to focus on the lesion.  Take an additional photo with a dermatoscope if available.}
+Other - Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: approved by Dr. Bae
+Last updated in Epic: IT to update template
+Last updated on Arista platform: SR uploaded 4.20
+My Clinical Question: ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+None
+Optional:
+None
+DIAGNOSTICS:
+Required:
+None
+Optional:
+None
+CLINICAL PEARLS:
+Instructions for attached photo(s):
+Upload two photos of the patient’s skin condition that are 4 inches and 12 inches away. Label the photos with brief description and location.
+Photo tips:
+Set your camera phone to the highest resolution (largest file size on your device)
+Use daylight ideally or similar lighting
+Make sure the photo is in focus
+Do not use zoom}
+Checklists from other institutions for reference
+Acne – Arista/UCSF template
+* Tips for effective dermatology photos
+1. First photo - wide view to evaluate anatomic region and general distribution of the eruption.
+2. Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion.
+3. If possible, third photo with ruler close to lesion to demarcate lesion size.
+ASSESSMENTS:
+Required:
+None
+Optional:
+Any evidence of endocrine abnormalities?
+What is the duration symptoms?
+Any medications?
+Any previous treatments?
+What is the distribution?
+DIAGNOSTICS:
+Required:
+Bacterial Culture (Skin) (To rule out gram negative folliculitis.)
+DHEA-S
+Free Testosterone
+FSH
+LH
+Photo
+Total Testosterone
+Optional:
+None
+CLINICAL PEARLS:
+Topical retinoids are best for predominantly comedonal Acne (not pustular
+Consider topical antibiotics for mild pustular acne (combination if some of both)
+Oral antibiotics if moderate to severe: doxycycline 100mg daily is better than minocycline
+Refer for oral isotretinoin if refractory to above, or scarring/nodular acne.
+Treat for 2 months with good compliance before assessing results
+Consider spironolactone for adult female acne, 50-100mg daily, though counsel on menstrual irregularities, fatigue, med interactions, and teratogenicity
+Trial all meds for 2 months at least before assessing improvement
+Acne/rosacea – Arista/UCSF template
+* Tips for effective dermatology photos
+1. First photo - wide view to evaluate anatomic region and general distribution of the eruption.
+2. Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion.
+3. If possible, third photo with ruler close to lesion to demarcate lesion size.
+ASSESSMENTS:
+Required:
+None
+Optional:
+Any aggravating factors?
+Provide description of lesions:
+Erythema
+Papules
+Pustules
+Any previous treatments?
+Provide list of current medications.
+DIAGNOSTICS:
+Required:
+KOH Test (For follicule mites or fungi.)
+Photo
+Optional:
+None
+CLINICAL PEARLS:
+Pustular rosacea; looks like acne limited to the cheeks: Try metronidazole 0.75% or oral doxycycline for severe cases (allow 4-6 weeks for response)
+Erythematotelangiectatic rosacea:  redness of cheeks that’s episodic  Usually doesn’t respond to topical/oral abx: refer for laser
+Ocular involvement:  consider doxycycline, referral.
+Alopecia – Arista/UCSF template
+ASSESSMENTS:
+Required:
+None
+Optional:
+What is the distribution of the alopecia?
+Any medications?
+Age of onset.
+Any family history of alopecia?
+Any scarring?
+DIAGNOSTICS:
+Required:
+Complete Blood Count (CBC)
+Free Thyroxine (Free T4)
+Photo
+Thyroid Stimulating Hormone (TSH)
+Serum iron
+Serum Ferritin
+Optional:
+Skin Biopsy
+CLINICAL PEARLS:
+If classic AA/androgenetic:  TSH/CBC/IRON
+For androgenetic:  Consider a course of minoxidil topical; for men finasteride for 6 Months
+Refer based on impact on quality of life.
+Average person loses 60-100 hairs per day.
+Hair loss is a very common problem. The most common etiologies are familial, aging, and postpartum physiologic changes. Unless the patient has strong family history and/or compelling review of systems to suggest autoimmunity (e.g., oral ulcers, sun sensitivity, inflammatory arthritis), the pre-test probability is low and we recommend against checking ANA. The consequences of a false positive ANA are patient angst, unnecessary additional referral and work-up.
+If patient has major surgery or trauma, extreme psychological stress, childbirth or chemotherapy within the past 4 months, hair loss is likely due to telogen/anagen effluvium. Symptoms are expected to improve with a few months with resolution of the causative factor.
+Androgenic/senescent alopecia is typically characterized by thinning of hairs on the temples and crown and thinning, shorter, wispier hair. For androgenetic/senescent alopecia, patient should use topical minoxidil (Rogaine) 5% ONCE DAILY for at least 8 months. Minoxidil 5% is safe for men AND was recently FDA-approved for women. It can be applied to all scalp areas of hair thinning (not just crown), but the patient must put on enough to thinly coat the scalp. The foam vehicle is less irritating than the liquid and can be purchased in bulk to save money. Set expectations that this is life-long therapy that maintains hairs. 30% of people have moderate regrowth, 30% have no net loss (but not additional growth).
+Abort eConsult and order a consult to Dermatology if the patient has signs of alopecia areata (patchy hair loss), shiny scars in areas of alopecia, inflammation/redness, pain or pustules. Prior to being seen by Dermatology the patient should have a TSH with reflex free T4 and ferritin within the past 4 months
+(and treatment provided if abnormal). Ferritin should be >35 for optimal regrowth.
+Prior to the eConsult to Dermatology, the patient should have a TSH with reflex free T4 and ferritin within the past 4 months (and treatment provided if abnormal). Ferritin should be >35 for optimal regrowth.
+Atopic dermatitis/Eczema – Arista/UCSF template
+Tips for the best images with a clean lens:
+1.	First photo: wide view - your forearm’s length is the camera distance from skin, to show anatomic region and hyperpigmented/red/scaly/excoriated area in context. Try with and without flash and avoid your shadow in the image. Make sure the largest part of the image in the viewfinder is the skin, otherwise only the background will be in focus. Typical areas would be face, trunk, buttocks, forearms and palms
+2.	Closeup photo: 2 fingertip widths or more from skin. Make sure you include a border area showing normally pigmented skin. Camera on macro (tulip symbol) setting. No ruler is needed. If the lesion is dark, the camera may read a light background and make the affected area appear even darker. Try shots with and without flash. Typical areas would be nails, antecubital and popliteal fossae, cheeks, dorsal hands, ankles
+CLINICAL PEARLS:
+Surprisingly, adult-onset atopic dermatitis is increasingly common, especially after age 50. If there is no history of childhood atopy, but the pattern looks typical of atopic dermatitis, please consider it as a diagnosis.
+ASSESSMENTS:
+Required:
+Description of area(s)of dermatitis and largest diameter in mm.
+What is the color(s) such as tan, brown, red, pink, purple, grey?
+Is it raised (palpable) papule or flat (not palpable) macule?
+Not applicable
+Raised (palpable)
+Flat (not palpable)
+Other
+Does the area have flaking, blistering, or scaling?
+Not applicable
+Blistering
+Flaking
+Scaling
+Other
+Is the area of concern in a sun-exposed or non-sun exposed area?
+Sun-exposed
+Non-sun exposed
+Is there blood crusted under the fingernails?
+How long has the patient had the symptoms (duration of issue)?
+Any of the following symptoms? (select all that apply)
+Itching
+Bleeding
+Pain
+Dryness
+Any systemic symptoms?
+Any aggravating factors?
+Any sleep disturbance?
+Any ocular (eyelid or conjunctival) involvement?
+Any scalp, mucous membrane, or genital involvement?
+Any associated atopy, such as Asthma, hay fever, or allergies?
+Any previous treatment(s) including OTC products (i.e. soaps or moisturizers)?
+What do you feel is the likely diagnosis?
+Optional
+None
+DIAGNOSTICS:
+Required:
+Photo
+Optional
+None
+CLINICAL PEARLS:
+Use low potency steroids only, for up to 3 weeks, on face or skin folds (See LINK for types).   Consider tacro/pimecrolimus in those needing longer therapy
+High potency steroids for trunk or extremities—limit 2 weeks; then off for at least 2 weeks.
+Consider PO antibiotic treatment in refractory, impetiginized eczema
+Refer to derm for patients who, with good adherence and use of emollients, can’t gain/keep control after 2-4 weeks of high potency topical steroids.
+Good skin hygiene:
+Take warm, short (10 min) showers (daily okay). Always follow showers with bland (no perfume) emollients. Long baths are very drying to skin.
+Wash with liquid lotion infused body cleansers – not bar soap (dove/Olay body soap)
+Avoid fragrance in soaps/cleansers/creams (e.g. Dove / Cetaphil / CeraVe / Curel / Vanicream brands are good OTC products, etc.)
+Use creams (thicker) rather than lotions to moisturize
+Biopsy result management – Arista/UCSF template
+ASSESSMENTS:
+Required:
+None
+Optional
+Is the pathology report strongly correlated to the clinical presentation of the patient?
+Yes
+No
+Unsure
+Was the biopsy taken from an area representative of the rest of the lesion or rash?
+Was the pathology report produced by a dermatopathologist?
+Was the sample size/quantity adequate for analysis?
+DIAGNOSTICS:
+Required:
+Pathology Report
+Optional
+Photo
+Dermatitis (not atopic) – Arista/UCSF template
+Tips for the best images with a clean lens:
+1.	First photo: wide view - your forearm’s length is the camera distance from skin, to show anatomic region and hyperpigmented/hypopigmented areas in context. Try with and without flash and avoid your shadow in the image. Make sure the largest part of the image in the viewfinder is the skin, otherwise only the background will be in focus.
+2.	Closeup photo: 2 fingertip widths or more from skin. Make sure you include a border area showing normally pigmented skin. Camera on macro (tulip symbol) setting. No ruler is needed. If the lesion is dark, the camera may read a light background and make the affected area appear even darker. Try shots with and without flash.
+ASSESSMENTS:
+Required:
+What is the largest diameter in mm?
+What is the color(s) such as tan, brown, red, pink, purple, grey?
+Is the dermatitis area?
+Raised (palpable)
+Flat (not palpable)
+Is the dermatitis area?
+Flaking
+Scaling
+Blistering
+What is the location?
+Is the dermatitis area?
+Sun-exposed skin
+Non-sun exposed skin
+Is there crusted blood under the fingernails?
+What are the symptoms (itching, bleeding, painful)?
+Are there any aggravating factors? such as fever, chills, adenopathy?
+Is there any mucous membrane including genital involvement?
+Is there any ocular (eyelid, conjunctival) involvement?
+Is there any photosensitivity or history of conditions with photosensitivity such as lupus, porphyria?
+Is patient an outdoor worker?
+Is there any aggravation at work (handling chemicals?
+Has there been a previous treatment(s)?
+What do you feel is the likely diagnosis?
+How long has the current issue been present?
+Optional:
+None
+DIAGNOSTICS:
+Required:
+Photo
+Optional:
+None
+Dry skin – Arista/UCSF template
+* Tips for effective dermatology photos 1. First photo - wide view to evaluate anatomic region and general distribution of the eruption 2. Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion 3. If possible, third photo with ruler close to lesion to demarcate lesion size
+ASSESSMENTS:
+Required:
+Photo
+Optional
+Any family history of similar symptoms?
+Any history of:
+Unusual diet
+Poor nutritional status
+Any medications?
+Duration of symptoms?
+Severity of symptoms?
+Age of onset?
+Any previous treatments?
+DIAGNOSTICS:
+Required:
+Complete Blood Count (CBC)
+Photo
+Thyroid Stimulating Hormone (TSH)
+BUN
+Optional:
+HIV
+Hyperpigmentation – Arista/UCSF template
+Reference:  https://www.aad.org/education/basic-derm-curriculum/suggested-order-of-modules/blotches-dark-rashes
+Tips for the best images with a clean lens:
+1.	First photo: wide view - your forearm’s length is the camera distance from skin, to show anatomic region and hyperpigmented area in context. Try with and without flash and avoid your shadow in the image. Make sure the largest part of the image in the viewfinder is the skin, otherwise only the background will be in focus.
+2.	Closeup photo: 2 fingertip widths or more from skin. Make sure you include a border area showing normally pigmented skin. Camera on macro (tulip symbol) setting. No ruler is needed. If the lesion is dark, the camera may read a light background and make the affected area appear even darker. Try shots with and without flash.
+3.	Dermoscopic photo: Please make sure any structures are sharp in the image before submitting.
+ASSESSMENTS:
+Required:
+What is the largest diameter (in mm) of the area of hyperpigmentation
+Is the area any of the following colors?
+Tan
+Brown
+Red
+Pink
+Purple
+Grey
+None of the above
+Is the area raised (palpable) or flat (not palpable)?
+Raised
+Flat
+Other
+Is the area located on sun-exposed skin?
+Are the lesions symmetric?
+Is the hyperpigmentation located in previous areas of dermatitis?
+How long has the hyperpigmentation been present?
+Is the patient experiencing any of the following symptoms?
+Itching
+Bleeding
+Pain
+Other
+None of the above
+Are there any aggravating factors?
+Has the patient been handling fruits, vegetables or plants?
+Any photosensitivity or history of conditions with photosensitivity such as lupus, porphyria?
+Is the patient an outdoor worker?
+Are other people commenting negatively on the patient's appearance?
+Please list all OTC and prescription medications, including oral contraceptives, antibiotics (doxycycline), antihypertensives (hydrochlorothiazide), over-the counter and topical, including steroids, cosmetic, products, chemical peels, laser. For medicines from outside the US, an image of the product label is helpful.
+What do you feel is the likely diagnosis?
+Is skin biopsy available at your office, if recommended?
+Optional:
+If using a dermoscope, describe any colors, structures, patterns you see.
+What happens if you rub the area with an alcohol pad vigorously?
+DIAGNOSTICS:
+Required:
+Photo
+Optional
+None
+Hypopigmentation – Arista/UCSF template
+* Tips for effective dermatology photos
+1.	First photo - wide view to evaluate anatomic region and general distribution of the eruption
+2.	Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion
+3.	If possible, third photo with ruler close to lesion to demarcate lesion size.
+ASSESSMENTS:
+Required:
+What is the largest diameter (in mm) of the area of hypopigmentation
+Is the area of hypopigmentation any of the following colors?
+Tan
+Brown
+Red
+Pink
+Purple
+Grey
+None of the above
+Is the area raised (palpable) or flat (not palpable)?
+Raised
+Flat
+Other
+Is the area located on sun-exposed skin?
+Are the lesions symmetric?
+Are the lesions oval/round or rectangular?
+Oval/Round
+Rectangular
+Other shape
+Is the hypopigmentation located in previous areas of dermatitis?
+Are the lesions smooth or jagged?
+Smooth
+Jagged
+Other
+Do the lesions have distinct or indistinct borders?
+Distinct
+Indistinct
+Other
+Are any of the following areas involved?
+Scalp/Hair
+Genital
+Perianal
+None of the above
+How long has the hypopigmentation been present?
+Is the patient experiencing any of the following symptoms?
+Itching
+Bleeding
+Pain
+Other
+None of the above
+Are there any aggravating factors?
+Does the patient work with any chemicals such as those used in concrete or in a laboratory setting?
+Are other people commenting negatively on the patient's appearance?
+Any family history of any of the following?
+Vitiligo
+Atopic Dermatitis
+Lupus
+Thyroid Disorders
+Albinism
+Immunodeficiency
+None of the above
+Please list all OTC and prescription medications, including oral contraceptives, antibiotics (doxycycline), antihypertensives (hydrochlorothiazide), over-the counter and topical, including steroids, cosmetic, products, chemical peels, laser. For medicines from outside the US, an image of the product label is helpful.
+Optional:
+If using a dermoscope, describe any colors, structures, patterns you see.
+If using a Woods lamp (UV-A purple light), do lesions appear brighter white?If you are concerned about vitiligo, it is best to undress the patient completely and use the Woods lamp especially on closed eyelids, in axillae and on genitalia, as some of these areas may show hypopigmentation not visible in ambient light.
+DIAGNOSTICS:
+Required:
+Photo
+Optional
+None
+Intertrigo – Arista/UCSF template
+* Tips for effective dermatology photos
+1.	First photo - wide view to evaluate anatomic region and general distribution of the eruption
+2.	Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion
+3.	If possible, third photo with ruler close to lesion to demarcate lesion size.
+ASSESSMENTS:
+Required:
+None
+Optional
+Any history of
+Diabetes Mellitus
+Morbid Obesity
+Incontinence
+Any previous treatments to date?
+Duration and intensity of rash?
+What is the anatomic distribution of the rash?
+Any medications?
+DIAGNOSTICS:
+Required:
+Bacterial Culture (Skin)Optional
+KOH Test
+Photo
+Optional
+Skin biopsy
+Itch – Arista/UCSF template
+* Tips for effective dermatology photos 1. First photo - wide view to evaluate anatomic region and general distribution of the eruption. 2. Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion. 3. If possible, third photo with ruler close to lesion to demarcate lesion size.
+ASSESSMENTS:
+Required:
+Photo
+Optional
+Any allergies or atopic disease?
+Onset/duration of symptoms.
+Any new medications?
+Any previous treatments?
+What is the location/distribution?
+Any associated symptoms?
+DIAGNOSTICS:
+Required:
+HIV
+Liver Function Tests
+Photo
+Thyroid Stimulating Hormone (TSH)
+BUN
+Creatinine
+Serum Ferritin
+Serum iron
+Complete Blood Count (CBC)
+Chest X-Ray (CXR)
+Optional:
+None
+Lesions – Arista/UCSF template
+Reference: https://www.aad.org/education/basic-derm-curriculum/suggested-order-ofmodules/evaluation-of-pigmented-lesions
+Tips for the best images with a clean lens:
+1.	First photo: wide view - your forearm’s length is the camera distance from skin, to show anatomic region and lesion in context. Try with and without flash and avoid your shadow in the image. Make sure the largest part of the image in the viewfinder is the skin, otherwise only the background will be in focus.
+2.	Closeup photo: 2 fingertip widths or more from skin. Camera on macro (tulip symbol) setting. If using a ruler, please do NOT let it touch the lesion in any way. If the lesion is dark, the camera may read the white ruler and make the lesion appear even darker. Try shots with and without ruler. Remember, you can document the lesion diameter in your note.
+3.	Dermoscopic photo: Please make sure any structures are sharp in the image before submitting.
+ASSESSMENTS:
+Required:
+What is the largest diameter in mm of the lesion?
+Describe the color of the lesion
+Is the lesion:
+Raised (palpable)
+Flat (not palpable)
+What is the location of the lesion (sun-exposed or non-sun exposed skin)?
+When palpated, does the lesion do any of the following?
+Bleed
+Peel
+Tear
+None of the above
+How long has the lesion been present?
+Does the patient experience any of the following symptoms related to the lesion?
+Itching
+Bleeding
+Pain
+None of the above
+Are there any aggravating factors?
+Has the patient tried any previous treatments?
+Does the patient have any similar lesions? If so, what are their locations?
+Any personal and/or family history of atypical nevi, pre-cancerous spots or skin cancer?
+What do you feel is the likely diagnosis?
+Optional:
+If using a dermascope, describe any colors, structures and patterns
+Is skin biopsy available at your office?
+DIAGNOSTICS:
+Required:
+Photo
+Optional
+Skin Biopsy (Biopsy result if available of the lesion in question and/or previous similar lesions)
+Nevus moles – Arista/UCSF template
+Tips for the best images with a clean lens:
+1.	First photo: wide view - your forearm’s length is the camera distance from skin, to show anatomic region and site of lesion in context. Try with and without flash and avoid your shadow in the image. Make sure the largest part of the image in the viewfinder is the skin, otherwise only the background will be in focus.
+2.	Closeup photo: 2 fingertip widths or more from skin. Make sure you include a border area showing normal skin. Camera on macro (tulip symbol) setting. No ruler is needed. If the lesion is dark, the camera may read a light background and make the affected area appear even darker. Try shots with and without flash.
+3.	Dermoscopic photo: Please make sure any structures are sharp in the image before submitting.
+ASSESSMENTS:
+Required:
+Describe lesion and largest area in mm
+What color is the lesion?
+Tan
+Brown
+Red
+Pink
+Gray
+Other
+Is the lesion palpable or flat (not palpable)?
+Palpable
+Not palpable
+Other
+Is the lesion in a sun-exposed or non-sun exposed area?
+Sun-exposed area
+Non-sun exposed area
+How long has lesion been present (duration)?
+Are there any associated symptoms? (select all that apply)
+Itching
+Scaling
+Bleeding
+Pain
+Any aggravating factors (i.e. catching on clothes)?
+Is there previous personal or family history of atypical or dysplastic nevi or skin cancer?
+Is there any history of immune suppression (i.e. prior chemotherapy, radiation, immune-suppressant drugs, organ transplant)?
+Is the patient an outdoor worker?
+What do you feel is the likely diagnosis?
+If you are using a dermoscope, please describe any colors, structures, or patterns you see.
+Is skin biopsy available at your office, if recommended?
+Optional:
+None
+DIAGNOSTICS:
+Required:
+Photo
+Optional
+None
+Pruritis – Arista/UCSF template
+ASSESSMENTS:
+Required:
+Photo
+Optional
+None
+DIAGNOSTICS:
+Required:
+Photo
+tsh/ferritin/cbc/cmp
+Optional
+LDH, Alk Phos
+CLINICAL PEARLS:
+Good skin hygiene will help (LINK to good skin hygiene)
+Trial gabapentin for pruritis. (600mg bid)
+Psoriasis – Arista/UCSF template
+* Tips for effective dermatology photos
+1.	First photo - wide view to evaluate anatomic region and general distribution of the eruption
+2.	Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion
+3.	If possible, third photo with ruler close to lesion to demarcate lesion size
+ASSESSMENTS:
+Required:
+None
+Optional:
+Any history of:
+Recent streptoccocal infection
+Arthritis
+Obesity
+Smoker
+What is the duration and distribution of the rash?
+List current medications including :
+NSAIDs
+Beta Blockers
+Antimalarials
+Lithium
+Statins
+Type of psoriasis:
+Plaque
+Pustular
+Inverse
+Erythrodermic
+Guttate
+Unsure
+DIAGNOSTICS:
+Required:
+Photo
+Optional
+Skin biopsy
+CLINICAL PEARLS:
+	If limited to <5% body surface area (eg 1 full handprint =1% Body Surface area) never been on topical steroids—start on class 1-2 steroid bid to trunk and extremity lesions ; clobetasol/bethamethasone solution to scalp; class 5-6 steroids or tacrolimus/pimecrolimus to skin folds or face.  (see LINK for steroids in each class)
+	After above, wait 1-2 months to evaluate improvement
+	If fail topicals/more extensive disease (>5%- mod/severe) refer for in person eval and obtain required labs
+	NO PREDNISONE – Patients might get worse!!
+Rash – Arista/UCSF template
+* Tips for effective dermatology photos
+1.	First photo - wide view to evaluate anatomic region and general distribution of the eruption
+2.	Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion
+3.	If possible, third photo with ruler close to lesion to demarcate lesion size
+ASSESSMENTS:
+Required:
+Does the patient have any of the following?
+Pruritis
+Pain
+Fever
+None
+Please characterize the rash
+Macular
+Papular
+Pustular
+Vesicular
+Erythematous
+Purpuric
+None of the above
+How severe are the symptoms?
+How long has the rash been present?
+Where is the rash located?
+Optional:
+Any history of a chronic skin disease (like psoriasis or eczema)?
+Previous treatments?
+Medication history?
+Any involvement of mucous membranes?
+DIAGNOSTICS:
+Required:
+Anti-Nuclear Antibody (ANA)
+Complete Blood Count (CBC)
+Erythrocyte Sedimentation Rate (ESR)
+HIV
+KOH Test (For fungi, scabies or mites.)
+Liver Function Tests
+Photo
+Thyroid Stimulating Hormone (TSH)
+Skin Biopsy
+Optional:
+None
+Seborrheic Dermatitis – AAMC template
+Before referring, please consider:
+Seb derm:  Occurs in scalp, eyebrows, nasolabial folds, ears
+Ketoconazole 2% shampoo or selenium sulfide 2.5% are great first line meds; add a topical steroid class 5-6 or pime/tacrolimus for severe scalp symptoms.   **Scalp steroids – best to use solutions (hydrocortisone butyrate, or clobetasol solution).  Leave on for 5 minutes for best effect.
+Use above daily until gone, consider once-twice weekly use to prevent relapse
+DIAGNOSTICS:
+Required:
+None
+Optional:
+None
+Skin lesion – Arista/UCSF template
+* Tips for effective dermatology photos
+1.	First photo - wide view to evaluate anatomic region and general distribution of the eruption
+2.	Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion
+3.	If possible, third photo with ruler close to lesion to demarcate lesion size.
+ASSESSMENTS:
+Required:
+How long have the nevi been present?
+Are the nevi changing?
+Any itching or bleeding?
+Any family history of melanoma?
+Optional:
+None
+DIAGNOSTICS:
+Required:
+Photo
+Optional
+None
+Urticaria – Arista/UCSF template
+* Tips for effective dermatology photos 1. First photo - wide view to evaluate anatomic region and general distribution of the eruption. 2. Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion. 3. If possible, third photo with ruler close to lesion to demarcate lesion size.
+ASSESSMENTS:
+Required:
+None
+Optional
+Any exacerbating factors?
+Certain foods
+Cold
+Heat
+Sun
+Pressure
+Other
+Any new medications or vaccinations?
+Any current illness?
+What is the duration of symptoms?
+Location of rash?
+Previous treatments?
+DIAGNOSTICS:
+Required:
+Chronic Urticaria Index Test
+Erythrocyte Sedimentation Rate (ESR)
+Helicobacter pylori Serology IgG (H. pylori IgG)
+Photo
+Thyroid Antibody
+Thyroid Stimulating Hormone (TSH)
+Complete Blood Count (CBC)
+Optional
+Biopsy
+CLINICAL PEARLS:
+Do not do serologic work up (ANA, CBC, CMP, etc) unless history supports specific cause
+In adults: scratch/allergy testing is usually negative. Refer only if history is supportive of external cause
+Most common cause is children = concurrent URI; adults = drug/supplement
+90% of time cause of hives unable to ascertained
+First line tx:  non-sedating antihistamine; if no contraindications (CV/kidney dz), can give Zyrtec/Claritin up to 4x normal dose (40mg total a day)
+Can try sedating antihistamine at night as well (Benadryl, atarax)
+Prednisone will work, but hives may flare with taper
+Warts – Arista/UCSF template
+Include the information below to help your consulting specialist provide high quality recommendations.
+* Tips for effective dermatology photos 1. First photo - wide view to evaluate anatomic region and general distribution of the eruption 2. Second photo - detailed, close-up image with lesion no closer than 20 cm and camera on macro settings. Can send additional macro photos from different angles to illustrate details and textural features of the lesion 3. If possible, third photo with ruler close to lesion to demarcate lesion size
+ASSESSMENTS:
+Required:
+None
+Optional
+Any previous treatments?
+What is the severity of the symptoms?
+What is the distribution of the lesions?
+What is the duration of the lesions?
+DIAGNOSTICS:
+Required:
+Photo
+Optional
+Skin Biopsy
+CLINICAL PEARLS:
+	Please explain to patient that warts are very difficult to eradicate and require multiple rounds of treatment. In many cases they will self-resolve.
+	Please counsel patients with dry skin to use sensitive skin soaps/lotions to improve their barrier function and potentially prevent warts from spreading.
+	Prior to an eConsult to dermatology, patient must be treated with cryotherapy OR cantharidin administered by a health care provider 3 or more times over the course of 6 weeks.
+	Prior to a consult to dermatology, patient must be treated with cryotherapy OR cantharidin administered by a health care provider 3 or more times over the course of 6 weeks.

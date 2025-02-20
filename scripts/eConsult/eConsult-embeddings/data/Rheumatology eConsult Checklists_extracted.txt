@@ -1,0 +1,647 @@
+Rheumatology eConsult Templates (Internal and External)
+Please make changes to Stanford templates in red, so IT knows what to change
+Yellow highlighted text is for Internal template, not External.
+Green highlighted text is for External, not Internal.
+Blue highlighted text are questions for eConsultants.
+Other templates can be found in the AAMC Rheumatology templates folder.
+STANFORD DIAGNOSIS TEMPLATES – UPDATE AS NEEDED
+Inflammatory Back Pain – Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Rheum
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR added 4.20
+My Clinical Question (inflammatory back pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order an eConsult for fibromyalgia. This should instead be referred.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+None
+Optional:
+Age at which back pain developed
+Whether back pain worsens with activity or with rest? Whether it wakes patient up from sleep in the second half of the night and/or is associated with AM stiffness? Length of AM stiffness?
+Prior medical history of inflammatory eye disease, psoriasis or IBD?
+Medications tried
+DIAGNOSTICS:
+Required:
+CBC with diff
+CMP
+ESR
+CRP
+HLA-B27
+X-ray of affected area of spine (if applicable)
+X-ray SI joints (if applicable)
+Optional:
+None
+CLINICAL PEARLS:
+Patients who develop back pain > 45 years of age are unlikely to have an axial spondyloarthropathy.
+Gout – Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Rheum
+Last updated in Epic:
+Last updated on Arista platform: SR created 4.20
+My Clinical Question (condition: gout): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order an eConsult for fibromyalgia. This should instead be referred.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+None
+Optional:
+At what age did the attacks of inflammatory arthritis begin?
+Which joints are affected?
+Does the patient have any of the following signs or symptoms:
+Recurrent acute attacks of joint pain? (# of flares in a year and/or # months)
+Radiographic erosions consistent with gout?
+Tophi?
+Sodium urate crystals in joint aspirate?
+Does the patient have a history of renal stones?
+Please describe current and past treatments. If pt experienced complications with conventional therapy for gout, please describe.
+Has the patient had a uric acid level > 6?
+DIAGNOSTICS:
+Required:
+Serum Uric Acid
+CBC w diff
+CMP
+X-ray of affected joint(s)
+Optional:
+None
+CLINICAL PEARLS:
+An elevated serum uric acid is not diagnostic of gout. Preferentially, diagnosis should be confirmed by joint aspiration and fluid examination for crystals.
+In patients with monoarthritis, especially in association with fever and immunocompromised, urgent evaluation may be required to rule out septic arthritis
+The goal for urate lowering therapy should be a uric acid level less than 6.0 mg/dl in non-tophaceous gout and less than 5.0 mg/dL in patients with tophaceous gout
+Consider excessive EtOH or stopping diuretics
+Joint Pain – Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Rheum
+Last updated in Epic:
+Last updated on Arista platform: SR created 4.20
+My Clinical Question (condition: joint pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order an eConsult for fibromyalgia. This should instead be referred.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+None
+Optional:
+Which joints are affected? Single or multiple?
+Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+Joint swelling/effusion/synovitis
+AM stiffness? Duration?
+Elevated ESR and/or CRP
+Inflammatory fluid (WBC > 2000) aspirated from a joint
+Radiographic erosions suggestive of inflammatory joint disease
+Please describe any current and past medications for this condition.
+DIAGNOSTICS:
+Required:
+Anti-CCP
+C-Reactive Protein (CRP)
+Erythrocyte Sedimentation Rate (ESR)
+Rheumatoid Factor (RF)
+Uric acid
+X-ray(s) of affected joints
+Optional:
+Anti-Nuclear Antibody (ANA)
+Basic Metabolic Panel (BMP)
+Complete Blood Count with Differential (CBC with diff.)
+Vitamin D Levels
+CLINICAL PEARLS:
+In patients with monoarthritis, especially in association with fever, urgent evaluation may be required to rule out septic arthritis
+Lupus – Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Rheum
+Last updated in Epic:
+Last updated on Arista platform: SR created 4.20; pending diagnostics
+My Clinical Question (condition: lupus): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order an eConsult for fibromyalgia. This should instead be referred.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+None
+Optional:
+Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+Characteristic rash for > 1 month
+Polyarticular small joint pain
+Oral or nasal ulcers
+Pleuritic chest pain
+Proteinuria
+Hematuria
+Previous diagnosis of SLE by a rheumatologist
+How and when diagnosis was made (attach prior rheumatologist’s notes if applicable)
+Organs involved (select all that apply)
+Joint
+Skin
+Renal
+CNS
+Serositis
+Hematology
+Please describe any current and past treatments for this condition?
+If the pt’s ANA > or = 1:160?
+Please include pathology reports (if applicable).
+DIAGNOSTICS:
+Required:
+Anti-Nuclear Antibody (ANA)
+Complement 3 (C3)
+Complement 4 (C4)
+C-reactive protein (CRP)
+Complete Blood Count with Differential (CBC with diff.)
+Complete Metabolic Panel (CMP)
+dsDNA Ab
+Erythrocyte Sedimentation Rate (ESR)
+Urinalysis with Microscopy
+Urine with protein/ creatinine
+Thyroid Stimulating Hormone (TSH)
+Optional:
+None
+Clinical Pearls
+None
+Osteoarthritis – Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Rheum
+Last updated in Epic:
+Last updated on Arista platform: SR created 4.19
+My Clinical Question (condition: osteoarthritis): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order an eConsult for fibromyalgia. This should instead be referred.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+None
+Optional:
+Which joint(s) is/are affected?
+Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+Joint pain exacerbated by extensive use
+Joint stiffness during rest
+Reduced range of motion
+Does the patient have radiographic evidence of osteoarthritis? (If yes, please describe which joints are involved.)
+Does the radiographic evidence of osteoarthritis correspond to the location of the patient's joint pain? If no, please explain.
+Please describe any current and past medications for osteoarthritis.
+Please describe any current and past interventions (steroid injections, physical therapy, weight loss) tried.
+Is the patient interested or opposed to joint replacement surgery?
+DIAGNOSTICS:
+Required:
+None
+Optional:
+X-ray(s) of affected joints
+CBC with diff
+CMP
+CLINICAL PEARLS:
+None
+Polymyalgia Rheumatica – Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Rheum
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR added 4.20; pending diagnostic
+My Clinical Question (condition: polymyalgia rheumatica): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order an eConsult for fibromyalgia. This should instead be referred.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Suspected or confirmed diagnosis
+Current or previous treatment modalities
+Presence of headaches, fever, vision changes, jaw claudication
+Optional:
+None
+DIAGNOSTICS:
+Required:
+ESR
+CRP
+CBC
+CMP
+CK
+Optional:
+RF and CCP Ab (if small joints, ie hands also affected)
+CLINICAL PEARLS:
+PMR typically requires treatment with moderate doses of prednisone (15-30mg) tapered slowly over the course of a year to prevent relapse
+A subset of patients with PMR can go on to develop giant cell arteritis
+A subset of patients with giant cell arteritis can go on to develop PMR
+If acute visual changes are present, please arrange for urgent ophthalmology evaluation. For suspected Giant Cell Arteritis consider starting steroid treatment and scheduling a temporal artery biopsy
+Rheumatoid Arthritis – Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Rheum
+Last updated in Epic:
+Last updated on Arista platform: SR created 4.19; pending diagnostics
+My Clinical Question (condition: rheumatoid arthritis): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order an eConsult for fibromyalgia. This should instead be referred.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Suspected or confirmed diagnosis?
+How and when diagnosis was made (attach prior rheumatologist’s notes if applicable)?
+Presence / location of joint swelling. Are small joints primarily affected? Pain for > 6 weeks?
+Current and previous treatment modalities?
+Optional:
+DIAGNOSTICS:
+Required:
+Rheumatoid Factor (RF)
+Anti-CCP Ab
+CBC w diff
+Erythrocyte Sedimentation Rate (ESR)
+CRP
+CMP
+Optional:
+Hand and foot x-rays
+Quantiferon
+Hepatitis B core antibody (Anti-HBc – total or IgG)
+Antibody to Hepatitis C Virus (Anti-HCV)
+Antibody to Hepatitis B Surface Antibody Antigen (Anti-HBsAb)
+Hepatitis B Surface Antigen (HBsAg)
+CLINICAL PEARLS:
+If POS RF and NEG Anti-CCP, check Hep C antibody.
+Assure reliable contraception if applicable
+Possible biologics? Screen TB and hepatitis serologies.
+Other – Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Rheum
+Last updated in Epic:
+Last updated on Arista platform: SR created 4.19
+My Clinical Question (condition: other): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order an eConsult for fibromyalgia. This should instead be referred.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Pertinent labs
+Pertinent medications
+Pertinent physical exam features
+CLINICAL PEARLS:
+None}
+CHECKLISTS FROM OTHERS INSTITUTIONS FOR REFERENCE – DO NOT EDIT THESE
+Acute phase reactant – Greenville template
+The objective signs of acute phase reactant include (Mark with “X”):
+{***} Markedly elevated ESR or CRP on more than one occasion
+{***} Other (please specify): {***}
+If my clinical question is deemed too complex for eConsult please:
+{ Route back to me and I will discuss with the patient    :TXT,1231254}
+{ Please schedule the patient for in-person consultation. @patientTitle @patientLastName understands that @patient sex(She/He) may receive a call to schedule an appointment with a specialist.   :TXT,1232131}
+My clinical question is:
+{***}
+The following studies are available or have been recently ordered in Epic:
+- CBC with diff, BUN, CR, LFTs, ESR, CRP, urinalysis with microscopy.
+The following information is highly appreciated.
+{  DEXA                                                                                  }
+{  Imaging report                                                                        }
+{  Pathology report                                                                      }
+{  Echo                                                                                  }
+{  PFTs                                                                                  }
+Arthralgia/Arthritis – Penn State template
+My clinical question is: _
+In your clinical question, or current note, please include information on:
+- Joints affected, single or multiple
+- Joint swelling/effusion/synovitis
+The most current assessment for this problem is included in my clinic note dated: _
+Tests recommended by rheumatology:
+- ESR or CRP
+- TSH
+- Lyme antibodies
+- Anti-CCP
+Other best practice recommendations:
+In patients with monoarthritis, especially in association with fever, urgent evaluation may be required to rule out septic arthritis
+Elevated CK – Dartmouth template
+Current or recent statin use (within past 6 months)
+__Yes
+__No
+Recent EMG
+__Yes
+__No
+If yes
+__date in scanned docs ***
+__N/A
+Any exercise within 72 hours of last CK?
+__Yes
+__No
+__Unknown
+Fibromyalgia/Chronic Widespread Pain – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Joint pain
+◦	Joint swelling
+◦	Rash
+◦	Alopecia
+◦	Oral ulcerations
+◦	Fever
+◦	Skin tightening or thickening
+◦	Dry eyes
+◦	Dry mouth
+•	Is the patient currently taking any medications for this condition? If yes, please describe.
+•	Any history of the following?
+◦	Raynaud's Phenomenon
+◦	Pericarditis
+◦	Seizures or Psychosis
+DIAGNOSTICS:
+Required:
+•	Serum Albumin
+•	Basic Metabolic Panel (BMP)
+•	C-Reactive Protein (CRP)
+•	Calcium (Ca)
+•	Complete Blood Count with Differential (CBC with diff.)
+•	Erythrocyte Sedimentation Rate (ESR)
+•	Free Thyroxine (Free T4)
+•	Liver Function Tests
+•	Total Protein
+•	Thyroid Stimulating Hormone (TSH)
+•	Urinalysis with Microscopy
+•	Vitamin D Levels
+Optional:
+•	Anti-Nuclear Antibody (ANA)
+•	Hemoglobin A1c (HbA1c)
+Giant cell arteritis (GCA) – Penn state template
+My clinical question is: _
+In your clinical question, or current note, please include information on:
+- Presence of headaches, fever, proximal muscle pain, jaw claudication
+- Visual changes
+- Current and previous treatment modalities
+The most current assessment for this problem is included in my clinic note dated: _
+Tests recommended by rheumatology:
+- ESR
+- CRP
+Other best practice recommendations:
+If acute visual changes are present, please arrange for urgent ophthalmology evaluation. For suspected GCA consider starting steroid treatment and scheduling a temporal artery biopsy
+Gout – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Recurrent acute attacks of joint pain
+◦	Radiographic erosions consistent with gout
+◦	Tophi
+◦	Sodium urate crystals in joint aspirate
+•	Has the patient experienced complications with conventional therapy for gout? (If yes, please describe.)
+•	Has the patient had a uric acid level > 6?
+•	Is the patient currently taking any medications for this condition? If yes, please describe.
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Uric Acid
+Inflammatory arthritis – Wake Forest template
+>> The patient MUST have one or more of the following:
++ Joint swelling for more than 1 month
++ Elevated ESR and/or CRP
++ Inflammatory fluid (WBC > 2000) aspirated from a joint
++ Radiographic erosions suggestive of inflammatory disease
+>> THE FOLLOWING ITEMS ARE NEEDED:
++ CBC with differential
++ ESR
++ CRP
++ ANA
++ RF
++ anti-CCP
++ BUN
++ Creatinine
++ Personal history of Psoriasis or Inflammatory Bowel Disease.
++ Include any family history of Rheumatoid arthritis or Lupus.
+>> IF CLINICALLY INDICATED, the following items may be helpful.
++ X-rays for the affected joints
++ Prior rheumatologist’s notes documenting diagnosis and previous therapies
++ DEXA
+>> Please ensure the medication list is up-to-date.
+===========================================================================
+Labs below are populated if available.
+===========================================================================
+<<<<CBC with differential>>>>
+@CORERESUFAST(WBC:1,HGB:1,HCT:1,PLT:1)@
+Etc...
+Inflammatory back pain – Arista/UCSF template
+Things to include in your clinical question should they apply:
+Date and type of imaging study if not listed below
+If h/o iritis, indicate location ophthalmology records
+Length of am stiffness, pain improved w/ activity?, pain at night?
+PMH uveitis, IBD or psoriasis
+pain onset < 40 yo?
+My clinical question is: {Please provide a specific clinical question.}
+Open text question.
+REQUIRED labs / tests / images:  test results available in the EMR: (list tests)
+SMARTLINK – CBC with diff
+SMARTLINK - CMP
+SMARTLINK – ESR
+SMARTLINK – CRP
+SMARTLINK – SI xray series
+SMARTLINK – 2 v LS spine
+Outside Results:
+Scanned to media: button
+In care everywhere: button
+Summarized here:  ***
+OPTIONAL labs / tests / images:  those available in the EMR visible to both PCP & specialist: (list tests)
+SMARTLINK – HLA B27
+SMARTLINK – Hep C Ab
+SMARTLINK – Hep B Surface Ag
+SMARTLINK – Hep B Surface Ab
+SMARTLINK – Hep B Core Ab
+SMARTLINK – Quantiferon
+The most current assessment of this problem can be found in the note dated @TD@.
+Joint pain – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Joint swelling
+◦	Elevated ESR and/or CRP
+◦	Inflammatory fluid (WBC > 2000) aspirated from a joint
+◦	Radiographic erosions suggestive of inflammatory joint disease
+•	Is the patient currently taking any medications for this condition? If yes, please describe.
+•	Which joints are painful?
+DIAGNOSTICS:
+Required:
+•	Anti-Nuclear Antibody (ANA)
+•	Anti-CCP
+•	Basic Metabolic Panel (BMP)
+•	C-Reactive Protein (CRP)
+•	Complete Blood Count with Differential (CBC with diff.)
+•	Erythrocyte Sedimentation Rate (ESR)
+•	Rheumatoid Factor (RF)
+•	Vitamin D Levels
+Joint X-ray interpretation – Dartmouth template
+Location of abnormal x-ray: ***
+Symptoms which led to order for x-ray: ***
+Lupus – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Characteristic rash for > 1 month
+◦	Polyarticular small joint pain
+◦	Oral or nasal ulcers
+◦	Pleuritic chest pain
+◦	Proteinuria
+◦	Hematuria
+◦	Previous diagnosis of SLE by a rheumatologist
+•	Is the patient currently taking any medications for this condition? If yes, please describe.
+•	Is the patient's ANA > or = to 1:160?
+DIAGNOSTICS:
+Required:
+•	Anti-Nuclear Antibody (ANA)
+•	Basic Metabolic Panel (BMP)
+•	Complement 3 (C3)
+•	Complement 4 (C4)
+•	Complete Blood Count with Differential (CBC with diff.)
+•	dsDNA Ab
+•	Erythrocyte Sedimentation Rate (ESR)
+•	Thyroid Stimulating Hormone (TSH)
+•	Urinalysis with Microscopy
+Osteoarthritis – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Joint pain exacerbated by extensive use
+◦	Joint stiffness during rest
+◦	Reduced range of motion
+•	Does the patient have radiographic evidence of osteoarthritis? (If yes, please describe which joints are involved.)
+•	Does the radiographic evidence of osteoarthritis correspond to the location of the patient's joint pain? If no, please explain.
+•	Is the patient currently taking any medication/treatment for osteoarthritis? (If yes, please describe.)
+DIAGNOSTICS:
+Optional:
+X-ray
+Polymyalgia rheumatica (PMR) – Penn State template
+My clinical question is: _
+In your clinical question, or current note, please include information on:
+- Presence of headaches, fever, proximal muscle pain, jaw claudication
+- Visual changes
+- Current and previous treatment modalities
+The most current assessment for this problem is included in my clinic note dated: _
+Tests recommended by rheumatology:
+- ESR
+- CRP
+Other best practice recommendations:
+If acute visual changes are present, please arrange for urgent ophthalmology evaluation. For suspected Giant Cell Arteritis consider starting steroid treatment and scheduling a temporal artery biopsy
+Positive ANA – Penn State template
+My clinical question is: _
+In your clinical question, or current note, please include information on:
+- ANA titer
+- Additional antibodies positive
+- Joint and/or skin manifestations
+The most current assessment for this problem is included in my clinic note dated: _
+Tests recommended by rheumatology:
+- Reflex ANA testing
+- ESR or CRP
+- CBC
+- BMP
+- Urinalysis
+Other best practice recommendations:
+An ANA titer of 1:40 is generally not considered significant
+Positive ANA would be most concerning in young women < 35 years old
+Psoriatic and other reactive arthritis – Colorado template
+Decision Support Prompts/Guidance:
+Things to include in your clinical question should they apply:
+Date and type of study if applicable & not listed under Optional
+Recent GI or GU infection?  Conjunctivitis?  Iritis?
+Rash or skin lesion/s?
+NOTE:   Recent development of Psoriasis?  Hepatitis C and HIV serologies
+My clinical question is: {Please provide a specific clinical question.}
+Open text question.
+REQUIRED labs / tests / images:  test results available in the EMR: (list tests)
+SMARTLINK – CBC with diff
+SMARTLINK - CMP
+SMARTLINK – ESR
+SMARTLINK – CRP
+Outside Results:
+Scanned to media: button
+In care everywhere: button
+Summarized here:  ***
+OPTIONAL labs / tests / images:  those available in the EMR visible to both PCP & specialist: (list tests)
+SMARTLINK – Hep C Ab
+SMARTLINK – Hep B Surface Ag
+SMARTLINK – Hep B Surface Ab
+SMARTLINK – Hep B Core Ab
+SMARTLINK - HIV
+SMARTLINK – Quantiferon
+SMARTLINK – 2 view Hands bilateral
+SMARTLINK – 2 view Feet bilateral
+SMARTLINK – STI screen
+SMARTLINK – UA w/ micro
+The most current assessment of this problem can be found in the note dated @TD@.
+Rheumatoid arthritis – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following history consistent with Rheumatoid Arthritis? (Please select all that apply.)
+◦	Elevated ESR
+◦	Elevated C-reactive protein
+◦	Positive rheumatoid factor
+◦	Positive anti-CCP
+◦	Radiographic erosions consistent with rheumatoid arthritis
+◦	Previous diagnosis of rheumatoid arthritis by a rheumatologist
+•	Does the patient's joint pain primarily affect the small joints?
+•	Has the patient experienced joint pain for > 6 weeks?
+•	Is the patient currently taking any medications for this condition? If yes, please describe.
+DIAGNOSTICS:
+Required:
+•	Anti-CCP
+•	Basic Metabolic Panel (BMP)
+•	C-Reactive Protein (CRP)
+•	Complete Blood Count with Differential (CBC with diff.)
+•	Erythrocyte Sedimentation Rate (ESR)
+•	Antibody to Hepatitis B Virus Core Antigen (Anti-HBc)
+•	Antibody to Hepatitis C Virus (Anti-HCV)
+•	Antibody to Hepatitis B Surface Antigen (Anti-HBs)
+•	Hepatitis B Surface Antigen (HBsAg)
+•	Liver Function Tests
+•	Rheumatoid Factor (RF)
+Serology interpretation – Dartmouth template
+Abnormal lab: ***
+Reason labs were ordered (signs/symptoms): ***
+RA-Sm Jt Symmetric Inflammatory Arthritis – Colorado template
+Decision Support Prompts/Guidance:
+Things to include in your clinical question should they apply:
+Presence / location joint swelling
+Date and type of imaging studies OR  will obtain AP & oblique bilateral hands & feet
+NOTE:  If POS RF and NEG Anti-CCP, check Hep C antibody.
+NOTE:  Assure reliable contraception if applicable
+NOTE:  Possible biologics?  Screen TB and hepatitis serologies.
+My clinical question is: {Please provide a specific clinical question.}
+Open text question.
+REQUIRED labs / tests / images:  test results available in the EMR: (list tests)
+SMARTLINK – Rheumatoid Factor
+SMARTLINK – Anti-CCP antibody
+SMARTLINK – CBC (date)
+SMARTLINK – CMP (date)
+Outside Results:
+Scanned to media: button
+In care everywhere: button
+Summarized here:  ***
+OPTIONAL labs / tests / images:  those available in the EMR visible to both PCP & specialist: (list tests)
+SMARTLINK – ESR
+SMARTLINK - CRP
+SMARTLINK – x-ray AP-Oblique bilateral hands (date)
+SMARTLINK – x-ray AP-Oblique bilateral feet (date)
+SMARTLINK – PPD
+SMARTLINK – Quantiferon
+SMARTLINK – Hepatitis C antibody
+SMARTLINK – HBsAg
+SMARTLINK – HBsAb
+SMARTLINK – HBcAb
+The most current assessment of this problem can be found in the note dated @TD@.
+Systemic illness – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have a strongly suspected or known diagnosis of a systemic autoimmune disease? If yes, please indicate the likely or known diagnosis.
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Vasculitis
+◦	Mouth ulcers
+◦	Genital ulcers
+◦	Uveitis
+◦	Lung granulomas
+◦	Myositis
+◦	Interstitial lung disease
+◦	Polyarthralgia
+◦	Fever of unknown origin
+◦	Rash
+◦	Renal disease
+◦	Proteinuria
+◦	Seizures
+◦	Pericarditis
+◦	Cytopenia
+DIAGNOSTICS:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	C-Reactive Protein (CRP)
+•	Complete Blood Count with Differential (CBC with diff.)
+•	Erythrocyte Sedimentation Rate (ESR)
+•	Liver Function Tests
+•	Urinalysis with Microscopy

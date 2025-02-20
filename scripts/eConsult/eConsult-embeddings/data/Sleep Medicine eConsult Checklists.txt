@@ -1,0 +1,88 @@
+Sleep Medicine eConsult Templates
+Diagnosis-specific templates for Stanford eConsults
+OSA
+Insomnia
+Parasomnias
+Restless Leg Syndrome
+Disrupted circadian rhythms
+Sleep disruptions in chronic diseases
+Other
+Diagnoses-specific templates used at other AMCs, but not appropriate for Stanford eConsult (do not include in Stanford eConsult order) - for reference
+Excessive Sleepiness
+OSA
+My Clinical Question (condition: OSA): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Date and location of most recent sleep study if not internal.
+Current treatment: CPAP, BiPAP, ASV, pressure settings and DME provider
+Changes in weight, medications, comorbid conditions including cardiopulmonary or neuro cognitive issues?
+Reason for consultation?
+Tests recommended by sleep medicine:
+None
+Clinical pearls:
+Please note that for patients with suspected/undiagnosed OSA without a prior diagnosis/sleep study, all patients need an in-person referral to Sleep Medicine at Stanford in order to obtain a sleep study for diagnosis, per department policy.}
+Insomnia
+My Clinical Question (condition: insomnia): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Previous evaluation and treatment (behavioral, medications, other)
+Trouble falling/staying asleep or early morning awakening
+Symptom duration, pattern, total sleep time, naps
+Symptom of overactive mind?
+Symptoms of anxiety and/or depression – if yes, treated?
+Daytime symptoms (including trouble with attention, concentration, memory issues, daytime sleepiness, errors at work, drowsy driving)
+Tests recommended by sleep medicine:
+None
+Clinical pearls:
+If patient has snoring or any risk factors for sleep apnea (e.g. older age, Male gender, obesity, craniofacial/upper airway abnormalities), must have sleep study prior to any eConsult or referral to Sleep Medicine for insomnia to rule this out this common cause.}
+Parasomnias
+My Clinical Question (condition: parasomnias): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Description of parasomnia
+Onset, frequency, duration (initial, middle or later part of the night)
+Is it secondary to dreams?
+Assessment of patient/family safety (e.g. worst episode and has the pt even hurt themselves or hurt others? Are their any weapons in the home? Has the pt engaged in any unexplained sexual, eating or driving behavior? Is there any pending legal action with regard to the parasomnia?)
+Medications that may cause parasomnias (e.g. zolpidem, zaleplon, eszopiclone)
+STOP Bang score
+Prior evaluation/treatment
+RLS or PLMD diagnosis
+Tests recommended by sleep medicine:
+None
+Clinical pearls:
+Parasomnias are in the differential diagnosis of seizures and psychiatric dissociative conditions. Have these been considered?}
+Restless Leg Syndrome
+My Clinical Question (condition: RLS): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Description of unpleasant sensations in the legs
+Urge/need to move legs? Only at rest? Relieved with movement?
+Associated leg movements during sleep
+History of renal disease, chronic pain, neuropathy, pregnancy
+Prior evaluations (neuro or sleep)
+Treatments attempted (if any)
+Tests recommended by sleep medicine:
+BMP
+TSH
+CBC (date)
+Iron
+TIBC
+Ferritin
+Clinical pearls:
+RLS can be exacerbated in the setting of occult blood loss. Has this been considered, especially in patients over 50 y/o?}
+Other
+My Clinical Question (condition: othe): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Nature of sleep problem
+Onset, duration, frequency
+Prior evaluations/treatments
+Tests recommended by sleep medicine:
+None
+Clinical Pearls
+If the patient reports waking feeling tired no matter how much sleep (quantity), then a sleep study to measure quality is often indicated. This requires an in-person referral (not eConsult) to Sleep Medicine.}

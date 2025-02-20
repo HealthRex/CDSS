@@ -1,0 +1,323 @@
+Pulmonology eConsult Templates
+Please make changes to templates in red, so IT knows what to change
+Yellow highlighted text is for Internal template only, not External
+See more templates from other AMCs in Box folder.
+Conditions not designated a template
+Abnormal Lab
+Mediastinal Lymphadenopathy
+Positive PPD
+Pulmonary Hypertension
+Stanford offered condition checklists
+Abnormal Imaging
+My Clinical Question (condition: abnormal imaging): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Abnormal imaging finding(s)
+Any prior imaging to compare? Please ask the patient if they have any prior imaging and, if its outside, try and obtain the images. Comparison is the most important factor.
+Associated symptoms or isolated imaging finding?
+Why was this imaging study ordered?
+Tests recommended by pulmonology:
+None
+Clinical pearls:
+None
+Abnormal PFT’s
+My Clinical Question (condition: abnormal PFT’s): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Indication for having PFT done and PFT abnormality
+Prior PFT results (if applicable)
+Current respiratory symptoms, including exertional capacity
+Prior chest imaging results (if applicable)
+Tests recommended by pulmonology:
+PFT’s
+Clinical pearls:
+Assess inhaler technique and compliance first if meds are ineffective
+Asthma
+My Clinical Question (condition: asthma): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Duration of symptoms
+Medications tried and level of control achieved
+Frequency of exacerbations
+Tests recommended by pulmonology:
+PFT’s
+CXR
+Clinical pearls:
+Assess inhaler technique and compliance first if meds are ineffective
+Chronic Cough
+My Clinical Question (condition: chronic cough): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Duration of cough
+Measures taken so far
+Presence or absence of GERD, post-nasal drip/sinusitis and wheezing
+Tests recommended by pulmonology:
+CXR
+PFT’s
+Clinical pearls:
+Consider discontinuing ACE inhibitor!
+Empiric treatment for common causes (trial 2-3 weeks):
+With reflux Sx, consider PPI
+With upper airway syndrome, antihistamine/decongestant
+With possible asthma, Albuterol
+At 6 weeks of cough, consider CXR and further workup
+COPD
+My Clinical Question (condition: COPD): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+GOLD Stage (FEV1)
+Any recent hospitalizations
+Medications tried
+Tests recommended by pulmonology:
+CXR
+PFT’s
+Clinical pearls:
+Choose the cheapest long-acting inhaler from any class – complete MMRC to determine appropriate meds
+Assess inhaler techniques if med appears ineffective. Consider spacer.
+Dyspnea/SOB
+Please do not submit an eConsult for dyspnea/shortness of breath. Please send a referral order instead.
+Pulmonary Nodule
+My Clinical Question (condition: pulmonary nodule): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Important comorbidities (i.e. Smoking status, recreational drug use)
+Known duration of nodule
+Any outside studies
+Tests recommended by pulmonology:
+REQUIRED TEST: CT chest (CT without contrast sufficient )
+Clinical pearls:
+PCP can follow nodules </= 4 mm as per Fleischner criteria and refer with growth
+Refer any nodule > 4 mm, multiple nodules, high degree of suspicion for malignancy, or high-risk comorbidities
+OSA
+My Clinical Question (condition: OSA): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Date and location of most recent sleep study if not internal.
+Current treatment: CPAP, BiPAP, ASV, pressure settings and DME provider
+Changes in weight, medications, comorbid conditions including cardiopulmonary or neuro cognitive issues?
+Reason for consultation?
+Tests recommended by sleep medicine:
+None
+Clinical pearls:
+Please note that for patients with suspected/undiagnosed OSA without a prior diagnosis/sleep study, all patients need an in-person referral to Sleep Medicine at Stanford in order to obtain a sleep study for diagnosis, per department policy.}
+Other
+My Clinical Question (condition: other): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Description of pertinent symptoms
+Pertinent physical exam features
+Pertinent labs and imaging findings
+Pertinent medications
+Clinical Pearls
+None}
+Dyspnea/SOB – Template removed
+My Clinical Question (dyspnea/SOB): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Duration and timing of symptoms
+Modifying factors
+Interventions tried so far
+Tests recommended by pulmonology:
+CXR
+PFT’s
+Echo
+CMP
+CBC
+BNP
+Clinical pearls:
+None
+Stanford offered condition checklists
+Asthma – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+Does the patient have evidence of aspirin sensitivity?
+Has the patient's asthma been resistant to routine controller medication in combination with beta agonist treatment?
+Please list the patient's asthma medication regimen.
+DIAGNOSTICS:
+Required:
+Pulmonary Function Tests
+Asthma – Wake Forest template
+**Note:  Pulmonology E-CONSULT for ASTHMA is most useful when the patient has symptoms that are refractory to routine controller (or beta-agonist treatment) or has evidence of aspirin sensitivity.
+>> Please consider the following:
++ For patients with previous PFTs, include relevant data in the clinical question.
++ For most patients, it is helpful to have PFTs (spirometry, lung volumes, DLCO) within the past 12 months.
++ If patients are refractory to routine therapy, a CBC with differential to examine eosinophil counts may be helpful.
++ Methacholine challenge tests may be useful to distinguish asthma from other diseases causing dyspnea.
+Chronic cough – Wake Forest template
+**NOTE: Pulmonology E-CONSULT for CHRONIC COUGH is most useful when esophageal reflux and post nasal drip have been assessed (and if present, empirically treated without effect) AND the patient is not on an ACE inhibitor.
+** For patients with chronic cough, opioid containing cough syrup(s) are not recommended for prolonged use and may confound appropriate diagnosis.
+** Note: ACE levels for presumptive diagnosis/evaluation for Sarcoidosis is not sensitive.
+>> Please consider the following:
++ For patients with previous PFTs, include relevant data in the clinical question.
++ For most patients, it is helpful to have some chest imaging (CXR or CT Chest), PFTs (spirometry, lung volumes, DLCO) and CBC with Diff.
++ Including detailed exposure history in the clinical question may aid in diagnosis/management.
++ Chemicals?
++ Indoor pets?
++ Hot tubs?
++ Hay?
+>> Please ensure the medication list is up-to-date.
+COPD – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of any of the following?
+◦	Alpha-1 antitrypsin deficiency
+◦	Cystic fibrosis
+◦	Occupational exposure to smoke inhalation
+◦	Bronchiectasis
+•	Does the patient have a history of frequent/recurrent pulmonary infections? If yes, how many in the past year?
+•	Is the patient a current or previous smoker? (If yes, please quantify.)
+•	Is the patient currently taking any medications for this condition? If yes, please describe.
+•	Is the patient dependent on supplemental oxygen? If yes, please describe the oxygen regimen.
+DIAGNOSTICS:
+Required:
+Pulmonary Function Tests
+COPD – Wake Forest template
+** IMPORTANT: Pulmonology E-CONSULT for COPD must include spirometry for this patient within the past 12 months.  Please also include historical medications that have been tried/failed AND number of exacerbations in the past 12 months in the clinical question.
+>> Please consider the following:
++ For patients with previous PFTs, include relevant data in the clinical question.
++ For most patients, it is helpful to have some chest imaging (CXR or CT Chest) within the past 12 months.
+>> Please ensure the medication list is up-to-date.
+Chronic cough – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+Does the patient have evidence of esophageal reflux? If yes, please describe how it is being treated.
+Does the patient have evidence of post nasal drip? If yes, please describe how it is being treated.
+Is the patient currently taking an ACE inhibitor?
+DIAGNOSTICS:
+Required:
+Complete Blood Count with Differential (CBC with diff.)
+Chest X-Ray (CXR)
+Dyspnea – Wake Forest template
+**IMPORTANT: Pulmonary E-CONSULT for DYSPNEA is most useful when full PFTs (spirometry, lung volumes, DLCO), CXR and CBC with Diff are available in the EHR in the past 12 months.
+** Note: ACE levels for presumptive diagnosis/evaluation for Sarcoidosis is not sensitive.
+>> Please consider the following:
++ Please include relevant labs, PFT and imaging data in the clinical question.
++ For some patients an Echocardiogram (examining EF, filling pattern and RVSP), if clinically appropriate, may be helpful.
++ A 6-minute walk test examining for episodes of desaturation and exercise limitations helps to elucidate functional status and impacts overall management.  6 minute walk tests can be ordered as part of the PFT test battery.
+>> Please ensure the medication list is up-to-date.
+Hypoxemia – Wake Forest template
+Insomnia – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+Does the patient have restless leg symptoms?
+Has the patient undergone a 3 month effort to improve sleep hygiene?
+Is the patient currently taking any sleep aid medication? If yes, please describe.
+DIAGNOSTICS:
+Required:
+Serum Ferritin (If the patient has restless leg symptoms)
+Interstitial Lung Disease or Restrictive Ventilatory Defect – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+Does the patient have a history of any of the following exposures?
+◦	Asbestos
+◦	Silica dust
+◦	Talc
+◦	Coal dust (or other metal mining dust)
+◦	Grain dust (farming)
+◦	Birds
+Does the patient have any autoimmune diseases? If yes, please describe.
+Is the patient currently taking any medications for this condition? If yes, please describe.
+Is the patient dependent on supplemental oxygen? If yes, please describe the oxygen regimen.
+DIAGNOSTICS:
+Optional:
+Pulmonary Function Tests
+Interstitial Lung Disease (ILD) or Restrictive Ventilatory Defect – Wake Forest template
+**IMPORTANT: Pulmonary E-CONSULT for RESTRICTIVE VENTILATORY DEFECT OR KNOWN INTERSTITIAL LUNG DISEASE (ILD) is most useful when high-resolution Chest CT imaging is available in the EHR in the past 6 months.
+** Note: ACE levels for presumptive diagnosis/evaluation for Sarcoidosis is not sensitive.
+>> Please consider the following:
++ Please include relevant labs, PFT, imaging, and PATHOLOGY data in the clinical question.
++ For most patients, it is helpful to have full PFTs (spirometry, lung volumes, DLCO) within the past 6 months.
++ Including detailed exposure history in the clinical question may aid in diagnosis/management.
++ Chemicals?
++ Indoor pets?
++ Hot tubs?
++ Hay?
++ For some patients an Echocardiogram (examining EF, filling pattern and RVSP), if clinically appropriate, may be helpful.
++ A 6-minute walk test examining for episodes of desaturation and exercise limitations helps to elucidate functional status and impacts overall management.  6 minute walk tests can be ordered as part of the PFT test battery.
+>> Please ensure the medication list is up-to-date.
+Pulmonary Nodule – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of any of the following conditions? (Please select all that apply.)
+◦	Malignancy
+◦	Tuberculosis
+◦	Pulmonary mycosis
+•	Does the patient have any occupational exposure risk factors for lung cancer?(If yes, please select all that apply.)
+◦	Asbestos
+◦	Radon
+◦	Nickel
+◦	Chromium
+◦	Vinyl chloride
+◦	Polycyclic hydrocarbons
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Cough
+◦	Hemoptysis
+◦	Shortness of breath
+•	Is the patient a current or previous smoker? (If yes, please quantify.)
+DIAGNOSTICS:
+Required:
+Chest Imaging Study
+Nodule – Wake Forest template
+**IMPORTANT: Pulmonary E-CONSULT cannot be completed unless smoking history and any prior malignancy are included in the clinical question.  It is extremely important that a CT Chest (low dose nodule protocol) has been performed for a meaningful response to your clinical question.
+** High resolution CT Chest is NOT necessary.
+>> Please consider the following:
++ Please include CXR or CT Chest/Lung relevant data in the clinical question.
+>> Please ensure the medication list is up-to-date.
+Shortness of breath – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Do any of the following activities exacerbate the patient's dyspnea?
+◦	Lying flat
+◦	Walking or other light exercise
+◦	Environmental exposure/allergens
+•	Does the patient have any cardiac conditions? If yes, please describe.
+•	For how long has the patient been experiencing dyspnea?
+•	Is the patient anemic?
+•	Is the patient currently taking any medications for this condition? If yes, please describe.
+•	Is the patient dependent on supplemental oxygen? If yes, please describe the oxygen regimen.
+DIAGNOSTICS:
+Required:
+•	Complete Blood Count (CBC)
+•	Chest X-Ray (CXR)
+•	Pulmonary Function Tests
+Sleep apnea – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Daytime fatigue
+◦	Morning headaches
+◦	Restless sleeping
+◦	Trouble concentrating
+◦	Enuresis
+◦	Falling asleep while driving
+•	Has the patient experienced recent weight gain?
+•	Has the patient had apneic events during sleep witnessed by partner?
+DIAGNOSTICS:
+Required:
+Thyroid Stimulating Hormone (TSH) (If patient has had recent weight gain)
+Optional:
+Complete Blood Count (CBC)
+Sleep Apnea Testing
+Snoring – Arista/UCSF template
+ASSESSMENTS:
+Optional:
+•	Has the patient attempted avoidance of alcohol 3 hours prior to bedtime?
+•	Has the patient attempted side sleeping?
+•	Has the patient undergone a 3 month trial of conservative management?
+•	If nasal congestion is present, has the patient tried a nasal steroid?
+◦	Yes, nasal congestion is present and nasal steroid HAS been attempted.
+◦	No, nasal congestion is present and nasal steroid HAS NOT been attempted.
+◦	Not applicable, the patient does not have nasal congestion.
+•	Is the patient overweight? If so, has the patient attempted weight loss?
+◦	The patient is overweight and has been unsuccessful with weight loss
+◦	The patient has lost weight and continues to have difficulty with snoring
+◦	The patient is not overweight

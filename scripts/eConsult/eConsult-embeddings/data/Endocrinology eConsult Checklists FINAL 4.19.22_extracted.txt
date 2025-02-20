@@ -1,0 +1,782 @@
+Endocrinology eConsult Templates (Internal and External)
+Please make changes to Stanford templates in red, so IT knows what to change
+Yellow highlighted text is for Internal template, not External.
+Green highlighted text is for External, not Internal.
+Blue highlighted text are questions for eConsultants.
+Contents
+Conditions not designated a template
+Calcium/bone
+Chronic Fatigue
+Discrepant Thyroid tests
+Dyslipidemia
+Hirsutism
+Hypoglycemia
+Hypogonadism
+Inability to lose weight
+Low testosterone
+Obesity/weight gain
+Possible Endo Hives, Hair loss, Flushing
+Oligo/Amenorrhea
+Polycystic Ovarian Syndrome
+Thyroid Cancer
+Stanford condition-specific templates – UPDATE AS NEEDED
+Adrenal Mass: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19; pending diagnostics
+My Clinical Question (condition: adrenal mass): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+ASSESSMENTS:
+Required:
+Does the patient have hypertension or hypokalemia?
+Is the patient Cushingoid?
+What anti-HTN medication(s) is the patient on (if any)?
+Optional:
+None
+DIAGNOSTICS:
+Required:
+Abdominal MRI or abdominal CT results (most recent and any past results for comparison)
+Basic Metabolic Panel (BMP) (If the patient has hypertension)
+DHEAS
+1 mg overnight dexamethasone suppression test (DST) (DST should NOT Be performed if concern for pheochromocytoma)
+24 Hour Urine Catecholamines
+24 Hour Urine Cortisol (If the patient is Cushingoid)
+24 Hour Urine Metanephrines (do we need both urine and serum?)
+Serum metanephrines (do we need both urine and serum or can it be either/or?)
+Urine Creatinine
+Optional:
+24-hour Urine Fractionated Metanephrines (If unenhanced CT attenuation > 10 HU – and low suspicion for pheochromocytoma)
+Plasma Fractionated Metanephrines (If unenhanced CT attenuation > 10 HU – and high  suspicion for pheochromocytoma)
+8 am Plasma Aldosterone (If the patient has hypertension or hypokalemia)
+Plasma Renin Activity (If the patient has hypertension or hypokalemia)
+24-hour Urinary Free Cortisol (if 1 mg overnight DST is abnormal >1.8)
+Serum ACTH (if 1 mg overnight DST is abnormal)
+DHEA-S (if 1mg overnight DST is abnormal)
+8 mg (high-dose) overnight DST (if 1 mg overnight DST is abnormal)
+Tests recommended by endocrinology:
+1 mg overnight dexamethasone suppression test (DST)
+Serum metanephrines
+AM  aldosterone concentration and plasma renin activity
+CMP}
+Adrenal Insufficiency: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19; pending diagnostics
+My Clinical Question (condition: adrenal insufficiency): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+•	Any prior glucocorticoid exposure (systemic, topical, inhaled)?
+Optional:
+Does the patient have any of the following predisposing factors?
+◦	Tuberculosis
+◦	AIDS
+◦	Metastatic Disease
+•	Does the patient have goiter?
+•	Does the patient have vitiligo?
+•	Has the patient experienced episodes of hypotension?
+•	Has the patient recently been withdrawn from long-term corticosteroid therapy?
+•	Is there any abnormal tanning of the skin?
+DIAGNOSTICS:
+Required:
+Any prior glucocorticoid exposure
+•	ACTH Stimulation Test (cortisol drawn 30-60 min after cosyntropin 250 mcg)
+•	8 am ACTH – baseline (before stimulation)
+8 am Cortisol – baseline (before stimulation)
+8 am (non fasting) ACTH, cortisol
+Optional:
+ACTH Stimulation test (cosyntropin stimulated cortisol - cortisol 30-60 min after Cosyntropin 250 mcg)
+Tests recommended by endocrinology:
+Any prior glucocorticoid exposure
+8 am (non fasting) ACTH, cortisol
+If available (not necessary) - cosyntropin stimulated cortisol (cortisol 30-60 min after cosyntropin 250 mcg)
+Diabetes mellitus: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19
+My Clinical Question (condition: diabetes mellitus): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Is the patient currently taking medication to treat diabetes? If yes, please describe.
+•	Is this a new diagnosis of diabetes mellitus? If not, when patient was diagnosed with diabetes?
+•	What type of diabetes mellitus does the patient have? (Type I or Type II)
+Insulin (including pump) or non-insulin dependent
+Optional:
+Diabetic complications (ex CKD, CHF, CAD)
+Glucose logs (if available)
+DIAGNOSTICS:
+Required:
+Hemoglobin A1c (HbA1c)
+Fasting Lipid Profile
+Fasting Glucose
+Liver Function Tests
+Basic Metabolic Panel
+Comprehensive Metabolic Panel (CMP)}
+Optional:
+GAD antibodies
+c-peptide level
+Hyperaldosteronism: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19
+My Clinical Question (condition: hyperaldosteronism): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Is the patient on any of these medications: mineralocorticoid receptor antagonists – spironolactone, eplerenone; ACE’s/ARB’s
+Optional:
+•	Does the patient have an adrenal mass and hypertension?
+•	Does the patient have evidence of spontaneous hypokalemia?
+•	Does the patient have resistant hypertension (requiring > or = 3 antihypertensives)?
+DIAGNOSTICS:
+Required:
+8 am Plasma Aldosterone
+8 am Plasma Renin Activity
+Comprehensive Metabolic Panel (CMP)
+Optional:
+None
+Hypercalcemia: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19; pending diagnostics
+My Clinical Question (condition: hypercalcemia): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+What is the duration of hypercalcemia?
+Does the patient take lithium? Thiazide diuretic? Calcium or vitamin D supplements? Any other OTC medications or supplements?
+Does the patient have a history of kidney stones, low bone density, fractures?
+Does the patient have a family history of calcium disorders, parathyroid issues, osteoporosis, fractures, endocrine tumors?
+Any known malignancy?
+Optional:
+None
+DIAGNOSTICS:
+Required:
+1,25-dihydroxyvitamin D
+25-hydroxyvitamin D
+Comprehensive Metabolic Panel (CMP)
+Serum calcium
+Intact Parathyroid Hormone (PTH)
+Phosphorus (P)
+TSH}
+Optional:
+1,25-dihydroxyvitamin D (if PTH is low)
+Parathyroid Hormone Related Peptide (PTHrP - if PTH is low)
+Serum Protein Electrophoresis (SPEP - if PTH is low)
+Urine Protein Electrophoresis (UPEP - if PTH is low)
+Serum Free Light Chains (if PTH is low)
+TSH (if PTH is low)
+Hyperparathyroidism: Stanford template
+My Clinical Question (condition: hyperparathyroidism): ***
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19; pending diagnostics
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Has the patient ever had hypercalcemia?
+How much calcium is the patient taking?
+How much vitamin D is the patient taking?
+How long has the PTH been elevated?
+Does the patient have a history of fractures, low bone density, kidney stones?
+Does the patient have any renal or gastrointestinal issues?
+Does the patient have weight loss or other signs of malabsorption?
+Has the patient ever had testing for celiac disease?
+Optional:
+None
+DIAGNOSTICS:
+Required:
+25-hydroxyvitamin D
+Comprehensive Metabolic Panel (CMP)
+Intact Parathyroid Hormone (PTH)
+Phosphorus (P)
+Optional:
+24-hour Urine Calcium and Creatinine (if 25 OH-vitamin D is normal)
+Hyperprolactinemia: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19; pending diagnostics
+My Clinical Question (condition: hyperprolactinemia): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Is the patient currently taking any medications that cause hyperprolactinemia (estrogen, antipsychotics, antidepressants, antiemetics, verapamil)?
+If female and pre-menopausal, does the patient have oligomenorrhea or amenorrhea?
+What are the patient’s current reproductive goals?
+Has the patient experienced headaches or visual symptoms?
+Does the patient have galactorrhea?
+Optional:
+None
+DIAGNOSTICS:
+Required:
+Free Thyroxine (Free T4)
+Thyroid Stimulating Hormone (TSH)
+Fasting Prolactin x2 (with repeat)
+Urine or Serum Pregnancy test
+Optional:
+Brain MRI – pituitary protocol
+Hyperthyroidism: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19; pending diagnostics
+My Clinical Question (condition: hyperthyroidism): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Does the patient have a history of any autoimmune disease?
+Presence of symptoms (palpitations, tremor, heat intolerance, diarrhea, ophthalmopathy etc.)
+Is the patient pregnant?
+Does the patient wish to conceive?
+Thyroid exam (enlarged, nodular)
+Optional:
+Medication history of:
+Immunotherapy for chemo (such as pembrolizumab)
+Amiodarone
+Supplements
+Thyroid medications
+DIAGNOSTICS:
+Required:
+Thyroid Stimulating Hormone (TSH)
+Free Thyroxine (Free T4)
+Total T3
+Thyroid stimulating immunoglobin (TSI)
+Optional:
+Free triiodothyronine (Free T3)
+Thyroid Binding Inhibitory Immunoglobulin (TBII) (If positive for proptosis, history of autoimmune disease, or goiter/thyromegaly without nodules)
+}
+Hypothyroidism: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19
+My Clinical Question (condition: hypothyroidism): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Is the patient symptomatic (fatigue, weight gain, constipation, cold intolerance, etc)?
+Is the patient pregnant?
+Is the patient trying to conceive?
+Please list thyroid medications (types, dosing).
+Optional:
+Has dose titration of thyroid medication been difficult in this patient?
+Does the patient have a medication history of:
+Immunotherapy for chemo (such as pembrolizumab)
+Amiodarone
+Supplements
+Thyroid medications
+Do you suspect central hypothyroidism?
+DIAGNOSTICS:
+Required:
+Thyroid Stimulating Hormone (TSH)
+Free Thyroxine (Free T4)
+Optional:
+Thyroid peroxidase antibody (TPO)
+Osteoporosis: Stanford template – new template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19
+My Clinical Question (condition: osteoporosis): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Has patient ever had a fracture? If yes, was it a fragility fracture (defined as a fracture that occurs with a fall from standing height or less trauma?)
+If female, is the patient pre- or post-menopausal?
+What are patient’s bone density results?
+Is there a family history of fracture, particularly hip fracture?
+Has the patient been treated with prednisone or other glucocorticoids?
+Has the patient had amenorrhea? Any history of growth or development delay?
+Does the patient have any renal or gastrointestinal issues?
+What is the patient’s treatment history with osteoporosis?
+Optional:
+Any history of organ transplant?
+Any intolerance or contraindications to oral bisphosphonates? (If yes, please describe)
+Has the patient had a fracture while taking an oral bisphosphonate?
+Is GFR < 35?
+DIAGNOSTICS:
+Required:
+Vitamin D Levels
+Comprehensive Metabolic Panel (CMP)
+DXA Scan
+Parathyroid Hormone (PTH)
+Phosphorus (P)
+Pituitary Mass: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19; pending diagnostics
+My Clinical Question (condition: pituitary mass): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Does the patient have headache?
+Does the patient have vision abnormalities? (If yes, please describe.)
+Optional:
+None
+DIAGNOSTICS:
+Required:
+Brain MRI - pituitary protocol (not just brain MRI)
+Prolactin
+IGF-1
+TSH
+Free T4
+LH
+FSH
+FSH, LH, morning testosterone for men
+8am non fasting ACTH
+8am non fasting Cortisol
+Optional:
+24 hour urine free cortisol is not necessary unless suspecting Cushing's; 1 mg DST would be another option if suspecting Cushing's}
+Thyroid Nodule: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19
+My Clinical Question (condition: thyroid nodule): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Does the patient have symptoms of hyper- or hypothyroidism? If yes, please list.
+Has the patient had any prior FNAs; if so, what were the results / when were they done
+Optional:
+Does the patient have a history of neck irradiation?
+Does the patient have dysphagia?
+Does the patient have dysphonia?
+DIAGNOSTICS:
+Required:
+•	Thyroid Ultrasound
+•	Thyroid Stimulating Hormone (TSH)
+Optional:
+•	Pathology Report (if prior FNAs)
+•	Thyroid Ultrasound
+}
+Vitamin D Deficiency: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19
+My Clinical Question (condition: vitamin d deficiency): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+How much calcium and vitamin D is the patient taking?
+Any history of stomach/intestinal surgeries?
+Any weight loss or other signs or malabsorption?  Any history of GI surgeries?
+Does the patient have a history of hypercalemia?
+Does the patient have a history of kidney stones?
+Has the patient been tested for celiac?
+Optional:
+Is the patient is menopausal?
+Does the patient have a history of osteoporosis/prior fractures or CKD?
+Please include any information on any malabsorption issues or intestinal surgeries.
+Does the patient have severe vitamin D deficiency (<10)?
+Does the patient have hypercalcemia?
+Has the patient had recurrent kidney stones?
+Does the patient have sarcoidosis or other granulomatous disease?
+DIAGNOSTICS:
+Required:
+25-hydroxyvitamin D
+Comprehensive Metabolic Panel (CMP)
+Intact Parathyroid Hormone (PTH)
+Phosphorus (P)
+Optional:
+24 hour urine calcium and creatinine
+Other: Stanford template
+TEMPLATE HISTORY
+Last updated in word doc: 4.18 by Endo
+Last updated in Epic: new template - need to ask IT to add template
+Last updated on Arista platform: SR uploaded 4.19
+My Clinical Question (condition: other): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+SPECIAL NOTE: Please do NOT order eConsult for adrenal fatigue, chronic fatigue, dry skin, flushing, hair loss, hormonal imbalance, and hyperhidrosis/sweating.
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Pertinent labs
+Pertinent medications
+Pertinent physical exam features}
+DIAGNOSTICS:
+None
+Templates from other institutions for reference – PLEASE DO NOT EDIT THESE
+Adrenal Mass: Arista template (do not edit)
+ASSESSMENTS:
+Optional:
+•	Does the patient have hypertension?
+•	Is the patient Cushingoid?
+Diagnostics:
+Required:
+•	24 Hour Urine Catecholamines
+•	24 Hour Urine Cortisol (If the patient is Cushingoid)
+•	24 Hour Urine Metanephrines
+•	8 am Plasma Aldosterone (If the patient has hypertension)
+•	Basic Metabolic Panel (BMP) (If the patient has hypertension)
+•	Plasma Renin Activity (If the patient has hypertension)
+•	Urine Creatinine
+Optional:
+•	Abdominal CT
+•	Abdominal MRI
+Adrenal Insufficiency: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have any of the following predisposing factors?
+◦	Tuberculosis
+◦	AIDS
+◦	Metastatic Disease
+•	Does the patient have goiter?
+•	Does the patient have vitiligo?
+•	Has the patient experienced episodes of hypotension?
+•	Has the patient recently been withdrawn from long-term corticosteroid therapy?
+•	Is there any abnormal tanning of the skin?
+Diagnostics:
+Required:
+•	ACTH Stimulation Test
+•	AM ACTH
+•	AM Cortisol
+Diabetes: Arista template (do not edit)
+Assessments:
+Optional:
+•	Is the patient currently taking medication to treat diabetes? If yes, please 			describe.
+•	Is this a new diagnosis of diabetes mellitus?
+•	What type of diabetes mellitus does the patient have?
+◦	Type I
+◦	Type II
+◦	Unknown
+Diagnostics:
+Required:
+•	Basic Metabolic Panel (BMP)
+•	Fasting Glucose
+•	Hemoglobin A1c (HbA1c)
+•	Lipid Panel
+•	Liver Function Tests
+Hirsutism: Arista template (do not edit)
+ASSESSMENTS:
+Optional:
+•	Has the patient had an unusual course of hirsutism, such as rapid course or progressive disease?
+◦	Rapid course
+◦	Progressive disease
+◦	Both
+◦	Neither
+•	Has the patient had at least a 2 fold increase in testosterone?
+DIAGNOSTICS:
+Required:
+•	Testosterone
+Optional:
+•	17OH progesterone
+•	DHEA-S
+Hyperaldosteronism: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have an adrenal mass and hypertension?
+•	Does the patient have evidence of spontaneous hypokalemia?
+•	Does the patient have resistant hypertension (requiring > or = 3 antihypertensives)?
+Diagnostics:
+Required:
+•	8 am Plasma Aldosterone
+•	8 am Plasma Renin Activity
+•	Basic Metabolic Panel (BMP)
+Hypercalcemia: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have a known malignancy?
+•	Does the patient have hyperparathyroidism?
+Does the patient take lithium?
+Does the patient take Calcium or vitamin D supplements?
+Does the patient take any other OTC medications or supplements?
+•	If the patient has been on a thiazide diuretic, has this medication been held for at least 2 weeks?
+◦	The patient has never been on a thiazide diuretic.
+◦	The patient was on a thiazide diuretic, but it has been held for > or = 2 weeks.
+◦	The patient was on a thiazide diuretic, and it has been held for < 2 weeks.
+◦	The patient is currently taking a thiazide diuretic.
+•	When was the patient's first documented elevated calcium?
+Diagnostics:
+Required:
+1,25-dihydroxyvitamin D
+25-hydroxyvitamin D
+CMP
+Serum calcium
+Intact Parathyroid Hormone (PTH)
+Phosphorus (P)
+TSH
+Hyperparathyroidism: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have hypercalcemia?
+•	Has the patient experienced kidney stones?
+•	What is the patient's vitamin D status?
+◦	Severe vitamin D deficiency (<10)
+◦	Vitamin D deficiency (not severe)
+◦	Normal vitamin D status
+Does the patient take vitamin D supplements?
+Diagnostics:
+Required:
+•	24 Hour Urine Calcium (If 25 OH-Vitamin D is normal)
+1,25-dihydroxyvitamin D
+25-hydroxyvitamin D
+•	Comprehensive Metabolic Panel (CMP)
+•	Serum calcium
+•	Liver Function Tests
+•	Intact Parathyroid Hormone (PTH)
+•	Phosphorus (P)
+Optional:
+Urine Calcium
+Hyperprolactinemia: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have galactorrhea?
+•	Does the patient have oligomenorrhea or amenorrhea?
+•	Has the patient experienced headaches?
+•	Has the patient experienced recent visual changes?
+•	Is the patient currently taking any of the following medications? (Please select all that apply.)
+◦	Risperdone
+◦	Haloperidol
+◦	Metoclopramide
+Diagnostics:
+Required:
+•	Free Thyroxine (Free T4)
+•	Urine or Serum Pregnancy Test (Must be female)
+•	Prolactin
+•	Thyroid Stimulating Hormone (TSH)
+Hyperthyroidism: Arista template (do not edit)
+Assessments:
+Optional:
+Does the patient have a history of any autoimmune disease? (If yes, please list.)
+•	Does the patient have any of the following exam findings?
+◦	Goiter/thyromegaly
+◦	Proptosis
+◦	Thyroid nodule(s)
+•	Is the patient symptomatic with respect to hyperthyroidism? (If yes, please describe.)
+Diagnostics:
+Required:
+•	Free triiodothyronine (Free T3)
+•	Free Thyroxine (Free T4)
+•	Thyroid Binding Inhibitory Immunoglobulin (TBII) (If positive for proptosis, history of autoimmune disease, or goiter/thyromegaly without nodules)
+•	Thyroid Stimulating Hormone (TSH)
+Hypoglycemia: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have diabetes mellitus?
+•	Is the patient on any medication that could lower blood glucose? (If yes, please describe.)
+•	What is the patient's lowest blood glucose (either fasting or random)?
+•	What is the patient's most recent blood glucose?
+Diagnostics:
+Optional:
+•	Blood Glucose
+Hypothyroidism: Arista template (do not edit)
+Assessments:
+Optional:
+•	Do you suspect central hypothyroidism?
+•	Has dose titration of thyroid medication been difficult in this patient?
+◦	Yes
+◦	No
+◦	Not applicable (the patient is not on thyroid medication)
+•	Is the patient pregnant (or does the patient plan to become pregnant)?
+◦	The patient is pregnant
+◦	The patient is not pregnant, but she plans to become pregnant
+◦	The patient is neither pregnant nor plans to become pregnant
+Diagnostics:
+Required:
+•	Free Thyroxine (Free T4)
+•	Thyroid Stimulating Hormone (TSH)
+Low testosterone: Arista template (do not edit)
+ASSESSMENTS:
+Optional:
+•	Has the patient had at least 2 low morning testosterone values?
+•	Is the patient experiencing any of the following symptoms?
+◦	Decreased beard growth rate
+◦	Decreased libido
+◦	Decreased sexual function
+◦	Decreased muscle strength
+◦	Decreased energy levels
+•	Is the patient taking any medications that could interrupt testicular function?
+◦	Spironolactone
+◦	Cyproterone
+◦	Marijuana
+◦	Heroin
+◦	Methadone
+◦	Unknown
+◦	Other (describe)
+•	Is the testicular/genital exam normal? (If no, please describe)
+DIAGNOSTICS:
+Required:
+•	Early AM Total Testosterone
+•	Free Thyroxine (Free T4) (If testosterone is low and LH/FSH is low or normal)
+•	Free Testosterone (If total testosterone is "borderline")
+•	FSH
+•	Iron Studies (If testosterone is low and LH/FSH is low or normal)
+•	LH
+•	Prolactin (If testosterone is low and LH/FSH is low or normal)
+•	Thyroid Stimulating Hormone (TSH) (If testosterone is low and LH/FSH is low or normal)
+Oligomenorrhea or Amenorrhea: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have an IUD?
+•	Does the patient have hirsutism?
+•	Does the patient take oral contraception? If so, please indicate which medication.
+•	Has the patient ever had a menstruation? If so, please indicate the typical interval between menses.
+•	How many pregnancies has the patient had?
+Diagnostics:
+Required:
+•	Estradiol
+•	Free Thyroxine (Free T4)
+•	FSH
+•	LH
+•	Urine or Serum Pregnancy Test
+•	Prolactin
+•	Testosterone (If the patient has hirsutism)
+•	Thyroid Stimulating Hormone (TSH)
+Osteoporosis: Arista template (do not edit)
+Assessments:
+Optional:
+•	Any history of organ transplant?
+•	Any intolerance or contraindications to oral bisphosphonates? (If yes, please describe)
+•	Has the patient had a fracture while taking an oral bisphosphonate?
+•	Is GFR < 35?
+◦	Yes
+◦	No
+◦	Unknown
+•	What is the patient's T score?
+Diagnostics:
+Required:
+•	Vitamin D Levels
+•	Serum Albumin
+•	Basic Metabolic Panel (BMP)
+•	Calcium (Ca)
+•	DEXA Scan
+•	Parathyroid Hormone (PTH)
+•	Phosphorus (P)
+Pituitary Mass: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have headache?
+•	Does the patient have vision abnormalities? (If yes, please describe)
+Diagnostics:
+Required:
+•	AM ACTH
+•	AM Cortisol
+•	Free Thyroxine (Free T4)
+•	Insulin Like Growth Factor (IGF1)
+•	Prolactin
+•	Thyroid Stimulating Hormone (TSH)
+Polycystic Ovarian Syndrome: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have hirsutism?
+•	Does the patient have oligomenorrhea or amenorrhea?
+•	What is the typical time interval between menses?
+Diagnostics:
+Required:
+•	Estradiol
+•	Fasting Glucose
+•	Free Thyroxine (Free T4)
+•	FSH
+•	LH
+•	Lipid Panel
+•	Prolactin
+•	Testosterone
+•	Thyroid Stimulating Hormone (TSH)
+Thyroid Cancer: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have signs or symptoms of hyperthyroidism or hypothyroidism?
+◦	Yes, hyperthyroidism signs and symptoms
+◦	Yes, hypothyroidism signs and symptoms
+◦	No
+•	Has the patient had a fine needle aspiration biopsy or thyroidectomy?
+◦	Yes, only fine needle aspiration biopsy
+◦	Yes, only thyroidectomy
+◦	Both fine needle aspiration biopsy and thyroidectomy
+◦	Neither
+Diagnostics:
+Required:
+•	Free Thyroxine (Free T4)
+•	Pathology Report (If the patient has had either fine needle aspiration biopsy or thyroidectomy)
+•	Thyroid Stimulating Hormone (TSH)
+Optional:
+•	Thyroid Ultrasound
+Thyroid Nodule: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have a history of neck irradiation?
+•	Does the patient have dysphagia?
+•	Does the patient have dysphonia?
+•	Does the patient have signs or symptoms of hyperthyroidism or hypothyroidism?
+◦	Yes, hyperthyroidism signs and symptoms
+◦	Yes, hypothyroidism signs and symptoms
+◦	No
+•	Is the nodule fixed or mobile?
+◦	Fixed
+◦	Mobile
+◦	Unsure
+Diagnostics:
+Required:
+•	Free Thyroxine (Free T4)
+•	Thyroid Stimulating Hormone (TSH)
+Optional:
+•	Pathology Report
+•	Thyroid Ultrasound
+Vitamin D Deficiency: Arista template (do not edit)
+Assessments:
+Optional:
+•	Does the patient have hypercalcemia?
+•	Does the patient have sarcoidosis or other granulomatous disease?
+◦	Yes, sarcoidosis
+◦	Yes, other granulomatous disease (describe)
+◦	No
+•	Does the patient have severe vitamin D deficiency (<10)?
+•	Has the patient had recurrent kidney stones?
+Diagnostics:
+Required:
+Vitamin D Levels
+Serum Albumin
+Basic Metabolic Panel (BMP)
+Calcium (Ca)
+Parathyroid Hormone (PTH)
+Phosphorus (P)

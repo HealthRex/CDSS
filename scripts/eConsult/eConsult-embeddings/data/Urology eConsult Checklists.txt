@@ -1,0 +1,181 @@
+Urology eConsult Templates
+Condition-specific templates
+Dysuria
+Ejaculatory dysfunction/Hematospermia
+Erectile Dysfunction (add “do not order econsult” template)
+Male infertility (add “do not order econsult” template)
+Microscopic Hematuria
+Nocturia
+Overactive Bladder
+Recurrent UTI
+Renal Cyst
+Scrotal Pain
+Void Trials/Catheter Questions
+Other
+Conditions not designated a template used at other AMC’s
+Benign Prostatic Hyperplasia
+Elevated PSA
+Testicular Lump/Mass/Nodule
+Renal Mass
+Incontinence
+Infertility
+Kidney Stones
+Urinary Retention
+UTI
+Vaginal Prolapse
+My Clinical Question (condition: dysuria): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Sexual history and risk factors
+Presence of other urinary and/or systemic symptoms
+Tests recommended by Urology:
+[For women with classic symptoms of cystitis, no additional testing is warranted]
+Urinalysis
+Urine culture
+GC/CT
+Clinical pearls:
+None}
+My Clinical Question (condition: Ejaculatory dysfunction/Hematospermia): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+A recent  prostate biopsy (within past six weeks)  or treatment (within past six weeks) for prostate cancer
+Symptoms of urethritis such as dysuria or urethral discharge
+History of GU malignancy
+Use of anticoagulants or antiplatelet agents
+Travel to, or either current or past residence in, an area endemic for schistosomiasis
+Tests recommended by Urology:
+Urinalysis
+[GC/CG – if urethritis or pyuria without bacteria]
+Clinical pearls:
+Hematospermia, while alarming to patients, is almost always a benign condition and will usually resolve spontaneously.
+Most commonly, prostate biopsy causes hematospermia in 80% of men, lasting 3-4 weeks on average.
+Persistent unexplained hematospermia (>1 month) should be referred to Urology.}
+Erectile dysfunction
+Please DO NOT submit this eConsult order for “Erectile dysfunction”. Please instead place a Urology referral order for patient to be seen in clinic.
+Male infertility
+Please DO NOT submit this eConsult order for “Male infertility”. Please instead place a Urology referral order for patient to be seen in clinic.
+My Clinical Question (condition: Microscopic Hematuria): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Risk factors for genitourinary malignancy or medical renal disease
+Use of anticoagulants or antiplatelet agents
+Tests recommended by Urology:
+BMP
+UA and micro
+Urine culture
+Clinical pearls:
+Please see recommended the algorithm and/or suggested guidelines for management here: https://www.auanet.org/guidelines/microhematuria
+All patients with gross (visible) or symptomatic microscopic (>3 RBCs per high powered field (HPF) confirmed on a good specimen) hematuria, in absence of a culture positive UTI, should be referred to Urology for evaluation.
+All patients with persistent microscopic hematuria with risk factors without clear cause, should be referred to Urology.
+Anticoagulated patients with hematuria by the above parameters, should also be referred for evaluation.
+Patients with signs of glomerular bleeding (casts, worsening edema, HTN, hypoalbuminemia) should be referred urgently to Nephrology.
+Patients with gross hematuria with blood clots or retention symptoms should be sent to the ER urgently.
+}
+My Clinical Question (condition: Nocturia): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Other urinary tract symptoms present?
+Duration, frequency and burden of symptoms
+Fluid intake patterns
+Medications
+Comorbid conditions (OSA, DM, CHF)
+Tests recommended by Urology:
+BMP
+Urinalysis
+[Urine culture – if UTI suspected]
+[PSA – men]
+Clinical pearls:
+All patients with hematuria or pelvic pain should be referred to Urology for evaluation.}
+My Clinical Question (Overactive Bladder): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Symptoms (incontinence present? Systemic symptoms?)
+Use of contributory medications
+Impact on quality of life
+Lab/clinical tests to-date
+Has the patient seen a specialist in the past?
+Tests recommended by Urology:
+UA and micro
+[Urine culture – if UTI or hematuria suggested]
+Clinical pearls:
+Please see recommended the algorithm and/or suggested guidelines for management here: https://www.auanet.org//guidelines/overactive-bladder-(oab)-guideline
+Medications are a common cause of overactive bladder and urinary incontinence
+Pelvic floor physical therapy is recommended first-line therapy for stress and mixed incontinence
+Bladder training and assessment/reduction of fluid intake is recommended for urge incontinence
+Treatment with medications (e.g. anti-muscarinics) is not recommended for women with stress incontinence alone
+}
+My Clinical Question (condition: Recurrent UTI): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Symptoms (Typical? Nonspecific? Chronic or recurrent?)
+Antibiotic usage
+Tests recommended by Urology:
+BMP
+UA and micro
+Urine culture
+Clinical pearls:
+Please see recommended the algorithm and/or suggested guidelines for management here: https://www.auanet.org//guidelines/recurrent-uti
+Post-coital antibiotic prophylaxis (Ciprofloxacin, Bactrim) is as effective as continuous antibiotic prophylaxis.
+Consider imaging with repeated episodes of pyelonephritis
+Do not treat asymptomatic bacteriuria (with or without indwelling catheter) with antibiotics. Males with UTI should be referred to Urology for evaluation.}
+}
+My Clinical Question (condition: Renal Cyst): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+How was the renal cyst diagnosed (imaging modality and reason)
+Imaging study results
+Presence of signs or symptoms
+Tests recommended by Urology:
+No additional imaging necessary if simple cyst
+If the lesion appears to be other than a simple cyst, rec CT w contrast
+Clinical Pearls
+Further evaluation of < 2 cm small, benign-appearing cysts (Bosniak category 1-2) is not required. Masses or Bosniak category 3-4 cysts should be referred to Urology –
+Large kidneys with multiple cysts consistent with PCKD should be referred to nephrology.
+With questionable ultrasound findings, consider calling radiology consult line to guide next step/imaging.}
+My Clinical Question (condition: Testicular Pain): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Nature and timing of the onset of pain, location, presence of lower urinary tract symptoms (eg, frequency, urgency, dysuria), constitutional symptoms (eg, fever, chills)
+Tests recommended by Urology:
+[UA, U Cx, GC/CT – if epididymitis suspected or lower urinary tract symptoms present]
+Clinical pearls:
+Suspicion of testicular torsion, acute epididymitis and Fournier’s gangrene (all associated with diffuse scrotal pain), warrants urgent medical evaluation or surgical management. Consider sending the patient to the ER.}
+My Clinical Question (condition: Void Trials/Catheter Questions): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Reason and duration of urinary catheter
+Reason for void trial
+Previous void trials
+What medications is the patient on
+Tests recommended by Urology:
+Urinalysis
+Urine culture
+Clinical pearls:
+Acute urinary retention (AUR) in men with BPH or presumed BPH is treated with urethral catheterization for bladder decompression. An alpha-1-adrenergic antagonist (eg, alfuzosin 10 mg daily) initiated at the time of initial catheterization. Ongoing combination treatment is generally necessary to prevent recurrence of AUR.
+In men with AUR due to BPH, removal of the catheter after a period of time ("trial without catheter" or TWOC) results in successful spontaneous micturition in up to 40 percent of patients, although recurrent AUR is common. We suggest a trial of catheter removal in one to two weeks. For patients who fail the initial TWOC, we advise a second trial of TWOC after an additional two weeks with the catheter.
+Men with BPH who fail a second TWOC may need surgical therapy. A urodynamic evaluation is advised prior to prostate surgery for patients who have experienced AUR.}
+Other
+My Clinical Question (condition: other): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Description of pertinent symptoms
+Pertinent physical exam findings
+Pertinent labs and imaging findings
+Pertinent medications
+Management or treatments tried, if applicable
+Clinical Pearls
+None}
+Add template:
+Male infertility
+Do not order eConsult
+Put in a referral

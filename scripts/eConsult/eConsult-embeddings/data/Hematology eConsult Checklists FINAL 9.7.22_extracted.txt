@@ -1,0 +1,760 @@
+Hematology eConsult Checklists
+See AAMC Hematology templates for more example checklists if needed.
+Stanford offered condition checklists
+Anemia – Stanford template
+To be displayed on a separate screen BEFORE they open the question:
+The following situations are generally inappropriate for an anemia eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]:
+Presence of uncommon cells on differential or slide review: (e.g. nucleated RBCs, blasts, atypical lymphocytes)
+Absolute reticulocyte count < 20K/µL and normal renal function
+Severe Hb < 7 g/dL of an acute or unexplained nature should be evaluated in the ER for transfusion.
+Unexplained adenopathy or constitutional/B symptoms (e.g. fever, weight loss, or drenching night sweats)
+Pancytopenia
+Hemolytic anemia
+I am requesting an eConsult from Hematology for anemia.  My most current assessment of this problem and management can be found in the note dated {Today/***}.
+My clinical question is: {SEE CLINICAL DECISION SUPPORT BELOW. The more specific you can be, the better response you will get from Hematology. If any of the required information, below, is not provided, there is a high likelihood the consult will have to be declined without this required information.}
+CLINICAL DECISION SUPPORT:
+The following clinical information is required:
++ Previous evaluation and treatment: ***
++ History of gastric bypass: {yes/no}
++ History of infusion/transfusion: {yes/no}
++ Prior EGD/Col: ***
+The following studies are required and available in Epic and/or CareEverywhere (n.b. if possible, please convey results in CareEverywhere in your question or note so our specialists don’t have to spend unnecessary time searching for them):
++ CBC with differential
++ Reticulocyte count
++ CMP
++ Ferritin
++ Transferrin saturation
++ Vitamin B12
+Clinical Pearls:
+I. If the MCV is < 80, please consider the following common scenarios:
+A) Iron deficiency anemia – A ferritin < 30 ng/mL is consistent with iron deficiency anemia in the absence of anemia. Take an extensive GI/GU bleeding history.
+B) Anemia of chronic inflammation – Generally a ferritin > 100 ng/mL with all other iron indices being low is seen. ESR and CRP may be of value.
+C) Copper deficiency – Copper may be low. This is often seen in patients with GI pathology (e.g. gastric bypass, or enteropathies). Excess zinc can also cause copper deficiency.
+D) Thalassemia syndromes – If a microcytic anemia is seen with normal iron studies, check a Hb Quant to screen for beta thalassemia. Alpha thalassemia PCR can also be sent. RBC count usually increased despite anemia. Please report the patient’s ethnic background.
+II. If the MCV is > 100:
+A) Liver disease - Does the patient have known liver disease? Consider getting an abdominal ultrasound and include the spleen.
+B) Alcohol – What are the patient’s drinking habits?
+C) Medications – Update the medication list to screen for medications associated with macrocytosis.
+D) B12 deficiency – Consider sending a methylmalonic acid to more effectively rule out B12 deficiency.
+E) Reticulocytosis – Reticulocytes can cause a mild macrocytosis. If bleeding is not evident, please send an LDH, haptoglobin, and DAT. Fractionate the bilirubin if increased.
+F) Hypothyroidism – Please send a TSH.
+G) MGUS – Send an SPIE and serum free light chains.
+H) MDS – Refer to hematology.
+III. If the MCV is normocytic, please consider the possibilities above or a mixed microcytic/macrocytic picture.
+A) Androgen deficiency – Older men with isolated normocytic anemia and negative workup above
+B) Anemia of renal disease – If there is presence of renal dysfunction (GFR < 60), please consider sending an EPO to assess if there is a relative EPO deficiency.
+Labs below are auto-populated if available (not possible from Care Everywhere):
+@LABSRCNT(CBCD:3)@
+@LABSRCNT(retic:3,reticab:3)@
+@LABSRCNT(NA:3,K:3,BUN:3,CR:3,eGFR:3,eGFRAA:3,GLU:3,ALB:3,AST:3,ALT:3,TBIL:3)@
+@LABSRCNT(ferritin:3)@
+@LABSRCNT(TRFSAT:3)@
+@LABSRCNT(b12:3)@
+Isolated Erythrocytosis – Stanford template
+To be displayed on a separate screen BEFORE they open the question:
+The following situations are generally inappropriate for isolated erythrocytosis eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]:
+Presence of uncommon cells on differential or slide review: (e.g. nucleated RBCs, blasts, atypical lymphocytes such as smudge cells or hairy cells)
+Unexplained adenopathy or constitutional/B symptoms (e.g. fever, weight loss, or drenching night sweats)
+Patients with active cardiovascular symptoms chest pain, stroke-like symptoms or vasomotor symptoms (headaches, visual changes, fatigue)
+HCT > 60
+Low serum EPO
+Venous or arterial thrombosis in setting of erythrocytosis
+I am requesting an eConsult from Hematology for erythrocytosis.  My most current assessment of this problem and management can be found in the note dated {Today/***}.
+My clinical question is: {SEE CLINICAL DECISION SUPPORT BELOW. The more specific you can be, the better response you will get from Hematology. If any of the required information, below, is not provided, there is a high likelihood the consult will have to be declined.}
+CLINICAL DECISION SUPPORT:
+The following clinical information is required:
++ SpO2 level: ***
++ Updated medications (e.g. testosterone, diuretics), including non-prescription supplements: ***
++ Smoking: ***
++ OSA: ***
+The following studies are required and available in Epic and/or Care Everywhere (n.b. if possible, please convey results in Care Everywhere in your question or note so our specialists don’t have to spend unnecessary time searching for them):
++ CBC with differential (on two consecutive checks at least one week apart with adequate hydration)
++ CMP
++ LDH
++ Ferritin
++ Transferrin saturation
++ Serum erythropoietin
++ Urinalysis
+CLINICAL PEARLS:
+I.  If the EPO level is suppressed or low, please send a JAK2 V617F and refer to hematology.
+II. Definition of erythrocytosis/polycythemia is Hb > 16.5 g/dL in men, > 16.0 in women, or HCT > 49 in men, > 48 in women.
+III. Please consider that smoking, testosterone, or other anabolic steroids can cause a secondary polycythemia. High altitudes, COPD and sleep apnea (uncommonly) can cause a secondary erythrocytosis. Optional testing includes testosterone and carboxyhemoglobin. Sleep study should be considered in the right clinical context.
+IV. Renal cysts, post-renal transplant, congenital heart disease, and renal artery stenosis can cause polycythemia.
+V. For patients already being considered for polycythemia or borderline polycythemia, but are iron deficient, do not replete iron without hematology input as this may be a masked polycythemia.
+VI. Patients with polycythemia vera may complain of fever, night sweats, weight loss, aquagenic pruritus, erythromelalgia, or early satiety. If early satiety is present, a splenic ultrasound can help build a case for a myeloproliferative neoplasm.
+Labs below are auto-populated if available:
+@LABSRCNT(CBCD:3)@
+@LABSRCNT(NA:3,K:3,BUN:3,CR:3,eGFR:3,eGFRAA:3,GLU:3,ALB:3,AST:3,ALT:3,TBIL:3)@
+@LABSRCNT(LDH:3)@
+@LABSRCNT(ferritin:3)@
+@LABSRCNT(TRFSAT:3)@
+@LABSRCNT(EPO:3)@
+@LABSRCNT(UA:3)@
+Elevated Ferritin – Stanford template
+To be displayed on a separate screen BEFORE they open the question:
+The following situations are generally inappropriate for elevated ferritin eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]:
+Ferritin > 500
+HFE homozygosity
+Chronic transfusion history
+Known hemoglobinopathy, thalassemia, MDS, or other state of ineffective erythropoiesis or hemolytic anemia
+Uncontrolled autoimmune disease or malignancy
+I am requesting an eConsult from Hematology for elevated ferritin.  My most current assessment of this problem and management can be found in the note dated {Today/***}.
+My clinical question is: {SEE CLINICAL DECISION SUPPORT BELOW. The more specific you can be, the better response you will get from Hematology. If any of the required information, below, is not provided, there is a high likelihood the consult will have to be declined.}
+CLINICAL DECISION SUPPORT:
+The following clinical information is required:
++ Family history of iron overload: { yes/no}
++ EtOH use: ***
++ Documented exam for hepatosplenomegaly (otherwise an abdominal US should be considered if there is no recent cross-sectional imaging in the past year): ***
+The following studies are required and available in Epic and/or Care Everywhere (n.b. if possible, please convey results in Care Everywhere in your question or note so our specialists don’t have to spend unnecessary time searching for them):
++ CBC with differential (on two consecutive checks at least one week apart)
++ CMP
++ Ferritin (fasting and at baseline health)
++ Transferrin saturation (fasting and at baseline health)
++ ESR
++ CRP
++ HFE mutation screening
++ Comprehensive hepatitis panel (SHC lab code LABVP5)
+CLINICAL PEARLS:
+I.  MRI T2* can help quantify whether or not the serum ferritin is associated with end-organ iron overload. This should be done if the ferritin > 1000 before referring to hematology. Hematology typically will only do phlebotomy if there is evidence of clinically significant iron overload, or if the patient has a true diagnosis of hereditary hemochromatosis.
+II. In general, the liver usually is the organ that incurs iron deposition first. Please be mindful of LFT abnormalities and other downstream end-organ complications such as arrhythmias, arthropathy, or endocrinopathies (T2DM, skin hyperpigmentation, impotence) that may make a hereditary hemochromatosis likely.
+III. In general, females may present later with iron overload due to menstrual bleeding. HFE is a very common gene mutation with up to 5-10% of Caucasian patients as a carrier. The vast majority of heterozygous HFE carriers will not need hematology care even for mildly elevated iron parameters. The overall clinical penetrance of hereditary hemochromatosis, even if inherited as homozygous, is low.
+IV. Assuming TSAT was done while fasting, a TSAT > 45% could support an iron-avid state.
+VI. If there is concern for a hemolytic anemia due to concomitant anemia or bilirubinemia, please send an LDH and haptoglobin. Ineffective erythropoietic states can lead to secondary iron overload.
+VII. Some cases of a moderately elevated ferritin are secondary to fatty liver or other known hepatic pathology.
+IV. The ferritin level is nonspecific as an acute phase reactant and if not reflecting overall iron body stores, further workup by primary care should attempt to identify an alternative reactive etiology (autoimmune, infectious, inflammatory, malignancy, etc.).
+Labs below are populated if available:
+@LABSRCNT(CBCD:3)@
+@LABSRCNT(NA:3,K:3,BUN:3,CR:3,eGFR:3,eGFRAA:3,GLU:3,ALB:3,AST:3,ALT:3,TBIL:3)@
+@LABSRCNT(ferritin:3)@
+@LABSRCNT(TRFSAT:3)@
+@LABSRCNT(ESR:3)@
+@LABSRCNT(CRP:3)@
+@LABSRCNT(HCHGA:3)@
+@LABSRCNT(VP3:3)@
+Isolated Leukocytosis – Stanford template
+To be displayed on a separate screen BEFORE they open the question:
+The following situations are generally inappropriate for isolated leukocytosis eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]:
+Presence of uncommon cells on differential or slide review: (e.g. nucleated RBCs, blasts, atypical lymphocytes such as smudge cells or hairy cells)
+Unexplained adenopathy or constitutional/B symptoms (e.g. fever, weight loss, or drenching night sweats)
+Accompanying cytopenias
+Prior chemotherapy or hematologic malignancy
+Post-transplant
+History of recurrent infections since childhood
+Basophilia, Absolute monocytosis (> 1000)
+I am requesting an eConsult from Hematology for leukocytosis.  My most current assessment of this problem and management can be found in the note dated {Today/***}.
+My clinical question is: {SEE CLINICAL DECISION SUPPORT BELOW. The more specific you can be, the better response you will get from Hematology. If any of the required information, below, is not provided, there is a high likelihood the consult will have to be declined.}
+CLINICAL DECISION SUPPORT:
+The following clinical information is required:
++ Documented exam for hepatosplenomegaly (otherwise an abdominal US should be considered if there is no recent cross-sectional imaging in the past year): ***
++ Updated medications (e.g. steroids, lithium), including non-prescription supplements: ***
++ Last weight/BMI: ***
++ Smoking: ***
++ Prior splenectomy: {yes/no}
+The following studies are required and available in Epic and/or Care Everywhere (n.b. if possible, please convey results in Care Everywhere in your question or note so our specialists don’t have to spend unnecessary time searching for them):
++ CBC with differential (on two consecutive checks at least one week apart)
++ CMP
++ LDH
++ ESR
++ CRP
+CLINICAL PEARLS:
+I.  If there is mainly a neutrophilia, that this is encountered often with a reactive process: acute or chronic infection, steroids, splenectomy, smoking. As a diagnosis of exclusion, we sometimes see a mild neutrophilic leukocytosis in patients with obesity.
+II. If there is a predominant lymphocytosis that remains persistent, then sending a peripheral flow cytometry to look for a monoclonal lymphocytosis is appropriate.
+III.  For complexity, we often evaluate hypereosinophilia (AEC > 1500) consults in clinic, but that can be seen in patients with asthma and drug reactions. Please screen for Strongyloides Ab.
+IV. If diarrhea is present, consider C. Diff testing if recently hospitalized.
+V. Please consider the possibility of asplenia in a patient with multiple cytoses, but if spleen is intact or enlarged, then testing for myeloproliferative disorders is more appropriate. This may include BCR/ABL screening.
+Labs below are populated if available:
+@LABSRCNT(CBCD:3)@
+@LABSRCNT(NA:3,K:3,BUN:3,CR:3,eGFR:3,eGFRAA:3,GLU:3,ALB:3,AST:3,ALT:3,TBIL:3)@
+@LABSRCNT(LDH:3)@
+@LABSRCNT(ESR:3)@
+@LABSRCNT(CRP:3)@
+Isolated Leukopenia – Stanford template
+To be displayed on a separate screen BEFORE they open the question:
+The following situations are generally inappropriate for isolated leukopenia eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]:
+Presence of uncommon cells on differential or slide review: (e.g. nucleated RBCs, blasts, atypical lymphocytes)
+ANC < 1000 on two consecutive checks or an ANC < 500 once
+Recurrent infections or oral ulcers
+Unexplained adenopathy or constitutional/B symptoms (e.g. fever, weight loss, or drenching night sweats)
+Pancytopenia
+Malignancy
+Post-transplant
+I am requesting an eConsult from Hematology for leukopenia.  My most current assessment of this problem and management can be found in the note dated {Today/***}.
+My clinical question is: {SEE CLINICAL DECISION SUPPORT BELOW. The more specific you can be, the better response you will get from Hematology. If any of the required information, below, is not provided, there is a high likelihood the consult will have to be declined.}
+CLINICAL DECISION SUPPORT:
+The following clinical information is required:
++ Patient nationality: ***
++ EtOH use: ***
++ Spleen and lymph node exam: ***
++ Updated medications, including non-prescription supplements: ***
++ Ultrasound spleen if no other cross-sectional imaging during documented leukopenia: ***
+The following studies are required and available in Epic and/or Care Everywhere (n.b. if possible, please convey results in Care Everywhere in your question or note so our specialists don’t have to spend unnecessary time searching for them):
++ CMP
++ LDH
++ Vitamin B12
++ HIV
++ Hepatitis C antibody
+CLINICAL PEARLS:
+I. A note about constitutional neutropenia (WBC > 2.5 K/mcL): Many individuals maintain consistently low WBC counts without evidence of increased susceptibility to infection or any other adverse effects. Please consider this diagnosis prior to consulting Hematology.
+II. Please screen for copper deficiency especially if there is a history of bariatric surgery or malabsorption
+III. Please send an ANA and rheumatoid factor if there is concern for autoimmune disease.
+IV. For most asymptomatic neutropenias in which the ANC > 1000 and there has been demonstrated stability over years, the patient can be monitored annually on CBC with differential without hematology referral.
+V. If the patient has a lymphopenia with an ALC between 500 and 1000, a quantitative immunoglobulin panel should be sent. We generally do not intervene for patients with asymptomatic lymphocytopenia without an associated illness.
+Labs below are populated if available:
+@LABSRCNT(CBCD:3)@
+@LABSRCNT(NA:3,K:3,BUN:3,CR:3,eGFR:3,eGFRAA:3,GLU:3,ALB:3,AST:3,ALT:3,TBIL:3)@
+@LABSRCNT(LDH:3)@
+@LABSRCNT(b12:3)@
+@LABSRCNT(HIVSC4GEN:3,HIVI:3)@
+@LABSRCNT(HEPCAB:3)@
+MGUS – Stanford template
+To be displayed on a separate screen BEFORE they open the question:
+The following situations are generally inappropriate for MGUS/paraproteinemia eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]:
+Unexplained anemia, cardiomyopathy, bone pain/fractures, hepatosplenomegaly, hypercalcemia, lytic lesions, macroglossia, nephrotic syndrome/proteinuria, renal insufficiency, neuropathy, purpura, B symptoms.
+M-protein > 1.5 g/dL
+Isolated FLC ratio > 8
+IgA MGUS
+I am requesting an eConsult from Hematology for MGUS/paraproteinemia.  My most current assessment of this problem and management can be found in the note dated {Today/***}.
+My clinical question is: {SEE CLINICAL DECISION SUPPORT BELOW. The more specific you can be, the better response you will get from Hematology. If any of the required information, below, is not provided, there is a high likelihood the consult will have to be declined.}
+CLINICAL DECISION SUPPORT:
+The following clinical information is required:
++ Documentation of a complete ROS and Physical Examination (see criteria inappropriate for e-consult): ***
+The following studies are required and available in Epic and/or CareEverywhere (n.b. if possible, please convey results in CareEverywhere in your question or note so our specialists don’t have to spend unnecessary time searching for them):
++ CBC with diff
++ CMP
++ SPIE
++ Serum free light chain ratio
++ UPEP (if SPIE or FLC ratio is abnormal)
++ Quantitative Immunoglobulins (if SPIE or FLC ratio is abnormal)
++ Random urine protein-creatinine ratio and microalbumin-creatinine ratio (if UPEP ordered)
+CLINICAL PEARLS:
+I. The sensitivity of screening for paraproteinemia is up to 98% combining the serum protein electrophoresis, serum protein immunofixation, and serum free light chain assay.
+II. Classical “CRAB criteria” are hypercalcemia, renal insufficiency, anemia, or bone lesions.
+III. If M-spike < 1.5 g/dL, IgG subtype, K/L ratio is normal, then they meet criteria for low-risk MGUS. Repeat labs in 6 months and if stable, then annual labwork for paraproteinemia is recommended for patients. Laboratory surveillance can be discontinued for patients with a life expectancy of <5 years and among those >80 years old. The risk of progression for MGUS is usually at most 1% per year to a symptomatic plasma cell proliferative disorder or lymphoproliferative disorder.
+Labs below are populated if available:
+@LABSRCNT(CBCD:3)@
+@LABSRCNT(NA:3,K:3,BUN:3,CR:3,eGFR:3,eGFRAA:3,GLU:3,ALB:3,AST:3,ALT:3,TBIL:3)@
+@LABSRCNT(SPIER:3,MSPIKE:3,SPIEI:3)@
+@LABSRCNT(FREEK:3, FREEL:3, FREEKL:3)@
+@LABSRCNT(UPIER:3.UPIEI:3)@
+@LABSRCNT(IGG:3,IGA:3,IGM:3,IGET:3)@
+@LABSRCNT(PROCR:3,UALBCR:3)@
+Thrombocytopenia – Stanford template
+To be displayed on a separate screen BEFORE they open the question:
+The following situations are generally inappropriate for thrombocytopenia eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]:
+Easy bruising/bleeding
+Thrombosis
+Presence of uncommon cells on differential or slide review: (e.g. nucleated RBCs, blasts, atypical lymphocytes)
+Platelets < 50K
+Received heparin therapy in last 3 months
+Unexplained adenopathy or constitutional/B symptoms (e.g. fever, weight loss, or drenching night sweats)
+Pancytopenia
+Concern for a MAHA/TMA (by accompanying hemolytic anemia or schistocytosis)
+Malignancy
+Post-transplant
+I am requesting an eConsult from Hematology for thrombocytopenia.  My most current assessment of this problem and management can be found in the note dated {Today/***}.
+My clinical question is: {SEE CLINICAL DECISION SUPPORT BELOW. The more specific you can be, the better response you will get from Hematology. If any of the required information, below, is not provided, there is a high likelihood the consult will have to be declined.}
+CLINICAL DECISION SUPPORT:
+The following clinical information is required:
++ EtOH use: ***
++ Known cirrhosis or splenomegaly: {yes/no}
++ Lymph node exam: ***
++ Recent transfusion: {yes/no}
++ Updated medication list, including non-prescription supplements: ***
++ Abdominal ultrasound of liver and spleen: ***
+The following studies are required and available in Epic and/or CareEverywhere (n.b. if possible, please convey results in CareEverywhere in your question or note so our specialists don’t have to spend unnecessary time searching for them):
++ CBC with diff
++ Repeat platelet count in citrated tube (if there is clumping)
++ CMP
++ Vitamin B12
++ HIV
++ Hepatitis C antibody
++ PT
++ PTT
++ Fibrinogen
++ LDH, haptoglobin, reticulocyte count (if there is anemia)
++ Pregnancy test (where appropriate)
+CLINICAL PEARLS:
+I. Asymptomatic, mild thrombocytopenia (100-150K/uL) stable for many years in an otherwise healthy patient can be consistent with ITP.
+II. For folks with concern of ITP, especially with reflux symptoms, please screen for H. pylori
+III. In patients with long-standing thrombocytopenia without a normal baseline, a family history should be taken to screen for hereditary thrombocytopenia.
+Labs below are populated if available:
+@LABSRCNT(CBCD:3)@
+@LABSRCNT(NA:3,K:3,BUN:3,CR:3,eGFR:3,eGFRAA:3,GLU:3,ALB:3,AST:3,ALT:3,TBIL:3)@
+@LABSRCNT(b12:3)@
+@LABSRCNT(HIVSC4GEN:3,HIVI:3)@
+@LABSRCNT(HEPCAB:3)@
+@LABSRCNT(PT:3)@
+@LABSRCNT(PTT:3)@
+@LABSRCNT(FIBRINOGEN:3)@
+@LABSRCNT(LDH:3)@
+@LABSRCNT(HAPTOGLOBIN:3)@
+@LABSRCNT(RETIC:3)@
+@LABSRCNT(XUPREG:3,XPREGTEST:3)@
+Thrombocytosis – Stanford template
+To be displayed on a separate screen BEFORE they open the question:
+The following situations are generally inappropriate for thrombocytosis eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]:
+Presence of uncommon cells on differential or slide review: (e.g. nucleated RBCs, blasts, atypical lymphocytes such as smudge cells or hairy cells)
+Unexplained adenopathy or constitutional/B symptoms (e.g. fever, weight loss, or drenching night sweats)
+Patients with active cardiovascular symptoms chest pain, stroke-like symptoms or vasomotor symptoms (headaches, visual changes, fatigue)
+Venous or arterial thrombosis in setting of thrombocytosis
+Platelet count > 1.0 million.
+I am requesting an eConsult from Hematology for thrombocytosis.  My most current assessment of this problem and management can be found in the note dated {Today/***}.
+My clinical question is: {SEE CLINICAL DECISION SUPPORT BELOW. The more specific you can be, the better response you will get from Hematology. If any of the required information, below, is not provided, there is a high likelihood the consult will have to be declined.}
+CLINICAL DECISION SUPPORT:
+The following clinical information is required:
++ Documented exam for hepatosplenomegaly (Otherwise an abdominal US should be considered if there is no recent cross-sectional imaging in the past year): ***
++ Recent surgery or medical illness: ***
+The following studies are required and available in Epic and/or CareEverywhere (n.b. if possible, please convey results in CareEverywhere in your question or note so our specialists don’t have to spend unnecessary time searching for them):
++ CBC with diff (on two consecutive checks at least one week apart)
++ CMP
++ Ferritin
++ Transferrin saturation
++ ESR
++ CRP
+CLINICAL PEARLS:
+I.  Patients with a suspected reactive thrombocytosis are not thought to be at greater risk for thrombosis due to the platelet count itself.
+II. Patients with extreme thrombocytosis, platelet count > 1.0 million (more often 1.5 million) can present with paradoxical bleeding from acquired von Willebrand disease.
+III. Patients with essential thrombocytosis may complain of fever, night sweats, weight loss, aquagenic pruritus, erythromelalgia, or early satiety. If early satiety is present, a splenic ultrasound can help build a case for a myeloproliferative neoplasm.
+IV. Asplenic state can lead to chronic thrombocytosis.
+V. The majority of thrombocytoses are reactive and efforts should be made to evaluate for inflammatory conditions (rheumatologic, infectious, malignancy) or to associate with recent hospitalizations/surgeries.
+VI. Iron deficiency is a common cause of reactive thrombocytosis.
+VII. If workup is negative, we may consider searching for an essential thrombocytosis by sending off mutations associated with MPN including JAK2 V617F, CALR, and MPL.
+Labs below are populated if available:
+@LABSRCNT(CBCD:3)@
+@LABSRCNT(NA:3,K:3,BUN:3,CR:3,eGFR:3,eGFRAA:3,GLU:3,ALB:3,AST:3,ALT:3,TBIL:3)@
+@LABSRCNT(ferritin:3)@
+@LABSRCNT(TRFSAT:3)@
+@LABSRCNT(ESR:3)@
+@LABSRCNT(CRP:3)@
+VTE/Thrombophilia – Stanford template
+To be displayed on a separate screen BEFORE they open the question:
+The following situations are generally inappropriate for VTE/Thrombophilia eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]:
+Recurrent VTE
+Cancer-associated thrombosis
+Pregnancy
+Autoimmune disease
+History of both arterial and venous thrombosis
+Presence of an IVC Filter
+I am requesting an eConsult from Hematology for VTE/Thrombophilia.  My most current assessment of this problem and management can be found in the note dated {Today/***}.
+My clinical question is: {SEE CLINICAL DECISION SUPPORT BELOW. The more specific you can be, the better response you will get from Hematology. If any of the required information, below, is not provided, there is a high likelihood the consult will have to be declined.}
+CLINICAL DECISION SUPPORT:
+The following clinical information is required:
++ Risk factors for VTE present (make sure to document all: family history, weight, prior VTE, lower extremity exam, updated medication list, age-appropriate cancer screening): ***
++ Imaging or radiology report of VTE: ***
+The following studies are required and available in Epic and/or Care Everywhere (n.b. if possible, please convey results in Care Everywhere in your question or note so our specialists don’t have to spend unnecessary time searching for them):
++ CBC with diff (on two consecutive checks at least one week apart)
++ CMP
++ Ferritin
+CLINICAL PEARLS:
+I. Therapy guideline:  https://depts.washington.edu/anticoag/home/
+- Superficial thrombophlebitis – prophylactic dose for 6 weeks if high-risk
+- Line-associated DVT – 3 months or until line out, whichever longer
+- Distal DVT – 3 months (unless anticoagulation-averse, asymptomatic, low-risk, then serial US)
+- Proximal DVT – 3-6 months at the minimum
+II. In most circumstances, we do not perform thrombophilia screening or specific management for patients > 45 years old.
+III. Avoid testing antithrombin, protein C, protein S during acute thrombosis or active anticoagulation.
+IV. Uncommon causes of hypercoagulability (especially if presenting with splanchnic vein thrombosis or cerebral venous sinus thrombosis) include JAK2 mutation and paroxysmal nocturnal hemoglobinuria.
+V. Consider screening for proteinuria for nephrotic syndrome.
+VI. Consider testing for antiphospholipid syndrome.
+VIII. We generally recommend that incidental PE or subsegmental PE be treated as a standard PE.
+IX. For provoked VTE due to a surgical risk factor, we recommend finite anticoagulation due to low risk of recurrence.
+X. Unprovoked VTE are generally treated indefinitely assuming the bleeding risk is low although should be discussed with hematology further.
+XI. The superficial femoral vein is a deep vein!
+Labs below are populated if available:
+@LABSRCNT(CBCD:3)@
+@LABSRCNT(NA:3,K:3,BUN:3,CR:3,eGFR:3,eGFRAA:3,GLU:3,ALB:3,AST:3,ALT:3,TBIL:3)@
+@LABSRCNT(ferritin:3)@
+Other
+My Clinical Question (condition: other): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+ASSESSMENTS:
+Required:
+Relevant details related to previous evaluation and treatment
+Pertinent physical exam features
+Pertinent labs
+Pertinent medications
+Optional:
+DIAGNOSTICS:
+Required:
+CBC, diff  at SHC
+Reticulocyte count
+Slide Save for Clinician at SHC
+LDH
+Ferritin
+Urinalysis
+Optional:
+Clinical Pearls
+Mild increases in any of the blood counts can generally be monitored, particularly if there are no associated symptoms. In such instances, a Hematology consult may not be necessary unless there is a progressive rise in the count or additional abnormalities on the CBC.
+Checklists from other institutions for reference
+Abnormal Labs – UCSF
+Assessments:
+Required:
+•	What is the abnormal lab results?
+•	What is the duration of the abnormality if known?
+•	Any association with infections or fevers including any current infections?
+•	Has there been a review medication list?
+•	Is there a family history?
+•	What is the patient’s ethnicity?
+•	Any recent travel?
+•	Is there a presence of active rheumatological conditions?
+•	Is there a history of excessive alcohol consumption?
+•	Any history of treatment with procedures, chemotherapy or radiation therapy?
+Diagnostics:
+Required:
+•	Comprehensive Metabolic Panel (CMP) (Include prior CMP results indicating last normal labs)
+•	Complete Blood Count with Differential (CBC with diff.) (Include prior CBC results including last normal labs)
+Abnormal bleeding – no example checklist
+Abnormal SPEP - AAMC
+See https://stanfordmedicine.box.com/s/n56wns1uzxbl3z455l0cio5xj06yw3y9
+Abnormal White Count - AAMC
+See https://stanfordmedicine.box.com/s/n56wns1uzxbl3z455l0cio5xj06yw3y9
+Anemia – UCSF
+Assessments:
+Optional:
+•	Are there any signs of active bleeding? If yes, please describe.
+•	Does the patient experience heavy menses?
+•	Does the patient have a history of any of the following? (Select all that apply.)
+◦	Renal Failure
+◦	Malignancy
+◦	GI Bleeding
+◦	Liver Disease
+◦	Malnutrition
+•	Does the patient take any blood thinners? If so, please list.
+•	Is the patient symptomatic with respect to anemia? If so, please indicate which symptoms the patient is experiencing.
+◦	Shortness of breath
+◦	Fatigue
+◦	Pale skin
+◦	Rapid heart rate
+◦	Exercise intolerance
+◦	Other (describe)
+•	Is there any family history of Amenia?
+•	What is the patients nationality?
+Diagnostics:
+Required:
+•	Vitamin B12
+•	Complete Blood Count with Differential (CBC with diff.)
+•	Creatinine
+•	Direct Coombs
+•	Serum Ferritin
+•	LDH
+•	Liver Function Tests
+•	Methylmalonic Acid (MMA) (If B12 is low)
+•	RBC Folate
+•	Reticulocyte Count
+Bleeding tendency – Penn state template
+See https://stanfordmedicine.box.com/s/0bn81fz547yuepu8fnl6cnljre9f5aqz
+Clinical bleeding – AAMC Enhanced referral template
+See AAMC – Hematology – Template – Packet – Final in Box
+Coagulopathy – UCSF
+Assessments:
+Optional:
+•	Does the patient experience heavy menses?
+•	Does the patient have a history of any of the following signs of easy bleeding?(Select all that apply.)
+◦	Easy bruising
+◦	Gum bleeding
+◦	Minor or major surgical procedures complicated by bleeding
+◦	Transfusion for bleeding
+•	Does the patient have a history of liver disease? If yes, please describe.
+•	Is there any family history of Coagulopathy?
+•	What is the patients nationality?
+Diagnostics:
+Required:
+•	Complete Blood Count (CBC)
+•	Creatinine
+•	Fibrinogen
+•	Prothrombin Time (PT/INR)
+•	Liver Function Tests
+•	Partial Thromboplastin Test (PTT)
+DVT/PE - AAMC
+See https://stanfordmedicine.box.com/s/n56wns1uzxbl3z455l0cio5xj06yw3y9
+Elevated cell counts – AAMC Enhanced referral template
+See AAMC – Hematology – Template – Packet – Final in Box
+Eosinophilia – UCSF
+Assessments:
+Required:
+•	Does the patient have any symptoms of allergies (i.e. rhinitis, eczema, rash, or asthma)?
+•	Any recent or active infection or symptoms of infection (i.e. diarrhea, cough, fevers)?
+•	Are there any known inflammatory or connective tissue disorders?
+•	Has there been any weight loss, night sweats, or lymphadenopathy?
+◦	Weight loss
+◦	Night sweats
+◦	Lymphadenopathy
+◦	None
+•	Any signs or symptoms of organ dysfunction (i.e. arrhythmias, orthopnea, dyspnea)?
+•	Has there been a review of medication list (please include)?
+•	Any recent travel history?
+Diagnostics:
+Required:
+•	Complete Blood Count with Differential (CBC with diff.) (Repeat CBC w Differential within 1-2 weeks if this is the first detection of eosinophilia. Include prior CBC results including last known normal eosinophil count if available.)
+•	Comprehensive Metabolic Panel (CMP)
+•	HIV (Screening)
+•	Peripheral Smear Review
+•	Serum ACTH and random cortisol levels
+•	Serum Strongyloides serologies
+•	Ova and Parasite Stool (O&P stool)
+•	Routine Cancer Screening (Age appropriate)
+Optional:
+Peripheral Blood FISH (or PCR) for FIPL1-PDGFRA, PDGFRB mutation, FGFR1 mutation, and PCM1-JAK2 (Order if the absolute eosinophil count is greater than 1500. These may be send out/specialty tests.)
+Clinical pearls:
+Eosinophilic conditions can infiltrate various organs. A mention of positives and negatives  in a review of symptoms will help guide the work up
+Erythrocytosis – no example checklist
+Hypercoagulability/anticoagulation – no example checklist
+Leukocytosis – UCSF
+Assessments:
+Required:
+•	Has there been recent steroid (glucocorticoid) administration?
+•	Any of the following signs/symptoms present?
+◦	Unexplained fevers
+◦	Unintentional weight loss
+◦	Night sweats
+◦	Hepatosplenomegaly
+◦	Lymphadenopathy
+◦	None of the above
+•	Any history of normal wbc count in the past?
+•	Duration of leukocytosis?
+•	Any recent infections or suspected infections?
+•	Does the patient show any of the following:
+◦	Bruising/Bleeding
+◦	Evidence of Thrombocytopenia
+◦	Evidence of Anemia
+◦	None of the above
+Optional:
+•	is there any family history of Leukocytosis?
+•	What is the patients nationality?
+Diagnostics:
+Required:
+•	Complete Blood Count with Differential (CBC with diff.)
+•	LDH
+•	Uric Acid
+•	Comprehensive Metabolic Panel (CMP)
+Optional:
+•	Peripheral blood smear (If possible)
+•	Chest X-Ray (CXR) (To asses for mediastinal mass If any concern for leukemia.)
+•	Erythrocyte Sedimentation Rate (ESR)
+•	C-Reactive Protein (CRP)
+Leukopenia – UCSF
+Assessments:
+Optional:
+•	Does the patient have a history of any of the following? Select all that apply and describe.
+◦	Malignancy
+◦	Chemotherapy
+◦	Radiation therapy
+◦	HIV/AIDS
+◦	Autoimmune disease
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Unintentional weight loss
+◦	Night sweats
+◦	Susceptibility to frequent or unusual infections
+◦	Easy bruising or bleeding
+•	Is there any family history of Leukopenia?
+•	What is the patients nationality?
+Diagnostics:
+Required:
+Complete Blood Count with Differential (CBC with diff.)
+LDH
+Liver Function Tests
+Peripheral Smear Review
+Reticulocyte Count
+Lymphopenia – AAMC Enhanced referral template
+See AAMC – Hematology – Template – Packet – Final in Box
+MGUS – UCSF
+Assessments:
+Optional:
+•	Does the patient have a history of any of the following conditions? (Please select all that apply.)
+◦	Malignancy
+◦	Blood clots
+◦	Fractures without significant mechanism
+•	Does the patient have numbness or tingling in hands or feet?
+•	Is there any family history of MGUS?
+•	What is the patients nationality?
+Diagnostics:
+Required:
+•	Serum Albumin
+•	Calcium (Ca)
+•	Complete Blood Count with Differential (CBC with diff.)
+•	Creatinine
+•	Serum Free Light Chains (sFLC)
+•	Serum Protein Electrophoresis (SPEP)
+•	Urine Protein Electrophoresis (UPEP)
+•	Serum Immunofixation (IFE)
+Optional:
+Bone Marrow Biopsy
+Monoclonal gammopathy or elevated light chains – AAMC
+See AAMC – Hematology – Template – Packet – Final in Box
+Neutropenia – UCSF
+Assessments:
+Required:
+•	What is the duration of neutropenia if known? (e.g. since childhood, recent)
+•	Any association with infections or fevers including any current infections?
+•	Is there a family history of neutropenia?
+•	What is the patient’s ethnicity?
+•	Is there a presence of active rheumatological conditions?
+•	Is there a history of excessive alcohol consumption?
+•	Any history of treatment with chemotherapy or radiation therapy?
+Optional:
+•	Has there been a review medication list?
+◦	Yes
+◦	No
+◦	No Medications
+Diagnostics:
+Required:
+•	Complete Blood Count with Differential (CBC with diff.) (Include prior CBC results including last normal absolute neutrophil count (ANC) if available)
+•	Peripheral Smear Review
+•	Comprehensive Metabolic Panel (CMP)
+Optional:
+•	Vitamin B12
+•	Folate
+•	Copper level
+•	Viral Hepatitis Serology
+•	Epstein-Barr virus (EBV) titers
+•	HIV
+•	Rapid Plasma Reagin Test (RPR)
+•	Treponema serologies
+•	Anti-Nuclear Antibody (ANA)
+Pancytopenia – AAMC
+See https://stanfordmedicine.box.com/s/n56wns1uzxbl3z455l0cio5xj06yw3y9
+Platelet disorder – UCSF
+Note: This outline is intended for qualitative platelet disorders and does not include the assessment for thrombocytopenia (quantitative). Typical patient cases are ones who present with easy bruising, procedural or traumatic bleeding complications or a family history of abnormal bleeding.
+Assessments:
+Required:
+•	Is there a history of bleeding or easy bruising, including heavy menstrual bleeding in women?
+•	Is there a site of bleeding?
+◦	Skin
+◦	Joints
+◦	Body Cavities
+◦	Other (please describe)
+◦	None
+•	Is there a family history of bleeding or easy bruising?
+•	Is there a history of prior surgeries and hemostatic outcomes?
+•	Any recent antiplatelets or anticoagulants use?
+•	Review of medication list that includes herbal use?
+•	Is there excessive alcohol consumption?
+Diagnostics:
+Required:
+•	Complete Blood Count with Differential (CBC with diff.)
+•	Comprehensive Metabolic Panel (CMP)
+•	Peripheral Smear Review
+•	Partial Thromboplastin Test (PTT)
+•	Prothrombin Time (PT/INR)
+•	Thyroid Stimulating Hormone (TSH)
+•	PFA-100 (Platelet Function Analyzer) (Platelet Function Screen) (Antiplatelets and certain herbals need to be held for 7 days prior to this test if able and obtain a platelet count at the time of this test)
+Polycythemia – UCSF
+Assessments:
+Required:
+•	Has there been weight loss, early satiety, sweats, pruritis?
+•	Has there been weight loss, early satiety, sweats, pruritis?
+•	Is there a history of smoking, testosterone or anabolic steroid supplementation, living in high altitudes, COPD, OSA?
+•	Is there a history of smoking, testosterone or anabolic steroid supplementation, living in high altitudes, COPD, OSA?
+•	History of thrombosis?
+•	Any complaints of headaches, visual changes, or fatigue?
+•	Is there a history of renal cysts, congenital heart disease, organ transplant, or renal artery stenosis?
+•	Was the patient dehydrated at the time of the blood draw? (i.e. diuretic use, diarrhea, etc.)
+•	Any report of “blood doping” behavior? (e.g. athletes)
+•	Any known fibroids or other tumors?
+◦	None
+◦	Renal Cell Carcinoma
+◦	Hepatocellular Carcinoma
+◦	Hemangioblastoma
+◦	Pheochromocytoma
+Diagnostics:
+Required:
+Peripheral Blood FISH (or PCR) for FIPL1-PDGFRA, PDGFRB mutation, FGFR1 mutation, and PCM1-JAK2 (Below-normal serum erythropoietin level (Primary Erythrocytosis))
+Optional:
+•	Total Testosterone (Normal or elevated serum erythropoietin level
+(Secondary Erythrocytosis))
+•	Free Testosterone (Normal or elevated serum erythropoietin level (Secondary Erythrocytosis))
+•	Arterial Blood Gas (ABG) (Normal or elevated serum erythropoietin level
+(Secondary Erythrocytosis))
+•	Serum Cobalt levels (Normal or elevated serum erythropoietin level
+(Secondary erythrocytosis))
+•	Serum Carboxyhemoglobin level (Normal or elevated serum erythropoietin level (Secondary Erythrocytosis))
+•	Abdominal ultrasound with renal artery dopplers (type in comments: screen for renal, liver, adrenal tumors and renal artery stenosis) (Normal or elevated serum erythropoietin level (Secondary Erythrocytosis))
+•	Screening for Obstructive Sleep Apnea (Normal or elevated serum erythropoietin level (Secondary Erythrocytosis))
+•	Polysomnography (If indicated by the Obstructive Sleep Apnea Screening)
+Thrombocytopenia – UCSF
+Assessments:
+Optional:
+•	Does the patient currently take any heparin products?
+•	Does the patient currently take any non-heparin anticoagulation medication?(If yes, please describe.)
+•	Does the patient have a history of autoimmune disease? (If yes, please describe.)
+•	Does the patient have any history of easy bleeding? (Select all that apply.)
+◦	Bleeding gums
+◦	Easy bruising
+◦	GI bleeding
+◦	History of bleeding complications with surgical procedures
+◦	Subconjunctival hemorrage
+◦	Epistaxis
+•	Is there any family history of Thrombocytopenia?
+•	What is the patients nationality?
+Diagnostics:
+Required:
+•	Abdominal Ultrasound
+•	Complete Blood Count with Differential (CBC with diff.)
+•	Fibrinogen
+•	Hepatitis B
+•	Hepatitis C
+•	Prothrombin Time (PT/INR)
+•	Peripheral Smear Review
+•	Platelets in Citrate Tube
+•	Partial Thromboplastin Test (PTT)
+Thrombocytosis – UCSF
+Please provide Infectious Disease and Rheumatologic Disease work up results if available.
+Assessments:
+Required:
+Does the patient have an active inflammatory condition (e.g. autoimmune, infection, malignancy) or recent surgery?
+•	If patient has any inflammatory conditions currently, are they?
+◦	Stable (controlled)?
+◦	Active (uncontrolled)?
+◦	Remitted?
+◦	Other
+•	Does the patient have signs, symptoms or evidence of iron deficiency?
+•	Does the patient report any of the following
+◦	Weight loss?
+◦	Early satiety?
+◦	Left upper quadrant pain or fullness?
+◦	All of the above?
+◦	None of the above
+•	Does the patient have palpable splenomegaly?
+•	When was the patient’s first diagnosis of thrombocytosis, and what is the trend (intermittent, increasing, decreasing)?
+•	Were there periods of normal platelet counts between episodes of thrombocytosis?
+•	What is the patient’s mean platelet volume?
+•	Does the patient have other cytopenias?
+•	Does the patient also have erythrocytosis and/or leukocytosis (including leukocyte subtypes e.g. eosinophilia, neutrophilia, lymphocytosis, monocytosis..etc)?
+•	Does the patient have a history of splenectomy?
+•	Does the patient have a history of receiving chemotherapy or radiation therapy, recent or remote?
+•	Is the patient up-to-date on age-appropriate cancer screening?
+•	Does the patient have a history of thrombosis (venous or arterial)?
+•	Does the patient report recurrent bleeding or easy bruisability?
+Diagnostics:
+Required:
+•	Complete Blood Count (CBC) (CBC trends if available)
+•	Erythrocyte Sedimentation Rate (ESR)
+•	C-Reactive Protein (CRP)
+•	Peripheral Smear Review (Assess platelets and features of myelodysplastic syndrome)
+Thrombophilia/Venous Thromboembolism (VTE) - UCSF
+Assessments:
+Optional:
+•	Does the patient have a history of any of the following? (Please select all that apply.)
+◦	Deep vein thrombosis
+◦	Pulmonary embolism
+◦	VTE despite therapeutic anticoagulation
+◦	IVC filter
+◦	Arterial thrombosis
+•	Does the patient have any of the following risk factors? (Select all that apply.)
+◦	Malignancy
+◦	Autoimmune disorder
+◦	Pregnancy
+◦	Tobacco use
+◦	Oral contraceptive or other hormone use
+•	Is there any family history of Thrombophilia/Venous Thromboembolism
+(VTE)?
+•	What is the patients nationality?
+Diagnostics:
+Optional:
+•	Complete Blood Count with Differential (CBC with diff.)
+•	Prothrombin Time (PT/INR)
+•	Partial Thromboplastin Test (PTT)
+Unexplained coagulation test result – AAMC
+See AAMC – Hematology – Template – Packet – Final in Box
