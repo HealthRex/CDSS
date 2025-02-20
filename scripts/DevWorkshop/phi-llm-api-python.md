@@ -2,7 +2,7 @@
 
 This guide demonstrates how to use Python to interact with various Large Language Model (LLM) APIs within the Stanford Healthcare environment. These APIs are configured to support HIPAA-compliant use of Protected Health Information (PHI).
 
-*Created by François Grolleau on 01/27/2025 (last update).*
+*Created by François Grolleau on 02/19/2025 (last update).*
 
 ## Prerequisites
 
@@ -66,6 +66,22 @@ print(response.text)
 ```python
 url = "https://apim.stanfordhealthcare.org/llama3370b/v1/chat/completions" 
 payload = json.dumps({"model": "Llama-3.3-70B-Instruct", "messages": [{"role": "user", "content": my_question}]})
+response = requests.request("POST", url, headers=headers, data=payload) 
+print(response.text)
+```
+
+## Microsoft Phi 3.5-mini Instruct API Call
+```python
+url = "https://apim.stanfordhealthcare.org/phi35mi/v1/chat/completions"
+payload = json.dumps({"messages": [{"role": "user", "content": my_question}], "max_tokens": 2048, "temperature": 0.8, "top_p": 0.1, "presence_penalty": 0, "frequency_penalty": 0, "model": "Phi-3.5-mini-instruct"})
+response = requests.request("POST", url, headers=headers, data=payload) 
+print(response.text)
+```
+
+## Deepseek-R1 API Call
+```python
+url = "https://apim.stanfordhealthcare.org/deepseekr1/v1/chat/completions"
+payload = json.dumps({"model": "deepseek-chat", "messages": [{"role": "user", "content": my_question}], "temperature": 0.8, "max_tokens": 4096, "top_p": 1, "stream": False})
 response = requests.request("POST", url, headers=headers, data=payload) 
 print(response.text)
 ```
