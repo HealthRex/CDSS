@@ -1,0 +1,523 @@
+ENT eConsult Templates
+Please make changes to Stanford templates in red, so IT knows what to change
+Other templates used at other AMC’s
+Chronic Sinusitis, Ear Infection or Recurrent Ear Infection, Ear Pain/Fullness, Mouth or Tongue Lesion, Nasal Obstruction, OSA, Pharyngitis, Swallowing, Tonsillar Hypertrophy
+Stanford condition-specific templates – UPDATE AS NEEDED
+Sinusitis
+My Clinical Question (condition: sinusitis): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Nasal stuffiness or congestion?  Nasal blockage or obstruction?  Which side is worse? Facial pain/pressure? Decreased smell? Mucopurulent nasal drainage?
+Are the symptoms occurring every day, all day, or they come and go?  Does patient feel normal between episodes?  Is the length of time of symptoms less than 1 month or more than 3 months?
+History of prior surgeries?  History of prior imaging?  History of prior trauma? History of allergy testing?
+Have saline sprays been tried?  Saline irrigations?  How frequently?  Change in symptoms?  Nasal steroid sprays?  Nasal steroid irrigations such as budesonide?  Antibiotics and if so which ones and for how long? Other medications?
+Tests recommended by ENT:
+None for acute symptoms (less than 1 month)
+For sinus symptoms that have lasted longer than 3 months, should obtain a non-contrast CT Sinus for objective confirmation.
+Clinical pearls:
+Consider migraine headache as common mimic of chronic sinusitis especially if main symptom is pain with lack of nasal symptoms
+Trial of saline irrigation twice a day for at least one month and nasal steroids for at least one month prior to referral}
+Tinnitus
+My Clinical Question (condition: tinnitus): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Tinnitus is any sound that the patient hears that can be heard by others (objective) vs only heard by patient(subjective)
+Which side?  Constant or comes and goes?  Pulsatile?  Does the pulsations correlate with patient’s heartbeat?  What makes the tinnitus worse or better?  Does it correlate with breathing?
+Associated hearing loss?
+Ototoxic medications?  Trauma?  Foreign body in ear?
+Drainage?  Ear pain?  Describe pain?  Vertigo (vertigo is an illusion of motion)?
+Hearing aids?
+Tests recommended by ENT:
+Audiogram
+Clinical pearls:
+If no hearing loss, consider referral to audiology alone
+For sudden sensorineural hearing loss, call ENT for urgent eval and consider high dose steroid burst (60 mg/day prednisone)}
+Other
+My Clinical Question (condition: other): ***
+My most current assessment of this problem can be found in the note dated {Today/***}.
+{INFORMATIONAL:PRESS F2 and DELETE KEY before signing
+In your clinical question, or current note, please include information on:
+Description of pertinent symptoms
+Pertinent physical exam findings
+Pertinent labs and imaging findings
+Pertinent medications
+Management or treatments tried, if applicable
+Clinical Pearls
+For sudden sensorineural hearing loss, call ENT for urgent eval and consider high dose steroid burst (60 mg/day prednisone)}
+Templates from other institutions for reference – PLEASE DO NOT EDIT THESE
+Audiogram review – UCSF template – do not edit
+ASSESSMENTS:
+Required:
+•	Does the patient have any of the following associated signs/symptoms?(Select all that apply.)
+◦	Vertigo
+◦	Facial weakness
+◦	History of trauma to the head/ear
+•	Does the patient have tinnitus in the ear(s) with hearing loss?
+•	Has the patient recently taken any of the following medications?
+◦	IV Aminoglycoside (describe)
+◦	Chemotherapeutic agent (describe)
+•	Was the hearing loss sudden or gradual?
+◦	Sudden
+◦	Gradual
+•	Which ear has hearing loss?
+◦	Right ear
+◦	Left ear
+◦	Both ears
+DIAGNOSTICS:
+Required:
+•	Audiogram (Audiogram to include * Air and bone conduction * Tympanometry
+*	Acoustic reflexes * Discriminate scores)
+Chronic nasal congestion – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Are the symptoms unilateral or bilateral (nares)?
+•	Do you suspect the patient's symptoms are allergic or non-allergic?
+•	Does the patient have a history of exposure to certain allergens or chemicals that trigger symptoms? (If yes, please describe.)
+•	Does the patient have any of the following signs or symptoms? (Check all that apply.)
+◦	Headache
+◦	Sinus pressure
+◦	Epistaxis
+◦	Visual changes
+•	Has the patient experienced a trial of nasal steroids and antihistamines? If yes, please describe response to treatment (successful/unsuccessful).
+DIAGNOSTICS:
+Optional:
+•	Allergy Testing
+•	CT Sinsuses
+•	Radioallergosorbent Test (RAST)
+•	Total Serum IgE
+Dizziness/vertigo – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Do vertigo symptoms come and go (intermittent), or are they constant?
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Nausea
+◦	Vomiting
+◦	Cough
+◦	Congestion
+◦	Sinus pressure
+◦	Hearing loss
+◦	Tinnitus
+◦	Neurologic deficits/abnormalities (please describe)
+•	Does the patient have the sensation of spinning?
+•	Has the patient had any of the following consultations? If yes, what was the outcome of the consultation?
+◦	Neurology
+◦	Vestibular Physical Therapy
+•	Is the patient able to trigger symptoms with certain head movements or body positioning? If yes, please describe.
+•	Is the vertigo acute or chronic? Please further describe the duration.
+◦	Acute
+◦	Chronic
+DIAGNOSTICS:
+Required:
+•	Audiogram (If the patient has tinnitus and/or hearing loss, or if vertigo is chronic)
+•	MRI Brain with and without Contrast (If vertigo is chronic)
+•	Videonystagmogram/Vestibular Evoked Myogenic Potentials (VNG/VEMP) (If vertigo is chronic)
+Optional:
+•	Balance Testing
+Dysphagia and/or Globus (lump in throat) – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Are symptoms exacerbated by swallowing solids or liquids?
+•	For how long has the patient been experiencing difficulty with swallowing?
+•	Has the patient experienced any of the following signs or symptoms? (Please check all that apply.)
+◦	Voice changes
+◦	Throat pain
+◦	GERD/reflux symptoms
+◦	Sensation of food lodging in chest
+◦	Nausea
+◦	Vomiting
+•	Has the patient received any treatment for this condition? If yes, please describe medications and doses.
+◦	Proton-pump inhibitor (PPI)
+◦	Other treatment
+•	Is the patient a current or previous smoker? (If yes, please quantify.)
+DIAGNOSTICS:
+Optional:
+•	Upper GI Series/Barium Swallow
+Ear pain – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have hearing loss in the painful ear(s)?
+•	Is ear pain worse with jaw movement?
+•	Is the ear pain constant or intermittent?
+◦	Constant
+◦	Intermittent
+•	Is the pain in the outer ear or middle ear?
+◦	Outer ear
+◦	Middle ear
+◦	Both
+◦	Unsure
+•	Is there swelling of the ear(s)?
+◦	Yes, outer ear is swollen
+◦	Yes, post-auricular area is swollen
+◦	No swelling of the ear(s)
+•	Which ear is painful?
+◦	Right
+◦	Left
+◦	Both
+DIAGNOSTICS:
+Required:
+•	CT Head/Temporal Bones (If the patient has post-auricular swelling)
+Optional:
+•	Audiogram
+•	Photo
+Epistaxis – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have hypertension?
+•	Has the patient tried any of the following interventions? (Select all that apply.)
+◦	Saline spray
+◦	Humidifier
+◦	Saline gel
+◦	Vaseline
+◦	Antibiotic ointment
+◦	Other (describe)
+•	Is the epistaxis sudden or chronic/recurrent?
+◦	Sudden
+◦	Chronic/recurrent
+•	Is the patient on anticoagulation?
+◦	Taking Coumadin/warfarin
+◦	Taking Aspirin
+◦	Taking other anticoagulation (describe)
+•	Which side of the nose is involved?
+◦	Right side
+◦	Left side
+◦	Both sides
+DIAGNOSTICS:
+Required:
+•	Prothrombin Time (PT/INR) (If the patient is on Coumadin/warfarin)
+Head or neck mass – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have a smoking history? If yes, please describe.
+•	For how long has the mass been present?
+•	Please describe the growth rate of the mass.
+•	Please describe your physical exam of the mass, including size, shape, consistency, mobility, tenderness, etc.
+•	Where is the mass located? Please select best option and describe further.
+◦	Salivary gland (parotid or submandibular gland)
+◦	Lateral neck
+◦	Thyroid gland
+◦	Face
+◦	Other
+DIAGNOSTICS:
+Optional:
+•	Imaging of Head or Neck Mass
+•	Pathology Report of Head or Neck Mass
+Hearing loss – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following associated signs/symptoms?(Select all that apply.)
+◦	Vertigo
+◦	Facial weakness
+◦	History of trauma to the head/ear
+•	Does the patient have tinnitus in the ear(s) with hearing loss?
+•	Has the patient recently taken any of the following medications?
+◦	IV Aminoglycoside (describe)
+◦	Chemotherapeutic agent (describe)
+•	Was the hearing loss sudden or gradual?
+◦	Sudden
+◦	Gradual
+•	Which ear has hearing loss?
+◦	Right ear
+◦	Left ear
+◦	Both ears
+DIAGNOSTICS:
+Required:
+•	Audiogram
+Optional:
+•	MRI Internal Auditory Canal (If suspect inner ear hearing loss)
+Hoarseness/dysphonia – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of vocal strain?
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Cough
+◦	Congestion
+◦	Sinus pressure
+◦	Difficulty swallowing
+◦	Difficulty breathing
+•	For how long has the patient experienced hoarseness/dysphonia? Please further specify the length of symptoms.
+◦	3 weeks or less of continuous symptoms
+◦	Greater than 3 weeks of continuous symptoms
+◦	Episodic/recurrent
+•	Has the patient recently started any inhalers?
+•	Has the patient tried any of the following supportive care measures? If yes, please indicate the outcome.
+◦	Voice rest
+◦	Hydration
+◦	Humidification
+•	Is the patient a current or previous smoker? (If yes, please quantify.)
+•	Is there a specific trigger or inciting event associated with the patient's hoarseness? (If yes, please describe.)
+DIAGNOSTICS:
+Required:
+•	Chest X-Ray (CXR) (If the patient has cough or difficulty breathing or swallowing)
+Hyposmia/Anosmia – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of head trauma?
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Headaches
+◦	Nasal Congestion
+◦	Sinus pressure
+◦	Nosebleeds
+◦	Purulent Rhinorrhea
+◦	Vision changes
+◦	Mental changes
+◦	Allergies (environmental/food)
+•	For how long has the patient experienced hyposmia/anosmia?
+◦	Less than 3 months
+◦	Greater than 3 months
+◦	Gradual onset
+◦	Sudden
+◦	Progressive
+•	Is there any response to nasal sprays/or steroids?
+DIAGNOSTICS:
+Optional:
+•	CT Sinsuses (CT sinus if persistent symptoms and unresponsive to conservative medical management)
+Nasal fracture – UCSF template – do not edit
+ASSESSMENTS:
+Required:
+•	Does the patient have a history of :
+◦	Penetrating nasal injury
+◦	Blunt force trauma nasal injury
+◦	Other (if other please explain in supporting details)
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Clear unilateral rhinorrhea
+◦	Visual disturbance
+◦	Persistent epistaxis
+◦	Difficulty breathing out of one or both sides
+◦	Loss of sense of smell
+◦	Persistent Headache
+◦	Loss of consciousness, neurocognitive changes
+◦	External cosmetic deformity
+•	When did the injury occur?
+◦	Within the last week
+◦	One-two weeks ago
+◦	Greater than 2 weeks ago
+•	Is the injury (please select one):
+◦	First time nasal fracture/trauma
+◦	Previous nasal fracture/trauma
+DIAGNOSTICS:
+Required:
+•	X-ray facial bones
+Optional:
+•	CT Facial Bones (preferred diagnostic)
+Neck mass – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following symptoms or history? (Please select all that apply.)
+◦	Voice changes
+◦	Swallowing problems
+◦	Cough or other upper respiratory infection symptoms
+◦	Tobacco use
+◦	Heavy alcohol use
+◦	Weight loss
+◦	Fever
+◦	Chills
+◦	Night sweats
+•	For how long has the patient had the neck mass?
+•	Has the neck mass been changing in size?
+◦	Yes, growing
+◦	Yes, shrinking
+◦	No, it has stayed the same
+◦	Unsure
+•	Is the neck mass lateral or anterior?
+◦	Lateral
+◦	Anterior
+•	Is the neck mass painful?
+DIAGNOSTICS:
+Required:
+•	CT Neck (If checks box for ANY of the symptoms or history items in the multiple select question, AND mass is LATERAL, then must have this study)
+•	Neck Ultrasound (If neck mass is ANTERIOR)
+Optional:
+•	Cat Scratch Titer
+•	Complete Blood Count with Differential (CBC with diff.)
+•	Free Thyroxine (Free T4) (If neck mass is ANTERIOR)
+•	PPD
+•	Thyroid Stimulating Hormone (TSH) (If neck mass is ANTERIOR)
+Oral cavity/Oropharynx lesion – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have a smoking history? If yes, please describe.
+•	For how long has the mass been present?
+•	Please describe the growth rate of the mass.
+•	Please describe your physical exam of the mass, including size, shape, consistency, mobility, tenderness, etc.
+•	Where is the mass located? Please select best option and describe further.
+◦	Tongue
+◦	Floor of mouth
+◦	Gingiva
+◦	Buccal mucosa
+◦	Tonsil
+◦	Hard palate
+◦	Soft palate
+◦	Other
+DIAGNOSTICS:
+Optional:
+•	Imaging of Mass
+•	Pathology Report of Mass
+Otitis media – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Fever
+◦	Ear pain (in the affected ear)
+◦	Congestion
+◦	Cough
+◦	Sinus pressure
+◦	Hearing loss (in the affected ear)
+◦	Post-auricular swelling
+•	Has the patient had multiple recurrent episodes of otitis media? (If yes, please indicate how many episodes.)
+•	Has the patient had persistent/prolonged course of otitis media? (If yes, please indicate how many days the current episode has lasted.)
+•	Which ear is affected?
+◦	Right
+◦	Left
+◦	Both
+DIAGNOSTICS:
+Required:
+•	CT Head/Temporal Bones (If patient has post-auricular swelling)
+Optional:
+•	Audiogram
+Recurrent tonsillitis – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following signs or symptoms:
+◦	Tonsil debris
+◦	Halitosis
+◦	Trismus
+◦	History of tonsil abscess
+•	How many years has the patient been experiencing recurrent tonsillitis?
+•	Has the patient been treated for recurrent tonsillitis?
+•	How many episodes of tonsillitis has the patient had per year?
+•	Is the recurrent tonsillitis in this patient typically due to streptococcal infection?
+•	Is the tonsillitis typically bilateral or unilateral?
+◦	Bilateral
+◦	Unilateral
+◦	Varies
+◦	Unsure
+•	Does the patient have any history of trismus?
+DIAGNOSTICS:
+Required:
+•	Mono Spot
+•	Throat Culture
+Optional:
+•	CT Neck
+Rhinitis – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of sinus infections?
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Allergies (environmental/food)
+◦	Environmental irritants
+◦	Headaches
+◦	Nasal Congestion
+◦	Sinus pressure
+◦	Nosebleeds
+◦	Nasal crusting
+◦	Purulent Rhinorrhea
+◦	Vision changes
+◦	Mental changes
+◦	Loss of smell
+◦	Nasal decongestant overuse
+•	How long has the patient experienced rhinitis (runny nose)?
+◦	Less than 3 months
+◦	Greater than 3 months
+◦	Gradual onset
+◦	Sudden
+◦	Progressive
+•	Is there any response to nasal sprays/or steroids?
+DIAGNOSTICS:
+Optional:
+•	CT Sinsuses (CT sinus if persistent symptoms and unresponsive to conservative medical management)
+•	Allergy Testing
+Sinusitis – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of failing to respond to appropriate treatment for sinusitis?
+•	Does the patient have any of the following signs of complications?
+◦	Orbital edema
+◦	Severe headache
+◦	Visual disturbance
+◦	Persistent high fever
+◦	Altered mental status
+◦	Meningeal signs
+•	Does the patient have any of the following signs or symptoms?
+◦	Purulent nasal drainage
+◦	Nasal obstruction
+◦	Facial pain/pressure
+•	Has the patient had 2 or more episodes per year of sinusitis? If yes, please describe frequency.
+•	Is the patient currently being treated with any of the following? If yes, please describe further.
+◦	NSAIDs
+◦	Acetaminophen
+◦	Saline irrigation
+◦	Intranasal glucocorticoids
+◦	Antibiotics
+◦	Oral antihistamines
+•	What is the duration of the patient's symptoms? Please describe further.
+◦	Less than 10 days
+◦	10 days to 4 weeks
+◦	4 weeks to 12 weeks
+◦	Greater than 12 weeks
+DIAGNOSTICS:
+Optional:
+•	Imaging of Sinuses
+Sleep apnea – UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Daytime fatigue
+◦	Morning headaches
+◦	Restless sleeping
+◦	Trouble concentrating
+◦	Enuresis
+◦	Falling asleep while driving
+•	Has the patient experienced recent weight gain?
+•	Has the patient had apneic events during sleep witnessed by partner?
+DIAGNOSTICS:
+Required:
+•	Sleep Apnea Testing (If the patient has witnessed apneic events.)
+•	Thyroid Stimulating Hormone (TSH) (If patient has experienced recent weight gain)
+Optional:
+•	Complete Blood Count (CBC)
+Sore throat– UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have a history of strep throat in the past?
+•	Does the patient have any of the following signs or symptoms? (Please select all that apply.)
+◦	Halitosis
+◦	Difficulty swallowing
+◦	Difficulty breathing
+◦	Nasal congestion
+◦	Unilateral throat pain
+◦	unilateral ear pain
+◦	GERD
+◦	Hoarseness
+◦	Hemoptysis
+◦	History of smoking
+◦	History of ETOH abuse
+◦	Enlarged cervical lymph nodes
+•	For how long has the patient experienced hoarseness/dysphonia?
+◦	3 weeks or less of continuous symptoms
+◦	Greater than 3 weeks of continuous symptoms
+◦	Episodic/recurrent
+DIAGNOSTICS:
+Optional:
+•	CT Neck (CT neck with contrast can be ordered if neck mass/abscess suspected.)
+Tinnitus– UCSF template – do not edit
+ASSESSMENTS:
+Optional:
+•	Does the patient have any of the following conditions that can worsen tinnitus?
+◦	Depression
+◦	Anxiety
+◦	Insomnia
+•	Does the patient have persistent or lateralizing tinnitus?
+◦	Persistent tinnitus
+◦	Lateralizing tinnitus
+◦	Both
+◦	Neither
+•	Is the patient taking any ototoxic medications? If yes, please describe.
+◦	Yes
+◦	No
+◦	Unsure
+DIAGNOSTICS:
+Required:
+•	Audiogram
+•	MRI Brain with and without Contrast (If tinnitus is persistent and/or lateralizing)
