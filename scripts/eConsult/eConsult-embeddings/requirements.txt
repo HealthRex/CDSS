@@ -5,3 +5,6 @@ sentence-transformers
 scikit-learn
 python-docx
 numpy
+pydantic
+fastapi
+uvicorn
