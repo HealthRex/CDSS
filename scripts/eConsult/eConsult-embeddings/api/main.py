@@ -1,0 +1,34 @@
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from embeddings.embedding_generator import run_embedding_pipeline
+
+app = FastAPI(title="eConsult Embeddings API")
+
+
+class ClinicalQuestion(BaseModel):
+    question: str
+
+
+@app.get("/")
+def read_root():
+    return {"message": "eConsult Embeddings API is running 🚀"}
+
+
+@app.post("/get-template")
+def get_best_template(clinical_question: ClinicalQuestion):
+    try:
+        best_template, similarity_scores = run_embedding_pipeline(
+            clinical_question.question
+        )
+
+        if best_template:
+            return {
+                "question": clinical_question.question,
+                "suggested_template": best_template,
+                "similarity_scores": similarity_scores,
+            }
+        else:
+            raise HTTPException(status_code=404, detail="No relevant templates found.")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
