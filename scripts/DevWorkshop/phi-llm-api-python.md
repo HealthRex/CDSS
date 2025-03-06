@@ -54,6 +54,14 @@ response = requests.request("POST", url, headers=headers, data=payload)
 print(response.text)
 ```
 
+## Claude 3.7 Sonnet API Call
+```python
+url = "https://apim.stanfordhealthcare.org/awssig4claude37/aswsig4claude37"
+payload = json.dumps({"model_id": "arn:aws:bedrock:us-west-2:679683451337:inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0", "prompt_text": my_question})
+response = requests.request("POST", url, headers=headers, data=payload) 
+print(response.text)
+```
+
 ## Gemini 1.5 Pro API Call
 ```python
 url = "https://apim.stanfordhealthcare.org/gcpgemini/apim-gcp-oauth-fa" 
