@@ -14,13 +14,13 @@ def load_template_text(file_path):
 
 
 def split_text(text):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
     return splitter.split_text(text)
 
 
 def create_embeddings(texts):
     embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
+        model_name="sentence-transformers/all-mpnet-base-v2"
     )
     return embeddings
 
