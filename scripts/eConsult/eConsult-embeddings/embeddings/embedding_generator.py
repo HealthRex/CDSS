@@ -53,12 +53,13 @@ def run_embedding_pipeline(clinical_question: str):
         for txt_file, texts in all_template_data.items():
             try:
                 embeddings_file = open(os.path.join(DATA_DIR, txt_file + "_embedding.bin"), "rb")
-                if embeddings_file:
-                    embeddings = marshal.load(embeddings_file)
             except FileNotFoundError:
                 embeddings = embeddings_model.embed_documents(texts)
-                embeddings_file = open(os.path.join(DATA_DIR, txt_file + "_embedding.bin"), "wb")
-                marshal.dump(embeddings, embeddings_file)
+                with open(os.path.join(DATA_DIR, txt_file + "_embedding.bin"), "wb") as embeddings_file:
+                    marshal.dump(embeddings, embeddings_file)
+            else:
+                with embeddings_file:
+                    embeddings = marshal.load(embeddings_file)
             all_embeddings[txt_file] = (texts, embeddings)
             print(f"✅ Embeddings created for {txt_file}")
     except Exception as e:
