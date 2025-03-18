@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from embeddings.embedding_generator import run_embedding_pipeline
 
@@ -28,7 +28,10 @@ def select_best_template(clinical_question: ClinicalQuestion):
                 "similarity_scores": similarity_scores,
             }
         else:
-            raise HTTPException(status_code=404, detail="No relevant templates found.")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No relevant templates found.")
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        if isinstance(e, HTTPException) and e.status_code == status.HTTP_404_NOT_FOUND:
+            # raise 404 exception with correct code instead of 500
+            raise e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
