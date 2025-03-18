@@ -14,8 +14,8 @@ def read_root():
     return {"message": "eConsult Embeddings API is running 🚀"}
 
 
-@app.post("/get-template")
-def get_best_template(clinical_question: ClinicalQuestion):
+@app.post("/select-best-template")
+def select_best_template(clinical_question: ClinicalQuestion):
     try:
         best_template, similarity_scores = run_embedding_pipeline(
             clinical_question.question
