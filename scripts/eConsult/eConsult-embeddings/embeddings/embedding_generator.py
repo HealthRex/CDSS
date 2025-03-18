@@ -1,9 +1,9 @@
 import os
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import marshal
 
 DATA_DIR = "data"
 
@@ -32,27 +32,39 @@ def compute_cosine_similarity(query_embedding, template_embeddings):
     return similarities
 
 
-def run_embedding_pipeline(clinical_question):
-    # ✅ Load extracted .txt files
-    txt_files = [f for f in os.listdir(DATA_DIR) if f.endswith("_extracted.txt")]
-    all_template_data = {}
+def run_embedding_pipeline(clinical_question: str):
+    try:
+        # ✅ Load extracted .txt files
+        txt_files = [f for f in os.listdir(DATA_DIR) if f.endswith("_extracted.txt")]
+        all_template_data = {}
 
-    for txt_file in txt_files:
-        txt_path = os.path.join(DATA_DIR, txt_file)
-        template_text = load_template_text(txt_path)
-        split_texts = split_text(template_text)
-        all_template_data[txt_file] = split_texts
-        print(f"✅ Loaded text from {txt_file}")
+        for txt_file in txt_files:
+            txt_path = os.path.join(DATA_DIR, txt_file)
+            template_text = load_template_text(txt_path)
+            split_texts = split_text(template_text)
+            all_template_data[txt_file] = split_texts
+            print(f"✅ Loaded text from {txt_file}")
 
-    # ✅ Create embeddings for each template
-    embeddings_model = create_embeddings(
-        [" ".join(texts) for texts in all_template_data.values()]
-    )
-    all_embeddings = {}
-    for txt_file, texts in all_template_data.items():
-        embeddings = embeddings_model.embed_documents(texts)
-        all_embeddings[txt_file] = (texts, embeddings)
-        print(f"✅ Embeddings created for {txt_file}")
+        # ✅ Create embeddings for each template
+        embeddings_model = create_embeddings(
+            [" ".join(texts) for texts in all_template_data.values()]
+        )
+        all_embeddings = {}
+        for txt_file, texts in all_template_data.items():
+            try:
+                embeddings_file = open(os.path.join(DATA_DIR, txt_file + "_embedding.bin"), "rb")
+            except FileNotFoundError:
+                embeddings = embeddings_model.embed_documents(texts)
+                with open(os.path.join(DATA_DIR, txt_file + "_embedding.bin"), "wb") as embeddings_file:
+                    marshal.dump(embeddings, embeddings_file)
+            else:
+                with embeddings_file:
+                    embeddings = marshal.load(embeddings_file)
+            all_embeddings[txt_file] = (texts, embeddings)
+            print(f"✅ Embeddings created for {txt_file}")
+    except Exception as e:
+        print(f"Failed to load model or curves: {str(e)}")
+        raise
 
     # ✅ Embed clinical question
     question_embedding = embeddings_model.embed_query(clinical_question)
