@@ -19,8 +19,19 @@
 	<!-- meta http-equiv="refresh" content="240" -->
 </head>
 <body onLoad="pageScroll();">
+	<!-- Twitter feed. Unreliable as wants user to have continuous login, otherwise blocks
 	<a class="twitter-timeline" data-height="7000" data-dnt="true" data-chrome="noheader nofooter noborder noscrollbar transparent" href="https://twitter.com/jonc101x?ref_src=twsrc%5Etfw">Tweets by jonc101x</a>
 	<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+	-->
+
+	<script type="module" src="https://cdn.jsdelivr.net/npm/bsky-embed/dist/bsky-embed.es.js" async></script>
+
+	<bsky-embed
+	    username="jonc101.bsky.social"
+	    limit="10"
+	    load-more="true"
+	  >
+	  </bsky-embed>	
 </body>
 </html>
 
