@@ -1,0 +1,68 @@
+Organism,Antibiotic,Implied_Agent
+ACINETOBACTER,Aztreonam,NULL
+ACINETOBACTER,Cefazolin,NULL
+ACINETOBACTER,Minocycline,NULL
+ACINETOBACTER,Tetracycline,NULL
+ACINETOBACTER,Doripenem,Meropenem
+ACINETOBACTER,Meropenem,Imipenem
+CITROBACTER,Ampicillin,NULL
+CITROBACTER,Cefazolin,NULL
+CITROBACTER,Cefotetan,NULL
+CITROBACTER,Cefoxitin,NULL
+CITROBACTER,Cefepime,Ceftriaxone
+CITROBACTER,Cefepime,Cefotaxime
+CITROBACTER,Ceftazidime,Ceftriaxone
+CITROBACTER,Ceftazidime,Cefotaxime
+ACINETOBACTER,Ceftriaxone,Cefotaxime
+ACINETOBACTER,Cefotaxime,Ceftriaxone
+ACINETOBACTER,Doripenem,Meropenem
+ACINETOBACTER,Ertapenem,Ceftriaxone
+ACINETOBACTER,Ertapenem,Cefotaxime
+ACINETOBACTER,Imipenem,Ceftriaxone
+ACINETOBACTER,Imipenem,Cefotaxime
+ACINETOBACTER,Meropenem,Imipenem
+ACINETOBACTER,Meropenem,Ceftriaxone
+ACINETOBACTER,Meropenem,Cefotaxime
+Enterobacter,Ampicillin,NULL
+Enterobacter,Cefazolin,NULL
+Enterobacter,Cefepime,Ceftriaxone
+Enterobacter,Cefepime,Cefotaxime
+Enterobacter,Ceftazidime,Ceftriaxone
+Enterobacter,Ceftazidime,Cefotaxime
+Enterobacter,Ceftriaxone,Cefotaxime
+Enterobacter,Cefotaxime,Ceftriaxone
+Enterobacter,Doxycycline,Tetracycline
+Enterobacter,Doripenem,Meropenem
+Enterobacter,Ertapenem,Ceftriaxone
+Enterobacter,Ertapenem,Cefotaxime
+Enterobacter,Imipenem,Ceftriaxone
+Enterobacter,Imipenem,Cefotaxime
+Enterobacter,Meropenem,Imipenem
+Enterobacter,Meropenem,Ceftriaxone
+Enterobacter,Meropenem,Cefotaxime
+ESCHERICHIA COLI,Cefepime,Ceftriaxone
+ESCHERICHIA COLI,Cefepime,Cefotaxime
+ESCHERICHIA COLI,Cefepime,Cefazolin
+ESCHERICHIA COLI,Ceftazidime,Ceftriaxone
+ESCHERICHIA COLI,Ceftazidime,Cefotaxime
+ESCHERICHIA COLI,Ceftazidime,Cefazolin
+ESCHERICHIA COLI,Ceftriaxone,Cefotaxime
+ESCHERICHIA COLI,Cefotetan,Cefazolin
+ESCHERICHIA COLI,Cefoxitin,Cefazolin
+ESCHERICHIA COLI,Cefpodoxime,Ceftriaxone
+ESCHERICHIA COLI,Cefpodoxime,Cefazolin
+ESCHERICHIA COLI,Cefuroxime,Cefazolin
+ESCHERICHIA COLI,Doxycycline,Tetracycline
+KLEBSIELLA,Ampicillin,NULL
+Proteus species,Tetracycline,NULL
+Proteus species,Tigecycline,NULL
+Proteus species,Colistin,NULL
+Pseudomonas aeruginosa,Ampicillin,NULL
+Pseudomonas aeruginosa,Ceftriaxone,NULL
+Pseudomonas aeruginosa,Cefazolin,NULL
+Pseudomonas aeruginosa,Ertapenem,NULL
+Pseudomonas aeruginosa,Tetracycline,NULL
+Pseudomonas aeruginosa,Tigecycline,NULL
+Serratia,Ampicillin,NULL
+Serratia,Cefazolin,NULL
+Serratia,Tetracycline,NULL
