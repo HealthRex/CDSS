@@ -45,5 +45,6 @@ END as antibiotic_subtype_category,
         `som-nero-phi-jonc101.antimicrobial_stewardship.class_subtype_lookup` cl
     ON
          mcp.medication_name = cl.antibiotic
+    where medication_time_to_cultureTime>0
 
 )
