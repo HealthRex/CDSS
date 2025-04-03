@@ -102,9 +102,7 @@ select c.anon_id,
   from antibiotic_cohort c left join all_procedure ap using (anon_id)
   where (ap.procedure_time is null 
   OR 
-  ap.procedure_time <=c.order_time_jittered_utc)
+  ap.procedure_time <c.order_time_jittered_utc)
   group by c.anon_id,c.order_proc_id_coded,c.pat_enc_csn_id_coded,c.order_time_jittered_utc,ap.procedure_description,ap.procedure_time
   order by  c.anon_id,c.order_proc_id_coded,c.pat_enc_csn_id_coded,c.order_time_jittered_utc,ap.procedure_description,ap.procedure_time
   )
-
-
