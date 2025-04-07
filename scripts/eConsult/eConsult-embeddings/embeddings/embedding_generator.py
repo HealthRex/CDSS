@@ -1,4 +1,6 @@
 import os
+import traceback
+
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sklearn.metrics.pairwise import cosine_similarity
@@ -64,6 +66,7 @@ def run_embedding_pipeline(clinical_question: str):
             print(f"✅ Embeddings created for {txt_file}")
     except Exception as e:
         print(f"Failed to load model or curves: {str(e)}")
+        print(traceback.format_exc())
         raise
 
     # ✅ Embed clinical question
