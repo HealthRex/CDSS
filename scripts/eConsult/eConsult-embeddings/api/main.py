@@ -10,7 +10,7 @@ class ClinicalQuestion(BaseModel):
 
 
 @app.get("/")
-def read_root():
+async def read_root():
     return {"message": "eConsult Embeddings API is running 🚀"}
 
 
