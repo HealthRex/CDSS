@@ -1,6 +1,9 @@
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 from embeddings.embedding_generator import run_embedding_pipeline
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = FastAPI(title="eConsult Embeddings API")
 
