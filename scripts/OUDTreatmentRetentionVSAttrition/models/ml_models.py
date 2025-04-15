@@ -125,8 +125,6 @@ def write_results(tn
         f_results.write(str(fn))
         f_results.write("\n")
 
-
-
 # === XGBoost
 def xgboost_model(train_data_path
                         , test_data_path
