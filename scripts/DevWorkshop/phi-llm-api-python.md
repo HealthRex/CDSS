@@ -2,7 +2,7 @@
 
 This guide demonstrates how to use Python to interact with various Large Language Model (LLM) APIs within the Stanford Healthcare environment. These APIs are configured to support HIPAA-compliant use of Protected Health Information (PHI).
 
-*Created by François Grolleau on 02/19/2025 (last update).*
+*Created by François Grolleau on 02/19/2025, last updated by Yixing on April 22, 2025.*
 
 ## Prerequisites
 
@@ -58,6 +58,16 @@ print(response.text)
 ```python
 url = "https://apim.stanfordhealthcare.org/awssig4claude37/aswsig4claude37"
 payload = json.dumps({"model_id": "arn:aws:bedrock:us-west-2:679683451337:inference-profile/us.anthropic.claude-3-7-sonnet-20250219-v1:0", "prompt_text": my_question})
+response = requests.request("POST", url, headers=headers, data=payload) 
+print(response.text)
+```
+
+## Gemini 2.0 Flash API Call
+Model information: https://ai.google.dev/gemini-api/docs/models#gemini-2.0-flash
+
+```python
+url = "https://apim.stanfordhealthcare.org/gcp-gem20flash-fa/apim-gcp-oauth-fa"
+payload = json.dumps({"contents": {"role": "user", "parts": {"text": my_question}}, "safety_settings": {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"}, "generation_config": {"temperature": 0.2, "topP": 0.8, "topK": 40}})
 response = requests.request("POST", url, headers=headers, data=payload) 
 print(response.text)
 ```
