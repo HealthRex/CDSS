@@ -92,7 +92,9 @@ Recommender_API/
 │   └── bigquery_api.py
 ├── scripts/
 │   └── run_api.py
+├── Notebook/
 ├── csv_output/
+├── main.py
 ├── requirements.txt
 └── README.md
 ```
@@ -112,5 +114,125 @@ Recommender_API/
    - Check that the specified year has data available
    - Ensure gender values are either 'Male' or 'Female' if specified
 
+# Antibiotic Susceptibility API
+
+A FastAPI-based service that provides real-time access to antibiotic susceptibility data by querying BigQuery directly. The API allows you to retrieve common medications and procedures associated with specific diagnoses based on patient characteristics.
+
+## Setup
+
+1. Install the required dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+2. Set up Google Cloud credentials:
+   - You'll need access to the Stanford Health Care BigQuery project
+   - Make sure you have the appropriate credentials file (service account key)
+   - Set the environment variable:
+     ```bash
+     export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/credentials.json"
+     ```
+
+## Running the API
+
+Start the server:
+```bash
+python main.py
+```
+
+The API will be available at `http://localhost:8000`
+
+## API Endpoint
+
+### GET /query
+
+Query the antibiotic susceptibility data directly from BigQuery.
+
+#### Parameters:
+- `diagnosis` (required): Diagnosis code (e.g., J01.90)
+- `gender` (required): Patient gender (Male/Female)
+- `type` (required): Type of results (med/proc)
+- `limit` (optional, default=10): Maximum number of results to return
+- `year` (optional, default=2021): Year of the dataset to use (2021-2024)
+
+#### Example Request:
+```bash
+curl "http://localhost:8000/query?diagnosis=J01.90&gender=Female&type=med&limit=10&year=2021"
+```
+
+#### Example Response:
+```json
+{
+    "descriptions": [
+        "Amoxicillin",
+        "Azithromycin",
+        "Cephalexin",
+        ...
+    ]
+}
+```
+
+## Error Handling
+
+The API will return appropriate error messages for:
+- Invalid year (must be between 2021 and 2024)
+- Invalid gender (must be Male or Female)
+- Invalid type (must be med or proc)
+- BigQuery authentication or query errors
+
+## API Documentation
+
+The API provides automatic interactive documentation:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+
+These interfaces allow you to:
+- Test the API directly in your browser
+- See all available endpoints
+- View request/response formats
+- Get detailed API documentation
+
+## Project Structure
+```
+Recommender_API/
+├── api/
+│   ├── __init__.py
+│   └── bigquery_api.py        # BigQuery API implementation
+├── scripts/
+│   └── run_api.py            # Script for running batch queries
+├── Notebook/                 # Jupyter notebooks for analysis
+├── csv_output/              # Directory for storing query results
+├── main.py                  # FastAPI application
+├── requirements.txt         # Project dependencies
+└── README.md               # This documentation
+```
+
+## Additional Tools
+
+The project includes several additional components:
+
+1. **Batch Query Script** (`scripts/run_api.py`):
+   - Run batch queries and save results to CSV
+   - Useful for offline analysis and data collection
+
+2. **Analysis Notebooks** (`Notebook/`):
+   - Jupyter notebooks for data analysis
+   - Examples and visualizations
+
+3. **CSV Output** (`csv_output/`):
+   - Directory for storing query results
+   - Used by the batch query script
+
+## Development
+
+To contribute to this project:
+
+1. Clone the repository
+2. Install dependencies
+3. Set up Google Cloud credentials
+4. Run tests and ensure all functionality works
+5. Submit pull requests with clear documentation
+
 ## Support
-For any issues or questions, please contact [your contact information]
+
+For any issues or questions, please contact the development team. 
