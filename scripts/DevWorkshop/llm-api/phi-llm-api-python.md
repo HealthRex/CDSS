@@ -4,7 +4,7 @@ This guide demonstrates how to use Python to interact with various Large Languag
 
 *Created by François Grolleau on 02/19/2025 
 Contributors: Yixing Jiang 
-Last update April 23, 2025.*
+Last update April 28, 2025.*
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -18,6 +18,7 @@ Last update April 23, 2025.*
   - [Claude 3.5 Sonnet v2](#claude-35-sonnet-v2-api-call)
   - [Claude 3.7 Sonnet](#claude-37-sonnet-api-call)
 - [Google Models](#google-models)
+  - [Gemini 2.0 Flash](#gemini-20-fla-api-call)
   - [Gemini 1.5 Pro](#gemini-15-pro-api-call)
 - [Meta Models](#meta-models)
   - [Llama 3.3 70B](#llama-33-70b-instruct-api-call)
@@ -138,6 +139,18 @@ print(response.text)
 ---
 
 ## Google Models
+### Gemini 2.0 Flash API Call
+```python
+url = "https://apim.stanfordhealthcare.org/gcp-gem20flash-fa/apim-gcp-gem20flash-fa" 
+payload = json.dumps({
+    "contents": {"role": "user", "parts": {"text": my_question}}, 
+    "safety_settings": {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"}, 
+    "generation_config": {"temperature": 0.2, "topP": 0.8, "topK": 40}
+})
+response = requests.request("POST", url, headers=headers, data=payload) 
+print(response.text)
+```
+
 
 ### Gemini 1.5 Pro API Call
 ```python
