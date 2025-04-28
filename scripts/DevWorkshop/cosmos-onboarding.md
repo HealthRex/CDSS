@@ -2,7 +2,6 @@
 
 ## Eligibility
 
-- Access is restricted to Stanford Medicine researchers.
 - You will need:
   - **SID** (Stanford ID)  
   - **Epic UserWeb account**
