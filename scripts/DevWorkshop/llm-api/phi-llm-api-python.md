@@ -18,7 +18,7 @@ Last update April 28, 2025.*
   - [Claude 3.5 Sonnet v2](#claude-35-sonnet-v2-api-call)
   - [Claude 3.7 Sonnet](#claude-37-sonnet-api-call)
 - [Google Models](#google-models)
-  - [Gemini 2.0 Flash](#gemini-20-fla-api-call)
+  - [Gemini 2.0 Flash](#gemini-20-flash-api-call)
   - [Gemini 1.5 Pro](#gemini-15-pro-api-call)
 - [Meta Models](#meta-models)
   - [Llama 3.3 70B](#llama-33-70b-instruct-api-call)
