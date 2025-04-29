@@ -4,7 +4,7 @@ This guide demonstrates how to use Python to interact with various Large Languag
 
 *Created by François Grolleau on 02/19/2025 
 Contributors: Yixing Jiang 
-Last update April 28, 2025.*
+Last update April 29, 2025.*
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -15,8 +15,8 @@ Last update April 28, 2025.*
   - [GPT-4.1-mini](#gpt-41-mini-api-call)
   - [GPT-4.1-nano](#gpt-41-nano-api-call)
 - [Anthropic Models](#anthropic-models)
-  - [Claude 3.5 Sonnet v2](#claude-35-sonnet-v2-api-call)
   - [Claude 3.7 Sonnet](#claude-37-sonnet-api-call)
+  - [Claude 3.5 Sonnet v2](#claude-35-sonnet-v2-api-call)
 - [Google Models](#google-models)
   - [Gemini 2.0 Flash](#gemini-20-flash-api-call)
   - [Gemini 1.5 Pro](#gemini-15-pro-api-call)
@@ -28,7 +28,9 @@ Last update April 28, 2025.*
   - [Microsoft Phi 3.5-mini](#microsoft-phi-35-mini-instruct-api-call)
   - [Deepseek-R1](#deepseek-r1-api-call)
 - [PHI & HIPAA Considerations](#important-phi--hipaa-considerations)
-- [Bonus: Text-to-Text Generation Helper](#bonus-directly-generate-text-output-from-text-input-bypass-call-limits-or-easily-swap-between-models)
+- [Bonus: Text-to-Text Generation Helper & Bypass Call Limits](#bonus-1-directly-generate-text-output-from-text-input-bypass-call-limits)
+- [Bonus: Easily Swap Between Models](#bonus-2-easily-swap-between-models)
+
 
 ## Prerequisites
 
@@ -250,14 +252,11 @@ print(response.text)
 
 ---
 
-## (BONUS) Directly generate text output from text input, bypass call limits or easily swap between models
+## (BONUS #1) Directly generate text output from text input, bypass call limits
 
 Here's an example to directly generate text output from text input with OpenAI models using the `gen_txt_to_txt` function.
 
 To bypass call limits you can adjust the `max_calls` and `sleep_time` parameters.
-
-To easily swap between models, modify the `model_init` and `model_call` according to your needs.
-(Note: This modular design allows you to use any model, including open-weights models from Hugging Face)
 
 ```python
 import time
@@ -291,3 +290,37 @@ def gen_txt_to_txt(input_txt):
 # response_text = gen_txt_to_txt(my_question)
 # print(response_text)
 ```
+
+## (BONUS #2) Easily Swap Between Models
+
+Use the `API_text_to_text` class from `agnostic_evaluator_models.py` to seamlessly switch between different LLM providers:
+
+```python
+from agnostic_evaluator_models import API_text_to_text, meta_init, meta_call, gemini_init, gemini_call
+from functools import partial
+
+lab_key = "enter the lab's key here!"
+
+my_question = """What is the difference between the cosmological constant and the vacuum energy?"""
+
+# Using Meta via SHC
+llama_init = partial(meta_init, "llama4-maverick", lab_key)
+llama_instance = API_text_to_text(llama_init, meta_call)
+res = llama_instance.gen_txt_to_txt(my_question)
+print(res)
+
+# Using Gemini 2.5 Pro Preview via Vertex AI
+credentials_path = "path/to/your/google_application_default_credentials.json"
+
+gemini25 = partial(gemini_init, "gemini-2.5-pro-preview-03-25", credentials_path)        
+gemini_instance = API_text_to_text(gemini25, gemini_call)
+res = gemini_instance.gen_txt_to_txt(my_question)
+print(res)
+```
+More examples are provided in the `agnostic_evaluator_models.py` under `if __name__ == "__main__"`
+
+> **Important:** Using Gemini through Vertex AI incurs charges to our GCP project. Please use responsibly - API calls are typically more cost-effective than running self-hosted models on GCP virtual machines, but costs can still accumulate with heavy usage.
+
+> **Note:** If you haven't already set up Google Cloud authentication, you'll need to create an `application_default_credentials.json` file. You can follow the step-by-step instructions in our [Google Cloud setup guide](https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/ReadMe.GoogleCloud-BigQuery-VPC.txt) to generate and configure these credentials.
+
+*Final fun note: As of April 2025, no model seems to get the physics question right. According to cosmologist Sean Carroll "The vacuum energy and the cosmological constant are two different labels for exactly the same thing; don't let anyone tell you differently" (Quanta and Fields, Dutton, 2024. Chapter 6 p. 146). Looks like latest models continue bullshitting very confidently when facts are rarely in their training data.* 😄
