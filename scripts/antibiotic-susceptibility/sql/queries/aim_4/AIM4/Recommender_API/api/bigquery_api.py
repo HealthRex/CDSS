@@ -1,6 +1,9 @@
 from google.cloud import bigquery
 import pandas as pd
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
+import logging
+
+logger = logging.getLogger(__name__)
 
 class BigQueryAPI:
     def __init__(self, project_id: str = "som-nero-phi-jonc101"):
@@ -9,138 +12,206 @@ class BigQueryAPI:
         Args:
             project_id (str): Google Cloud project ID
         """
-        self.client = bigquery.Client(project_id)
+        try:
+            self.client = bigquery.Client(project_id)
+            logger.info(f"Successfully initialized BigQuery client for project {project_id}")
+        except Exception as e:
+            logger.error(f"Failed to initialize BigQuery client: {str(e)}")
+            raise Exception(f"Failed to initialize BigQuery client. Please ensure you have valid Google Cloud credentials set up. Error: {str(e)}")
         
-    def get_immediate_orders(
+    def get_orders(
         self,
-        diagnosis_codes: List[str],
-        patient_gender: Optional[str] = None,
+        params: Dict[str, Union[str, int, None]],
         min_patients_for_non_rare_items: int = 10,
         result_type: str = "med",  # Options: "proc", "med"
-        limit: int = 10,
-        year: int = 2021  # Default to 2021 if not specified
+        limit: int = 100,
+        year: int = 2024  # Default to 2024 if not specified
     ) -> pd.DataFrame:
-        """Get common immediate orders based on diagnosis/complaint and patient gender.
+        """Get common orders based on patient parameters and filters.
         
         Args:
-            diagnosis_codes (List[str]): List of diagnosis codes to analyze
-            patient_gender (Optional[str]): Patient gender to filter by (e.g. 'Male', 'Female')
+            params (Dict): Dictionary containing patient parameters:
+                - patient_age (Optional[int]): Patient age
+                - patient_gender (Optional[str]): Patient gender
+                - icd10_code (Optional[str]): ICD-10 diagnosis code
             min_patients_for_non_rare_items (int): Minimum number of patients for non-rare items
             result_type (str): Type of results to return ("proc" or "med")
             limit (int): Maximum number of results to return
-            year (int): Year of the dataset to use (2021-2024)
+            year (int): Year of the dataset to use (2022-2024)
             
         Returns:
-            pd.DataFrame: Results showing most common immediate orders
+            pd.DataFrame: Results showing most common orders
         """
-        # Validate year
-        if year not in [2021, 2022, 2023, 2024]:
-            raise ValueError("Year must be between 2021 and 2024")
+        try:
+            # Validate year
+            if year not in [2022, 2023, 2024]:
+                raise ValueError("Year must be between 2022 and 2024")
             
-        # Format parameters for the query
-        gender_param = f"'{patient_gender}'" if patient_gender else "NULL"
-        
-        query = f"""
-        WITH 
-        params AS 
-        (
-            select 
-                {min_patients_for_non_rare_items} as minPatientsForNonRareItems,
-                {gender_param} as targetGender
-        ),
-        
-        targetEncounters AS
-        (
-            select distinct
-                enc.anon_id, 
-                enc.pat_enc_csn_id_coded as encounterId,
-                enc.appt_when_jittered as encounterDateTime,
-                demo.gender
-            from `shc_core_{year}.encounter` as enc
-                join shc_core_{year}.diagnosis as dx on enc.pat_enc_csn_id_coded = dx.pat_enc_csn_id_jittered
-                join `shc_core_{year}.demographic` as demo on enc.anon_id = demo.anon_id,
-                params
-            where visit_type like 'NEW PATIENT%'
-            and appt_status = 'Completed'
-            and dx.icd10 in ({','.join([f"'{code}'" for code in diagnosis_codes])})
-            and (params.targetGender is NULL or demo.gender = params.targetGender)
-        ),
-        
-        encounterCount AS
-        (
-            select count(distinct anon_id) as totalPatients, count(distinct encounterId) as totalEncounters
-            from targetEncounters
-        )
-        """
-        
-        if result_type == "proc":
-            query += f"""
-            SELECT * FROM (
-                WITH
-                encounterProc AS
-                (
+            # Extract parameters
+            patient_age = params.get('patient_age')
+            patient_gender = params.get('patient_gender')
+            icd10_code = params.get('icd10_code')
+            
+            # Build age filter if provided
+            age_filter = ""
+            # if patient_age is not None:
+                # age_filter = f"AND DATE_DIFF(DATE(appt_when_jittered_utc), DATE(birth_date_jittered_utc), YEAR) = {patient_age}"
+            if patient_age is not None:
+                # Map single age to age group
+                if patient_age < 18:
+                    age_filter = "AND DATE_DIFF(DATE(appt_when_jittered_utc), DATE(birth_date_jittered_utc), YEAR) >= 0 AND DATE_DIFF(DATE(appt_when_jittered_utc), DATE(birth_date_jittered_utc), YEAR) <= 17"
+                elif patient_age < 45:
+                    age_filter = "AND DATE_DIFF(DATE(appt_when_jittered_utc), DATE(birth_date_jittered_utc), YEAR) >= 18 AND DATE_DIFF(DATE(appt_when_jittered_utc), DATE(birth_date_jittered_utc), YEAR) <= 44"
+                elif patient_age < 65:
+                    age_filter = "AND DATE_DIFF(DATE(appt_when_jittered_utc), DATE(birth_date_jittered_utc), YEAR) >= 45 AND DATE_DIFF(DATE(appt_when_jittered_utc), DATE(birth_date_jittered_utc), YEAR) <= 64"
+                else:
+                    age_filter = "AND DATE_DIFF(DATE(appt_when_jittered_utc), DATE(birth_date_jittered_utc), YEAR) >= 65"
+            
+            # Build gender filter if provided
+            gender_filter = ""
+            if patient_gender is not None:
+                gender_filter = f"AND LOWER(demogx.gender) = LOWER('{patient_gender}')"
+            
+            # Build diagnosis filter if provided
+            diagnosis_filter = ""
+            if icd10_code is not None:
+                diagnosis_filter = f"AND dx.icd10 = '{icd10_code}'"
+            
+            logger.info(f"Building query for params={params}, type={result_type}, year={year}")
+            
+            query = f"""
+            WITH query_params AS (
+                select 
+                    ['3'] as excludeMedOrderClass,
+                    {min_patients_for_non_rare_items} as minPatientsForNonRareItems
+            ),
+
+            cohortEncounter AS (
+                select distinct
+                    enc.anon_id, 
+                    demogx.birth_date_jittered_utc as birthDateTime,
+                    demogx.gender as gender,
+                    pat_enc_csn_id_coded as encounterId,
+                    appt_when_jittered_utc as encounterDateTime,
+                    dx.icd9, dx.icd10, dx_name,
+                    DATE_DIFF(DATE(appt_when_jittered_utc), DATE(birth_date_jittered_utc), YEAR) as age_when_encountered
+                from `shc_core_{year}.encounter` as enc
+                    join `shc_core_{year}.diagnosis` as dx on enc.pat_enc_csn_id_coded = dx.pat_enc_csn_id_jittered
+                    left join `shc_core_{year}.demographic` as demogx on demogx.anon_id = enc.anon_id
+                where visit_type like 'NEW PATIENT%'
+                and appt_status = 'Completed'
+                {diagnosis_filter}
+                {gender_filter}
+                {age_filter}
+            ),
+
+            cohortEncounterCount AS (
+                select count(distinct anon_id) as nPatients, count(distinct encounterId) as nEncounters
+                from cohortEncounter
+            )"""
+            
+            if result_type == "proc":
+                query += f"""
+                ,cohortEncounterProc AS (
                     select 
                         op.proc_code, op.description, 
-                        count(distinct enc.anon_id) as itemPatients, 
-                        count(distinct enc.encounterId) as itemEncounters
-                    from targetEncounters as enc
-                    join `shc_core_{year}.order_proc` as op on enc.encounterId = op.pat_enc_csn_id_coded 
-                    group by proc_code, description
+                        count(distinct cohortEnc.anon_id) as nPatients, 
+                        count(distinct cohortEnc.encounterId) as nEncounters
+                    from cohortEncounter as cohortEnc
+                    join `shc_core_{year}.order_proc` as op on cohortEnc.encounterId = op.pat_enc_csn_id_coded 
+                    group by op.proc_code, op.description
                 )
                 SELECT 
                     proc_code as itemId, 
                     description,
-                    (itemEncounters / totalEncounters) as encounterRate,
-                    itemEncounters as nEncounters,
-                    totalEncounters,
-                    itemPatients as nPatients,
-                    totalPatients
-                FROM encounterProc, encounterCount, params
-                WHERE itemPatients > params.minPatientsForNonRareItems
-                ORDER BY itemEncounters DESC, itemId, description
-            )
-            """
-        elif result_type == "med":
-            # Handle different year schemas for order_class_c
-            if year == 2021:
-                order_class_filter = "where order_class_c != 3"  # For 2021, order_class_c is an integer
-            else:
-                order_class_filter = "where order_class_c != '3'"  # For 2022+, order_class_c is a string
-            
-            query += f"""
-            SELECT * FROM (
-                WITH
-                encounterMed AS
-                (
+                    round(p.nPatients/c.nPatients *100,2) as patientRate,
+                    round(p.nEncounters/c.nEncounters * 100,2) as encounterRate,
+                    p.nPatients as nPatientscohortItem,
+                    p.nEncounters as nEncounterscohortItem,
+                    c.nPatients as nPatientsCohortTotal,
+                    c.nEncounters as nEncountersCohortTotal
+                FROM cohortEncounterProc p
+                CROSS JOIN cohortEncounterCount c
+                CROSS JOIN query_params qp
+                WHERE p.nPatients > qp.minPatientsForNonRareItems
+                ORDER BY p.nPatients DESC
+                """
+            elif result_type == "med":
+                query += f"""
+                ,cohortEncounterMed AS (
                     select 
-                        om.medication_id, om.med_description,
-                        count(distinct enc.anon_id) as itemPatients, 
-                        count(distinct enc.encounterId) as itemEncounters
-                    from targetEncounters as enc
-                    join `shc_core_{year}.order_med` as om on enc.encounterId = om.pat_enc_csn_id_coded
-                    {order_class_filter}  -- Exclude historical medications
-                    group by medication_id, med_description
+                        om.medication_id, 
+                        om.med_description,
+                        count(distinct cohortEnc.anon_id) as nPatients, 
+                        count(distinct cohortEnc.encounterId) as nEncounters
+                    from cohortEncounter as cohortEnc
+                    join `shc_core_{year}.order_med` as om on cohortEnc.encounterId = om.pat_enc_csn_id_coded
+                    cross join query_params qp
+                    where om.order_class_c not in UNNEST(qp.excludeMedOrderClass)
+                    group by om.medication_id, om.med_description
                 )
                 SELECT 
-                    medication_id as itemId, 
+                    medication_id as itemId,
                     med_description as description,
-                    (itemEncounters / totalEncounters) as encounterRate,
-                    itemEncounters as nEncounters,
-                    totalEncounters,
-                    itemPatients as nPatients,
-                    totalPatients
-                FROM encounterMed, encounterCount, params
-                WHERE itemPatients > params.minPatientsForNonRareItems
-                ORDER BY itemEncounters DESC, itemId, description
-            )
-            """
-        
-        query += f" LIMIT {limit}"
-        
-        # Debug: Print the query
-        # print("Generated SQL Query:")
-        # print(query)
-        
-        # Execute the query and return results as a DataFrame
-        query_job = self.client.query(query)
-        return query_job.to_dataframe() 
+                    round(m.nPatients/c.nPatients *100,2) as patientRate,
+                    round(m.nEncounters/c.nEncounters * 100,2) as encounterRate,
+                    m.nPatients as nPatientscohortItem,
+                    m.nEncounters as nEncounterscohortItem,
+                    c.nPatients as nPatientsCohortTotal,
+                    c.nEncounters as nEncountersCohortTotal
+                FROM cohortEncounterMed m
+                CROSS JOIN cohortEncounterCount c
+                CROSS JOIN query_params qp
+                WHERE m.nPatients > qp.minPatientsForNonRareItems
+                ORDER BY m.nPatients DESC
+                """
+            
+            query += f" LIMIT {limit}"
+            
+            logger.info("Executing BigQuery query...")
+            query_job = self.client.query(query)
+            results = query_job.to_dataframe()
+            logger.info(f"Query completed successfully. Returned {len(results)} rows.")
+            return results
+            
+        except Exception as e:
+            logger.error(f"Error in get_orders: {str(e)}", exc_info=True)
+            raise Exception(f"Failed to execute BigQuery query: {str(e)}") 
+
+if __name__ == "__main__":
+    # Initialize the API
+    api = BigQueryAPI()
+    
+    # Example with all parameters
+    params = {
+        'patient_age': 55,
+        'patient_gender': 'male',
+        'icd10_code': 'I10'
+    }
+
+    # Get medication orders
+    med_results = api.get_orders(
+        params=params,
+        result_type='med',
+        limit=100
+    )
+
+    # Get procedure orders
+    proc_results = api.get_orders(
+        params=params,
+        result_type='proc',
+        limit=100
+    )
+
+    # Example with partial parameters
+    partial_params = {
+        'patient_age': 55,
+        'patient_gender': None,  # No gender restriction
+        'icd10_code': None      # No diagnosis restriction
+    }
+    
+    # Print results
+    print("\nMedication Results:")
+    print(med_results)
+    print("\nProcedure Results:")
+    print(proc_results)

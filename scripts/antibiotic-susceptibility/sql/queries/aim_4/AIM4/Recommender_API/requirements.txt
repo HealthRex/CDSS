@@ -1,6 +1,6 @@
-google-cloud-bigquery==3.11.4
-pandas==2.1.4 
+google-cloud-bigquery>=3.11.4
 fastapi==0.104.1
 uvicorn==0.24.0
 pandas==2.1.4
-pydantic==2.5.2 
+pydantic==2.5.2
+python-dotenv==1.0.0 
