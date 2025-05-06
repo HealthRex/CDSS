@@ -35,10 +35,16 @@ ENV/
 csv_output/
 *.csv
 *.log
+Recommender_API/api/
+*.log
+
+Recommender_API/Notebook/
+*.log
 
 # Jupyter Notebook
 .ipynb_checkpoints
 *.ipynb
+*.log
 
 # OS specific
 .DS_Store
