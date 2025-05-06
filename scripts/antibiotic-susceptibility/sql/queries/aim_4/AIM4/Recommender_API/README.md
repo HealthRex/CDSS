@@ -1,238 +1,138 @@
-# HealthRex Recommender API
+# Medical Recommender API
 
-This API allows you to query common medications and procedures associated with specific diagnoses from Stanford Health Care data.
-
-## Setup Instructions
-
-1. **Clone the repository**
-   ```bash
-   git clone [repository-url]
-   cd Recommender_API
-   ```
-
-2. **Install required packages**
-   You can use either conda or pip:
-
-   Using conda:
-   ```bash
-   conda install -c conda-forge google-cloud-bigquery pandas
-   ```
-
-   Using pip:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Set up Google Cloud credentials**
-   - You'll need access to the Stanford Health Care BigQuery project
-   - Make sure you have the appropriate credentials file (service account key)
-   - Set the environment variable:
-     ```bash
-     export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/credentials.json"
-     ```
-
-## Usage
-
-The API can be run from the command line using the `run_api.py` script. Here are some examples:
-
-### Basic Usage
-```bash
-python scripts/run_api.py --diagnosis J01.90 --gender Female --type med --limit 10 --year 2022
-```
-
-### Parameters
-- `--diagnosis`: One or more diagnosis codes (required)
-- `--gender`: Patient gender (optional, choices: 'Female', 'Male')
-- `--type`: Type of results ('med' or 'proc', defaults to 'med')
-- `--limit`: Number of results to return (defaults to 10)
-- `--year`: Year of the dataset to use (2021-2024, defaults to 2022)
-- `--output-dir`: Directory to save output files (defaults to 'csv_output')
-
-### Examples
-
-1. Get medications for sinusitis in female patients from 2022 data:
-   ```bash
-   python scripts/run_api.py --diagnosis J01.90 --gender Female --type med --limit 10 --year 2022
-   ```
-
-2. Get procedures for sinusitis in all patients from 2021 data:
-   ```bash
-   python scripts/run_api.py --diagnosis J01.90 --type proc --limit 15 --year 2021
-   ```
-
-3. Get medications for multiple diagnosis codes from 2023 data:
-   ```bash
-   python scripts/run_api.py --diagnosis J01.90 J01.91 --gender Male --type med --year 2023
-   ```
-
-### Output
-- Results are saved as CSV files in the specified output directory (default: `csv_output`)
-- Filenames follow the format: `[diagnosis]_[gender]_[type]_year[year]_limit[limit].csv`
-  - Example: `J01.90_Female_med_year2022_limit10.csv`
-- Each CSV contains:
-  - Item ID (medication or procedure code)
-  - Description
-  - Encounter rate
-  - Number of encounters
-  - Total encounters
-  - Number of patients
-  - Total patients
-
-### Features
-- Automatic warning suppression for cleaner output
-- Input validation for year and gender parameters
-- Detailed query summary in the output
-- Error handling with informative messages
-
-## Project Structure
-```
-Recommender_API/
-├── api/
-│   ├── __init__.py
-│   └── bigquery_api.py
-├── scripts/
-│   └── run_api.py
-├── Notebook/
-├── csv_output/
-├── main.py
-├── requirements.txt
-└── README.md
-```
-
-## Troubleshooting
-
-1. **Module not found errors**
-   - Make sure all required packages are installed
-   - Verify your Python environment is active
-
-2. **Authentication errors**
-   - Check that your Google Cloud credentials are properly set up
-   - Verify you have access to the BigQuery project
-
-3. **Query errors**
-   - Verify that the diagnosis codes are correct
-   - Check that the specified year has data available
-   - Ensure gender values are either 'Male' or 'Female' if specified
-
-# Antibiotic Susceptibility API
-
-A FastAPI-based service that provides real-time access to antibiotic susceptibility data by querying BigQuery directly. The API allows you to retrieve common medications and procedures associated with specific diagnoses based on patient characteristics.
+A FastAPI-based API that processes clinical cases and recommends medical procedures or medications based on ICD-10 codes.
 
 ## Setup
 
-1. Install the required dependencies:
+1. Install required packages:
 ```bash
-pip install -r requirements.txt
+pip install fastapi uvicorn requests google-cloud-bigquery pandas langchain-groq langgraph
 ```
 
 2. Set up Google Cloud credentials:
-   - You'll need access to the Stanford Health Care BigQuery project
-   - Make sure you have the appropriate credentials file (service account key)
-   - Set the environment variable:
-     ```bash
-     export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/credentials.json"
-     ```
+   - Make sure you have the Google Cloud SDK installed
+   - Authenticate using `gcloud auth application-default login`
+   - The application uses the project "som-nero-phi-jonc101"
 
 ## Running the API
 
-Start the server:
+1. Start the FastAPI server:
 ```bash
-python main.py
+cd Recommender_API
+uvicorn api.fastapi_app:app --reload --port 8002
 ```
 
-The API will be available at `http://localhost:8000`
+The API will be available at `http://localhost:8002`
 
-## API Endpoint
+## API Endpoints
 
-### GET /query
+### 1. Process Clinical Case
+Processes clinical notes to extract patient information and determine the appropriate ICD-10 code.
 
-Query the antibiotic susceptibility data directly from BigQuery.
+**Endpoint:** `POST /process_clinical_case`
 
-#### Parameters:
-- `diagnosis` (required): Diagnosis code (e.g., J01.90)
-- `gender` (required): Patient gender (Male/Female)
-- `type` (required): Type of results (med/proc)
-- `limit` (optional, default=10): Maximum number of results to return
-- `year` (optional, default=2021): Year of the dataset to use (2021-2024)
-
-#### Example Request:
-```bash
-curl "http://localhost:8000/query?diagnosis=J01.90&gender=Female&type=med&limit=10&year=2021"
-```
-
-#### Example Response:
+**Request Body:**
 ```json
 {
-    "descriptions": [
-        "Amoxicillin",
-        "Azithromycin",
-        "Cephalexin",
-        ...
+    "clinical_question": "Could this patient have stable angina?",
+    "clinical_notes": "55-year-old male presents with chest pain on exertion..."
+}
+```
+
+**Response:**
+```json
+{
+    "patient_age": 55,
+    "patient_gender": "male",
+    "icd10_code": "I25.10",
+    "rationale": "Patient presents with typical symptoms of stable angina...",
+    "error": null
+}
+```
+
+### 2. Get Orders
+Retrieves recommended procedures or medications based on the ICD-10 code and patient information.
+
+**Endpoint:** `POST /get_orders`
+
+**Request Body:**
+```json
+{
+    "icd10_code": "I25.10",
+    "patient_age": 55,
+    "patient_gender": "male",
+    "result_type": "proc",  // or "med"
+    "limit": 10,
+    "min_patients_for_non_rare_items": 10,
+    "year": 2024
+}
+```
+
+**Response:**
+```json
+{
+    "icd10_code": "I25.10",
+    "result_type": "proc",
+    "patient_age": 55,
+    "patient_gender": "male",
+    "data": [
+        {
+            "itemId": "PROC123",
+            "description": "Cardiac Stress Test",
+            "patientRate": 45.5,
+            "encounterRate": 30.2,
+            "nPatientscohortItem": 150,
+            "nEncounterscohortItem": 75,
+            "nPatientsCohortTotal": 330,
+            "nEncountersCohortTotal": 248
+        }
+        // ... more items
     ]
 }
 ```
 
-## Error Handling
+## Example Usage
 
-The API will return appropriate error messages for:
-- Invalid year (must be between 2021 and 2024)
-- Invalid gender (must be Male or Female)
-- Invalid type (must be med or proc)
-- BigQuery authentication or query errors
+You can use the provided example script to test the API:
+
+```bash
+cd Recommender_API/api
+python example_usage.py
+```
+
+Or use curl commands:
+
+```bash
+# Process clinical case
+curl -X POST "http://localhost:8002/process_clinical_case" \
+     -H "Content-Type: application/json" \
+     -d '{
+         "clinical_question": "Could this patient have stable angina?",
+         "clinical_notes": "55-year-old male with chest pain on exertion..."
+     }'
+
+# Get orders
+curl -X POST "http://localhost:8002/get_orders" \
+     -H "Content-Type: application/json" \
+     -d '{
+         "icd10_code": "I25.10",
+         "patient_age": 55,
+         "patient_gender": "male",
+         "result_type": "proc",
+         "limit": 10
+     }'
+```
 
 ## API Documentation
 
-The API provides automatic interactive documentation:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+Once the server is running, you can access the interactive API documentation at:
+- Swagger UI: `http://localhost:8002/docs`
+- ReDoc: `http://localhost:8002/redoc`
 
-These interfaces allow you to:
-- Test the API directly in your browser
-- See all available endpoints
-- View request/response formats
-- Get detailed API documentation
+## Logging
 
-## Project Structure
-```
-Recommender_API/
-├── api/
-│   ├── __init__.py
-│   └── bigquery_api.py        # BigQuery API implementation
-├── scripts/
-│   └── run_api.py            # Script for running batch queries
-├── Notebook/                 # Jupyter notebooks for analysis
-├── csv_output/              # Directory for storing query results
-├── main.py                  # FastAPI application
-├── requirements.txt         # Project dependencies
-└── README.md               # This documentation
-```
+The API logs its operations to `clinical_workflow.log` in the directory where the server is started. You can monitor the logs in real-time using:
 
-## Additional Tools
-
-The project includes several additional components:
-
-1. **Batch Query Script** (`scripts/run_api.py`):
-   - Run batch queries and save results to CSV
-   - Useful for offline analysis and data collection
-
-2. **Analysis Notebooks** (`Notebook/`):
-   - Jupyter notebooks for data analysis
-   - Examples and visualizations
-
-3. **CSV Output** (`csv_output/`):
-   - Directory for storing query results
-   - Used by the batch query script
-
-## Development
-
-To contribute to this project:
-
-1. Clone the repository
-2. Install dependencies
-3. Set up Google Cloud credentials
-4. Run tests and ensure all functionality works
-5. Submit pull requests with clear documentation
-
-## Support
-
-For any issues or questions, please contact the development team. 
+```bash
+tail -f clinical_workflow.log
+``` 
