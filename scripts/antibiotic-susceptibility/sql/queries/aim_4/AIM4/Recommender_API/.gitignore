@@ -41,10 +41,11 @@ Recommender_API/api/
 Recommender_API/Notebook/
 *.log
 
+
 # Jupyter Notebook
 .ipynb_checkpoints
-*.ipynb
 *.log
+*.ipynb
 
 # OS specific
 .DS_Store

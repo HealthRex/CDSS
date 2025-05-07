@@ -14,6 +14,10 @@ from langchain_core.runnables import RunnableLambda
 import re
 import sys
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv("GROQ_API_KEY")
 
 # Add the parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -107,7 +111,7 @@ def extract_patient_info(state: dict) -> dict:
     llm = ChatGroq(
         model_name="Deepseek-R1-Distill-Llama-70b",
         temperature=0.3,
-        api_key= YOUR_API_KEY
+        api_key= api_key
      
     )
     
@@ -145,7 +149,7 @@ def match_icd10_code(state: dict) -> dict:
         
     llm = ChatGroq(
         model="Deepseek-R1-Distill-Llama-70b",
-        api_key='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'
+        api_key= api_key
     )
     
     prompt = f"""
@@ -199,7 +203,7 @@ def validate_icd10_clinical_match(state: dict) -> dict:
     llm = ChatGroq(
         model_name="Deepseek-R1-Distill-Llama-70b",
         temperature=0.3,
-        api_key='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'
+        api_key= api_key
     )
     
     prompt = f"""
