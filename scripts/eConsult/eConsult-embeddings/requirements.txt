@@ -8,3 +8,5 @@ numpy
 pydantic
 fastapi
 uvicorn
+accelerate
+hf_xet
