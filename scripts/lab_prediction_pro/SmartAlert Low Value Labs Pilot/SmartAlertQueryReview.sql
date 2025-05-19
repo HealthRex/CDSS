@@ -16,6 +16,8 @@ params AS
     DATE('2025-03-15') as study_end_date,
     ['SHC AIML LAB CBC STABILITY BASE - LOUD PILOT', 'SHC AIML LAB CBC STABILITY BASE - SILENT'] as alert_descriptions,
     'SHC AIML LAB CBC STABILITY BASE - SILENT' as alert_description_silent,
+    'CBC%' as group_lab_name_prefix,
+    'HGB' as lab_component_base_name,
     28 as followup_hours
 ),
 
@@ -69,16 +71,29 @@ alerts_cbc AS
   WHERE alert_desc IN UNNEST(params.alert_descriptions)
 ),
 
--- Looking for number of lab orders like "%CBC%" with a "HGB" result within 28 hours of an alert firing
+
+-- Look for all CBC with Hgb as a lab result
+cbc_results AS
+(
+  SELECT anon_id, pat_enc_csn_id_coded, 
+    order_id_coded,
+    order_time_jittered, taken_time_jittered, result_time_jittered
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_lab_result` as l,
+    params
+  WHERE UPPER(group_lab_name) LIKE params.group_lab_name_prefix 
+  AND base_name = params.lab_component_base_name 
+),
+
+
+-- Looking for number of lab orders like "CBC%" with a "HGB" result within 28 hours of an alert firing
 -- ???Double check if separate subquery for just CBC results and try joining
 num_cbc_orders_alert AS
 (
   SELECT a.anon_id, a.pat_enc_csn_id_coded, alt_id_coded, alert_desc, update_date_jittered, 
-    COUNT(base_name) AS cbc_count -- Counts number of base names? Could have multiple counts, but filter below screens to only 'HGB' exact match?
+    COUNT(distinct order_id_coded) AS cbc_count
   FROM alerts_cbc a, params
-  LEFT OUTER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_lab_result` l 
+  LEFT OUTER JOIN cbc_results as l  -- Left outer join, because some loud alerts should have resulted in cancelling orders with no matching CBC result in the followup period
     ON a.anon_id = l.anon_id AND a.pat_enc_csn_id_coded = l.pat_enc_csn_id_coded
-    AND UPPER(group_lab_name) LIKE '%CBC%' AND base_name = 'HGB' 
     AND l.result_time_jittered BETWEEN a.update_date_jittered AND a.update_date_jittered + INTERVAL params.followup_hours HOUR
     -- Look for labs that RESULT within 28 hours of alert firing (maybe should be collected, not resulted, otherwise catching some cases where got collected just before order? Fatemeh A said she tried "taken_time" instead, and didn't make much difference)
   GROUP BY a.anon_id, pat_enc_csn_id_coded, alt_id_coded, alert_desc, update_date_jittered
@@ -90,27 +105,40 @@ num_cbc_orders_alert AS
 --??? Double check if just use random flag and only "Silent" alerts (should happen at same time as loud alerts)
 alertStudyResults AS
 (
-  SELECT mrn, anon_id, pat_enc_csn_id_coded, alt_id_coded, alert_desc, update_date_jittered - INTERVAL jitter DAY AS update_date, cbc_count, random_flag.random_flag 
+  SELECT mrn, anon_id, pat_enc_csn_id_coded, alt_id_coded, alert_desc, update_date_jittered - INTERVAL jitter DAY AS update_date, cbc_count, cbc_count>0 as cbc_any, random_flag.random_flag 
   FROM num_cbc_orders_alert INNER JOIN random_flag USING (anon_id, pat_enc_csn_id_coded)
   INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` USING (anon_id),
   params
   WHERE NOT (alert_desc = params.alert_description_silent AND random_flag.random_flag = params.flag_treatment) 
   -- Is this getting intervention or control??? Or screens out the "silent" alerts for the "loud" implementation, to avoid confusion?
+  --WHERE alert_desc = params.alert_description_silent -- Or filter to just silent alerts that should fire in both treatment and control?
+    -- Counting this way gets the same number of control patients, but gets a few more intervention/treatment cases
+    -- (305 patients, 316 encounters/alerts compared to 298 patients, 309 encounters/alerts)
   ORDER BY update_date
 )
-/*
-select count(distinct anon_id) as nPatients, count(distinct pat_enc_csn_id_coded) as nEnc, count(*) as altCount
+
+/* -- Baseline counts for number of hospitalizations from the units during the time period
+select count(distinct anon_id) as nPatients, count(distinct pat_enc_csn_id_coded) as nEnc
 from hospital_stays_selected
 where los_hours > 72
 limit 100
 */
 
-select alert_desc, count(distinct mrn) as nPatients, count(distinct pat_enc_csn_id_coded) as nEnc, count(*) as altCount
+-- Summary results for cases
+select alert_desc, random_flag,
+ sum(cbc_count)/count(cbc_count) as avg_cbc_count, 
+ countif(cbc_any)/count(cbc_any) as percent_cbc_any,
+ count(distinct mrn) as nPatients, count(distinct pat_enc_csn_id_coded) as nEnc, count(distinct alt_id_coded) as alertCount, 
 from alertStudyResults
-group by alert_desc
+group by alert_desc, random_flag
 limit 100
 
-
+/*
+-- Get all results so can export it to analysis program for statistical testing
+select * 
+from alertStudyResults
+order by random_flag
+*/
 /*
 Here’s the code for analysis: 
 
