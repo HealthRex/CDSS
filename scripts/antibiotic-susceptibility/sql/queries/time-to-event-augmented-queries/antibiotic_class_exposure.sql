@@ -22,4 +22,5 @@ WITH class_exposure AS (
 )
 SELECT *
 FROM class_exposure
+    where medication_time_to_cultureTime>0
 )

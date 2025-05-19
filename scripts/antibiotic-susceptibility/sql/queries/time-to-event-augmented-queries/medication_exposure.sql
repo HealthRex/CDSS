@@ -171,6 +171,7 @@ select c.*,
 from base_cohort c
 left join valid_antibiotics pae
 using(anon_id,pat_enc_csn_id_coded,order_proc_id_coded,order_time_jittered_utc)
+where medication_time_to_cultureTime>0
 group by anon_id,pat_enc_csn_id_coded,order_proc_id_coded,order_time_jittered_utc,medication_time,medication_time_to_cultureTime,medication_name,medication_category
 order by anon_id,pat_enc_csn_id_coded,order_proc_id_coded,order_time_jittered_utc,medication_time_to_cultureTime,medication_time,medication_name,medication_category
 )

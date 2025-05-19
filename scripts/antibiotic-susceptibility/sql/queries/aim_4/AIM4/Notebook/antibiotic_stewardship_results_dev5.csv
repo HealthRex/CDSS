@@ -1,0 +1,4 @@
+Cohort,Starting,Optimal,Overt_Treat,Under_Treat,Over_Prescribe,AST_Not_Performed,Dev1,Dev2,Dev3,Dev4,Dev5
+Adult ED,74991,1009,16542,5261,42840,9339,4041,10244,1770,441,46
+PEDs ED,7415,191,756,399,4646,1223,228,497,28,3,0
+Adult Outpatient,47218,1511,8461,1410,32079,3757,5481,2718,153,90,19
