@@ -20,6 +20,9 @@ SQL Queries and Databases
   - Subqueries
   - Inner Join, Outer Join
 
+  - Common Table Expressions / Saved Queries
+  - Parameterizing Above
+
 - Bonus Topics to lookup but not covered here:
   - Indexes
   - Explain Queries
@@ -379,6 +382,34 @@ SQL Queries and Databases
 	LIMIT 100
 
 
+  - Designating a "params" temporary table to designate modifiable parameters in a saved query, so don't have to hardcode "magic numbers" and values in the core code.
+    Example around querying for primary care encounters referring to different specialties
+
+		WITH 
+		-- Set modifiable query parameters in one place here, so can abstract the subsequent queries structures below
+		-- Replace values to those of different cohorts of interest
+		-- https://stackoverflow.com/questions/29759628/setting-big-query-variables-like-mysql
+		-- https://medium.com/google-cloud/how-to-work-with-array-and-structs-in-bigquery-9c0a2ea584a6
+		params AS 
+		(
+			select 
+				2020
+					as cohortYear,			-- Restrict to one year for simplicity
+				['9','17','125','2527']
+					as primaryCareDepIds, -- dep_map.specialty in 'Family Medicine','Internal Medicine','Primary Care','Express Care'
+		)
+
+		-- Query for all relevant encounters (primary care variations in this case)
+		select enc.anon_id, enc.pat_enc_csn_id_coded as encounterId, 
+			enc.appt_when_jittered as encounterDateTime, 
+	  	dep.specialty_dep_c, dep.specialty
+		from `shc_core_2021.encounter` as enc 
+		  	join `shc_core_2021.dep_map` as dep on enc.department_id = dep.department_id,
+		  	params -- Add the params temporary table as a general join which basically adds static columns to every query result that can be joined
+		where dep.specialty_dep_c in UNNEST(params.primaryCareDepIds) -- Use UNNEST to pull out a list of possible values
+		and appt_type in ('Office Visit','Appointment') -- Otherwise Telephone, Refill, Orders Only, etc.
+		and appt_status = 'Completed'
+		and extract(YEAR from enc.appt_time_jittered) = params.cohortYear -- Match to an individual parameter value
 
 - Challenge Queries
   - Top 10 Diagnoses recorded in 2017? In 2018?
