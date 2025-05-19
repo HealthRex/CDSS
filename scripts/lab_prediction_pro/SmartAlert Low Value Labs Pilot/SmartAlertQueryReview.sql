@@ -1,10 +1,30 @@
+-- Queries to extract out results of Low Value Labs SmartAlert pilot RCT
+
 WITH 
+-- Set modifiable query parameters in one place here, so can abstract the subsequent queries structures below
+-- Replace values to those of different cohorts of interest
+-- https://stackoverflow.com/questions/29759628/setting-big-query-variables-like-mysql
+-- https://medium.com/google-cloud/how-to-work-with-array-and-structs-in-bigquery-9c0a2ea584a6
+params AS
+(
+  select
+    'SHC#6051' as randomization_concept_id,
+    '1' as flag_treatment,
+    '2' as flag_control,
+    ['B3', 'C3', 'M7', 'L7', '1%WEST%', '2%NORTH%', '2%WEST%', '3%WEST%'] as target_department_units,
+    DATE('2024-08-15') as study_start_date,
+    DATE('2025-03-15') as study_end_date,
+    ['SHC AIML LAB CBC STABILITY BASE - LOUD PILOT', 'SHC AIML LAB CBC STABILITY BASE - SILENT'] as alert_descriptions,
+    'SHC AIML LAB CBC STABILITY BASE - SILENT' as alert_description_silent,
+    28 as followup_hours
+),
+
 -- See which encounters have been randomized to intervention vs. control?
 random_flag AS
 (
   SELECT anon_id, pat_enc_csn_id_coded, smrtdta_elem_value AS random_flag 
-  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_smrtdta` 
-  WHERE concept_id = 'SHC#6051' -- Move to separate parameter list
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_smrtdta`, params
+  WHERE concept_id = params.randomization_concept_id -- Move to separate parameter list
 ),
 
 -- Look for any discharges from the units of interest (note that this misses patients who were on those units at different times but moved to a different unit for discharge)
@@ -13,9 +33,10 @@ discharges_selected AS
   SELECT anon_id, pat_enc_csn_id_coded, effective_time_jittered, department_name 
   FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt`
     INNER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_dep_map` USING(department_id) 
-    INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` USING (anon_id)
-    WHERE event_type = 'Discharge' AND UPPER(department_name) LIKE ANY ('B3', 'C3', 'M7', 'L7', '1%WEST%', '2%NORTH%', '2%WEST%', '3%WEST%') -- Move to a separate parameter/constants list for easy editing later
-    AND effective_time_jittered - INTERVAL jitter DAY BETWEEN '2024-08-15' AND '2025-03-15'
+    INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` USING (anon_id), -- Specific dated mapping table could become out of date?
+    params
+    WHERE event_type = 'Discharge' AND UPPER(department_name) LIKE ANY UNNEST(params.target_department_units)
+    AND (effective_time_jittered - INTERVAL jitter DAY) BETWEEN params.study_start_date AND params.study_end_date
 ),
 
 -- Look for any admission events
@@ -43,8 +64,9 @@ alerts_cbc AS
   SELECT DISTINCT anon_id, pat_enc_csn_id_coded, alt_id_coded, alert_desc, his.update_date_jittered 
   FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_alert` alt 
   INNER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_alert_history` his USING (anon_id, alt_id_coded)
-  INNER JOIN hospital_stays_selected USING (anon_id, pat_enc_csn_id_coded)
-  WHERE alert_desc IN ('SHC AIML LAB CBC STABILITY BASE - LOUD PILOT', 'SHC AIML LAB CBC STABILITY BASE - SILENT') -- Named units
+  INNER JOIN hospital_stays_selected USING (anon_id, pat_enc_csn_id_coded),
+  params
+  WHERE alert_desc IN UNNEST(params.alert_descriptions)
 ),
 
 -- Looking for number of lab orders like "%CBC%" with a "HGB" result within 28 hours of an alert firing
@@ -53,11 +75,12 @@ num_cbc_orders_alert AS
 (
   SELECT a.anon_id, a.pat_enc_csn_id_coded, alt_id_coded, alert_desc, update_date_jittered, 
     COUNT(base_name) AS cbc_count -- Counts number of base names? Could have multiple counts, but filter below screens to only 'HGB' exact match?
-  FROM alerts_cbc a
+  FROM alerts_cbc a, params
   LEFT OUTER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_lab_result` l 
     ON a.anon_id = l.anon_id AND a.pat_enc_csn_id_coded = l.pat_enc_csn_id_coded
     AND UPPER(group_lab_name) LIKE '%CBC%' AND base_name = 'HGB' 
-    AND l.result_time_jittered BETWEEN a.update_date_jittered AND a.update_date_jittered + INTERVAL 28 HOUR -- Look for labs that RESULT within 28 hours of alert firing (maybe should be collected, not resulted, otherwise catching some cases where got collected just before order?)
+    AND l.result_time_jittered BETWEEN a.update_date_jittered AND a.update_date_jittered + INTERVAL params.followup_hours HOUR
+    -- Look for labs that RESULT within 28 hours of alert firing (maybe should be collected, not resulted, otherwise catching some cases where got collected just before order? Fatemeh A said she tried "taken_time" instead, and didn't make much difference)
   GROUP BY a.anon_id, pat_enc_csn_id_coded, alt_id_coded, alert_desc, update_date_jittered
 ),
 
@@ -69,12 +92,12 @@ alertStudyResults AS
 (
   SELECT mrn, anon_id, pat_enc_csn_id_coded, alt_id_coded, alert_desc, update_date_jittered - INTERVAL jitter DAY AS update_date, cbc_count, random_flag.random_flag 
   FROM num_cbc_orders_alert INNER JOIN random_flag USING (anon_id, pat_enc_csn_id_coded)
-  INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` USING (anon_id)
-  WHERE NOT (alert_desc = 'SHC AIML LAB CBC STABILITY BASE - SILENT' AND random_flag.random_flag = '1') -- Is this getting intervention or control??? Or screens out the "silent" alerts for the "loud" implementation, to avoid confusion?
+  INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` USING (anon_id),
+  params
+  WHERE NOT (alert_desc = params.alert_description_silent AND random_flag.random_flag = params.flag_treatment) 
+  -- Is this getting intervention or control??? Or screens out the "silent" alerts for the "loud" implementation, to avoid confusion?
   ORDER BY update_date
 )
-
-
 /*
 select count(distinct anon_id) as nPatients, count(distinct pat_enc_csn_id_coded) as nEnc, count(*) as altCount
 from hospital_stays_selected
