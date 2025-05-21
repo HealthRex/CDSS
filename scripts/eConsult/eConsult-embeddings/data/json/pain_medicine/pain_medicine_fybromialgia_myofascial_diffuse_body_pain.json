@@ -1,0 +1,75 @@
+[
+  {
+    "My Clinical Question (condition: Fibromyalgia/Myofascial/Diffuse Body Pain)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Date of onset? Duration?": "***"
+        },
+        {
+          "Pain location(s)? Trigger points?": "***"
+        },
+        {
+          "Associated symptoms (cognitive impairment/fogginess, fatigue, sleep disturbance, low mood)? Frequency? Severity?": "***"
+        },
+        {
+          "Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?": "***"
+        },
+        {
+          "Psychiatric diagnoses?": "***"
+        },
+        {
+          "Pertinent comorbidities?": "***"
+        },
+        {
+          "Working with any behavioral or mental health specialist(s)?": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "CMP": "***"
+        },
+        {
+          "CRP": "***"
+        },
+        {
+          "ESR": "***"
+        },
+        {
+          "CBC": "***"
+        },
+        {
+          "TSH": "***"
+        },
+        {
+          "HA1c": "***"
+        },
+        {
+          "Vitamin D": "***"
+        },
+        {
+          "Relevant imaging": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Fibromyalgia diagnosis incorporates both widespread muscle pain and associated cognitive symptoms (fatigue, depression, mental fogginess, sleep disruption)": "***"
+        },
+        {
+          "Consistent moderate exercise (walking, yoga, warm aquatic therapy, etc) for 15-30 minutes 3 times a week can improve both the widespread pain and mood/sleep/cognitive symptoms of fibromyalgia": "***"
+        },
+        {
+          "Myofascial pain typically involves point tenderness in a muscle belly, but can also be associated with a variety of referred pain patterns due to terminal nerve branches getting trapped in the tense muscle; less associated with cognitive symptoms": "***"
+        },
+        {
+          "Common treatments for myofascial pain include PT, trigger point injections, dry needling, integrative medicine, and massage": "***"
+        }
+      ]
+    }
+  }
+]
