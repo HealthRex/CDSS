@@ -1,0 +1,63 @@
+[
+  {
+    "My Clinical Question (condition: neuropathy/neuralgia/neuritis)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Etiology (if known)? Location? Onset?": "***"
+        },
+        {
+          "Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?": "***"
+        },
+        {
+          "Working with any behavioral or mental health specialist(s)?": "***"
+        },
+        {
+          "Any imaging or other studies?": "***"
+        },
+        {
+          "BMI?": "***"
+        }
+      ],
+      "Diagnostics": {
+        "Required": [
+          {
+            "EMG/NCV": "***"
+          },
+          {
+            "TSH": "***"
+          },
+          {
+            "B12": "***"
+          },
+          {
+            "Treponema Ab": "***"
+          },
+          {
+            "HA1c": "***"
+          },
+          {
+            "CMP": "***"
+          },
+          {
+            "CBC": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Cervical MRI": "***"
+          },
+          {
+            "Nerve conduction studies / Electromyography": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": []
+    }
+  }
+]
