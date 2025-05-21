@@ -1,0 +1,45 @@
+[
+  {
+    "My Clinical Question (condition: persistent post-op pain)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Inciting event? Quality? Timing? Location? Alleviating/aggravating factors?": "***"
+        },
+        {
+          "Any pre-existing chronic pain?": "***"
+        },
+        {
+          "Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?": "***"
+        },
+        {
+          "Pertinent comorbidities?": "***"
+        },
+        {
+          "Surgical procedure(s) associated with pt’s pain? Dates?": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "Relevant imaging": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Pre-procedure pain often predicts post-procedure pain": "***"
+        },
+        {
+          "Having a pain management plan going into the procedure can be beneficial": "***"
+        },
+        {
+          "Persistent post operative pain often has significant neuropathic component and therefore can respond well to anti-neuropathic treatments": "***"
+        }
+      ]
+    }
+  }
+]
