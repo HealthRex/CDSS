@@ -1,0 +1,85 @@
+[
+  {
+    "My Clinical Question (condition: rheumatoid arthritis)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "SPECIAL NOTE": "Please do NOT order an eConsult for fibromyalgia. This should instead be referred."
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Suspected or confirmed diagnosis?": "***"
+          },
+          {
+            "How and when diagnosis was made (attach prior rheumatologist’s notes if applicable)?": "***"
+          },
+          {
+            "Presence / location of joint swelling. Are small joints primarily affected? Pain for > 6 weeks?": "***"
+          },
+          {
+            "Current and previous treatment modalities?": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "Rheumatoid Factor (RF)": "***"
+          },
+          {
+            "Anti-CCP Ab": "***"
+          },
+          {
+            "CBC w diff": "***"
+          },
+          {
+            "Erythrocyte Sedimentation Rate (ESR)": "***"
+          },
+          {
+            "CRP": "***"
+          },
+          {
+            "CMP": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Hand and foot x-rays": "***"
+          },
+          {
+            "Quantiferon": "***"
+          },
+          {
+            "Hepatitis B core antibody (Anti-HBc – total or IgG)": "***"
+          },
+          {
+            "Antibody to Hepatitis C Virus (Anti-HCV)": "***"
+          },
+          {
+            "Antibody to Hepatitis B Surface Antibody Antigen (Anti-HBsAb)": "***"
+          },
+          {
+            "Hepatitis B Surface Antigen (HBsAg)": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        {
+          "If POS RF and NEG Anti-CCP, check Hep C antibody": "***"
+        },
+        {
+          "Assure reliable contraception if applicable": "***"
+        },
+        {
+          "Possible biologics? Screen TB and hepatitis serologies": "***"
+        }
+      ]
+    }
+  }
+]
