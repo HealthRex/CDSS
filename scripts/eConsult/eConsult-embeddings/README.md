@@ -23,8 +23,10 @@ This project extracts and embeds eConsult templates to enable similarity searche
    ```
 
 ## Command Line Usage
-✅ 1. Extract Text from Templates
+1. **Extract Text from Templates**
+
 This script will extract text from all .docx templates and save them as .txt files in the data/ folder.
+
 ```bash
 python3 embeddings/extract_all_templates.py
 
@@ -37,7 +39,8 @@ You will see outputs like:
 ...
 ```
 
-✅ 2. Run Embedding & Similarity Search
+2. **Run Embedding & Similarity Search**
+
 Use this script to embed all templates and run similarity searches against a clinical question.
 ```bash
 python3 embeddings/embedding_generator.py
