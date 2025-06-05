@@ -1,10 +1,12 @@
 # eConsult Embedding System
 
 ## Overview
-This project extracts and embeds eConsult templates to enable similarity searches between clinical questions and the appropriate eConsult templates. The system uses embeddings to recommend the most relevant template based on cosine similarity scores.
+This project extracts and embeds eConsult templates to enable similarity searches between clinical questions and the appropriate eConsult templates. The system uses embeddings to recommend the most relevant template based on cosine similarity scores. It can be used on the command line or as a REST API.
 
+## Command Line Usage
 
 ## Installation
+
 1. **Clone the repository:**
    ```bash
    git clone <repository_url>
@@ -22,7 +24,8 @@ This project extracts and embeds eConsult templates to enable similarity searche
    pip install -r requirements.txt
    ```
 
-## Command Line Usage
+## Usage
+
 1. **Extract Text from Templates**
 
    This script will extract text from all .docx templates and save them as .txt files in the data/ folder.
@@ -47,12 +50,12 @@ This project extracts and embeds eConsult templates to enable similarity searche
    ```
 
    You will be prompted to enter a clinical question:
-   ```bash
+   ```
    Enter a clinical question: What are the best insulin management strategies for type 2 diabetes?
    ```
 
    The system will output cosine similarity scores for each template and recommend the best match:
-   ```bash
+   ```
    📊 Cosine Similarity Scores:
    Endocrinology eConsult Checklists FINAL 4.19.22.docx: 0.9142
    Cardiology eConsult Checklists.docx: 0.4028
@@ -64,12 +67,14 @@ This project extracts and embeds eConsult templates to enable similarity searche
 ## API Usage
 
 ### Local Development
-Start the FastAPI server locally with hot reloading:
+You can start the API server locally with hot reloading which is useful for local development:
 ```bash
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### Docker Deployment
+You can also run and deploy the API server in a docker container.
+
 1. **Build the Docker image:**
    ```bash
    docker build -t econsult-embeddings .
