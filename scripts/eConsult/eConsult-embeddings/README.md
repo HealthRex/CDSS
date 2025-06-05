@@ -72,6 +72,8 @@ You can start the API server locally with hot reloading which is useful for loca
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
+The service will become available on [http://localhost:8000/](http://localhost:8000/). See "Example Usage" below to test the service.
+
 ### Docker Deployment
 You can also run and deploy the API server in a docker container.
 
@@ -84,6 +86,8 @@ You can also run and deploy the API server in a docker container.
    ```bash
    docker run -p 8000:8000 econsult-embeddings
    ```
+
+The service will become available on [http://localhost:8000/](http://localhost:8000/). See "Example Usage" below to test the service.
 
 ### API Endpoints
 
