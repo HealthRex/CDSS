@@ -30,11 +30,38 @@ client = bigquery.Client("som-nero-phi-jonc101")
 api = BigQueryAPI()
 
 # Set up logging
+class NonEmptyFileHandler(logging.FileHandler):
+    def __init__(self, filename, mode='a', encoding=None, delay=False):
+        super().__init__(filename, mode, encoding, delay=True)
+        self.filename = filename
+        self._has_logged = False
+
+    def emit(self, record):
+        if not self._has_logged:
+            self._has_logged = True
+            self._open()
+        super().emit(record)
+
+    def close(self):
+        if self._has_logged:
+            super().close()
+        else:
+            # If no logs were written, remove the empty file
+            try:
+                os.remove(self.filename)
+            except OSError:
+                pass
+
+# Create logs directory if it doesn't exist
+log_dir = "logs"
+os.makedirs(log_dir, exist_ok=True)
+
+# Set up logging with the custom handler
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(f'clinical_workflow_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.log'),
+        NonEmptyFileHandler(os.path.join(log_dir, f'clinical_workflow_{datetime.datetime.now().strftime("%Y%m%d")}.log')),
         logging.StreamHandler()
     ]
 )
