@@ -24,7 +24,7 @@ class BigQueryAPI:
         params: Dict[str, Union[str, int, None]],
         min_patients_for_non_rare_items: int = 10,
         result_type: str = "med",  # Options: "proc", "med"
-        limit: int = 100,
+        limit: int = 10,
         year: int = 2024  # Default to 2024 if not specified
     ) -> pd.DataFrame:
         """Get common orders based on patient parameters and filters.
