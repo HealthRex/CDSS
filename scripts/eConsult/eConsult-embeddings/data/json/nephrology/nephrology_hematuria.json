@@ -1,0 +1,61 @@
+[
+  {
+    "My Clinical Question (condition: hematuria)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "Red Flags – Do NOT place eConsult and consider urgent/inpatient evaluation if vertigo is accompanied by focal neurologic findings (weakness, sensory changes, facial droop), strongly consider an expedited workup for stroke/TIA": "***"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Gross versus microscopic hematuria?": "***"
+          },
+          {
+            "Clinical context (urinary symptoms, flank pain, recent URI, UTI or other infection)": "***"
+          },
+          {
+            "Medication use (antibiotics, NSAIDS/COX2-inhibitors)": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "BMP": "***"
+          },
+          {
+            "CBC": "***"
+          },
+          {
+            "UA with microscopy": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Renal/bladder ultrasound, if some abdominal/pelvic imaging not recently done": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        {
+          "Referral to Urology is recommended for gross hematuria (any age) or microscopic hematuria with GU malignancy risk factors (age >35, history of smoking, occupational exposures)": "***"
+        },
+        {
+          "Confirms heme positive dipstick with automated urine microscopy (significant is >=3 rbcs/hpf)": "***"
+        },
+        {
+          "If new hematuria is accompanied by rising creatinine, confirm recent renal imaging and refer to nephrology": "***"
+        },
+        {
+          "For microscopic (not GROSS) hematuria with stable creatinine and potential transient causes (UTI, menses, vigorous exercise) – repeat UA in 4-6 weeks. If resolved hematuria, then no further workup required": "***"
+        }
+      ]
+    }
+  }
+]
