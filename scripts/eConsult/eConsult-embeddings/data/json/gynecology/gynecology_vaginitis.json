@@ -1,0 +1,29 @@
+{
+  "specialist": "Gynecology",
+  "template": "Vaginitis",
+  "required_info": [
+    "What are the symptoms?",
+    "How long have the symptoms been present?",
+    "Has any treatment been used and was it effective?",
+    "Is the patient sexually active?",
+    "If yes, any new sexual partner in the past year?",
+    "If partner(s) has a penis, any current contraceptive method?",
+    "Any recent antibiotic use or hygiene changes?",
+    "Is this problem recurrent (>4 times/year)?"
+  ],
+  "optional_info": [],
+  "diagnostics_required": [
+    "Pelvic exam",
+    "GC/Chlamydia (CT)",
+    "Urinalysis with microscopy and reflex culture",
+    "Urine or serum pregnancy test",
+    "Wet mount with pH and microscopy or equivalent (e.g. Affirm/genital culture)"
+  ],
+  "diagnostics_optional": [
+    "Yeast culture",
+    "Trichomonas"
+  ],
+  "clinical_pearls": [
+    "Vaginal discharge without other symptoms can be physiologic."
+  ]
+}

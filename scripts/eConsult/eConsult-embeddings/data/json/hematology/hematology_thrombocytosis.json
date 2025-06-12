@@ -1,0 +1,78 @@
+[
+  {
+    "The following situations are generally inappropriate for thrombocytosis eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]": [
+      "Presence of uncommon cells on differential or slide review: (e.g. nucleated RBCs, blasts, atypical lymphocytes such as smudge cells or hairy cells)",
+      "Unexplained adenopathy or constitutional/B symptoms (e.g. fever, weight loss, or drenching night sweats)",
+      "Patients with active cardiovascular symptoms chest pain, stroke-like symptoms or vasomotor symptoms (headaches, visual changes, fatigue)",
+      "Venous or arterial thrombosis in setting of thrombocytosis",
+      "Platelet count > 1.0 million"
+    ]
+  },
+  {
+    "My Clinical Question (condition: thrombocytosis)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Documented exam for hepatosplenomegaly (Otherwise an abdominal US should be considered if there is no recent cross-sectional imaging in the past year)": "***"
+          },
+          {
+            "Recent surgery or medical illness": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "CBC with diff (on two consecutive checks at least one week apart)": "***"
+          },
+          {
+            "CMP": "***"
+          },
+          {
+            "Ferritin": "***"
+          },
+          {
+            "Transferrin saturation": "***"
+          },
+          {
+            "ESR": "***"
+          },
+          {
+            "CRP": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Clinical Pearls": [
+        {
+          "Patients with a suspected reactive thrombocytosis are not thought to be at greater risk for thrombosis due to the platelet count itself": "***"
+        },
+        {
+          "Patients with extreme thrombocytosis, platelet count > 1.0 million (more often 1.5 million) can present with paradoxical bleeding from acquired von Willebrand disease": "***"
+        },
+        {
+          "Patients with essential thrombocytosis may complain of fever, night sweats, weight loss, aquagenic pruritus, erythromelalgia, or early satiety. If early satiety is present, a splenic ultrasound can help build a case for a myeloproliferative neoplasm": "***"
+        },
+        {
+          "Asplenic state can lead to chronic thrombocytosis": "***"
+        },
+        {
+          "The majority of thrombocytoses are reactive and efforts should be made to evaluate for inflammatory conditions (rheumatologic, infectious, malignancy) or to associate with recent hospitalizations/surgeries": "***"
+        },
+        {
+          "Iron deficiency is a common cause of reactive thrombocytosis": "***"
+        },
+        {
+          "If workup is negative, we may consider searching for an essential thrombocytosis by sending off mutations associated with MPN including JAK2 V617F, CALR, and MPL": "***"
+        }
+      ]
+    }
+  }
+]

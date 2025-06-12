@@ -1,0 +1,30 @@
+{
+  "specialist": "Endocrinology",
+  "template": "Diabetes Mellitus",
+  "text": "My Clinical Question (condition: diabetes mellitus): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
+  "structured": {
+    "required_info": [
+      "Is the patient currently taking medication to treat diabetes? If yes, please describe.",
+      "Is this a new diagnosis of diabetes mellitus? If not, when was the patient diagnosed with diabetes?",
+      "What type of diabetes mellitus does the patient have? (Type I or Type II)",
+      "Insulin (including pump) or non-insulin dependent"
+    ],
+    "optional_info": [
+      "Diabetic complications (e.g., CKD, CHF, CAD)",
+      "Glucose logs (if available)"
+    ],
+    "diagnostics": {
+      "required": [
+        "Hemoglobin A1c (HbA1c)",
+        "Fasting Lipid Profile",
+        "Fasting Glucose",
+        "Liver Function Tests",
+        "Basic Metabolic Panel"
+      ],
+      "optional": [
+        "GAD antibodies",
+        "C-peptide level"
+      ]
+    }
+  }
+}

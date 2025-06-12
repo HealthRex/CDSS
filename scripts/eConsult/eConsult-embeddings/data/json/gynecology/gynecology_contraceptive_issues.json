@@ -1,0 +1,19 @@
+{
+  "specialist": "Gynecology",
+  "template": "Contraceptive Issues",
+  "required_info": [
+    "Is the patient a smoker?",
+    "Does the patient have a history of hypertension, thrombophilia, estrogen-dependent tumors/cancer, migraines with aura, or seizure disorder?",
+    "Prior methods of birth control used",
+    "Prior side effects of birth control",
+    "Reproductive goals/plan in the next 1–5 years"
+  ],
+  "optional_info": [],
+  "diagnostics_required": [],
+  "clinical_pearls": [
+    "Hormonal birth control options often have minimal side effects after the first 2-3 months of use.",
+    "Consider STI screening.",
+    "For providers: https://www.cdc.gov/reproductivehealth/contraception/mmwr/mec/summary.html",
+    "For patients: https://www.bedsider.org/"
+  ]
+}
