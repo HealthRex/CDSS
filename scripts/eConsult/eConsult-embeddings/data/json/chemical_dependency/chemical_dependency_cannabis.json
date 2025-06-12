@@ -1,0 +1,36 @@
+{
+  "specialist": "Chemical Dependency",
+  "template": "Cannabis",
+  "text": "My Clinical Question (condition: cannabis): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
+  "structured": {
+    "required_info": [
+      "Is the patient pregnant or planning to become pregnant?",
+      "Is the patient using tobacco, is it combustible or vaped, and are they interested in cutting back or stopping?",
+      "Type, route, amount, frequency of cannabis usage?",
+      "Attempts to cut back or stop cannabis use?",
+      "Effects on occupational, academic or social functioning?",
+      "Is the patient psychotic? Do they have psychiatric illness?",
+      "Suspected/known other substance use disorders?",
+      "Other medical comorbidities?",
+      "Family history of SUD or psychotic illness?"
+    ],
+    "tests_recommended": [
+      "UTox",
+      "Not required for consult but recommended: STD Screening if not done recently — HIV, RPR/VDRL, GC, Chlamydia, HCV for all SUD patients"
+    ],
+    "clinical_pearls": [
+      "Systematic review of cannabis literature: https://www.ncbi.nlm.nih.gov/books/NBK423845/",
+      "Objective patient education reference: *From Bud to Brain: A Psychiatrist’s View of Marijuana* by Timmen L. Cermak",
+      "Cannabis use disorder exists and includes tolerance and withdrawal.",
+      "Cannabis can be difficult to stop, especially given increased legalization and decriminalization.",
+      "Youth are particularly vulnerable — adult influence can be a motivator for cessation.",
+      "Early cannabis use (before age 18) increases the risk of long-term use disorder and may lead to irreversible cognitive changes.",
+      "Underlying anxiety is common in cannabis dependence; treating anxiety may support cessation.",
+      "There are no FDA-approved medications for cannabis use disorder.",
+      "Meta-analyses show SSRIs, mixed/atypical antidepressants are not effective for cannabis dependence, but may help comorbid conditions.",
+      "Weak evidence exists for gabapentin and N-acetyl cysteine.",
+      "To monitor abstinence: order THC and creatinine, then follow the THC:creatinine ratio (not absolute levels) due to adipose release.",
+      "Frequent follow-up and ongoing monitoring in primary care is a key step in addressing cannabis use."
+    ]
+  }
+}
