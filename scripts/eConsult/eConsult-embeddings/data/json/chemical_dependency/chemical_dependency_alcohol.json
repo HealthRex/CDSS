@@ -1,0 +1,36 @@
+{
+  "specialist": "Chemical Dependency",
+  "template": "Alcohol",
+  "text": "My Clinical Question (condition: alcohol): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
+  "structured": {
+    "required_info": [
+      "Is your concern chronic benzodiazepines for anxiety, insomnia, or pain and a desire to help taper the patient? Or does this person have a benzodiazepine use disorder (e.g. using street xanax or taking more than you are prescribing)?",
+      "Is the patient pregnant or planning to become pregnant?",
+      "Is the patient using tobacco, is it combustible or vaped, and are they interested in cutting back or stopping?",
+      "Type, amount, frequency of benzodiazepine usage?",
+      "Suspected/known other substance use disorders? Psychiatric diagnoses?",
+      "Other medical comorbidities?",
+      "Most recent CURES report appropriate? (You may go under COMPACT MESSAGING under patient’s CURES report and message a physician of any concerns of co-prescribing)",
+      "Does the patient wish to taper?",
+      "Or are you concerned about safety, especially if it is co-prescribed with opioids?"
+    ],
+    "tests_recommended": [
+      "UTox - recall the active metabolites of diazepam include temazepam",
+      "Not necessary for consult, but recommend STD Screening if not done recently: HIV, RPR/VDRL, GC, Chlamydia, HCV for all SUD patients"
+    ],
+    "clinical_pearls": [
+  "Long-term benzodiazepine exposure results in downregulation of the GABA/inhibitory response and upregulation of the excitatory neurotransmitter system. Benzodiazepine withdrawal is often painful, difficult, and tapering may take many months to years. Withdrawal can include severe, chronic paresthesias, photosensitivity, tinnitus, anxiety, and insomnia.",
+  "For a very helpful manual on benzodiazepines including taper schedules: Ashton Manual – https://www.benzo.org.uk/manual/",
+  "Helpful phrasing for counseling: “Tolerance to anxiolytic effects of benzodiazepines seems to develop more slowly, but there is little evidence that benzodiazepines retain their effectiveness after 4 months of regular treatment and clinical observations suggest that long-term benzodiazepine use over the years does little to control, and may even aggravate, anxiety states.”",
+  "Withdrawal from benzodiazepines is similar to alcohol withdrawal and may include seizures. Withdrawals may occur as early as 2 weeks into treatment, and severity depends on potency, half-life, and duration of use.",
+  "Benzodiazepines should always be tapered with care and based on the patient’s readiness.",
+  "Golden rule of benzo tapers: “never go back up.” Once a small dose reduction (5–10%) occurs, hold that dose for at least 4 weeks. Patients can hold for 4–6 more weeks if not ready to taper further, but never increase the dose again.",
+  "To reduce temptation to increase the dose, refill only 2 weeks at a time and conduct pill counts or avoid early refills.",
+  "Adjunctive medications such as gabapentinoids (gabapentin, pregabalin) or other anti-convulsants like carbamazepine may help manage withdrawal symptoms.",
+  "For smaller incremental tapers not available in standard formularies, compounding pharmacies may be used:\n- https://www.koshlandpharm.com/\n- https://www.sjcpharmacy.com/\n- https://www.pharmacarx.com/\n- https://www.marinerpharmacy.com/\n- https://www.safeway.com/pharmacy/pharmacy-services/compounding-services.html",
+  "Alternative strategy: Swap shorter-acting benzodiazepines (e.g. lorazepam, alprazolam, clonazepam) with longer-acting ones (e.g. chlordiazepoxide or diazepam), which self-taper via active metabolites (e.g. nor-diazepam, oxazepam).",
+  "Once all doses are transitioned to chlordiazepoxide or diazepam, tapering becomes relatively safe and effective due to their long-acting nature.",
+  "As tapering progresses, monitor and discuss use of other substances (e.g. alcohol, cannabis, opioids), and ask about any 'natural' remedies they may be using (e.g. valerian root, kratom)."
+]
+  }
+}
