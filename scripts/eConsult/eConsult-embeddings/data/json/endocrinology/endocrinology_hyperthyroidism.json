@@ -1,0 +1,26 @@
+{
+  "specialist": "Endocrinology",
+  "template": "Hyperthyroidism",
+  "text": "My Clinical Question (condition: hyperthyroidism): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
+  "structured": {
+    "required_info": [
+      "Does the patient have a history of any autoimmune disease?",
+      "Presence of symptoms (palpitations, tremor, heat intolerance, diarrhea, ophthalmopathy, etc.)",
+      "Is the patient pregnant?",
+      "Does the patient wish to conceive?",
+      "Thyroid exam (enlarged, nodular)"
+    ],
+    "optional_info": [
+      "Medication history of:\n- Immunotherapy or chemo (such as pembrolizumab)\n- Amiodarone\n- Supplements\n- Thyroid medications"
+    ],
+    "diagnostics": {
+      "required": [
+        "Thyroid Stimulating Hormone (TSH)",
+        "Free Thyroxine (Free T4)",
+        "Total T3",
+        "Thyroid Stimulating Immunoglobulin (TSI)"
+      ],
+      "optional": []
+    }
+  }
+}

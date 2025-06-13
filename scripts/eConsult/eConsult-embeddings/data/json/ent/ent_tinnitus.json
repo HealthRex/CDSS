@@ -1,0 +1,29 @@
+{
+  "specialist": "ENT",
+  "template": "Tinnitus",
+  "required_info": [
+    "Tinnitus is any sound that the patient hears that can be heard by others (objective) vs only heard by patient (subjective)",
+    "Which side?",
+    "Constant or comes and goes?",
+    "Pulsatile?",
+    "Does the pulsations correlate with patient’s heartbeat?",
+    "What makes the tinnitus worse or better?",
+    "Does it correlate with breathing?",
+    "Associated hearing loss?",
+    "Ototoxic medications?",
+    "Trauma?",
+    "Foreign body in ear?",
+    "Drainage?",
+    "Ear pain?",
+    "Describe pain?",
+    "Vertigo (illusion of motion)?",
+    "Hearing aids?"
+  ],
+  "tests_recommended": [
+    "Audiogram"
+  ],
+  "clinical_pearls": [
+    "If no hearing loss, consider referral to audiology alone.",
+    "For sudden sensorineural hearing loss, call ENT for urgent eval and consider high dose steroid burst (60 mg/day prednisone)."
+  ]
+}
