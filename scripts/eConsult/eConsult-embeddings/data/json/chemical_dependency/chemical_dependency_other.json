@@ -1,0 +1,22 @@
+{
+  "specialist": "Chemical Dependency",
+  "template": "Other",
+  "text": "My Clinical Question (condition: other): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
+  "structured": {
+    "required_info": [
+      "What substance is this consult regarding? (i.e. methamphetamine, cocaine, ambien, kratom, other)",
+      "Is the patient pregnant or planning to become pregnant?",
+      "Is the patient using tobacco, is it combustible or vaped, and are they interested in cutting back or stopping?",
+      "Type, route, amount, frequency of substance usage?",
+      "Treatment history?",
+      "Suspected/known other substance use disorders? Psychiatric diagnoses?",
+      "Other medical comorbidities?",
+      "Family history of SUD?"
+    ],
+    "tests_recommended": [
+      "UTox",
+      "CMP, CBC",
+      "Not required for consultation, but recommend STD Screening if not done recently: HIV, RPR/VDRL, GC, Chlamydia, HCV for all SUD patients"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "specialist": "Endocrinology",
+  "template": "Hyperaldosteronism",
+  "text": "My Clinical Question (condition: hyperaldosteronism): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
+  "structured": {
+    "required_info": [
+      "Is the patient on any of these medications: mineralocorticoid receptor antagonists — spironolactone, eplerenone; ACE’s/ARB’s"
+    ],
+    "optional_info": [
+      "Does the patient have an adrenal mass and hypertension?",
+      "Does the patient have evidence of spontaneous hypokalemia?",
+      "Does the patient have resistant hypertension (requiring ≥ 3 antihypertensives)?"
+    ],
+    "diagnostics": {
+      "required": [
+        "8 am Plasma Aldosterone",
+        "8 am Plasma Renin Activity",
+        "Comprehensive Metabolic Panel (CMP)"
+      ],
+      "optional": [
+        "None"
+      ]
+    }
+  }
+}

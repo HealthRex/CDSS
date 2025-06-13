@@ -1,0 +1,13 @@
+{
+  "specialist": "Gynecology",
+  "template": "Other",
+  "required_info": [
+    "Pertinent symptoms",
+    "Pertinent labs",
+    "Pertinent medications",
+    "Pertinent physical exam features"
+  ],
+  "optional_info": [],
+  "diagnostics_required": [],
+  "clinical_pearls": []
+}

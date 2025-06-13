@@ -1,0 +1,78 @@
+[
+  {
+    "My Clinical Question (condition: elevated ferritin)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Family history of iron overload": "{yes/no}"
+          },
+          {
+            "EtOH use": "***"
+          },
+          {
+            "Documented exam for hepatosplenomegaly (otherwise an abdominal US should be considered if there is no recent cross-sectional imaging in the past year)": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "CBC with differential (on two consecutive checks at least one week apart)": "***"
+          },
+          {
+            "CMP": "***"
+          },
+          {
+            "Ferritin (fasting and at baseline health)": "***"
+          },
+          {
+            "Transferrin saturation (fasting and at baseline health)": "***"
+          },
+          {
+            "ESR": "***"
+          },
+          {
+            "CRP": "***"
+          },
+          {
+            "HFE mutation screening": "***"
+          },
+          {
+            "Comprehensive hepatitis panel": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Clinical Pearls": [
+        {
+          "MRI T2* can help quantify whether or not the serum ferritin is associated with end-organ iron overload. This should be done if the ferritin > 1000 before referring to hematology. Hematology typically will only do phlebotomy if there is evidence of clinically significant iron overload, or if the patient has a true diagnosis of hereditary hemochromatosis": "***"
+        },
+        {
+          "In general, the liver usually is the organ that incurs iron deposition first. Please be mindful of LFT abnormalities and other downstream end-organ complications such as arrhythmias, arthropathy, or endocrinopathies (T2DM, skin hyperpigmentation, impotence) that may make a hereditary hemochromatosis likely": "***"
+        },
+        {
+          "In general, females may present later with iron overload due to menstrual bleeding. HFE is a very common gene mutation with up to 5-10% of Caucasian patients as a carrier. The vast majority of heterozygous HFE carriers will not need hematology care even for mildly elevated iron parameters. The overall clinical penetrance of hereditary hemochromatosis, even if inherited as homozygous, is low": "***"
+        },
+        {
+          "Assuming TSAT was done while fasting, a TSAT > 45% could support an iron-avid state": "***"
+        },
+        {
+          "If there is concern for a hemolytic anemia due to concomitant anemia or bilirubinemia, please send an LDH and haptoglobin. Ineffective erythropoietic states can lead to secondary iron overload": "***"
+        },
+        {
+          "Some cases of a moderately elevated ferritin are secondary to fatty liver or other known hepatic pathology": "***"
+        },
+        {
+          "The ferritin level is nonspecific as an acute phase reactant and if not reflecting overall iron body stores, further workup by primary care should attempt to identify an alternative reactive etiology (autoimmune, infectious, inflammatory, malignancy, etc.": "***"
+        }
+      ]
+    }
+  }
+]

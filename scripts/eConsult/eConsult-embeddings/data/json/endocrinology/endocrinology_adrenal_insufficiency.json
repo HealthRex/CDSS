@@ -1,0 +1,27 @@
+{
+  "specialist": "Endocrinology",
+  "template": "Adrenal Insufficiency",
+  "text": "My Clinical Question (condition: adrenal insufficiency): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
+  "structured": {
+    "required_info": [
+      "Any prior glucocorticoid exposure (systemic, topical, inhaled)?"
+    ],
+    "optional_info": [
+      "Does the patient have any of the following predisposing factors?\n- Tuberculosis\n- AIDS\n- Metastatic Disease",
+      "Does the patient have goiter?",
+      "Does the patient have vitiligo?",
+      "Has the patient experienced episodes of hypotension?",
+      "Has the patient recently been withdrawn from long-term corticosteroid therapy?",
+      "Is there any abnormal tanning of the skin?"
+    ],
+    "diagnostics": {
+      "required": [
+        "ACTH Stimulation Test (cortisol drawn 30–60 min after cosyntropin 250 mcg)",
+        "8 am ACTH – baseline (before stimulation)",
+        "8 am Cortisol – baseline (before stimulation)",
+        "8 am (non-fasting) ACTH, cortisol"
+      ],
+      "optional": []
+    }
+  }
+}
