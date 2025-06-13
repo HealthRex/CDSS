@@ -1,0 +1,30 @@
+{
+  "specialty": "Hematology",
+  "template_name": "Isolated Erythrocytosis",
+  "required_assessments": [
+    "SpO2 level",
+    "Updated medications (e.g., testosterone, diuretics), including non-prescription supplements",
+    "Smoking status",
+    "OSA status"
+  ],
+  "optional_assessments": [],
+  "required_diagnostics": [
+    "CBC with differential (on two consecutive checks at least one week apart with adequate hydration)",
+    "CMP",
+    "LDH",
+    "Ferritin",
+    "Transferrin saturation",
+    "Serum erythropoietin",
+    "Urinalysis"
+  ],
+  "optional_diagnostics": [],
+  "clinical_pearls": [
+    "If the EPO level is suppressed or low, please send a JAK2 V617F and refer to hematology.",
+    "Definition of erythrocytosis/polycythemia is Hb > 16.5 g/dL in men, > 16.0 in women, or HCT > 49 in men, > 48 in women.",
+    "Consider that smoking, testosterone, or other anabolic steroids can cause a secondary polycythemia. High altitudes, COPD and sleep apnea (uncommonly) can cause a secondary erythrocytosis.",
+    "Optional testing includes testosterone and carboxyhemoglobin. Sleep study should be considered in the right clinical context.",
+    "Renal cysts, post-renal transplant, congenital heart disease, and renal artery stenosis can cause polycythemia.",
+    "Do not replete iron without hematology input if iron deficient and already being considered for polycythemia.",
+    "If early satiety is present, a splenic ultrasound can help build a case for myeloproliferative neoplasm."
+  ]
+}

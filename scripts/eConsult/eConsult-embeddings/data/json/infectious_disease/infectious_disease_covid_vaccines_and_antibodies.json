@@ -1,0 +1,41 @@
+[
+  {
+    "My Clinical Question (condition: COVID vaccines & antibodies)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Has the patient had COVID vaccines before? If so, which vaccine and when?": "***"
+          },
+          {
+            "Does the patient have any co-morbidities (i.e. obesity, hypertension, diabetes, age 65 and over, etc.)?": "***"
+          },
+          {
+            "Are they immunocompromised?": "***"
+          },
+          {
+            "What are the patient’s allergies, if any?": "***"
+          },
+          {
+            "Has the patient received any monoclonal antibodies or convalescent plasma, and if so, when?": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [],
+        "Optional": [
+          {
+            "SARS-CoV-2 IgM/IgG serology test": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": []
+    }
+  }
+]

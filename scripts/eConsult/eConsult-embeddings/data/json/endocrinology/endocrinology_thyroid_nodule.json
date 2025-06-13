@@ -1,0 +1,25 @@
+{
+  "specialist": "Endocrinology",
+  "template": "Thyroid Nodule",
+  "text": "My Clinical Question (condition: thyroid nodule): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
+  "structured": {
+    "required_info": [
+      "Does the patient have symptoms of hyper- or hypothyroidism? If yes, please list.",
+      "Has the patient had any prior FNAs; if so, what were the results / when were they done"
+    ],
+    "optional_info": [
+      "Does the patient have a history of neck irradiation?",
+      "Does the patient have dysphagia?",
+      "Does the patient have dysphonia?"
+    ],
+    "diagnostics": {
+      "required": [
+        "Thyroid Ultrasound",
+        "Thyroid Stimulating Hormone (TSH)"
+      ],
+      "optional": [
+        "Pathology Report (if prior FNAs)"
+      ]
+    }
+  }
+}

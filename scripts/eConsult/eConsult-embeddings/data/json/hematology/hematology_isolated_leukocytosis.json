@@ -1,0 +1,69 @@
+[
+  {
+    "My Clinical Question (condition: Isolated Leukocytosis)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Documented exam for hepatosplenomegaly (otherwise an abdominal US should be considered if there is no recent cross-sectional imaging in the past year)": "***"
+          },
+          {
+            "Updated medications (e.g. steroids, lithium), including non-prescription supplements": "***"
+          },
+          {
+            "Last weight/BMI": "***"
+          },
+          {
+            "Smoking": "***"
+          },
+          {
+            "Prior splenectomy": "{yes/no}"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "CBC with differential (on two consecutive checks at least one week apart)": "***"
+          },
+          {
+            "CMP": "***"
+          },
+          {
+            "LDH": "***"
+          },
+          {
+            "ESR": "***"
+          },
+          {
+            "CRP": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Clinical Pearls": [
+        {
+          "If there is mainly a neutrophilia, that this is encountered often with a reactive process: acute or chronic infection, steroids, splenectomy, smoking. As a diagnosis of exclusion, we sometimes see a mild neutrophilic leukocytosis in patients with obesity": "***"
+        },
+        {
+          "If there is a predominant lymphocytosis that remains persistent, then sending a peripheral flow cytometry to look for a monoclonal lymphocytosis is appropriate": "***"
+        },
+        {
+          "For complexity, we often evaluate hypereosinophilia (AEC > 1500) consults in clinic, but that can be seen in patients with asthma and drug reactions. Please screen for Strongyloides Ab": "***"
+        },
+        {
+          "If diarrhea is present, consider C. Diff testing if recently hospitalized": "***"
+        },
+        {
+          "Please consider the possibility of asplenia in a patient with multiple cytoses, but if spleen is intact or enlarged, then testing for myeloproliferative disorders is more appropriate. This may include BCR/ABL screening": "***"
+        }
+      ]
+    }
+  }
+]
