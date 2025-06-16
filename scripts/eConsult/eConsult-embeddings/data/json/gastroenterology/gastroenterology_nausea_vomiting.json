@@ -1,0 +1,32 @@
+{
+  "specialty": "Gastroenterology",
+  "template_name": "Nausea/Vomiting",
+  "Required": [],
+  "Optional": [
+    "Duration and pattern",
+    "Weight loss",
+    "Abdominal pain",
+    "Fever",
+    "Diarrhea",
+    "Diabetic",
+    "Hematemesis",
+    "Surgical history",
+    "Marijuana",
+    "Chronic opioids"
+  ],
+  "diagnostics_required": [
+    "CBC",
+    "CMP",
+    "H pylori"
+  ],
+  "diagnostics_optional": [
+    "Lipase",
+    "TTG IgA and IgA",
+    "CT Abdomen",
+    "Ultrasound Abdomen",
+    "XR Abdomen"
+  ],
+  "clinical_pearls": [
+    "None"
+  ]
+}
