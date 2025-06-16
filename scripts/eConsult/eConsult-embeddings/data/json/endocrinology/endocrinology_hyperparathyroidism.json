@@ -1,31 +1,68 @@
-{
-  "specialist": "Endocrinology",
-  "template": "Hyperparathyroidism",
-  "text": "My Clinical Question (condition: hyperparathyroidism): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
-  "structured": {
-    "required_info": [
-      "Has the patient ever had hypercalcemia?",
-      "How much calcium is the patient taking?",
-      "How much vitamin D is the patient taking?",
-      "How long has the PTH been elevated?",
-      "Does the patient have a history of fractures, low bone density, kidney stones?",
-      "Does the patient have any renal or gastrointestinal issues?",
-      "Does the patient have weight loss or other signs of malabsorption?",
-      "Has the patient ever had testing for celiac disease?"
-    ],
-    "optional_info": [
-      "None"
-    ],
-    "diagnostics": {
-      "required": [
-        "25-hydroxyvitamin D",
-        "Comprehensive Metabolic Panel (CMP)",
-        "Intact Parathyroid Hormone (PTH)",
-        "Phosphorus (P)"
-      ],
-      "optional": [
-        "24-hour Urine Calcium and Creatinine (if 25 OH-vitamin D is normal)"
-      ]
+[
+  {
+    "specialist": "Endocrinology"
+  },
+  {
+    "template": "Hyperparathyroidism"
+  },
+  {
+    "My Clinical Question (condition: hyperparathyroidism)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Has the patient ever had hypercalcemia?": "***"
+          },
+          {
+            "How much calcium is the patient taking?": "***"
+          },
+          {
+            "How much vitamin D is the patient taking?": "***"
+          },
+          {
+            "How long has the PTH been elevated?": "***"
+          },
+          {
+            "Does the patient have a history of fractures, low bone density, kidney stones?": "***"
+          },
+          {
+            "Does the patient have any renal or gastrointestinal issues?": "***"
+          },
+          {
+            "Does the patient have weight loss or other signs of malabsorption?": "***"
+          },
+          {
+            "Has the patient ever had testing for celiac disease?": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "25-hydroxyvitamin D": "***"
+          },
+          {
+            "Comprehensive Metabolic Panel (CMP)": "***"
+          },
+          {
+            "Intact Parathyroid Hormone (PTH)": "***"
+          },
+          {
+            "Phosphorus (P)": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "24-hour Urine Calcium and Creatinine (if 25 OH-vitamin D is normal)": "***"
+          }
+        ]
+      }
     }
   }
-}
+]

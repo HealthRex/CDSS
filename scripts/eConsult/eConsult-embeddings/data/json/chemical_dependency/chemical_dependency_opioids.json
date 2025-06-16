@@ -1,33 +1,84 @@
-{
-  "specialist": "Chemical Dependency",
-  "template": "Opioids",
-  "text": "My Clinical Question (condition: opioids): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
-  "structured": {
-    "required_info": [
-      "Is your concern chronic opioids for pain and a desire to help taper the patient? Or does this person have an opioid use disorder or heroin use disorder?",
-      "Are you interested in starting buprenorphine for this patient?",
-      "Do you already have an X-waiver to prescribe buprenorphine for an opioid use disorder? NOTE: for pain, you do not need an X-waiver to prescribe or continue buprenorphine.",
-      "If you are interested in buprenorphine transition using the patch form as a bridge off of their full agonist opioid, let us know and we will walk you through that process.",
-      "Is the patient pregnant or planning to become pregnant?",
-      "Is the patient using tobacco, is it combustible or vaped, and are they interested in cutting back or stopping?",
-      "Type, route, amount, frequency of opioid usage?",
-      "Total daily Morphine Equivalents: http://www.agencymeddirectors.wa.gov/Calculator/DoseCalculator.htm",
-      "Treatment history? History of buprenorphine treatment? How about methadone clinic history?",
-      "Effects on occupational, academic or social functioning?",
-      "Suspected/known other substance use disorders? Psychiatric diagnoses?",
-      "Other medical comorbidities (esp cardiopulmonary disease including OSA, CKD4 or above)?",
-      "Polypharmacy? Co-prescribed benzodiazepines?",
-      "Family history of SUD?",
-      "Most recent CURES report appropriate?",
-      "Any history of opioid overdose, either accidental or intentional?"
-    ],
-    "tests_recommended": [
-      "UTox",
-      "CMP",
-      "Not required for consult but recommended: STD Screening if not done recently — HIV, RPR/VDRL, GC, Chlamydia, HCV for all SUD patients",
-      "EKG results in past since starting methadone if on this opioid (QTc interval)"
-    ],
-    "clinical_pearls": [
+[
+  {
+    "specialist": "Chemical Dependency"
+  },
+  {
+    "template": "Opioids"
+  },
+  {
+    "My Clinical Question (condition: opioids)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "Assessments": {
+      "Required": [
+        {
+          "Is your concern chronic opioids for pain and a desire to help taper the patient? Or does this person have an opioid use disorder or heroin use disorder?": "***"
+        },
+        {
+          "Are you interested in starting buprenorphine for this patient?": "***"
+        },
+        {
+          "Do you already have an X-waiver to prescribe buprenorphine for an opioid use disorder? NOTE: for pain, you do not need an X-waiver to prescribe or continue buprenorphine.": "***"
+        },
+        {
+          "If you are interested in buprenorphine transition using the patch form as a bridge off of their full agonist opioid, let us know and we will walk you through that process.": "***"
+        },
+        {
+          "Is the patient pregnant or planning to become pregnant?": "***"
+        },
+        {
+          "Is the patient using tobacco, is it combustible or vaped, and are they interested in cutting back or stopping?": "***"
+        },
+        {
+          "Type, route, amount, frequency of opioid usage?": "***"
+        },
+        {
+          "Total daily Morphine Equivalents: http://www.agencymeddirectors.wa.gov/Calculator/DoseCalculator.htm": "***"
+        },
+        {
+          "Treatment history? History of buprenorphine treatment? How about methadone clinic history?": "***"
+        },
+        {
+          "Effects on occupational, academic or social functioning?": "***"
+        },
+        {
+          "Suspected/known other substance use disorders? Psychiatric diagnoses?": "***"
+        },
+        {
+          "Other medical comorbidities (esp cardiopulmonary disease including OSA, CKD4 or above)?": "***"
+        },
+        {
+          "Polypharmacy? Co-prescribed benzodiazepines?": "***"
+        },
+        {
+          "Family history of SUD?": "***"
+        },
+        {
+          "Most recent CURES report appropriate?": "***"
+        },
+        {
+          "Any history of opioid overdose, either accidental or intentional?": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "UTox": "***"
+        },
+        {
+          "CMP": "***"
+        },
+        {
+          "Not required for consult but recommended: STD Screening if not done recently — HIV, RPR/VDRL, GC, Chlamydia, HCV for all SUD patients": "***"
+        },
+        {
+          "EKG results in past since starting methadone if on this opioid (QTc interval)": "***"
+        }
+      ]
+    },
+    "Clinical Pearls": [
       "For help with buprenorphine inductions: https://www.chcf.org/publication/buprenorphine-overview-clinicians/",
       "Chronic pain is often better managed with multimodal treatment including non-opioid medications (systemic/topical), pacing, physical activity, CBT, patient education, and tools like the Curable app.",
       "For a variety of resources about risks of chronic opioid use and tapering: https://www.oregonpainguidance.org/",
@@ -41,4 +92,4 @@
       "Slow, individualized opioid tapers may maintain or improve pain/function: https://www.acpjournals.org/doi/full/10.7326/M17-0598"
     ]
   }
-}
+]
