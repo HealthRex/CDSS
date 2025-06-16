@@ -1,0 +1,29 @@
+{
+  "specialty": "Gastroenterology",
+  "template": "Abdominal Pain",
+  "Required": [
+    "Duration, location, characteristic of pain",
+    "Associated/Alleviating/Exacerbating symptoms",
+    "Alarm symptoms (fever, weight loss, blood in stool)",
+    "Previous evaluations, procedures, surgeries, malignancy, imaging"
+  ],
+  "Optional": [],
+  "required_diagnostics": [
+    "CMP",
+    "CBC",
+    "Lipase"
+  ],
+  "optional_diagnostics": [
+    "Urine pregnancy",
+    "Urinalysis",
+    "TTG level and total IgA",
+    "Serum Iron",
+    "Total Iron Binding Capacity",
+    "Ferritin",
+    "FOBT",
+    "US Abdomen",
+    "CT Abdomen",
+    "XR Abdomen supine-upright"
+  ],
+  "clinical_pearls": []
+}

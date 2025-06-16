@@ -1,0 +1,35 @@
+{
+  "specialty": "Gastroenterology",
+  "template": "Diarrhea",
+  "Required": [
+    "Duration, frequency, watery? bloody? mucous? floating?",
+    "Abdominal pain? Fever? Vomiting?",
+    "Incontinence? nocturnal? weight loss?",
+    "Exposures: travel, antibiotic, other",
+    "Personal or family history of IBD"
+  ],
+  "Optional": [],
+  "required_diagnostics": [
+    "CMP",
+    "CBC",
+    "TSH",
+    "TTG and total IgA",
+    "GI PCR",
+    "Fecal calprotectin",
+    "Fecal elastase (qualitative, if abnormal consider quantitative)"
+  ],
+  "optional_diagnostics": [
+    "C Diff",
+    "ESR",
+    "CRP",
+    "FOBT",
+    "CT Abdomen",
+    "MRI Abdomen",
+    "XR Abdomen",
+    "Colonoscopy",
+    "EGD"
+  ],
+  "clinical_pearls": [
+    "None"
+  ]
+}

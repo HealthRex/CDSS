@@ -1,0 +1,29 @@
+{
+  "specialty": "Gastroenterology",
+  "template": "Anemia",
+  "Required": [
+    "Presence/absence of significant vaginal bleeding, epistaxis, hematochezia, melena, hematemesis, recent surgeries, urinary bleeding or other blood loss",
+    "Presence/absence of NSAIDS/ASA, coumadin, Plavix, other antiplatelet/antithrombotic use",
+    "Alarm symptoms (fever, weight loss, blood in stool)",
+    "Previous colonoscopy, EDG (please provide dates and results)"
+  ],
+  "Optional": [],
+  "required_diagnostics": [
+    "CBC",
+    "Iron panel with ferritin, Fe, TIBC",
+    "BUN",
+    "Creatinine"
+  ],
+  "optional_diagnostics": [
+    "Consider electrophoresis if MCV <75",
+    "Consider TTG level and total IgA (celiac disease)"
+  ],
+  "clinical_pearls": [
+    "Iron deficiency without anemia does not require endoscopy",
+    "Normocytic anemia with normal iron stores does not necessarily require endoscopy",
+    "Anemia of chronic disease without other factors does not require endoscopy",
+    "Indications for referral:",
+    "  - Anemia with low iron stores (e.g. low ferritin, Fe, Fe sat or high TIBC)",
+    "  - Anemia with overt GI blood loss (e.g. black stools, blood per rectum)"
+  ]
+}
