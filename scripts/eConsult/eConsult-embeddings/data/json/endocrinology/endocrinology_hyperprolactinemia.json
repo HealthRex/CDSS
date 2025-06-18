@@ -1,28 +1,59 @@
-{
-  "specialist": "Endocrinology",
-  "template": "Hyperprolactinemia",
-  "text": "My Clinical Question (condition: hyperprolactinemia): ***\n\nMy most current assessment of this problem can be found in the note dated {Today/***}.",
-  "structured": {
-    "required_info": [
-      "Is the patient currently taking any medications that cause hyperprolactinemia (estrogen, antipsychotics, antidepressants, antihistamines, verapamil)?",
-      "If female and pre-menopausal, does the patient have oligomenorrhea or amenorrhea?",
-      "What are the patient’s current reproductive goals?",
-      "Has the patient experienced headaches or visual symptoms?",
-      "Does the patient have galactorrhea?"
-    ],
-    "optional_info": [
-      "None"
-    ],
-    "diagnostics": {
-      "required": [
-        "Free Thyroxine (Free T4)",
-        "Thyroid Stimulating Hormone (TSH)",
-        "Fasting Prolactin ×2 (with repeat)",
-        "Urine or Serum Pregnancy test"
-      ],
-      "optional": [
-        "Brain MRI – pituitary protocol"
-      ]
+[
+  {
+    "specialist": "Endocrinology"
+  },
+  {
+    "template": "Hyperprolactinemia"
+  },
+  {
+    "My Clinical Question (condition: hyperprolactinemia)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Is the patient currently taking any medications that cause hyperprolactinemia (estrogen, antipsychotics, antidepressants, antihistamines, verapamil)?": "***"
+          },
+          {
+            "If female and pre-menopausal, does the patient have oligomenorrhea or amenorrhea?": "***"
+          },
+          {
+            "What are the patient’s current reproductive goals?": "***"
+          },
+          {
+            "Has the patient experienced headaches or visual symptoms?": "***"
+          },
+          {
+            "Does the patient have galactorrhea?": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "Free Thyroxine (Free T4)": "***"
+          },
+          {
+            "Thyroid Stimulating Hormone (TSH)": "***"
+          },
+          {
+            "Fasting Prolactin ×2 (with repeat)": "***"
+          },
+          {
+            "Urine or Serum Pregnancy test": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Brain MRI – pituitary protocol": "***"
+          }
+        ]
+      }
     }
   }
-}
+]
