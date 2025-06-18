@@ -1,15 +1,33 @@
-{
-  "specialist": "ENT",
-  "template": "Other",
-  "required_info": [
-    "Description of pertinent symptoms",
-    "Pertinent physical exam findings",
-    "Pertinent labs and imaging findings",
-    "Pertinent medications",
-    "Management or treatments tried, if applicable"
-  ],
-  "tests_recommended": [],
-  "clinical_pearls": [
-    "For sudden sensorineural hearing loss, call ENT for urgent eval and consider high dose steroid burst (60 mg/day prednisone)."
-  ]
-}
+[
+  {
+    "specialist": "ENT"
+  },
+  {
+    "template": "Other"
+  },
+  {
+    "My Clinical Question (condition: other)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          "Description of pertinent symptoms",
+          "Pertinent physical exam findings",
+          "Pertinent labs and imaging findings",
+          "Pertinent medications",
+          "Management or treatments tried, if applicable"
+        ]
+      },
+      "Diagnostics": []
+    }
+  },
+  {
+    "Clinical Pearls": [
+      "For sudden sensorineural hearing loss, call ENT for urgent eval and consider high dose steroid burst (60 mg/day prednisone)."
+    ]
+  }
+]
