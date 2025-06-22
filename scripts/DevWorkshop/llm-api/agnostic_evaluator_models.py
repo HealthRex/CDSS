@@ -1,6 +1,7 @@
 from functools import partial
 import requests
 import json
+import time
 import os 
 
 class API_text_to_text:
@@ -12,6 +13,11 @@ class API_text_to_text:
     def gen_txt_to_txt(self, input_txt):
         return self.model_call(input_txt, **self.model_init_dict)
     
+def error_handling(model_name, i, max_calls, sleep_time, e):
+            print(f"Failed with {model_name} (SHC) call {i}/{max_calls}, waited {i*sleep_time} seconds. Error: {e}.")
+            time.sleep(sleep_time)
+            return f"Failed to get a response from {model_name} (SHC) after {i*sleep_time} seconds. Error: {e}."
+    
 # Gemini via Vertex AI
 def gemini_init(model_name, credentials_path):
     # For HIPAA compliance, everything remains in our Google Cloud Project
@@ -20,21 +26,17 @@ def gemini_init(model_name, credentials_path):
     from vertexai.preview.generative_models import GenerativeModel
     return {"ready_model": GenerativeModel(model_name), "model_name": model_name}
 
-def gemini_call(input_txt, **kwargs):
-    import time
+def gemini_call(input_txt, max_calls = 10, sleep_time = 5, **kwargs):
     ready_model = kwargs["ready_model"]
     model_name = kwargs["model_name"]
     
-    max_calls = 10; sleep_time = 5
     for i in range (max_calls):
         try:
             response = ready_model.generate_content([input_txt])
             full_response = response.candidates[0].content.parts[0].text
             break
         except Exception as e:
-            print(f"Failed with {model_name} call {i}/{max_calls}, waited {i*sleep_time} seconds. Error: {e}.")
-            time.sleep(sleep_time)
-            full_response = f"Failed to get a response from {model_name} after {i*sleep_time} seconds."
+            full_response = error_handling(model_name, i, max_calls, sleep_time, e)
     return full_response
 
 # Gemini 2.5 Pro via SHC
@@ -43,23 +45,19 @@ def gemini_shc_init(model_name, my_key):
     url = 'https://apim.stanfordhealthcare.org/gemini-25-pro/gemini-25-pro'
     return {"model_name": model_name, "url": url, "headers": headers}
 
-def gemini_shc_call(input_txt, **kwargs):
-    import time
+def gemini_shc_call(input_txt, max_calls=10, sleep_time=5, **kwargs):
     model_name = kwargs["model_name"]
     url = kwargs["url"]
     headers = kwargs["headers"]
     payload = json.dumps({"contents": [{"role": "user", "parts": [{ "text": input_txt }]}]})
     
-    max_calls = 10; sleep_time = 5
     for i in range(max_calls):
         try:
             response = requests.request("POST", url, headers=headers, data=payload)
             full_response = ''.join([i['candidates'][0]['content']['parts'][0]['text'] for i in json.loads(response.text)])
             break
         except Exception as e:
-            print(f"Failed with {model_name} (SHC) call {i}/{max_calls}, waited {i*sleep_time} seconds. Error: {e}.")
-            time.sleep(sleep_time)
-            full_response = f"Failed to get a response from {model_name} (SHC) after {i*sleep_time} seconds."
+            full_response = error_handling(model_name, i, max_calls, sleep_time, e)
     return full_response
 
 # Open AI models via SHC
@@ -68,13 +66,19 @@ def openai_init(model_name, my_key):
     url = f"https://apim.stanfordhealthcare.org/openai-eastus2/deployments/{model_name}/chat/completions?api-version=2025-01-01-preview" 
     return {"model_name": model_name, "url": url, "headers": headers}
 
-def openai_call(input_txt, **kwargs):
+def openai_call(input_txt, max_calls = 10, sleep_time = 5, **kwargs):
     model_name = kwargs["model_name"]
     url = kwargs["url"]
     headers = kwargs["headers"]
     payload = json.dumps({"model": model_name, "messages": [{"role": "user", "content": input_txt}]})
-    response = requests.request("POST", url, headers=headers, data=payload)
-    return json.loads(response.text)['choices'][0]['message']['content']
+    for i in range(max_calls):
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+            full_response = json.loads(response.text)['choices'][0]['message']['content']
+            break
+        except Exception as e:
+           full_response = error_handling(model_name, i, max_calls, sleep_time, e)
+    return full_response
 
 # Deepseek-R1 via SHC
 def deepseek_init(model_name, my_key, view_thinking=False):
@@ -83,18 +87,24 @@ def deepseek_init(model_name, my_key, view_thinking=False):
     url = "https://apim.stanfordhealthcare.org/deepseekr1/v1/chat/completions"
     return {"url": url, "headers": headers, "view_thinking": view_thinking}
 
-def deepseek_call(input_txt, **kwargs):
+def deepseek_call(input_txt, max_calls = 10, sleep_time = 5, **kwargs):
     url = kwargs["url"]
     headers = kwargs["headers"]
     payload = json.dumps({"model": "deepseek-chat", "messages": [{"role": "user", "content": input_txt}], "temperature": 0.8, "max_tokens": 4096, "top_p": 1, "stream": False})
-    response = requests.request("POST", url, headers=headers, data=payload)
-    full_response = json.loads(response.text)['choices'][0]['message']['content']
-    if kwargs["view_thinking"]:
-        return full_response
-    def _extract_after_think(text):
-        parts = text.split("</think>")
-        return parts[1].strip() if len(parts) > 1 else text
-    return _extract_after_think(full_response)
+    for i in range(max_calls):
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+            full_response = json.loads(response.text)['choices'][0]['message']['content']
+            if kwargs["view_thinking"]:
+                break
+            def _extract_after_think(text):
+                parts = text.split("</think>")
+                return parts[1].strip() if len(parts) > 1 else text
+            full_response = _extract_after_think(full_response)
+            break
+        except Exception as e:
+            full_response = error_handling("deepseek-r1", i, max_calls, sleep_time, e)
+    return full_response
 
 # Microsoft model via SHC
 def microsoft_init(model_name, my_key):
@@ -103,12 +113,18 @@ def microsoft_init(model_name, my_key):
     url = "https://apim.stanfordhealthcare.org/phi35mi/v1/chat/completions"
     return {"url": url, "headers": headers}
 
-def microsoft_call(input_txt, **kwargs):
+def microsoft_call(input_txt, max_calls = 10, sleep_time = 5, **kwargs):
     url = kwargs["url"]
     headers = kwargs["headers"]
     payload = json.dumps({"messages": [{"role": "user", "content": input_txt}], "max_tokens": 2048, "temperature": 0.8, "top_p": 0.1, "presence_penalty": 0, "frequency_penalty": 0, "model": "Phi-3.5-mini-instruct"})
-    response = requests.request("POST", url, headers=headers, data=payload)
-    return json.loads(response.text)["choices"][0]["message"]["content"]
+    for i in range(max_calls):
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+            full_response = json.loads(response.text)["choices"][0]["message"]["content"]
+            break
+        except Exception as e:
+            full_response = error_handling("phi-3.5-mini-instruct", i, max_calls, sleep_time, e)
+    return full_response
 
 # Anthropic model via SHC
 def anthropic_init(model_name, my_key):
@@ -121,13 +137,19 @@ def anthropic_init(model_name, my_key):
     headers = {'Ocp-Apim-Subscription-Key': my_key, 'Content-Type': 'application/json'}
     return {"model_id": model_id, "url": url, "headers": headers}
 
-def anthropic_call(input_txt, **kwargs):
+def anthropic_call(input_txt, max_calls = 10, sleep_time = 5, **kwargs):
     model_id = kwargs["model_id"]
     url = kwargs["url"]
     headers = kwargs["headers"]
     payload = json.dumps({"model_id": model_id, "prompt_text": input_txt})
-    response = requests.request("POST", url, headers=headers, data=payload) 
-    return json.loads(response.text)['content'][0]['text']
+    for i in range(max_calls):
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload) 
+            full_response = json.loads(response.text)['content'][0]['text']
+            break
+        except Exception as e:
+            full_response = error_handling(model_id, i, max_calls, sleep_time, e)
+    return full_response
 
 # Meta model via SHC
 def meta_init(model_name, my_key):
@@ -139,20 +161,29 @@ def meta_init(model_name, my_key):
     url = f"https://apim.stanfordhealthcare.org/{model_name}/v1/chat/completions"
     return {"full_model_name": full_model_name, "url": url, "headers": headers}
 
-def meta_call(input_txt, **kwargs):
+def meta_call(input_txt, max_calls = 10, sleep_time = 5, **kwargs):
     full_model_name = kwargs["full_model_name"]
     url = kwargs["url"]
     headers = kwargs["headers"]
     payload = json.dumps({"model": full_model_name, "messages": [{"role": "user", "content": input_txt}]})
-    response = requests.request("POST", url, headers=headers, data=payload)
-    return json.loads(response.text)['choices'][0]['message']['content']
+    for i in range(max_calls):
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+            full_response = json.loads(response.text)['choices'][0]['message']['content']
+            break
+        except Exception as e:
+            full_response = error_handling(full_model_name, i, max_calls, sleep_time, e)
+    return full_response
 
 if __name__ == "main":
+    from dotenv import load_dotenv
+    load_dotenv("../../../.env")
+    
     my_question = """First, state what LLM you are based on. Please answer with the precise version of the model.
     Next, answer the following hard physics question.
     What is the difference between the cosmological constant and the vacuum energy?"""
     
-    lab_key = "enter the lab key here"
+    lab_key = os.getenv("LAB_KEY") # enter the lab key here
     
     # Using Gemini 2.5 pro via SHC
     gemini_shc_init_partial = partial(gemini_shc_init, "gemini-2.5-pro-preview-05-06", lab_key)
