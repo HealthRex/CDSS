@@ -37,6 +37,31 @@ def gemini_call(input_txt, **kwargs):
             full_response = f"Failed to get a response from {model_name} after {i*sleep_time} seconds."
     return full_response
 
+# Gemini 2.5 Pro via SHC
+def gemini_shc_init(model_name, my_key):
+    headers = {'Ocp-Apim-Subscription-Key': my_key, 'Content-Type': 'application/json'}
+    url = 'https://apim.stanfordhealthcare.org/gemini-25-pro/gemini-25-pro'
+    return {"model_name": model_name, "url": url, "headers": headers}
+
+def gemini_shc_call(input_txt, **kwargs):
+    import time
+    model_name = kwargs["model_name"]
+    url = kwargs["url"]
+    headers = kwargs["headers"]
+    payload = json.dumps({"contents": [{"role": "user", "parts": [{ "text": input_txt }]}]})
+    
+    max_calls = 10; sleep_time = 5
+    for i in range(max_calls):
+        try:
+            response = requests.request("POST", url, headers=headers, data=payload)
+            full_response = ''.join([i['candidates'][0]['content']['parts'][0]['text'] for i in json.loads(response.text)])
+            break
+        except Exception as e:
+            print(f"Failed with {model_name} (SHC) call {i}/{max_calls}, waited {i*sleep_time} seconds. Error: {e}.")
+            time.sleep(sleep_time)
+            full_response = f"Failed to get a response from {model_name} (SHC) after {i*sleep_time} seconds."
+    return full_response
+
 # Open AI models via SHC
 def openai_init(model_name, my_key):
     headers = {'Ocp-Apim-Subscription-Key': my_key, 'Content-Type': 'application/json'}
@@ -128,6 +153,12 @@ if __name__ == "main":
     What is the difference between the cosmological constant and the vacuum energy?"""
     
     lab_key = "enter the lab key here"
+    
+    # Using Gemini 2.5 pro via SHC
+    gemini_shc_init_partial = partial(gemini_shc_init, "gemini-2.5-pro-preview-05-06", lab_key)
+    gemini_shc_instance = API_text_to_text(gemini_shc_init_partial, gemini_shc_call)
+    res = gemini_shc_instance.gen_txt_to_txt(my_question)
+    print(res)
     
     # Using Meta via SHC
     llama_init = partial(meta_init, "llama4-maverick", lab_key)

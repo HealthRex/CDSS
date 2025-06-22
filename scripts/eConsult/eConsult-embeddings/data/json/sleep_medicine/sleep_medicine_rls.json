@@ -1,0 +1,57 @@
+[
+  {
+    "My Clinical Question (condition: RLS)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Description of unpleasant sensations in the legs": "***"
+        },
+        {
+          "Urge/need to move legs? Only at rest? Relieved with movement?": "***"
+        },
+        {
+          "Associated leg movements during sleep": "***"
+        },
+        {
+          "History of renal disease, chronic pain, neuropathy, pregnancy": "***"
+        },
+        {
+          "Prior evaluations (neuro or sleep)": "***"
+        },
+        {
+          "Treatments attempted (if any)": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "BMP": "***"
+        },
+        {
+          "TSH": "***"
+        },
+        {
+          "CBC (date)": "***"
+        },
+        {
+          "Iron": "***"
+        },
+        {
+          "TIBC": "***"
+        },
+        {
+          "Ferritin": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "RLS can be exacerbated in the setting of occult blood loss. Has this been considered, especially in patients over 50 y/o?": "***"
+        }
+      ]
+    }
+  }
+]

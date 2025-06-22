@@ -1,0 +1,35 @@
+[
+  {
+    "My Clinical Question (condition: serologies)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Reason testing performed": "***"
+          },
+          {
+            "Prior antimicrobial therapy": "***"
+          },
+          {
+            "Laboratory test results and dates": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": [],
+      "Clinical Pearls": [
+        {
+          "Presence of anti-HBc antibodies (total) without HBsAg generally indicates resolved HBV infection and is generally of no clinical significance except in the setting of iatrogenic immunosuppression in which case HBV can sometimes reactivate": "***"
+        },
+        {
+          "Infectious mononucleosis due to EBV does not recur. EBV serologies (heterophile antibodies or EBV-specific serologies) can be used to diagnose EBV-associated infectious mononucleosis in the setting of a compatible clinical syndrome. Nearly all adults have chronic EBV infection, which is of no clinical significance except to the extent that it can be associated with lymphoma and other lymphoproliferative disorders": "***"
+        }
+      ]
+    }
+  }
+]

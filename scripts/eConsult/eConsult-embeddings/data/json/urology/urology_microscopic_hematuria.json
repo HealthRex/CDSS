@@ -1,0 +1,51 @@
+[
+  {
+    "My Clinical Question (condition: Microscopic Hematuria)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Risk factors for genitourinary malignancy or medical renal disease": "***"
+        },
+        {
+          "Use of anticoagulants or antiplatelet agents": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "BMP": "***"
+        },
+        {
+          "UA and micro": "***"
+        },
+        {
+          "Urine culture": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Please see recommended the algorithm and/or suggested guidelines for management here: https://www.auanet.org/guidelines/microhematuria": "***"
+        },
+        {
+          "All patients with gross (visible) or symptomatic microscopic (>3 RBCs per high powered field (HPF) confirmed on a good specimen) hematuria, in absence of a culture positive UTI, should be referred to Urology for evaluation": "***"
+        },
+        {
+          "All patients with persistent microscopic hematuria with risk factors without clear cause, should be referred to Urology": "***"
+        },
+        {
+          "Anticoagulated patients with hematuria by the above parameters, should also be referred for evaluation": "***"
+        },
+        {
+          "Patients with signs of glomerular bleeding (casts, worsening edema, HTN, hypoalbuminemia) should be referred urgently to Nephrology": "***"
+        },
+        {
+          "Patients with gross hematuria with blood clots or retention symptoms should be sent to the ER urgently": "***"
+        }
+      ]
+    }
+  }
+]

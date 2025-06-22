@@ -1,0 +1,45 @@
+[
+  {
+    "My Clinical Question (condition: Void Trials/Catheter Questions)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Reason and duration of urinary catheter": "***"
+        },
+        {
+          "Reason for void trial": "***"
+        },
+        {
+          "Previous void trials": "***"
+        },
+        {
+          "What medications is the patient on": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "Urinalysis": "***"
+        },
+        {
+          "Urine culture": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Acute urinary retention (AUR) in men with BPH or presumed BPH is treated with urethral catheterization for bladder decompression. An alpha-1-adrenergic antagonist (eg, alfuzosin 10 mg daily) initiated at the time of initial catheterization. Ongoing combination treatment is generally necessary to prevent recurrence of AUR": "***"
+        },
+        {
+          "In men with AUR due to BPH, removal of the catheter after a period of time (\"trial without catheter\" or TWOC) results in successful spontaneous micturition in up to 40 percent of patients, although recurrent AUR is common. We suggest a trial of catheter removal in one to two weeks. For patients who fail the initial TWOC, we advise a second trial of TWOC after an additional two weeks with the catheter": "***"
+        },
+        {
+          "Men with BPH who fail a second TWOC may need surgical therapy. A urodynamic evaluation is advised prior to prostate surgery for patients who have experienced AUR": "***"
+        }
+      ]
+    }
+  }
+]
