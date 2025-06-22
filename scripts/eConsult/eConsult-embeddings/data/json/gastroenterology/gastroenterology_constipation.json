@@ -1,0 +1,29 @@
+{
+  "specialty": "Gastroenterology",
+  "template": "Constipation",
+  "Required": [
+    "Stool frequency",
+    "Current/prior treatment, response",
+    "Opioid use"
+  ],
+  "Optional": [
+    "Bristol stool scale type"
+  ],
+  "required_diagnostics": [
+    "CBC",
+    "CMP",
+    "TSH"
+  ],
+  "optional_diagnostics": [],
+  "clinical_pearls": [
+    "Bristol Stool Chart is used to classify stool consistency and infer GI motility:",
+    "Type 1: Separate hard lumps – SEVERE CONSTIPATION",
+    "Type 2: Lumpy and sausage like – MILD CONSTIPATION",
+    "Type 3: A sausage shape with cracks in the surface – NORMAL",
+    "Type 4: Like a smooth, soft sausage or snake – NORMAL",
+    "Type 5: Soft blobs with clear-cut edges – LACKING FIBER",
+    "Type 6: Mushy consistency with ragged edges – MILD DIARRHEA",
+    "Type 7: Liquid consistency with no solid pieces – SEVERE DIARRHEA",
+    "Image reference: http://cdn.intechopen.com/pdfs-wm/46082.pdf"
+  ]
+}

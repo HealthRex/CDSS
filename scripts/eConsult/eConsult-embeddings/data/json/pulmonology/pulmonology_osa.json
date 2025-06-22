@@ -1,0 +1,32 @@
+[
+  {
+    "My Clinical Question (condition: OSA)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Date and location of most recent sleep study if not internal": "***"
+        },
+        {
+          "Current treatment: CPAP, BiPAP, ASV, pressure settings and DME provider": "***"
+        },
+        {
+          "Changes in weight, medications, comorbid conditions including cardiopulmonary or neuro cognitive issues?": "***"
+        },
+        {
+          "Reason for consultation?": "***"
+        }
+      ],
+      "Diagnostics": [],
+      "Clinical Pearls": [
+        {
+          "Please note that for patients with suspected/undiagnosed OSA without a prior diagnosis/sleep study, all patients need an in-person referral to Sleep Medicine at Stanford in order to obtain a sleep study for diagnosis, per department policy": "***"
+        }
+      ]
+    }
+  }
+]

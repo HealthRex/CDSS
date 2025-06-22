@@ -1,0 +1,67 @@
+[
+  {
+    "My Clinical Question (condition: polymyalgia rheumatica)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "SPECIAL NOTE": "Please do NOT order an eConsult for fibromyalgia. This should instead be referred."
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Suspected or confirmed diagnosis": "***"
+          },
+          {
+            "Current or previous treatment modalities": "***"
+          },
+          {
+            "Presence of headaches, fever, vision changes, jaw claudication": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "ESR": "***"
+          },
+          {
+            "CRP": "***"
+          },
+          {
+            "CBC": "***"
+          },
+          {
+            "CMP": "***"
+          },
+          {
+            "CK": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "RF and CCP Ab (if small joints, ie hands also affected)": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        {
+          "PMR typically requires treatment with moderate doses of prednisone (15-30mg) tapered slowly over the course of a year to prevent relapse": "***"
+        },
+        {
+          "A subset of patients with PMR can go on to develop giant cell arteritis": "***"
+        },
+        {
+          "A subset of patients with giant cell arteritis can go on to develop PMR": "***"
+        },
+        {
+          "If acute visual changes are present, please arrange for urgent ophthalmology evaluation. For suspected Giant Cell Arteritis consider starting steroid treatment and scheduling a temporal artery biopsy": "***"
+        }
+      ]
+    }
+  }
+]

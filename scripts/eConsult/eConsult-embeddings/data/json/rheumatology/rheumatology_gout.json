@@ -1,0 +1,82 @@
+[
+  {
+    "My Clinical Question (condition: gout)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "SPECIAL NOTE": "Please do NOT order an eConsult for fibromyalgia. This should instead be referred."
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [],
+        "Optional": [
+          {
+            "At what age did the attacks of inflammatory arthritis begin?": "***"
+          },
+          {
+            "Which joints are affected?": "***"
+          },
+          {
+            "Does the patient have any of the following signs or symptoms": [
+              {
+                "Recurrent acute attacks of joint pain? (# of flares in a year and/or # months)": "***"
+              },
+              {
+                "Radiographic erosions consistent with gout?": "***"
+              },
+              {
+                "Tophi?": "***"
+              },
+              {
+                "Sodium urate crystals in joint aspirate?": "***"
+              }
+            ]
+          },
+          {
+            "Does the patient have a history of renal stones?": "***"
+          },
+          {
+            "Please describe current and past treatments. If pt experienced complications with conventional therapy for gout, please describe": "***"
+          },
+          {
+            "Has the patient had a uric acid level > 6?": "***"
+          }
+        ]
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "Serum Uric Acid": "***"
+          },
+          {
+            "CBC w diff": "***"
+          },
+          {
+            "CMP": "***"
+          },
+          {
+            "X-ray of affected joint(s)": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Clinical Pearls": [
+        {
+          "An elevated serum uric acid is not diagnostic of gout. Preferentially, diagnosis should be confirmed by joint aspiration and fluid examination for crystals": "***"
+        },
+        {
+          "In patients with monoarthritis, especially in association with fever and immunocompromised, urgent evaluation may be required to rule out septic arthritis": "***"
+        },
+        {
+          "The goal for urate lowering therapy should be a uric acid level less than 6.0 mg/dl in non-tophaceous gout and less than 5.0 mg/dL in patients with tophaceous gout": "***"
+        },
+        {
+          "Consider excessive EtOH or stopping diuretics": "***"
+        }
+      ]
+    }
+  }
+]

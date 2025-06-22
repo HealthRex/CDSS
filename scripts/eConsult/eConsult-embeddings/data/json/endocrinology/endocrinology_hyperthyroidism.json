@@ -1,0 +1,45 @@
+[
+  {"specialist": "Endocrinology"},
+  {"template": "Hyperthyroidism"},
+  {"My Clinical Question (condition: hyperthyroidism)": "***"},
+  {"My most current assessment of this problem can be found in the note dated": "{Today/***}"},
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {"Does the patient have a history of any autoimmune disease?": "***"},
+          {"Presence of symptoms (palpitations, tremor, heat intolerance, diarrhea, ophthalmopathy, etc.)": "***"},
+          {"Is the patient pregnant?": "***"},
+          {"Does the patient wish to conceive?": "***"},
+          {"Thyroid exam (enlarged, nodular):": "***"}
+        ],
+        "Optional": [
+          {
+            "Medication history of": [
+              {
+                "Immunotherapy or chemo (such as pembrolizumab)": "***"
+              },
+              {
+                "Amiodarone": "***"
+              },
+              {
+                "Supplements": "***"
+              },
+              {
+                "Thyroid medications": "***"
+              }
+            ]
+          }
+        ]
+      },
+      "Diagnostics": {
+        "Required": [
+          {"Thyroid Stimulating Hormone (TSH)": "***"},
+          {"Free Thyroxine (Free T4)": "***"},
+          {"Total T3": "***"},
+          {"Thyroid stimulating immunoglobin (TSI)": "***"}
+        ]
+      }
+    }
+  }
+]

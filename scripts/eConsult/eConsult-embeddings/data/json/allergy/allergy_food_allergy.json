@@ -1,0 +1,31 @@
+[
+  {
+    "My Clinical Question (condition: Drug Allergy)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": [
+      {
+        "Suspected food trigger(s)": "***"
+      },
+      {
+        "Most recent symptoms": "***"
+      },
+      {
+        "Timing of symptoms": "***"
+      }
+    ]
+  },
+  {
+    "Tests recommended by Allergy": []
+  },
+  {
+    "Clinical Pearls": [
+      {
+        "Reactions to foods can be classified as IgE mediated food allergy or food intolerances. Only IgE mediated food allergies can be diagnosed at Allergy Clinic. With IgE mediated food allergy, symptoms can include acute lightheadedness/dizziness (from low blood pressure), nausea/vomiting/diarrhea, hives, angioedema, and/or SOB/wheezing)": "***"
+      }
+    ]
+  }
+]
