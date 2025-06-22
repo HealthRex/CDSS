@@ -63,7 +63,9 @@ def gemini_shc_call(input_txt, max_calls=10, sleep_time=5, **kwargs):
 # Open AI models via SHC
 def openai_init(model_name, my_key):
     headers = {'Ocp-Apim-Subscription-Key': my_key, 'Content-Type': 'application/json'}
-    url = f"https://apim.stanfordhealthcare.org/openai-eastus2/deployments/{model_name}/chat/completions?api-version=2025-01-01-preview" 
+    url = f"https://apim.stanfordhealthcare.org/openai-eastus2/deployments/{model_name}/chat/completions?api-version=2025-01-01-preview"
+    if model_name == "gpt-4o":
+        url = "https://apim.stanfordhealthcare.org/openai20/deployments/gpt-4o/chat/completions?api-version=2023-05-15" 
     return {"model_name": model_name, "url": url, "headers": headers}
 
 def openai_call(input_txt, max_calls = 10, sleep_time = 5, **kwargs):
