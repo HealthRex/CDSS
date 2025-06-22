@@ -1,0 +1,28 @@
+[
+  {
+    "My Clinical Question (condition: abnormal imaging)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Abnormal imaging finding(s)": "***"
+        },
+        {
+          "Any prior imaging to compare? Please ask the patient if they have any prior imaging and, if its outside, try and obtain the images. Comparison is the most important factor": "***"
+        },
+        {
+          "Associated symptoms or isolated imaging finding?": "***"
+        },
+        {
+          "Why was this imaging study ordered?": "***"
+        }
+      ],
+      "Diagnostics": [],
+      "Clinical Pearls": []
+    }
+  }
+]

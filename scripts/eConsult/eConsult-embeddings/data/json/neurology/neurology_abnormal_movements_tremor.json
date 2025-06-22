@@ -1,0 +1,61 @@
+[
+  {
+    "My Clinical Question (condition: Abnormal Movements/Tremor)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Description of movement (please include whether occurs at rest, with action or both)": "***"
+          },
+          {
+            "Location of movement": "***"
+          },
+          {
+            "Onset": "***"
+          },
+          {
+            "Exacerbating and relieving factors": "***"
+          },
+          {
+            "Whether there is associated pain": "***"
+          },
+          {
+            "Whether there is a change in ADLs": "***"
+          },
+          {
+            "Examination of strength, reflexes, and sensation": "***"
+          },
+          {
+            "Prior neurological evaluations": "***"
+          }
+        ],
+        "Optional": [
+        ]
+      },
+      "Diagnostics": [],
+      "Clinical Pearls": [
+        {
+          "Consider the following common, benign movement disorders that may not require neurology consultation (depending on duration, severity, accompanying symptoms)": [
+            {
+              "Physiologic Myoclonus (a brief involuntary twitching of muscles often increased by sleep deprivation, stress, narcotics)": "***"
+            },
+            {
+              "Eyelid twitching": "***"
+            }
+          ]
+        },
+        {
+          "Common medications that cause tremor: lithium, valproic acid, stimulants, SSRI’s, SNRI’s. Check the prescribing information as many medications cause tremor": "***"
+        },
+        {
+          "For bilateral action tremor without other neurologic signs or symptoms, consider diagnosis of essential tremor. Consider trial of propranolol or gabapentin": "***"
+        }
+      ]
+    }
+  }
+]

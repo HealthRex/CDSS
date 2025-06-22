@@ -1,0 +1,52 @@
+[
+  {
+    "My Clinical Question (condition: facial pain)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Etiology (if known)? Inciting event? Quality? Timing? Location? Alleviating/aggravating factors?": "***"
+        },
+        {
+          "Does the pt also have headache in additional to facial pain?": "***"
+        },
+        {
+          "Neurologic symptoms?": "***"
+        },
+        {
+          "Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?": "***"
+        },
+        {
+          "Pertinent comorbidities?": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "Relevant imaging": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Classical pain syndromes include": [
+            {
+              "Trigeminal neuralgia type 1: Random bursts of extreme facial pain with total or near-total resolution of pain outside those episodes; caused by irritation from blood vessels that can be seen on some brain MRI": "***"
+            },
+            {
+              "Trigeminal neuralgia type 2: Constant facial pain with spontaneous flares of worsening pain": "***"
+            },
+            {
+              "Trigeminal neuropathic pain: Injury to the peripheral nerves of the trigeminal system (e.g. history of ENT surgery, dental work, skull base surgery, stroke); associated with sensitivty to the overlying tissue (skin, teeth); can see numbness/tingling in the affected area as well": "***"
+            },
+            {
+              "Trigeminal neuralgia is typically random whereas trigeminal neuropathy can be reproduced by manipulating the painful area": "***"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

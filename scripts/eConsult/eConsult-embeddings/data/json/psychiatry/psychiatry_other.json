@@ -1,0 +1,25 @@
+[
+  {
+    "My Clinical Question (condition: other)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Important comorbidities": "***"
+        },
+        {
+          "Medications (current, previous, etc)": "***"
+        },
+        {
+          "Mental health providers (psychiatrist, NP, therapist)": "***"
+        }
+      ],
+      "Diagnostics": [],
+      "Clinical Pearls": []
+    }
+  }
+]

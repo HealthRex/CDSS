@@ -1,0 +1,43 @@
+[
+  {
+    "My Clinical Question (condition: Drug Allergy)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": [
+      {
+        "Infection history (pneumonia, skin infections, UTIs, sinusitis, meningitis, sepsis, bacteremia, bronchitis)": "***"
+      },
+      {
+        "Number of infections in the last 12 months requiring antibiotics": "***"
+      },
+      {
+        "Hospitalizations": "***"
+      },
+      {
+        "Family history of immunodeficiency": "***"
+      }
+    ]
+  },
+  {
+    "Tests recommended by Allergy": [
+      {
+        "CBC w/ Diff (w/in 6 months)": "***"
+      },
+      {
+        "Immunoglobulin A (IGA) (w/in 6 months)": "***"
+      },
+      {
+        "Immunoglobulin G (IGG) (w/in 6 months)": "***"
+      },
+      {
+        "Immunoglobulin M (IGM) (w/in 6 months)": "***"
+      }
+    ]
+  },
+  {
+    "Clinical Pearls": []
+  }
+]
