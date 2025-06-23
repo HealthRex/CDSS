@@ -1,0 +1,98 @@
+[
+  {
+    "The following situations are generally inappropriate for thrombocytopenia eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]": [
+      "Easy bruising/bleeding",
+      "Thrombosis",
+      "Presence of uncommon cells on differential or slide review: (e.g. nucleated RBCs, blasts, atypical lymphocytes)",
+      "Platelets < 50K",
+      "Received heparin therapy in last 3 months",
+      "Unexplained adenopathy or constitutional/B symptoms (e.g. fever, weight loss, or drenching night sweats)",
+      "Pancytopenia",
+      "Concern for a MAHA/TMA (by accompanying hemolytic anemia or schistocytosis)",
+      "Malignancy",
+      "Post-transplant"
+    ]
+  },
+  {
+    "My Clinical Question (condition: thrombocytopenia)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "EtOH use": "***"
+          },
+          {
+            "Known cirrhosis or splenomegaly": "{yes/no}"
+          },
+          {
+            "Lymph node exam": "***"
+          },
+          {
+            "Recent transfusion": "{yes/no}"
+          },
+          {
+            "Updated medication list, including non-prescription supplements": "***"
+          },
+          {
+            "Abdominal ultrasound of liver and spleen": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "CBC with diff": "***"
+          },
+          {
+            "Repeat platelet count in citrated tube (if there is clumping)": "***"
+          },
+          {
+            "CMP": "***"
+          },
+          {
+            "Vitamin B12": "***"
+          },
+          {
+            "HIV": "***"
+          },
+          {
+            "Hepatitis C antibody": "***"
+          },
+          {
+            "PT": "***"
+          },
+          {
+            "PTT": "***"
+          },
+          {
+            "Fibrinogen": "***"
+          },
+          {
+            "LDH, haptoglobin, reticulocyte count (if there is anemia)": "***"
+          },
+          {
+            "Pregnancy test (where appropriate)": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Clinical Pearls": [
+        {
+          "Asymptomatic, mild thrombocytopenia (100-150K/uL) stable for many years in an otherwise healthy patient can be consistent with ITP": "***"
+        },
+        {
+          "For folks with concern of ITP, especially with reflux symptoms, please screen for H. pylori": "***"
+        },
+        {
+          "In patients with long-standing thrombocytopenia without a normal baseline, a family history should be taken to screen for hereditary thrombocytopenia": "***"
+        }
+      ]
+    }
+  }
+]

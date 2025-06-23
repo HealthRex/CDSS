@@ -1,0 +1,5 @@
+{
+  "specialist": "Gastroenterology",
+  "template": "Abnormal Liver Imaging",
+  "text": "DO NOT place a GI eConsult order for 'abnormal liver imaging'. This question is more appropriate for Hepatology. Please instead use the Hepatology eConsult order."
+}

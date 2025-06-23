@@ -1,0 +1,34 @@
+{
+  "specialty": "Gastroenterology",
+  "template_name": "Other",
+  "Required": [
+    "Symptoms",
+    "Pertinent labs",
+    "Pertinent medications",
+    "Pertinent physical exam features"
+  ],
+  "Optional": [
+    "None"
+  ],
+  "diagnostics_required": [
+    "None"
+  ],
+  "diagnostics_optional": [
+    "CBC",
+    "CMP",
+    "Lipase",
+    "Urine pregnancy",
+    "HgbA1c",
+    "ESR",
+    "C-Reactive protein",
+    "Serum iron",
+    "FOBT",
+    "TSH",
+    "TTG IgA and IgA",
+    "GI PCR",
+    "C Diff Toxin PCR"
+  ],
+  "clinical_pearls": [
+    "None"
+  ]
+}

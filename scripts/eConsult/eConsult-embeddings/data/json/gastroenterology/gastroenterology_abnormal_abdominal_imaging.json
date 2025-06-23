@@ -1,0 +1,18 @@
+{
+  "specialist": "Gastroenterology",
+  "template": "Abnormal Abdominal Imaging",
+  "Required": [
+    "Abnormal imaging findings (images and report available for review)",
+    "Initial reason for imaging study",
+    "Associated signs/symptoms, PMH, or Family Hx"
+  ],
+  "Optional": [],
+  "diagnostics_required": [],
+  "diagnostics_optional": [
+    "CMP",
+    "CBC"
+  ],
+  "clinical_pearls": [
+    "None"
+  ]
+}

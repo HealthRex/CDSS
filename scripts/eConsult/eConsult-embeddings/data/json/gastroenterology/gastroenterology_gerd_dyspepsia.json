@@ -1,0 +1,29 @@
+{
+  "specialist": "Gastroenterology",
+  "template": "GERD/dyspepsia",
+  "Required": [
+    "Symptoms: Reflux? Heartburn? Odynophagia? Dysphagia? Weight loss? New onset >60 y/o?",
+    "Duration? Progression? h/o food impaction?",
+    "Use of NSAIDs, antiplatelets, anticoagulants or supplements that affect bleeding",
+    "Management to date: dose, duration, response, H2 blockers, PPI, others",
+    "Symptoms despite twice daily PPI therapy for 8 weeks?",
+    "Reflux symptoms > 5 years?",
+    "Prior EGD + pathology"
+  ],
+  "Optional": [
+    "None"
+  ],
+  "diagnostics_required": [],
+  "diagnostics_optional": [
+    "BMP (if symptoms of dyspepsia)",
+    "CBC (if symptoms of dyspepsia)",
+    "H pylori (if symptoms of dyspepsia)",
+    "EGD (If the patient is male and > 50 years old with reflux symptoms for > 5 years and has one or more of the following, then EGD is required: 1) Nocturnal reflux? 2) Hiatal hernia? 3) Tobacco use? 4) Central adiposity?)"
+  ],
+  "clinical_pearls": [
+    "PPI trial (8 weeks), taken 30-60 minutes before a meal",
+    "After about 8 weeks of PPI, pt can try to stop or reduce PPI to lowest effective dose",
+    "Consider H2 blocker if needed",
+    "HBV – order HEP eConsult (Internal template only): DO NOT place a GI eConsult order for 'HBV'. This question is more appropriate for Hepatology. Please instead use the Hepatology eConsult order."
+  ]
+}

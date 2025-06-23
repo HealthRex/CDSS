@@ -1,0 +1,48 @@
+[
+  {
+    "My Clinical Question (condition: recurrent skin/soft tissue infection/MRSA)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Signs or symptoms (including location, presence of purulence, fever)": "***"
+          },
+          {
+            "Immunocompromising conditions or other risk factors (obesity, prior trauma or surgery, peripheral vascular disease or lymphedema)": "***"
+          },
+          {
+            "Antibiotic treatment (dates, antimicrobial agents, and treatment duration)": "***"
+          },
+          {
+            "Picture of skin lesion/flesh infection, if available": "***"
+          },
+          {
+            "Prior culture results": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "Wound Culture (with gram stain)": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Clinical Pearls": [
+        {
+          "Uncomplicated cellulitis without purulence or significant systemic illness should generally be treated with oral penicillin VK or cephalexin since beta hemolytic streptococci like Streptococcus pyogenes predominate": "***"
+        },
+        {
+          "Purulent skin and soft tissue infections (like furuncolosis) should be treated with incision and drainage. Prescribing trimethoprim/sulfamethoxazole or doxycycline should be considered and likely increases likelihood of treatment success": "***"
+        }
+      ]
+    }
+  }
+]

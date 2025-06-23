@@ -1,0 +1,5 @@
+{
+  "specialist": "Gastroenterology",
+  "template": "Abnormal LFTs",
+  "text": "DO NOT place a GI eConsult order for 'abnormal LFTs'. This question is more appropriate for Hepatology. Please instead use the Hepatology eConsult order."
+}
