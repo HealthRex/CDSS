@@ -53,7 +53,7 @@ class NonEmptyFileHandler(logging.FileHandler):
                 pass
 
 # Create logs directory if it doesn't exist
-log_dir = "logs"
+log_dir = "../logs"
 os.makedirs(log_dir, exist_ok=True)
 
 # Set up logging with the custom handler
