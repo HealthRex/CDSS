@@ -1,0 +1,75 @@
+[
+  {
+    "My Clinical Question (condition: other sensory symptoms)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Characteristics of symptoms": "***"
+          },
+          {
+            "Distribution": "***"
+          },
+          {
+            "Onset": "***"
+          },
+          {
+            "Exacerbating and relieving factors": "***"
+          },
+          {
+            "Examination of strength, reflexes, sensation, and gait": "***"
+          },
+          {
+            "Prior neurological evaluations": "***"
+          },
+          {
+            "Whether a specific mononeuropathy is suspected": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [],
+        "Optional": [
+          {
+            "B12": "***"
+          },
+          {
+            "HgbA1c": "***"
+          },
+          {
+            "Fasting glucose": "***"
+          },
+          {
+            "Oral glucose tolerance test (OGTT)": "***"
+          },
+          {
+            "SPEP": "***"
+          },
+          {
+            "CBC": "***"
+          },
+          {
+            "CMP": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        {
+          "Patients with carpal tunnel syndrome (median neuropathy) or ulnar neuropathy often endorse numbness or paresthesias of the “whole hand.” On careful questioning, symptoms are usually limited to a few fingers": "***"
+        },
+        {
+          "In carpal tunnel syndrome, sensory symptoms are present in the thumb, index, middle, and half of the ring finger. In ulnar neuropathy, sensory symptoms are present in the little finger and half of the ring finger": "***"
+        },
+        {
+          "EMG/NCS testing is not necessary in all cases": "***"
+        }
+      ]
+    }
+  }
+]

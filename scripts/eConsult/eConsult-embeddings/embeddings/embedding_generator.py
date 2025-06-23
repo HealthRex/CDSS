@@ -8,7 +8,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import marshal
 
-DATA_DIR = os.environ.get("DATA_DIR", "data")
+DATA_DIR = os.environ.get("DATA_DIR", "data/json")
 
 
 def load_template_text(file_path):
@@ -87,6 +87,40 @@ def load_embeddings():
                     embeddings = marshal.load(embeddings_file)
             all_embeddings[txt_file] = (texts, embeddings)
             print(f"✅ Embeddings created for {txt_file}")
+    except Exception as e:
+        print(f"Failed to load model or curves: {str(e)}")
+        print(traceback.format_exc())
+        raise
+    return all_embeddings, embeddings_model
+
+
+def load_embeddings_json():
+    try:
+        # ✅ Load extracted .txt files
+        json_files = [os.path.join(root, f) for root, _, files in os.walk(DATA_DIR) for f in files if f.endswith(".json")]
+        all_template_data = {}
+
+        for json_file in json_files:
+            template_text = load_template_text(json_file)
+            split_texts = split_text(template_text)
+            all_template_data[json_file] = split_texts
+            print(f"✅ Loaded text from {json_file}")
+
+        # ✅ Create embeddings for each template
+        embeddings_model = create_embeddings()
+        all_embeddings = {}
+        for json_file, texts in all_template_data.items():
+            try:
+                embeddings_file = open(json_file + "_embedding.bin", "rb")
+            except FileNotFoundError:
+                embeddings = embeddings_model.embed_documents(texts)
+                with open(json_file + "_embedding.bin", "wb") as embeddings_file:
+                    marshal.dump(embeddings, embeddings_file)
+            else:
+                with embeddings_file:
+                    embeddings = marshal.load(embeddings_file)
+            all_embeddings[json_file] = (texts, embeddings)
+            print(f"✅ Embeddings created for {json_file}")
     except Exception as e:
         print(f"Failed to load model or curves: {str(e)}")
         print(traceback.format_exc())

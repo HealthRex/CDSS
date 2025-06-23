@@ -78,7 +78,7 @@ class ClinicalState(TypedDict):
 
 class QueryRequest(BaseModel):
     result_type: str = "icd10"  # Default to icd10
-    limit: int = 100  # Default limit
+    limit: int = 10  # Default limit
     query_params: Optional[Dict[str, Any]] = None
 
 class ClinicalCaseRequest(BaseModel):
@@ -169,10 +169,22 @@ def extract_patient_info(state: dict) -> dict:
     log_stage("extract_patient_info", input_state, state)
     return state
 
+# Add MAX_RETRIES for stopper node logic
+MAX_RETRIES = 3
+
+def stopper_node(state: dict) -> dict:
+    state = state.copy()
+    state['stopped'] = True
+    state['error'] = f"Stopped after {state.get('retry_count', 0)} retries. Manual review required."
+    log_stage("stopper_node", state, state)
+    return state
+
 def match_icd10_code(state: dict) -> dict:
     """Match clinical information to ICD-10 code."""
     state['error'] = None
     input_state = state.copy()
+    # Increment retry_count if present, else initialize
+    state['retry_count'] = state.get('retry_count', 1)
         
     llm = ChatGroq(
         model="Deepseek-R1-Distill-Llama-70b",
@@ -287,27 +299,41 @@ def create_clinical_graph() -> StateGraph:
     workflow.add_node("match_icd10_code", RunnableLambda(match_icd10_code))
     workflow.add_node("validate_icd10_code_exists", RunnableLambda(validate_icd10_code_exists))
     workflow.add_node("validate_icd10_clinical_match", RunnableLambda(validate_icd10_clinical_match))
+    workflow.add_node("stopper", RunnableLambda(stopper_node))
     
     # Add basic edges
     workflow.add_edge("extract_patient_info", "match_icd10_code")
     workflow.add_edge("match_icd10_code", "validate_icd10_code_exists")
     
-    # Define conditional edges
+    # Helper to increment retry count and route
+    def check_and_route(state, next_success):
+        if state.get("error"):
+            if state.get("retry_count", 0) >= MAX_RETRIES:
+                return "stopper"
+            state["retry_count"] = state.get("retry_count", 0) + 1
+            return "match_icd10_code"
+        else:
+            return next_success
+    
+    # Conditional for code existence validation
     workflow.add_conditional_edges(
         "validate_icd10_code_exists",
-        lambda x: "match_icd10_code" if x.get("error") else "validate_icd10_clinical_match",
+        lambda x: check_and_route(x, "validate_icd10_clinical_match"),
         {
             "match_icd10_code": "match_icd10_code",
-            "validate_icd10_clinical_match": "validate_icd10_clinical_match"
+            "validate_icd10_clinical_match": "validate_icd10_clinical_match",
+            "stopper": "stopper"
         }
     )
     
+    # Conditional for clinical validation
     workflow.add_conditional_edges(
         "validate_icd10_clinical_match",
-        lambda x: "match_icd10_code" if x.get("error") else END,
+        lambda x: check_and_route(x, END),
         {
             "match_icd10_code": "match_icd10_code",
-            END: END
+            END: END,
+            "stopper": "stopper"
         }
     )
     
@@ -355,7 +381,7 @@ async def process_clinical_case(request: ClinicalCaseRequest):
         from som-nero-phi-jonc101.shc_core_2024.diagnosis
         group by icd10
         order by count desc
-        limit 400
+        limit 10
         """
         query_job = client.query(query)
         results = query_job.result()
@@ -373,7 +399,9 @@ async def process_clinical_case(request: ClinicalCaseRequest):
             "patient_gender": None,
             "icd10_code": None,
             "rationale": None,
-            "error": None
+            "error": None,
+            "retry_count": 1,
+            "stopped": False
         }
         
         # Run the graph
@@ -386,7 +414,9 @@ async def process_clinical_case(request: ClinicalCaseRequest):
             "patient_gender": result.get("patient_gender"),
             "icd10_code": result.get("icd10_code"),
             "rationale": result.get("rationale"),
-            "error": result.get("error")
+            "error": result.get("error"),
+            "retry_count": result.get("retry_count"),
+            "stopped": result.get("stopped")
         }
         
         return clean_result
