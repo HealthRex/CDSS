@@ -22,15 +22,9 @@ class BigQueryAPI:
         self,
         params: Dict[str, Union[str, int, None]],
         min_patients_for_non_rare_items: int = 10,
-<<<<<<< HEAD
         result_type: Optional[Union[str, List[str]]] = None,  # Accept str, list, or None
         limit: int = 10,
         year: int = 2024
-=======
-        result_type: str = "med",  # Options: "proc", "med"
-        limit: int = 10,
-        year: int = 2024  # Default to 2024 if not specified
->>>>>>> 19a6fcf92cec5a2105da9208f238212bccd604da
     ) -> pd.DataFrame:
         """
     Get common orders based on patient parameters and filters.
@@ -298,6 +292,6 @@ if __name__ == "__main__":
     # df_lab.to_csv("lab_results_sample.csv", index=False)
     # print(df_lab)
 
-    print("mix Results:")
-    print(df_mix)
-    df_mix.to_csv("mix_results_sample.csv", index=False)
+    # print("mix Results:")
+    # print(df_mix)
+    # df_mix.to_csv("mix_results_sample.csv", index=False)
