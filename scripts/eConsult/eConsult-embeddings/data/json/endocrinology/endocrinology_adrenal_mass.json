@@ -1,0 +1,95 @@
+[
+  {
+    "specialist": "Endocrinology"
+  },
+  {
+    "template": "Adrenal Mass"
+  },
+  {
+    "My Clinical Question (condition: adrenal mass)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Does the patient have hypertension or hypokalemia?": "***"
+        },
+        {
+          "Is the patient Cushingoid?": "***"
+        },
+        {
+          "What anti-HTN medication(s) is the patient on (if any)?": "***"
+        }
+      ],
+      "Diagnostics": {
+        "Required": [
+          {
+            "Abdominal MRI or abdominal CT results (most recent and any past results for comparison)": "***"
+          },
+          {
+            "Basic Metabolic Panel (BMP)": "***"
+          },
+          {
+            "1 mg overnight dexamethasone suppression test (DST) — do not perform if concern for pheochromocytoma": "***"
+          },
+          {
+            "24 Hour Urine Metanephrines": "***"
+          },
+          {
+            "Serum Aldosterone": "***"
+          },
+          {
+            "Serum Cortisol": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "24 Hour Urine Fractionated Metanephrines (if unenhanced CT attenuation ≥ 10 HU and low suspicion for pheochromocytoma)": "***"
+          },
+          {
+            "Plasma Fractionated Metanephrines (if unenhanced CT attenuation ≥ 10 HU and high suspicion for pheochromocytoma)": "***"
+          },
+          {
+            "8 am Plasma Aldosterone (if the patient has hypertension or hypokalemia)": "***"
+          },
+          {
+            "Plasma Renin Activity (if the patient has hypertension or hypokalemia)": "***"
+          },
+          {
+            "24 Hour Urinary Free Cortisol (if 1 mg DST is abnormal > 1.8)": "***"
+          },
+          {
+            "Serum ACTH (if 1 mg DST is abnormal)": "***"
+          },
+          {
+            "Repeat 1 mg overnight DST (if 1 mg overnight DST is abnormal)": "***"
+          },
+          {
+            "Late night salivary cortisol": "***"
+          },
+          {
+            "Low dose dexamethasone suppression test (DST)": "***"
+          },
+          {
+            "High dose dexamethasone suppression test (DST)": "***"
+          },
+          {
+            "24 Hour Urine Cortisol": "***"
+          },
+          {
+            "1 mg Overnight DST": "***"
+          },
+          {
+            "Late night salivary cortisol": "***"
+          },
+          {
+            "ACTH": "***"
+          }
+        ]
+      }
+    }
+  }
+]

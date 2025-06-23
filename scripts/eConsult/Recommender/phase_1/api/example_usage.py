@@ -5,7 +5,7 @@ def process_clinical_case_and_get_orders(
     clinical_question: str,
     clinical_notes: str,
     result_type: str = "proc",
-    limit: int = 100
+    limit: int = 10
 ):
     """
     Process a clinical case and get orders in one flow.
@@ -66,15 +66,26 @@ if __name__ == "__main__":
     # No associated symptoms. Past medical history includes hypertension.
     # No family history of CAD. Smokes 1 pack per day for 20 years.
     # """
+    # clinical_question = "In a patient with persistent fever, night sweats, and weight loss despite broad-spectrum antibiotics, could this represent disseminated mycobacterial infection or an atypical fungal process, and what diagnostic workup is indicated?"
+    # clinical_notes = (
+    # "52‑year‑old female with rheumatoid arthritis on methotrexate and low‑dose prednisone presents with "
+    # "6‑week history of daily fevers up to 102°F, drenching night sweats, and a 12‑lb unintentional weight loss. "
+    # "Initial blood cultures and chest X‑ray were unrevealing. She denies cough, dyspnea, or focal pain. "
+    # "Lab results show mild anemia (Hgb 11.2), elevated ESR (85 mm/hr), and CRP (12 mg/dL). "
+    # "CT chest/abdomen reveals multiple small pulmonary nodules and hepatosplenic lesions. "
+    # "Concern for disseminated non‑tuberculous mycobacteria vs. histoplasmosis. Input on biopsy site selection and empiric therapy is requested."
+    # ) 
+
     clinical_question = "In a patient with persistent fever, night sweats, and weight loss despite broad-spectrum antibiotics, could this represent disseminated mycobacterial infection or an atypical fungal process, and what diagnostic workup is indicated?"
+
     clinical_notes = (
-    "52‑year‑old female with rheumatoid arthritis on methotrexate and low‑dose prednisone presents with "
-    "6‑week history of daily fevers up to 102°F, drenching night sweats, and a 12‑lb unintentional weight loss. "
-    "Initial blood cultures and chest X‑ray were unrevealing. She denies cough, dyspnea, or focal pain. "
-    "Lab results show mild anemia (Hgb 11.2), elevated ESR (85 mm/hr), and CRP (12 mg/dL). "
-    "CT chest/abdomen reveals multiple small pulmonary nodules and hepatosplenic lesions. "
-    "Concern for disseminated non‑tuberculous mycobacteria vs. histoplasmosis. Input on biopsy site selection and empiric therapy is requested."
-)
+        "52‑year‑old female with rheumatoid arthritis on methotrexate and low‑dose prednisone presents with "
+        "6‑week history of daily fevers up to 102°F, drenching night sweats, and a 12‑lb unintentional weight loss. "
+        "Initial blood cultures and chest X‑ray were unrevealing. She denies cough, dyspnea, or focal pain. "
+        "Lab results show mild anemia (Hgb 11.2), elevated ESR (85 mm/hr), and CRP (12 mg/dL). "
+        "CT chest/abdomen reveals multiple small pulmonary nodules and hepatosplenic lesions. "
+        "Concern for disseminated non‑tuberculous mycobacteria vs. histoplasmosis. Input on biopsy site selection and empiric therapy is requested."
+    )
     
     # Get procedures
     print("Getting procedures...")

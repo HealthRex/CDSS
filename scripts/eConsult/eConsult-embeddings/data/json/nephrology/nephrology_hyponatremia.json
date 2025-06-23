@@ -1,0 +1,63 @@
+[
+  {
+    "My Clinical Question (condition: hyponatremia)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "History of prior episodes of hyponatremia": "***"
+          },
+          {
+            "History of fluid loss (e.g. diarrhea, vomiting, diuretic therapy) or signs of dehydration": "***"
+          },
+          {
+            "Signs of peripheral edema and/or ascites": "***"
+          },
+          {
+            "My assessment of the patient’s volume status is": "***"
+          },
+          {
+            "Confirm accurate medication list, including over-the-counter meds": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "BMP": "***"
+          },
+          {
+            "Serum osmolality": "***"
+          },
+          {
+            "Urine osmolality": "***"
+          },
+          {
+            "Urine electrolytes including creatinine": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Clinical Pearls": [
+        {
+          "Remember to correct for high blood sugars (sodium decreases 2meq/100 mg glucose above normal – 100 mg/dl)": "***"
+        },
+        {
+          "STOP thiazide and recheck; consider different class for BP control": "***"
+        },
+        {
+          "Consider ER for sodium < 125, especially if rapidity of development unknown": "***"
+        },
+        {
+          "Consider ER referral if any symptoms (such as headache or nausea) associated with hyponatremia": "***"
+        }
+      ]
+    }
+  }
+]
