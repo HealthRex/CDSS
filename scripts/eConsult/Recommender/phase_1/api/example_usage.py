@@ -170,20 +170,20 @@ def get_orders_from_file(
     return orders_result
 
 if __name__ == "__main__":
-    cases = pd.read_csv("phase_1/real_data/icd.csv")
-    clinical_question = cases.iloc[0]["Question"]
-    clinical_notes = cases.iloc[0]["Summary"]
+    cases = pd.read_csv("real_data/icd.csv")
+    clinical_question = cases.iloc[2]["Question"]
+    clinical_notes = cases.iloc[2]["Summary"]
     
-    # # Option 1: Get comprehensive recommendations (lab tests, medications, and procedures)
-    # print("=" * 80)
-    # print("COMPREHENSIVE RECOMMENDATIONS")
-    # print("=" * 80)
-    # comprehensive_results = process_clinical_case_and_get_orders(
-    #     clinical_question=clinical_question,
-    #     clinical_notes=clinical_notes,
-    #     result_type=None,  # None gets all types
-    #     limit=10
-    # )
+    # Option 1: Get comprehensive recommendations (lab tests, medications, and procedures)
+    print("=" * 80)
+    print("COMPREHENSIVE RECOMMENDATIONS")
+    print("=" * 80)
+    comprehensive_results = process_clinical_case_and_get_orders(
+        clinical_question=clinical_question,
+        clinical_notes=clinical_notes,
+        result_type=None,  # None gets all types
+        limit=10
+    )
     
     # # Option 2: Get only lab tests
     # print("\n" + "=" * 80)
@@ -257,7 +257,7 @@ if __name__ == "__main__":
         # Option 8: Demonstrate using a specific result file path
         # Uncomment and modify the path below to use an existing result.csv file
         # print("\n--- Lab Tests from File ---")
-        # specific_file_path = "phase_1/logs/clinical_workflow_20250623110531/result.csv"  # Modify this path
+        # specific_file_path = "logs/clinical_workflow_20250623211637/result.csv"  # Modify this path
         # if os.path.exists(specific_file_path):
         #     lab_from_file = get_orders_from_file(specific_file_path, "lab", 5)
         # else:
