@@ -2,137 +2,146 @@
 
 A FastAPI-based API that processes clinical cases and recommends medical procedures or medications based on ICD-10 codes.
 
-## Setup
+## Quick Start
 
-1. Install required packages:
+### 1. Install Dependencies
 ```bash
-pip install fastapi uvicorn requests google-cloud-bigquery pandas langchain-groq langgraph
+cd phase_1
+pip install -r requirements.txt
 ```
 
-2. Set up Google Cloud credentials:
-   - Make sure you have the Google Cloud SDK installed
-   - Authenticate using `gcloud auth application-default login`
-   - The application uses the project "som-nero-phi-jonc101"
-
-## Running the API
-
-1. Start the FastAPI server:
+### 2. Run the API
 ```bash
-cd Recommender_API
-uvicorn api.fastapi_app:app --reload --port 8002
+cd phase_1/api
+python fastapi_app.py
 ```
 
-The API will be available at `http://localhost:8002`
+The API will be available at `http://localhost:8000`
 
-## API Endpoints
+## Data Structure
 
-### 1. Process Clinical Case
-Processes clinical notes to extract patient information and determine the appropriate ICD-10 code.
-
-**Endpoint:** `POST /process_clinical_case`
-
-**Request Body:**
+### Process Clinical Case Request
 ```json
 {
-    "clinical_question": "Could this patient have stable angina?",
-    "clinical_notes": "55-year-old male presents with chest pain on exertion..."
+    "clinical_question": "Patient has a history of prostate cancer...",
+    "clinical_notes": "What antibiotic should I use for this patient?",
+    "specialties": ["Infectious Diseases", "Urology"],
+    "limit": 5000
 }
 ```
 
-**Response:**
+### Get Orders Request
 ```json
 {
-    "patient_age": 55,
-    "patient_gender": "male",
-    "icd10_code": "I25.10",
-    "rationale": "Patient presents with typical symptoms of stable angina...",
-    "error": null
+    "icd10_code": "E11.9",
+    "patient_age": 45,
+    "patient_gender": "female",
+    "result_type": null,  // "lab", "procedure", or null for all
+    "limit": 10
 }
 ```
 
-### 2. Get Orders
-Retrieves recommended procedures or medications based on the ICD-10 code and patient information.
-
-**Endpoint:** `POST /get_orders`
-
-**Request Body:**
+### Get Orders from File Request
 ```json
 {
-    "icd10_code": "I25.10",
-    "patient_age": 55,
-    "patient_gender": "male",
-    "result_type": "proc",  // or "med"
+    "result_file_path": "logs/demo/clinical_workflow_20250623225312/result.csv",
+    "result_type": "lab",
+    "limit": 5
+}
+```
+
+### Query ICD-10 Request
+```json
+{
+    "result_type": "icd10",
+    "specialties": ["Infectious Diseases", "Endocrinology"],
     "limit": 10,
-    "min_patients_for_non_rare_items": 10,
-    "year": 2024
+    "query_params": null
 }
 ```
 
-**Response:**
-```json
-{
-    "icd10_code": "I25.10",
-    "result_type": "proc",
-    "patient_age": 55,
+## Test API Commands
+
+### 1. Process a Clinical Case
+```bash
+curl -s -X POST "http://localhost:8000/process_clinical_case" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clinical_question": "your question",
+    "clinical_notes": "your notes,
+    "specialties": ["Infectious Diseases", "Urology"],    
+    "limit": 5000                                         
+  }' | jq
+```
+
+### 2. Get Orders (All Types)
+```bash
+curl -s -X POST "http://localhost:8000/get_orders" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "icd10_code": "E11.9",
+    "patient_age": 45,
+    "patient_gender": "female",
+    "result_type": null,
+    "limit": 10
+  }' | jq
+```
+
+### 3. Get Orders (Labs Only)
+```bash
+curl -s -X POST "http://localhost:8000/get_orders" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "icd10_code": "N39.0",
+    "patient_age": 60,
     "patient_gender": "male",
-    "data": [
-        {
-            "itemId": "PROC123",
-            "description": "Cardiac Stress Test",
-            "patientRate": 45.5,
-            "encounterRate": 30.2,
-            "nPatientscohortItem": 150,
-            "nEncounterscohortItem": 75,
-            "nPatientsCohortTotal": 330,
-            "nEncountersCohortTotal": 248
-        }
-        // ... more items
-    ]
-}
+    "result_type": "lab",
+    "limit": 5
+  }' | jq
 ```
 
-## Example Usage
-
-You can use the provided example script to test the API:
-
+### 4. Get Orders (Procedures Only)
 ```bash
-cd Recommender_API/api
-python example_usage.py
+curl -s -X POST "http://localhost:8000/get_orders" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "icd10_code": "I10",
+    "patient_age": 70,
+    "patient_gender": "female",
+    "result_type": "procedure",
+    "limit": 5
+  }' | jq
 ```
 
-Or use curl commands:
-
+### 5. Get Orders from File
 ```bash
-# Process clinical case
-curl -X POST "http://localhost:8002/process_clinical_case" \
-     -H "Content-Type: application/json" \
-     -d '{
-         "clinical_question": "Could this patient have stable angina?",
-         "clinical_notes": "55-year-old male with chest pain on exertion..."
-     }'
+curl -s -X POST "http://localhost:8000/get_orders_from_file" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "result_file_path": "logs/demo/clinical_workflow_20250623225312/result.csv",
+    "result_type": "lab",
+    "limit": 5
+  }' | jq
+```
 
-# Get orders
-curl -X POST "http://localhost:8002/get_orders" \
-     -H "Content-Type: application/json" \
-     -d '{
-         "icd10_code": "I25.10",
-         "patient_age": 55,
-         "patient_gender": "male",
-         "result_type": "proc",
-         "limit": 10
-     }'
+### 6. Query ICD-10 Codes
+```bash
+curl -s -X POST "http://localhost:8000/query" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "result_type": "icd10",
+    "specialties": ["Infectious Diseases", "Endocrinology"],  
+    "limit": 10,                                             
+    "query_params": null
+  }' | jq
 ```
 
 ## API Documentation
 
-Once the server is running, you can access the interactive API documentation at:
-- Swagger UI: `http://localhost:8002/docs`
-- ReDoc: `http://localhost:8002/redoc`
+Once running, access interactive documentation at:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
-## Logging
+## Note
 
-The API logs its operations to `clinical_workflow.log` in the directory where the server is started. You can monitor the logs in real-time using:
-
-```bash
-tail -f clinical_workflow.log
-``` 
+If you don't have `jq` installed, remove `| jq` from the end of each curl command. `jq` just makes the output prettier but is not required.
