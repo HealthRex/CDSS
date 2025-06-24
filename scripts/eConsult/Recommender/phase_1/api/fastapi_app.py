@@ -70,7 +70,7 @@ def setup_logging_for_case():
     Returns the log directory path.
     """
     # Create logs directory with timestamp for this specific case
-    log_dir = f"../logs/clinical_workflow_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+    log_dir = f"logs/demo/clinical_workflow_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
     os.makedirs(log_dir, exist_ok=True)
     
     # Clear any existing handlers to avoid duplicate logging
@@ -524,7 +524,7 @@ async def get_orders(request: OrderRequest):
                 
                 if log_dir is None:
                     # No log directory set up, create a temporary one
-                    log_dir = f"../logs/orders_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+                    log_dir = f"logs/demo/orders_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
                     os.makedirs(log_dir, exist_ok=True)
                 
                 orders_filename = f"orders_{request.result_type if request.result_type else 'all'}.csv"
@@ -629,5 +629,6 @@ async def get_orders_from_file(request: OrderFromFileRequest):
 
 if __name__ == "__main__":
     import uvicorn
+    print("changes applied")
     uvicorn.run(app, host="0.0.0.0", port=8000) 
     
