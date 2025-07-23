@@ -38,7 +38,7 @@ Make sure the following are installed:
 
 ---
 
-## 📝 Command Line Usage
+## Command Line Usage
 
 ### 1. Extract Text from Templates
 
