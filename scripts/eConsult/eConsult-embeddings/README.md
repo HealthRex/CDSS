@@ -1,105 +1,138 @@
+
 # eConsult Embedding System
 
 ## Overview
-This project extracts and embeds eConsult templates to enable similarity searches between clinical questions and the appropriate eConsult templates. The system uses embeddings to recommend the most relevant template based on cosine similarity scores. It can be used on the command line or as a REST API.
+This project extracts and embeds eConsult templates to enable similarity searches between clinical questions and the appropriate eConsult templates. The system uses sentence embeddings and cosine similarity to recommend the most relevant template. It supports both command line use and a REST API server.
 
-## Command Line Usage
+---
+
+## Prerequisites
+
+Make sure the following are installed:
+
+- Python 3.8+
+- [Uvicorn](https://www.uvicorn.org/) (listed in `requirements.txt`)
+- [FastAPI](https://fastapi.tiangolo.com/) (listed in `requirements.txt`)
+- Template files (`.docx`) placed in the `data/` directory
+
+---
 
 ## Installation
 
-1. **Clone the repository:**
+1. **Clone the repository**
    ```bash
    git clone <repository_url>
    cd eConsult-embeddings
    ```
 
-2. **Create and activate a virtual environment: (Recommended)**
+2. **Create and activate a virtual environment (recommended)**
    ```bash
-   python -m venv econsult
-   source econsult/bin/activate
+   python -m venv venv
+   source venv/bin/activate        # On Windows: venv\Scripts\activate
    ```
 
-3. **Install dependencies:**
+3. **Install all required dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-## Usage
+---
 
-1. **Extract Text from Templates**
+## 📝 Command Line Usage
 
-   This script will extract text from all .docx templates and save them as .txt files in the data/ folder.
+### 1. Extract Text from Templates
 
-   ```bash
-   python3 embeddings/extract_all_templates.py
+This script converts all `.docx` templates in the `data/` directory into `.txt` files for embedding.
 
-   ```
+```bash
+python3 embeddings/extract_all_templates.py
+```
 
-   You will see outputs like:
-   ```bash
-   ✅ Extracted text saved to 'Endocrinology eConsult Checklists FINAL 4.19.22_extracted.txt'
-   ✅ Extracted text saved to 'Cardiology eConsult Checklists_extracted.txt'
-   ...
-   ```
+You should see outputs like:
+```bash
+✅ Extracted text saved to 'Endocrinology eConsult Checklists FINAL 4.19.22_extracted.txt'
+✅ Extracted text saved to 'Cardiology eConsult Checklists_extracted.txt'
+```
 
-2. **Run Embedding & Similarity Search**
+### 2. Run Embedding & Similarity Search
 
-   Use this script to embed all templates and run similarity searches against a clinical question.
-   ```bash
-   python3 embeddings/embedding_generator.py
-   ```
+This script generates embeddings for each template and compares them to your input question.
 
-   You will be prompted to enter a clinical question:
-   ```
-   Enter a clinical question: What are the best insulin management strategies for type 2 diabetes?
-   ```
+```bash
+python3 embeddings/embedding_generator.py
+```
 
-   The system will output cosine similarity scores for each template and recommend the best match:
-   ```
-   📊 Cosine Similarity Scores:
-   Endocrinology eConsult Checklists FINAL 4.19.22.docx: 0.9142
-   Cardiology eConsult Checklists.docx: 0.4028
-   Neurology eConsult Checklists.docx: 0.3993
-   ...
-   🏆 Suggested Template: Endocrinology eConsult Checklists FINAL 4.19.22.docx (Score: 0.9142)
-   ```
-      
-## API Usage
+You will be prompted:
+```
+Enter a clinical question: What are the best insulin management strategies for type 2 diabetes?
+```
+
+Then it will return:
+```
+📊 Cosine Similarity Scores:
+Endocrinology eConsult Checklists FINAL 4.19.22.docx: 0.9142
+Cardiology eConsult Checklists.docx: 0.4028
+Neurology eConsult Checklists.docx: 0.3993
+...
+🏆 Suggested Template: Endocrinology eConsult Checklists FINAL 4.19.22.docx (Score: 0.9142)
+```
+
+---
+
+##  API Usage
 
 ### Local Development
-You can start the API server locally with hot reloading which is useful for local development:
+
+Start the API server locally with hot reloading:
+
 ```bash
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-The service will become available on [http://localhost:8000/](http://localhost:8000/). See "Example Usage" below to test the service.
+The following will be available:
+- [http://localhost:8000](http://localhost:8000) → Health check
+- [http://localhost:8000/docs](http://localhost:8000/docs) → Swagger UI (interactive testing)
 
-### Docker Deployment
-You can also run and deploy the API server in a docker container.
+### Example Usage via Swagger UI
 
-1. **Build the Docker image:**
-   ```bash
-   docker build -t econsult-embeddings .
+1. Visit [http://localhost:8000/docs](http://localhost:8000/docs)
+2. Expand the `POST /select-best-template` section
+3. Click **"Try it out"**
+4. Enter your question as:
+   ```json
+   {
+     "question": "What are the best insulin management strategies for type 2 diabetes?"
+   }
    ```
+5. Click **"Execute"**
 
-2. **Run the container:**
-   ```bash
-   docker run -p 8000:8000 econsult-embeddings
-   ```
+---
 
-The service will become available on [http://localhost:8000/](http://localhost:8000/). See "Example Usage" below to test the service.
+## Docker Deployment
 
-### API Endpoints
+### 1. Build the Docker image
+```bash
+docker build -t econsult-embeddings .
+```
 
-When the API service is running, OpenAPI documentation will be available at [http://localhost:8000/docs](http://localhost:8000/docs).
+### 2. Run the container
+```bash
+docker run -p 8000:8000 econsult-embeddings
+```
 
-#### Health Check
+Then open [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## 📬 API Endpoints
+
+### Health Check
 ```bash
 GET /
 ```
-Returns API status confirmation.
+Returns API status.
 
-#### Template Selection
+### Template Selection
 ```bash
 POST /select-best-template
 Content-Type: application/json
@@ -109,7 +142,7 @@ Content-Type: application/json
 }
 ```
 
-**Response:**
+**Example Response:**
 ```json
 {
   "question": "What are the best insulin management strategies for type 2 diabetes?",
@@ -122,16 +155,18 @@ Content-Type: application/json
 }
 ```
 
-### Example Usage
+---
 
-#### Using curl:
+## 🧪 API Testing via Code
+
+### Using `curl`:
 ```bash
 curl -X POST "http://localhost:8000/select-best-template" \
      -H "Content-Type: application/json" \
      -d '{"question": "Patient has chest pain and shortness of breath"}'
 ```
 
-#### Using Python requests:
+### Using Python:
 ```python
 import requests
 
@@ -141,3 +176,12 @@ response = requests.post(
 )
 print(response.json())
 ```
+
+---
+
+## Troubleshooting Tips
+
+- If `.txt` files are missing in `data/`, run `extract_all_templates.py` first.
+- Ensure both `data/` and `embeddings/` directories exist.
+- If the app crashes at startup, check for missing template files or broken paths.
+- If the API returns empty results, it’s likely the embedding cache is missing or not properly generated.
