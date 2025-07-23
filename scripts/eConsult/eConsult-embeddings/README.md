@@ -124,7 +124,7 @@ Then open [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## 📬 API Endpoints
+## API Endpoints
 
 ### Health Check
 ```bash
@@ -157,7 +157,7 @@ Content-Type: application/json
 
 ---
 
-## 🧪 API Testing via Code
+## API Testing via Code
 
 ### Using `curl`:
 ```bash
