@@ -1,8 +1,16 @@
 # Configuration file for automated error checking
 
+#  # Whether to include row-level reference pairs in the evaluation prompt
+INCLUDE_REFERENCE = True
 # Data source configuration
-EXCEL_PATH = "../data/sampled_df_with_generated_questions.xlsx"
-OUTPUT_DIR = "../error_checking/automated_outputs"
+EXCEL_PATH = "../data/strictest/generated_question_set_1_saved_df.xlsx"
+OUTPUT_DIR = None
+if not INCLUDE_REFERENCE:
+    OUTPUT_DIR = "../error_checking_updated_prompt/automated_outputs"
+    LOG_FILE =OUTPUT_DIR + "/automated_processing.log"
+else:
+    OUTPUT_DIR = "../error_checking_updated_prompt/automated_outputs_with_reference"
+    LOG_FILE = OUTPUT_DIR + "/automated_processing.log"
 
 # Processing configuration
 START_ROW = 0  # Start from first row (0-indexed)
@@ -15,7 +23,7 @@ MODEL = "gpt-4.1"  # Options: "gpt-4.1", "gemini-2.5-pro"
 
 # Logging configuration
 LOG_LEVEL = "INFO"  # Options: "DEBUG", "INFO", "WARNING", "ERROR"
-LOG_FILE = "../error_checking/automated_outputs/automated_processing.log"
+
 
 # Output configuration
 SAVE_INPUTS = True  # Save input data for cross-checking
@@ -23,6 +31,10 @@ SAVE_PARSER_OUTPUTS = True  # Save parser LLM outputs
 SAVE_EVALUATOR_OUTPUTS = True  # Save evaluator LLM outputs
 SAVE_SUMMARY = True  # Save processing summary
 CREATE_ANALYSIS_DF = True  # Create analysis DataFrame
+
+# === Reference Example Configuration ===
+NUM_REFERENCE_EXAMPLES = 3 # max is 5
+assert NUM_REFERENCE_EXAMPLES <= 5, "NUM_REFERENCE_EXAMPLES must be less than or equal to 5"
 
 # Error handling
 MAX_RETRIES = 3  # Maximum number of retries for API calls

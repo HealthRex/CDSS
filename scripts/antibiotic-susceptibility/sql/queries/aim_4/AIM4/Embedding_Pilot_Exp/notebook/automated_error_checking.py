@@ -33,14 +33,12 @@ try:
     from config import *
 except ImportError:
     # Fallback configuration if config.py is not available
-    EXCEL_PATH = "../data/sampled_df_with_generated_questions.xlsx"
-    OUTPUT_DIR = "../error_checking/automated_outputs"
+    EXCEL_PATH = "../data/strictest/generated_question_set_1_saved_df.xlsx"
     START_ROW = 0
     END_ROW = None
     DELAY_BETWEEN_CALLS = 1.0
     MODEL = "gpt-4.1"
     LOG_LEVEL = "INFO"
-    LOG_FILE = "../error_checking/automated_processing.log"
     SAVE_INPUTS = True
     SAVE_PARSER_OUTPUTS = True
     SAVE_EVALUATOR_OUTPUTS = True
@@ -48,6 +46,16 @@ except ImportError:
     CREATE_ANALYSIS_DF = True
     MAX_RETRIES = 3
     RETRY_DELAY = 5.0
+    INCLUDE_REFERENCE = True  # Whether to include row-level reference pairs in the evaluation prompt
+    NUM_REFERENCE_EXAMPLES = 3 
+    if not INCLUDE_REFERENCE:
+        OUTPUT_DIR = "../error_checking_updated_prompt/automated_outputs"
+    else:
+        OUTPUT_DIR = "../error_checking_updated_prompt/automated_outputs_with_reference"
+    LOG_FILE = OUTPUT_DIR +"/automated_processing.log"
+
+# Ensure output directory exists before setting up logging
+Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
 
 # Set up logging based on config
 logging.basicConfig(
@@ -73,12 +81,16 @@ class AutomatedErrorChecker:
         self.excel_path = excel_path or EXCEL_PATH
         self.output_dir = Path(output_dir or OUTPUT_DIR)
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.include_reference = INCLUDE_REFERENCE
+        self.num_reference_examples = NUM_REFERENCE_EXAMPLES
+        
         
         # Create subdirectories for different types of outputs
         self.parser_outputs_dir = self.output_dir / "parser_outputs"
         self.evaluator_outputs_dir = self.output_dir / "evaluator_outputs"
         self.inputs_dir = self.output_dir / "inputs"
         self.summary_dir = self.output_dir / "summary"
+        
         
         # Only create directories if saving is enabled in config
         if SAVE_INPUTS:
@@ -161,212 +173,298 @@ class AutomatedErrorChecker:
         """Prepare the parsing prompt"""
         prompt = f"""You are an expert clinical data extractor. Given the unstructured clinical information below, extract and parse it into the structured JSON format provided.
 
-  **Follow these rules carefully:**
+        **Follow these rules carefully:**
 
-  - **Field Fidelity:** Populate each field using only the explicit information provided in the clinical data. Use "Unknown" or "" for missing or unclear fields, per the template.
-  - **Information Granularity:** For list fields (e.g., "history_of_present_illness", "past_medical_history"), enter each bullet, sentence, or clinically distinct concept as a separate item.
-  - **Relevance:** Include all clinically relevant complaints or concerns discussed, including those introduced in direct messages by the patient, as symptoms/chief complaints or in new "assessment_and_plan" issues.
-  - **Physical Exam:** Record each PE subfield as completely as possible. If side-specific findings are present (e.g., right/left ear), include these in the most granular field appropriate.
-  - **Assessment and Plan:** Enter each active issue, including newly raised complaints from the patient, along with provider instructions, recommended follow-up, or referral steps. If a complaint is new (e.g., from a patient message, not the prior note), include your clinical response as an entry.
-  - **Instructions:** General instructions (e.g., when to follow up, how to schedule) should be recorded in "general_guidelines"; pharmacy details as specified.
-  - **Patient Message:** Always copy the patient's message verbatim.
-  - **Additional Notes:** Include any clinical details, context, or provider action plans not clearly fitting in the other structured fields.
+        - **Field Fidelity:** Populate each field using only the explicit information provided in the clinical data. Use "Unknown" or "" for missing or unclear fields, per the template.
+        - **Information Granularity:** For list fields (e.g., "history_of_present_illness", "past_medical_history"), enter each bullet, sentence, or clinically distinct concept as a separate item.
+        - **Relevance:** Include all clinically relevant complaints or concerns discussed, including those introduced in direct messages by the patient, as symptoms/chief complaints or in new "assessment_and_plan" issues.
+        - **Physical Exam:** Record each PE subfield as completely as possible. If side-specific findings are present (e.g., right/left ear), include these in the most granular field appropriate.
+        - **Assessment and Plan:** Enter each active issue, including newly raised complaints from the patient, along with provider instructions, recommended follow-up, or referral steps. If a complaint is new (e.g., from a patient message, not the prior note), include your clinical response as an entry.
+        - **Instructions:** General instructions (e.g., when to follow up, how to schedule) should be recorded in "general_guidelines"; pharmacy details as specified.
+        - **Patient Message:** Always copy the patient's message verbatim.
+        - **Additional Notes:** Include any clinical details, context, or provider action plans not clearly fitting in the other structured fields.
 
-  **Strict Guidelines:**
-  - Do not infer or hallucinate any data not clearly present.
-  - Do not summarize or condense the patient's clinical complaints or history; preserve their language and details in the output.
-  - Fields with multiple possible entries (e.g., medications, history, complaints) should be output as complete arrays.
+        **Strict Guidelines:**
+        - Do not infer or hallucinate any data not clearly present.
+        - Do not summarize or condense the patient's clinical complaints or history; preserve their language and details in the output.
+        - Fields with multiple possible entries (e.g., medications, history, complaints) should be output as complete arrays.
 
-  ### Clinical Information:
-  {notes}
+        ### Clinical Information:
+        {notes}
 
-  ### Structured JSON Template:
-  {{
-    "provider_info": {{
-      "provider_name": "",
-      "department_specialty": "",
-      "department_name": "",
-      "department_phone": "",
-      "primary_care_provider": ""
-    }},
-    "patient_info": {{
-      "patient_name": "",
-      "patient_age": ""
-    }},
-    "visit_info": {{
-      "visit_date": "",
-      "visit_type": "",
-      "location": {{
-        "patient": "",
-        "provider": ""
-      }},
-      "chief_complaint": "",
-      "history_of_present_illness": [],
-      "active_problems": [
+        ### Structured JSON Template:
         {{
-          "problem": "",
-          "code": ""
+            "provider_info": {{
+            "provider_name": "",
+            "department_specialty": "",
+            "department_name": "",
+            "department_phone": "",
+            "primary_care_provider": ""
+            }},
+            "patient_info": {{
+            "patient_name": "",
+            "patient_age": ""
+            }},
+            "visit_info": {{
+            "visit_date": "",
+            "visit_type": "",
+            "location": {{
+                "patient": "",
+                "provider": ""
+            }},
+            "chief_complaint": "",
+            "history_of_present_illness": [],
+            "active_problems": [
+                {{
+                "problem": "",
+                "code": ""
+                }}
+            ],
+            "past_medical_history": [
+                {{
+                "condition": "",
+                "diagnosed": "",
+                "medication": "",
+                "note": ""
+                }}
+            ],
+            "physical_exam": {{
+                "general": "",
+                "HEENT": "",
+                "respiratory": "",
+                "neurological": "",
+                "cardiovascular": "",
+                "gastrointestinal": "",
+                "musculoskeletal": "",
+                "skin": "",
+                "psych": ""
+            }},
+            "assessment_and_plan": [
+                {{
+                "issue": "",
+                "instructions": []
+                }}
+            ]
+            }},
+            "instructions": {{
+            "general_guidelines": [],
+            "pharmacy_info": {{
+                "default_pharmacy": {{
+                "name": "",
+                "address": "",
+                "phone": "",
+                "fax": ""
+                }}
+            }}
+            }},
+            "additional_notes": "", 
+            "patient_message": "{patient_message}"
         }}
-      ],
-      "past_medical_history": [
-        {{
-          "condition": "",
-          "diagnosed": "",
-          "medication": "",
-          "note": ""
-        }}
-      ],
-      "physical_exam": {{
-        "general": "",
-        "HEENT": "",
-        "respiratory": "",
-        "neurological": "",
-        "cardiovascular": "",
-        "gastrointestinal": "",
-        "musculoskeletal": "",
-        "skin": "",
-        "psych": ""
-      }},
-      "assessment_and_plan": [
-        {{
-          "issue": "",
-          "instructions": []
-        }}
-      ]
-    }},
-    "instructions": {{
-      "general_guidelines": [],
-      "pharmacy_info": {{
-        "default_pharmacy": {{
-          "name": "",
-          "address": "",
-          "phone": "",
-          "fax": ""
-        }}
-      }}
-    }},
-    "additional_notes": "", 
-    "patient_message": "{patient_message}"
-  }}
 
-  Respond ONLY with the completed JSON. No additional explanation or commentary."""
+            Respond ONLY with the completed JSON. No additional explanation or commentary."""
         return prompt
 
     def evaluation_prompt_preparation(self, result_json: str) -> str:
         """Prepare the evaluation prompt"""
         evaluation_prompt = f"""
-  Comprehensive Evaluation Prompt
-  You are a clinical quality-assessment assistant tasked with evaluating responses generated by an AI model to patient messages.
+        Comprehensive Evaluation Prompt
+        You are a clinical quality-assessment assistant tasked with evaluating responses generated by an AI model to patient messages.
 
-  Your evaluation involves:
+        Your evaluation involves:
 
-  Message Categorization: Classify the patient's message into a category based on the subject title and the message content.
+        Message Categorization: Classify the patient's message into a category based on the subject title and the message content.
 
-  Response Evaluation: Provide quantitative scores (0-10) for each defined evaluation dimension.
+        Response Evaluation: Provide quantitative scores (0-10) for each defined evaluation dimension.
 
-  Error Identification: Clearly identify specific errors, categorize them (Clinical Error vs Non-Clinical Error), assign a severity score (1-5), and localize the exact text excerpt of each error.
+        Error Identification: Clearly identify specific errors, categorize them (Clinical Error vs Non-Clinical Error), assign a severity score (1-5), and localize the exact text excerpt of each error.
 
-  📌 Scoring Definitions
-  Response Quality Dimensions (Score: 0-10):
-  Clinical Accuracy (0-10):
+        📌 Scoring Definitions
+        Response Quality Dimensions (Score: 0-10):
+        Clinical Accuracy (0-10):
 
-  0: Completely incorrect or dangerous advice.
+        0: Completely incorrect or dangerous advice.
 
-  5: Partially correct but incomplete or with moderate mistakes.
+        5: Partially correct but incomplete or with moderate mistakes.
 
-  10: Completely accurate, clinically appropriate, and safe.
+        10: Completely accurate, clinically appropriate, and safe.
 
-  Urgency Recognition (0-10):
+        Urgency Recognition (0-10):
 
-  0: Urgency completely unrecognized or incorrectly interpreted, potentially dangerous.
+        0: Urgency completely unrecognized or incorrectly interpreted, potentially dangerous.
 
-  5: Moderately appropriate urgency recognition, partial omission of critical issues.
+        5: Moderately appropriate urgency recognition, partial omission of critical issues.
 
-  10: Completely correct urgency identification and action advice.
+        10: Completely correct urgency identification and action advice.
 
-  Professional Consultation Guidance (0-10):
+        Professional Consultation Guidance (0-10):
 
-  0: No guidance or completely incorrect guidance.
+        0: No guidance or completely incorrect guidance.
 
-  5: Partial or incomplete professional guidance.
+        5: Partial or incomplete professional guidance.
 
-  10: Excellent and appropriate consultation guidance.
+        10: Excellent and appropriate consultation guidance.
 
-  Sensitivity & Clarity (0-10):
+        Sensitivity & Clarity (0-10):
 
-  0: Rude, dismissive, or entirely unclear.
+        0: Rude, dismissive, or entirely unclear.
 
-  5: Moderately empathetic, some unclear language or slight dismissiveness.
+        5: Moderately empathetic, some unclear language or slight dismissiveness.
 
-  10: Fully empathetic, clear, and supportive language.
+        10: Fully empathetic, clear, and supportive language.
 
-  Error Severity Definitions (Severity Score: 1-5):
-  1: Minor issue unlikely to affect patient care or experience.
+        Error Severity Definitions (Severity Score: 1-5):
+        1: Minor issue unlikely to affect patient care or experience.
 
-  2: Noticeable but unlikely to significantly affect clinical outcome.
+        2: Noticeable but unlikely to significantly affect clinical outcome.
 
-  3: Significant error that could lead to patient confusion or delay in care.
+        3: Significant error that could lead to patient confusion or delay in care.
 
-  4: Serious error, potentially impacting patient health negatively.
+        4: Serious error, potentially impacting patient health negatively.
 
-  5: Critical or potentially lethal error requiring immediate correction.
+        5: Critical or potentially lethal error requiring immediate correction.
 
-  📑 Structured Output Template
-  Return your response strictly in this JSON format:
-  {{
-    "message_categorization": {{
-      "subject": "[provided subject title]",
-      "type": "[Appointment Request | Medication Request | Test Result Inquiry | Clinical Advice Request | Referral Request | Administrative Request | General Inquiry| Other (specify)]",
-      "reasoning": "[brief reasoning for the chosen category]"
-    }},
-    "response_evaluation": {{
-      "clinical_accuracy": {{
-        "score": "[0-10]",
-        "reasoning": "[brief reasoning]"
-      }},
-      "urgency_recognition": {{
-        "score": "[0-10]",
-        "reasoning": "[brief reasoning]"
-      }},
-      "professional_consultation_guidance": {{
-        "score": "[0-10]",
-        "reasoning": "[brief reasoning]"
-      }},
-      "sensitivity_clarity": {{
-        "score": "[0-10]",
-        "reasoning": "[brief reasoning]"
-      }}
-    }},
-    "errors_identified": [
-      {{
-        "type": "[Clinical Error | Non-Clinical Error]",
-        "severity": "[1-5]",
-        "description": "[brief clear description of the error]",
-        "text_excerpt": "[exact problematic text excerpt from response]",
-        "error_in_physician_response": "[Yes | No]",
-        "reason_for_error_in_physician_response": "[exact text excerpt from actual physician response from the result_json to explain why this error is/isn't in physician response]"
-      }}
-    ]
-  }}
+        📑 Structured Output Template
+        Return your response strictly in this JSON format:
+        {{
+            "message_categorization": {{
+            "subject": "[provided subject title]",
+            "type": "[Appointment Request | Medication Request | Test Result Inquiry | Clinical Advice Request | Referral Request | Administrative Request | General Inquiry| Other (specify)]",
+            "reasoning": "[brief reasoning for the chosen category]"
+            }},
+            "response_evaluation": {{
+            "clinical_accuracy": {{
+                "score": "[0-10]",
+                "reasoning": "[brief reasoning]"
+            }},
+            "urgency_recognition": {{
+                "score": "[0-10]",
+                "reasoning": "[brief reasoning]"
+            }},
+            "professional_consultation_guidance": {{
+                "score": "[0-10]",
+                "reasoning": "[brief reasoning]"
+            }},
+            "sensitivity_clarity": {{
+                "score": "[0-10]",
+                "reasoning": "[brief reasoning]"
+            }}
+            }},
+            "errors_identified": [
+            {{
+                "type": "[Clinical Error | Non-Clinical Error]",
+                "severity": "[1-5]",
+                "description": "[brief clear description of the error]",
+                "text_excerpt": "[exact problematic text excerpt from response]",
+                "error_in_physician_response": "[Yes | No]",
+                "reason_for_error_in_physician_response": "[exact text excerpt from actual physician response from the result_json to explain why this error is/isn't in physician response]"
+            }}
+            ]
+        }}
 
-  Task Instructions
-  Given the structured data below, perform your evaluation exactly as specified above:
-  {result_json}
+        Task Instructions
+        Given the structured data below, perform your evaluation exactly as specified above:
+        {result_json}
 
-  Rules:
-  Focus solely on evaluating the quality, appropriateness, accuracy, and clarity of the LLM-generated response.
+        Rules:
+        Focus solely on evaluating the quality, appropriateness, accuracy, and clarity of the LLM-generated response.
 
-  Do NOT evaluate the physician's actual response (it's provided only for reference as a ground truth).
+        Do NOT evaluate the physician's actual response (it's provided only for reference as a ground truth).
 
-  Be precise, objective, and adhere strictly to the provided scoring scales and categories.
+        Be precise, objective, and adhere strictly to the provided scoring scales and categories.
 
-  If there are no identifiable errors, return "errors_identified": [].
+        If there are no identifiable errors, return "errors_identified": [].
 
-  Do not generate additional narrative commentary outside the JSON structure.
-  """
+        Do not generate additional narrative commentary outside the JSON structure.
+        """
+        return evaluation_prompt
+    
+    def binary_evaluation_prompt_preparation(self, result_json: str, reference_examples: str = None, include_reference: bool = False) -> str:
+        """Prepare the evaluation prompt, optionally including reference examples."""
+
+        reference_section = ""
+        if include_reference and reference_examples:
+            reference_section = f"""
+        Reference Section
+        Below are 3 real patient message–response pairs that address similar clinical scenarios. These examples are provided to illustrate how comparable patient questions have been answered by real clinicians. Use these only as context for what an appropriate, high-quality response might look like in similar situations. Do not copy text or evaluate the actual physician responses in these pairs.
+
+        [REFERENCE EXAMPLES START]
+        {reference_examples}
+        [REFERENCE EXAMPLES END]
+        """
+        evaluation_prompt = f"""
+        Comprehensive Binary Error Evaluation Prompt{' (with Reference Pairs)' if include_reference and reference_examples else ''}
+        You are a clinical quality-assessment assistant tasked with evaluating responses generated by an AI model to patient messages.
+        {reference_section}
+        Your evaluation involves:
+
+        Message Categorization: Classify the patient's message into a category based on the subject title and the message content.
+
+        Response Error Identification: For each dimension below, indicate whether there is an error (Yes/No). For any error, provide a clear rationale and cite the problematic text.
+
+        📌 Error Type Definitions (Binary Evaluation)
+        1. **Clinical Accuracy Error**:  
+        *Definition*: Any information in the response that is clinically incorrect, omits essential facts, or could lead to patient harm or confusion.
+        - *Error*: Yes if any advice is inaccurate, misleading, or unsafe.
+        - *Example*: "Prescribes antibiotics for a viral illness."
+
+        2. **Urgency Recognition Error**:  
+        *Definition*: Failure to recognize, mention, or act upon urgent clinical situations or symptoms that require timely intervention.
+        - *Error*: Yes if the response misses, ignores, or misjudges the urgency.
+        - *Example*: "Does not mention emergency care for chest pain."
+
+        3. **Professional Consultation Guidance Error**:  
+        *Definition*: Lack of or incorrect professional guidance about next steps, follow-up, or when to consult a healthcare professional.
+        - *Error*: Yes if guidance is absent, wrong, or not tailored to the situation.
+        - *Example*: "Tells patient to ignore symptoms that warrant a visit."
+
+        4. **Sensitivity & Clarity Error**:  
+        *Definition*: Language that is dismissive, unclear, rude, confusing, or lacking in empathy.
+        - *Error*: Yes if the response is hard to understand, insensitive, or unprofessional.
+        - *Example*: "Dismisses patient's concern or uses medical jargon without explanation."
+
+        📑 Structured Output Template
+        Return your response strictly in this JSON format:
+        {{
+        "message_categorization": {{
+            "subject": "[provided subject title]",
+            "type": "[Appointment Request | Medication Request | Test Result Inquiry | Clinical Advice Request | Referral Request | Administrative Request | General Inquiry | Other (specify)]",
+            "reasoning": "[brief reasoning for the chosen category]"
+        }},
+        "response_error_evaluation": {{
+            "clinical_accuracy_error": {{
+            "error": "[Yes|No]",
+            "rationale": "[If Yes, explain the error and cite the problematic text. If No, briefly explain why the response is clinically accurate.]"
+            }},
+            "urgency_recognition_error": {{
+            "error": "[Yes|No]",
+            "rationale": "[If Yes, explain the error and cite the problematic text. If No, briefly explain why the urgency recognition is appropriate.]"
+            }},
+            "professional_consultation_guidance_error": {{
+            "error": "[Yes|No]",
+            "rationale": "[If Yes, explain the error and cite the problematic text. If No, briefly explain why the guidance is appropriate.]"
+            }},
+            "sensitivity_clarity_error": {{
+            "error": "[Yes|No]",
+            "rationale": "[If Yes, explain the error and cite the problematic text. If No, briefly explain why the response is sensitive and clear.]"
+            }}
+        }}
+        }}
+
+        Task Instructions
+        Given the structured data below, perform your evaluation exactly as specified above:
+        {result_json}
+
+        Rules:
+        - {"Review the reference pairs to calibrate your understanding of how similar questions are answered in real clinical practice." if include_reference and reference_examples else ""}
+        - Focus solely on evaluating the quality, appropriateness, accuracy, and clarity of the LLM-generated response for the provided case.
+        - Make sure to use all reference available to evaluate the LLM-generated response. Do NOT evaluate the physician's actual response to the current case (it's provided only for reference).
+        - Be precise, objective, and adhere strictly to the provided error definitions and binary evaluation.
+        - If there is no error for a criterion, mark "error": "No".
+        - Do not generate any narrative commentary outside the JSON structure.
+        """
         return evaluation_prompt
 
-    def save_input_data(self, row_idx: int, row_data: Dict[str, Any]) -> str:
+    def save_input_data(self, row_idx: int, row_data: Dict[str, Any], evaluation_prompt: str = None) -> str:
         """Save input data for cross-checking"""
         if not SAVE_INPUTS:
             return ""
@@ -391,6 +489,10 @@ class AutomatedErrorChecker:
                 row_data.get("Patient Message", "")
             )
         }
+        
+        # Add evaluation prompt if provided
+        if evaluation_prompt:
+            input_data["evaluation_prompt"] = evaluation_prompt
         
         with open(input_file, 'w') as f:
             json.dump(input_data, f, indent=2)
@@ -459,6 +561,24 @@ class AutomatedErrorChecker:
             logger.info(f"Row {row_idx} already fully processed, skipping")
             
         return all_exist
+    
+    def extract_reference_examples_from_row(self, row_data: pd.Series, num_refs: int = 3) -> str:
+        """Extracts up to num_refs reference message-response pairs from row_data and formats as JSON string."""
+        refs = []
+        for i in range(1, num_refs + 1):
+
+            msg_col = f"Patient Message_{i}"
+            resp_col = f"Actual Response Sent to Patient_{i}"
+            ref_message = str(row_data.get(msg_col, "")).strip()
+            ref_response = str(row_data.get(resp_col, "")).strip()
+        
+            if ref_message or ref_response:
+                refs.append({
+                    "reference_message": ref_message,
+                    "reference_response": ref_response
+                })
+        return json.dumps(refs, indent=2) if refs else ""
+
 
     def process_row(self, row_idx: int, row_data: pd.Series) -> Dict[str, Any]:
         """Process a single row of data"""
@@ -507,7 +627,32 @@ class AutomatedErrorChecker:
                 }
             
             # Step 3: Evaluate the response
-            evaluation_prompt = self.evaluation_prompt_preparation(json.dumps(result_json))
+            # evaluation_prompt = self.binary_evaluation_prompt_preparation(json.dumps(result_json))
+      
+            reference_examples = self.extract_reference_examples_from_row(row_data, num_refs=5) if self.include_reference else None
+           
+            evaluation_prompt = self.binary_evaluation_prompt_preparation(
+                json.dumps(result_json),
+                reference_examples=reference_examples,
+                include_reference=self.include_reference
+                )
+            
+            # Update input file with evaluation prompt
+            if SAVE_INPUTS:
+                input_data = {
+                    "row_index": row_idx,
+                    "timestamp": datetime.now().isoformat(),
+                    "patient_message": patient_message,
+                    "actual_response": actual_response,
+                    "subject": subject,
+                    "llm_response": llm_response,
+                    "parse_prompt": parse_prompt,
+                    "evaluation_prompt": evaluation_prompt
+                }
+                input_file_path = self.inputs_dir / f"input_row_{row_idx:04d}.json"
+                with open(input_file_path, 'w') as f:
+                    json.dump(input_data, f, indent=2)
+            
             evaluator_result = self.evaluator_LLM(evaluation_prompt)
             evaluator_file = self.save_evaluator_output(row_idx, evaluator_result)
             
@@ -658,16 +803,27 @@ class AutomatedErrorChecker:
                     # Parse evaluator result
                     evaluator_json = json.loads(result["evaluator_result"])
                     
-                    # Extract key metrics
+                    # Extract key metrics for binary evaluation format
+                    response_error_eval = evaluator_json.get("response_error_evaluation", {})
+                    
                     row_data = {
                         "row_index": result["row_index"],
                         "subject": result["subject"],
                         "message_type": evaluator_json.get("message_categorization", {}).get("type", ""),
-                        "clinical_accuracy_score": evaluator_json.get("response_evaluation", {}).get("clinical_accuracy", {}).get("score", ""),
-                        "urgency_recognition_score": evaluator_json.get("response_evaluation", {}).get("urgency_recognition", {}).get("score", ""),
-                        "professional_consultation_score": evaluator_json.get("response_evaluation", {}).get("professional_consultation_guidance", {}).get("score", ""),
-                        "sensitivity_clarity_score": evaluator_json.get("response_evaluation", {}).get("sensitivity_clarity", {}).get("score", ""),
-                        "num_errors": len(evaluator_json.get("errors_identified", [])),
+                        "clinical_accuracy_error": response_error_eval.get("clinical_accuracy_error", {}).get("error", ""),
+                        "clinical_accuracy_rationale": response_error_eval.get("clinical_accuracy_error", {}).get("rationale", ""),
+                        "urgency_recognition_error": response_error_eval.get("urgency_recognition_error", {}).get("error", ""),
+                        "urgency_recognition_rationale": response_error_eval.get("urgency_recognition_error", {}).get("rationale", ""),
+                        "professional_consultation_error": response_error_eval.get("professional_consultation_guidance_error", {}).get("error", ""),
+                        "professional_consultation_rationale": response_error_eval.get("professional_consultation_guidance_error", {}).get("rationale", ""),
+                        "sensitivity_clarity_error": response_error_eval.get("sensitivity_clarity_error", {}).get("error", ""),
+                        "sensitivity_clarity_rationale": response_error_eval.get("sensitivity_clarity_error", {}).get("rationale", ""),
+                        "total_errors": sum([
+                            1 if response_error_eval.get("clinical_accuracy_error", {}).get("error", "").lower() == "yes" else 0,
+                            1 if response_error_eval.get("urgency_recognition_error", {}).get("error", "").lower() == "yes" else 0,
+                            1 if response_error_eval.get("professional_consultation_guidance_error", {}).get("error", "").lower() == "yes" else 0,
+                            1 if response_error_eval.get("sensitivity_clarity_error", {}).get("error", "").lower() == "yes" else 0
+                        ]),
                         "patient_message": result["patient_message"],
                         "actual_response": result["actual_response"],
                         "llm_response": result["llm_response"],
