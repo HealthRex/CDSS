@@ -1,11 +1,26 @@
 Here is the file for model developments:
+# Inpatient Antimicrobial Susceptibility Model Development: 
 For inpatients we used XGv=boost classifier trained and test on inpatients.
+Please Consider:
+1. Filter Antibiotics by Prevalence
 
-Outpatient Antimicrobial Susceptibility Model Development: 
+Include only antibiotics with resistance prevalence ≥ 5% or ≤ 95%.
+
+2. Minimum Sample Size (Exclude antibiotics with fewer than 1,000 records).
+
+3. Deployment Consideration:
+
+Exclude respiratory cultures for real-time model deployment.
+
+
+# Outpatient Antimicrobial Susceptibility Model Development: 
+
 Notebook: Aim_1b_ModelDevelopment_Outpatients.ipynb
+
 This notebook contains code for developing machine learning models to predict antimicrobial susceptibility for outpatient data.
 
 Notes and Guidelines
+
 Outpatient susceptibility prediction is more challenging due to data sparsity and lower resistance prevalence. 
 
 Please Consider:
