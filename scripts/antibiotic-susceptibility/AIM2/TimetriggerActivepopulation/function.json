@@ -5,7 +5,7 @@
       "name": "timerevent",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "* */3 * * * *"
+      "schedule": "* */10 * * * *"
     }
   ]
 }
