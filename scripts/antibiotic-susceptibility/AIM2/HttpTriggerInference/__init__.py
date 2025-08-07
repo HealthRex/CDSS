@@ -9,9 +9,7 @@ from urllib.error import HTTPError
 import pytz
 import azure.functions as func
 import traceback
-from .deployer import NgboostDeployer
 from .feature_engineering import feature_engineering
-from scipy.stats import norm
 import pickle
 import json
 
@@ -70,4 +68,5 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         return func.HttpResponse(
             f"Error writing to cosmos: {e}",
             status_code=500
+
         )
