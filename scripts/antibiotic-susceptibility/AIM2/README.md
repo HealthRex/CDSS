@@ -1,4 +1,4 @@
-AIM2: Real-Time Deployment of Antimicrobial Susceptibility Prediction Model
+AIM2: Real-Time Deployment of Antimicrobial Susceptibility Prediction Model (** Under Development **)
 Objective
 Deploy machine learning models for predicting antimicrobial susceptibility in real time using hospital EHR data, within the Stanford Health Care (SHC) infrastructure.
 
