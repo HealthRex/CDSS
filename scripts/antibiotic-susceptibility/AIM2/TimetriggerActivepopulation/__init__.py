@@ -21,18 +21,7 @@ deployed_unit_ids=['2000233', '2000327', '2000252','2000263','2000262','2000258'
 deployed_unit_names=[ "H1","G1","EGR","E3", "E2-ICU","E2-AAU","E1","DGR","D3","D2","D1","C3","C2","B3","B2","B1","3 WEST PLEASANTON",
 "2 WEST PLEASANTON","2 NORTH PLEASANTON","1 WEST PLEASANTON","J5","J6","J7","K5","K6","K7","L5","L6","L7","M5","M6","M7"] 
 
-def source_env_vars(script_path):
-    command = f'source {script_path} && env'
-    proc = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True, executable='/bin/bash')
-    for line in proc.stdout:
-        (key, _, value) = line.decode('utf-8').partition('=')
-        os.environ[key] = value.strip()
 
-
-#if LOCAL_DEV:
-#sys.path.append(os.path.abspath('/Users/fa/Documents/Lab_Prediction/lab-prediction-serve-main'))
-sys.path.append(os.path.abspath('/Users/fa/Documents/Antimicroibal_Stwardship_AIM2/Aim2'))
-source_env_vars('./env_vars.sh') # Adjust the path to your .env file
 model_path = "Aim1_b_5abxmodel"  # Adjust the model path for local development
 
 """
@@ -133,4 +122,5 @@ def main(timerevent: func.TimerRequest) -> None:
 
         for thread in threads:
             thread.join()
+
     logging.info("Python timer trigger function ran at %s", timestamp)
