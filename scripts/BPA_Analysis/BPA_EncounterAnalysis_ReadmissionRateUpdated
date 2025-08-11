@@ -1,0 +1,87 @@
+-- Readmission rate at the encounter level, stratified by random_flag
+-- Definition: readmission = next Admission within 30 days after discharge
+--              for the same patient, different CSN, with pat_class IN ('Inpatient','Observation')
+
+WITH random_flag AS (
+  SELECT 
+    anon_id, 
+    pat_enc_csn_id_coded, 
+    smrtdta_elem_value AS random_flag 
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_smrtdta` 
+  WHERE concept_id = 'SHC#6051'
+),
+
+discharges_selected AS (
+  SELECT 
+    a.anon_id, 
+    a.pat_enc_csn_id_coded, 
+    a.effective_time_jittered AS dis_time
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt` a
+  INNER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_dep_map` d USING (department_id)
+  INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` m USING (anon_id)
+  WHERE 
+    a.event_type = 'Discharge' 
+    AND (
+      UPPER(d.department_name) LIKE 'B3' OR
+      UPPER(d.department_name) LIKE 'C3' OR
+      UPPER(d.department_name) LIKE 'M7' OR
+      UPPER(d.department_name) LIKE 'L7' OR
+      UPPER(d.department_name) LIKE '1%WEST%' OR
+      UPPER(d.department_name) LIKE '2%NORTH%' OR
+      UPPER(d.department_name) LIKE '2%WEST%' OR
+      UPPER(d.department_name) LIKE '3%WEST%'
+    )
+    AND a.effective_time_jittered - INTERVAL jitter DAY BETWEEN '2024-08-15' AND '2025-03-15'
+),
+
+admissions_all AS (
+  SELECT 
+    anon_id, 
+    pat_enc_csn_id_coded, 
+    effective_time_jittered AS adm_time,
+    pat_class
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt`
+  WHERE event_type = 'Admission'
+),
+
+-- Earliest qualifying readmission (Inpatient or Observation) within 30 days
+readmissions AS (
+  SELECT
+    d.anon_id,
+    d.pat_enc_csn_id_coded AS index_encounter,
+    d.dis_time,
+    MIN(a.adm_time) AS next_readmit_time
+  FROM discharges_selected d
+  LEFT JOIN admissions_all a
+    ON a.anon_id = d.anon_id
+   AND a.pat_enc_csn_id_coded != d.pat_enc_csn_id_coded
+   AND a.pat_class IN ('Inpatient','Observation')
+   AND a.adm_time > d.dis_time
+   AND a.adm_time <= d.dis_time + INTERVAL 30 DAY
+  GROUP BY d.anon_id, index_encounter, d.dis_time
+),
+
+-- Attach randomization flag to index encounter and mark readmission
+readmission_flags AS (
+  SELECT
+    rf.random_flag,
+    r.anon_id,
+    r.index_encounter AS pat_enc_csn_id_coded,
+    r.dis_time,
+    r.next_readmit_time,
+    CASE WHEN r.next_readmit_time IS NOT NULL THEN 1 ELSE 0 END AS readmitted
+  FROM readmissions r
+  INNER JOIN random_flag rf
+    ON r.anon_id = rf.anon_id
+   AND r.index_encounter = rf.pat_enc_csn_id_coded
+)
+
+-- Final summary: readmission rate by random_flag, plus a grand total row
+SELECT
+  IFNULL(CAST(random_flag AS STRING), 'ALL') AS random_flag,
+  COUNT(*) AS total_encounters,
+  SUM(readmitted) AS readmitted_count,
+  SAFE_DIVIDE(SUM(readmitted), COUNT(*)) AS readmission_rate
+FROM readmission_flags
+GROUP BY ROLLUP(random_flag)
+ORDER BY CASE WHEN random_flag = 'ALL' THEN 1 ELSE 0 END, random_flag;
