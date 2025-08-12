@@ -150,6 +150,6 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    host = os.getenv("APP_HOST", "0.0.0.0")
+    host = os.getenv("APP_HOST", "localhost")
     port = int(os.getenv("PORT", 5000))
     app.run(host=host, port=port, debug=True)
