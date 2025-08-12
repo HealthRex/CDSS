@@ -130,7 +130,7 @@ async function makePrediction(features, showLoading = true) {
             size: 12, 
             color: isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)' 
         };
-        graphData.layout.paper_bgcolor = 'rgba(0,0,0,0)';
+        graphData.layout.paper_bgcolor = isDarkMode ? 'hsl(217.2 32.6% 17.5%)' : 'hsl(0 0% 100%)';
         graphData.layout.plot_bgcolor = isDarkMode ? 'hsl(217.2 32.6% 17.5%)' : 'hsl(0 0% 100%)';
         graphData.layout.showlegend = true;
         graphData.layout.legend = {
@@ -240,29 +240,41 @@ function toggleInfo(infoId) {
 
 // Function to update chart styling when theme changes
 function updateChartTheme() {
+    console.log('Theme change detected, updating chart...');
     const resultDiv = document.getElementById('result');
-    const plotlyDiv = resultDiv.querySelector('.plotly-graph-div');
     
-    if (plotlyDiv && plotlyDiv._fullLayout) {
+    if (!resultDiv) {
+        console.log('Result div not found');
+        return;
+    }
+    
+    // Check if there's a Plotly chart
+    if (resultDiv._fullLayout || (resultDiv.children.length > 0 && resultDiv.children[0]._fullLayout)) {
         const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        console.log('Dark mode:', isDarkMode);
         
         const updateLayout = {
             'title.font.color': isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)',
             'font.color': isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)',
             'plot_bgcolor': isDarkMode ? 'hsl(217.2 32.6% 17.5%)' : 'hsl(0 0% 100%)',
-            'legend.font.color': isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)'
+            'paper_bgcolor': isDarkMode ? 'hsl(217.2 32.6% 17.5%)' : 'hsl(0 0% 100%)',
+            'legend.font.color': isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)',
+            'xaxis.tickcolor': isDarkMode ? 'hsl(217.2 32.6% 35%)' : '#333',
+            'xaxis.gridcolor': isDarkMode ? 'hsl(217.2 32.6% 25%)' : '#eee',
+            'xaxis.linecolor': isDarkMode ? 'hsl(217.2 32.6% 35%)' : '#333',
+            'yaxis.tickcolor': isDarkMode ? 'hsl(217.2 32.6% 35%)' : '#333',
+            'yaxis.gridcolor': isDarkMode ? 'hsl(217.2 32.6% 25%)' : '#eee',
+            'yaxis.linecolor': isDarkMode ? 'hsl(217.2 32.6% 35%)' : '#333'
         };
         
-        if (isDarkMode) {
-            updateLayout['xaxis.tickcolor'] = 'hsl(217.2 32.6% 35%)';
-            updateLayout['xaxis.gridcolor'] = 'hsl(217.2 32.6% 25%)';
-            updateLayout['xaxis.linecolor'] = 'hsl(217.2 32.6% 35%)';
-            updateLayout['yaxis.tickcolor'] = 'hsl(217.2 32.6% 35%)';
-            updateLayout['yaxis.gridcolor'] = 'hsl(217.2 32.6% 25%)';
-            updateLayout['yaxis.linecolor'] = 'hsl(217.2 32.6% 35%)';
+        try {
+            Plotly.relayout('result', updateLayout);
+            console.log('Chart theme updated successfully');
+        } catch (error) {
+            console.error('Error updating chart theme:', error);
         }
-        
-        Plotly.relayout('result', updateLayout);
+    } else {
+        console.log('No Plotly chart found');
     }
 }
 
@@ -276,7 +288,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Listen for theme changes
     if (window.matchMedia) {
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateChartTheme);
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', updateChartTheme);
+        console.log('Theme change listener registered');
     }
     
     // Add keyboard shortcuts
