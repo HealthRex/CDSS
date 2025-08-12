@@ -11,33 +11,59 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'media',
             theme: {
                 extend: {
                     colors: {
-                        border: "hsl(214.3 31.8% 91.4%)",
-                        input: "hsl(214.3 31.8% 91.4%)",
-                        ring: "hsl(222.2 84% 4.9%)",
-                        background: "hsl(0 0% 100%)",
-                        foreground: "hsl(222.2 84% 4.9%)",
+                        border: {
+                            DEFAULT: "hsl(214.3 31.8% 91.4%)",
+                            dark: "hsl(217.2 32.6% 17.5%)"
+                        },
+                        input: {
+                            DEFAULT: "hsl(214.3 31.8% 91.4%)",
+                            dark: "hsl(217.2 32.6% 17.5%)"
+                        },
+                        ring: {
+                            DEFAULT: "hsl(222.2 84% 4.9%)",
+                            dark: "hsl(212.7 26.8% 83.9%)"
+                        },
+                        background: {
+                            DEFAULT: "hsl(0 0% 100%)",
+                            dark: "hsl(222.2 84% 4.9%)"
+                        },
+                        foreground: {
+                            DEFAULT: "hsl(222.2 84% 4.9%)",
+                            dark: "hsl(210 40% 98%)"
+                        },
                         primary: {
                             DEFAULT: "hsl(222.2 47.4% 11.2%)",
                             foreground: "hsl(210 40% 98%)",
+                            dark: "hsl(210 40% 98%)",
+                            "dark-foreground": "hsl(222.2 47.4% 11.2%)"
                         },
                         secondary: {
                             DEFAULT: "hsl(210 40% 96%)",
                             foreground: "hsl(222.2 84% 4.9%)",
+                            dark: "hsl(217.2 32.6% 17.5%)",
+                            "dark-foreground": "hsl(210 40% 98%)"
                         },
                         muted: {
                             DEFAULT: "hsl(210 40% 96%)",
                             foreground: "hsl(215.4 16.3% 46.9%)",
+                            dark: "hsl(217.2 32.6% 17.5%)",
+                            "dark-foreground": "hsl(215 20.2% 65.1%)"
                         },
                         accent: {
                             DEFAULT: "hsl(210 40% 96%)",
                             foreground: "hsl(222.2 84% 4.9%)",
+                            dark: "hsl(217.2 32.6% 17.5%)",
+                            "dark-foreground": "hsl(210 40% 98%)"
                         },
                         card: {
                             DEFAULT: "hsl(0 0% 100%)",
                             foreground: "hsl(222.2 84% 4.9%)",
+                            dark: "hsl(222.2 84% 4.9%)",
+                            "dark-foreground": "hsl(210 40% 98%)"
                         },
                     },
                 }
@@ -46,22 +72,22 @@
     </script>
 </head>
 
-<body class="min-h-screen bg-background text-foreground">
+<body class="min-h-screen bg-background dark:bg-gray-900 text-foreground dark:text-gray-100">
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-primary mb-2 underline decoration-2 underline-offset-4">Buprenorphine-Naloxone Attrition Prediction</h1>
+            <h1 class="text-4xl font-bold text-primary dark:text-gray-100 mb-2 underline decoration-2 underline-offset-4">Buprenorphine-Naloxone Attrition Prediction</h1>
         </div>
         
         <div class="grid grid-cols-1 lg:grid-cols-6 gap-8">
             <!-- Left Panel: Input Form -->
             <div class="space-y-4 lg:col-span-2">
-                <div class="card p-6 border rounded-lg bg-card form-container">
-                    <h2 class="text-2xl font-semibold mb-4 text-card-foreground">Patient Information</h2>
+                <div class="card p-6 border border-gray-200 dark:border-gray-700 rounded-lg bg-card dark:bg-gray-800 form-container">
+                    <h2 class="text-2xl font-semibold mb-4 text-card-foreground dark:text-gray-100">Patient Information</h2>
                     <form id="predictionForm" class="form-columns">
                         <!-- Age at BUP-NAL Initiation -->
                         <div class="form-field age-field">
                             <div class="flex items-center gap-2 mb-2">
-                                <label for="age_at_drug_start" class="text-sm font-medium text-foreground">
+                                <label for="age_at_drug_start" class="text-sm font-medium text-foreground dark:text-gray-200">
                                     Age at BUP-NAL Initiation
                                 </label>
                                 <button type="button" class="info-button" onclick="toggleInfo('age_info')" 
@@ -341,21 +367,21 @@
 
             <!-- Right Panel: Results -->
             <div class="space-y-4 lg:col-span-4">
-                <div class="card p-6 border rounded-lg bg-card">
-                    <h2 class="text-2xl font-semibold mb-4 text-card-foreground">Prediction Result</h2>
-                    <div id="result" class="bg-secondary/50 rounded-lg p-4 pb-6 min-h-[400px] mb-4">
-                        <div class="text-center text-muted-foreground">
+                <div class="card p-6 border border-gray-200 dark:border-gray-700 rounded-lg bg-card dark:bg-gray-800">
+                    <h2 class="text-2xl font-semibold mb-4 text-card-foreground dark:text-gray-100">Prediction Result</h2>
+                    <div id="result" class="bg-secondary/50 dark:bg-gray-700/50 rounded-lg p-4 pb-6 min-h-[400px] mb-4">
+                        <div class="text-center text-muted-foreground dark:text-gray-400">
                             <i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i>
                             <p>Enter patient information to view the retention probability chart. <br /> The chart will auto-update as you modify the information.</p>
                         </div>
                     </div>
-                    <div class="text-sm text-muted-foreground">
+                    <div class="text-sm text-muted-foreground dark:text-gray-400">
                         <p class="mb-4">This section presents the predicted retention probability over time for a patient, along with comparative reference curves:</p>
                         <ul class="space-y-2 list-disc pl-4">
-                            <li><strong class="text-foreground">Patient Prediction:</strong> The predicted retention probability curve for the patient based on their input features.</li>
-                            <li><strong class="text-foreground">High Risk (2.5th Percentile):</strong> Represents a reference curve indicating lower retention probabilities associated with patients at higher risk of treatment attrition.</li>
-                            <li><strong class="text-foreground">Low Risk (97.5th Percentile):</strong> Represents a reference curve showing higher retention probabilities associated with patients expected to stay longer in treatment.</li>
-                            <li><strong class="text-foreground">Median:</strong> Shows a curve that represents the median retention probability across the sample population for comparison.</li>
+                            <li><strong class="text-foreground dark:text-gray-200">Patient Prediction:</strong> The predicted retention probability curve for the patient based on their input features.</li>
+                            <li><strong class="text-foreground dark:text-gray-200">High Risk (2.5th Percentile):</strong> Represents a reference curve indicating lower retention probabilities associated with patients at higher risk of treatment attrition.</li>
+                            <li><strong class="text-foreground dark:text-gray-200">Low Risk (97.5th Percentile):</strong> Represents a reference curve showing higher retention probabilities associated with patients expected to stay longer in treatment.</li>
+                            <li><strong class="text-foreground dark:text-gray-200">Median:</strong> Shows a curve that represents the median retention probability across the sample population for comparison.</li>
                         </ul>
                     </div>
                 </div>

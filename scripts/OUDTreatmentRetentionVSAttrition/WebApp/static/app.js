@@ -110,30 +110,49 @@ async function makePrediction(features, showLoading = true) {
         // Parse the graphJSON from the response
         const graphData = JSON.parse(result.graphJSON);
 
+        // Check if user prefers dark mode
+        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
         // Customize the layout for better visualization
         graphData.layout.hovermode = 'closest';
         graphData.layout.xaxis.title = 'Time (Days in Treatment)';
         graphData.layout.yaxis.title = 'Retention Probability';
         graphData.layout.title = {
             text: 'Predicted Retention Probability Over Time',
-            font: { size: 18, color: 'hsl(222.2 84% 4.9%)' }
+            font: { 
+                size: 18, 
+                color: isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)' 
+            }
         };
         graphData.layout.margin = { l: 50, r: 50, t: 60, b: 120 };
         graphData.layout.font = { 
             family: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif', 
             size: 12, 
-            color: 'hsl(222.2 84% 4.9%)' 
+            color: isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)' 
         };
         graphData.layout.paper_bgcolor = 'rgba(0,0,0,0)';
-        graphData.layout.plot_bgcolor = 'hsl(0 0% 100%)';
+        graphData.layout.plot_bgcolor = isDarkMode ? 'hsl(217.2 32.6% 17.5%)' : 'hsl(0 0% 100%)';
         graphData.layout.showlegend = true;
         graphData.layout.legend = {
             orientation: 'h',
             yanchor: 'bottom',
             y: -0.4,
             xanchor: 'center',
-            x: 0.5
+            x: 0.5,
+            font: {
+                color: isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)'
+            }
         };
+        
+        // Update axis styling for dark mode
+        if (isDarkMode) {
+            graphData.layout.xaxis.tickcolor = 'hsl(217.2 32.6% 35%)';
+            graphData.layout.xaxis.gridcolor = 'hsl(217.2 32.6% 25%)';
+            graphData.layout.xaxis.linecolor = 'hsl(217.2 32.6% 35%)';
+            graphData.layout.yaxis.tickcolor = 'hsl(217.2 32.6% 35%)';
+            graphData.layout.yaxis.gridcolor = 'hsl(217.2 32.6% 25%)';
+            graphData.layout.yaxis.linecolor = 'hsl(217.2 32.6% 35%)';
+        }
 
         // Clear the result div completely before rendering
         resultDiv.innerHTML = '';
@@ -219,12 +238,45 @@ function toggleInfo(infoId) {
     }
 }
 
+// Function to update chart styling when theme changes
+function updateChartTheme() {
+    const resultDiv = document.getElementById('result');
+    const plotlyDiv = resultDiv.querySelector('.plotly-graph-div');
+    
+    if (plotlyDiv && plotlyDiv._fullLayout) {
+        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        const updateLayout = {
+            'title.font.color': isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)',
+            'font.color': isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)',
+            'plot_bgcolor': isDarkMode ? 'hsl(217.2 32.6% 17.5%)' : 'hsl(0 0% 100%)',
+            'legend.font.color': isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)'
+        };
+        
+        if (isDarkMode) {
+            updateLayout['xaxis.tickcolor'] = 'hsl(217.2 32.6% 35%)';
+            updateLayout['xaxis.gridcolor'] = 'hsl(217.2 32.6% 25%)';
+            updateLayout['xaxis.linecolor'] = 'hsl(217.2 32.6% 35%)';
+            updateLayout['yaxis.tickcolor'] = 'hsl(217.2 32.6% 35%)';
+            updateLayout['yaxis.gridcolor'] = 'hsl(217.2 32.6% 25%)';
+            updateLayout['yaxis.linecolor'] = 'hsl(217.2 32.6% 35%)';
+        }
+        
+        Plotly.relayout('result', updateLayout);
+    }
+}
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     // Set focus on the age input for better UX
     const ageInput = document.getElementById('age_at_drug_start');
     if (ageInput) {
         ageInput.focus();
+    }
+    
+    // Listen for theme changes
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateChartTheme);
     }
     
     // Add keyboard shortcuts
