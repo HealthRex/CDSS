@@ -1,11 +1,25 @@
-document.getElementById("predictionForm").addEventListener("submit", async function(event) {
-    event.preventDefault();  // Prevent the form from submitting the traditional way
+// Auto-update functionality
+let autoUpdateEnabled = true;
+let updateTimeout = null;
 
-    // Get form data
-    const formData = new FormData(event.target);
+// Debounce function to prevent too frequent updates
+function debounce(func, wait) {
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(updateTimeout);
+            func(...args);
+        };
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(later, wait);
+    };
+}
 
-    // Convert form data to a JSON object, ensuring the correct order of features
-    const features = {
+// Function to collect form data
+function getFormData() {
+    const form = document.getElementById("predictionForm");
+    const formData = new FormData(form);
+    
+    return {
         "438120": formData.get("opioid_dependence") ? 1 : 0,
         "938268": formData.get("limb_swelling") ? 1 : 0,
         "986417": formData.get("laxative") ? 1 : 0,
@@ -13,7 +27,7 @@ document.getElementById("predictionForm").addEventListener("submit", async funct
         "1125315": formData.get("acetaminophen") ? 1 : 0,
         "chronic_pain": formData.get("chronic_pain") ? 1 : 0,
         "liver_disease": formData.get("liver_disease") ? 1 : 0,
-        "age_at_drug_start": parseFloat(formData.get("age_at_drug_start")),
+        "age_at_drug_start": parseFloat(formData.get("age_at_drug_start")) || 0,
         "4145308": formData.get("ecg") ? 1 : 0,
         "1129625": formData.get("diphenhydramine") ? 1 : 0,
         "941258": formData.get("docusate") ? 1 : 0,
@@ -22,7 +36,10 @@ document.getElementById("predictionForm").addEventListener("submit", async funct
         "major_depression": formData.get("major_depression") ? 1 : 0,
         "1133201": formData.get("buprenorphine") ? 1 : 0
     };
+}
 
+// Function to make prediction
+async function makePrediction(features, showLoading = true) {
     // Convert the features object to an array, ensuring the correct order
     const featuresArray = [
         features["438120"],
@@ -42,6 +59,33 @@ document.getElementById("predictionForm").addEventListener("submit", async funct
         features["1133201"]
     ];
 
+    // Check if we have required age field
+    if (!features["age_at_drug_start"] || features["age_at_drug_start"] < 16 || features["age_at_drug_start"] > 95) {
+        document.getElementById("result").innerHTML = `
+            <div class="text-center text-muted-foreground">
+                <i class="fas fa-exclamation-triangle text-4xl mb-4 opacity-50"></i>
+                <p>Please enter a valid age between 16-95 years to generate predictions.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const submitButton = document.querySelector('.submit-button');
+    const resultDiv = document.getElementById("result");
+
+    if (showLoading) {
+        // Show loading state
+        submitButton.classList.add('loading');
+        submitButton.innerHTML = '<i class="fas fa-spinner mr-2"></i>Generating...';
+        
+        resultDiv.innerHTML = `
+            <div class="text-center text-muted-foreground">
+                <i class="fas fa-spinner fa-spin text-4xl mb-4 opacity-50"></i>
+                <p>Generating retention probability prediction...</p>
+            </div>
+        `;
+    }
+
     try {
         // Send the data to the backend API
         const response = await fetch("/predict", {
@@ -52,37 +96,150 @@ document.getElementById("predictionForm").addEventListener("submit", async funct
             body: JSON.stringify({ features: featuresArray })
         });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         // Handle the response
         const result = await response.json();
-        console.log(result);
+        
+        if (result.error) {
+            throw new Error(result.error);
+        }
 
         // Parse the graphJSON from the response
         const graphData = JSON.parse(result.graphJSON);
-        console.log(graphData);
 
         // Customize the layout for better visualization
-        graphData.layout.hovermode = 'closest'; // Enable hovermode for better interactivity
-        graphData.layout.xaxis.title = 'Time (Days in Treatment)'; // Customize x-axis title
-        graphData.layout.yaxis.title = 'Retention Probability'; // Customize y-axis title
-        graphData.layout.title = 'Predicted Retention Probability Over Time'; // Add a title to the graph
-        graphData.layout.margin = { l: 60, r: 40, t: 60, b: 40 }; // Adjust margins
-        graphData.layout.font = { family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', size: 14, color: '#333' };
+        graphData.layout.hovermode = 'closest';
+        graphData.layout.xaxis.title = 'Time (Days in Treatment)';
+        graphData.layout.yaxis.title = 'Retention Probability';
+        graphData.layout.title = {
+            text: 'Predicted Retention Probability Over Time',
+            font: { size: 18, color: 'hsl(222.2 84% 4.9%)' }
+        };
+        graphData.layout.margin = { l: 50, r: 50, t: 60, b: 120 };
+        graphData.layout.font = { 
+            family: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif', 
+            size: 12, 
+            color: 'hsl(222.2 84% 4.9%)' 
+        };
+        graphData.layout.paper_bgcolor = 'rgba(0,0,0,0)';
+        graphData.layout.plot_bgcolor = 'hsl(0 0% 100%)';
+        graphData.layout.showlegend = true;
+        graphData.layout.legend = {
+            orientation: 'h',
+            yanchor: 'bottom',
+            y: -0.4,
+            xanchor: 'center',
+            x: 0.5
+        };
 
+        // Clear the result div completely before rendering
+        resultDiv.innerHTML = '';
+        
         // Render the plot using Plotly
-        Plotly.newPlot('result', graphData.data, graphData.layout);
+        Plotly.newPlot('result', graphData.data, graphData.layout, {
+            responsive: true, 
+            displayModeBar: false,
+            autosize: true
+        });
+        
 
     } catch (error) {
         console.error("Error:", error);
-        document.getElementById("result").textContent = "Error: Could not get prediction.";
+        resultDiv.innerHTML = `
+            <div class="text-center text-red-600">
+                <i class="fas fa-exclamation-circle text-4xl mb-4 opacity-50"></i>
+                <p class="font-medium">Error: Could not generate prediction</p>
+                <p class="text-sm opacity-75">${error.message}</p>
+            </div>
+        `;
+    } finally {
+        // Always reset button state if it's in loading mode
+        if (submitButton.classList.contains('loading')) {
+            submitButton.classList.remove('loading');
+            submitButton.innerHTML = '<i class="fas fa-chart-line mr-2"></i>Generate Prediction';
+        }
+    }
+}
+
+// Debounced auto-update function
+const debouncedAutoUpdate = debounce(async () => {
+    if (autoUpdateEnabled) {
+        const features = getFormData();
+        await makePrediction(features, false);
+    }
+}, 1000);
+
+// Function to handle button state and trigger auto-update
+function triggerAutoUpdate() {
+    if (autoUpdateEnabled) {
+        const submitButton = document.querySelector('.submit-button');
+        submitButton.classList.add('loading');
+        submitButton.innerHTML = '<i class="fas fa-spinner mr-2"></i>Updating...';
+        debouncedAutoUpdate();
+    }
+}
+
+// Form submission handler
+document.getElementById("predictionForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    
+    const features = getFormData();
+    await makePrediction(features, true);
+});
+
+// Auto-update on form changes
+document.getElementById("predictionForm").addEventListener("input", function() {
+    triggerAutoUpdate();
+});
+
+// Auto-update on checkbox changes
+document.getElementById("predictionForm").addEventListener("change", function(event) {
+    if (event.target.type === "checkbox") {
+        triggerAutoUpdate();
     }
 });
 
-// Function to toggle the display of information text
+// Function to toggle the display of information panels with modern styling
 function toggleInfo(infoId) {
     const infoElement = document.getElementById(infoId);
-    if (infoElement.style.display === "none" || infoElement.style.display === "") {
-        infoElement.style.display = "block";
-    } else {
-        infoElement.style.display = "none";
+    const isCurrentlyVisible = infoElement.classList.contains('show');
+    
+    // Close all other info panels first
+    const allInfoPanels = document.querySelectorAll('.info-panel');
+    allInfoPanels.forEach(panel => {
+        panel.classList.remove('show');
+    });
+    
+    // Toggle the current panel (only show if it wasn't already visible)
+    if (!isCurrentlyVisible) {
+        infoElement.classList.add('show');
     }
 }
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function() {
+    // Set focus on the age input for better UX
+    const ageInput = document.getElementById('age_at_drug_start');
+    if (ageInput) {
+        ageInput.focus();
+    }
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(event) {
+        // Submit form with Ctrl/Cmd + Enter
+        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+            event.preventDefault();
+            document.getElementById("predictionForm").dispatchEvent(new Event('submit'));
+        }
+        
+        // Close info panels with Escape
+        if (event.key === 'Escape') {
+            const visiblePanels = document.querySelectorAll('.info-panel.show');
+            visiblePanels.forEach(panel => panel.classList.remove('show'));
+        }
+    });
+});
+

@@ -1,178 +1,272 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f7f6;
-    margin: 0;
-    padding: 20px;
-    color: #333;
+/* Form fields */
+.form-field {
+    margin-bottom: 0.75rem;
 }
 
-h1 {
-    color: #2c3e50;
-    font-size: 24px;
-    margin-bottom: 20px;
-    text-align: center;
-    font-weight: 600;
-}
-
-form {
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    max-width: 500px;
-    margin: 0 auto 20px auto;
-}
-
-label {
-    font-weight: 600;
-    color: #34495e;
-    display: block;
-    margin-bottom: 8px;
-}
-
-input[type="checkbox"] {
-    margin-right: 10px;
-}
-
-input[type="number"] {
+/* Input field styling */
+.input-field {
+    flex: 1;
     width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 14px;
+    border-radius: 0.375rem;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    background-color: hsl(0 0% 100%);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-button {
-    width: 100%;
-    padding: 12px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
-    font-weight: 600;
+.input-field:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px hsl(222.2 84% 4.9%);
 }
 
-button:hover {
-    background-color: #2980b9;
+.input-field:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px hsl(222.2 84% 4.9%);
 }
 
-#result {
-    margin-top: 20px;
-    padding: 20px;
-    border: 1px solid #ccc;
-    background-color: #ecf0f1;
-    border-radius: 8px;
-    max-width: 700px;
-    margin: 0 auto;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    text-align: center;
+.input-field::placeholder {
+    color: hsl(215.4 16.3% 46.9%);
 }
 
-#result h2 {
-    font-size: 20px;
-    margin-bottom: 10px;
-    color: #2c3e50;
+.input-field:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
-.info-icon {
-    color: #3498db;
-    margin-left: 10px;
-    cursor: pointer;
-}
-
-.info-text {
-    display: none; /* Initially hidden */
-    background-color: #e3f2fd;
-    border-left: 4px solid #3498db;
-    padding: 10px;
-    margin-top: 8px;
-    border-radius: 4px;
-    font-size: 13px;
-    color: #333;
-}
-
-.header-container {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.header-container h1 {
-    font-size: 40px;
-    font-weight: bold;
-    color: #2c3e50;
-    margin-bottom: 5px;
-}
-
-.header-underline {
-    width: 900px; /* Make the line longer */
-    height: 8px;
-    background-color: #3498db; /* Blue underline color */
-    margin: 0 auto;
-    border-radius: 8px;
-}
-
-
-/* Two-column layout for form */
-form {
+/* Checkbox styling */
+.checkbox-wrapper {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    max-width: 900px; /* Adjusted width to fit two columns */
-    margin: 0 auto 20px auto;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
 }
 
-.form-group {
-    width: 45%; /* Make each form field take up 45% of the width for two columns */
-    margin-bottom: 20px;
+.checkbox-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
-.form-group.full-width {
-    width: 100%; /* Full width for submit button */
-    text-align: center;
-}
-
-input[type="number"],
-input[type="checkbox"] {
-    margin: 0; /* Remove extra margin around checkboxes */;
-}
-
-button {
-    width: 50%; /* Adjusted width for two-column alignment */
-    padding: 12px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     cursor: pointer;
-    font-weight: 600;
-    margin: 0 auto; /* Center the button */
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+}
+
+.checkbox-box {
+    height: 1rem;
+    width: 1rem;
+    border-radius: 0.125rem;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    background-color: hsl(0 0% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition-property: all;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.checkbox-box::after {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: hsl(210 40% 98%);
+    border-radius: 0.125rem;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.checkbox-input:checked + .checkbox-label .checkbox-box {
+    background-color: hsl(222.2 47.4% 11.2%);
+    border-color: hsl(222.2 47.4% 11.2%);
+}
+
+.checkbox-input:checked + .checkbox-label .checkbox-box::after {
+    opacity: 1;
+}
+
+.checkbox-input:focus + .checkbox-label .checkbox-box {
+    box-shadow: 0 0 0 2px hsl(222.2 84% 4.9%);
+}
+
+/* Info button styling */
+.info-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Info panel styling */
+.info-panel {
+    display: none;
+    margin-top: 0.5rem;
+    border-radius: 0.375rem;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    background-color: hsl(210 40% 96%);
+    padding: 0.75rem;
+}
+
+.info-panel.show {
     display: block;
 }
 
-.info-icon {
-    color: #3498db;
-    margin-left: 5px;
+/* Submit button styling */
+.submit-button {
+    inline-size: 100%;
+    border-radius: 0.375rem;
+    background-color: hsl(222.2 47.4% 11.2%);
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(210 40% 98%);
+    border: none;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    transition-property: all;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Additional adjustments for info-text */
-.info-text {
-    display: none;
-    background-color: #e3f2fd;
-    border-left: 4px solid #3498db;
-    padding: 10px;
-    margin-top: 8px;
-    border-radius: 4px;
-    font-size: 13px;
-    color: #333;
+.submit-button:hover {
+    background-color: hsl(222.2 47.4% 9%);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.submit-button:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px hsl(222.2 84% 4.9%);
+}
+
+.submit-button:disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Loading state for submit button */
+.submit-button.loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.submit-button.loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Card styling enhancements */
+.card {
+    background-color: hsl(0 0% 100%);
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    color: hsl(222.2 84% 4.9%);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+/* Override any existing form styles */
+form {
+    display: block !important;
+    flex-wrap: unset !important;
+    justify-content: unset !important;
+    max-width: unset !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Clean up any conflicting styles */
+.form-group {
+    width: auto !important;
+    margin-bottom: 0 !important;
+}
+
+button:not(.info-button):not(.submit-button) {
+    display: none !important;
+}
+
+
+/* Two column form layout for better space utilization */
+.form-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+@media (max-width: 768px) {
+    .form-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Age field should span full width */
+.age-field {
+    grid-column: 1 / -1;
+}
+
+/* Submit button should span full width */
+.submit-field {
+    grid-column: 1 / -1;
+}
+
+/* Graph container styling */
+#result {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden;
+    border: 1px solid hsl(214.3 31.8% 91.4%);
+    box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.06);
+}
+
+/* Center placeholder content when no graph is shown */
+#result .text-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 360px;
+}
+
+/* Plotly graph styling */
+#result .plotly-graph-div {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 400px !important;
 }

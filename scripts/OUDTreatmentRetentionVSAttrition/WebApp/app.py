@@ -79,7 +79,6 @@ def predict():
         # Predict survival function (survival probabilities over time)
         survival_function = model.predict_survival_function(features_df)[0]
 
-        # Rest of your prediction code remains the same...
         time_points = np.linspace(0, 180, num=180)
         survival_probabilities = survival_function(time_points)
 
@@ -151,6 +150,6 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    host = os.getenv("APP_HOST", "localhost")
+    host = os.getenv("APP_HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 5000))
     app.run(host=host, port=port, debug=True)

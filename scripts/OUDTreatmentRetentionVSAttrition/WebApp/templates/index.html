@@ -6,185 +6,363 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buprenorphine-Naloxone Attrition Prediction Web App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> <!-- Include Plotly for plotting -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(214.3 31.8% 91.4%)",
+                        input: "hsl(214.3 31.8% 91.4%)",
+                        ring: "hsl(222.2 84% 4.9%)",
+                        background: "hsl(0 0% 100%)",
+                        foreground: "hsl(222.2 84% 4.9%)",
+                        primary: {
+                            DEFAULT: "hsl(222.2 47.4% 11.2%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(210 40% 96%)",
+                            foreground: "hsl(222.2 84% 4.9%)",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(210 40% 96%)",
+                            foreground: "hsl(215.4 16.3% 46.9%)",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(210 40% 96%)",
+                            foreground: "hsl(222.2 84% 4.9%)",
+                        },
+                        card: {
+                            DEFAULT: "hsl(0 0% 100%)",
+                            foreground: "hsl(222.2 84% 4.9%)",
+                        },
+                    },
+                }
+            }
+        }
+    </script>
 </head>
 
-<body>
-    <div class="header-container">
-        <h1>Buprenorphine-Naloxone Attrition Prediction</h1>
-        <div class="header-underline"></div>
+<body class="min-h-screen bg-background text-foreground">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-primary mb-2 underline decoration-2 underline-offset-4">Buprenorphine-Naloxone Attrition Prediction</h1>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-6 gap-8">
+            <!-- Left Panel: Input Form -->
+            <div class="space-y-4 lg:col-span-2">
+                <div class="card p-6 border rounded-lg bg-card form-container">
+                    <h2 class="text-2xl font-semibold mb-4 text-card-foreground">Patient Information</h2>
+                    <form id="predictionForm" class="form-columns">
+                        <!-- Age at BUP-NAL Initiation -->
+                        <div class="form-field age-field">
+                            <div class="flex items-center gap-2 mb-2">
+                                <label for="age_at_drug_start" class="text-sm font-medium text-foreground">
+                                    Age at BUP-NAL Initiation
+                                </label>
+                                <button type="button" class="info-button" onclick="toggleInfo('age_info')" 
+                                        aria-label="Show information">
+                                    <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                </button>
+                            </div>
+                            <input type="number" id="age_at_drug_start" name="age_at_drug_start" required
+                                   class="input-field" min="16" max="95" placeholder="Enter age (16-95)">
+                            <div id="age_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Age at which the patient started BUP-NAL treatment. Age must be between 16-95 years</p>
+                            </div>
+                        </div>
+
+                        <!-- Opioid Dependence -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="opioid_dependence" name="opioid_dependence" class="checkbox-input">
+                                <label for="opioid_dependence" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Opioid Dependence (Diagnosis)</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('opioid_dependence_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="opioid_dependence_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Opioid dependence is a diagnosis for chronic use of opioids leading to dependence.</p>
+                            </div>
+                        </div>
+
+                        <!-- Limb Swelling -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="limb_swelling" name="limb_swelling" class="checkbox-input">
+                                <label for="limb_swelling" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Limb Swelling (Diagnosis)</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('limb_swelling_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="limb_swelling_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Limb swelling, as commonly seen in conditions such as deep vein thrombosis, heart failure, and chronic kidney disease.</p>
+                            </div>
+                        </div>
+
+                        <!-- Laxative Use -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="laxative" name="laxative" class="checkbox-input">
+                                <label for="laxative" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Laxative Use</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('laxative_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="laxative_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Indicates whether the patient has used laxatives. Constipation is a common complication of opioid use.</p>
+                            </div>
+                        </div>
+
+                        <!-- Long-Acting Opioid Use -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="oxycodone" name="oxycodone" class="checkbox-input">
+                                <label for="oxycodone" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Long-Acting Opioid Use</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('oxycodone_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="oxycodone_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Use of long-acting opioids such as Oxycodone Extended Release for pain management.</p>
+                            </div>
+                        </div>
+
+                        <!-- Prescribed Acetaminophen -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="acetaminophen" name="acetaminophen" class="checkbox-input">
+                                <label for="acetaminophen" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Prescribed Acetaminophen</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('acetaminophen_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="acetaminophen_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Typically a marker for sicker or more complicated patients as most use would be over-the-counter.</p>
+                            </div>
+                        </div>
+
+                        <!-- Chronic Pain -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="chronic_pain" name="chronic_pain" class="checkbox-input">
+                                <label for="chronic_pain" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Chronic Pain</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('chronic_pain_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="chronic_pain_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Long-lasting pain that persists for weeks to years.</p>
+                            </div>
+                        </div>
+
+                        <!-- Liver Disease -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="liver_disease" name="liver_disease" class="checkbox-input">
+                                <label for="liver_disease" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Liver Disease</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('liver_disease_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="liver_disease_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Any disorder that affects the function of the liver.</p>
+                            </div>
+                        </div>
+
+                        <!-- 12-Lead ECG -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="ecg" name="ecg" class="checkbox-input">
+                                <label for="ecg" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">12-Lead ECG (within 90 days of initiation)</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('ecg_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="ecg_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">A common procedure for complicated patients, usually performed within 90 days prior to initiation.</p>
+                            </div>
+                        </div>
+
+                        <!-- Diphenhydramine -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="diphenhydramine" name="diphenhydramine" class="checkbox-input">
+                                <label for="diphenhydramine" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Prescribed Diphenhydramine</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('diphenhydramine_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="diphenhydramine_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Diphenhydramine (Benadryl) often used for itch relief due to high-dose opioids, especially in a hospital setting.</p>
+                            </div>
+                        </div>
+
+                        <!-- Docusate -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="docusate" name="docusate" class="checkbox-input">
+                                <label for="docusate" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Docusate (Laxative)</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('docusate_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="docusate_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">A stool softener, not highly effective but commonly prescribed for constipation management.</p>
+                            </div>
+                        </div>
+
+                        <!-- Opioid Withdrawal -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="opioid_withdrawal" name="opioid_withdrawal" class="checkbox-input">
+                                <label for="opioid_withdrawal" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Opioid Withdrawal (before initiation)</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('opioid_withdrawal_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="opioid_withdrawal_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Symptoms before starting buprenorphine-naloxone.</p>
+                            </div>
+                        </div>
+
+                        <!-- Aspirin -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="aspirin" name="aspirin" class="checkbox-input">
+                                <label for="aspirin" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Prescribed Aspirin</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('aspirin_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="aspirin_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Typically prescribed as a marker for complex cases where it's noted in EMR.</p>
+                            </div>
+                        </div>
+
+                        <!-- Major Depressive Disorder -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="major_depression" name="major_depression" class="checkbox-input">
+                                <label for="major_depression" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Major Depressive Disorder</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('major_depression_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="major_depression_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Mood disorder causing persistent sadness and loss of interest.</p>
+                            </div>
+                        </div>
+
+                        <!-- Buprenorphine (Low Dose) -->
+                        <div class="form-field">
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="buprenorphine" name="buprenorphine" class="checkbox-input">
+                                <label for="buprenorphine" class="checkbox-label">
+                                    <span class="checkbox-box"></span>
+                                    <span class="text-sm">Stabilization on Buprenorphine doses XX-XX mg</span>
+                                    <button type="button" class="info-button ml-1" onclick="toggleInfo('buprenorphine_info')" 
+                                            aria-label="Show information">
+                                        <i class="fas fa-info-circle w-4 h-4 text-muted-foreground hover:text-foreground transition-colors"></i>
+                                    </button>
+                                </label>
+                            </div>
+                            <div id="buprenorphine_info" class="info-panel">
+                                <p class="text-sm text-muted-foreground">Indicates stabilization on buprenorphine within the specified dose range.</p>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="mt-8 submit-field">
+                            <button type="submit" class="submit-button">
+                                <i class="fas fa-chart-line mr-2"></i>
+                                Generate Prediction
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Panel: Results -->
+            <div class="space-y-4 lg:col-span-4">
+                <div class="card p-6 border rounded-lg bg-card">
+                    <h2 class="text-2xl font-semibold mb-4 text-card-foreground">Prediction Result</h2>
+                    <div id="result" class="bg-secondary/50 rounded-lg p-4 pb-6 min-h-[400px] mb-4">
+                        <div class="text-center text-muted-foreground">
+                            <i class="fas fa-chart-line text-4xl mb-4 opacity-50"></i>
+                            <p>Enter patient information to view the retention probability chart. <br /> The chart will auto-update as you modify the information.</p>
+                        </div>
+                    </div>
+                    <div class="text-sm text-muted-foreground">
+                        <p class="mb-4">This section presents the predicted retention probability over time for a patient, along with comparative reference curves:</p>
+                        <ul class="space-y-2 list-disc pl-4">
+                            <li><strong class="text-foreground">Patient Prediction:</strong> The predicted retention probability curve for the patient based on their input features.</li>
+                            <li><strong class="text-foreground">High Risk (2.5th Percentile):</strong> Represents a reference curve indicating lower retention probabilities associated with patients at higher risk of treatment attrition.</li>
+                            <li><strong class="text-foreground">Low Risk (97.5th Percentile):</strong> Represents a reference curve showing higher retention probabilities associated with patients expected to stay longer in treatment.</li>
+                            <li><strong class="text-foreground">Median:</strong> Shows a curve that represents the median retention probability across the sample population for comparison.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    
 
-        <!-- The form to collect input features -->
-        <form id="predictionForm">
-            <!-- Age at BUP-NAL Initiation -->
-            <div class="form-group">
-                <label for="age_at_drug_start">
-                    Age at BUP-NAL Initiation:
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('age_info')"></i>
-                </label>
-                <input type="number" id="age_at_drug_start" name="age_at_drug_start" required>
-                <div id="age_info" class="info-text">Age at which the patient started BUP-NAL treatment. Age must be between 16-95 years</div>
-            </div>
-
-            <!-- Opioid Dependence -->
-            <div class="form-group">
-                <label for="opioid_dependence">
-                    Opioid Dependence (Diagnosis):
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('opioid_dependence_info')"></i>
-                </label>
-                <input type="checkbox" id="opioid_dependence" name="opioid_dependence">
-                <div id="opioid_dependence_info" class="info-text">Opioid dependence is a diagnosis for chronic use of opioids leading to dependence.</div>
-            </div>
-
-            <!-- Limb Swelling -->
-            <div class="form-group">
-                <label for="limb_swelling">
-                    Limb Swelling (Diagnosis):
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('limb_swelling_info')"></i>
-                </label>
-                <input type="checkbox" id="limb_swelling" name="limb_swelling">
-                <div id="limb_swelling_info" class="info-text">Limb swelling, as commonly seen in conditions such as deep vein thrombosis, heart failure, and chronic kidney disease.</div>
-            </div>
-
-            <!-- Laxative Use -->
-            <div class="form-group">
-                <label for="laxative">
-                    Laxative Use:
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('laxative_info')"></i>
-                </label>
-                <input type="checkbox" id="laxative" name="laxative">
-                <div id="laxative_info" class="info-text">Indicates whether the patient has used laxatives. Constipation is a common complication of opioid use.</div>
-            </div>
-
-            <!-- Long-Acting Opioid Use -->
-            <div class="form-group">
-                <label for="oxycodone">
-                    Long-Acting Opioid Use:
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('oxycodone_info')"></i>
-                </label>
-                <input type="checkbox" id="oxycodone" name="oxycodone">
-                <div id="oxycodone_info" class="info-text">Use of long-acting opioids such as Oxycodone Extended Release for pain management.</div>
-            </div>
-
-            <!-- Prescribed Acetaminophen -->
-            <div class="form-group">
-                <label for="acetaminophen">
-                    Prescribed Acetaminophen:
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('acetaminophen_info')"></i>
-                </label>
-                <input type="checkbox" id="acetaminophen" name="acetaminophen">
-                <div id="acetaminophen_info" class="info-text">Typically a marker for sicker or more complicated patients as most use would be over-the-counter.</div>
-            </div>
-
-            <!-- Chronic Pain -->
-            <div class="form-group">
-                <label for="chronic_pain">
-                    Chronic Pain:
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('chronic_pain_info')"></i>
-                </label>
-                <input type="checkbox" id="chronic_pain" name="chronic_pain">
-                <div id="chronic_pain_info" class="info-text">Long-lasting pain that persists for weeks to years.</div>
-            </div>
-
-            <!-- Liver Disease -->
-            <div class="form-group">
-                <label for="liver_disease">
-                    Liver Disease:
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('liver_disease_info')"></i>
-                </label>
-                <input type="checkbox" id="liver_disease" name="liver_disease">
-                <div id="liver_disease_info" class="info-text">Any disorder that affects the function of the liver.</div>
-            </div>
-
-            <!-- 12-Lead ECG -->
-            <div class="form-group">
-                <label for="ecg">
-                    12-Lead ECG (within 90 days of initiation):
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('ecg_info')"></i>
-                </label>
-                <input type="checkbox" id="ecg" name="ecg">
-                <div id="ecg_info" class="info-text"> A common procedure for complicated patients, usually performed within 90 days prior to initiation.</div>
-            </div>
-
-            <!-- Diphenhydramine -->
-            <div class="form-group">
-                <label for="diphenhydramine">
-                    Prescribed Diphenhydramine:
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('diphenhydramine_info')"></i>
-                </label>
-                <input type="checkbox" id="diphenhydramine" name="diphenhydramine">
-                <div id="diphenhydramine_info" class="info-text">Diphenhydramine (Benadryl) often used for itch relief due to high-dose opioids, especially in a hospital setting.</div>
-            </div>
-
-            <!-- Docusate -->
-            <div class="form-group">
-                <label for="docusate">
-                    Docusate (Laxative):
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('docusate_info')"></i>
-                </label>
-                <input type="checkbox" id="docusate" name="docusate">
-                <div id="docusate_info" class="info-text">A stool softener, not highly effective but commonly prescribed for constipation management.</div>
-            </div>
-
-            <!-- Opioid Withdrawal -->
-            <div class="form-group">
-                <label for="opioid_withdrawal">
-                    Opioid Withdrawal (before initiation):
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('opioid_withdrawal_info')"></i>
-                </label>
-                <input type="checkbox" id="opioid_withdrawal" name="opioid_withdrawal">
-                <div id="opioid_withdrawal_info" class="info-text">Symptoms before starting buprenorphine-naloxone.</div>
-            </div>
-
-            <!-- Aspirin -->
-            <div class="form-group">
-                <label for="aspirin">
-                    Prescribed Aspirin:
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('aspirin_info')"></i>
-                </label>
-                <input type="checkbox" id="aspirin" name="aspirin">
-                <div id="aspirin_info" class="info-text">Typically prescribed as a marker for complex cases where it’s noted in EMR.</div>
-            </div>
-
-            <!-- Major Depression -->
-            <div class="form-group">
-                <label for="major_depression">
-                    Major Depressive Disorder (Diagnosis):
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('major_depression_info')"></i>
-                </label>
-                <input type="checkbox" id="major_depression" name="major_depression">
-                <div id="major_depression_info" class="info-text">Mood disorder causing persistent sadness and loss of interest.</div>
-            </div>
-
-            <!-- Buprenorphine (Low Dose) -->
-            <div class="form-group">
-                <label for="buprenorphine">
-                    Stabilization on Buprenorphine doses XX-XX mg:
-                    <i class="fas fa-info-circle info-icon" onclick="toggleInfo('buprenorphine_info')"></i>
-                </label>
-                <input type="checkbox" id="buprenorphine" name="buprenorphine">
-                <div id="buprenorphine_info" class="info-text">Indicates stabilization on buprenorphine within the specified dose range.</div>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="btn"><i class="fas fa-chart-line"></i> Submit</button>
-        </form>
-
-
-    <div class="result-container">
-        <h2>Prediction Result</h2>
-        <p>This section presents the predicted retention probability over time for a patient, along with comparative reference curves:</p>
-            <ul>
-                <li><strong>Patient Prediction:</strong> The predicted retention probability curve for the patient based on their input features.</li>
-                <li><strong>High Risk (2.5th Percentile):</strong> Represents a reference curve indicating lower retention probabilities associated with patients at higher risk of treatment attrition.</li>
-                <li><strong>Low Risk (97.5th Percentile):</strong> Represents a reference curve showing higher retention probabilities associated with patients expected to stay longer in treatment.</li>
-                <li><strong>Median:</strong> Shows a curve that represents the median retention probability across the sample population for comparison.</li>
-            </ul>
-        <div id="result"></div>
-    </div>
 
     <!-- Link to the external app.js file -->
     <script src="{{ url_for('static', filename='app.js') }}"></script>
