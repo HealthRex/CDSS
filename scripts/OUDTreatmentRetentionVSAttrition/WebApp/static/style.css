@@ -287,7 +287,6 @@ form {
     box-shadow: none !important;
 }
 
-/* Clean up any conflicting styles */
 .form-group {
     width: auto !important;
     margin-bottom: 0 !important;

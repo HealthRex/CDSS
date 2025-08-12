@@ -292,20 +292,5 @@ document.addEventListener('DOMContentLoaded', function() {
         mediaQuery.addEventListener('change', updateChartTheme);
         console.log('Theme change listener registered');
     }
-    
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(event) {
-        // Submit form with Ctrl/Cmd + Enter
-        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-            event.preventDefault();
-            document.getElementById("predictionForm").dispatchEvent(new Event('submit'));
-        }
-        
-        // Close info panels with Escape
-        if (event.key === 'Escape') {
-            const visiblePanels = document.querySelectorAll('.info-panel.show');
-            visiblePanels.forEach(panel => panel.classList.remove('show'));
-        }
-    });
 });
 
