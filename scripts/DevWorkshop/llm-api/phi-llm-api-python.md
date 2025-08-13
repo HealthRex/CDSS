@@ -36,14 +36,14 @@ Last update June 16, 2025.*
 
 - Python 3.6+ with `requests` library installed (`pip install requests`)
 - Stanford VPN running on Full traffic, non-split-tunnel (setup [here](https://uit.stanford.edu/service/vpn)).
-- API Subscription Key provided by Stanford Healthcare. **Keep this key safe, confidential, and do not share it with anyone.** **Replace `# enter your key here` with your key in the Python code!**
+- API Subscription Key provided by Stanford Healthcare. **Keep this key safe, confidential, and do not share it with anyone.**
 
 ## Usage
 
 1. **Set API Key:** In the Python code, replace `# enter your key here` with your Stanford Healthcare API key.
 2. **Choose Model & Run:** Select and execute the Python code block corresponding to the LLM you wish to use (e.g., "GPT-4.1 API Call").
 3. **Process Response:** The LLM's response is printed as a **JSON string** in `response.text`. Depending on your use case, adapt your code to extract the information you need by parsing this JSON output.
-4. **(OPTIONAL)** Use the helper function in the [bonus section](#bonus-directly-generate-text-output-from-text-input-bypass-call-limits-or-easily-swap-between-models) to get direct text output, bypass call limits, or easily swap between models.
+4. **(OPTIONAL)** Use the helper function in the [bonus section](#bonus-1-directly-generate-text-output-from-text-input-bypass-call-limits) to get direct text output, bypass call limits, or easily swap between models.
 
 ## Common code for all API calls
 
