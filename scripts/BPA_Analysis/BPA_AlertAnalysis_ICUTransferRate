@@ -1,3 +1,6 @@
+-- ========================================================================
+-- Build per-alert table (as provided)
+-- ========================================================================
 CREATE TEMP TABLE per_alert AS
 WITH random_flag AS (
   SELECT 
@@ -60,7 +63,7 @@ alerts_cbc AS (
     alt.pat_enc_csn_id_coded,
     alt.alt_id_coded, 
     alt.alert_desc, 
-    his.update_date_jittered AS alt_time
+    his.alt_action_inst AS alt_time
   FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_alert` alt 
   INNER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_alert_history` his 
     USING (anon_id, alt_id_coded)
@@ -71,7 +74,7 @@ alerts_cbc AS (
   )
 ),
 
--- Gets rid of duplicate silent alerts
+-- Remove duplicate SILENT alerts for randomized patients
 cohort AS (
   SELECT 
     alt.*, 
@@ -129,39 +132,114 @@ GROUP BY
   alt_time
 ;
 
--- ============================================================
--- A) ICU transfer rate per alert_desc
--- ============================================================
-
+-- ========================================================================
+-- A) ICU transfer rate per alert_desc (includes distinct encounters/patients)
+-- ========================================================================
 SELECT
   alert_desc,
-  COUNT(*) AS total_alerts,
+  COUNT(*) AS total_alert_records,
+  COUNT(DISTINCT pat_enc_csn_id_coded) AS unique_encounters_with_alert,
+  COUNT(DISTINCT anon_id) AS unique_patients_with_alert,
   SUM(has_icu_transfer) AS alerts_with_icu_transfer,
   SAFE_DIVIDE(SUM(has_icu_transfer), COUNT(*)) AS icu_transfer_rate
 FROM per_alert
 GROUP BY alert_desc
 ORDER BY alert_desc;
 
--- ============================================================
--- B) ICU transfer rate per random_flag × alert_desc
--- ============================================================
-
+-- ========================================================================
+-- B) ICU transfer rate per random_flag × alert_desc (with distincts)
+-- ========================================================================
 SELECT
   random_flag,
   alert_desc,
-  COUNT(*) AS total_alerts,
+  COUNT(*) AS total_alert_records,
+  COUNT(DISTINCT pat_enc_csn_id_coded) AS unique_encounters_with_alert,
+  COUNT(DISTINCT anon_id) AS unique_patients_with_alert,
   SUM(has_icu_transfer) AS alerts_with_icu_transfer,
   SAFE_DIVIDE(SUM(has_icu_transfer), COUNT(*)) AS icu_transfer_rate
 FROM per_alert
 GROUP BY random_flag, alert_desc
 ORDER BY random_flag, alert_desc;
 
--- ============================================================
--- C) Overall ICU transfer rate across all alerts
--- ============================================================
-
+-- ========================================================================
+-- C) Overall ICU transfer rate across all alerts (with distincts)
+-- ========================================================================
 SELECT
-  COUNT(*) AS total_alerts,
+  COUNT(*) AS total_alert_records,
+  COUNT(DISTINCT pat_enc_csn_id_coded) AS unique_encounters_with_alert,
+  COUNT(DISTINCT anon_id) AS unique_patients_with_alert,
   SUM(has_icu_transfer) AS alerts_with_icu_transfer,
   SAFE_DIVIDE(SUM(has_icu_transfer), COUNT(*)) AS icu_transfer_rate
 FROM per_alert;
+
+-- ========================================================================
+-- D) Standalone sanity checks grouped by alert_desc (LOUD vs SILENT)
+-- ========================================================================
+
+-- Number of unique encounters with an alert, grouped by alert_desc
+SELECT
+  alert_desc,
+  COUNT(DISTINCT pat_enc_csn_id_coded) AS unique_encounters_with_alert
+FROM per_alert
+GROUP BY alert_desc
+ORDER BY alert_desc;
+
+-- Number of unique patients with an alert, grouped by alert_desc
+SELECT
+  alert_desc,
+  COUNT(DISTINCT anon_id) AS unique_patients_with_alert
+FROM per_alert
+GROUP BY alert_desc
+ORDER BY alert_desc;
+
+-- ========================================================================
+-- E_split) Histogram: # of alerts per encounter, split by LOUD vs SILENT
+--     • Denominator is within-group: encounters that had ≥1 alert of that group
+--     • Each row is a (group, alerts_per_encounter) bin with counts and %
+-- ========================================================================
+WITH per_alert_labeled AS (
+  SELECT
+    pa.*,
+    CASE
+      WHEN pa.alert_desc = 'SHC AIML LAB CBC STABILITY BASE - LOUD PILOT' THEN 'LOUD'
+      WHEN pa.alert_desc = 'SHC AIML LAB CBC STABILITY BASE - SILENT' THEN 'SILENT'
+      ELSE 'OTHER'
+    END AS alert_group
+  FROM per_alert pa
+),
+encounter_alert_counts AS (
+  SELECT
+    anon_id,
+    pat_enc_csn_id_coded,
+    alert_group,
+    COUNT(*) AS alerts_per_encounter
+  FROM per_alert_labeled
+  GROUP BY anon_id, pat_enc_csn_id_coded, alert_group
+),
+group_denominators AS (
+  -- # of encounters that had at least one alert of a given group
+  SELECT
+    alert_group,
+    COUNT(*) AS total_encounters_in_group
+  FROM (
+    SELECT DISTINCT anon_id, pat_enc_csn_id_coded, alert_group
+    FROM encounter_alert_counts
+  )
+  GROUP BY alert_group
+)
+SELECT
+  c.alert_group,
+  c.alerts_per_encounter,
+  COUNT(*) AS encounters_in_bin,
+  COUNT(DISTINCT c.anon_id) AS patients_in_bin,
+  SAFE_DIVIDE(COUNT(*), d.total_encounters_in_group) AS pct_of_encounters_in_group
+FROM encounter_alert_counts c
+JOIN group_denominators d
+  USING (alert_group)
+GROUP BY
+  c.alert_group,
+  c.alerts_per_encounter,
+  d.total_encounters_in_group
+ORDER BY
+  c.alert_group,
+  c.alerts_per_encounter;
