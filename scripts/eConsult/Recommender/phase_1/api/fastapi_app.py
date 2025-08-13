@@ -26,13 +26,18 @@ def query_llm(my_question):
         "messages": [{"role": "user", "content": my_question}]
     })
     response = requests.request("POST", url, headers=headers, data=payload)
-    message_content = response.json()["choices"][0]["message"]["content"]
-    print(message_content)
-    return message_content
+    print(response.json())
+    if response.ok:
+        message_content = response.json()["choices"][0]["message"]["content"]
+        print(message_content)
+        return message_content
+    else:
+        # TODO how to handle errors?
+        return response.json()
 
 # Add the parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from api.bigquery_api import BigQueryAPI
+from phase_1.api.bigquery_api import BigQueryAPI
 
 app = FastAPI(title="Medical Recommender API")
 
@@ -290,9 +295,9 @@ def validate_icd10_clinical_match(state: dict) -> dict:
     prompt = raw_prompt + f"Available ICD-10 Codes: {state['icd10_codes'].to_string()}"
     logging.info(f"LLM Prompt for validate_icd10_clinical_match:\n{raw_prompt} + available ICD-10 codes")
     
-    response = query_llm(prompt)
-    logging.info(f"LLM Response for validate_icd10_clinical_match:\n{response}")
     try:
+        response = query_llm(prompt)
+        logging.info(f"LLM Response for validate_icd10_clinical_match:\n{response}")
         output = clean_output(response)
         validation = json.loads(output)
         logging.info(f"Validation result: {validation}")
