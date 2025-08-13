@@ -243,3 +243,65 @@ GROUP BY
 ORDER BY
   c.alert_group,
   c.alerts_per_encounter;
+
+-- ========================================================================
+-- F_split) Detailed row-level view for encounters with >1 alert firing,
+--          split by LOUD vs SILENT
+--     • Multi-alert condition is applied within each alert_group separately
+--     • Returns one row per alert firing for qualifying (encounter, group)
+-- ========================================================================
+WITH per_alert_labeled AS (
+  SELECT
+    pa.*,
+    CASE
+      WHEN pa.alert_desc = 'SHC AIML LAB CBC STABILITY BASE - LOUD PILOT' THEN 'LOUD'
+      WHEN pa.alert_desc = 'SHC AIML LAB CBC STABILITY BASE - SILENT' THEN 'SILENT'
+      ELSE 'OTHER'
+    END AS alert_group
+  FROM per_alert pa
+),
+encounter_alert_counts AS (
+  SELECT
+    anon_id,
+    pat_enc_csn_id_coded,
+    alert_group,
+    COUNT(*) AS alerts_per_encounter,
+    MIN(alt_time) AS first_alert_time,
+    MAX(alt_time) AS last_alert_time
+  FROM per_alert_labeled
+  GROUP BY anon_id, pat_enc_csn_id_coded, alert_group
+),
+multi_alert_encounters AS (
+  SELECT
+    anon_id,
+    pat_enc_csn_id_coded,
+    alert_group,
+    alerts_per_encounter,
+    first_alert_time,
+    last_alert_time,
+    DATETIME_DIFF(last_alert_time, first_alert_time, MINUTE) AS minutes_between_first_last
+  FROM encounter_alert_counts
+  WHERE alerts_per_encounter > 1
+)
+SELECT
+  e.alert_group,
+  e.anon_id,
+  e.pat_enc_csn_id_coded,
+  e.alerts_per_encounter,
+  e.first_alert_time,
+  e.last_alert_time,
+  e.minutes_between_first_last,
+  p.alert_desc,
+  p.random_flag,
+  p.alt_time,
+  p.has_icu_transfer
+FROM multi_alert_encounters e
+JOIN per_alert_labeled p
+  ON p.anon_id = e.anon_id
+ AND p.pat_enc_csn_id_coded = e.pat_enc_csn_id_coded
+ AND p.alert_group = e.alert_group
+ORDER BY
+  e.alert_group,
+  e.anon_id,
+  e.pat_enc_csn_id_coded,
+  p.alt_time;
