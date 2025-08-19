@@ -15,17 +15,22 @@ WITH random_flag AS (
   WHERE concept_id = 'SHC#6051'
 ),
 
--- Index discharges (from ADT to anchor the index event/time window)
+-- Index discharges (from discharge orders to anchor the index event/time window)
 discharges_selected AS (
-  SELECT 
-    a.anon_id, 
-    a.pat_enc_csn_id_coded AS index_encounter, 
-    a.event_time_jittered   AS dis_time
-  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt` a
+  SELECT
+    o.anon_id,
+    o.pat_enc_csn_id_coded                                 AS index_encounter,
+    MIN(o.order_time_jittered)                             AS order_first_discharge_time,
+    MAX(o.order_time_jittered)                             AS order_last_discharge_time,
+    ARRAY_AGG(o.description ORDER BY o.order_time_jittered DESC LIMIT 1)[OFFSET(0)]
+                                                           AS order_last_description,
+    -- Anchor timestamp aligned to prior CTE: last discharge-order time
+    MAX(o.order_time_jittered)                             AS dis_time
+  FROM `som-nero-phi-jonc101.shc_core_2024.order_proc` o
   INNER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_dep_map` d USING (department_id)
   INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` m USING (anon_id)
-  WHERE 
-    a.event_type = 'Discharge' 
+  WHERE
+    LOWER(o.description) LIKE 'discharge patient%'
     AND (
       UPPER(d.department_name) LIKE 'B3' OR
       UPPER(d.department_name) LIKE 'C3' OR
@@ -36,10 +41,11 @@ discharges_selected AS (
       UPPER(d.department_name) LIKE '2%WEST%' OR
       UPPER(d.department_name) LIKE '3%WEST%'
     )
-    -- date window applied to de-jittered discharge timestamp
-    AND a.effective_time_jittered - INTERVAL m.jitter DAY 
+    AND o.order_time_jittered - INTERVAL m.jitter DAY
         BETWEEN '2024-08-15' AND '2025-03-15'
+  GROUP BY o.anon_id, index_encounter
 ),
+
 
 -- Readmissions from ORDERS: collapse to ONE row per (anon_id, encounter),
 -- using the EARLIEST qualifying order_time_jittered as the admission time.
