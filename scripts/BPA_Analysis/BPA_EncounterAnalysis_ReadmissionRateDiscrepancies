@@ -1,0 +1,161 @@
+-- ────────────────────────────────────────────────────────────────────────────
+-- Build combined classification with BOTH streams using:
+--   • ADT:    MIN(adm_time) to test 30-day inclusion; MAX(adm_time) to report final class
+--   • ORDERS: MIN(order_time) to test 30-day inclusion; MAX(order_time) to report final order name
+-- Notes:
+--   • Orders are filtered to display_name LIKE ('Admit to Inpatient%', 'Place in Observation%')
+--   • We do NOT split inpatient vs observation; last order display_name is provided for context only
+-- ────────────────────────────────────────────────────────────────────────────
+CREATE TEMP TABLE combined AS
+WITH random_flag AS (
+  SELECT 
+    anon_id, 
+    pat_enc_csn_id_coded, 
+    smrtdta_elem_value AS random_flag 
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_smrtdta` 
+  WHERE concept_id = 'SHC#6051'
+),
+
+-- Index discharges (anchor population)
+discharges_selected AS (
+  SELECT 
+    a.anon_id, 
+    a.pat_enc_csn_id_coded AS index_encounter, 
+    a.event_time_jittered   AS dis_time
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt` a
+  INNER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_dep_map` d USING (department_id)
+  INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` m USING (anon_id)
+  WHERE 
+    a.event_type = 'Discharge' 
+    AND (
+      UPPER(d.department_name) LIKE 'B3' OR
+      UPPER(d.department_name) LIKE 'C3' OR
+      UPPER(d.department_name) LIKE 'M7' OR
+      UPPER(d.department_name) LIKE 'L7' OR
+      UPPER(d.department_name) LIKE '1%WEST%' OR
+      UPPER(d.department_name) LIKE '2%NORTH%' OR
+      UPPER(d.department_name) LIKE '2%WEST%' OR
+      UPPER(d.department_name) LIKE '3%WEST%'
+    )
+    AND a.effective_time_jittered - INTERVAL m.jitter DAY 
+        BETWEEN '2024-08-15' AND '2025-03-15'
+),
+
+-- ADT admissions per encounter:
+--  • adt_first_adm_time = MIN(event_time_jittered)  → for 30-day inclusion
+--  • adt_last_adm_time  = MAX(event_time_jittered)  → for reporting final state
+--  • adt_last_pat_class = pat_class from the LAST Admission row
+adt_readmits AS (
+  SELECT
+    anon_id,
+    pat_enc_csn_id_coded                                   AS readmit_encounter,
+    MIN(event_time_jittered)                               AS adt_first_adm_time,
+    MAX(event_time_jittered)                               AS adt_last_adm_time,
+    ARRAY_AGG(pat_class ORDER BY event_time_jittered DESC LIMIT 1)[OFFSET(0)]
+                                                           AS adt_last_pat_class
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt`
+  WHERE event_type = 'Admission'
+  GROUP BY anon_id, readmit_encounter
+),
+
+-- ORDER admissions per encounter:
+--  • order_first_adm_time = MIN(order_time_jittered) → for 30-day inclusion
+--  • order_last_adm_time  = MAX(order_time_jittered) → for reporting final order label
+--  • order_last_display   = display_name from the LAST qualifying order row
+order_readmits AS (
+  SELECT
+    anon_id,
+    pat_enc_csn_id_coded                                   AS readmit_encounter,
+    MIN(order_time_jittered)                               AS order_first_adm_time,
+    MAX(order_time_jittered)                               AS order_last_adm_time,
+    ARRAY_AGG(display_name ORDER BY order_time_jittered DESC LIMIT 1)[OFFSET(0)]
+                                                           AS order_last_display_name
+  FROM `som-nero-phi-jonc101.shc_core_2024.order_proc`
+  WHERE LOWER(display_name) LIKE 'admit to inpatient%'
+     OR LOWER(display_name) LIKE 'place in observation%'
+  GROUP BY anon_id, readmit_encounter
+),
+
+-- Keep ADT readmission if FIRST ADT Admission is within 30 days
+adt_detail AS (
+  SELECT
+    d.anon_id,
+    d.index_encounter,
+    d.dis_time,
+    a.readmit_encounter                         AS adt_readmit_enc,
+    a.adt_first_adm_time                        AS adt_first_adm_time,
+    a.adt_last_adm_time                         AS adt_last_adm_time,
+    a.adt_last_pat_class                        AS adt_readmit_class
+  FROM discharges_selected d
+  LEFT JOIN adt_readmits a
+    ON a.anon_id = d.anon_id
+   AND a.readmit_encounter != d.index_encounter
+   AND a.adt_first_adm_time > d.dis_time
+   AND a.adt_first_adm_time <= d.dis_time + INTERVAL 30 DAY
+),
+
+-- Keep ORDER readmission if FIRST qualifying order is within 30 days
+order_detail AS (
+  SELECT
+    d.anon_id,
+    d.index_encounter,
+    d.dis_time,
+    o.readmit_encounter                         AS order_readmit_enc,
+    o.order_first_adm_time                      AS order_first_adm_time,
+    o.order_last_adm_time                       AS order_last_adm_time,
+    o.order_last_display_name                   AS order_last_display_name
+  FROM discharges_selected d
+  LEFT JOIN order_readmits o
+    ON o.anon_id = d.anon_id
+   AND o.readmit_encounter != d.index_encounter
+   AND o.order_first_adm_time > d.dis_time
+   AND o.order_first_adm_time <= d.dis_time + INTERVAL 30 DAY
+)
+
+SELECT
+  d.anon_id,
+  d.index_encounter,
+  d.dis_time,
+
+  -- ADT side
+  adt.adt_readmit_enc,
+  adt.adt_first_adm_time,
+  adt.adt_last_adm_time,
+  adt.adt_readmit_class,
+
+  -- ORDER side
+  ord.order_readmit_enc,
+  ord.order_first_adm_time,
+  ord.order_last_adm_time,
+  ord.order_last_display_name,
+
+  -- Concordance classification
+  CASE
+    WHEN adt.adt_readmit_enc IS NOT NULL AND ord.order_readmit_enc IS NOT NULL THEN 'Both'
+    WHEN adt.adt_readmit_enc IS NOT NULL AND ord.order_readmit_enc IS NULL THEN 'ADT_only'
+    WHEN adt.adt_readmit_enc IS NULL AND ord.order_readmit_enc IS NOT NULL THEN 'Order_only'
+    ELSE 'Neither'
+  END AS classification
+FROM discharges_selected d
+LEFT JOIN adt_detail  adt ON d.index_encounter = adt.index_encounter
+LEFT JOIN order_detail ord ON d.index_encounter = ord.index_encounter;
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- Summary counts (by classification and ADT final class where available)
+-- ────────────────────────────────────────────────────────────────────────────
+SELECT
+  classification,
+  adt_readmit_class,
+  COUNT(DISTINCT index_encounter) AS num_index_encounters
+FROM combined
+GROUP BY classification, adt_readmit_class
+ORDER BY classification, adt_readmit_class;
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- Detailed listing of discrepant cases
+-- ────────────────────────────────────────────────────────────────────────────
+SELECT
+  *
+FROM combined
+WHERE classification IN ('ADT_only','Order_only')
+ORDER BY classification, anon_id, dis_time;
