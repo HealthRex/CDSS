@@ -1,0 +1,411 @@
+# FYI: The below is absed on a real case, but the details have all been changed, so no actual PHI here.
+
+
+Identifier:
+Patient ID: 
+62 Y male hx Crohn's s/p small bowel resection w short gut syndrome and colostomy on chronic TPN, prior CLABSIs, CKD who was initially admitted on X/XX/2025 discharged with progressive fatigue and fevers, and found to have GPR bacteremia and cavitary pulmonary lesions. Patient presenting this admission for subjective fevers/malaise/decreased PO intake, ongoing oozing from BMBx site, admitted for monitoring of presenting symptoms, AKI on CKD, as well as workup for intrinsic renal disease and possible vasculitis.
+ 
+Reason for Hospitalization: Monitoring of oozing from BMBx site, subjective fevers/malaise, AKI on CKD, workup for intrinsic renal disease and possible vasculitis
+ 
+ATTENTION: FOLLOW-UP
+PCP to do:
+1.	Monitor BMPs outpatient to ensure normal electrolyte balance (K+)
+2.	Monitor for medication adherence
+3.	Check hemostasis of BMBx site
+4.	Ensure patient has adequate follow up with nephrology and IR for TDC placement, vascular for AVF placement
+5.	Monitor for signs of line infection, repeat CBC
+=====================================
+ 
+ 
+MEDICATIONS
+ 
+ 
+TO CONTINUE:
+- Allopurinol 100 mg tablet
+- Amlodipine 5 mg tablet
+- Rosuvastatin 5 mg tablet
+- Synthroid 50 mcg tablet
+- LR bolus 500 mL, as needed
+- Retacrit 20,000 unit/2mL injection every 7 days
+- Farixa 5 mg tablet
+- Copper gluconate 2 mg tabs
+- Loperamide 2 mg capsule
+- Arginine
+- Fish oil
+- Chromium
+- Selenium
+- Vitamins C, B12
+- TPN
+ 
+ 
+Brief HPI - Per Admission H&P:
+As per admission H&P dated X/XX/2025:
+ 
+"Patient was previously admitted on XX due to progressive fatigue and fevers. He was found to have GPR bacteremia, positive cocci antibodies, and cavitary pulmonary lesions. His admission was complicated by AKI on CKD, pancytopenia, and HSM, bacteremia (Brevibacterium and Microbacterium) likely secondary to CLABSI, s/p 8d of vanc. A bone marrow biopsy was performed on XX to evaluate the pancytopenia. Bone marrow results were equivocal. Patient noticed bleeding from the biopsy site starting 2 days ago. However, he did not change his wound dressing after discharge from his previous admission up until 2 days ago, so unclear if bleeding had been ongoing for longer.
+ 
+Since discharge on XX, the patient reports a week of worsening fatigue, dizziness, poor oral intake, and subjective fevers. He describes feeling the need to remain in bed and is unable to perform household chores / ADLs, which he typically manages with some assistance from his son.  He denies any nausea or vomiting, chest pain, SOB, abdominal pain or dysuria however did endorse some R CVA tenderness. He reports reduced ostomy output over the past two days, but he is continuing to produce urine. He is on TPN due to his short gut syndrome and has been eating occasionally, with grapefruit being his most recent food intake. 
+ 
+He was found to have severe AKI with Cr of 8, baseline 6-7, on admission. He was feeling worse yesterday and he decided to seek medical attention today. "
+ 
+Hospital Course Summary
+ 
+Overall, hospitalization course was uncomplicated. He remained afebrile and his vital signs remained stable during his hospitalization. His BMBx site was monitored and not observed to actively bleed or exhibit signs of infection during his hospitalization. He continued to eat/was on TPN during his hospitalization.
+ 
+A broad workup for patient's AKI on CKD was conducted given his elevated Cr at 8 on admission. At baseline, patient's serum creatinine levels fluctuate between 6-7. Per nephrology consult, believed that patient's current AKI presentation to be 2/2 to recurrent pre-renal AKI. Recommendations from nephrology were followed, including fluid repletion with LR based on orthostatic blood pressure measurements with the goal of keeping patient net even to slightly positive daily. We continued to trend patient's Cr and as he was able to recover to his baseline on 8/4 with recommendations, nephrology cleared patient for discharge from nephrology standpoint with recommendations to receive dialysis outpatient after outpatient nephrology follow-up. Given patient's constellation of symptoms with previous/current hospitalization (pulm lesions, AKI, and pancytopenia), in addition to previously obtained RF and PR3 autoimmune markers that were positive, we also conducted a workup for possible vasculitis, with rheumatology recommendations, as an alternative etiology for patient's AKI. Ultimately, workup was significant for low C3/C4 however further workup was cleared to be continued outpatient. A TEE was also obtained to evaluate for possible endocarditis given his history of recurrent central line infections, which returned negative. Finally, any postrenal obstructive etiologies were ruled out with renal ultrasound which revealed findings that were deemed stable compared to prior per nephrology.
+ 
+Discharge Plan, by Issue:
+ 
+# Pre-renal AKI on CKD
+# Uremia
+Baseline of CKD5 2/2 hypertensive nephrosclerosis, chronic tubulointerstitial disease, and recurrent AKIs (per nephro note, prone to pre-renal injury in s/o short gut syndrome, malnutrition). On admission, Cr level of 8, elevated from his baseline Cr of 6-7. BUN around 80s-90s. Based on lab values, BUN/Cr ~10, FeNA of 18%, significantly elevated urine albumin/cr ratio, consistent with an intrinsic AKI.
+ 
+Broad workup for AKI conducted. UA 3+ protein, 2+ blood, no casts, stable compared to prior. No pyuria, no dysuria. Blood cx no growth x2. Low concern for infection at this time. Renal ultrasound conducted to exclude post-renal process, revealing of mild/moderate R hydronephrosis, BL nonobstructing renal calculi. Per nephro note, this is chronic and findings are stable compared to prior. Patient is not on any tubulo-toxic drugs however vasculitis was considered as possible etiology for intrinsic AKI given patient's pulm lesions/pancytopenia. Of note, patient had isolated PR3, positive RF but negative ANCA and MPO, prompting a workup for possible vasculitis however returned unremarkable with rheumatology recommending follow-up outpatient. Intrinsic picture may also be 2/2 to recurrent pre-renal AKI.
+ 
+Nephrology evaluated patient and per their note, believed that this current AKI is likely ischemic due to poor PO intake, volume depletion. Recommendations were followed including orthostats to guide fluid administration with LR to main euvolemia, strict I/Os and bladder scans, ESA 20K units subQ every 7 days, goal Hgb 9-11. Ultimately, nephrology felt that there were no urgent indications for dialysis but expected patient to need dialysis sooner than he will be able to obtain a fistula recommending expedited TDC placement within 2 weeks.
+- Follow up with nephrology outpatient, possible TDC placement
+ 
+ 
+ 
+# Anemia of chronic disease
+# Pancytopenia
+# Bleeding
+Baseline Hgb around 8. Elevated iron of 220. TIBC decreased 240. Increased transferrin sat of 90. Ferritin elevated at 1200. Patient likely has an anemia of chronic disease given his h/o Crohn's and malnutrition d/t short gut syndrome, also likely iso of ESRD. He was severely iron deficient during his last admission and he previously received IV iron. BMBx was obtained during patient's most recent admission to workup pancytopenia however was unremarkable. Autoimmune workup was also conducted per above to evaluate for possible autoimmune etiology to pancytopenia.
+- Continue to monitor CBCs outpatient
+ 
+ 
+
+# Crohn's s/p small bowel resection c/b short gut
+# chronic TPN
+# malnutrition
+Patient has short gut syndrome and has poor PO intake, requiring chronic TPN and LR infusions at home. TPN regimen was adjusted to ensure patient remains euvolemic outpatient.
+- Continue TPN
+- ensure sufficient PO intake to maintain euvolemia / or ~ net positive +500mL
+ 
+ 
+ 
+# h/o pulmonary cavitary lesions, pancytopenia, renal disease
+# rheumatologic process?
+Pt found to have cavitary pulmonary lesions in previous admission that improved with treatment of brevibacterium bacteremia. It was thought that the lesions were due to septic emboli from his central line blood stream infection. Previous fungal workup was negative.
+Pt remained asymptomatic during his hospitalization.
+ 
+Differential diagnosis for syndromes encompassing pulmonary, hematologic, and renal disease include autoimmune vasculitis (granulomatosis with polyangiitis, PR3-ANCA vasculitis), infectious etiologies (TB, fungal), malignancy, sarcoidosis. Workup significant for low C3/C4 however rheumatology recommended to continue follow up outpatient.
+ 
+Serologies: 
+ 
+Positive:
+PR3 - XX - 6
+rheumatoid factor (RF) - XX - 110
+Elevated free Kappa and Lambda (23/28) with normal ratio (0.8)
+Low complement -  65 / 10 c3/c4 XX
+ 
+Negative
+C-ANCA , p-ANCA, MPO (XX)
+ANA / ANA panel (XX)
+Smooth muscle (XX)
+Serum PIE (XX)
+Calprotectin - <10
+Anti-CCP (XX)
+HCV RNA (XX)
+ 
+- Continue workup outpatient as needed. Can consider repeat PR3, RF, p-ANCA, c-ANCA, etc.
+ 
+Chronic/Resolved Issues
+# HTN
+Patient was continued on PTA amlodipine 5 mg. BP remained around baseline of 140s-150s.
+- Can consider adding additional anti-hypertensive medications to further bring down blood pressure.
+ 
+Discharge Exam:
+ 
+BP: (!) 145/92
+Pulse: 67
+Resp: 17
+Temp: 36.8 °C
+Temp Source: Oral
+SpO2: 98 %
+ 
+ 
+Physical Exam
+General: well-appearing and in no acute distress
+HEENT: conjunctiva without pallor or icterus, oropharynx clear
+Neck: JVP not elevated, no appreciable lymphadenopathy
+Cardiac: RRR, nl S1/S2, no M/R/G
+Lungs: CTAB b/l, normal WOB
+Abdomen: SNTND
+Extremities: no BLE edema, R arm tender to palpation over C5 dermatome, no swelling or warmth observed
+Neurologic: strength 5/5, sensation 5/5, denies n/t b/l UE
+Skin: No bleeding/drainage over BMBx site
+ 
+Laboratory Studies:
+ 
+CBC: 
+Recent Labs
+ 	XX/XX/25
+WBC	2.8*	2.7*	2.6*
+HGB	8.8*	8.5*	8.2*
+HCT	26.8*	25.1*	25.4*
+PLT	135*	134*	132*
+ 
+ 
+Electrolytes:
+Recent Labs
+NA	 -- 	136	140
+K	 -- 	4.1	3.6
+CL	 -- 	100	103
+CO2	 -- 	24	24
+BUN	 -- 	90*	80*
+CR	8.1*	7.5*	7.1*
+CA	 -- 	9.1	9.3
+MG	 -- 	1.8	1.9
+PHOS	 -- 	3.2	2.7
+ 
+ 
+Glucose:
+Recent Labs
+GLU	121	117
+ 
+ 
+Coagulation Studies:
+Recent Labs
+PT	13.6
+INR	1.1
+ 
+ 
+LFTs: 
+Recent Labs
+TBIL	1.1	1.2
+AST	35	36
+ALT	24	25
+ALKP	146*	148*
+ALB	3.1*	3.5*
+ 
+ 
+Cardiac:
+No results for input(s): "TNI", "CKMB" in the last 72 hours.
+
+ 
+Microbiology:
+ 
+Cultures:
+No results found for: "CULT"
+Lab Results
+Component	Value	Date
+ 	BLC	(A)	XX/XX/2024
+ 	 	Both Aerobic and Anaerobic Bottles: Coag Negative Staphylococcus
+ 	BLC	Anaerobic bottle: Enterococcus faecalis (A)	XX/XX/2024
+ 
+Imaging:
+ 
+US Retroperitoneum Kidney
+Result Date: XX/XX/2025
+RENAL ULTRASOUND WITH DOPPLER: X/X/2025 CLINICAL HISTORY: 62 years of age, Male, 62 yo Crohn's s/p colectomy, short gut, pancytopenia, p/w AKI on CKD with R CVA tenderness COMPARISON: X/X/2025
+PROCEDURE COMMENTS: Multiple transverse and longitudinal sonographic grayscale images of the kidneys and bladder were obtained, supplemented with color, power, and spectral Doppler imaging per protocol. FINDINGS: Right kidney: Length: 7.7 cm. Appearance: Moderately echogenic. Similar mild to moderate hydronephrosis and hydroureter. No definite obstructing calculus visualized. Nonobstructing lower pole 0.8 cm twinkling artifact with shadowing, consistent with calculus. Segmental renal artery resistive indices: 0.53. Main renal vein: Patent.. Left kidney: Length: 8.5 cm. Appearance: Moderately echogenic. No hydronephrosis. 1.4 cm simple lower pole cyst renal cysts. 0.8 cm interpolar nonobstructing calculus. Segmental renal artery resistive indices: 0.73. Main renal vein: Patent. Bladder: Normal. Ureteral jets: Not visualized. 
+ 
+IMPRESSION: 1.  Similar mild-to-moderate right hydronephrosis. No obstructing calculus visualized on ultrasound though ultrasound may be insensitive. 2.  Similar bilateral moderately echogenic kidneys, consistent with medical renal disease. 3.  Bilateral nonobstructing renal calculi. Author: XXX, MD Attending:  XXX, MD Estimated confidence for renal stone detection by ultrasound without CT comparison: * Echogenic focus with shadowing +/- twinkling ~ 92% PPV Twinkling with echogenic focus ~ 74% PPV Twinkling without echogenic focus ~ 68% PPV # Reference: Masch et al. Clinical Effectiveness of Prospectively Reported Sonographic Twinkling Artifact for the Diagnosis of Renal Calculus in Patient's Without Known Urolithiasis. AJR. 2016 (206): 326-331. -- Please note, a noncontrast CT may be more sensitive for detection of small <1-2 mm kidney stones if clinical concern persists.  I have personally reviewed the images for this examination and agree with the report transcribed above.  
+ 
+ 
+Procedures:
+Transesophageal Echo (XX/XX/25):
+Interpretation Summary 
+1. There is trace MR, AR, and TR. There is no PR. There is no evidence of intracardiac vegetation or thrombus. 
+2. No pericardial effusion. 
+3. No previous TEE available for comparison. 
+ 
+Complications: None
+ 
+Discharge Medications:
+ 
+Consent form attached for all patients on psychoactive medications discharged to SNF
+ 
+What to do with your medications
+ 
+ 
+TAKE these medications 
+ 
+ 	Instructions
+acetaminophen 325 mg tablet
+Commonly known as: Tylenol
+Notes to patient: As needed for pain/fever. Do not exceed 4000mg acetaminophen/24 hours (2000mg in liver disease)
+ 
+Can be purchased over-the-counter
+ 
+ 	Take 2 tablets (650 mg total) by mouth every 6 hours as needed for Pain
+ 
+allopurinoL 100 mg tablet
+Commonly known as: Zyloprim
+Notes to patient: For gout. Take after meals. Maintain adequate hydration. May cause rash, nausea, diarrhea.  Report any new rash to your doctor
+ 
+ 	Take 1 tablet (100 mg total) by mouth daily
+ 
+amLODIPine 5 mg tablet
+Changes: how much to take
+Notes to patient: Lowers blood pressure.  If you experience any leg swelling or fluid retention, please contact your doctor.
+ 
+*New prescription* Note dose change
+ 
+ 	Take 1 tablet (5 mg total) by mouth daily
+ 
+ARGININE (L-ARGININE) PO
+Notes to patient: supplement
+ 
+ 	Take 1-2 capsules by mouth every day
+ 
+ascorbic acid (vitamin C) 500 mg tablet
+Notes to patient: Vitamin/supplement
+ 
+ 	Take 1 tablet (500 mg total) by mouth daily
+ 
+BD Luer-Lok Syringe 3 mL 25 x 5/8" Syrg
+Generic drug: Syringe with Needle (Disp)
+Notes to patient: For Retacrit injection
+ 
+ 	Use as directed for weekly injection
+ 
+calcitrioL 0.25 mcg capsule
+Commonly known as: Rocaltrol
+Notes to patient: For high parathyroid levels and low calcium levels
+ 
+*Next dose due 8/7
+ 
+ 	Take 1 capsule (0.25 mcg total) by mouth every 7 days
+ 
+CHROMIUM PO
+Notes to patient: supplement
+ 
+ 	Take 1-2 tablets by mouth once a week
+ 
+Copper Gluconate 2 mg Tabs
+Notes to patient: supplement
+ 
+ 	Take 2 tablets (4 mg total) by mouth once a week
+ 
+cyanocobalamin 1,000 mcg tablet
+Commonly known as: VIT B-12
+Notes to patient: Vitamin supplement
+ 
+ 	Take 1 tablet (1,000 mcg total) by mouth daily
+ 
+epoetin alfa-epbx 20,000 unit/2 mL (10,000 unit/mL) injection
+Commonly known as: Retacrit
+Start taking on: August 10, 2025
+Replaces: Retacrit 10,000 unit/mL injection
+Notes to patient: For anemia due to kidney disease
+ 
+*New prescription* Note dose increase
+ 
+ 	Inject 2 mL (20,000 units total) subcutaneous (under the skin) every 7 days
+ 
+Farxiga 5 mg Tabs tablet
+Generic drug: dapagliflozin propanediol
+Notes to patient: For diabetes/heart. May cause increased thirst, urinary tract infections. Maintain good urinary hygiene.
+ 
+ 	Take 1 tablet (5 mg total) by mouth daily
+ 
+levothyroxine 50 mcg tablet
+Commonly known as: Synthroid
+Notes to patient: For thyroid. Take in the morning, 30 minutes prior to eating. Avoid calcium or iron containing products 4 hours before and after taking.
+ 
+ 	Take 0.5 tablets (25 mcg total) by mouth every morning before breakfast
+ 
+loperamide 2 mg capsule
+Commonly known as: Imodium
+Notes to patient: As needed for diarrhea
+ 
+ 	Take 1 capsule (2 mg total) by mouth as needed for Diarrhea Patient takes as needed when stool is watery
+ 
+rosuvastatin 5 mg tablet
+Commonly known as: Crestor
+Notes to patient: For cholesterol. Avoid grapefruit juice. Contact doctor if experiencing yellowing of skin/eyes, muscle pain, or coca-cola colored urine.
+ 
+ 	Take 1 tablet (5 mg total) by mouth daily
+ 
+SELENIUM PO
+Notes to patient: supplement
+ 
+ 	Take 1 tablet by mouth once a week
+ 
+sodium citrate-citric acid 500-334 mg/5 mL oral solution
+Commonly known as: BICITRA
+Notes to patient: To maintain blood acid levels. Take with water after meals
+ 
+ 	Take 15 mL by mouth 3 times a day after meals
+ 
+ 
+ 
+ 
+STOP TAKING these medications 
+ 
+Retacrit 10,000 unit/mL injection
+Generic drug: epoetin alfa-epbx
+Replaced by: epoetin alfa-epbx 20,000 unit/2 mL (10,000 unit/mL) injection
+ 
+ 
+ 
+ 
+ 
+Where to Get Your Medications
+ 
+ 
+These medications were sent to Walgreens 
+ 
+ 	Phone: 408-263-5550
+	amLODIPine 5 mg tablet
+	calcitrioL 0.25 mcg capsule
+	epoetin alfa-epbx 20,000 unit/2 mL (10,000 unit/mL) injection
+	rosuvastatin 5 mg tablet
+ 
+ 
+ 
+Discharge Orders:
+ 
+Discharge Procedure Orders
+TPN Instructions
+Order Comments:	Cyclic TPN Recommendations:
+ 
+Admin Instructions:
+Infuse through a central venous catheter only using an in-line 1.2 micron filter.
+Do not infuse via midline.
+Start rate at 50 mL/hr for 1 hours.
+Increase rate to 100 mL/hr for 12 hours.
+Decrease rate to 50 mL/hr for 1 hours, then stop.
+ 
+MD to call for questions on these Interagency orders
+ 
+
+Follow Up:
+Other appointments scheduled at time of discharge: 
+ 
+Follow-up appointments to be scheduled: 
+- Follow up with nephrology
+- Follow up with rheumatology
+ 
+Best Practice Information:
+ 
+BEST PRACTICE for patients with AMI or Heart Failure: No applicable diagnoses.
+Code status during admission and details of discussions: Full Code
+POLST form has been completed if patient discharged to SNF
+Overall goals of care for patient's health and functional status: Return to baseline status
+Caregiver status: self or family
+Functional status at time of discharge: Independent with ADLs with assistance from family
+ 
+Disposition: Home
+If other than home: Name of facility: Not applicable
+Emergency Contact: 
+Emergency Contacts
+Extended Emergency Contact Information
+Primary Emergency Contact: XXX
+Relation: Sister
+Preferred language: English
+Interpreter needed? No
+
+ 
+Allergies: 
+Allergies - Table Format
+No Known Allergies
+
+ 
+Vaccinations history: 
+Immunization History
+Administered	Date(s) Administered
+ 
+ 
+Referring physicians can access information about the care provided to their patients at Stanford Hospital and Clinics using a secure, web-based portal called PRISM. Visit http://prism.stanfordmedicine.org for more details and to apply for a user account.
