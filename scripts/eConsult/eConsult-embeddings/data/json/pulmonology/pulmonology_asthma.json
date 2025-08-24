@@ -1,0 +1,36 @@
+[
+  {
+    "My Clinical Question (condition: asthma)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Duration of symptoms": "***"
+        },
+        {
+          "Medications tried and level of control achieved": "***"
+        },
+        {
+          "Frequency of exacerbations": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "PFT's": "***"
+        },
+        {
+          "CXR": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Assess inhaler technique and compliance first if meds are ineffective": "***"
+        }
+      ]
+    }
+  }
+]

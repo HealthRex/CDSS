@@ -1,0 +1,76 @@
+[
+  {
+    "specialist": "Endocrinology"
+  },
+  {
+    "template": "Hypercalcemia"
+  },
+  {
+    "My Clinical Question (condition: hypercalcemia)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "What is the duration of hypercalcemia?": "***"
+          },
+          {
+            "Does the patient take lithium? Thiazide diuretic? Calcium or vitamin D supplements?": "***"
+          },
+          {
+            "Any other OTC medications or supplements?": "***"
+          },
+          {
+            "Does the patient have a history of kidney stones, low bone density, fractures?": "***"
+          },
+          {
+            "Does the patient have a family history of calcium disorders, parathyroid issues, osteoporosis, fractures, endocrine tumors?": "***"
+          },
+          {
+            "Any known malignancy?": "***"
+          }
+        ]
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "25-hydroxyvitamin D": "***"
+          },
+          {
+            "Comprehensive Metabolic Panel (CMP)": "***"
+          },
+          {
+            "Intact Parathyroid Hormone (PTH)": "***"
+          },
+          {
+            "Phosphorus (P)": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "1,25-dihydroxyvitamin D (if PTH is low)": "***"
+          },
+          {
+            "Parathyroid Hormone Related Peptide (PTHrP, if PTH is low)": "***"
+          },
+          {
+            "Serum Protein Electrophoresis (SPEP - if PTH is low)": "***"
+          },
+          {
+            "Urine Protein Electrophoresis (UPEP - if PTH is low)": "***"
+          },
+          {
+            "Serum Free Light Chains (if PTH is low)": "***"
+          },
+          {
+            "TSH (if PTH is low)": "***"
+          }
+        ]
+      }
+    }
+  }
+]

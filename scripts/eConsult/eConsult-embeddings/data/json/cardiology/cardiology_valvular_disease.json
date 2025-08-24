@@ -1,0 +1,54 @@
+[
+  {
+    "My Clinical Question (condition: valvular disease)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Known or suspected diagnosis": "***"
+        },
+        {
+          "History of endocarditis or rheumatic fever": "***"
+        },
+        {
+          "Symptoms and severity - with details regarding time since onset, frequency, duration, relation to exertion": "***"
+        },
+        {
+          "Cardiac physical exam": "***"
+        },
+        {
+          "Previous echocardiographic results if available": "***"
+        },
+        {
+          "Previous and/or current treatment": "***"
+        },
+        {
+          "Anticoagulation": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "EKG": "***"
+        },
+        {
+          "Echocardiogram": "***"
+        },
+        {
+          "CXR": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Symptomatic moderate or any severe degree of known valvular heart disease should be referred to cardiology": "***"
+        },
+        {
+          "AHA/ACC Guideline for Management of patients with Valvular Heart Disease https://www.acc.org/guidelines/hubs/valvular-heart-disease": "***"
+        }
+      ]
+    }
+  }
+]

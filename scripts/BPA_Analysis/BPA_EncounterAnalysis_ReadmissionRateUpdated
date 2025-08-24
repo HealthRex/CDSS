@@ -1,0 +1,179 @@
+-- Build detailed readmission events within 30 days of discharge into a TEMP table,
+-- then return: (1) detailed listing, (2) overall summary (now with NON-ED and IP/OBS readmission rates),
+-- and (3) summary broken down by all readmit_pat_class.
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 0) Create TEMP TABLE with detailed rows
+-- ────────────────────────────────────────────────────────────────────────────
+CREATE TEMP TABLE readmission_details AS
+WITH random_flag AS (
+  SELECT 
+    anon_id, 
+    pat_enc_csn_id_coded, 
+    smrtdta_elem_value AS random_flag 
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_smrtdta` 
+  WHERE concept_id = 'SHC#6051'
+),
+discharges_selected AS (
+  SELECT 
+    a.anon_id, 
+    a.pat_enc_csn_id_coded AS index_encounter, 
+    a.event_time_jittered AS dis_time,
+    a.pat_class AS index_pat_class
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt` a
+  INNER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_dep_map` d USING (department_id)
+  INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` m USING (anon_id)
+  WHERE 
+    a.event_type = 'Discharge' 
+    AND (
+      UPPER(d.department_name) LIKE 'B3' OR
+      UPPER(d.department_name) LIKE 'C3' OR
+      UPPER(d.department_name) LIKE 'M7' OR
+      UPPER(d.department_name) LIKE 'L7' OR
+      UPPER(d.department_name) LIKE '1%WEST%' OR
+      UPPER(d.department_name) LIKE '2%NORTH%' OR
+      UPPER(d.department_name) LIKE '2%WEST%' OR
+      UPPER(d.department_name) LIKE '3%WEST%'
+    )
+    AND a.effective_time_jittered - INTERVAL m.jitter DAY 
+        BETWEEN '2024-08-15' AND '2025-03-15'
+),
+admissions_all AS (
+  SELECT 
+    anon_id, 
+    pat_enc_csn_id_coded AS readmit_encounter, 
+    event_time_jittered AS adm_time,
+    pat_class AS readmit_pat_class
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt`
+  WHERE event_type = 'Admission'
+),
+readmissions_detail AS (
+  SELECT
+    d.anon_id,
+    d.index_encounter,
+    d.dis_time,
+    d.index_pat_class,
+    a.readmit_encounter,
+    a.adm_time,
+    a.readmit_pat_class
+  FROM discharges_selected d
+  LEFT JOIN admissions_all a
+    ON a.anon_id = d.anon_id
+   AND a.readmit_encounter != d.index_encounter
+   AND a.adm_time > d.dis_time
+   AND a.adm_time <= d.dis_time + INTERVAL 30 DAY
+),
+with_flags AS (
+  SELECT
+    rf.random_flag,
+    r.*
+  FROM readmissions_detail r
+  INNER JOIN random_flag rf
+    ON r.anon_id = rf.anon_id
+   AND r.index_encounter = rf.pat_enc_csn_id_coded
+)
+SELECT * FROM with_flags;
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 1) Detailed listing
+-- ────────────────────────────────────────────────────────────────────────────
+SELECT
+  random_flag,
+  anon_id,
+  index_encounter,
+  dis_time,
+  index_pat_class,
+  readmit_encounter,
+  adm_time,
+  readmit_pat_class
+FROM readmission_details
+ORDER BY random_flag, anon_id, dis_time, adm_time;
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 2) Summary statistics (overall)
+--     Adds:
+--       • *_non_ed columns: readmission class != 'Emergency Services'
+--       • *_ip_obs columns: readmission class IN ('Inpatient','Observation')
+--     Denominator for all % and means = ALL index encounters within random_flag.
+-- ────────────────────────────────────────────────────────────────────────────
+SELECT
+  random_flag,
+  COUNT(DISTINCT index_encounter) AS total_index_encounters,
+
+  -- Any readmission (any class)
+  COUNT(DISTINCT IF(readmit_encounter IS NOT NULL, index_encounter, NULL)) AS encounters_with_ge_1_readmit_30d,
+  COUNTIF(readmit_encounter IS NOT NULL) AS total_readmission_events_30d,
+  SAFE_DIVIDE(
+    COUNT(DISTINCT IF(readmit_encounter IS NOT NULL, index_encounter, NULL)),
+    COUNT(DISTINCT index_encounter)
+  ) AS pct_with_ge_1_readmit_30d,
+  SAFE_DIVIDE(
+    COUNTIF(readmit_encounter IS NOT NULL),
+    COUNT(DISTINCT index_encounter)
+  ) AS mean_readmit_events_per_index_encounter_30d,
+
+  -- Readmission class != 'Emergency Services'
+  COUNT(DISTINCT IF(readmit_pat_class IS NOT NULL AND readmit_pat_class != 'Emergency Services', index_encounter, NULL))
+    AS encounters_with_ge_1_readmit_30d_non_ed,
+  COUNTIF(readmit_pat_class IS NOT NULL AND readmit_pat_class != 'Emergency Services')
+    AS total_readmission_events_30d_non_ed,
+  SAFE_DIVIDE(
+    COUNT(DISTINCT IF(readmit_pat_class IS NOT NULL AND readmit_pat_class != 'Emergency Services', index_encounter, NULL)),
+    COUNT(DISTINCT index_encounter)
+  ) AS pct_with_ge_1_readmit_30d_non_ed,
+  SAFE_DIVIDE(
+    COUNTIF(readmit_pat_class IS NOT NULL AND readmit_pat_class != 'Emergency Services'),
+    COUNT(DISTINCT index_encounter)
+  ) AS mean_readmit_events_per_index_encounter_30d_non_ed,
+
+  -- Readmission class IN ('Inpatient','Observation')
+  COUNT(DISTINCT IF(readmit_pat_class IN ('Inpatient','Observation'), index_encounter, NULL))
+    AS encounters_with_ge_1_readmit_30d_ip_obs,
+  COUNTIF(readmit_pat_class IN ('Inpatient','Observation'))
+    AS total_readmission_events_30d_ip_obs,
+  SAFE_DIVIDE(
+    COUNT(DISTINCT IF(readmit_pat_class IN ('Inpatient','Observation'), index_encounter, NULL)),
+    COUNT(DISTINCT index_encounter)
+  ) AS pct_with_ge_1_readmit_30d_ip_obs,
+  SAFE_DIVIDE(
+    COUNTIF(readmit_pat_class IN ('Inpatient','Observation')),
+    COUNT(DISTINCT index_encounter)
+  ) AS mean_readmit_events_per_index_encounter_30d_ip_obs
+
+FROM readmission_details
+GROUP BY random_flag
+ORDER BY random_flag;
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 3) Summary statistics by readmit_pat_class (readmission class)
+--     Denominator = all index encounters within random_flag.
+-- ────────────────────────────────────────────────────────────────────────────
+WITH denoms AS (
+  SELECT
+    random_flag,
+    COUNT(DISTINCT index_encounter) AS total_index_encounters
+  FROM readmission_details
+  GROUP BY random_flag
+),
+by_class AS (
+  SELECT
+    readmit_pat_class,
+    random_flag,
+    COUNT(DISTINCT index_encounter) AS encounters_with_ge_1_readmit_30d,
+    COUNT(readmit_encounter)        AS total_readmission_events_30d
+  FROM readmission_details
+  WHERE readmit_pat_class IS NOT NULL
+  GROUP BY readmit_pat_class, random_flag
+)
+SELECT
+  b.readmit_pat_class,
+  b.random_flag,
+  d.total_index_encounters,
+  b.encounters_with_ge_1_readmit_30d,
+  b.total_readmission_events_30d,
+  SAFE_DIVIDE(b.encounters_with_ge_1_readmit_30d, d.total_index_encounters) AS pct_with_ge_1_readmit_30d,
+  SAFE_DIVIDE(b.total_readmission_events_30d,    d.total_index_encounters) AS mean_readmit_events_per_index_encounter_30d
+FROM by_class b
+JOIN denoms d
+  ON d.random_flag = b.random_flag
+ORDER BY b.random_flag, b.readmit_pat_class;

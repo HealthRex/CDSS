@@ -1,0 +1,27 @@
+[
+  {
+    "My Clinical Question (condition: Testicular Pain)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Nature and timing of the onset of pain, location, presence of lower urinary tract symptoms (eg, frequency, urgency, dysuria), constitutional symptoms (eg, fever, chills)": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "[UA, U Cx, GC/CT – if epididymitis suspected or lower urinary tract symptoms present]": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Suspicion of testicular torsion, acute epididymitis and Fournier’s gangrene (all associated with diffuse scrotal pain), warrants urgent medical evaluation or surgical management. Consider sending the patient to the ER": "***"
+        }
+      ]
+    }
+  }
+]

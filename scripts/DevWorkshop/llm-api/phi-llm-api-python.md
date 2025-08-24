@@ -4,7 +4,7 @@ This guide demonstrates how to use Python to interact with various Large Languag
 
 *Created by François Grolleau on 02/19/2025 
 Contributors: Yixing Jiang 
-Last update April 29, 2025.*
+Last update June 16, 2025.*
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -18,8 +18,8 @@ Last update April 29, 2025.*
   - [Claude 3.7 Sonnet](#claude-37-sonnet-api-call)
   - [Claude 3.5 Sonnet v2](#claude-35-sonnet-v2-api-call)
 - [Google Models](#google-models)
+  - [Gemini 2.5 Pro](#gemini-25-pro-api-call)
   - [Gemini 2.0 Flash](#gemini-20-flash-api-call)
-  - [Gemini 1.5 Pro](#gemini-15-pro-api-call)
 - [Meta Models](#meta-models)
   - [Llama 3.3 70B](#llama-33-70b-instruct-api-call)
   - [Llama 4 Maverick](#llama-4-maverick-api-call)
@@ -36,14 +36,14 @@ Last update April 29, 2025.*
 
 - Python 3.6+ with `requests` library installed (`pip install requests`)
 - Stanford VPN running on Full traffic, non-split-tunnel (setup [here](https://uit.stanford.edu/service/vpn)).
-- API Subscription Key provided by Stanford Healthcare. **Keep this key safe, confidential, and do not share it with anyone.** **Replace `# enter your key here` with your key in the Python code!**
+- API Subscription Key provided by Stanford Healthcare. **Keep this key safe, confidential, and do not share it with anyone.**
 
 ## Usage
 
 1. **Set API Key:** In the Python code, replace `# enter your key here` with your Stanford Healthcare API key.
 2. **Choose Model & Run:** Select and execute the Python code block corresponding to the LLM you wish to use (e.g., "GPT-4.1 API Call").
 3. **Process Response:** The LLM's response is printed as a **JSON string** in `response.text`. Depending on your use case, adapt your code to extract the information you need by parsing this JSON output.
-4. **(OPTIONAL)** Use the helper function in the [bonus section](#bonus-directly-generate-text-output-from-text-input-bypass-call-limits-or-easily-swap-between-models) to get direct text output, bypass call limits, or easily swap between models.
+4. **(OPTIONAL)** Use the helper function in the [bonus section](#bonus-1-directly-generate-text-output-from-text-input-bypass-call-limits) to get direct text output, bypass call limits, or easily swap between models.
 
 ## Common code for all API calls
 
@@ -141,25 +141,22 @@ print(response.text)
 ---
 
 ## Google Models
+### Gemini 2.5 Pro API Call
+```python
+url = "https://apim.stanfordhealthcare.org/gemini-25-pro/gemini-25-pro"
+payload = json.dumps({
+    "contents": [{"role": "user", "parts": [{"text": my_question}]}]
+})
+response = requests.request("POST", url, headers=headers, data=payload) 
+print(response.text)
+```
+
 ### Gemini 2.0 Flash API Call
 ```python
 url = "https://apim.stanfordhealthcare.org/gcp-gem20flash-fa/apim-gcp-gem20flash-fa" 
 payload = json.dumps({
     "contents": {"role": "user", "parts": {"text": my_question}}, 
     "safety_settings": {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"}, 
-    "generation_config": {"temperature": 0.2, "topP": 0.8, "topK": 40}
-})
-response = requests.request("POST", url, headers=headers, data=payload) 
-print(response.text)
-```
-
-
-### Gemini 1.5 Pro API Call
-```python
-url = "https://apim.stanfordhealthcare.org/gcpgemini/apim-gcp-oauth-fa" 
-payload = json.dumps({
-    "contents": {"role": "user", "parts": {"text": my_question}}, 
-    "safety_settings": {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_LOW_AND_ABOVE"}, 
     "generation_config": {"temperature": 0.2, "topP": 0.8, "topK": 40}
 })
 response = requests.request("POST", url, headers=headers, data=payload) 
@@ -296,7 +293,7 @@ def gen_txt_to_txt(input_txt):
 Use the `API_text_to_text` class from `agnostic_evaluator_models.py` to seamlessly switch between different LLM providers:
 
 ```python
-from agnostic_evaluator_models import API_text_to_text, meta_init, meta_call, gemini_init, gemini_call
+from agnostic_evaluator_models import API_text_to_text, meta_init, meta_call, gemini_init, gemini_call, gemini_shc_init, gemini_shc_call
 from functools import partial
 
 lab_key = "enter the lab's key here!"
@@ -307,6 +304,12 @@ my_question = """What is the difference between the cosmological constant and th
 llama_init = partial(meta_init, "llama4-maverick", lab_key)
 llama_instance = API_text_to_text(llama_init, meta_call)
 res = llama_instance.gen_txt_to_txt(my_question)
+print(res)
+
+# Using Gemini 2.5 Pro via SHC
+gemini_shc_init_partial = partial(gemini_shc_init, "gemini-2.5-pro-preview-05-06", lab_key)
+gemini_shc_instance = API_text_to_text(gemini_shc_init_partial, gemini_shc_call)
+res = gemini_shc_instance.gen_txt_to_txt(my_question)
 print(res)
 
 # Using Gemini 2.5 Pro Preview via Vertex AI
@@ -323,4 +326,4 @@ More examples are provided in the `agnostic_evaluator_models.py` under `if __nam
 
 > **Note:** If you haven't already set up Google Cloud authentication, you'll need to create an `application_default_credentials.json` file. You can follow the step-by-step instructions in our [Google Cloud setup guide](https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/ReadMe.GoogleCloud-BigQuery-VPC.txt) to generate and configure these credentials.
 
-*Final fun note: As of April 2025, no model seems to get the physics question right. According to cosmologist Sean Carroll "The vacuum energy and the cosmological constant are two different labels for exactly the same thing; don't let anyone tell you differently" (Quanta and Fields, Dutton, 2024. Chapter 6 p. 146). Looks like latest models continue bullshitting very confidently when facts are rarely in their training data.* 😄
+*Final fun note: As of June 2025, no model seems to get the physics question right. According to cosmologist Sean Carroll "The vacuum energy and the cosmological constant are two different labels for exactly the same thing; don't let anyone tell you differently" (Quanta and Fields, Dutton, 2024. Chapter 6 p. 146). Looks like latest models continue bullshitting very confidently when facts are rarely in their training data.* 😄

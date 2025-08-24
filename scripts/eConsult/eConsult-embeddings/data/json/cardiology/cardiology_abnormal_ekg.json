@@ -1,0 +1,42 @@
+[
+  {
+    "My Clinical Question (condition: abnormal EKG)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "EKG findings? Why EKG or other tests obtained?": "***"
+        },
+        {
+          "Prior EKG’s, changes, stable findings?": "***"
+        },
+        {
+          "Symptoms and severity?": "***"
+        },
+        {
+          "Risk factors (HTN, HLP, DM, family history of premature CAD, smoking, etc.)": "***"
+        },
+        {
+          "Known CAD - prior MI, history of stents, CABG, or medical management": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "EKG": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Please include common “normal” EKG findings in asymptomatic athletes": "***"
+        },
+        {
+          "Please include other common questions you get about abnormal EKG findings or computer readings": "***"
+        }
+      ]
+    }
+  }
+]
