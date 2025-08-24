@@ -1,0 +1,45 @@
+[
+  {
+    "My Clinical Question (condition: Other)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [],
+        "Optional": []
+      },
+      "Clinical Pearls": [
+        {
+          "Instructions for attached photo(s)": [
+            {
+              "Upload two photos of the patient’s skin condition that are 4 inches and 12 inches away. Label the photos with brief description and location": "***"
+            },
+            {
+              "Photo tips": [
+                {
+                  "Set your camera phone to the highest resolution (largest file size on your device)": "***"
+                },
+                {
+                  "Use daylight ideally or similar lighting": "***"
+                },
+                {
+                  "Make sure the photo is in focus": "***"
+                },
+                {
+                  "Do not use zoom": "***"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

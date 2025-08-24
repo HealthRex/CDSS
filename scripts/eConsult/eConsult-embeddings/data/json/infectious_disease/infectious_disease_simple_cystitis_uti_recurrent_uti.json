@@ -1,0 +1,102 @@
+[
+  {
+    "My Clinical Question (condition: simple cystitis/UTI/recurrent UTI)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Signs or symptoms (dysuria, frequency, fever, leukocytosis, flank pain, nausea, emesis, urinary incontinence)": "***"
+          },
+          {
+            "Potential risk factors (chronic catheterization, anatomic abnormalities, implanted devices/stents in the urinary tract)": "***"
+          },
+          {
+            "Antibiotic treatment (dates, antimicrobial agents, and treatment duration)": "***"
+          },
+          {
+            "Does the patient have any allergies (i.e. sulfa drugs, penicillin, other antibiotics, etc)?": "***"
+          },
+          {
+            "What medications is the patient on (i.e. ACE inhibitors, ARBs, etc.)?": "***"
+          },
+          {
+            "Does the patient have co-morbidities (i.e. impaired kidney function, urinary tract surgeries, etc.)?": "***"
+          },
+          {
+            "Is the patient immunocompromised?": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "Urinalysis with Microscopy": "***"
+          },
+          {
+            "Urine Culture": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "CBC": "***"
+          },
+          {
+            "Basic Metabolic Panel": "***"
+          },
+          {
+            "Comprehensive Metabolic Panel": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        {
+          "Before diagnosing a patient with recurrent UTIs, ensure the patient is not having asymptomatic bacteriuria (bacteriuria with or without pyuria absent signs or symptoms of a UTI)": "***"
+        },
+        {
+          "Additional investigations for recurrent uncomplicated UTIs in women (such as imaging, cystoscopy, or urodynamics) should be considered for select patients in whom there exists suspicion of complicating factors": "***"
+        },
+        {
+          "Management options for recurrent uncomplicated UTIs in women include": [
+            {
+              "Episodic antibiotic treatment": "***"
+            },
+            {
+              "Post-coital antibiotics or low-dose antibiotic prophylaxis (typically for 3-12 months), typically with one of these agents": [
+                {
+                  "Nitrofurantoin": "***"
+                },
+                {
+                  "Trimethoprim/sulfamethoxazole": "***"
+                },
+                {
+                  "Trimethoprim": "***"
+                },
+                {
+                  "Cephalexin": "***"
+                },
+                {
+                  "Cefaclor": "***"
+                },
+                {
+                  "Fosfomycin": "***"
+                }
+              ]
+            },
+            {
+              "Vaginal estrogen in post-menopausal women": "***"
+            }
+          ]
+        },
+        {
+          "Several approaches to prophylaxis have limited or conflicting evidence and are therefore controversial, though some providers recommend them as they are generally benign; these interventions include cranberry formulations, probiotics, D-mannose, methenamine, and behavioral counseling (increasing fluid intake, wiping from front to back, and others)": "***"
+        }
+      ]
+    }
+  }
+]

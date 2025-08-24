@@ -1,0 +1,84 @@
+[
+  {
+    "specialist": "Endocrinology"
+  },
+  {
+    "template": "Vitamin D Deficiency"
+  },
+  {
+    "My Clinical Question (condition: vitamin d deficiency)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "How much calcium and vitamin D is the patient taking?": "***"
+          },
+          {
+            "Any history of stomach/intestinal surgeries?": "***"
+          },
+          {
+            "Any weight loss or other signs of malabsorption? Any history of GI surgeries?": "***"
+          },
+          {
+            "Does the patient have a history of hypercalcemia?": "***"
+          },
+          {
+            "Does the patient have a history of kidney stones?": "***"
+          },
+          {
+            "Has the patient been tested for celiac?": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Is the patient is menopausal?": "***"
+          },
+          {
+            "Does the patient have a history of osteoporosis/prior fractures or CKD?": "***"
+          },
+          {
+            "Please include any information on any malabsorption issues or intestinal surgeries.": "***"
+          },
+          {
+            "Does the patient have severe vitamin D deficiency (<10)?": "***"
+          },
+          {
+            "Does the patient have hypercalcemia?": "***"
+          },
+          {
+            "Does the patient had recurrent kidney stones?": "***"
+          },
+          {
+            "Does the patient have sarcoidosis or other granulomatous disease?": "***"
+          }
+        ]
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "25-hydroxyvitamin D": "***"
+          },
+          {
+            "Comprehensive Metabolic Panel (CMP)": "***"
+          },
+          {
+            "Intact Parathyroid Hormone (PTH)": "***"
+          },
+          {
+            "Phosphorus (P)": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "24 hour urine calcium and creatinine": "***"
+          }
+        ]
+      }
+    }
+  }
+]

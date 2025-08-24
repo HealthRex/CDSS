@@ -1,0 +1,63 @@
+[
+  {
+    "My Clinical Question (condition: opioid tapering)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Type, route, amount, frequency of opioid usage?": "***"
+        },
+        {
+          "Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?": "***"
+        },
+        {
+          "Is the patient currently enrolled in a Medication Assisted Treatment Program (methadone/buprenorphine)?": "***"
+        },
+        {
+          "Suspected/known other substance use disorders? Psychiatric diagnoses?": "***"
+        },
+        {
+          "Medical comorbidities?": "***"
+        },
+        {
+          "Family history of SUD?": "***"
+        },
+        {
+          "COWS Score (https://www.drugabuse.gov/sites/default/files/files/ClinicalOpiateWithdrawalScale.pdf)": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "Pain management confirmation 4 profile (urine)": "***"
+        },
+        {
+          "Blood Alcohol Level": "***"
+        },
+        {
+          "CMP": "***"
+        },
+        {
+          "CBC": "***"
+        },
+        {
+          "EKG": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "A significant number of patients report feeling better as they reduce their opioid intake": "***"
+        },
+        {
+          "An opioid taper doesn't have to mean cessation of opioids altogether if they are otherwise appropriate for the patient and their condition": "***"
+        },
+        {
+          "The pain clinic can assist in opioid tapering, but we do not typically take over long term opioid prescriptions. Once the patient has been weaned as much as possible, the referring provider is expected to resume the long term prescription": "***"
+        }
+      ]
+    }
+  }
+]

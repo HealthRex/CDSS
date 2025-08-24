@@ -1,0 +1,54 @@
+[
+  {
+    "My Clinical Question (condition: CRPS/RSD)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Date and type of injury? Vascular problem? Infection?": "***"
+        },
+        {
+          "Neurologic symptoms?": "***"
+        },
+        {
+          "Working with any behavioral or mental health specialist(s)?": "***"
+        },
+        {
+          "If pain out of proportion to the injury? Is pain not improving in the usual fashion?": "***"
+        },
+        {
+          "Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?": "***"
+        },
+        {
+          "Skin exam findings in region (pale, cool, erythematous, warm, edema, change in hair or nail growth [more/less, etc])?": "***"
+        },
+        {
+          "Date, location and type of any imaging studies?": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "Relevant imaging": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Typically starts with a single injured nerve": "***"
+        },
+        {
+          "Can see spread of painful symptoms beyond the initial painful area as condition progresses": "***"
+        },
+        {
+          "Early intervention with physical therapy (graded motor imagery, desensitization) thought to improve prognosis": "***"
+        },
+        {
+          "Can be associated with a history of cast application to the affected limb": "***"
+        }
+      ]
+    }
+  }
+]

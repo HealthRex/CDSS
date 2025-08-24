@@ -1,0 +1,307 @@
+-- ========================================================================
+-- Build per-alert table (as provided)
+-- ========================================================================
+CREATE TEMP TABLE per_alert AS
+WITH random_flag AS (
+  SELECT 
+    anon_id, 
+    pat_enc_csn_id_coded, 
+    smrtdta_elem_value AS random_flag 
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_smrtdta` 
+  WHERE concept_id = 'SHC#6051'
+),
+
+discharges_selected AS (
+  SELECT 
+    anon_id, 
+    pat_enc_csn_id_coded, 
+    effective_time_jittered, 
+    department_name 
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt`
+  INNER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_dep_map` USING(department_id)
+  INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` USING (anon_id)
+  WHERE 
+    event_type = 'Discharge' 
+    AND (
+      UPPER(department_name) LIKE 'B3' OR
+      UPPER(department_name) LIKE 'C3' OR
+      UPPER(department_name) LIKE 'M7' OR
+      UPPER(department_name) LIKE 'L7' OR
+      UPPER(department_name) LIKE '1%WEST%' OR
+      UPPER(department_name) LIKE '2%NORTH%' OR
+      UPPER(department_name) LIKE '2%WEST%' OR
+      UPPER(department_name) LIKE '3%WEST%'
+    )
+    AND effective_time_jittered - INTERVAL jitter DAY BETWEEN '2024-08-15' AND '2025-03-15'
+),
+
+admissions AS (
+  SELECT 
+    anon_id, 
+    pat_enc_csn_id_coded, 
+    effective_time_jittered 
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt` 
+  WHERE event_type = 'Admission'
+),
+
+hospital_stays_selected AS (
+  SELECT 
+    adm.anon_id, 
+    adm.pat_enc_csn_id_coded, 
+    adm.effective_time_jittered AS adm_time, 
+    dis.effective_time_jittered AS dis_time, 
+    dis.department_name,
+    DATETIME_DIFF(dis.effective_time_jittered, adm.effective_time_jittered, DAY) + 1 AS duration,
+    DATETIME_DIFF(dis.effective_time_jittered, adm.effective_time_jittered, MINUTE) / 60 AS los_hours
+  FROM admissions adm 
+  INNER JOIN discharges_selected dis USING (anon_id, pat_enc_csn_id_coded)
+),
+
+alerts_cbc AS (
+  SELECT DISTINCT 
+    alt.anon_id, 
+    alt.pat_enc_csn_id_coded,
+    alt.alt_id_coded, 
+    alt.alert_desc, 
+    his.alt_action_inst AS alt_time
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_alert` alt 
+  INNER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_alert_history` his 
+    USING (anon_id, alt_id_coded)
+  INNER JOIN hospital_stays_selected USING (anon_id, pat_enc_csn_id_coded)
+  WHERE alt.alert_desc IN (
+    'SHC AIML LAB CBC STABILITY BASE - LOUD PILOT', 
+    'SHC AIML LAB CBC STABILITY BASE - SILENT'
+  )
+),
+
+-- Remove duplicate SILENT alerts for randomized patients
+cohort AS (
+  SELECT 
+    alt.*, 
+    rf.random_flag  
+  FROM alerts_cbc alt 
+  INNER JOIN random_flag rf USING (anon_id, pat_enc_csn_id_coded)
+  WHERE NOT (
+    alt.alert_desc = 'SHC AIML LAB CBC STABILITY BASE - SILENT' 
+    AND rf.random_flag = '1'
+  )
+),
+
+transfer_icu AS (
+  SELECT 
+    anon_id, 
+    pat_enc_csn_id_coded, 
+    effective_time_jittered AS icutime
+  FROM `som-nero-phi-jonc101.shc_core_2024.adt`
+  WHERE 
+    pat_lv_of_care = 'Critical Care'
+    AND event_type = 'Transfer In'
+),
+
+randomized_transfer_icu AS (
+  SELECT 
+    c.anon_id,
+    c.pat_enc_csn_id_coded,
+    c.alt_id_coded,
+    c.alert_desc,
+    c.alt_time,
+    c.random_flag,
+    t.icutime
+  FROM cohort c
+  LEFT JOIN transfer_icu t
+    ON c.anon_id = t.anon_id
+   AND c.pat_enc_csn_id_coded = t.pat_enc_csn_id_coded
+   AND t.icutime BETWEEN c.alt_time AND c.alt_time + INTERVAL 52 HOUR
+)
+
+SELECT
+  anon_id,
+  pat_enc_csn_id_coded,
+  alt_id_coded,
+  alert_desc,
+  random_flag,
+  alt_time,
+  MAX(CASE WHEN icutime IS NOT NULL THEN 1 ELSE 0 END) AS has_icu_transfer
+FROM randomized_transfer_icu
+GROUP BY
+  anon_id,
+  pat_enc_csn_id_coded,
+  alt_id_coded,
+  alert_desc,
+  random_flag,
+  alt_time
+;
+
+-- ========================================================================
+-- A) ICU transfer rate per alert_desc (includes distinct encounters/patients)
+-- ========================================================================
+SELECT
+  alert_desc,
+  COUNT(*) AS total_alert_records,
+  COUNT(DISTINCT pat_enc_csn_id_coded) AS unique_encounters_with_alert,
+  COUNT(DISTINCT anon_id) AS unique_patients_with_alert,
+  SUM(has_icu_transfer) AS alerts_with_icu_transfer,
+  SAFE_DIVIDE(SUM(has_icu_transfer), COUNT(*)) AS icu_transfer_rate
+FROM per_alert
+GROUP BY alert_desc
+ORDER BY alert_desc;
+
+-- ========================================================================
+-- B) ICU transfer rate per random_flag × alert_desc (with distincts)
+-- ========================================================================
+SELECT
+  random_flag,
+  alert_desc,
+  COUNT(*) AS total_alert_records,
+  COUNT(DISTINCT pat_enc_csn_id_coded) AS unique_encounters_with_alert,
+  COUNT(DISTINCT anon_id) AS unique_patients_with_alert,
+  SUM(has_icu_transfer) AS alerts_with_icu_transfer,
+  SAFE_DIVIDE(SUM(has_icu_transfer), COUNT(*)) AS icu_transfer_rate
+FROM per_alert
+GROUP BY random_flag, alert_desc
+ORDER BY random_flag, alert_desc;
+
+-- ========================================================================
+-- C) Overall ICU transfer rate across all alerts (with distincts)
+-- ========================================================================
+SELECT
+  COUNT(*) AS total_alert_records,
+  COUNT(DISTINCT pat_enc_csn_id_coded) AS unique_encounters_with_alert,
+  COUNT(DISTINCT anon_id) AS unique_patients_with_alert,
+  SUM(has_icu_transfer) AS alerts_with_icu_transfer,
+  SAFE_DIVIDE(SUM(has_icu_transfer), COUNT(*)) AS icu_transfer_rate
+FROM per_alert;
+
+-- ========================================================================
+-- D) Standalone sanity checks grouped by alert_desc (LOUD vs SILENT)
+-- ========================================================================
+
+-- Number of unique encounters with an alert, grouped by alert_desc
+SELECT
+  alert_desc,
+  COUNT(DISTINCT pat_enc_csn_id_coded) AS unique_encounters_with_alert
+FROM per_alert
+GROUP BY alert_desc
+ORDER BY alert_desc;
+
+-- Number of unique patients with an alert, grouped by alert_desc
+SELECT
+  alert_desc,
+  COUNT(DISTINCT anon_id) AS unique_patients_with_alert
+FROM per_alert
+GROUP BY alert_desc
+ORDER BY alert_desc;
+
+-- ========================================================================
+-- E_split) Histogram: # of alerts per encounter, split by LOUD vs SILENT
+--     • Denominator is within-group: encounters that had ≥1 alert of that group
+--     • Each row is a (group, alerts_per_encounter) bin with counts and %
+-- ========================================================================
+WITH per_alert_labeled AS (
+  SELECT
+    pa.*,
+    CASE
+      WHEN pa.alert_desc = 'SHC AIML LAB CBC STABILITY BASE - LOUD PILOT' THEN 'LOUD'
+      WHEN pa.alert_desc = 'SHC AIML LAB CBC STABILITY BASE - SILENT' THEN 'SILENT'
+      ELSE 'OTHER'
+    END AS alert_group
+  FROM per_alert pa
+),
+encounter_alert_counts AS (
+  SELECT
+    anon_id,
+    pat_enc_csn_id_coded,
+    alert_group,
+    COUNT(*) AS alerts_per_encounter
+  FROM per_alert_labeled
+  GROUP BY anon_id, pat_enc_csn_id_coded, alert_group
+),
+group_denominators AS (
+  -- # of encounters that had at least one alert of a given group
+  SELECT
+    alert_group,
+    COUNT(*) AS total_encounters_in_group
+  FROM (
+    SELECT DISTINCT anon_id, pat_enc_csn_id_coded, alert_group
+    FROM encounter_alert_counts
+  )
+  GROUP BY alert_group
+)
+SELECT
+  c.alert_group,
+  c.alerts_per_encounter,
+  COUNT(*) AS encounters_in_bin,
+  COUNT(DISTINCT c.anon_id) AS patients_in_bin,
+  SAFE_DIVIDE(COUNT(*), d.total_encounters_in_group) AS pct_of_encounters_in_group
+FROM encounter_alert_counts c
+JOIN group_denominators d
+  USING (alert_group)
+GROUP BY
+  c.alert_group,
+  c.alerts_per_encounter,
+  d.total_encounters_in_group
+ORDER BY
+  c.alert_group,
+  c.alerts_per_encounter;
+
+-- ========================================================================
+-- F_split) Detailed row-level view for encounters with >1 alert firing,
+--          split by LOUD vs SILENT
+--     • Multi-alert condition is applied within each alert_group separately
+--     • Returns one row per alert firing for qualifying (encounter, group)
+-- ========================================================================
+WITH per_alert_labeled AS (
+  SELECT
+    pa.*,
+    CASE
+      WHEN pa.alert_desc = 'SHC AIML LAB CBC STABILITY BASE - LOUD PILOT' THEN 'LOUD'
+      WHEN pa.alert_desc = 'SHC AIML LAB CBC STABILITY BASE - SILENT' THEN 'SILENT'
+      ELSE 'OTHER'
+    END AS alert_group
+  FROM per_alert pa
+),
+encounter_alert_counts AS (
+  SELECT
+    anon_id,
+    pat_enc_csn_id_coded,
+    alert_group,
+    COUNT(*) AS alerts_per_encounter,
+    MIN(alt_time) AS first_alert_time,
+    MAX(alt_time) AS last_alert_time
+  FROM per_alert_labeled
+  GROUP BY anon_id, pat_enc_csn_id_coded, alert_group
+),
+multi_alert_encounters AS (
+  SELECT
+    anon_id,
+    pat_enc_csn_id_coded,
+    alert_group,
+    alerts_per_encounter,
+    first_alert_time,
+    last_alert_time,
+    DATETIME_DIFF(last_alert_time, first_alert_time, MINUTE) AS minutes_between_first_last
+  FROM encounter_alert_counts
+  WHERE alerts_per_encounter > 1
+)
+SELECT
+  e.alert_group,
+  e.anon_id,
+  e.pat_enc_csn_id_coded,
+  e.alerts_per_encounter,
+  e.first_alert_time,
+  e.last_alert_time,
+  e.minutes_between_first_last,
+  p.alert_desc,
+  p.random_flag,
+  p.alt_time,
+  p.has_icu_transfer
+FROM multi_alert_encounters e
+JOIN per_alert_labeled p
+  ON p.anon_id = e.anon_id
+ AND p.pat_enc_csn_id_coded = e.pat_enc_csn_id_coded
+ AND p.alert_group = e.alert_group
+ORDER BY
+  e.alert_group,
+  e.anon_id,
+  e.pat_enc_csn_id_coded,
+  p.alt_time;

@@ -1,0 +1,66 @@
+[
+  {
+    "My Clinical Question (condition: osteoarthritis)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "SPECIAL NOTE": "Please do NOT order an eConsult for fibromyalgia. This should instead be referred."
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [],
+        "Optional": [
+          {
+            "Which joint(s) is/are affected?": "***"
+          },
+          {
+            "Does the patient have any of the following signs or symptoms? (Please select all that apply)": [
+              {
+                "Joint pain exacerbated by extensive use": "***"
+              },
+              {
+                "Joint stiffness during rest": "***"
+              },
+              {
+                "Reduced range of motion": "***"
+              }
+            ]
+          },
+          {
+            "Does the patient have radiographic evidence of osteoarthritis? (If yes, please describe which joints are involved.)": "***"
+          },
+          {
+            "Does the radiographic evidence of osteoarthritis correspond to the location of the patient's joint pain? If no, please explain": "***"
+          },
+          {
+            "Please describe any current and past medications for osteoarthritis": "***"
+          },
+          {
+            "Please describe any current and past interventions (steroid injections, physical therapy, weight loss) tried": "***"
+          },
+          {
+            "Is the patient interested or opposed to joint replacement surgery?": "***"
+          }
+        ]
+      },
+      "Diagnostics": {
+        "Required": [],
+        "Optional": [
+          {
+            "X-ray(s) of affected joints": "***"
+          },
+          {
+            "CBC with diff": "***"
+          },
+          {
+            "CMP": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": []
+    }
+  }
+]

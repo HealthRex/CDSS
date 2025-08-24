@@ -1,0 +1,39 @@
+[
+  {
+    "My Clinical Question (condition: known epilepsy)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Current seizure frequency and description of events, including date of last event": "***"
+          },
+          {
+            "Previous diagnosis, EEG, most recent brain imaging (if available)": "***"
+          },
+          {
+            "Is the patient currently taking medication to treat/prevent seizures? If yes, please describe medications and doses": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [],
+        "Optional": [
+          {
+            "Drug levels": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        {
+          "Breakthrough seizures with alteration of consciousness (does not have to be full LOC) require a report to the DMV and temporary driving cessation after each event. For additional information, please refer to the DMV regulations: https://www.dmv.ca.gov/portal/dmv/detail/dl/driversafety/lapes": "***"
+        }
+      ]
+    }
+  }
+]

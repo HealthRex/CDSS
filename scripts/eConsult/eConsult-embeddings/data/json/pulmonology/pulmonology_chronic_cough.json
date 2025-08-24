@@ -1,0 +1,52 @@
+[
+  {
+    "My Clinical Question (condition: chronic cough)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Duration of cough": "***"
+        },
+        {
+          "Measures taken so far": "***"
+        },
+        {
+          "Presence or absence of GERD, post-nasal drip/sinusitis and wheezing": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "CXR": "***"
+        },
+        {
+          "PFT's": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Consider discontinuing ACE inhibitor!": "***"
+        },
+        {
+          "Empiric treatment for common causes (trial 2-3 weeks)": [
+            {
+              "With reflux Sx, consider PPI": "***"
+            },
+            {
+              "With upper airway syndrome, antihistamine/decongestant": "***"
+            },
+            {
+              "With possible asthma, Albuterol": "***"
+            }
+          ]
+        },
+        {
+          "At 6 weeks of cough, consider CXR and further workup": "***"
+        }
+      ]
+    }
+  }
+]

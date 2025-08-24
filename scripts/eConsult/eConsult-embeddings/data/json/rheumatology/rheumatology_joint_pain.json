@@ -1,0 +1,86 @@
+[
+  {
+    "My Clinical Question (condition: joint pain)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "SPECIAL NOTE": "Please do NOT order an eConsult for fibromyalgia. This should instead be referred."
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [],
+        "Optional": [
+          {
+            "Which joints are affected? Single or multiple?": "***"
+          },
+          {
+            "Does the patient have any of the following signs or symptoms? (Please select all that apply)": [
+              {
+                "Joint swelling/effusion/synovitis": "***"
+              },
+              {
+                "AM stiffness? Duration?": "***"
+              },
+              {
+                "Elevated ESR and/or CRP": "***"
+              },
+              {
+                "Inflammatory fluid (WBC > 2000) aspirated from a joint": "***"
+              },
+              {
+                "Radiographic erosions suggestive of inflammatory joint disease": "***"
+              }
+            ]
+          },
+          {
+            "Please describe any current and past medications for this condition": "***"
+          }
+        ]
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "Anti-CCP": "***"
+          },
+          {
+            "C-Reactive Protein (CRP)": "***"
+          },
+          {
+            "Erythrocyte Sedimentation Rate (ESR)": "***"
+          },
+          {
+            "Rheumatoid Factor (RF)": "***"
+          },
+          {
+            "Uric acid": "***"
+          },
+          {
+            "X-ray(s) of affected joints": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Anti-Nuclear Antibody (ANA)": "***"
+          },
+          {
+            "Basic Metabolic Panel (BMP)": "***"
+          },
+          {
+            "Complete Blood Count with Differential (CBC with diff.)": "***"
+          },
+          {
+            "Vitamin D Levels": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        {
+          "In patients with monoarthritis, especially in association with fever, urgent evaluation may be required to rule out septic arthritis": "***"
+        }
+      ]
+    }
+  }
+]

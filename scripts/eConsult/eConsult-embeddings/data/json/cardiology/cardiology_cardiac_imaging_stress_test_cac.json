@@ -1,0 +1,68 @@
+[
+  {
+    "My Clinical Question (condition: bradycardia)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Onset, duration, frequency, location, radiation, association with exertion, associated symptoms": "***"
+        },
+        {
+          "Cardiac risk factors (age, gender, HTN, HLD, DM, family history of premature CAD, smoking, etc.)": "***"
+        },
+        {
+          "Known CAD - prior MI, history of stents, CABG, or medical management": "***"
+        },
+        {
+          "ASCVD risk score": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "EKG": "***"
+        },
+        {
+          "TSH": "***"
+        },
+        {
+          "BMP": "***"
+        },
+        {
+          "Lipid profile": "***"
+        },
+        {
+          "HbA1c": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "From Choosing Wisely": [
+            {
+              "Don’t perform cardiac imaging in patients who are low risk": "***"
+            },
+            {
+              "Don’t perform stress cardiac imaging or advanced noninvasive imaging in the initial evaluation of patients without cardiac symptoms unless high-risk markers are present": "***"
+            }
+          ],
+          "Stable patients with symptoms suggestive of angina and intermediate or high pre-test likelihood of CHD are generally appropriate for stress testing": [
+            {
+              "Exercise ECG treadmill test should be the initial test for the majority of patients who can exercise adequately, who have an interpretable ECG, and who do not have certain conditions (e.g. LBBB, paced ventricular rhythm, ventricular pre-excitation, etc.)": "***"
+            },
+            {
+              "Pharmacologic stress testing with myocardial imaging is typically performed when a patient is unable to exercise": "***"
+            }
+          ],
+          "Asymptomatic patients >40 y/o at intermediate risk (7.5-19.9% 10-year ASCVD risk) or borderline elevated risk (5-6.4% 10-year ASCVD risk) with family h/o premature ASCVD should undergo measurement of coronary artery calcium (CAC) score to possibly help determine statin treatment and intensity of ASCVD risk factor modification": [
+            {
+              "Patients at low (<5% 10-year ASCVD risk) or high (>20% 10-year ASCVD risk) should not undergo CAC measurement as the results are unlikely to change treatment approach": "***"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

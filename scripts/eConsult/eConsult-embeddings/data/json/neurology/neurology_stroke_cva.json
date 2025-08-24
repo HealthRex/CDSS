@@ -1,0 +1,49 @@
+[
+  {
+    "My Clinical Question (condition: stroke/CVA)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "How was the diagnosis made?": "***"
+          },
+          {
+            "What category of stroke(s) has the patient experienced? (Ischemic, Hemorrhagic, Both?)": "***"
+          },
+          {
+            "Complete neurologic exam. Significant deficits on neurologic exam?": "***"
+          },
+          {
+            "Imaging and prior evaluation": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Does the patient have a history of atrial fibrillation?": "***"
+          },
+          {
+            "Does the patient take blood thinning or anti-platelet medications? If yes, please describe medications and doses": "***"
+          }
+        ]
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "Brain imaging": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Carotid ultrasound": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": []
+    }
+  }
+]

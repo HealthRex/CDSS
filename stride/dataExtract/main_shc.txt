@@ -1,0 +1,2439 @@
+#!/opt/anaconda3/bin/python
+
+import datetime
+from google.cloud import bigquery
+from datetime import date
+
+
+target_data_project_id = 'som-nero-phi-naras-ric'
+target_data_dataset_id = 'Jon_Chen_extract'
+
+client_data_project_id = 'som-nero-phi-jonc101-secure'
+client_data_dataset_id = 'shc_core_updates'
+client_mapping_dataset_id = 'starr_map'
+
+
+source_data_project_id = 'som-rit-phi-starr-prod'
+source_data_dataset_id = 'shc_clarity_filtered_latest'
+source_data_raw_dataset_id = 'shc_clarity_latest'
+
+source_data_pat_project_id = 'som-rit-phi-starr-tools-prod'
+source_data_pat_dataset_id = 'stride'
+
+date_to = date.today() - datetime.timedelta(days=1)
+date_to_str = date_to.strftime("%Y-%m-%d")
+
+#date_from = date.today() - datetime.timedelta(days=7)
+date_from = date(2000, 1, 1)
+date_from_str = date_from.strftime("%Y-%m-%d")
+
+def create_backup_ds_entity_in_study():
+
+	client = bigquery.Client(project=target_data_project_id)
+
+	sql = """
+		CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study_{date_to}` as
+			SELECT *
+			FROM `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` 
+	""".format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+		})
+
+	print (create_backup_ds_entity_in_study)
+	print (sql)
+	client.query(sql).result()
+
+
+def extract_patients():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_patients` as
+				SELECT DISTINCT pat_map.mrn, pat_map.pat_map_id, op.pat_id
+				FROM `{source_data_project_id}.{source_data_dataset_id}.order_proc` op
+				JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON  op.pat_id = pat_map.shc_pat_id
+				WHERE op.pat_id is not null and ordering_date between '{date_from}' AND '{date_to}'; 
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("extract_patients")
+		print (sql)
+		client.query(sql).result()
+
+def create_shc_new_pats():
+		"""	
+		Unalble to write directry to Postgres, so starting with this point will be keeping anonymous id data in Jon_Chen_extract project
+
+		CREATE TABLE som-nero-phi-naras-ric.Jon_Chen_extract.ds_study as 
+		select * from EXTERNAL_QUERY(
+		  'projects/som-rit-phi-starr-prod/locations/us/connections/starrapi',
+		  '''SELECT * FROM ds_study  where ds_study_id=788''')
+		;
+
+		CREATE TABLE som-nero-phi-naras-ric.Jon_Chen_extract.ds_entity_in_study as 
+		select * from EXTERNAL_QUERY(
+		  'projects/som-rit-phi-starr-prod/locations/us/connections/starrapi',
+		  '''SELECT study_id, anon_id, orig_phi, jitter FROM ds_entity_in_study join ds_study on ds_entity_in_study.study_id = ds_study.ds_study_id where study_id=788''')
+		;
+		"""	
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_new_pats` as
+				SELECT distinct mrn from `{target_data_project_id}.{target_data_dataset_id}.shc_patients`
+				where mrn not in (
+				select ORIG_PHI as mrn from `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` where study_id = 788
+				);
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("create_anon_ids shc_new_pats")
+		print (sql)
+		client.query(sql).result()
+
+def insert_new_pats():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				INSERT INTO `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` (study_id, orig_phi, jitter, anon_id)
+				SELECT 788, mrn,           
+				  CAST(
+					CASE 
+					  WHEN RAND() > 0.5 THEN 1 
+					  ELSE -1 
+					END * TRUNC(3 + RAND() * 30) AS INT64
+				  ) AS jitter,
+				  CONCAT('JC', CAST(ROW_NUMBER() OVER () + (SELECT COUNT(*) FROM `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study`) AS STRING)) AS anon_id
+				FROM `{target_data_project_id}.{target_data_dataset_id}.shc_new_pats`
+				WHERE mrn not in (select orig_phi from `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study`);
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("insert_new_pats")
+		print (sql)
+		#client.query(sql).result()
+
+		query_job = client.query(sql)
+		results = query_job.result()
+		affected_rows = query_job.num_dml_affected_rows
+
+		print(f'Number of inserted patients: {affected_rows}')
+
+
+def check_duplicates_anon_id():
+
+		client = bigquery.Client(project=target_data_project_id)
+
+		sql = """
+				SELECT count(*) as cnt, anon_id
+				FROM `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` ds
+				group by anon_id
+				having count(*) > 1
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("check_duplicates_anon_id")
+		print (sql)
+		result = client.query(sql).result()
+
+		rows = list(result)
+		if rows:
+			cnt = rows[0].cnt  # Extract the count from the result
+		else:
+			cnt = 0  # Set cnt to 0 or handle as needed when there are no results
+
+		print(f'The value of cnt after the query is: {cnt}')
+		if cnt > 0:
+			print(f'check_duplicates_anon_id has duplicates')
+			return False
+
+def check_duplicates_orig_phi():
+
+		client = bigquery.Client(project=target_data_project_id)
+
+		sql = """
+				SELECT count(*) as cnt, orig_phi 
+				FROM `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` ds
+				group by orig_phi
+				having count(*) > 1
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("check_duplicates_orig_phi")
+		print (sql)
+		result = client.query(sql).result()
+
+		rows = list(result)
+		if rows:
+			cnt = rows[0].cnt  # Extract the count from the result
+		else:
+			cnt = 0  # Set cnt to 0 or handle as needed when there are no results
+
+		print(f'The value of cnt after the query is: {cnt}')
+		if cnt > 0:
+			print(f'check_duplicates_orig_phi has duplicates')
+			return False
+
+def ndc_codes ():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_ndc_code` as
+				SELECT
+						clarity_ndc_codes.medication_id ,
+						clarity_ndc_codes.line ,
+						clarity_ndc_codes.ndc_code ,
+						rx_ndc.ndc_id ,
+						rx_ndc.ndc_format ,
+						rx_ndc.raw_11_digit_ndc ,
+						rx_ndc.mfg_long_name ,
+						rx_ndc.mfg_code ,
+						package_size ,
+						med_unit_c ,
+						zc_med_unit.name AS unit,
+						rx_ndc.simple_generic_c ,
+						zc_simple_generic.name AS simple_generic,
+						'CLARITY_SHC' as data_source
+				FROM `{source_data_project_id}.{source_data_dataset_id}.clarity_ndc_codes` clarity_ndc_codes
+						inner join `{source_data_project_id}.{source_data_dataset_id}.rx_ndc` rx_ndc  on clarity_ndc_codes.ndc_code=rx_ndc.ndc_code
+						left outer join  `{source_data_project_id}.{source_data_dataset_id}.zc_simple_generic` zc_simple_generic on rx_ndc.simple_generic_c=zc_simple_generic.simple_generic_c
+						left outer join `{source_data_project_id}.{source_data_dataset_id}.zc_med_unit` zc_med_unit on rx_ndc.med_unit_c = zc_med_unit.disp_qtyunit_c;
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("ndc_codes")
+		print (sql)
+		client.query(sql).result()
+
+def demographics():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+                CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_demographic` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+                SELECT
+                        anon_id,
+                        date_add(birth_date, interval jitter day) birth_date_jittered,
+                        date_add(death_date, interval jitter day) death_date_jittered,
+                        gender,
+                        canonical_race,
+                        canonical_ethnicity,
+                        zceb.name as ethnic_background,
+                        marital_status,
+                        religion,
+                        language,
+                        intrptr_needed_yn,
+                        insurance_payor_name,
+                        cur_pcp_prov_map_id,
+                        recent_ht_in_cms,
+                        recent_wt_in_kgs,
+                        bmi,
+                        'CLARITY_SHC' as data_source
+                FROM 
+                        `{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+                        JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+                        JOIN ds ON ds.orig_phi = p.mrn
+                        LEFT JOIN `{source_data_project_id}.{source_data_dataset_id}.ethnic_background` eb on eb.pat_id = p.pat_id
+                        LEFT JOIN `{source_data_project_id}.{source_data_dataset_id}.zc_ethnic_bkgrnd` zceb on zceb.ethnic_bkgrnd_c = eb.ethnic_bkgrnd_c;
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("demographics")
+		print (sql)
+		client.query(sql).result()
+
+def social_hx():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_social_hx` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						case when pat_enc_csn_id is null then null else pat_enc_csn_id+offset_pat_enc_csn_id end AS pat_enc_csn_id_coded,
+						DATE_ADD(cast(contact_date AS DATE), INTERVAL jitter DAY) contact_date_jittered,
+						(SELECT name from `{source_data_project_id}.{source_data_dataset_id}.zc_tobacco_user` zc_tobacco_user
+						where zc_tobacco_user.tobacco_user_c = social_hx.tobacco_user_c) AS tobacco_user,
+						TOBACCO_PAK_PER_DY,
+						TOBACCO_USED_YEARS,
+						CASE
+							WHEN smoking_quit_date is null then null
+							ELSE DATE_ADD(CAST(smoking_quit_date AS DATE), INTERVAL jitter DAY)
+						END smoking_quit_date,
+						CIGARETTES_YN,
+						PIPES_YN,
+						CIGARS_YN,
+						SNUFF_YN,
+						CHEW_YN,
+						(SELECT name FROM `{source_data_project_id}.{source_data_dataset_id}.zc_smokeless_tob_u` zc_smokeless_tob_u where zc_smokeless_tob_u.SMOKELESS_TOB_U_C=SMOKELESS_TOB_USE_C) as smokeless_tobacco_user,
+						CASE
+							WHEN smokeless_quit_date is null then null
+							ELSE DATE_ADD(CAST(smokeless_quit_date AS DATE), INTERVAL jitter DAY) 
+						END AS smokeless_quit_date_jittered,
+						(SELECT name FROM `{source_data_project_id}.{source_data_dataset_id}.zc_alcohol_use` zc_alcohol_use where zc_alcohol_use.alcohol_use_c = social_hx.ALCOHOL_USE_C) as alcohol_use,
+						ALCOHOL_OZ_PER_WK,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.social_hx` social_hx ON p.pat_id = social_hx.pat_id
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						WHERE contact_date is not null
+						AND cast(contact_date as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("social_hx")
+		print (sql)
+		client.query(sql).result()
+
+def adt():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_adt` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				),
+				eventlookup as (select event_type_c, name from `{source_data_project_id}.{source_data_dataset_id}.zc_event_type` zc_event_type),
+				baseclasslookup as (select ACCT_BASECLS_HA_C, name from `{source_data_project_id}.{source_data_dataset_id}.zc_acct_basecls_ha`),
+				patclasslookup as (select name, adt_pat_class_c from `{source_data_project_id}.{source_data_dataset_id}.zc_pat_class`),
+				patsvclookup as (select name, hosp_serv_c from `{source_data_project_id}.{source_data_dataset_id}.zc_pat_service`),
+				eventsubtypelookup as (select name, event_subtype_c from `{source_data_project_id}.{source_data_dataset_id}.zc_event_subtype`),
+				bedstatuslookup as (select name, bed_status_c from `{source_data_project_id}.{source_data_dataset_id}.zc_bed_status`),
+				lvlcarelookup as (select name, level_of_care_c from `{source_data_project_id}.{source_data_dataset_id}.zc_lvl_of_care`),
+				accomodationlookup as (select name, ACCOMMODATION_C from `{source_data_project_id}.{source_data_dataset_id}.zc_accommodation`)
+
+				SELECT
+						anon_id,
+						case when pat_enc_csn_id is null then null else pat_enc_csn_id+offset_pat_enc_csn_id end AS pat_enc_csn_id_coded,
+						date_add(effective_time, interval jitter day) effective_time_jittered,
+						event_id+offset_adt_event_id as event_id_coded,
+						event_type_c,
+						(select name from eventlookup where eventlookup.event_type_c = clarity_adt.event_type_c) as event_type,
+						event_subtype_c,
+						(select name from eventsubtypelookup where eventsubtypelookup.event_subtype_c = clarity_adt.event_subtype_c) as event_subtype,
+						department_id,
+						pat_class_c,
+						(select name from patclasslookup where patclasslookup.adt_pat_class_c = clarity_adt.pat_class_c) as pat_class,
+						base_pat_class_c,
+						(select name from baseclasslookup where acct_basecls_ha_c = clarity_adt.base_pat_class_c) as base_pat_class,
+						pat_service_c,
+						(select name from patsvclookup where hosp_serv_c = clarity_adt.pat_service_c) as pat_service,
+						status_of_bed_c,
+						(select name from bedstatuslookup where bedstatuslookup.bed_status_c = clarity_adt.status_of_bed_c) as status_of_bed,
+						pat_lvl_of_care_c,
+						(select name from lvlcarelookup where level_of_care_c = clarity_adt.pat_lvl_of_care_c) as pat_lv_of_care,
+						case when xfer_event_id is null then null else xfer_event_id+offset_adt_event_id end as xfer_event_id_coded,
+						case when swap_event_id is null then null else swap_event_id+offset_adt_event_id end as swap_event_id_coded,
+						reason_c,
+						accommodation_c,
+						(select name from accomodationlookup where accomodationlookup.ACCOMMODATION_C = clarity_adt.accommodation_c) as accomodation,
+						accom_reason_c,
+						cast( case when adm_event_id is null then null else adm_event_id+offset_adt_event_id end as numeric) as adm_event_id_coded,
+						cast( case when dis_event_id is null then null else dis_event_id+offset_adt_event_id end as numeric) as dis_event_id_coded,
+						cast( case when xfer_in_event_id is null then null else xfer_in_event_id+offset_adt_event_id end as numeric) as xfer_in_event_id_coded,
+						cast( case when next_out_event_id is null then null else next_out_event_id+offset_adt_event_id end as numeric) as next_out_event_id_coded,
+						cast( case when last_in_event_id is null then null else last_in_event_id+offset_adt_event_id end as numeric) as last_in_event_id_coded,
+						cast( case when prev_event_id is null then null else prev_event_id+offset_adt_event_id end as numeric) as prev_event_id_coded,
+						in_event_type_c,
+						(select name from eventlookup where eventlookup.event_type_c = clarity_adt.in_event_type_c) as in_event_type,
+						out_event_type_c,
+						(select name from eventlookup where eventlookup.event_type_c = clarity_adt.out_event_type_c) as out_event_type,
+						from_base_class_c,
+						(select name from baseclasslookup where ACCT_BASECLS_HA_C = from_base_class_c) as from_base_class,
+						to_base_class_c,
+						(select name from baseclasslookup where ACCT_BASECLS_HA_C = to_base_class_c) as to_base_class,
+						seq_num_in_enc,
+						seq_num_in_bed_min,
+						labor_status_c,
+						first_ip_in_ip_yn,
+						loa_reason_c,
+						date_add(event_time, interval jitter day) event_time_jittered,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p
+						join `{source_data_project_id}.{source_data_dataset_id}.clarity_adt` clarity_adt on p.pat_id = clarity_adt.pat_id
+						JOIN ds ON ds.orig_phi = p.mrn 
+				WHERE 
+						effective_time is not null
+						and cast(effective_time as date) between '{date_from}' AND '{date_to}'
+						and delete_time is null
+						and event_subtype_c <> 2;
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("adt")
+		print (sql)
+		client.query(sql).result()
+
+
+def family_hx():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE table `{target_data_project_id}.{target_data_dataset_id}.shc_family_hx` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+				SELECT 
+				anon_id,
+				date_add(cast(contact_date as date), interval jitter day) contact_date_jittered,
+				case when pat_enc_csn_id is null then null else pat_enc_csn_id+offset_pat_enc_csn_id end AS pat_enc_csn_id_coded,
+				medical_hx_c,
+				( select name from `{source_data_project_id}.{source_data_dataset_id}.zc_medical_hx` zc_medical_hx where zc_medical_hx.medical_hx_c=family_hx.medical_hx_c) as medical_hx,
+				relation as relation_deprecated,
+				relation_c,
+				( select name from `{source_data_project_id}.{source_data_dataset_id}.zc_relation` zc_relation where zc_relation.relation_c=family_hx.relation_c) as relation,
+				age_of_onset,
+				'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.family_hx` family_hx on p.pat_id = family_hx.pat_id
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						WHERE contact_date is not null
+						AND cast(contact_date as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("social_hx")
+		print (sql)
+		client.query(sql).result()
+
+def allergy():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_allergy` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+				SELECT 
+				anon_id,
+				date_add(date_noted, interval jitter day) as date_noted_jittered,
+				allergen_id,
+				description,
+				reaction,
+				severity_c,
+				(select name from `{source_data_project_id}.{source_data_dataset_id}.zc_severity` zc_severity where zc_severity.severity_c = allergy.severity_c) as severity,
+				allergy_severity_c,
+				case 
+						when allergy_severity_c = 3 then 'High'
+						when allergy_severity_c = 5 then 'Medium'
+						when allergy_severity_c =  7 then 'Low'
+						else '' 
+				end as allergy_severity,
+				allergy_synonym,
+				'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.allergy` allergy  on allergy.pat_id=p.pat_id
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+				WHERE alrgy_status_c=1
+				AND date_noted is not null
+				AND cast(date_noted as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("social_hx")
+		print (sql)
+		client.query(sql).result()
+
+
+def proc_orderset():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_proc_orderset` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id, offset_order_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+				SELECT 
+				anon_id,
+				cast (op.order_proc_id +offset_order_id as numeric) as order_proc_id_coded,
+				cast (case when op.pat_enc_csn_id is null then null else op.pat_enc_csn_id+offset_pat_enc_csn_id end as numeric) AS pat_enc_csn_id_coded,
+				ss.ss_prl_id,
+				ss.ss_section_id,
+				ss.ss_section_name,
+				ss.ss_sg_key,
+				ss.SS_SG_NAME,
+				ss.MERGE_TMPL_ID,
+				ss.SS_PRL_SRC_TYPE_C,
+				ss.ORDERSET_START_DATE  as ORDERSET_START_DATE_offset ,
+				id.protocol_id,
+				id.protocol_name,
+				id.ss_type_c,
+				id.PROTOCOL_TYPE_C_ID,
+				id.PRL_RECORD_TYPE_C,
+				'CLARITY_SHC' as data_source
+				FROM 
+						`{source_data_project_id}.{source_data_dataset_id}.order_smartset` ss
+						inner join `{source_data_project_id}.{source_data_dataset_id}.order_proc` op on ss.order_id = op.order_proc_id
+						inner join `{target_data_project_id}.{target_data_dataset_id}.shc_patients` p on p.pat_id = op.pat_id
+						inner join `{source_data_project_id}.{source_data_dataset_id}.cl_prl_ss` id on id.protocol_id = ss.ss_prl_id
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+
+				WHERE ordering_date is not null
+				AND cast(ordering_date as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("proc_orderset")
+		print (sql)
+		client.query(sql).result()
+
+def med_orderset():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_med_orderset` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id, offset_order_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+				SELECT 
+				anon_id,
+				cast (om.order_med_id +offset_order_id as numeric) as order_med_id_coded,
+				cast (case when om.pat_enc_csn_id is null then null else om.pat_enc_csn_id+offset_pat_enc_csn_id end as numeric) AS pat_enc_csn_id_coded,
+				ss.ss_prl_id,
+				ss.ss_section_id,
+				ss.ss_section_name,
+				ss.ss_sg_key,
+				ss.SS_SG_NAME,
+				ss.MERGE_TMPL_ID,
+				ss.SS_PRL_SRC_TYPE_C,
+				ss.ORDERSET_START_DATE as orderset_start_offset,
+				id.protocol_id,
+				id.protocol_name,
+				id.ss_type_c,
+				id.PROTOCOL_TYPE_C_ID,
+				id.PRL_RECORD_TYPE_C,
+				'CLARITY_SHC' as data_source
+				FROM 
+						`{source_data_project_id}.{source_data_dataset_id}.order_smartset` ss
+						inner join `{source_data_project_id}.{source_data_dataset_id}.order_med` om on ss.order_id = om.order_med_id
+						inner join `{target_data_project_id}.{target_data_dataset_id}.shc_patients` p on p.pat_id = om.pat_id
+						inner join `{source_data_project_id}.{source_data_dataset_id}.cl_prl_ss` id on id.protocol_id = ss.ss_prl_id
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+				WHERE ordering_date is not null
+				AND cast(ordering_date as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("med_orderset")
+		print (sql)
+		client.query(sql).result()
+
+def pharmacy_mar():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_pharmacy_mar` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id, offset_order_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+				SELECT anon_id,
+				cast (order_med_id +offset_order_id as numeric) as order_med_id_coded,
+				cast (mar_enc_csn +offset_pat_enc_csn_id as numeric) mar_enc_csn_coded,
+				line,
+				date_add(taken_time, interval jitter day) as taken_time_jittered,
+				date_add(scheduled_time, interval jitter day) as scheduled_time_jittered,
+				mar_time_source_c, 
+				mar_action_c, 
+				mar_action, sig, route_c, route, reason_c, reason, site_c, site, infusion_rate, mar_inf_rate_unit_c, mar_inf_rate_unit, dose_unit_c, dose_unit, mar_duration, mar_duration_unit_c, mar_duration_unit,
+				'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.shc_pharmacy_mar` mar on p.pat_id = mar.pat_id
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+				WHERE 
+						taken_time is not null
+						AND cast(taken_time as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("social_hx")
+		print (sql)
+		client.query(sql).result()
+
+def treatment_team():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_treatment_team` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id, offset_order_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+				select anon_id,
+				cast (case when htt.pat_enc_csn_id is null then null else htt.pat_enc_csn_id+offset_pat_enc_csn_id end as numeric) AS pat_enc_csn_id_coded,
+				htt.line,
+				date_add(htt.trtmnt_tm_begin_dt, interval jitter day) as trtmnt_tm_begin_dt_jittered,
+				date_add(htt.trtmnt_tm_end_dt, interval jitter day) as trtmnt_tm_end_dt_jittered,
+				name,
+				pm.prov_map_id,
+				pm.prov_name,
+				'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p
+						join `{source_data_project_id}.{source_data_dataset_id}.hsp_trtmt_team` htt on p.pat_id = htt.pat_id
+						join `{source_data_project_id}.{source_data_dataset_id}.zc_trtmt_team_rel` ztr on htt.trtmnt_team_rel_c=ztr.trtmnt_team_rel_c
+						left join `{source_data_pat_project_id}.{source_data_pat_dataset_id}.prov_map` pm on htt.prov_id = pm.shc_prov_id
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+				WHERE 
+  						htt.trtmnt_tm_begin_dt is not null
+						AND cast(htt.trtmnt_tm_begin_dt as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("treatment_team")
+		print (sql)
+		client.query(sql).result()
+
+
+def dep_map():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_dep_map` as
+				SELECT department_id ,
+				department_name ,
+				dept_abbreviation ,
+				specialty ,
+				specialty_dep_c ,
+				'SHC_CLARITY' as data_source
+				FROM 
+					`{source_data_project_id}.{source_data_dataset_id}.clarity_dep`
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("dep_map")
+		print (sql)
+		client.query(sql).result()
+
+def lda():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_lda` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id, offset_order_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+				SELECT
+				anon_id,
+				cast (case when pat_enc_csn_id is null then null else pat_enc_csn_id+offset_pat_enc_csn_id end as numeric) AS pat_enc_csn_id_coded,
+				date_add(placement_instant, interval jitter day) as placement_instant_jittered,
+				date_add(removal_instant, interval jitter day) as removal_instant_jittered,
+				timestamp_diff(cast(removal_instant as timestamp), cast(placement_instant as timestamp), hour) as duration_in_Hours,
+				description,
+				properties_display,
+				site,
+				'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p
+						join `{source_data_project_id}.{source_data_dataset_id}.ip_lda_noaddsingle` ip_lda_noaddsingle on p.pat_id=ip_lda_noaddsingle.pat_id
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+				WHERE 
+						placement_instant is not null
+						and cast(placement_instant as date) between '{date_from}' AND '{date_to}'; 
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("lda")
+		print (sql)
+		client.query(sql).result()
+
+def diagnoses():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_diagnosis` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id, offset_order_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+				SELECT 
+				anon_id,
+				line,
+				cast (case when pat_enc_csn_id is null then null else pat_enc_csn_id+offset_pat_enc_csn_id end as numeric) as pat_enc_csn_id_jittered,
+				dx_id,
+				dx_name,
+				icd9,
+				icd10,
+				date_add(start_date, interval jitter day) as start_date_jittered,
+				date_add(noted_date, interval jitter day) as noted_date_jittered,
+				date_add(hx_date_of_entry, interval jitter day) as hx_date_of_entry_jittered,
+				date_add(resolved_date, interval jitter day) as resolved_date_jittered,
+				date_add(end_date, interval jitter day) as end_date_jittered,
+				perf_prov_map_id,
+				ref_bill_code,
+				billing_prov_map_id,
+				entry_prov_map_id,
+				dept_id,
+				primary,
+				chronic,
+				principal,
+				hospital_pl,
+				problem_status,
+				ED,
+				POA ,
+				present_on_adm,
+				source,
+				'SHC_CLARITY' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p
+						join `{source_data_pat_project_id}.{source_data_pat_dataset_id}.shc_diagnosis` shc_diagnosis on p.pat_id=shc_diagnosis.pat_id
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+				WHERE 
+						start_date is not null
+						and cast(start_date as date) between '{date_from}' AND '{date_to}'; 
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("diagnoses")
+		print (sql)
+		client.query(sql).result()
+
+def encounters():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_encounter` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id, offset_order_id, offset_inpatient_data_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+				SELECT 
+						anon_id,
+						case when pe.pat_enc_csn_id    is null then null else pe.pat_enc_csn_id+offset_pat_enc_csn_id end AS pat_enc_csn_id_coded,
+						case when pe.inpatient_data_id is null then null else cast(pe.inpatient_data_id as numeric)+offset_inpatient_data_id end AS inpatient_data_id_coded,
+
+						date_add(pe.contact_date, interval jitter day) as contact_date_jittered,
+						date_add(ph.adt_arrival_time, interval jitter day) as adt_arrival_time_jittered,
+						date_add(ph.hosp_admsn_time, interval jitter day) as hosp_admsn_time_jittered,
+						date_add(ph.hosp_disch_time, interval jitter day) as hosp_disch_time_jittered,
+						date_add(pe.appt_time, interval jitter day) as appt_time_jittered,
+						date_add(coalesce(pe.hosp_admsn_time, pe.appt_time, pe.contact_date), interval jitter day) as appt_when_jittered,
+						  case
+							when cast(pe.enc_type_c as numeric) = 3 and cp.external_name is not null then cp.external_name
+							when zps.name is not null then 'Admission (' || zps.name || ')'
+							when zdet.name is not null then zdet.name
+							else NULL
+						  end  AS appt_type,
+						 zdet.name AS enc_type,
+						  zas.name AS appt_status,
+						visit_prov_id AS visit_prov_map_id,
+						ph.admission_prov_id AS admn_prov_map_id,
+						pe.department_id,
+						cp.prc_name AS visit_type,
+						ZC_DISCH_DEST.DISCH_DEST_C,
+						ZC_DISCH_DEST.name  as disch_dest,
+						zal.ACUITY_LEVEL_C ,
+						zal.name as acuity_level,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p
+						join `{source_data_project_id}.{source_data_dataset_id}.pat_enc` pe on pe.pat_id=p.pat_id
+						left outer join `{source_data_project_id}.{source_data_dataset_id}.clarity_dep` cd_pat_enc on cd_pat_enc.department_id = pe.department_id
+						left outer join `{source_data_project_id}.{source_data_dataset_id}.clarity_prc` cp on cp.prc_id = pe.appt_prc_id
+						left outer join `{source_data_project_id}.{source_data_dataset_id}.zc_appt_status` zas on  zas.appt_status_c = pe.appt_status_c
+						left outer join `{source_data_project_id}.{source_data_dataset_id}.zc_cancel_reason` zcr on  zcr.cancel_reason_c = pe.cancel_reason_c
+						inner join `{source_data_project_id}.{source_data_dataset_id}.zc_disp_enc_type` zdet on zdet.disp_enc_type_c = pe.enc_type_c
+						left outer join `{source_data_project_id}.{source_data_dataset_id}.clarity_ser` vp on vp.prov_id = pe.visit_prov_id
+						inner join `{source_data_project_id}.{source_data_dataset_id}.pat_enc_2` pe2 on pe2.pat_enc_csn_id = pe.pat_enc_csn_id
+						left outer join `{source_data_project_id}.{source_data_dataset_id}.zc_acct_class_ha` zach on zach.acct_class_ha_c = pe2.adt_pat_class_c
+						left outer join `{source_data_project_id}.{source_data_dataset_id}.pat_enc_hsp` ph on ph.pat_enc_csn_id = pe.pat_enc_csn_id
+						left outer join `{source_data_project_id}.{source_data_dataset_id}.zc_pat_status` zps on zps.adt_patient_stat_c = ph.adt_patient_stat_c
+						left outer join `{source_data_project_id}.{source_data_dataset_id}.zc_disch_dest` zc_disch_dest on ph.disch_dest_c=zc_disch_dest.disch_dest_c
+						left outer join `som-rit-phi-starr-prod.shc_clarity_latest.zc_acuity_level` zal on ph.ACUITY_LEVEL_C=zal.ACUITY_LEVEL_C
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+				WHERE 
+						coalesce(pe.hosp_admsn_time, pe.appt_time, pe.contact_date) is not null
+						and cast(coalesce(pe.hosp_admsn_time, pe.appt_time, pe.contact_date) as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("encounters")
+		print (sql)
+		client.query(sql).result()
+
+def order_med():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_order_med` as
+                WITH ds AS (
+                  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_adt_event_id, offset_order_id, offset_inpatient_data_id
+                  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+                  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+                  where d.ds_study_id = 788
+                )
+				SELECT 
+						anon_id,
+						case when pat_enc_csn_id is null then null else pat_enc_csn_id+offset_pat_enc_csn_id end AS pat_enc_csn_id_coded,
+						order_med_id+offset_order_id AS order_med_id_coded,
+						date_add(ordering_date, interval jitter day) as ordering_date_jittered,
+						date_add(start_date, interval jitter day) as start_date_jittered,
+						date_add(end_date, interval jitter day) as end_date_jittered,
+						date_add(order_start_time, interval jitter day) as order_start_time_jittered,
+						date_add(order_end_time, interval jitter day) as order_end_time_jittered,
+						date_add(order_inst, interval jitter day) as order_inst_jittered,
+						om.medication_id,
+						description as med_description,
+						amb_med_disp_name,
+						om.order_class_c,
+						zc_order_class.name as order_class_name,
+						zc_om.ordering_mode_c,
+						zc_om.name as ordering_mode,
+						sig,
+						quantity,
+						refills,
+						med_presc_prov_id,
+						authrzing_prov_id,
+						ord_creatr_user_id,
+						om.med_route_c,
+						zc_admin_route.name as med_route,
+						date_add(discon_time, interval jitter day) as discon_time_jittered,
+						case when chng_order_med_id is null then null else chng_order_med_id+offset_order_id end AS chng_order_med_id_coded,
+						hv_discr_freq_id,
+						ip_frequency.freq_name,
+						ip_frequency.display_name as freq_display_name,
+						freq_type,
+						number_of_times,
+						time_unit,
+						prn_yn,
+						freq_period,
+						hv_discrete_dose,
+						hv_dose_unit_c,
+						zc_med_unit.name as hv_dose_unit,
+						om.order_status_c,
+						zc_order_status.name as order_status,
+						min_discrete_dose,
+						max_discrete_dose,
+						dose_unit_c,
+						zc_med_unit1.name as dose_unit,
+						lastdose,
+						serv_area_id,
+						clarity_medication.equip_status_yn,
+						zc_pharm_class.name as pharm_class_name,
+						zc_thera_class.name as thera_class_name,
+						zc_pharm_class.abbr as pharm_class_abbr,
+						zc_thera_class.abbr as thera_class_abbr,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p
+						JOIN {source_data_project_id}.{source_data_dataset_id}.order_med om on om.pat_id=p.pat_id
+						LEFT JOIN `{source_data_project_id}.{source_data_dataset_id}.zc_order_class` zc_order_class on zc_order_class.order_class_c = om.order_class_c
+						LEFT JOIN  `{source_data_project_id}.{source_data_dataset_id}.zc_admin_route` zc_admin_route on zc_admin_route.med_route_c = om.med_route_c
+						LEFT JOIN  `{source_data_project_id}.{source_data_dataset_id}.ip_frequency` ip_frequency on om.HV_DISCR_FREQ_ID = ip_frequency.freq_id
+						LEFT JOIN  `{source_data_project_id}.{source_data_dataset_id}.zc_med_unit` zc_med_unit on om.HV_DOSE_UNIT_C = zc_med_unit.DISP_QTYUNIT_C
+						LEFT JOIN  `{source_data_project_id}.{source_data_dataset_id}.zc_order_status` zc_order_status on om.order_status_c = zc_order_status.order_status_c
+						LEFT JOIN  `{source_data_project_id}.{source_data_dataset_id}.zc_med_unit` zc_med_unit1 on om.dose_unit_c = zc_med_unit1.DISP_QTYUNIT_C
+						LEFT JOIN  `{source_data_project_id}.{source_data_dataset_id}.clarity_medication` clarity_medication on om.medication_id = clarity_medication.medication_id
+						LEFT JOIN  `{source_data_project_id}.{source_data_dataset_id}.zc_pharm_class` zc_pharm_class on clarity_medication.pharm_class_c = zc_pharm_class.pharm_class_c
+						LEFT JOIN  `{source_data_project_id}.{source_data_dataset_id}.zc_thera_class` zc_thera_class on clarity_medication.thera_class_c = zc_thera_class.thera_class_c
+						LEFT JOIN  `{source_data_project_id}.{source_data_dataset_id}.zc_ordering_mode` zc_om on zc_om.ordering_mode_c = om.ordering_mode_c
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+				WHERE 
+						ordering_date is not null
+						and cast(ordering_date as date) between '{date_from}' AND '{date_to}'; 
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("shc_order_med")
+		print (sql)
+		client.query(sql).result()
+
+def mapped_meds():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_mapped_meds` as
+  				SELECT distinct rx.medication_id, cm.name, rx.rxnorm_code as rxcui, cm.generic_name, str as rxcui_str
+				'SHC_CLARITY' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_order_med` om 
+						join `{source_data_project_id}.{source_data_dataset_id}.rxnorm_codes` rx on om.medication_id = rx.medication_id
+						join `{source_data_project_id}.{source_data_dataset_id}.clarity_medication` cm on om.medication_id = cm.medication_id
+						join `{source_data_project_id}.{source_data_dataset_id}.zc_simple_generic` sg on sg.simple_generic_c = cm.simple_generic_c
+						left join `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pharmacy_med_rxcui_map_2019` rxcui on rxcui.med_id = om.medication_id
+						where rx.line = 1; 
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("mapped_meds")
+		print (sql)
+		client.query(sql).result()
+
+
+def order_proc():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_order_proc` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_order_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				),
+				cpts as (
+				  select proc_id, cpt_code from (
+						select proc_id, cpt_code,
+						rank() over (partition by proc_id order by contact_date_real desc) as rnk
+						from `{source_data_project_id}.{source_data_dataset_id}.clarity_eap_ot`
+				  ) where rnk = 1
+				),
+				proc_ids as (
+				  select eap.proc_id, eap.proc_code
+				from
+				  `som-rit-phi-starr-prod.shc_clarity_latest.clarity_eap` eap
+				)
+				SELECT
+						anon_id,
+						case when p.order_proc_id is null then null else p.order_proc_id+offset_order_id end AS order_proc_id_coded,
+						case when p.pat_enc_csn_id is null then null else p.pat_enc_csn_id+offset_pat_enc_csn_id end AS pat_enc_csn_id_coded,
+						date_add(p.ordering_date, interval jitter day) as ordering_date_jittered,
+						ot.name AS order_type,
+						p.proc_id,
+						proc_ids.proc_code,
+						p.description,
+						p.display_name,
+						cpts.cpt_code,
+						oc.name AS order_class,
+						authrzing_prov_id,
+						ord_creatr_user_id,
+						ack_user_id,
+						BILLING_PROV_ID,
+						REFERRING_PROV_ID,
+						PROC_PERF_PROV_ID,
+						p.abnormal_yn,
+						ls.name AS lab_status,
+						os.name AS order_status,
+						p.quantity,
+						p.future_or_stand,
+						date_add(p.standing_exp_date, interval jitter day) as standing_exp_date_jittered,
+						p.standing_occurs ,
+						p.stand_orig_occur ,
+						rs.name AS radiology_status,
+						p.order_priority_c,
+						zcop.name as order_priority,
+						date_add(p.proc_bgn_time, interval jitter day) as proc_bgn_time_jittered,
+						date_add(p.proc_end_time, interval jitter day) as proc_end_time_jittered,
+						date_add(p.order_inst, interval jitter day) as order_inst_jittered,
+						date_add(p.instantiated_time, interval jitter day) as instantiated_time_jittered,
+						date_add(p.order_time, interval jitter day) as order_time_jittered,
+						date_add(p.result_time, interval jitter day) as result_time_jittered,
+						date_add(p.proc_start_time, interval jitter day) as proc_start_time_jittered,
+						p.stand_interval,
+						di.name AS discrete_interval,
+						p.problem_list_id ,
+						pc.name proc_pat_class,
+						date_add(p.proc_date, interval jitter day) as proc_date_jittered,
+						case when  p.chng_order_proc_id is null then null else p.chng_order_proc_id+offset_order_id  end AS chng_order_proc_id_coded ,
+						(select date_add(p2.last_stand_perf_dt, interval jitter day) from `{source_data_project_id}.{source_data_dataset_id}.order_proc_2` p2 where p2.order_proc_id=p.order_proc_id) AS last_stand_perf_dt_jittered,
+
+						(select date_add(p2.last_stand_perf_tm, interval jitter day) from `{source_data_project_id}.{source_data_dataset_id}.order_proc_2` p2 where p2.order_proc_id=p.order_proc_id) AS last_stand_perf_tm_jittered,
+						(select case when p2.parent_ce_order_id is null then null else p2.parent_ce_order_id+offset_order_id end from `{source_data_project_id}.{source_data_dataset_id}.order_proc_2` p2 where p2.order_proc_id=p.order_proc_id) AS parent_ce_order_id_coded,
+
+						(select department_id from `{source_data_project_id}.{source_data_dataset_id}.order_proc_2` p2
+							join `{source_data_project_id}.{source_data_dataset_id}.clarity_dep` dep on p2.pat_loc_id = dep.department_id
+							where p2.order_proc_id=p.order_proc_id) AS department_id, --patient location at the time order was placed
+
+						(select loc.name from `{source_data_project_id}.{source_data_dataset_id}.ord_spec_quest` lc
+							JOIN `{source_data_project_id}.{source_data_dataset_id}.zc_lvl_of_care` loc ON loc.level_of_care_c = lc.ord_quest_resp
+							where lc.order_id = p.order_proc_id and ord_quest_id = '108450') as level_of_care,
+
+						(select sr.name from `{source_data_project_id}.{source_data_dataset_id}.ord_spec_quest` se
+							JOIN `{source_data_project_id}.{source_data_dataset_id}.zc_pat_service` sr ON sr.hosp_serv_c = se.ord_quest_resp
+							where se.order_id = p.order_proc_id and ord_quest_id = '100687') as service,
+
+						(select
+						om.name from `{source_data_project_id}.{source_data_dataset_id}.order_proc_3` p3
+						join  `{source_data_project_id}.{source_data_dataset_id}.zc_ordering_mode` om on p3.ordering_mode_c = om.ordering_mode_c
+						where p3.order_id=p.order_proc_id) AS ordering_mode,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` pats 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON pats.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = pats.mrn
+						join `{source_data_project_id}.{source_data_dataset_id}.order_proc` p on pats.pat_id = p.pat_id
+						left outer join      `{source_data_project_id}.{source_data_dataset_id}.zc_order_type` ot on p.order_type_c = ot.order_type_c
+						left outer join      `{source_data_project_id}.{source_data_dataset_id}.zc_order_class` oc on p.order_class_c = oc.order_class_c
+						left outer join      `{source_data_project_id}.{source_data_dataset_id}.zc_lab_status` ls on p.lab_status_c = ls.lab_status_c
+						left outer join      `{source_data_project_id}.{source_data_dataset_id}.zc_order_status` os on p.order_status_c = os.order_status_c
+						left outer join      `{source_data_project_id}.{source_data_dataset_id}.zc_radiology_sts` rs on p.radiology_status_c = rs.radiology_status_c
+						left outer join      `{source_data_project_id}.{source_data_dataset_id}.zc_pat_class` pc on p.proc_pat_class_c = pc.adt_pat_class_c
+						left outer join      `{source_data_project_id}.{source_data_dataset_id}.zc_discrete_interv` di on p.discrete_interval = di.discrete_interv_c
+						left outer join      `som-rit-phi-starr-prod.shc_clarity_latest.ord_acknowledge` ack on p.order_proc_id = ack.order_id
+						left outer join      `som-rit-phi-starr-prod.shc_clarity_latest.zc_order_priority` zcop on p.order_priority_c = zcop.order_priority_c
+						left join cpts on p.proc_id = cpts.proc_id
+						left join proc_ids on p.proc_id = proc_ids.proc_id
+				WHERE 
+						ordering_date is not null
+						and cast(ordering_date as date) between '{date_from}' AND '{date_to}';
+
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+
+		print("order_proc")
+		print (sql)
+		client.query(sql).result()
+
+def shc_f_ip_hsp_admission():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_f_ip_hsp_admission` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						admit_source_c,
+						zc.name as admit_source_name,
+						cast (case when pat_enc_csn_id is null then null else pat_enc_csn_id+offset_pat_enc_csn_id end as numeric) as pat_enc_csn_id_jittered,
+						date_add(hosp_adm_date, interval jitter day) as hosp_adm_date_jittered,
+						date_add(hosp_disch_date, interval jitter day) as hosp_disch_date_jittered,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.f_ip_hsp_admission` a ON a.pat_id = p.pat_id
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.zc_adm_source` zc on a.POINT_OF_ORIGIN_C = zc.admit_source_c
+				WHERE 
+						HOSP_ADM_DATE is not null
+						and cast(HOSP_ADM_DATE as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_f_ip_hsp_admission")
+		print (sql)
+		client.query(sql).result()
+
+
+def procedure():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_procedure` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						line,
+						cast (case when pat_enc_csn_id is null then null else pat_enc_csn_id+offset_pat_enc_csn_id end as numeric) AS pat_enc_csn_id_coded,
+						px_id,
+						code,
+						description,
+						code_type,
+						date_add(start_date, interval jitter day) as start_date_jittered,
+						date_add(proc_date, interval jitter day) as proc_date_jittered,
+						date_add(adm_date_time, interval jitter day) as adm_date_time_jittered,
+						perf_prov_map_id,
+						billing_prov_map_id,
+						entry_prov_map_id,
+						dept_id as dep_map_id,
+						source,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.shc_procedure` shc_procedure  on shc_procedure.pat_id=p.pat_id
+				WHERE 
+						start_date is not null
+				and cast(start_date as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("procedure")
+		print (sql)
+		client.query(sql).result()
+
+
+def lab_result():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_lab_result` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_order_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						cast  (case when pat_enc_csn_id is null then null else pat_enc_csn_id+offset_pat_enc_csn_id end  as numeric) as pat_enc_csn_id_coded,
+						cast  ( external_id +offset_order_id as numeric) as order_id_coded,
+						date_add(order_time, interval jitter day) as order_time_jittered,
+						date_add(taken_time, interval jitter day) as taken_time_jittered,
+						date_add(result_time, interval jitter day) as result_time_jittered,
+						component_id,
+						line,
+						order_type,
+						proc_code,
+						group_lab_name,
+						lab_name,
+						base_name,
+						ord_value,
+						ord_num_value,
+						reference_low,
+						reference_high,
+						reference_unit,
+						result_in_range_yn,
+						result_flag,
+						auth_prov_map_id,
+						ordering_mode,
+						extended_value_comment,
+						extended_comp_comment,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.shc_lab_result` shc_lab_result on shc_lab_result.pat_id=p.pat_id
+				WHERE 
+						order_time is not null
+						and lab_name not in ('Date 1', 'Donor DOB','Partner DOB','Recipient DOB','Recipient Name','Phone Number','Partner Name','Donor Name','Patient Address','Patient ID','NAME ON REQUISITION')
+						and substr(lab_name, 1, 16) != 'Person COntacted'
+						and cast(order_time as date) between '{date_from}' AND '{date_to}';
+
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_lab_result")
+		print (sql)
+		client.query(sql).result()
+
+
+
+def flowsheet():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_flowsheet` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_inpatient_data_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						cast (case when inpatient_data_id is null then null else cast(inpatient_data_id as numeric) +offset_inpatient_data_id end AS numeric) AS inpatient_data_id_coded,
+						line,
+						template,
+						row_disp_name,
+						meas_value,
+						units,
+						date_add(recorded_time, interval jitter day) as recorded_time_jittered,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.shc_flowsheet` shc_flowsheet on shc_flowsheet.pat_id=p.pat_id
+				WHERE 
+						recorded_time is not null
+						and cast(recorded_time as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("flowsheet")
+		print (sql)
+		client.query(sql).result()
+
+def shc_culture_sensitivity():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_culture_sensitivity` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_order_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						case when o.order_proc_id is null then null else o.order_proc_id+offset_order_id end AS order_proc_id_coded,
+						o.line,
+						date_add(op.order_time, interval jitter day) as order_time_jittered,
+						date_add(op.result_time, interval jitter day) as result_time_jittered,
+						date_add(o.sens_obs_inst_tm, interval jitter day) as sens_obs_inst_tm_jittered,
+						date_add(o.sens_anl_inst_tm, interval jitter day) as sens_anl_inst_tm_jittered,
+						op.description,
+						o.sens_organism_sid,
+						co.NAME AS organism,
+						organism_quantity,
+						z.NAME AS antibiotic,
+						z1.NAME AS suscept,
+						o.sensitivity_value,
+						o.sensitivity_units,
+						o.sens_status_c,
+						o.sens_ref_range,
+						o.ANTIBIO_LNC_ID,
+						z2.NAME AS specimen_source,
+						z3.name as specimen_type,
+						l.resulting_lab_id,
+						l.llb_name,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.order_proc` op on p.pat_id = op.pat_id
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.order_results` results on op.order_proc_id = results.order_proc_id
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.order_sensitivity` o on op.order_proc_id=o.order_proc_id
+						LEFT JOIN `{source_data_project_id}.{source_data_dataset_id}.clarity_organism` co ON o.organism_id = co.organism_id
+						LEFT JOIN `{source_data_project_id}.{source_data_dataset_id}.zc_antibiotic` z ON o.antibiotic_c = z.antibiotic_c
+						LEFT JOIN `{source_data_project_id}.{source_data_dataset_id}.zc_suscept` z1 ON o.suscept_c = z1.suscept_c
+						LEFT JOIN `{source_data_project_id}.{source_data_dataset_id}.zc_specimen_source` z2 ON op.specimen_source_c = z2.internal_id
+						LEFT JOIN `{source_data_project_id}.{source_data_dataset_id}.zc_specimen_type` z3 ON op.specimen_type_c = z3.specimen_type_c
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.clarity_llb` l on results.resulting_lab_id = l.resulting_lab_id
+				WHERE 
+						o.result_date is not null
+						and cast(o.result_date as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_culture_sensitivity")
+		print (sql)
+		client.query(sql).result()
+
+def shc_order_quest():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_order_quest` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						distinct anon_id,
+						case when oq.order_id is null then null else oq.order_id+offset_order_id end AS order_proc_id_coded,
+						line,
+						cast(ord_quest_id as INT64)+53048 as ord_quest_id_jittered,
+						quest_name,
+						date_add(ORD_QUEST_DATE, interval jitter day) as ord_quest_date_jittered,
+						is_answr_byproc_yn,
+						ord_quest_comp,
+						ord_quest_resp,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.order_proc` op ON p.pat_id = op.pat_id
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.ord_spec_quest` oq on op.order_proc_id = oq.order_id
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.cl_qquest` q ON oq.ord_quest_id = q.quest_id
+                WHERE 
+						ord_quest_date is not null
+						and cast(ord_quest_date as date) between '{date_from}' AND '{date_to}';
+
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_order_quest")
+		print (sql)
+		client.query(sql).result()
+
+def shc_clinical_doc_meta():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_clinical_doc_meta` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						cast (case when note_csn_id is null then null else note_csn_id+offset_pat_enc_csn_id end as INT64) as pat_enc_csn_id_coded,
+						date_add(filing_date, interval jitter day) as filing_date_jittered,
+						date_add(note_date, interval jitter day) as note_date_jittered,
+						date_add(activity_date, interval jitter day) as activity_date_jittered,
+						author_prov_map_id,
+						effective_dept_id,
+						note_status_c,
+						note_status,
+						n.ambulatory,
+						ltr_status_c,
+						letter_status,
+						coalesce (cdt.description,'Other Note') as note_type,
+						date_add(effective_time, interval jitter day) as effective_time_jittered,
+						auth_lnked_prov_map_id,
+						cosign_prov_map_id,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.shc_note` n on n.pat_id=p.pat_id
+						LEFT outer join `{source_data_pat_project_id}.{source_data_pat_dataset_id}.clinical_note_type_mapping` cntm on n.note_code = cntm.note_code and cntm.ambulatory = n.ambulatory
+						LEFT outer join `{source_data_pat_project_id}.{source_data_pat_dataset_id}.clinical_document_type` cdt on cdt.type_id = cntm.classifier
+                WHERE 
+						n.FLAG_CONFIDENTIAL_TEST_RSRCH is null
+						and effective_time is not null
+						and cast(effective_time as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_clinical_doc_meta")
+		print (sql)
+		client.query(sql).result()
+
+def prov_map():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.prov_map` as
+				SELECT
+						shc_prov_id, lpch_prov_id, sm_prov_anon_id, prov_type,
+						active_status, dept_id, dept_name, dept_specialty, prov_specialty_1, prov_specialty_2, prov_specialty_3, specialty_or_dept
+
+				FROM 
+					`{source_data_pat_project_id}.{source_data_pat_dataset_id}.prov_map`;
+
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("prov_map")
+		print (sql)
+		client.query(sql).result()
+
+def shc_alert():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_alert` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						case when a.alt_id is null then null else  a.alt_id + 2155411 end alt_id_coded,
+						case when a.pat_csn is null then null else  a.pat_csn+offset_pat_enc_csn_id end pat_enc_csn_id_coded,
+						date_add(update_date, interval jitter day) as update_date_jittered,
+						trim(substr(replace(alert_desc,'"','""'),1,3000)) alert_desc,
+						general_alt_type_c,
+						alt_type.name alt_type,
+						alt_type.title alt_title ,
+						alt_type.abbr  ,
+						a.med_alert_type_c ,
+						med_alt_type.name med_alt_type ,
+						med_alt_type.title med_alt_title,
+						med_alt_type.abbr med_alt_type_abbr,
+						a.immun_id,
+						immun.name immun_name,
+						immun.abbreviation immun_abbreviation,
+						immun.immun_type,
+						a.bpa_locator_id,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `som-rit-phi-starr-prod.shc_clarity_latest.alert` a ON p.pat_id = a.pat_id
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_alt_type` alt_type ON alt_type.alt_type_c = a.general_alt_type_c
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_med_alert_type` med_alt_type ON med_alt_type.MED_ALERT_TYPE_C = a.med_alert_type_c
+						LEFT JOIN `{source_data_project_id}.{source_data_dataset_id}.clarity_immunzatn` immun ON immun.immunzatn_id = a.immun_id
+                WHERE 
+						update_date is not null
+						and cast(update_date as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_alert")
+		print (sql)
+		client.query(sql).result()
+
+
+def shc_alert_history():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_alert_history` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						case when a.alt_id is null then null else a.alt_id + 2155411 end as alt_id_coded,
+						case when alt_csn_id is null then null else  alt_csn_id + offset_pat_enc_csn_id end as alt_csn_id_coded,
+						date_add(update_date, interval jitter day) as update_date_jittered,
+						h.ALT_STATUS_C,
+						zc_alt_status.name zc_alt_status,
+						WAS_SHOWN_C,
+						zc_was_shown.name zc_was_shown,
+						BPA_TRGR_ACTION_C,
+						zc_action.name zc_action_name,
+						h.shown_place_c,
+						ZC_SHOWN_PLACE.name,
+						h.contact_date,
+						DATETIME(cast(alt_action_inst as timestamp),"America/Los_Angeles") as alt_action_inst ,
+						--EFN_UTC_TO_LOCAL(h.alt_action_inst) alt_action_inst,
+						h.user_id,
+						h.patient_dep_id,
+						clarity_dep.department_name,
+						h.alt_group_info,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `som-rit-phi-starr-prod.shc_clarity_latest.alert` a ON p.pat_id = a.pat_id
+						JOIN `som-rit-phi-starr-prod.shc_clarity_latest.alt_history` h on a.alt_id = h.alt_id
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_alt_status` zc_alt_status ON h.ALT_STATUS_C = zc_alt_status.ALT_STATUS_C
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_was_filtered` zc_was_shown ON zc_was_shown.WAS_FILTERED_C = h.WAS_SHOWN_C
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_lgl_action` zc_action ON h.BPA_TRGR_ACTION_C = zc_action.LGL_ACTION_C
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_shown_place` zc_shown_place ON ZC_SHOWN_PLACE.SHOWN_PLACE_C = h.SHOWN_PLACE_C
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.clarity_dep` clarity_dep ON clarity_dep.department_id = h.patient_dep_id
+                WHERE 
+						update_date is not null
+						and cast(update_date as date) between '{date_from}' AND '{date_to}';
+
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_alert_history")
+		print (sql)
+		client.query(sql).result()
+
+def shc_alt_com_action():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_alt_com_action` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						case when a.alt_id is null then null else  a.alt_id + 2155411 end as alt_id_coded,
+						case when alt_csn_id is null then null else  alt_csn_id + offset_pat_enc_csn_id end as alt_csn_id_coded,
+						alt_com_action.line,
+						date_add(alt_com_action.contact_date, interval jitter day) as contact_date_jittered,
+						alt_com_action.CM_CT_OWNER_ID,
+						alt_com_action.ACTION_TAKEN_C,
+						zc.name,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `som-rit-phi-starr-prod.shc_clarity_latest.alert` a ON p.pat_id = a.pat_id
+						JOIN `som-rit-phi-starr-prod.shc_clarity_latest.alt_com_action` alt_com_action on a.alt_id = alt_com_action.alert_id
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_alt_action_take` zc on alt_com_action.action_taken_c = zc.ALT_ACTION_TAKEN_C
+                WHERE 
+						update_date is not null
+						and cast(contact_date as date) between '{date_from}' AND '{date_to}';
+
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_alt_com_action")
+		print (sql)
+		client.query(sql).result()
+
+def shc_alerts_orders():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_alerts_orders` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_order_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						case when a.alt_id is null then null else  a.alt_id + 2155411 end as alt_id_coded,
+						case when ord.order_id is null then null else ord.order_id + offset_order_id end as order_id_coded,
+						case when alt_csn_id is null then null else  alt_csn_id + offset_pat_enc_csn_id end as alt_csn_id_coded,
+						date_add(update_date, interval jitter day) as update_date_jittered,
+						ord.line,
+						ord.MED_ALERTS_ACTN_C,
+						zc_action.name,
+						rx2.medication_id,
+						rx2.medication_name,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `som-rit-phi-starr-prod.shc_clarity_latest.alert` a ON p.pat_id = a.pat_id
+						JOIN `som-rit-phi-starr-prod.shc_clarity_latest.alt_ordinfo` ord on a.alt_id = ord.alt_id
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_med_alerts_actn` zc_action on ord.MED_ALERTS_ACTN_C = zc_action.MED_ALERTS_ACTN_C
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.rx_med_two` rx2 ON ord.medication_id = rx2.medication_id
+                WHERE 
+						update_date is not null
+						and cast(update_date as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_alerts_orders")
+		print (sql)
+		client.query(sql).result()
+
+def shc_myc_mesg():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_myc_mesg` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, 47385 as message_id_offset 
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						cast(mm.message_id as int64)+message_id_offset as offset_message_id,
+						cast(mm.PARENT_MESSAGE_ID as int64)+message_id_offset as offset_parent_message_id, 
+						cast(mm.INBASKET_MSG_ID as int64)+message_id_offset as offset_inbasket_msg_id,
+						mm.pat_enc_csn_id+offset_pat_enc_csn_id as offset_pat_enc_csn_id,
+						mt.line,
+						date_add(created_time, interval jitter day) as created_time_jittered,
+						date_add(mm.FINAL_HANDLED_TIME, interval jitter day) as final_handled_time_jittered,
+						mt.msg_txt,
+						zmm.name   AS message_type,
+						ztfp.name as to_or_from_pat,
+						mm.subject,
+						from_user_id,
+						to_user_id,
+						mm.prov_id,
+						dep.DEPARTMENT_NAME as routing_department_name,
+						rtf.line rtf_line,
+						rtf.rtf_txt,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.myc_mesg` mm on p.pat_id = mm.pat_id
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.msg_txt` mt ON mm.message_id = mt.message_id
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_myc_msg_typ`   zmm ON zmm.myc_msg_typ_c = mm.myc_msg_typ_c
+						LEFT JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_tofrom_pat` ztfp ON ztfp.TOFROM_PAT_C=mm.TOFROM_PAT_C
+						LEFT JOIN `{source_data_project_id}.{source_data_dataset_id}.clarity_dep` dep on dep.DEPARTMENT_ID=mm.DEPARTMENT_ID
+						left JOIN `{source_data_project_id}.{source_data_dataset_id}.clarity_emp` ce ON ce.user_id = mm.to_user_id
+						left JOIN `{source_data_project_id}.{source_data_dataset_id}.clarity_emp` ce2 ON ce2.user_id = mm.from_user_id
+						left join som-rit-phi-starr-prod.shc_clarity_latest.myc_mesg_rtf_text rtf on mm.message_id = rtf.message_id
+                WHERE 
+						mm.pat_enc_csn_id is not null
+						and  (mt.msg_txt is not null or rtf.rtf_txt is not null)
+						and mm.created_time is not null
+						and cast(created_time as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_myc_mesg")
+		print (sql)
+		client.query(sql).result()
+
+def ib_messages():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_ib_messages` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, 47385 as message_id_offset
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						cast(mm.msg_id as int64)+message_id_offset as offset_msg_id,
+						mm.msg_type_c,
+						zmm.name as msg_type,
+						date_add(create_time, interval jitter day) as create_time_jittered,
+						date_add(mm.send_on, interval jitter day) as send_on_jittered,
+						sender_user_id,
+						mm.pat_enc_csn_id+offset_pat_enc_csn_id as offset_pat_enc_csn_id,
+						mm.status_c,
+						zcs.name as status,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.ib_messages` mm on p.pat_id = mm.pat_id
+						JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_msg_type`   zmm ON zmm.MSG_TYPE_C = mm.MSG_TYPE_C
+						JOIN `som-rit-phi-starr-prod.shc_clarity_latest.zc_status`   zcs ON zcs.status_c = mm.status_c
+                WHERE 
+						mm.pat_enc_csn_id is not null
+						and create_time is not null
+						and cast(create_time as date) between '{date_from}' AND '{date_to}';
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("ib_messages")
+		print (sql)
+		client.query(sql).result()
+
+
+def shc_order_comment():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_order_comment` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_order_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						cast (op.order_proc_id +offset_order_id as numeric) as order_proc_id_coded,
+						date_add(op.order_inst, interval jitter day) as order_inst_jittered,
+						oc.line, oc.ordering_comment,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						join `{source_data_project_id}.{source_data_dataset_id}.order_proc` op on p.pat_id = op.pat_id
+						join `som-rit-phi-starr-prod.shc_clarity_latest.order_comment` oc on oc.order_id = op.order_proc_id
+                WHERE 
+						oc.line is not null
+						AND order_inst is not null
+						and cast(order_inst as date) between '{date_from}' AND '{date_to}';
+
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_order_comment")
+		print (sql)
+		client.query(sql).result()
+
+def shc_drg_code():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_drg_code` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						case when pat_enc_csn_id is null then null else pat_enc_csn_id+offset_pat_enc_csn_id end AS pat_enc_csn_id_coded,
+						drg_mpi_code,
+						hsp_acct_mult_drgs.drg_id, clarity_drg.DRG_CODE_SET_C,
+						clarity_drg.drg_name,
+						drg_weight,
+						clarity_drg.drg_case_type_c,
+						zc_drg_case_type.name as zc_drg_case_type_name,
+						zc_drg.name as zc_drg_code_set_name,
+						clarity_drg.drg_number,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{source_data_project_id}.{source_data_dataset_id}.hsp_acct_mult_drgs` hsp_acct_mult_drgs
+						join `{source_data_project_id}.{source_data_dataset_id}.clarity_drg` clarity_drg on hsp_acct_mult_drgs.drg_id=clarity_drg.drg_id
+						join `{source_data_project_id}.{source_data_dataset_id}.pat_enc_hsp` pat_enc_hsp on hsp_acct_mult_drgs.hsp_account_id=pat_enc_hsp.hsp_account_id
+						left join som-rit-phi-starr-prod.shc_clarity_latest.zc_drg_code_set zc_drg on zc_drg.DRG_CODE_SET_C = clarity_drg.DRG_CODE_SET_C
+						left join som-rit-phi-starr-prod.shc_clarity_latest.zc_drg_case_type zc_drg_case_type on zc_drg_case_type.drg_case_type_c = clarity_drg.drg_case_type_c
+						join `{target_data_project_id}.{target_data_dataset_id}.shc_patients` p on pat_enc_hsp.pat_id=p.pat_id 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+                WHERE 
+						coalesce(pat_enc_hsp.ADT_ARRIVAL_TIME, pat_enc_hsp.HOSP_ADMSN_TIME) is not null
+						and cast(pat_enc_hsp.ADT_ARRIVAL_TIME as date) between '{date_from}' AND '{date_to}'; 
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("shc_drg_code")
+		print (sql)
+		client.query(sql).result()
+
+def geolocation():
+		"""
+		Intermediate table, doesn't get copied to Jon's project
+		"""
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.geolocation` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						location_source_value,
+						trim(REGEXP_EXTRACT(location_source_value, r'([^|]+)')) AS mrn,
+						latitude, longitude
+				FROM 
+						`som-rit-phi-starr-prod.starr_omop_cdm5_latest.location`
+				WHERE 
+						load_table_id in ('shc_patient', 'lpch_patient');
+
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("geolocation")
+		print (sql)
+		client.query(sql).result()
+
+
+def geolocation_from_omop():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.geolocation_from_omop` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id, latitude, longitude
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.geolocation` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("geolocation_from_omop")
+		print (sql)
+		client.query(sql).result()
+
+def shc_map():
+
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_map` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_order_id, offset_inpatient_data_id, 47385 as message_id_offset
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						p.mrn, anon_id, jitter,  offset_pat_enc_csn_id, offset_order_id, offset_inpatient_data_id, message_id_offset
+				FROM 
+                        `{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+                        JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+                        JOIN ds ON ds.orig_phi = p.mrn
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("mapping")
+		print (sql)
+		client.query(sql).result()
+
+def smartdata():
+		client = bigquery.Client(project=target_data_project_id)
+		sql = """
+				CREATE OR REPLACE TABLE `{target_data_project_id}.{target_data_dataset_id}.shc_smrtdta` as
+				WITH ds AS (
+				  select anon_id, orig_phi, jitter, offset_pat_enc_csn_id, offset_order_id
+				  from `{target_data_project_id}.{target_data_dataset_id}.ds_study` d
+				  join `{target_data_project_id}.{target_data_dataset_id}.ds_entity_in_study` de on d.ds_study_id = de.study_id
+				  where d.ds_study_id = 788
+				)
+				SELECT
+						anon_id,
+						cast  (case when contact_serial_num is null then null else contact_serial_num+offset_pat_enc_csn_id end  as numeric) as pat_enc_csn_id_coded,
+						date_add(cur_value_datetime, interval jitter day) as cur_value_datetime_jittered,
+						concept_id, smrtdta_elem_value.smrtdta_elem_value,
+						'CLARITY_SHC' as data_source
+				FROM 
+						`{target_data_project_id}.{target_data_dataset_id}.shc_patients` p 
+						JOIN `{source_data_pat_project_id}.{source_data_pat_dataset_id}.pat_map` pat_map ON p.mrn = pat_map.mrn
+						JOIN ds ON ds.orig_phi = p.mrn
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.smrtdta_elem_data` smrtdta_elem_data ON pat_link_id = p.pat_id
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.smrtdta_elem_value` smrtdta_elem_value on smrtdta_elem_data.HLV_ID=smrtdta_elem_value.HLV_ID
+						JOIN `{source_data_project_id}.{source_data_dataset_id}.clarity_concept` on concept_id=element_id
+				WHERE 
+						concept_id = 'SHC#6051'
+
+        """.format_map({
+                'target_data_project_id': target_data_project_id,
+                'target_data_dataset_id': target_data_dataset_id,
+                'source_data_dataset_id': source_data_dataset_id,
+                'source_data_pat_dataset_id': source_data_pat_dataset_id,
+                'source_data_project_id': source_data_project_id,
+                'source_data_pat_project_id': source_data_pat_project_id,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+			})
+
+		print("smartdata")
+		print (sql)
+		client.query(sql).result()
+
+def copy_tables():
+
+
+		print("copy_tables")
+
+		exclude_table_names = ["ds_entity_in_study", "ds_study", "shc_map", "geolocation", "shc_new_pats", "notes"]
+
+		client = bigquery.Client(project=target_data_project_id)
+		source_dataset_ref = f"{target_data_project_id}.{target_data_dataset_id}"
+		tables = client.list_tables(source_dataset_ref)
+
+		tables_to_copy = [
+			table.table_id for table in tables
+				#if table.table_id not in exclude_table_names and not table.table_id.startswith("ds_entity")
+				if table.table_id.startswith("shc_") and table.table_id not in exclude_table_names and not table.table_id.startswith("ds_entity")
+		]
+
+		for table_id in tables_to_copy:
+				source_table_ref = f"{target_data_project_id}.{target_data_dataset_id}.{table_id}"
+				target_table_ref = f"{client_data_project_id}.{client_data_dataset_id}.{table_id}"
+
+				#job_config = bigquery.CopyJobConfig()
+				job_config = bigquery.CopyJobConfig(
+					write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE  # Overwrite if table exists
+				)
+
+				copy_job = client.copy_table(source_table_ref, target_table_ref, job_config=job_config)
+				copy_job.result()  # Waits for the job to complete
+
+				print(f"Copied table {table_id}")
+
+
+def copy_mapping_table():
+
+		print("copy_mapping_table")
+
+		source_table_ref = f"{target_data_project_id}.{target_data_dataset_id}.shc_map"
+		target_table_ref = f"{client_data_project_id}.{client_mapping_dataset_id}.shc_map_{date_to}"
+
+		print(f"source_table_ref: {source_table_ref}")
+		print(f"target_table_ref: {target_table_ref}")
+
+
+		client = bigquery.Client(project=target_data_project_id)
+
+		job_config = bigquery.CopyJobConfig(
+			write_disposition=bigquery.WriteDisposition.WRITE_TRUNCATE  # Overwrite if table exists
+		)
+
+		copy_job = client.copy_table(source_table_ref, target_table_ref, job_config=job_config)
+		copy_job.result()  # Waits for the job to complete
+
+		print(f"Copied table shc_map")
+
+
+def main(data, context):
+
+	try:
+		try:
+			create_backup_ds_entity_in_study()
+		except Exception as e:
+			raise Exception('create_backup_ds_entity_in_study' + str(e))
+		try:
+			extract_patients()
+		except Exception as e:
+			raise Exception('extract_patients' + str(e))
+		try:
+			create_shc_new_pats()
+		except Exception as e:
+			raise Exception('create_shc_new_pats' + str(e))
+		try:
+			insert_new_pats()
+		except Exception as e:
+			raise Exception('insert_new_pats' + str(e))
+		try:
+			check_duplicates_anon_id()
+		except Exception as e:
+			raise Exception('check_duplicates_anon_id' + str(e))
+		try:
+			check_duplicates_orig_phi()
+		except Exception as e:
+			raise Exception('check_duplicates_orig_phi' + str(e))
+		try:
+			ndc_codes()
+		except Exception as e:
+			raise Exception('ndc_codes' + str(e))
+		try:
+			demographics()
+		except Exception as e:
+			raise Exception('demographics' + str(e))
+		try:
+			social_hx()
+		except Exception as e:
+			raise Exception('social_hx' + str(e))
+		try:
+			adt()
+		except Exception as e:
+			raise Exception('adt' + str(e))
+		try:
+			family_hx()
+		except Exception as e:
+			raise Exception('family_hx' + str(e))
+		try:
+			allergy()
+		except Exception as e:
+			raise Exception('allergy' + str(e))
+		try:
+			proc_orderset()
+		except Exception as e:
+			raise Exception('proc_orderset' + str(e))
+		try:
+			med_orderset()
+		except Exception as e:
+			raise Exception('med_orderset' + str(e))
+		try:
+			pharmacy_mar()
+		except Exception as e:
+			raise Exception('pharmacy_mar' + str(e))
+		try:
+			treatment_team()
+		except Exception as e:
+			raise Exception('treatment_team' + str(e))
+		try:
+			dep_map()
+		except Exception as e:
+			raise Exception('dep_map' + str(e))
+		try:
+			lda()
+		except Exception as e:
+			raise Exception('lda' + str(e))
+		try:
+			diagnoses()
+		except Exception as e:
+			raise Exception('diagnoses' + str(e))
+		try:
+			encounters()
+		except Exception as e:
+			raise Exception('encounters' + str(e))
+		try:
+			order_med()
+		except Exception as e:
+			raise Exception('shc_order_med' + str(e))
+		try:
+			order_proc()
+		except Exception as e:
+			raise Exception('shc_order_proc' + str(e))
+		try:
+			shc_f_ip_hsp_admission()
+		except Exception as e:
+			raise Exception('shc_f_ip_hsp_admission' + str(e))
+		try:
+			procedure()
+		except Exception as e:
+			raise Exception('procedure' + str(e))
+		try:
+			lab_result()
+		except Exception as e:
+			raise Exception('lab_result' + str(e))
+		try:
+			flowsheet()
+		except Exception as e:
+			raise Exception('flowsheet' + str(e))
+		try:
+			shc_culture_sensitivity()
+		except Exception as e:
+			raise Exception('shc_culture_sensitivity' + str(e))
+		try:
+			shc_culture_sensitivity()
+		except Exception as e:
+			raise Exception('shc_order_quest' + str(e))
+		try:
+			shc_clinical_doc_meta()
+		except Exception as e:
+			raise Exception('shc_clinical_doc_meta' + str(e))
+		try:
+			prov_map()
+		except Exception as e:
+			raise Exception('prov_map' + str(e))
+		try:
+			shc_alert()
+		except Exception as e:
+			raise Exception('shc_alert' + str(e))
+		try:
+			shc_alert_history()
+		except Exception as e:
+			raise Exception('shc_alert_history' + str(e))
+		try:
+			shc_alerts_orders()
+		except Exception as e:
+			raise Exception('shc_alerts_orders' + str(e))
+		try:
+			shc_myc_mesg()
+		except Exception as e:
+			raise Exception('shc_myc_mesg' + str(e))
+		try:
+			ib_messages()
+		except Exception as e:
+			raise Exception('ib_messages' + str(e))
+		try:
+			shc_order_comment()
+		except Exception as e:
+			raise Exception('shc_order_comment' + str(e))
+		try:
+			shc_drg_code()
+		except Exception as e:
+			raise Exception('shc_drg_code' + str(e))
+		try:
+			geolocation()
+		except Exception as e:
+			raise Exception('geolocation' + str(e))
+		try:
+			geolocation_from_omop()
+		except Exception as e:
+			raise Exception('geolocation_from_omop' + str(e))
+		try:
+			shc_map()
+		except Exception as e:
+			raise Exception('shc_map' + str(e))
+		try:
+			smartdata()
+		except Exception as e:
+			raise Exception('smartdata' + str(e))
+		try:
+			copy_tables()
+		except Exception as e:
+			raise Exception('copy_tables' + str(e))
+		try:
+			copy_mapping_table()
+		except Exception as e:
+			raise Exception('copy_mapping_table' + str(e))
+	except Exception as err:
+		print('Error in function ' + str(err))
+		#recipients = ['yelena@stanford.edu']
+		#send_email('Error in Cloud Function', error_message, recipients)
+		#TODO - figure out notification on failure
+
+if __name__ == '__main__':
+    main('data', 'context')

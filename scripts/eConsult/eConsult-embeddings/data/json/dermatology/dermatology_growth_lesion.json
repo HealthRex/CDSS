@@ -1,0 +1,43 @@
+[
+  {
+    "My Clinical Question (condition: Growth/Lesion)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Photos (see clinical pearls)": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [],
+        "Optional": []
+      },
+      "Clinical Pearls": [
+        {
+          "Instructions for attached photo(s)": [
+            {
+              "Upload two photos of the patient’s skin condition that are 4 inches and 12 inches away. Label the photos with brief description and location": "***"
+            },
+            {
+              "Photo tips": [
+                {
+                  "Use daylight ideally or similar lighting": "***"
+                },
+                {
+                  "Make sure the photo is in focus—touch the lesion on the screen to focus on the lesion. Take an additional photo with a dermatoscope if available": "***"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

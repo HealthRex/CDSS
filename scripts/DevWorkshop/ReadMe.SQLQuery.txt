@@ -411,6 +411,31 @@ SQL Queries and Databases
 		and appt_status = 'Completed'
 		and extract(YEAR from enc.appt_time_jittered) = params.cohortYear -- Match to an individual parameter value
 
+
+
+= More Examples =
+- Top Inpatient Oral Medications in 2024
+SELECT
+  medication_id, max(med_description) as description,
+  count(*) as totalOrders, -- Result column renaming/aliasing for convenience
+  count(distinct anon_id) as totalPatients,
+  count(distinct pat_enc_csn_id_coded) as totalEncounters,
+  sum(max_discrete_dose) sumMaxDoses
+FROM
+  som-nero-phi-jonc101.shc_core_2024.order_med
+WHERE
+  ordering_mode_c = 2 AND -- Inpatient 
+  med_route_c in (15) AND -- Oral
+  prn_yn <> 'Y' AND -- Ignore PRN orders
+  freq_name NOT LIKE '%ONCE%' AND -- Ignore one-time orders
+  order_inst_jittered >= '2024-01-01' and order_inst_jittered < '2025-01-01'
+group by medication_id
+order by totalEncounters desc
+LIMIT 100
+
+
+
+
 - Challenge Queries
   - Top 10 Diagnoses recorded in 2017? In 2018?
   - Top 5 medication routes of administration in Inpatient setting in 2017?

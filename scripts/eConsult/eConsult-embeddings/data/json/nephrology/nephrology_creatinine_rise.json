@@ -1,0 +1,80 @@
+[
+  {
+    "My Clinical Question (condition: creatinine rise)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Baseline creatinine": "***"
+          },
+          {
+            "Medications, including over-the-counter": "***"
+          },
+          {
+            "Pertinent co-morbidities": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Do you suspect overdiuresis?": "***"
+          },
+          {
+            "Do you suspect urinary obstruction?": "***"
+          },
+          {
+            "Does the patient have proteinuria?": "***"
+          },
+          {
+            "Is the patient currently taking NSAIDS?": "***"
+          },
+          {
+            "Is the patient taking any medications that could be harmful to the kidneys? If yes, please state which medications and whether they have been discontinued": "***"
+          }
+        ]
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "Repeat BMP": "***"
+          },
+          {
+            "UA with microscopy": "***"
+          },
+          {
+            "Renal ultrasound (kidney ultrasound)": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Serum Protein Electrophoresis (SPEP)": "***"
+          },
+          {
+            "Urine Albumin (If patient has proteinuria)": "***"
+          },
+          {
+            "Urine Protein Electrophoresis (UPEP) (Within 3 months)": "***"
+          },
+          {
+            "Urine Creatinine (If patient has proteinuria)": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        {
+          "With rapidly changing creatinine or electrolytes, volume overload, or symptoms – consider ER evaluation": "***"
+        },
+        {
+          "Consider med effects: hold ACE/ARBs, NSAIDS, Bactrim; possible over diuresis?": "***"
+        },
+        {
+          "When starting ACE/ARB, tolerate ACE-related decrease in GFR if <30% decrease and if potassium <5.5": "***"
+        }
+      ]
+    }
+  }
+]

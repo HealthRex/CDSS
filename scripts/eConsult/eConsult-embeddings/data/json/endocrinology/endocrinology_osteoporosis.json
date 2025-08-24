@@ -1,0 +1,80 @@
+[
+  {
+    "specialist": "Endocrinology"
+  },
+  {
+    "template": "Osteoporosis"
+  },
+  {
+    "My Clinical Question (condition: osteoporosis)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Has patient ever had a fracture? If yes, was it a fragility fracture?": "***"
+          },
+          {
+            "If female, is the patient pre- or post-menopausal?": "***"
+          },
+          {
+            "What are patient’s bone density results?": "***"
+          },
+          {
+            "Is there a family history of fracture, particularly hip fracture?": "***"
+          },
+          {
+            "Has the patient been treated with prednisone or other glucocorticoids?": "***"
+          },
+          {
+            "Has the patient had amenorrhea? Any history of growth or development delay?": "***"
+          },
+          {
+            "Does the patient have any renal or gastrointestinal issues?": "***"
+          },
+          {
+            "What is the patient’s treatment history with osteoporosis?": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "Any history of organ transplant?": "***"
+          },
+          {
+            "Any intolerance or contraindications to oral bisphosphonates? (If yes, please describe)": "***"
+          },
+          {
+            "Has the patient had a fracture while taking an oral bisphosphonate?": "***"
+          },
+          {
+            "Is GFR < 35?": "***"
+          }
+        ],
+        "Diagnostics": {
+          "Required": [
+            {
+              "Vitamin D Levels": "***"
+            },
+            {
+              "Comprehensive Metabolic Panel (CMP)": "***"
+            },
+            {
+              "DXA Scan": "***"
+            },
+            {
+              "Parathyroid Hormone (PTH)": "***"
+            },
+            {
+              "Phosphorus (P)": "***"
+            }
+          ],
+          "Optional": []
+        }
+      }
+    }
+  }
+]

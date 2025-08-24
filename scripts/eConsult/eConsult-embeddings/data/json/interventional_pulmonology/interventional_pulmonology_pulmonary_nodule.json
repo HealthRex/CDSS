@@ -1,0 +1,44 @@
+[
+  {
+    "My Clinical Question (condition: pulmonary nodule)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Smoking history": "***"
+        },
+        {
+          "Personal history of malignancy": "***"
+        },
+        {
+          "Family history of malignancy": "***"
+        },
+        {
+          "Known duration of nodule": "***"
+        },
+        {
+          "Any outside studies": "***"
+        }
+      ],
+      "Diagnostics": {
+        "Required": [
+          {
+            "CT chest (CT without contrast sufficient)": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        {
+          "PCP can follow incidental nodules < 6 mm as per Fleischner criteria and refer with growth": "***"
+        },
+        {
+          "Refer any nodule >= 6 mm, multiple nodules, high degree of suspicion for malignancy, or high-risk comorbidities": "***"
+        }
+      ]
+    }
+  }
+]

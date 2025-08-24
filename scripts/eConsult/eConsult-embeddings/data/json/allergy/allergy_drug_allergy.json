@@ -1,0 +1,39 @@
+[
+  {
+    "My Clinical Question (condition: Drug Allergy)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": [
+      {
+        "Specific drug trigger": "***"
+      },
+      {
+        "Symptoms": "***"
+      },
+      {
+        "Blisters": "{Yes/No}"
+      },
+      {
+        "Timing after exposure": "***"
+      },
+      {
+        "Duration of reaction": "***"
+      },
+      {
+        "Last reaction": "***"
+      },
+      {
+        "Indication for medication in question": "***"
+      }
+    ]
+  },
+  {
+    "Tests recommended by Allergy": []
+  },
+  {
+    "Clinical Pearls": []
+  }
+]

@@ -1,0 +1,39 @@
+[
+  {
+    "specialist": "Gynecology"
+  },
+  {
+    "template": "Other"
+  },
+  {
+    "My Clinical Question (condition: other)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include the following assessments and/or diagnostics": {
+      "Assessments": {
+        "Required": [
+          {
+            "Pertinent symptoms": "***"
+          },
+          {
+            "Pertinent labs": "***"
+          },
+          {
+            "Pertinent medications": "***"
+          },
+          {
+            "Pertinent physical exam features": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics_": []
+    }
+  },
+  {
+    "Clinical Pearls": []
+  }
+]

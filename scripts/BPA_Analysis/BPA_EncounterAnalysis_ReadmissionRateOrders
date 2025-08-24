@@ -1,0 +1,128 @@
+-- Build detailed readmission events within 30 days of discharge into a TEMP table,
+-- using admit/observation ORDERS (order_proc) to define readmissions.
+-- Returns: (1) detailed listing and (2) overall summary.
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 0) Create TEMP TABLE with detailed rows
+-- ────────────────────────────────────────────────────────────────────────────
+CREATE TEMP TABLE readmission_details AS
+WITH random_flag AS (
+  SELECT 
+    anon_id, 
+    pat_enc_csn_id_coded, 
+    smrtdta_elem_value AS random_flag 
+  FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_smrtdta` 
+  WHERE concept_id = 'SHC#6051'
+),
+
+-- Index discharges (from discharge orders to anchor the index event/time window)
+discharges_selected AS (
+  SELECT
+    o.anon_id,
+    o.pat_enc_csn_id_coded                                 AS index_encounter,
+    MIN(o.order_time_jittered)                             AS order_first_discharge_time,
+    MAX(o.order_time_jittered)                             AS order_last_discharge_time,
+    ARRAY_AGG(o.description ORDER BY o.order_time_jittered DESC LIMIT 1)[OFFSET(0)]
+                                                           AS order_last_description,
+    -- Anchor timestamp aligned to prior CTE: last discharge-order time
+    MAX(o.order_time_jittered)                             AS dis_time
+  FROM `som-nero-phi-jonc101.shc_core_2024.order_proc` o
+  INNER JOIN `som-nero-phi-jonc101-secure.shc_core_updates.shc_dep_map` d USING (department_id)
+  INNER JOIN `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-04-15` m USING (anon_id)
+  WHERE
+    LOWER(o.description) LIKE 'discharge patient%'
+    AND (
+      UPPER(d.department_name) LIKE 'B3' OR
+      UPPER(d.department_name) LIKE 'C3' OR
+      UPPER(d.department_name) LIKE 'M7' OR
+      UPPER(d.department_name) LIKE 'L7' OR
+      UPPER(d.department_name) LIKE '1%WEST%' OR
+      UPPER(d.department_name) LIKE '2%NORTH%' OR
+      UPPER(d.department_name) LIKE '2%WEST%' OR
+      UPPER(d.department_name) LIKE '3%WEST%'
+    )
+    AND o.order_time_jittered - INTERVAL m.jitter DAY
+        BETWEEN '2024-08-15' AND '2025-03-15'
+  GROUP BY o.anon_id, index_encounter
+),
+
+
+-- Readmissions from ORDERS: collapse to ONE row per (anon_id, encounter),
+-- using the EARLIEST qualifying order_time_jittered as the admission time.
+admissions_from_orders AS (
+  SELECT
+    anon_id,
+    pat_enc_csn_id_coded AS readmit_encounter,
+    MIN(order_time_jittered) AS adm_time
+  FROM `som-nero-phi-jonc101.shc_core_2024.order_proc`
+  WHERE
+    LOWER(display_name) LIKE 'admit to inpatient%'
+    OR LOWER(display_name) LIKE 'place in observation%'
+  GROUP BY anon_id, readmit_encounter
+),
+
+-- Link each discharge to any readmission ORDER within 30 days (different CSN)
+readmissions_detail AS (
+  SELECT
+    d.anon_id,
+    d.index_encounter,
+    d.dis_time,
+    a.readmit_encounter,
+    a.adm_time
+  FROM discharges_selected d
+  LEFT JOIN admissions_from_orders a
+    ON a.anon_id = d.anon_id
+   AND a.readmit_encounter != d.index_encounter
+   AND a.adm_time > d.dis_time
+   AND a.adm_time <= d.dis_time + INTERVAL 30 DAY
+),
+
+with_flags AS (
+  SELECT
+    rf.random_flag,
+    r.*
+  FROM readmissions_detail r
+  INNER JOIN random_flag rf
+    ON r.anon_id = rf.anon_id
+   AND r.index_encounter = rf.pat_enc_csn_id_coded
+)
+
+SELECT * FROM with_flags;
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 1) Detailed listing
+-- ────────────────────────────────────────────────────────────────────────────
+SELECT
+  random_flag,
+  anon_id,
+  index_encounter,
+  dis_time,
+  readmit_encounter,
+  adm_time
+FROM readmission_details
+ORDER BY random_flag, anon_id, dis_time, adm_time;
+
+-- ────────────────────────────────────────────────────────────────────────────
+-- 2) Summary statistics (overall; denominator = ALL index encounters by flag)
+-- ────────────────────────────────────────────────────────────────────────────
+SELECT
+  random_flag,
+  COUNT(DISTINCT index_encounter) AS total_index_encounters,
+
+  -- Any readmission (any qualifying order)
+  COUNT(DISTINCT IF(readmit_encounter IS NOT NULL, index_encounter, NULL)) AS encounters_with_ge_1_readmit_30d,
+  COUNTIF(readmit_encounter IS NOT NULL) AS total_readmission_events_30d,
+
+  SAFE_DIVIDE(
+    COUNT(DISTINCT IF(readmit_encounter IS NOT NULL, index_encounter, NULL)),
+    COUNT(DISTINCT index_encounter)
+  ) AS pct_with_ge_1_readmit_30d,
+
+  SAFE_DIVIDE(
+    COUNTIF(readmit_encounter IS NOT NULL),
+    COUNT(DISTINCT index_encounter)
+  ) AS mean_readmit_events_per_index_encounter_30d
+
+FROM readmission_details
+GROUP BY random_flag
+ORDER BY random_flag;

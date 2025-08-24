@@ -1,1 +1,5 @@
 csv_folder/*
+Embedding_Pilot_Exp/data/*
+Embedding_Pilot_Exp/error_checking/*
+Embedding_Pilot_Exp/strictest/*
+Embedding_Pilot_Exp/.env

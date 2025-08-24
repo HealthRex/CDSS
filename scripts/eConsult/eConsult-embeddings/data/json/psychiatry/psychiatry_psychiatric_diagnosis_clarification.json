@@ -1,0 +1,35 @@
+[
+  {
+    "My Clinical Question (condition: Psychiatric Diagnosis Clarification)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Current psychiatric diagnosis": "***"
+        },
+        {
+          "Elements of interview concerning for incorrect/unclear diagnosis": "***"
+        },
+        {
+          "Current and past medications": "***"
+        },
+        {
+          "Co-morbid conditions (insomnia, substance use include tobacco and caffeine, OSA, hyper/hypothyroidism, neurological disorders)": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "PHQ9/GAD7 if applicable": "***"
+        },
+        {
+          "CBC, TSH, CMP, vitamin D, vitamin B12, folate, RPR if applicable": "***"
+        }
+      ],
+      "Clinical Pearls": []
+    }
+  }
+]

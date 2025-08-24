@@ -1,0 +1,51 @@
+[
+  {
+    "My Clinical Question (condition: Bipolar)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Onset, duration and timing of symptoms": "***"
+        },
+        {
+          "Co-morbid conditions (insomnia, substance use include tobacco and caffeine, OSA, hyper/hypothyroidism, neurological disorders)": "***"
+        },
+        {
+          "Any current/historical psychiatric medications": "***"
+        },
+        {
+          "Any current psychiatric providers/therapists?": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "PHQ9 if patient is in depressive state": "***"
+        },
+        {
+          "Lithium, lamotrigine,valproic acid, or carbemazapine levels (if on these medications)": "***"
+        },
+        {
+          "Lipid and fasting glucose/HA1c (if on an antipsychotic)": "***"
+        },
+        {
+          "CBC, CMP, TSH with reflex to T4": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Patients on lithium should have regular thyroid screening as well as monitoring of kidney function": "***"
+        },
+        {
+          "Patients on depakote should have regular LFT monitoring as well as CBC monitoring (can cause thrombocytopenia)": "***"
+        },
+        {
+          "Depakote, carbemazapine, and lamotrigine all interact with OCPs and are also associated with neural tube defects in pregnancy, special caution when using these in women on OCPs or planning pregnancy": "***"
+        }
+      ]
+    }
+  }
+]

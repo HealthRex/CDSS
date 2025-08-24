@@ -1,0 +1,55 @@
+[
+  {
+    "My Clinical Question (condition: Shoulder pain)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Precipitating injury": "***"
+        },
+        {
+          "Duration of symptoms": "***"
+        },
+        {
+          "Location of pain": "***"
+        },
+        {
+          "Loss of passive range of motion": "***"
+        },
+        {
+          "Change in function": "***"
+        },
+        {
+          "Weakness on exam": "***"
+        },
+        {
+          "Previous treatment (PT, injection, bracing, etc.)": "***"
+        },
+        {
+          "Imaging studies": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "If arthritis is suspected, the patient is greater than 50 years of age, and has deep pain and/or stiffness, consider obtaining": [
+            {
+              "X-ray shoulder >= 2 Views (When placing these orders, add the following in the comments field to ensure the correct views are obtained: “True PA, AP and Internal Rotation, Axillary, Scapular Y”)": "***"
+            }
+          ]
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Frozen Shoulder is defined as: Loss of passive range of motion, and in the early phase, there is associated rest pain. If the patient is greater than 60 years of age, consider obtaining x-rays (“True Neer AP & Westpoint Axillary”). If the patient has frozen shoulder, do not obtain an MRI": "***"
+        },
+        {
+          "For on online video of a shoulder exam, please visit the following web address: https://www.fammed.wisc.edu/faculty/videos/": "***"
+        }
+      ]
+    }
+  }
+]

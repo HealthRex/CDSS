@@ -1,0 +1,75 @@
+[
+  {
+    "My Clinical Question (condition: heart failure)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Initial diagnosis and duration of symptoms": "***"
+        },
+        {
+          "CAD Risk factors (HTN, HLP, DM, family history of premature CAD, smoking, etc) and other risk factors for heart failure": "***"
+        },
+        {
+          "Symptoms and severity - Details of presenting symptoms with respect to NYHA class of dyspnea, orthopnea, PND, lower extremity edema, increase in weight": "***"
+        },
+        {
+          "Physical exam with respect to volume overload": "***"
+        },
+        {
+          "Reduced or preserved EF?": "***"
+        },
+        {
+          "Current and/or previous treatment": "***"
+        },
+        {
+          "Home BP and HR log if available": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "EKG": "***"
+        },
+        {
+          "Echocardiogram": "***"
+        },
+        {
+          "Stress testing or coronary CTA if indicated": "***"
+        },
+        {
+          "CBC": "***"
+        },
+        {
+          "TSH": "***"
+        },
+        {
+          "CMP": "***"
+        },
+        {
+          "BNP (depending on clinical context - avoid in AKI/CKD as renally cleared an inaccurate, helpful to trend serially on an individual patient if equivocal signs of HF)": "***"
+        },
+        {
+          "Lipid profile": "***"
+        },
+        {
+          "HbA1c": "***"
+        },
+        {
+          "Additional labs as indicated - iron studies, SPEP/free light chains, ANA, HIV": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "HF with reduced or new decrease in EF should be referred to cardiology": "***"
+        },
+        {
+          "ACCF/AHA Guideline for Heart Failure https://www.acc.org/guidelines/hubs/heart-failure": "***"
+        }
+      ]
+    }
+  }
+]

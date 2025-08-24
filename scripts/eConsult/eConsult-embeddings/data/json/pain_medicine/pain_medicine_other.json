@@ -1,0 +1,35 @@
+[
+  {
+    "My Clinical Question (condition: other)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Inciting event? Quality? Timing? Location? Alleviating/aggravating factors? Etiology/What’s been ruled out?": "***"
+        },
+        {
+          "Psychiatric diagnoses?": "***"
+        },
+        {
+          "Pertinent comorbidities/contributing factors?": "***"
+        },
+        {
+          "Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?": "***"
+        },
+        {
+          "Working with any behavioral or mental health specialist(s)?": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "Relevant imaging": "***"
+        }
+      ],
+      "Clinical Pearls": []
+    }
+  }
+]

@@ -1,0 +1,54 @@
+[
+  {
+    "My Clinical Question (condition: Overactive Bladder)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Symptoms (incontinence present? Systemic symptoms?)": "***"
+        },
+        {
+          "Use of contributory medications": "***"
+        },
+        {
+          "Impact on quality of life": "***"
+        },
+        {
+          "Lab/clinical tests to-date": "***"
+        },
+        {
+          "Has the patient seen a specialist in the past?": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "UA and micro": "***"
+        },
+        {
+          "[Urine culture – if UTI or hematuria suggested]": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Please see recommended the algorithm and/or suggested guidelines for management here: https://www.auanet.org/guidelines/overactive-bladder-(oab)-guideline": "***"
+        },
+        {
+          "Medications are a common cause of overactive bladder and urinary incontinence": "***"
+        },
+        {
+          "Pelvic floor physical therapy is recommended first-line therapy for stress and mixed incontinence": "***"
+        },
+        {
+          "Bladder training and assessment/reduction of fluid intake is recommended for urge incontinence": "***"
+        },
+        {
+          "Treatment with medications (e.g. anti-muscarinics) is not recommended for women with stress incontinence alone": "***"
+        }
+      ]
+    }
+  }
+]
