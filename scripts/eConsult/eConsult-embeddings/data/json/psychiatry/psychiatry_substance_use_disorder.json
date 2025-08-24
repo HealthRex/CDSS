@@ -1,0 +1,48 @@
+[
+  {
+    "My Clinical Question (condition: Substance Use Disorder)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Substances used": "***"
+        },
+        {
+          "Recent/historical rehab, detox, medical complications from substance use": "***"
+        },
+        {
+          "Desire to have substance use addressed": "***"
+        },
+        {
+          "Co-morbid psychiatric conditions": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "Urine Toxicology, CMP, Hep B/C + HIV if using IV drugs": "***"
+        },
+        {
+          "Recommend TAPs to screen generally for substances, AUDIT C for alcohol use": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Co-morbid mood/anxiety disorders should be addressed concurrently to substance use": "***"
+        },
+        {
+          "Patients chronically overusing alcohol should be encouraged to take daily thiamine supplement  of at least 100mg at a separate time from their typical alcohol use": "***"
+        },
+        {
+          "SMART recovery is a good alternative group that uses CBT/mindfulness skills to address recovery if patients are not interested in AA/NA groups": "***"
+        },
+        {
+          "SAMHSA has a treatment finder function as well as self-help group function https://findtreatment.samhsa.gov/locator https://findtreatment.samhsa.gov/locator/link-focSelfGP.html#.XdRRfNVKiUk": "***"
+        }
+      ]
+    }
+  }
+]

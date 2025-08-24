@@ -1,0 +1,45 @@
+[
+  {
+    "My Clinical Question (condition: bradycardia)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Symptoms and severity - specifically ask about  LH, presyncope/syncope or symptoms with exercise/exertion": "***"
+        },
+        {
+          "Ability to appropriately augment HR with exercise": "***"
+        },
+        {
+          "Current medications, supplements": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "EKG": "***"
+        },
+        {
+          "Ziopatch": "***"
+        },
+        {
+          "Exercise Stress Echo (to assess for chrontropic incompetence)": "***"
+        },
+        {
+          "TSH": "***"
+        },
+        {
+          "BMP": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "ACC/AHA/HRS Guideline for Bradycardia and Cardiac Conduction Delay http://www.onlinejacc.org/guidelines/bradycardia?_ga=2.174948386.168493292.1580535163-1148947974.1580535163": "***"
+        }
+      ]
+    }
+  }
+]

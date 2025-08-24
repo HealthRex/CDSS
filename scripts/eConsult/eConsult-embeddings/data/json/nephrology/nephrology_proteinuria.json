@@ -1,0 +1,85 @@
+[
+  {
+    "My Clinical Question (condition: proteinuria)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [],
+        "Optional": [
+          {
+            "Does the patient exercise heavily?": "***"
+          },
+          {
+            "Does the patient have any edema? If yes, where is the edema?": "***"
+          },
+          {
+            "Does the patient have any known/previously diagnosed kidney disease?": "***"
+          },
+          {
+            "Does the patient have any of the following chronic conditions: Hypertension, Diabetes mellitus, Hyperlipidemia, Chronic inflammatory condition (such as SLE or RA)": "***"
+          },
+          {
+            "Has the patient had a recent febrile illness?": "***"
+          }
+        ]
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "Basic Metabolic Panel (BMP)": "***"
+          },
+          {
+            "Kidney Ultrasound (Renal Ultrasound)": "***"
+          },
+          {
+            "Urine Albumin": "***"
+          },
+          {
+            "Urinalysis with Microscopy": "***"
+          },
+          {
+            "Spot prot/creat ratio (or 24-hour urine protein and creatinine)": "***"
+          },
+          {
+            "Complete Blood Count (CBC)": "***"
+          }
+        ],
+        "Optional": [
+          {
+            "HBV": "***"
+          },
+          {
+            "HCV": "***"
+          },
+          {
+            "Hemoglobin A1c (HbA1c)": "***"
+          },
+          {
+            "HIV": "***"
+          },
+          {
+            "SPEP (If patient is at risk of monoclonal gammopathy)": "***"
+          },
+          {
+            "UPEP (If patient is at risk of monoclonal gammopathy)": "***"
+          },
+          {
+            "Serum free light chain ratio (If patient is at risk of monoclonal gammopathy)": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        {
+          "If new proteinuria in the setting increased creatinine, refer to Nephrology": "***"
+        },
+        {
+          "Quantify persistent proteinuria with spot (random) urine protein to creatinine ratio eConsult appropriate for < 500 mg/day": "***"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,64 @@
+[
+  {
+    "My Clinical Question (condition: Back/Hip pain)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Precipitating injury": "***"
+        },
+        {
+          "Duration of symptoms": "***"
+        },
+        {
+          "Location of pain (midline, laterality, radiation)": "***"
+        },
+        {
+          "Change in function": "***"
+        },
+        {
+          "Weakness on exam": "***"
+        },
+        {
+          "Previous treatment (PT, injection, bracing, etc.)": "***"
+        },
+        {
+          "Imaging studies": "***"
+        },
+        {
+          "Most recent BMI": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "Clinicians should not routinely obtain imaging in patients with nonspecific, atraumatic back pain, instead, reserve imaging for patients with severe or progressive neurologic deficits or when serious underlying conditions are suspected on the basis of history and physical examination": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "Red Flag symptoms, which, if present or suspected, represent an indication for earlier imaging include": [
+            {
+              "Neurologic deficits – **immediate MRI and urgent in-person referral for concerns of spinal cord or cauda equina compression and/or severe neurologic deficits**": "***"
+            },
+            {
+              "Infection": "***"
+            },
+            {
+              "Cancer (patients with cancer or risk factors)": "***"
+            },
+            {
+              "Compression fracture": "***"
+            }
+          ]
+        },
+        {
+          "Stable radiculopathy attributable to a single nerve root level or with stable symptoms due to spinal stenosis so not need immediate imaging unless there is a risk of metastatic cancer or moderate to high risk of infection": "***"
+        }
+      ]
+    }
+  }
+]

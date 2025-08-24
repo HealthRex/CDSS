@@ -1,0 +1,38 @@
+[
+  {
+    "My Clinical Question (condition: insomnia)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Previous evaluation and treatment (behavioral, medications, other)": "***"
+        },
+        {
+          "Trouble falling/staying asleep or early morning awakening": "***"
+        },
+        {
+          "Symptom duration, pattern, total sleep time, naps": "***"
+        },
+        {
+          "Symptom of overactive mind?": "***"
+        },
+        {
+          "Symptoms of anxiety and/or depression – if yes, treated?": "***"
+        },
+        {
+          "Daytime symptoms (including trouble with attention, concentration, memory issues, daytime sleepiness, errors at work, drowsy driving)": "***"
+        }
+      ],
+      "Diagnostics": [],
+      "Clinical Pearls": [
+        {
+          "If patient has snoring or any risk factors for sleep apnea (e.g. older age, Male gender, obesity, craniofacial/upper airway abnormalities), must have sleep study prior to any eConsult or referral to Sleep Medicine for insomnia to rule this out this common cause": "***"
+        }
+      ]
+    }
+  }
+]

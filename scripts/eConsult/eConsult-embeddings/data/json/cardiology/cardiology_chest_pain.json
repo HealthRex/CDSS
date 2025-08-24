@@ -1,0 +1,51 @@
+[
+  {
+    "My Clinical Question (condition: chest pain)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": [
+        {
+          "Onset, duration, frequency, location, radiation, association with exertion, associated symptoms": "***"
+        },
+        {
+          "Risk factors (HTN, HLD, DM, family history of premature CAD, smoking, etc.)": "***"
+        },
+        {
+          "Known CAD - prior MI, history of stents, CABG, or medical management": "***"
+        },
+        {
+          "ASCVD risk score": "***"
+        }
+      ],
+      "Diagnostics": [
+        {
+          "EKG": "***"
+        },
+        {
+          "Stress test - exercise vs pharmacologic; echocardiogram vs nuclear": "***"
+        },
+        {
+          "TSH": "***"
+        },
+        {
+          "BMP": "***"
+        },
+        {
+          "Lipid profile": "***"
+        },
+        {
+          "HbA1c": "***"
+        }
+      ],
+      "Clinical Pearls": [
+        {
+          "ACC/AHA Guideline for ACC ASCVD Risk Estimator Plus http://tools.acc.org/ASCVD-Risk-Estimator-Plus/#!/calculate/estimate/": "***"
+        }
+      ]
+    }
+  }
+]

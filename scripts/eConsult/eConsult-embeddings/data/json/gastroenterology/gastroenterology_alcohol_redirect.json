@@ -1,0 +1,5 @@
+{
+  "specialist": "Gastroenterology",
+  "template": "Alcohol",
+  "text": "DO NOT place a GI eConsult order for 'alcohol'. This question is more appropriate for Hepatology. Please instead use the Hepatology eConsult order."
+}

@@ -1,0 +1,68 @@
+[
+  {
+    "specialist": "Hematology"
+  },
+  {
+    "template": "Anemia"
+  },
+  {
+    "My Clinical Question (condition: anemia)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "Previous evaluation and treatment": "***"
+          },
+          {
+            "History of gastric bypass (yes/no)": "***"
+          },
+          {
+            "History of infusion/transfusion (yes/no)": "***"
+          },
+          {
+            "Prior EGD/Col": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [
+          {
+            "CBC with differential": "***"
+          },
+          {
+            "CMP": "***"
+          },
+          {
+            "Ferritin": "***"
+          },
+          {
+            "Reticulocyte count": "***"
+          },
+          {
+            "Transferrin saturation": "***"
+          },
+          {
+            "Vitamin B12": "***"
+          }
+        ],
+        "Optional": []
+      }
+    }
+  },
+  {
+    "Clinical Pearls": [
+      "If the MCV is < 80, consider: Iron deficiency anemia (Ferritin < 30 ng/mL), Anemia of chronic inflammation (Ferritin > 100 ng/mL).",
+      "If the MCV is > 100, consider: Liver disease, Alcohol use, Medications, B12 deficiency (methylmalonic acid), Reticulocytosis, Hypothyroidism, MGUS, MDS.",
+      "If the MCV is normocytic, consider: Androgen deficiency, Anemia of renal disease (GFR < 60, consider EPO).",
+      "Copper deficiency – common in gastric bypass or enteropathies; excess zinc may worsen it.",
+      "Thalassemia syndromes – consider Hb Quant or alpha/beta thalassemia PCR.",
+      "Request auto-populated lab data when possible or collect manually if unavailable."
+    ]
+  }
+]

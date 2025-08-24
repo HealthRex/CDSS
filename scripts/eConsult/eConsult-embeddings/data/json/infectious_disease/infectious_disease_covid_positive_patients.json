@@ -1,0 +1,56 @@
+[
+  {
+    "My Clinical Question (condition: COVID Positive Patients)": "***"
+  },
+  {
+    "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+  },
+  {
+    "In your clinical question, or current note, please include information on": {
+      "Assessments": {
+        "Required": [
+          {
+            "When did symptoms begin?": "***"
+          },
+          {
+            "What are current symptoms (fever, chills, cough, dyspnea, myalgia, ageusia/loss of taste, anosmia/loss of small, vomiting, diarrhea, sore throat), and how have they changed?": "***"
+          },
+          {
+            "When was the positive test result?": "***"
+          },
+          {
+            "When was the last fever?": "***"
+          },
+          {
+            "Does the patient report close contact or exposure to a person who is infected with COVID-19 within the last 14 days?": "***"
+          },
+          {
+            "Does the patient have any co-morbidities (i.e. obesity, hypertension, diabetes, age 65 years and over, etc.)?": "***"
+          },
+          {
+            "Are they immunocompromised?": "***"
+          },
+          {
+            "What is the patient’s pregnancy status?": "***"
+          }
+        ],
+        "Optional": []
+      },
+      "Diagnostics": {
+        "Required": [],
+        "Optional": [
+          {
+            "SARS-CoV-2 Real-Time (RT-PCR) Diagnostic test (Nasopharyngeal Specimen recommended)": "***"
+          },
+          {
+            "SARS-CoV-2 IgM/IgG serology test": "***"
+          },
+          {
+            "Chest X-Ray (CXR) (2-View), PA and Lateral": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": []
+    }
+  }
+]
