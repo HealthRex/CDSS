@@ -1,0 +1,198 @@
+# Example Relevant Clinical Conditions checklist that gets asked for patients
+# Below are as many of the possible items for "Medicine" cases (many different checklists for patients in different clinical settings)
+
+
+RELEVANT CLINICAL CONDITIONS: The diagnosis noted below have impacted the patient's stay and clinical care/treatment plan.
+
+Cardiac arrest - PRESENT on Admission to hospital, 
+Ventricular fibrillation - PRESENT on Admission to hospital, 
+Ventricular tachycardia - PRESENT on Admission to hospital, 
+Complete AV block - PRESENT on Admission to hospital, 
+Bifascicular block (LBBB or RBBB with LAFB/LPFB) - PRESENT on Admission to hospital, 
+Atrial flutter - PRESENT on Admission to hospital, 
+Atrial fibrillation, paroxysmal - PRESENT on Admission to hospital, 
+Atrial fibrillation, persistent - PRESENT on Admission to hospital, 
+Atrial fibrillation, chronic, Atrial fibrillation, unspecified - PRESENT on Admission to hospital, 
+Bradycardia - PRESENT on Admission to hospital, 
+Post-op atrial fibrillation, complication, and Post-op atrial fibrillation, not a complication
+
+STEMI
+NSTEMI
+Myocardial infarction, type 2 due to Anemia, Sepsis, Arrhythmia, Post-operative caused by ?, Hypoxia, and Heart failure
+Non-ischemic myocardial injury acute
+Demand ischemia without myocardial injury
+Acute coronary syndrome
+Unstable angina
+Stable angina
+Cardiogenic shock - PRESENT on Admission to hospital
+Hypovolemic shock - PRESENT on Admission to hospital
+Hemorrhagic shock - PRESENT on Admission to hospital
+Neurogenic shock - PRESENT on Admission to hospital
+Hypotension, only - PRESENT on Admission to hospital
+Sepsis (SIRS with suspected infection) confirmed - PRESENT on Admission to hospital
+Severe sepsis (sepsis with organ dysfunction) confirmed - PRESENT on Admission to hospital
+Septic shock confirmed - PRESENT on Admission to hospital
+Bacteremia only - PRESENT on Admission to hospital 
+SIRS due to non-infectious process (at least two:T>38, <36, HR>90, RR>20, WBC count >12,000 uL or WBC count <4,000 uL) - PRESENT on Admission to hospital
+Encephalopathy - acute hepatic - PRESENT on Admission to hospital, 
+chronic hepatic - PRESENT on Admission to hospital, 
+metabolic - PRESENT on Admission to hospital, septic - PRESENT on Admission to hospital, and 
+toxic - PRESENT on Admission to hospital
+Delirium - Acute delirium drug/medication induced - PRESENT on Admission to hospital, 
+Acute delirium due to alcohol withdrawal - PRESENT on Admission to hospital, 
+Acute delirium due to hospitalization - PRESENT on Admission to hospital, and 
+Acute delirium cause unknown - PRESENT on Admission to hospital
+Cognitive impairment due to traumatic brain Injury
+Post concussive syndrome
+Acute confusional state
+Cognitive impairment - mild
+Dementia with aggressive behavior - PRESENT on Admission to hospital
+Hypoxic brain injury
+Unable to determine at present d/t sedation
+Acute pulmonary edema due to heart failure - PRESENT on Admission to hospital
+Acute pulmonary edema not due to heart failure - PRESENT on Admission to hospital
+Acute on chronic combined systolic and diastolic HF - PRESENT on Admission to hospital
+Acute on chronic systolic HF - PRESENT on Admission to hospital
+Acute on chronic diastolic HF - PRESENT on Admission to hospital
+Acute on chronic diastolic HF due to hypertensive heart disease - PRESENT on Admission to hospital
+Acute combined systolic and diastolic HF - PRESENT on Admission to hospital
+Acute systolic HF - PRESENT on Admission to hospital
+Acute diastolic HF - PRESENT on Admission to hospital
+Acute right HF - PRESENT on Admission to hospital
+Chronic combined systolic and diastolic HF 
+Chronic systolic HF 
+Chronic diastolic HF 
+Chronic right HF
+End stage HF
+Pulmonary hypertension - PRESENT on Admission to hospital
+  
+Acute (PaO2 < 55mmHg) on chronic respiratory failure with hypoxia (SaO2 < 88) - PRESENT on Admission to hospital, 
+Acute (PaO2 < 55mmHg) on chronic respiratory failure with hypercapnia (PaCO2 > 50mmHg) - PRESENT on Admission to hospital, 
+Acute respiratory failure (PaO2 < 55mmHg) with hypoxia (SaO2 < 88) - PRESENT on Admission to hospital, 
+Acute respiratory failure (PaO2 < 55mmHg) with hypercapnia (PaCO2 > 50mmHg) - PRESENT on Admission to hospital, 
+Acute respiratory failure unspecified - PRESENT on Admission to hospital, 
+Acute exacerbation of COPD - PRESENT on Admission to hospital, 
+Chronic respiratory failure, ARDS, COPD without exacerbation, Acute exacerbation of asthma - PRESENT on Admission to hospital, 
+Pleural effusion, clinically significant - PRESENT on Admission to hospital, and 
+Atelectasis, clinically significant - PRESENT on Admission to hospital
+
+Primary malignancy of ? (site) Suspect, pending pathology result
+Secondary malignancy of lymph nodes Suspect, pending pathology result
+Secondary malignancy of ? (site) Suspect, pending pathology result
+Metastases - Bone, Brain, Liver, Lung, and Lymph Nodes Suspect, pending pathology result
+TNM Staging  Cancer Staging 
+No matching staging information was found for the patient.
+
+Tumor lysis syndrome - PRESENT on Admission to hospital
+Graft versus host disease (? Specify location) Acute on chronic - PRESENT on Admission to hospital
+Lymphoma: (Type: ?; Grade ?, Severity ?)
+Acidosis - PRESENT on Admission to hospital
+Alkalosis - PRESENT on Admission to hospital
+Hypernatremia (> Na), - PRESENT on Admission to hospital
+Hyponatremia (< Na), - PRESENT on Admission to hospital
+SIADH
+Hyperkalemia (> K+), - PRESENT on Admission to hospital
+Hypokalemia (< K+), - PRESENT on Admission to hospital
+Lactic acidosis - PRESENT on Admission to hospital
+Metabolic acidosis - PRESENT on Admission to hospital
+Respiratory acidosis - PRESENT on Admission to hospital
+Hypocalcemia, - PRESENT on Admission to hospital
+Hypomagnesemia, - PRESENT on Admission to hospital
+Hypophosphatemia, - PRESENT on Admission to hospital
+Osteoporosis due to (? Specify) - PRESENT on Admission to hospital
+Tumor lysis syndrome - PRESENT on Admission to hospital
+Rhabdomyolysis - PRESENT on Admission to hospital
+Hypokalemia evidenced by minimum K+ of 3.1, since yesterday at midnight, requiring ongoing monitoring and treatment with Potassium PO/IV.Hypophosphatemia evidenced by minimum Phosphorus of 2.2, since yesterday at midnight, requiring ongoing monitoring and treatment with phosphate replacement PO/IV. 
+Recent Labs
+ 	01/01/25
+0500
+Sodium, Ser/Plas	142
+Potassium, Ser/Plas	4.0
+	
+BMI 18 Underweight, increasing health risks for the patient and requiring additional time, resources and/or education by providers, nursing, and/or clinical dieticians.
+Severe Protein Calorie Malnutrition, being monitored and managed in partnership with our clinical dieticians
+Severe protein calorie malnutrition
+Moderate protein calorie malnutrition
+Mild protein calorie malnutrition
+Protein calorie malnutrition (further specificity unknown)
+Adult failure to thrive
+Cachexia
+Intestinal malabsorption/malabsorption syndrome 
+Vitamin B deficiency
+Vitamin D deficiency
+Anemia Acute anemia due to blood loss, Complication of Surgery, - PRESENT on Admission to hospital
+Chronic anemia due to blood loss 
+Chronic anemia due to malignancy 
+Chronic anemia due to renal disease 
+Chronic anemia due to other chronic condition, specify: ?
+Chronic iron deficiency anemia
+Acute drop in hematocrit - PRESENT on Admission to hospital
+Acute drop in hemoglobin - PRESENT on Admission to hospital
+Thrombocytopenia - PRESENT on Admission to hospital
+Factor disorder/deficiency - PRESENT on Admission to hospital
+Medication induced coagulopathy - PRESENT on Admission to hospital
+Coagulopathy due to hepatic disease - PRESENT on Admission to hospital
+Coagulopathy due to cancer - PRESENT on Admission to hospital
+DIC - PRESENT on Admission to hospital
+HIT - PRESENT on Admission to hospital
+ITP - PRESENT on Admission to hospital
+DVT - PRESENT on Admission to hospital
+DVT - chronic and undergoing treatment
+Pancytopenia - PRESENT on Admission to hospital
+Pancytopenia due to chemotherapy or other medication - PRESENT on Admission to hospital
+Anemia due to chemotherapy or other medication - PRESENT on Admission to hospital
+Neutropenia due to chemotherapy or other medication - PRESENT on Admission to hospital
+Leukopenia due to chemotherapy or other medication - PRESENT on Admission to hospital
+Thrombocytopenia due to chemotherapy or other medication - PRESENT on Admission to hospital
+ 
+Acute urinary retention - PRESENT on Admission to hospital
+ATN - PRESENT on Admission to hospital
+Acute kidney injury (> 1.5x baseline or 0.3 mg/dl increase in serum creatinine) - PRESENT on Admission to hospital
+ESRD on dialysis
+CKD: CKD Stage 4: est GFR 15-29 
+ 
+Recent Labs
+ 	01/01/25
+0500
+eGFR Refit Without Race (2021)	85
+	
+Acute/Subacute hepatic failure
+Cirrhosis/Chronic hepatic failure
+Hepatorenal syndrome
+Biliary stent present on admission
+Biliary obstruction
+Esophageal varices with hemorrhage - PRESENT on Admission to hospital
+Cholestasis - PRESENT on Admission to hospital
+Choledocholelithiasis - PRESENT on Admission to hospital
+Cholecystitis - PRESENT on Admission to hospital
+Ascites - PRESENT on Admission to hospital
+End stage liver disease with chronic hepatic failure
+Pancreatitis - PRESENT on Admission to hospital
+Biliary cirrhosis - PRESENT on Admission to hospital
+Alcoholic liver disease - PRESENT on Admission to hospital
+Esophageal varices - PRESENT on Admission to hospital
+Hepatic fibrosis - PRESENT on Admission to hospital
+Portal hypertension - PRESENT on Admission to hospital
+Fatty liver - PRESENT on Admission to hospital
+Acute hepatitis (Type: ?) - PRESENT on Admission to hospital
+Chronic hepatitis (Type: ?} - PRESENT on Admission to hospital
+Liver abscess - PRESENT on Admission to hospital
+Subacute liver failure - PRESENT on Admission to hospital
+Peritoneal adhesions, clinically significant - PRESENT on Admission to hospital
+Brain herniation - PRESENT on Admission to hospital
+Brain compression - PRESENT on Admission to hospital
+Cerebral edema - PRESENT on Admission to hospital
+Cerebral atherosclerosis - PRESENT on Admission to hospital
+Anoxic brain injury - PRESENT on Admission to hospital
+Obstructive hydrocephalus - PRESENT on Admission to hospital
+Other malformation of cerebral vessels - PRESENT on Admission to hospital
+Cerebral aneurysm, nonruptured - PRESENT on Admission to hospital
+Ischemic stroke - PRESENT on Admission to hospital
+TIA - PRESENT on Admission to hospital
+Intracranial Hemorrhage Non-Traumatic Subarachnoid - PRESENT on Admission to hospital
+CVA Old 
+Carotid artery stenosis - PRESENT on Admission to hospital
+Neoplastic (malignant) related fatigue - PRESENT on Admission to hospital
+Functional quadriplegia - PRESENT on Admission to hospital
+Bed confinement status - PRESENT on Admission to hospital
+
