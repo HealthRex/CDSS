@@ -1,0 +1,25 @@
+# Core FastAPI dependencies
+fastapi==0.115.12
+uvicorn==0.34.2
+pydantic==2.11.4
+
+# Google Cloud BigQuery
+google-cloud-bigquery==3.20.1
+
+# Data manipulation
+pandas==2.2.3
+
+# LangChain and LangGraph for AI workflows
+langchain==0.3.25
+langchain-core==0.3.59
+langgraph==0.4.1
+
+# HTTP client for API calls
+requests==2.32.3
+
+# Environment variable management
+python-dotenv==1.1.0
+
+# JSON handling
+orjson==3.10.18
+
