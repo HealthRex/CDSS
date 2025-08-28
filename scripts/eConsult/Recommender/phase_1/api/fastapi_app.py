@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from google.cloud import bigquery
 import pandas as pd
 import json
@@ -21,14 +21,46 @@ headers = {'Ocp-Apim-Subscription-Key': api_key, 'Content-Type': 'application/js
 url = "https://apim.stanfordhealthcare.org/openai-eastus2/deployments/gpt-4.1/chat/completions?api-version=2025-01-01-preview"
 
 def query_llm(my_question):
-    payload = json.dumps({
-        "model": "gpt-4.1", 
-        "messages": [{"role": "user", "content": my_question}]
-    })
-    response = requests.request("POST", url, headers=headers, data=payload)
-    message_content = response.json()["choices"][0]["message"]["content"]
-    print(message_content)
-    return message_content
+    try:
+        payload = json.dumps({
+            "model": "gpt-4.1", 
+            "messages": [{"role": "user", "content": my_question}]
+        })
+        response = requests.request("POST", url, headers=headers, data=payload)
+        
+        # Check if response is successful
+        if response.status_code != 200:
+            error_msg = f"LLM API error: {response.status_code} - {response.text}"
+            print(f"❌ {error_msg}")
+            return error_msg
+        
+        # Parse response safely
+        response_data = response.json()
+        
+        # Check for error in response
+        if "error" in response_data:
+            error_msg = f"LLM API error: {response_data['error']}"
+            print(f"❌ {error_msg}")
+            return error_msg
+        
+        # Check for expected structure
+        if "choices" not in response_data or not response_data["choices"]:
+            error_msg = f"Unexpected LLM response structure: {response_data}"
+            print(f"❌ {error_msg}")
+            return error_msg
+        
+        message_content = response_data["choices"][0]["message"]["content"]
+        print(f"✅ LLM Response: {message_content[:100]}...")
+        return message_content
+        
+    except json.JSONDecodeError as e:
+        error_msg = f"Failed to parse LLM response: {e}"
+        print(f"❌ {error_msg}")
+        return error_msg
+    except Exception as e:
+        error_msg = f"Unexpected error in query_llm: {e}"
+        print(f"❌ {error_msg}")
+        return error_msg
 
 # Add the parent directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -93,13 +125,13 @@ class ClinicalState(TypedDict):
     clinical_question: str
     clinical_notes: str
     icd10_codes: pd.DataFrame
-    patient_age: int | None
-    patient_gender: str | None
-    icd10_code: str | None
-    rationale: str | None
-    error: str | None
+    patient_age: Optional[int]
+    patient_gender: Optional[str]
+    icd10_code: Optional[str]
+    rationale: Optional[str]
+    error: Optional[str]
     retry_count: int
-    stopped: bool | None
+    stopped: Optional[bool]
 
 class QueryRequest(BaseModel):
     result_type: str = "icd10"  # Default to icd10
@@ -367,6 +399,364 @@ def create_clinical_graph(MAX_RETRIES = 3) -> StateGraph:
     
     return workflow.compile()
 
+def get_icd10_codes(client, specialties: List[str], limit: int) -> pd.DataFrame:
+    """
+    Helper function to get ICD-10 codes based on specialties.
+    Returns a DataFrame with 'icd10' and 'dx_name' columns.
+    """
+    query = """
+    select distinct icd10, dx_name, dm.specialty, count(icd10) as count 
+    from som-nero-phi-jonc101.shc_core_2024.diagnosis as dx
+    JOIN `som-nero-phi-jonc101.shc_core_2024.dep_map` dm
+      ON dx.dept_id = dm.department_id
+    where dm.specialty IN UNNEST(@specialties)
+    group by icd10,dx_name,dm.specialty
+    order by count desc
+    limit @limit
+    """
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ArrayQueryParameter("specialties", "STRING", specialties),
+            bigquery.ScalarQueryParameter("limit", "INT64", limit)
+        ]
+    )
+    query_job = client.query(query, job_config=job_config)
+    results = query_job.result()
+    return results.to_dataframe()
+
+class ComprehensiveClinicalCaseRequest(BaseModel):
+    anon_id: str
+    candidate: str
+    question: str
+    note: str
+    specialties: Optional[List[str]] = None
+    order_limits: Optional[Dict[str, int]] = None
+    min_patients_for_non_rare_items: int = 10
+    year: int = 2024
+
+class BatchClinicalCasesRequest(BaseModel):
+    cases: List[ComprehensiveClinicalCaseRequest]
+    specialties: Optional[List[str]] = None
+    order_limits: Optional[Dict[str, int]] = None
+    min_patients_for_non_rare_items: int = 10
+    year: int = 2024
+
+class BatchClinicalCasesResponse(BaseModel):
+    total_cases: int
+    successful_cases: int
+    failed_cases: int
+    case_results: List[Dict[str, Any]]
+    summary: str
+
+def process_comprehensive_clinical_case(
+    anon_id: str,
+    candidate: str,
+    question: str,
+    note: str,
+    log_dir: str,
+    specialties: List[str] = None,
+    order_limits: Dict[str, int] = None,
+    min_patients_for_non_rare_items: int = 10,
+    year: int = 2024
+) -> Dict[str, Any]:
+    """
+    Process a single clinical case comprehensively, generating all order types.
+    Returns a dictionary with clinical results and all order recommendations.
+    """
+    try:
+        # Set up logging for this case with anon_id and candidate in folder name
+        case_log_dir = os.path.join(log_dir, f"case_{anon_id}_{candidate}_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}")
+        os.makedirs(case_log_dir, exist_ok=True)
+        
+        # Use provided specialties or fallback to defaults
+        specialties = specialties or ['Infectious Diseases', 'Endocrinology', 'Hematology']
+        limit = 10000
+
+        # Get ICD-10 codes
+        icd10_codes_df = get_icd10_codes(client, specialties, limit)
+        icd10_codes_df = icd10_codes_df.drop_duplicates(subset=["icd10"])
+        icd10_codes_df.to_csv(os.path.join(case_log_dir, "top_icd10_codes_cleaned.csv"), index=False)
+
+        # Create and run the clinical graph
+        graph = create_clinical_graph(MAX_RETRIES=10)
+        initial_state = {
+            "clinical_question": question,
+            "clinical_notes": note,
+            "icd10_codes": icd10_codes_df[["icd10"]],
+            "patient_age": None,
+            "patient_gender": None,
+            "icd10_code": None,
+            "rationale": None,
+            "error": None,
+            "retry_count": 0,
+            "stopped": False
+        }
+        
+        # Run the graph
+        config = {"recursion_limit": 100}
+        result = graph.invoke(initial_state, config=config)
+        
+        # Clean up the result
+        clean_result = {
+            "anon_id": anon_id,
+            "candidate": candidate,
+            "question": question,
+            "note": note,
+            "patient_age": result.get("patient_age"),
+            "patient_gender": result.get("patient_gender"),
+            "icd10_code": result.get("icd10_code"),
+            "rationale": result.get("rationale"),
+            "error": result.get("error"),
+            "retry_count": result.get("retry_count"),
+            "stopped": result.get("stopped")
+        }
+        
+        # Clean NaN values
+        for key, value in clean_result.items():
+            if pd.isna(value):
+                clean_result[key] = None
+        
+        # Save clinical result
+        result_df = pd.DataFrame([clean_result])
+        result_df.to_csv(os.path.join(case_log_dir, "result.csv"), index=False)
+        
+        # Check if clinical processing was successful
+        if (clean_result.get("error") or clean_result.get("stopped") or not clean_result.get("icd10_code")):
+            return {
+                "case_log_dir": case_log_dir,
+                "clinical_result": clean_result,
+                "orders": {},
+                "success": False,
+                "error": clean_result.get("error", "Clinical processing failed")
+            }
+        
+        # Generate all order types
+        order_limits = order_limits or {"lab": 100, "med": 100, "procedure": 100}
+        orders = {}
+        all_orders_list = []  # For combined orders.csv
+        
+        for order_type in ["lab", "med", "procedure"]:
+            try:
+                params = {
+                    'patient_age': clean_result["patient_age"],
+                    'patient_gender': clean_result["patient_gender"],
+                    'icd10_code': clean_result["icd10_code"]
+                }
+                
+                order_results = api.get_orders(
+                    params=params,
+                    min_patients_for_non_rare_items=min_patients_for_non_rare_items,
+                    result_type=order_type,
+                    limit=order_limits.get(order_type, 100),
+                    year=year
+                )
+                
+                if not order_results.empty:
+                    orders[order_type] = order_results.to_dict(orient="records")
+                    
+                    # Add order_type column to each result for the combined file
+                    order_results_with_type = order_results.copy()
+                    order_results_with_type['order_type'] = order_type
+                    order_results_with_type['anon_id'] = anon_id
+                    order_results_with_type['candidate'] = candidate
+                    order_results_with_type['icd10_code'] = clean_result["icd10_code"]
+                    
+                    all_orders_list.append(order_results_with_type)
+                    
+                    # Save individual order type files with anon_id and candidate in filename
+                    order_results.to_csv(os.path.join(case_log_dir, f"orders_{order_type}_{anon_id}_{candidate}.csv"), index=False)
+                else:
+                    orders[order_type] = []
+                    
+            except Exception as e:
+                orders[order_type] = []
+                logging.error(f"Failed to get {order_type} orders: {str(e)}")
+        
+        # Create combined orders.csv with all three types
+        if all_orders_list:
+            combined_orders_df = pd.concat(all_orders_list, ignore_index=True)
+            combined_orders_df.to_csv(os.path.join(case_log_dir, f"orders_all_{anon_id}_{candidate}.csv"), index=False)
+        
+        return {
+            "case_log_dir": case_log_dir,
+            "clinical_result": clean_result,
+            "orders": orders,
+            "success": True,
+            "error": None
+        }
+        
+    except Exception as e:
+        return {
+            "case_log_dir": case_log_dir if 'case_log_dir' in locals() else None,
+            "clinical_result": {},
+            "orders": {},
+            "success": False,
+            "error": str(e)
+        }
+
+@app.post("/process_comprehensive_clinical_case")
+async def process_comprehensive_clinical_case_endpoint(request: ComprehensiveClinicalCaseRequest):
+    """
+    Process a single clinical case and generate all order recommendations (lab, med, procedure).
+    This endpoint provides comprehensive recommendations for a single clinical case.
+    """
+    try:
+        # Set up logging for this case
+        case_log_dir = f"logs/single"
+        os.makedirs(case_log_dir, exist_ok=True)
+        
+        result = process_comprehensive_clinical_case(
+            anon_id=request.anon_id,
+            candidate=request.candidate,
+            question=request.question,
+            note=request.note,
+            log_dir=case_log_dir,
+            specialties=request.specialties,
+            order_limits=request.order_limits,
+            min_patients_for_non_rare_items=request.min_patients_for_non_rare_items,
+            year=request.year
+        )
+        
+        # Add anon_id and candidate to the result for reference
+        if result.get("clinical_result"):
+            result["clinical_result"]["anon_id"] = request.anon_id
+            result["clinical_result"]["candidate"] = request.candidate
+            result["clinical_result"]["question"] = request.question
+            result["clinical_result"]["note"] = request.note
+        
+        return result
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/batch_clinical_cases", response_model=BatchClinicalCasesResponse)
+async def batch_clinical_cases(request: BatchClinicalCasesRequest):
+    """
+    Process multiple clinical cases in batch and generate comprehensive order recommendations.
+    Each case will get its own folder with all order types (lab, med, procedure).
+    """
+    try:
+        # Set up logging for this batch
+        batch_log_dir = f"logs/batch"
+        os.makedirs(batch_log_dir, exist_ok=True)
+        
+        # Process each case
+        case_results = []
+        successful_cases = 0
+        failed_cases = 0
+        
+        for i, case in enumerate(request.cases):
+            print(f"Processing case {i+1}/{len(request.cases)}")
+            
+            # Use case-specific or global settings
+            specialties = case.specialties or request.specialties
+            order_limits = case.order_limits or request.order_limits
+            min_patients = case.min_patients_for_non_rare_items or request.min_patients_for_non_rare_items
+            year = case.year or request.year
+            
+            result = process_comprehensive_clinical_case(
+                anon_id=case.anon_id,
+                candidate=case.candidate,
+                question=case.question,
+                note=case.note,
+                log_dir=batch_log_dir,
+                specialties=specialties,
+                order_limits=order_limits,
+                min_patients_for_non_rare_items=min_patients,
+                year=year
+            )
+            
+            # Add case index to the result
+            result["case_index"] = i + 1
+            case_results.append(result)
+            
+            if result["success"]:
+                successful_cases += 1
+            else:
+                failed_cases += 1
+        
+        # Create summary
+        total_cases = len(request.cases)
+        summary = f"Processed {total_cases} cases: {successful_cases} successful, {failed_cases} failed"
+        
+        # Save batch summary
+        batch_summary = {
+            "total_cases": total_cases,
+            "successful_cases": successful_cases,
+            "failed_cases": failed_cases,
+            "processing_timestamp": datetime.datetime.now().isoformat(),
+            "batch_log_dir": batch_log_dir
+        }
+        
+        summary_df = pd.DataFrame([batch_summary])
+        summary_df.to_csv(os.path.join(batch_log_dir, "batch_summary.csv"), index=False)
+        
+        return BatchClinicalCasesResponse(
+            total_cases=total_cases,
+            successful_cases=successful_cases,
+            failed_cases=failed_cases,
+            case_results=case_results,
+            summary=summary
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/batch_clinical_cases_from_csv")
+async def batch_clinical_cases_from_csv(
+    csv_file_path: str,
+    specialties: Optional[List[str]] = None,
+    order_limits: Optional[Dict[str, int]] = None,
+    min_patients_for_non_rare_items: int = 10,
+    year: int = 2024
+):
+    """
+    Process multiple clinical cases from a CSV file.
+    CSV should have columns: clinical_question, clinical_notes
+    """
+    try:
+        # Read CSV file
+        if not os.path.exists(csv_file_path):
+            raise HTTPException(status_code=404, detail=f"CSV file not found: {csv_file_path}")
+        
+        df = pd.read_csv(csv_file_path)
+        
+        # Validate CSV format
+        required_columns = ["clinical_question", "clinical_notes"]
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise HTTPException(status_code=400, detail=f"CSV missing required columns: {missing_columns}")
+        
+        # Convert CSV rows to case requests
+        cases = []
+        for _, row in df.iterrows():
+            case = ComprehensiveClinicalCaseRequest(
+                anon_id=row["anon_id"],
+                candidate=row["candidate"],
+                question=row["question"],
+                note=row["note"],
+                specialties=specialties,
+                order_limits=order_limits,
+                min_patients_for_non_rare_items=min_patients_for_non_rare_items,
+                year=year
+            )
+            cases.append(case)
+        
+        # Create batch request
+        batch_request = BatchClinicalCasesRequest(
+            cases=cases,
+            specialties=specialties,
+            order_limits=order_limits,
+            min_patients_for_non_rare_items=min_patients_for_non_rare_items,
+            year=year
+        )
+        
+        # Process the batch
+        return await batch_clinical_cases(batch_request)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/query")
 async def query_data(request: QueryRequest):
     try:
@@ -632,3 +1022,4 @@ if __name__ == "__main__":
     print("changes applied")
     uvicorn.run(app, host="0.0.0.0", port=8000) 
     
+

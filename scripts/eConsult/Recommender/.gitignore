@@ -6,3 +6,5 @@ logs/
 
 # Data
 real_data/
+
+.env 
