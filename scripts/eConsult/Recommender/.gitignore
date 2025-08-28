@@ -1,0 +1,8 @@
+# Virtual environment
+../econsult_env/
+
+# Logs
+logs/
+
+# Data
+real_data/
