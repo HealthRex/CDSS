@@ -1,0 +1,21 @@
+# Virtual environment
+inbasket_env/
+venv/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Results and outputs
+DSPy_results_*/
+
+# Jupyter
+.ipynb_checkpoints
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
