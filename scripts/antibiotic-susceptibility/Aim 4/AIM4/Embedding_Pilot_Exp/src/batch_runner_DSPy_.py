@@ -168,20 +168,22 @@ async def batch_pipeline_runner(
         else:
             # Case 2: Identifier done
             id_output = identifier_results_dict.get(idx, None)
-            if id_output is None:
-                continue  # Shouldn't happen
+            # TODO: double check if this is needed. usually id_output is not None
+            # if id_output is None:
+            #     continue  # Shouldn't happen
 
             error_present = id_output.get("error_present", False)
             error_summary = id_output.get("error_summary", "")
+            error_highlights = id_output.get("error_highlights", [])
             missing_domains = [
                 domain for domain in unique_domains
                 if (idx, domain) not in processed_labeler_keys
             ]
             if error_present and missing_domains:
                 # Only need to run labelers for missing domains.
-                async def resume_labeler_task(idx=idx, error_summary=error_summary, missing_domains=missing_domains):
+                async def resume_labeler_task(idx=idx, error_summary=error_summary, error_highlights=error_highlights, missing_domains=missing_domains):
                     labeler_tasks = [
-                        label_domain_task(idx, error_summary, id_output.get("error_highlights", []), domain, codebook, labeler_path_output, sleep_per_task)
+                        label_domain_task(idx, error_summary, error_highlights, domain, codebook, labeler_path_output, sleep_per_task)
                         for domain in missing_domains
                     ]
                     labeler_results = await asyncio.gather(*labeler_tasks)
