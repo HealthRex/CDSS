@@ -2,9 +2,9 @@
 
 Simple Python examples to make (read‑only) FHIR API calls to Epic at Stanford Health Care.
 
-*Created by François Grolleau on 08/28/2025
-based on the original documentation put together by Ruoqi Liu
-Last update August 28, 2025.*
+*Created by François Grolleau on 08/28/2025 based on the original documentation put together by Ruoqi Liu*
+
+*Last update August 28, 2025.*
 
 ## Table of Contents
 - [Setup and prerequisites](#setup-and-prerequisites)
@@ -72,7 +72,7 @@ print(ids.get("SHCMRN"))
 
 ## Get patient demographics from FHIR ID
 
-Common fields returned include: `NationalIdentifier`, `DateOfBirth`, `Email`, `PreferredName`, `GenderIdentity`, `Address`, `LegalName`, `Employment`, `PatientPortal`, `LegalSex`, `MaritalStatus`, `Religion`, `Ethnicity`, `Language`, `PatientType`, `Race`, `Phones`.
+Fields returned include: `NationalIdentifier`, `DateOfBirth`, `Email`, `PreferredName`, `GenderIdentity`, `Address`, `LegalName`, `Employment`, `PatientPortal`, `LegalSex`, `MaritalStatus`, `Religion`, `Ethnicity`, `Language`, `PatientType`, `Race`, `Phones`.
 
 ```python
 def get_demographics(patient_fhir_id: str) -> dict:
@@ -104,6 +104,6 @@ Please add new, minimal examples following this structure:
 1. A small function with a short docstring
 2. A minimal example usage that demonstrates what the endpoint can achieve
 
- 🚨 **IMPORTANT:** Include zero PHI and do NOT share secrets/keys in this guide; it will be public on GitHub.
+ 🚨 **IMPORTANT:** Include zero PHI and do NOT share secret keys in this guide; it will be public on GitHub.
 
 Thank you for your contributions!
