@@ -11,6 +11,9 @@ Last update June 16, 2025.*
 - [Usage](#usage)
 - [Common Code for All API Calls](#common-code-for-all-api-calls)
 - [OpenAI Models](#openai-models)
+  - [GPT-5](#gpt-5-api-call)
+  - [GPT-5-mini](#gpt-5-mini-api-call)
+  - [GPT-5-nano](#gpt-5-nano-api-call)
   - [GPT-4.1](#gpt-41-api-call)
   - [GPT-4.1-mini](#gpt-41-mini-api-call)
   - [GPT-4.1-nano](#gpt-41-nano-api-call)
@@ -62,6 +65,39 @@ headers = {'Ocp-Apim-Subscription-Key': my_key, 'Content-Type': 'application/jso
 ---
 
 ## OpenAI Models
+
+### GPT-5 API Call
+```python
+url = "https://apim.stanfordhealthcare.org/openai-eastus2/deployments/gpt-5/chat/completions?api-version=2024-12-01-preview" 
+payload = json.dumps({
+    "model": "gpt-5", 
+    "messages": [{"role": "user", "content": my_question}]
+})
+response = requests.request("POST", url, headers=headers, data=payload)
+print(response.text)
+```
+
+### GPT-5-mini API Call
+```python
+url = "https://apim.stanfordhealthcare.org/openai-eastus2/deployments/gpt-5-mini/chat/completions?api-version=2024-12-01-preview" 
+payload = json.dumps({
+    "model": "gpt-5-mini", 
+    "messages": [{"role": "user", "content": my_question}]
+})
+response = requests.request("POST", url, headers=headers, data=payload)
+print(response.text)
+```
+
+### GPT-5-nano API Call
+```python
+url = "https://apim.stanfordhealthcare.org/openai-eastus2/deployments/gpt-5-nano/chat/completions?api-version=2024-12-01-preview" 
+payload = json.dumps({
+    "model": "gpt-5-nano", 
+    "messages": [{"role": "user", "content": my_question}]
+})
+response = requests.request("POST", url, headers=headers, data=payload)
+print(response.text)
+```
 
 ### GPT-4.1 API Call
 ```python
@@ -259,7 +295,7 @@ To bypass call limits you can adjust the `max_calls` and `sleep_time` parameters
 import time
 def model_init(model_name, my_key):
     headers = {'Ocp-Apim-Subscription-Key': my_key, 'Content-Type': 'application/json'}
-    url =  f"https://apim.stanfordhealthcare.org/openai-eastus2/deployments/{model_name}/chat/completions?api-version=2025-01-01-preview"  
+    url =  f"https://apim.stanfordhealthcare.org/openai-eastus2/deployments/{model_name}/chat/completions?api-version=2024-12-01-preview"
     return {"model_name": model_name, "url": url, "headers": headers}
 
 def model_call(input_txt, **kwargs):
@@ -281,7 +317,7 @@ def model_call(input_txt, **kwargs):
     return full_response
 
 def gen_txt_to_txt(input_txt):
-    return model_call(input_txt, **model_init("gpt-4.1-nano", my_key))
+    return model_call(input_txt, **model_init("gpt-5-nano", my_key))
 
 # Usage example:
 # response_text = gen_txt_to_txt(my_question)
