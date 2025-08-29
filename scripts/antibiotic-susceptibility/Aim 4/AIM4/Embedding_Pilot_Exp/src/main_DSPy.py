@@ -36,7 +36,7 @@ async def main_single_run(BASE_PATH, with_reference=False, size=20, sleep_per_ta
     logging.info(f"Codebook loaded with {len(codebook)} entries.")
 
     logging.info("Loading sample data...")
-    sample_data = load_data(size=size, random_state=42, with_reference=with_reference)
+    sample_data = load_data(size=size, random_state=42,cache= True, force_resample= False)
     logging.info(f"Sample data loaded with {len(sample_data)} rows.")
 
     identifier = ErrorIdentifierModule()
@@ -52,7 +52,7 @@ async def main_single_run(BASE_PATH, with_reference=False, size=20, sleep_per_ta
     logging.info(f"Batch run completed in {elapsed:.1f} seconds.")
 
 async def main():
-    size = 11
+    size = 500
     await main_single_run(BASE_PATH=f"src/DSPy_results_batch_{size}_dedup_with_prev_msg", with_reference=False, size=size, sleep_per_task=1.2)
     await main_single_run(BASE_PATH=f"src/DSPy_results_batch_{size}_dedup_with_prev_msg_w_ref", with_reference=True, size=size, sleep_per_task=1.6)
 
