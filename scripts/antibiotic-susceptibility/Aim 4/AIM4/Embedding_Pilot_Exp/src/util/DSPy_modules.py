@@ -3,141 +3,97 @@ import pandas as pd
 import json
 import logging
 
-# class ErrorIdentifierModule:
-#     def __init__(self):
-#         pass
 
-#     def build_prompt(self, index, patient_message, llm_response, patient_info, clinical_notes, previous_messages, retrieved_pairs=""):
-#         # logging.info(f"building prompt for patient_info: {patient_info}")
-#         # logging.info(f"clinical_notes: {clinical_notes}")
+broad_error_categories = """
+Common areas where errors may occur in clinical communication include:
+1) Clinical Reasoning
+2) Communication Quality & Readability
+3) Privacy & Security
+4) Accessibility
+5) Bias & Stigmatization
 
-#         broad_error_categories = """
-# Common areas where errors may occur in clinical communication include:
-# 1. Clinical Reasoning
-# 2. Communication Quality & Readability
-# 3. Privacy & Security
-# 4. Accessibility
-# 5. Bias & Stigmatization
-
-# These are only examples—use your full expertise to spot *any* issues, including ones not explicitly listed here.
-# """
-#         instruction = f"""
-# You are a clinical informatics reviewer. Your job is to evaluate the quality, safety, and appropriateness of an AI-generated response to a patient (or family/caregiver) message.
-
-# You are provided:
-# - The patient's message (which may sometimes be written by a family member on the patient’s behalf)
-# - The AI-generated response
-# - Basic patient info
-# - Clinical notes (recent chart notes, context, pending actions, etc.)
-# - Previous messgaes between this patient and the actual provider leading to this current message 
-# - Optional: Reference message–response pairs from previous similar cases (use only as background context)
-
-# INPUT STARTS
-# {{
-#   "index": {index}, 
-#   "patient_message": "{patient_message}",
-#   "llm_response": "{llm_response}",
-#   "patient_info": "{patient_info}",
-#   "clinical_notes": "{clinical_notes}",
-#   "previous_messages": "{previous_messages}",
-#   "retrieved_pairs": "{retrieved_pairs}",
-# }}
-# INPUT ENDS
-
-# **Guidelines:**
-# - Consider *who* is asking, *for whom*, and *why*—think practically and clinically.
-# - Be sure to use all available context (patient info, clinical notes, previous messages, retrieved pairs, etc.) for your analysis and reasoning—use the full information even if any field is very long.
-# - However, **only** the following fields may be truncated in your output JSON (and only if they are very long or contain content that could break JSON, such as unescaped line breaks or quotes): `patient_info`, `clinical_notes`, `previous_messages`, `retrieved_pairs`.
-# - If you truncate any of these four fields in your output, indicate this clearly (e.g., by ending the field with [truncated]). But your reasoning and error assessment should always be based on the full information, never on the truncated text.
-# - All other fields (such as index, patient_message, llm_response, error_present, error_summary, and reasoning) must be complete and valid in your output.
-# - Look for any type of error—not just those in the list below.
-
-# {broad_error_categories}
-
-# **Instructions:**
-# 1. Decide if there is *any* error in the AI response (think broadly and comprehensively).
-# 2. If yes, summarize in detail what the error is. 
-# 3. If no error, explain clearly why the response is safe, accurate, relevant, and appropriate for this situation.
-# 4. Justify your answer using details from the case.
-
-# Return ONLY this JSON, with all keys included no matter what (use "" for any field if needed):
-
-# {{
-#   "index": {index}, 
-#   "patient_message": "{patient_message}",
-#   "llm_response": "{llm_response}", 
-#   "patient_info": "", // always include this key; leave blank or end with [truncated] if too long
-#   "clinical_notes": "", // always include this key; leave blank or end with [truncated] if too long
-#   "previous_messages": "", // always include this key; leave blank or end with [truncated] if too long
-#   "retrieved_pairs": "", // always include this key; leave blank or end with [truncated] if too long
-#   "error_present": true/false, // write true or false (no quotes)
-#   "error_summary": "...",   // concise summary of error(s), or empty if none
-#   "reasoning": "..."        // detailed justification and clinical reasoning
-# }}
-# """
-#         return instruction
-  
+These are examples—use your full expertise to spot any issues, including ones not listed here.
+"""
 
 class ErrorIdentifierModule:
     def __init__(self):
         pass
 
-    def build_prompt(self, index, patient_message, llm_response, patient_info, clinical_notes, previous_messages, retrieved_pairs=""):
-        # logging.info(f"building prompt for patient_info: {patient_info}")
-        # logging.info(f"clinical_notes: {clinical_notes}")
+    def build_prompt(
+        self,
+        index,
+        patient_message,
+        llm_response,
+        patient_info,
+        clinical_notes,
+        previous_messages,
+        retrieved_pairs=""
+    ):
+        case_packet = {
+            "index": index,
+            "patient_message": patient_message,
+            "llm_response": llm_response,
+            "patient_info": patient_info,
+            "clinical_notes": clinical_notes,
+            "previous_messages": previous_messages,
+            "retrieved_pairs": retrieved_pairs,
+        }
+        case_packet_json = json.dumps(case_packet, ensure_ascii=False)
 
-        broad_error_categories = """
-Common areas where errors may occur in clinical communication include:
-1. Clinical Reasoning
-2. Communication Quality & Readability
-3. Privacy & Security
-4. Accessibility
-5. Bias & Stigmatization
-
-These are only examples—use your full expertise to spot *any* issues, including ones not explicitly listed here.
-"""
         instruction = f"""
-You are a clinical informatics reviewer. Your job is to evaluate the quality, safety, and appropriateness of an AI-generated response to a patient (or family/caregiver) message.
+You are a clinical informatics reviewer. Evaluate the quality, safety, and appropriateness of an AI-generated response to a patient/caregiver message using all provided context. Consider who is asking, for whom, and why. Ground every claim in the provided materials—do not invent facts.
 
-You are provided:
-- The patient's message (which may sometimes be written by a family member on the patient’s behalf)
-- The AI-generated response
-- Basic patient info
-- Clinical notes (recent chart notes, context, pending actions, etc.)
-- Previous messgaes between this patient and the actual provider leading to this current message 
-- Optional: Reference message–response pairs from previous similar cases (use only as background context)
+Use the provided context (patient_message, llm_response, patient_info, clinical_notes, previous_messages, retrieved_pairs) to analyze the case, but only return the specified output fields.
 
-**Guidelines:**
-- Consider *who* is asking, *for whom*, and *why*—think practically and clinically.
-- Be sure to use all available context (patient info, notes, previous messages, references) for your analysis and reasoning, even if a field is very long.
-- In your output JSON, **only** the following fields may be truncated due to length: `patient_info`, `clinical_notes`, `previous_messages`, `retrieved_pairs`. If a field is truncated, indicate this clearly by ending the field with [truncated]. 
-- Your reasoning and error assessment should always be based on the full information, never on the truncated text.
-- Look for any type of error—not just those in the list below.
+Look for **any** type of error—not just those in the examples below.
 
 {broad_error_categories}
 
-**Instructions:**
-1. Decide if there is *any* error in the AI response (think broadly and comprehensively).
-2. If yes, summarize in detail what the error is. 
-3. If no error, explain clearly why the response is safe, accurate, relevant, and appropriate for this situation.
-4. Justify your answer using details from the case.
+Extraction & explanation rules:
+- Determine whether **any** error exists (be comprehensive).
+- If errors exist, collect **as many verbatim error_highlights as needed** from the LLM response to demonstrate them.
+- Do **not paraphrase**; quote exactly. Each highlight must be a complete, relevant span. Never cut off mid-sentence.
+- If you must omit non-essential surrounding text, indicate this with `[...]` outside of the highlight.
+- For each highlight, provide a detailed clinical explanation of **why** it evidences an error, using patient message/notes/etc. for context as needed.
+- Truncation policy for output:
+  - You may truncate only `patient_message` and `llm_response` in the output (append " [truncated]").
+  - Do **not** truncate inside error_highlights.
 
-Return ONLY this JSON, with all keys included no matter what (use "" for any field if needed):
+Read the entire case first.
 
+# INPUT: CASE PACKET (read fully)
+{case_packet_json}
+
+# OUTPUT (strict JSON only, after reading input)
+Return **ONLY** a JSON object with exactly these keys. Do NOT include any other fields:
 {{
-  "index": {index}, 
-  "patient_message": "{patient_message}",
-  "llm_response": "{llm_response}",
-  "patient_info": "{patient_info}", // always keep this key; can be truncated if too long
-  "clinical_notes": "{clinical_notes}", // always keep this key; can be truncated if too long
-  "previous_messages": "{previous_messages}", // always keep this key; can be truncated if too long
-  "retrieved_pairs": "{retrieved_pairs}", // always keep this key; can be truncated if too long
-  "error_present": true/false,
-  "error_summary": "...",   // concise summary of error(s), or empty if none
-  "reasoning": "..."        // detailed justification and clinical reasoning
+  "index": <int>,                         // copy from input
+  "patient_message": <string>,            // may end with " [truncated]"
+  "llm_response": <string>,               // may end with " [truncated]"
+  "error_present": <true|false>,
+  "error_highlights": [                   // 0 or more items
+    {{
+      "excerpt": "<verbatim span from LLM response; never truncated>",
+      "explanation": "<clear clinical reasoning for why this highlight shows an error>"
+    }}
+  ],
+  "error_summary": "<a few sentences concise summary of the core error(s)>"
 }}
+
+Rules:
+- Output JSON only. No markdown or prose before/after.
+- Escape quotes/newlines in strings.
+- No extra keys. No nulls—use "" for empty strings.
+- IMPORTANT: Do NOT copy input fields like patient_info, clinical_notes, previous_messages, or retrieved_pairs into your output.
+- If no error is found, set:
+  - "error_present": false
+  - "error_highlights": [{{"excerpt":"no error found—no applicable highlight","explanation":"no error found—no applicable explanation"}}]
+  - "error_summary": "no error found—no applicable"
 """
         return instruction
+
+
+
 
 class ErrorLabelerModule:
     def __init__(self, domain: str, codebook: pd.DataFrame):
@@ -172,138 +128,101 @@ class ErrorLabelerModule:
             return rows.iloc[0].get("Dedup Definition", "")
         return ""
 
-#     def build_prompt(self, index: int, error_summary: str):
-#         subdomains = sorted(self.codebook["Subdomain"].unique())
-#         subdomain_errorcodes = {
-#             sd: self.codebook[self.codebook["Subdomain"] == sd]["Dedup Error Code"].tolist()
-#             for sd in subdomains
-#         }
-#         subdomains.append("No subdomain matched")
-#         for sd in subdomains:
-#             if sd == "No subdomain matched":
-#                 subdomain_errorcodes[sd] = ["No error code matched"]
-#             elif "No error code matched" not in subdomain_errorcodes[sd]:
-#                 subdomain_errorcodes[sd].append("No error code matched")
+    def build_prompt(self, index: int, error_summary: str, error_highlights):
+        """
+        error_highlights: list[dict] like [{"excerpt": "...", "explanation": "..."}, ...]
+        """
 
-#         grid_str = ""
-#         for sd in subdomains:
-#             grid_str += f"\n- Subdomain: {sd}\n"
-#             for ec in subdomain_errorcodes[sd]:
-#                 definition = self.extract_definition(sd, ec)
-#                 # examples = self.extract_example_pairs(sd, ec)
-#                 examples = []
-#                 grid_str += f"  - Error Code: {ec}\n"
-#                 if definition:
-#                     grid_str += f"    Definition: {definition}\n"
-#                 grid_str += f"    Examples: {json.dumps(examples, ensure_ascii=False)}\n"
-                
-#         # print(f"printing grid_str: {grid_str}")
-
-#         prompt = f"""
-# You are a clinical informatics expert. Given an error summary, classify the error **hierarchically** using the following structure:
-
-# Domain: {self.domain}
-# {grid_str}
-
-# Instructions:
-# - For **every subdomain**, output a JSON dict with: subdomain name, yes/no if matches the error, concise but detailed rationale, and confidence (0–1).  
-# - For each subdomain where yes==True, check ALL its error codes (output a dict per error code: subdomain, error code, yes/no if matches, rationale, confidence 0–1).
-# - For subdomains that are not matched (yes==False), set all error codes to yes==False with rationale: "subdomain not matched."
-# - If the error does **not** fit any subdomain, set "No subdomain matched" to yes==True, and for error code, only "No error code matched" to yes==True.
-# - If the error does **not** fit any error code within a matched subdomain, set "No error code matched" for that subdomain to yes==True.
-# - Always fill out every subdomain and every error code slot (full grid) as shown above.
-# - Only output the following JSON format (do not add explanations outside JSON):
-
-# {{
-#   "index": {index},
-#   "domain": "{self.domain}",
-#   "error_summary": "{error_summary}",
-#   "subdomains": [
-#     {{"subdomain": "...", "yes": true/false, "rationale": "...", "confidence": ...}},
-#     ...
-#   ],
-#   "error_codes": [
-#     {{"subdomain": "...", "error_code": "...", "yes": true/false, "rationale": "...", "confidence": ...}},
-#     ...
-#   ],
-#   "no_matching_subdomain": true/false,
-#   "no_matching_error_code": true/false
-# }}
-# """
-#         return prompt
-
-    def build_prompt(self, index: int, error_summary: str):
-        # Build subdomains and error codes (no "new subdomain" or "new error code")
+        # Build subdomain -> error codes mapping
         subdomains = sorted(self.codebook["Dedup Subdomain"].unique())
         subdomain_errorcodes = {}
         for sd in subdomains:
             existing_codes = set(self.codebook[self.codebook["Dedup Subdomain"] == sd]["Dedup Error Code"].tolist())
             subdomain_errorcodes[sd] = existing_codes
 
-        # Build codebook grid for LLM reference
+        # Build codebook grid string
         grid_str = ""
         for sd in subdomains:
             grid_str += f"\n- Subdomain: {sd}\n"
             for ec in subdomain_errorcodes[sd]:
                 definition = self.extract_definition(sd, ec)
-                examples = []
+                examples = []  # keep empty for now (or plug in self.extract_example_pairs(sd, ec))
                 grid_str += f"  - Error Code: {ec}\n"
                 if definition:
                     grid_str += f"    Definition: {definition}\n"
                 grid_str += f"    Examples: {json.dumps(examples, ensure_ascii=False)}\n"
 
+        # Evidence packet: number highlights H1, H2, ...
+        numbered_highlights = []
+        for i, h in enumerate(error_highlights or [], start=1):
+            numbered_highlights.append({
+                "id": f"H{i}",
+                "excerpt": h.get("excerpt", ""),
+                "explanation": h.get("explanation", "")
+            })
+
+        evidence_packet = {
+            "index": index,
+            "domain": self.domain,
+            "error_summary": error_summary,
+            "error_highlights": numbered_highlights
+        }
+        evidence_json = json.dumps(evidence_packet, ensure_ascii=False)
+
         prompt = f"""
-    You are a clinical informatics expert. Given an error summary, classify the error *hierarchically* within the current major domain (**{self.domain}**) using the structure below.
+You are a clinical informatics expert. Given an error **summary** and concrete **error_highlights** (verbatim spans + brief explanations), classify the error *hierarchically* within the current major domain (**{self.domain}**) using the codebook below.
 
-    **Subdomains and error codes for this domain:**{grid_str}
+**Subdomains and error codes for this domain:**{grid_str}
 
-    **Instructions:**
-    - For each subdomain, output:
-        - subdomain: subdomain name (string)
-        - yes: whether this subdomain matches the error (true/false)
-        - rationale: concise explanation for your choice
-        - confidence: your confidence (0–1)
-        - error_codes: a list of error code entries for this subdomain:
-            - error_code: error code name (string)
-            - yes: whether this error code matches (true/false)
-            - rationale: concise explanation for your choice.
-            - confidence: your confidence (0–1)
-    - Always prioritize matching to existing subdomains and error codes.
-    - For all unmatched subdomains or error codes, set yes=false and provide a brief rationale.
-    - Do not propose any new subdomain or error code label.
+**Evidence (READ FULLY, USE ACTIVELY):**
+{evidence_json}
 
-    **Always fill out the entire grid:**  
-    - For every subdomain listed, always include an entry in your output.  
-    - For each subdomain, always include all its listed error codes in your output, regardless of whether they match.  
-    - For any subdomain or error code that does not match, set `"yes": false` and provide a brief rationale.
+**How to use the evidence**
+- Treat **error_summary** as the overall thesis.
+- Treat **error_highlights** as primary evidence: quote IDs (e.g., [H1], [H2]) inside your rationales.
+- A **yes=true** decision at either subdomain or error_code level must be explicitly supported by at least one highlight ID (e.g., “Matches … because … [H2]”).
+- A **yes=false** decision should briefly state why the evidence does not support that label (e.g., “No mention of triage urgency; highlights address readability only [H1,H3]”).
 
-    **Output Format:**  
-    Return ONLY the following JSON (do not add any extra text):
+**Instructions:**
+- For each subdomain, output:
+  - subdomain (string)
+  - yes (true/false)
+  - rationale (concise, must reference highlight IDs like [H2] if yes=true)
+  - confidence (0–1)
+  - error_codes: list of all error codes for that subdomain, each with:
+    - error_code (string)
+    - yes (true/false)
+    - rationale (concise; if yes=true, cite highlight IDs like [H1],[H3])
+    - confidence (0–1)
+- Always prioritize matching to existing subdomains and error codes.
+- Do **not** propose new subdomains or error codes.
+- **Always fill out the entire grid**: include every subdomain and all of its error codes; set yes=false when not applicable and give a brief reason.
 
+**Output Format (STRICT):**
+Return ONLY this JSON (no extra text):
+
+{{
+  "index": {index},
+  "domain": "{self.domain}",
+  "error_summary": "{error_summary}",
+  "error_highlights": {json.dumps(numbered_highlights, ensure_ascii=False)},
+
+  "subdomains": [
     {{
-    "index": {index},
-    "domain": "{self.domain}",
-    "error_summary": "{error_summary}",
-    "subdomains": [
+      "subdomain": "...",
+      "yes": true/false,
+      "rationale": "...",      // if yes=true, MUST cite highlight IDs like [H1]
+      "confidence": ...,
+      "error_codes": [
         {{
-        "subdomain": "...",
-        "yes": true/false,
-        "rationale": "...",
-        "confidence": ...,
-        "error_codes": [
-            {{
-            "error_code": "...",
-            "yes": true/false,
-            "rationale": "...",
-            "confidence": ...
-            }},
-            ...
-        ]
-        }},
-        ...
-    ]
+          "error_code": "...",
+          "yes": true/false,
+          "rationale": "...",  // if yes=true, MUST cite highlight IDs like [H2],[H3]
+          "confidence": ...
+        }}
+      ]
     }}
-    """
+  ]
+}}
+"""
         return prompt
-
-    

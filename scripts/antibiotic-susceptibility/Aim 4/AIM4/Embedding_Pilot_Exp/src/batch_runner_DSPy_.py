@@ -47,7 +47,7 @@ async def identify_error_task(row, identifier, with_reference, identifier_path_o
         "llm_response": row["Suggested Response from LLM"],
         "patient_info": row["Data"],
         "clinical_notes": row["Last Note"],
-        "previous_message": row["Previous Messages"],
+        "previous_messages": row["Previous Messages"],
         "retrieved_pairs": retrieved_pairs
     }
     save_jsonl_line(identifier_path_output.replace(".jsonl", "_input.jsonl"), input_json)
@@ -61,17 +61,15 @@ async def identify_error_task(row, identifier, with_reference, identifier_path_o
     except Exception as e:
         logging.error(f"Validation error for row index {row['index']}:\n{e}\nResponse was: {llm_id_output}\nTraceback:\n{traceback.format_exc()}")
         return None  # or return row["index"], None to indicate skipped
-    # id_result = ErrorIdentifierOutput.model_validate_json(llm_id_output)
-    # save_jsonl_line(identifier_path_output, id_result.model_dump())
-    # logging.info(f"[{row['index']}] [Validated Error Identifier Output]:\n{id_result.model_dump_json(indent=2)}")
-    # return row["index"], llm_id_output
 
-async def label_domain_task(index, error_summary, domain, codebook, labeler_path_output, sleep_per_task):
+
+async def label_domain_task(index, error_summary, error_highlights,domain, codebook, labeler_path_output, sleep_per_task):
     domain_codebook = codebook[codebook["Dedup Domain"] == domain].reset_index(drop=True)
     labeler = ErrorLabelerModule(domain=domain, codebook=domain_codebook)
     prompt_label = labeler.build_prompt(
         index=index,
-        error_summary=error_summary
+        error_summary=error_summary,
+        error_highlights=error_highlights
     )
     try:
         llm_label_output = await generate_response(prompt=prompt_label)
@@ -88,93 +86,13 @@ async def label_domain_task(index, error_summary, domain, codebook, labeler_path
             f"Traceback:\n{traceback.format_exc()}"
         )
         return None  # or (domain, None) if you want to track skips
-    # llm_label_output = await generate_response(prompt=prompt_label)
-    # label_result = ErrorLabelerOutput.model_validate_json(llm_label_output)
-    # save_jsonl_line(labeler_path_output, label_result.model_dump())
-    # logging.info(f"[{index}] [Validated Error Labeler Output for {domain}]:\n{label_result.model_dump_json(indent=2)}")
-    # return (domain, llm_label_output)
+
 
 def batchify(lst, batch_size):
     for i in range(0, len(lst), batch_size):
         yield lst[i:i + batch_size]
 
-def load_all_identifier_results(identifier_path_output):
-    results = []
-    if os.path.exists(identifier_path_output):
-        with open(identifier_path_output, "r", encoding="utf-8") as f:
-            for line in f:
-                try:
-                    results.append(json.loads(line))
-                except Exception:
-                    continue
-    return results
 
-# async def batch_runner(
-#     sample_data, codebook, identifier, with_reference,
-#     identifier_path_output, labeler_path_output,
-#     batch_size=10, delay_between_batches=5
-# ):
-#     from tqdm import tqdm
-
-#     unique_domains = sorted(codebook["Dedup Domain"].unique())
-#     processed_id_indices = load_processed_indices(identifier_path_output)
-#     processed_labeler_keys = load_processed_labeler_keys(labeler_path_output)
-#     logging.info(f"Loaded {len(processed_labeler_keys)} processed labeler keys from {labeler_path_output}")
-
-#     # IDENTIFIER STAGE
-#     id_tasks = [
-#         identify_error_task(row, identifier, with_reference, identifier_path_output)
-#         for _, row in sample_data.iterrows()
-#         if row["index"] not in processed_id_indices
-#     ]
-#     logging.info(f"Starting async identification for {len(id_tasks)} unprocessed cases...")
-
-#     id_results = []
-#     for i, id_batch in enumerate(batchify(id_tasks, batch_size)):
-#         logging.info(f"Running identifier batch {i+1}")
-#         batch_results = []
-#         for res in tqdm(asyncio.as_completed(id_batch), total=len(id_batch), desc=f"Identifier Batch {i+1}"):
-#             result = await res
-#             if result is not None:   # <--- skip failed cases
-#               batch_results.append(result)
-#         id_results.extend(batch_results)
-#         if i < (len(id_tasks) // batch_size):
-#             logging.info(f"Sleeping for {delay_between_batches}s between identifier batches...")
-#             await asyncio.sleep(delay_between_batches)
-
-#     # LABELER STAGE (resume safe)
-#     # all_identifier_results = load_all_identifier_results(identifier_path_output)
-#     all_identifier_results = id_results
-#     labeler_tasks = []
-#     for id_result in all_identifier_results:
-#         idx = id_result["index"]
-#         error_present = id_result.get("error_present", False)
-#         error_summary = id_result.get("error_summary", "")
-#         if error_present:
-#             for domain in unique_domains:
-#                 if (idx, domain) in processed_labeler_keys:
-#                     logging.info(f"[{idx}] [{domain}] Already labeled—skipping.")
-#                     continue
-#                 labeler_tasks.append(
-#                     label_domain_task(idx, error_summary, domain, codebook, labeler_path_output)
-#                 )
-
-#     logging.info(f"Starting async labeling for {len(labeler_tasks)} new (index, domain) pairs...")
-
-#     labeler_results = []
-#     for i, labeler_batch in enumerate(batchify(labeler_tasks, batch_size)):
-#         logging.info(f"Running labeler batch {i+1}")
-#         batch_results = []
-#         for res in tqdm(asyncio.as_completed(labeler_batch), total=len(labeler_batch), desc=f"Labeler Batch {i+1}"):
-#             result = await res
-#             if result is not None:
-#               batch_results.append(result)
-#         labeler_results.extend(batch_results)
-#         if i < (len(labeler_tasks) // batch_size):
-#             logging.info(f"Sleeping for {delay_between_batches}s between labeler batches...")
-#             await asyncio.sleep(delay_between_batches)
-
-#     return id_results, labeler_results
 async def pipeline_task(
     row, identifier, with_reference, identifier_path_output,
     codebook, labeler_path_output, unique_domains, processed_labeler_keys, sleep_per_task
@@ -189,6 +107,7 @@ async def pipeline_task(
         id_output_dict = json.loads(llm_id_output)
         error_present = id_output_dict.get("error_present", False)
         error_summary = id_output_dict.get("error_summary", "")
+        error_highlights = id_output_dict.get("error_highlights", []) or []
     except Exception as e:
         logging.error(f"Failed to parse identifier output for index {idx}: {e}")
         return id_result, []
@@ -202,7 +121,7 @@ async def pipeline_task(
                 logging.info(f"[{idx}] [{domain}] Already labeled—skipping.")
                 continue
             labeler_tasks.append(
-                label_domain_task(idx, error_summary, domain, codebook, labeler_path_output, sleep_per_task)
+                label_domain_task(idx, error_summary, error_highlights, domain, codebook, labeler_path_output, sleep_per_task)
             )
         # Run labeler tasks for this case concurrently
         labeler_results = await asyncio.gather(*labeler_tasks)
@@ -262,7 +181,7 @@ async def batch_pipeline_runner(
                 # Only need to run labelers for missing domains.
                 async def resume_labeler_task(idx=idx, error_summary=error_summary, missing_domains=missing_domains):
                     labeler_tasks = [
-                        label_domain_task(idx, error_summary, domain, codebook, labeler_path_output, sleep_per_task)
+                        label_domain_task(idx, error_summary, id_output.get("error_highlights", []), domain, codebook, labeler_path_output, sleep_per_task)
                         for domain in missing_domains
                     ]
                     labeler_results = await asyncio.gather(*labeler_tasks)
@@ -291,45 +210,3 @@ async def batch_pipeline_runner(
             await asyncio.sleep(delay_between_batches)
 
     return all_id_results, all_labeler_results
-
-# async def batch_pipeline_runner(
-#     sample_data, codebook, identifier, with_reference,
-#     identifier_path_output, labeler_path_output,
-#     batch_size=10, delay_between_batches=5
-# ):
-#     from tqdm import tqdm
-
-#     unique_domains = sorted(codebook["Domain"].unique())
-#     processed_id_indices = load_processed_indices(identifier_path_output)
-#     processed_labeler_keys = load_processed_labeler_keys(labeler_path_output)
-#     logging.info(f"Loaded {len(processed_labeler_keys)} processed labeler keys from {labeler_path_output}")
-
-#     tasks = [
-#         pipeline_task(
-#             row, identifier, with_reference, identifier_path_output,
-#             codebook, labeler_path_output, unique_domains, processed_labeler_keys
-#         )
-#         for _, row in sample_data.iterrows()
-#         if row["index"] not in processed_id_indices
-#     ]
-
-#     all_id_results = []
-#     all_labeler_results = []
-
-#     for i, batch in enumerate(batchify(tasks, batch_size)):
-#         logging.info(f"Running pipeline batch {i+1}")
-#         batch_id_results = []
-#         batch_labeler_results = []
-#         for res in tqdm(asyncio.as_completed(batch), total=len(batch), desc=f"Pipeline Batch {i+1}"):
-#             id_result, labeler_results = await res
-#             if id_result is not None:
-#                 batch_id_results.append(id_result)
-#             if labeler_results:
-#                 batch_labeler_results.extend([r for r in labeler_results if r is not None])
-#         all_id_results.extend(batch_id_results)
-#         all_labeler_results.extend(batch_labeler_results)
-#         if i < (len(tasks) // batch_size):
-#             logging.info(f"Sleeping for {delay_between_batches}s between pipeline batches...")
-#             await asyncio.sleep(delay_between_batches)
-
-#     return all_id_results, all_labeler_results
