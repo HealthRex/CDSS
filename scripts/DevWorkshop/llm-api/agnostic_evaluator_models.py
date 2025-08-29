@@ -63,7 +63,11 @@ def gemini_shc_call(input_txt, max_calls=10, sleep_time=5, **kwargs):
 # Open AI models via SHC
 def openai_init(model_name, my_key):
     headers = {'Ocp-Apim-Subscription-Key': my_key, 'Content-Type': 'application/json'}
-    url = f"https://apim.stanfordhealthcare.org/openai-eastus2/deployments/{model_name}/chat/completions?api-version=2025-01-01-preview"
+    # Use correct API version for GPT-5 deployments
+    if model_name.startswith("gpt-5"):
+        url = f"https://apim.stanfordhealthcare.org/openai-eastus2/deployments/{model_name}/chat/completions?api-version=2024-12-01-preview"
+    else:
+        url = f"https://apim.stanfordhealthcare.org/openai-eastus2/deployments/{model_name}/chat/completions?api-version=2025-01-01-preview"
     if model_name == "gpt-4o":
         url = "https://apim.stanfordhealthcare.org/openai20/deployments/gpt-4o/chat/completions?api-version=2023-05-15" 
     return {"model_name": model_name, "url": url, "headers": headers}
@@ -217,9 +221,9 @@ if __name__ == "main":
     res = deepseek_instance.gen_txt_to_txt(my_question)
     print(res)
 
-    # Using OpenAI models via SHC
-    gpt41_init = partial(openai_init, "gpt-4.1", lab_key)
-    openai_instance = API_text_to_text(gpt41_init, openai_call)
+    # Using OpenAI models via SHC (GPT-5 example)
+    gpt5_init = partial(openai_init, "gpt-5", lab_key)
+    openai_instance = API_text_to_text(gpt5_init, openai_call)
     res = openai_instance.gen_txt_to_txt(my_question)
     print(res)
     
