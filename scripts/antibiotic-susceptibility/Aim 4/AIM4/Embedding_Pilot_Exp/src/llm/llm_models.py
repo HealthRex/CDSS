@@ -1,2 +1,4 @@
-MODEL_GPT_O3_MINI = "gpt_o3_mini"
+MODEL_GPT_O3_MINI = "o3-mini"
+MODEL_GPT5 = "gpt-5"
 
+ALL_MODELS = (MODEL_GPT_O3_MINI, MODEL_GPT5)
