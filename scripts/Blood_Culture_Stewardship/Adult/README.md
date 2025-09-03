@@ -3,3 +3,4 @@
 - BloodCultStewardship-AddingEDNotes.ipynb Extracts ED provider Notes for study cohort
 - ModelDevelopment_StructuredEHRData_LR.ipynb Logstic Regression model for prediction
 - ModelDevelopment_StructuredEHRData_PointingSystem.ipynb Pointing based system retrived from LR model
+- Extract_Relevent_Chunk.ipynb Chunk notes to get embeding representation to extract most relevent chunks
