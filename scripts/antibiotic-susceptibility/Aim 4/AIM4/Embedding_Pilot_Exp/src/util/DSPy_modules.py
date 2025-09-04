@@ -128,7 +128,7 @@ class ErrorLabelerModule:
             return rows.iloc[0].get("Dedup Definition", "")
         return ""
 
-    def build_prompt(self, index: int, error_summary: str, error_highlights):
+    def build_prompt(self, index: int, error_summary: str, error_highlights, patient_message: str, llm_response: str):
         """
         error_highlights: list[dict] like [{"excerpt": "...", "explanation": "..."}, ...]
         """
@@ -165,7 +165,9 @@ class ErrorLabelerModule:
             "index": index,
             "domain": self.domain,
             "error_summary": error_summary,
-            "error_highlights": numbered_highlights
+            "error_highlights": numbered_highlights,
+            "patient_message": patient_message,
+            "llm_response": llm_response
         }
         evidence_json = json.dumps(evidence_packet, ensure_ascii=False)
 

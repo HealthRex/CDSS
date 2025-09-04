@@ -55,21 +55,26 @@ async def identify_error_task(row, identifier, with_reference, identifier_path_o
     await asyncio.sleep(0.5)  # Add 0.5 second delay to prevent 500 errors
     try:
         id_result = ErrorIdentifierOutput.model_validate_json(llm_id_output)
-        save_jsonl_line(identifier_path_output, id_result.model_dump())
+        result_dict = id_result.model_dump()
+        result_dict["patient_message"] = row["Patient Message"]
+        result_dict["llm_response"] = row["Suggested Response from LLM"]
+        save_jsonl_line(identifier_path_output, result_dict)
         logging.info(f"[{row['index']}] [Validated Error Identifier Output]:\n{id_result.model_dump_json(indent=2)}")
-        return row["index"], llm_id_output
+        return row["index"], llm_id_output, row["Patient Message"], row["Suggested Response from LLM"]
     except Exception as e:
         logging.error(f"Validation error for row index {row['index']}:\n{e}\nResponse was: {llm_id_output}\nTraceback:\n{traceback.format_exc()}")
         return None  # or return row["index"], None to indicate skipped
 
 
-async def label_domain_task(index, error_summary, error_highlights,domain, codebook, labeler_path_output, sleep_per_task):
+async def label_domain_task(index, error_summary, error_highlights,domain, patient_message, llm_response, codebook, labeler_path_output, sleep_per_task):
     domain_codebook = codebook[codebook["Dedup Domain"] == domain].reset_index(drop=True)
     labeler = ErrorLabelerModule(domain=domain, codebook=domain_codebook)
     prompt_label = labeler.build_prompt(
         index=index,
         error_summary=error_summary,
-        error_highlights=error_highlights
+        error_highlights=error_highlights,
+        patient_message=patient_message,
+        llm_response=llm_response
     )
     try:
         llm_label_output = await generate_response(prompt=prompt_label)
@@ -101,7 +106,7 @@ async def pipeline_task(
     id_result = await identify_error_task(row, identifier, with_reference, identifier_path_output)
     if id_result is None:
         return None, []
-    idx, llm_id_output = id_result
+    idx, llm_id_output, patient_message, llm_response = id_result
     # Parse id_result for error_present and summary
     try:
         id_output_dict = json.loads(llm_id_output)
@@ -121,7 +126,7 @@ async def pipeline_task(
                 logging.info(f"[{idx}] [{domain}] Already labeled—skipping.")
                 continue
             labeler_tasks.append(
-                label_domain_task(idx, error_summary, error_highlights, domain, codebook, labeler_path_output, sleep_per_task)
+                label_domain_task(idx, error_summary, error_highlights, domain, patient_message, llm_response, codebook, labeler_path_output, sleep_per_task)
             )
         # Run labeler tasks for this case concurrently
         labeler_results = await asyncio.gather(*labeler_tasks)
@@ -175,6 +180,8 @@ async def batch_pipeline_runner(
             error_present = id_output.get("error_present", False)
             error_summary = id_output.get("error_summary", "")
             error_highlights = id_output.get("error_highlights", [])
+            patient_message = id_output.get("patient_message", "")
+            llm_response = id_output.get("llm_response", "")
             missing_domains = [
                 domain for domain in unique_domains
                 if (idx, domain) not in processed_labeler_keys
@@ -183,7 +190,7 @@ async def batch_pipeline_runner(
                 # Only need to run labelers for missing domains.
                 async def resume_labeler_task(idx=idx, error_summary=error_summary, error_highlights=error_highlights, missing_domains=missing_domains):
                     labeler_tasks = [
-                        label_domain_task(idx, error_summary, error_highlights, domain, codebook, labeler_path_output, sleep_per_task)
+                        label_domain_task(idx, error_summary, error_highlights, domain, patient_message, llm_response, codebook, labeler_path_output, sleep_per_task)
                         for domain in missing_domains
                     ]
                     labeler_results = await asyncio.gather(*labeler_tasks)
