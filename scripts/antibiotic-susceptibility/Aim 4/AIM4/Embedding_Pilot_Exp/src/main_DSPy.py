@@ -6,7 +6,7 @@ from util.DSPy_modules import ErrorIdentifierModule
 from batch_runner_DSPy_ import batch_pipeline_runner  # <--- import your runner
 import time
 
-async def main_single_run(BASE_PATH, with_reference=False, size=20, sleep_per_task = 1.5):
+async def main_single_run(BASE_PATH, with_reference=False, size=20, sleep_per_task = 1.5, temp=True):
     start = time.time()
     os.makedirs(BASE_PATH, exist_ok=True)
 
@@ -30,13 +30,13 @@ async def main_single_run(BASE_PATH, with_reference=False, size=20, sleep_per_ta
     
     logging.info(f"Running with reference: {with_reference}")
     logging.info(f"Running with size: {size}")
-
+    logging.info(f"Running with temp: {temp}")
     logging.info("Loading codebook...")
     codebook = load_codebook()
     logging.info(f"Codebook loaded with {len(codebook)} entries.")
 
     logging.info("Loading sample data...")
-    sample_data = load_data(size=size, random_state=42,cache= True, force_resample= False)
+    sample_data = load_data(size=size, random_state=42,cache= True, force_resample= False, temp=temp)
     logging.info(f"Sample data loaded with {len(sample_data)} rows.")
 
     identifier = ErrorIdentifierModule()
@@ -53,8 +53,8 @@ async def main_single_run(BASE_PATH, with_reference=False, size=20, sleep_per_ta
 
 async def main():
     size = 100
-    await main_single_run(BASE_PATH=f"src/DSPy_results_batch_{size}_dedup_with_prev_msg", with_reference=False, size=size, sleep_per_task=1.2)
-    await main_single_run(BASE_PATH=f"src/DSPy_results_batch_{size}_dedup_with_prev_msg_w_ref", with_reference=True, size=size, sleep_per_task=1.6)
+    await main_single_run(BASE_PATH=f"src/DSPy_results_batch_previously_labeled_100_dedup_with_prev_msg", with_reference=False, size=size, sleep_per_task=1.2, temp=True)
+    await main_single_run(BASE_PATH=f"src/DSPy_results_batch_previously_labeled_100_dedup_with_prev_msg_w_ref", with_reference=True, size=size, sleep_per_task=1.6, temp=True)
 
 
 if __name__ == "__main__":
