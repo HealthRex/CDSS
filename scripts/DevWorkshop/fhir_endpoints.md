@@ -10,6 +10,7 @@ Simple Python examples to make (read‑only) FHIR API calls to Epic at Stanford 
 - [Setup and prerequisites](#setup-and-prerequisites)
 - [Get all identifiers from MRN or email](#get-all-identifiers-from-mrn-or-email)
 - [Get patient demographics from FHIR ID](#get-patient-demographics-from-fhir-id)
+- [Download patient radiology reports](#download-patient-radiology-reports)
 - [Contribute new endpoints](#contribute-new-endpoints)
 
 
