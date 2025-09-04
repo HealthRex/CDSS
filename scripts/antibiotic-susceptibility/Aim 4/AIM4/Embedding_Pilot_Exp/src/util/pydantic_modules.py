@@ -48,7 +48,15 @@ class ErrorIdentifierOutput(BaseModel):
 
 
 # Matches citations like [H1], [H2], ...
-HID_PATTERN = re.compile(r"\[H(\d+)\]")
+# HID_PATTERN = re.compile(r"\[H(\d+)\]")
+# Accept [H1] or [H1,H2, H10] (used only for presence checks if you like)
+HID_GROUP = re.compile(r"\[(?:H\d+(?:,\s*H\d+)*)\]")
+
+# Extract tokens H1, H2, H10 even without brackets; avoid word-embedded matches
+# e.g., matches "... H10 ..." but not "... XH10Y ..."
+HID_TOKEN = re.compile(r"(?<![A-Za-z0-9_])H(\d+)(?![A-Za-z0-9_])")
+
+
 class ErrorHighlightOut(BaseModel):
     id: str = Field(..., description='Highlight ID like "H1".')
     excerpt: str = Field(..., description="Verbatim span from the LLM response; never truncated.")
@@ -60,7 +68,7 @@ class ErrorCodeLabel(BaseModel):
     error_code: str
     yes: bool
     rationale: Optional[str] = Field(
-        None, description="If yes=true, must cite one or more highlight IDs like [H1]."
+        None,description='If yes=true, cite one or more highlight IDs, e.g., [H1], [H1,H2] or H1 H2.'
     )
     confidence: confloat(ge=0.0, le=1.0)
 
@@ -71,7 +79,7 @@ class SubdomainLabel(BaseModel):
     subdomain: str
     yes: bool
     rationale: Optional[str] = Field(
-        None, description="If yes=true, must cite one or more highlight IDs like [H1]."
+        None, description='If yes=true, cite one or more highlight IDs, e.g., [H1], [H1,H2] or H1 H2.'
     )
     confidence: confloat(ge=0.0, le=1.0)
     error_codes: List[ErrorCodeLabel]
@@ -96,11 +104,13 @@ class ErrorLabelerOutput(BaseModel):
         # Build valid ID set from error_highlights
         highlights: List[ErrorHighlightOut] = self.error_highlights or []
         valid_ids: Set[str] = {h.id for h in highlights}
-
+        
         def cited_ids(text: Optional[str]) -> Set[str]:
             if not text:
                 return set()
-            return {f"H{m.group(1)}" for m in HID_PATTERN.finditer(text)}
+            # Pull all H-numbers anywhere in the text (bracketed or not)
+            return {f"H{n}" for n in HID_TOKEN.findall(text)}
+
 
         # Subdomain-level checks
         for sd in self.subdomains or []:

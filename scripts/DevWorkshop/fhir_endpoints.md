@@ -4,7 +4,7 @@ Simple Python examples to make (read‑only) FHIR API calls to Epic at Stanford 
 
 *Created by François Grolleau on 08/28/2025 based on the original documentation put together by Ruoqi Liu*
 
-*Last update August 28, 2025.*
+*Last update September 4, 2025.*
 
 ## Table of Contents
 - [Setup and prerequisites](#setup-and-prerequisites)
@@ -236,7 +236,7 @@ Example usage:
 ```python
 from datetime import date, timedelta
 
-# Download all documents from the last 30 days to organized directories
+# Download all documents from the last 30 days
 start_date = date.today() - timedelta(days=30)
 end_date = date.today()
 
