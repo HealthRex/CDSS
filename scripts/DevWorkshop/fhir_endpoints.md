@@ -4,12 +4,14 @@ Simple Python examples to make (read‑only) FHIR API calls to Epic at Stanford 
 
 *Created by François Grolleau on 08/28/2025 based on the original documentation put together by Ruoqi Liu*
 
-*Last update August 28, 2025.*
+*Last update September 4, 2025.*
 
 ## Table of Contents
 - [Setup and prerequisites](#setup-and-prerequisites)
 - [Get all identifiers from MRN or email](#get-all-identifiers-from-mrn-or-email)
 - [Get patient demographics from FHIR ID](#get-patient-demographics-from-fhir-id)
+- [Download patient radiology reports](#download-patient-radiology-reports)
+- [Download patient clinical notes](#download-patient-clinical-notes-htmlrtf)
 - [Contribute new endpoints](#contribute-new-endpoints)
 
 
@@ -235,7 +237,7 @@ Example usage:
 ```python
 from datetime import date, timedelta
 
-# Download all documents from the last 30 days to organized directories
+# Download all documents from the last 30 days
 start_date = date.today() - timedelta(days=30)
 end_date = date.today()
 
@@ -250,6 +252,150 @@ if result["success"]:
 else:
     print("No documents found in date range")
 ```
+## Download patient clinical notes (HTML/RTF)
+
+This example demonstrates how to use the Epic FHIR API to:
+
+Search for clinical notes using the DocumentReference endpoint.
+
+Extract Binary attachments (text/html or text/rtf).
+
+Download and save them to disk.
+import os
+import requests
+from requests.auth import HTTPBasicAuth
+
+```python 
+
+def send_request(patient_fhir_id, send_binary=False, binary_url=None, docstatus="final"):
+    """Send a GET request to DocumentReference or a Binary resource.
+
+    Args:
+        patient_fhir_id (str): FHIR patient ID string.
+        send_binary (bool): If True, request Binary/{id}. If False, request DocumentReference.
+        binary_url (str): Relative URL for Binary resource (required if send_binary=True).
+        docstatus (str): Document status filter (default "final").
+
+    Returns:
+        requests.Response: API response.
+    """
+    if send_binary:
+        url = f"{os.environ['EPIC_ENV']}api/FHIR/R4/{binary_url}"
+        headers = {
+            "Content-Type": "application/json; charset=utf-8",
+            "Epic-Client-ID": os.environ["EPIC_CLIENT_ID"],
+        }
+    else:
+        url = f"{os.environ['EPIC_ENV']}api/FHIR/R4/DocumentReference"
+        headers = {
+            "Content-Type": "application/json; charset=utf-8",
+            "Epic-Client-ID": os.environ["EPIC_CLIENT_ID"],
+            "Accept": "application/json",  # request JSON instead of XML
+        }
+
+    resp = requests.get(
+        url,
+        params={
+            "category": "clinical-note",
+            "patient": patient_fhir_id,
+            # "docstatus": docstatus  # optional filter
+        },
+        headers=headers,
+        auth=HTTPBasicAuth(os.environ["secretID"], os.environ["secretpass"]),
+        timeout=30,
+    )
+    return resp
+
+
+def save_binary(binary_resp, text_type, index, save_directory="example"):
+    """Save a Binary resource to disk.
+
+    Args:
+        binary_resp (requests.Response): Binary GET response.
+        text_type (str): MIME type string (e.g., "text/html", "text/rtf").
+        index (int): File index (to avoid overwrites).
+        save_directory (str): Directory path to save files.
+
+    Raises:
+        ValueError: If content type is not supported.
+    """
+    os.makedirs(save_directory, exist_ok=True)
+
+    if text_type == "text/html":
+        with open(f"{save_directory}/note_html_{index}.html", "wb") as f:
+            f.write(binary_resp.content)
+    elif text_type == "text/rtf":
+        with open(f"{save_directory}/note_rtf_{index}.rtf", "wb") as f:
+            f.write(binary_resp.content)
+    else:
+        raise ValueError(f"not html nor rtf: {text_type}")
+
+
+def extract_binary_pairs(obj, pairs=None):
+    """Recursively extract (contentType, url) pairs where url starts with 'Binary/'.
+
+    Args:
+        obj (dict or list): JSON response object from DocumentReference.
+        pairs (list): Accumulator for results.
+
+    Returns:
+        list: [[contentType, url], ...] pairs.
+    """
+    if pairs is None:
+        pairs = []
+
+    if isinstance(obj, dict):
+        if "contentType" in obj and "url" in obj:
+            url = obj["url"]
+            if isinstance(url, str) and url.startswith("Binary/"):
+                pairs.append([obj["contentType"], url])
+        for v in obj.values():
+            extract_binary_pairs(v, pairs)
+
+    elif isinstance(obj, list):
+        for item in obj:
+            extract_binary_pairs(item, pairs)
+
+    return pairs
+
+
+def process_clinical_note(identifier, save_directory="example"):
+    """Fetch and save all clinical notes for a patient.
+
+    Steps:
+      1. Get patient FHIR ID from MRN (or other identifier).
+      2. Query DocumentReference for attachment URLs.
+      3. Download each Binary and save to disk.
+
+    Args:
+        identifier (str): Patient identifier (e.g., MRN).
+        save_directory (str): Directory where files will be saved.
+
+    Side Effects:
+        Saves files locally (note_html_{i}.html, note_rtf_{i}.rtf, etc.)
+    """
+    patient_fhir_id = get_patient_identifiers(identifier=identifier, identifier_type="SHCMRN")["FHIR"]
+    resp_json = send_request(patient_fhir_id, send_binary=False).json()
+    tuple_list = extract_binary_pairs(resp_json)
+
+    for index, (content_type, url) in enumerate(tuple_list):
+        binary_resp = send_request(patient_fhir_id, send_binary=True, binary_url=url)
+        save_binary(binary_resp, content_type, index, save_directory)
+        print(f"downloaded {index+1} of {len(tuple_list)}")
+
+
+if __name__ == "__main__":
+    process_clinical_note(os.environ["EXAMPLE_MRN"], "example3")
+```
+
+
+To open them directly from your terminal (cd to your save_directory):
+```bash
+open note_html.html
+# or
+open note_rtf.rtf
+```
+
 
 ## Contribute new endpoints
 
