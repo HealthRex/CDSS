@@ -7,3 +7,4 @@
 - Fit_Notes_LLM_BloodCulture_Classification_NoFabre.ipynb Use Secure Stanford GPT-4 and ask to classify patient for likelihood of posetive blood culture (No fabre framework)
 - Fit_Notes_LLM_BloodCulture_Classification_NoFabre-COT.ipynb The same experiment as the last note book here i just check what if we asked the LLM to highlight it's reason for labeling
 - Notes_With_EHR_LLM_Classification.ipynb Adding EHR data
+- Apply_Fabre_Fit_Notes_LLM.ipynb using Fabre zero shot learning, EHR included in prompt
