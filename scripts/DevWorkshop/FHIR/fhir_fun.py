@@ -141,5 +141,5 @@ def download_discharge_summaries(mrn, save_directory="dc_summaries", start_date=
     
     return fhir_response
 
-if __name__ == "__main__":
-    res = download_discharge_summaries(os.environ["EXAMPLE_MRN"], save_directory="dc_summaries", start_date="2025-01-01", end_date="2025-12-31", doc_type="text/html")
+# Example usage
+res = download_discharge_summaries(mrn="1234567", save_directory="dc_summaries", start_date="2025-01-01", end_date="2025-12-31", doc_type="text/html")
