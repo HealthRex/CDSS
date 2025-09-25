@@ -100,7 +100,7 @@ print(demo)
 
 ## Download patient discharge summaries
 
-You can automatically download all discharge summaries for a patient by providing their MRN (medical record number), an optional date range, and your preferred document format (HTML or RTF). The summaries will be saved in your chosen directory, with filenames that include both the MRN and the chart closure date (the date the summary was electronically signed).
+You can automatically download all discharge summaries for a patient by providing their MRN, an optional date range, and your preferred document format (HTML or RTF). The summaries will be saved in your chosen directory, with filenames that include both the MRN and the chart closure date (the date the summary was electronically signed).
 
 Example usage:
 ```python
@@ -128,5 +128,7 @@ Suggested endpoints to document:
 - Accessing progress notes
 - Fetching lab results
 - Other useful FHIR resources
+
+You may find it helpful to consult the Stanford FHIR documentation, which is available [here](https://vendorservices.epic.com/Sandbox/Index).
 
 Thank you for helping improve our FHIR documentation!
