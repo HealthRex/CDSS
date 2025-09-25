@@ -106,10 +106,10 @@ Example usage:
 ```python
 from fhir_fun import download_discharge_summaries
 
-res = download_discharge_summaries(mrn=os.environ["EXAMPLE_MRN"], save_directory="dc_summaries", start_date="2025-01-01", end_date="2025-12-31", doc_type="text/html")
+res = download_discharge_summaries(mrn="1234567", save_directory="dc_summaries", start_date="2025-01-01", end_date="2025-12-31", doc_type="text/html")
 ```
 
-This will dowload all discharge summaries between the specified dates as HTML files in save_directory. See docstring for more information.
+This will dowload all discharge summaries between the specified dates as HTML files in save_directory. See [docstring](https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/FHIR/fhir_fun.py#L95) for more information.
 
 
 ## Contribute new endpoints
