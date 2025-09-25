@@ -129,6 +129,6 @@ Suggested endpoints to document:
 - Fetching lab results
 - Other useful FHIR resources
 
-You may find it helpful to consult the Stanford FHIR documentation, which is available [here](https://vendorservices.epic.com/Sandbox/Index).
+For more details on available FHIR endpoints, check out the Stanford FHIR docs: [https://vendorservices.epic.com/Sandbox/Index](https://vendorservices.epic.com/Sandbox/Index).
 
 Thank you for helping improve our FHIR documentation!
