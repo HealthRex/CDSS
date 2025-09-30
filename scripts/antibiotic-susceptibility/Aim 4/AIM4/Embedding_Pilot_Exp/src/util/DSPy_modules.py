@@ -226,5 +226,36 @@ Return ONLY this JSON (no extra text):
     }}
   ]
 }}
+WORKED EXAMPLE (to illustrate how fields must be filled):
+{
+  "index": 123,
+  "domain": "Clinical Reasoning",
+  "error_summary": "The reply downplays red-flag chest pain.",
+  "error_highlights": [
+    {"excerpt": "…this doesn’t sound urgent…", "explanation": "Minimizes potential ACS [context supports concern]."}
+  ],
+  "subdomains": [
+    {
+      "subdomain": "Risk Assessment & Triage",
+      "yes": true,
+      "rationale": "Highlights show minimized urgency [H1].",
+      "confidence": 0.86,
+      "error_codes": [
+        {
+          "error_code": "Missed Escalation/Urgency",
+          "yes": true,
+          "rationale": "Language reduces urgency despite red flags [H1].",
+          "confidence": 0.88
+        },
+        {
+          "error_code": "Role-Based Scope",
+          "yes": false,
+          "rationale": "No scope-of-practice issue evident.",
+          "confidence": 0.0
+        }
+      ]
+    }
+  ]
+}
 """
         return prompt
