@@ -22,4 +22,4 @@ WITH subtype_exposure AS (
 )
 SELECT *
 FROM subtype_exposure
-WHERE medication_time_to_culturetime > 0;
+WHERE medication_time_to_culturetime >= 1;
