@@ -61,7 +61,7 @@ SELECT
 FROM 
     cleaned_medications
 WHERE 
-    medication_time_to_culturetime >= 0;  -- optional: keep only prior or same-day exposures
+    medication_time_to_culturetime >= 1;  -- optional: keep only prior exposures
 
 
 ##########################################################################################
