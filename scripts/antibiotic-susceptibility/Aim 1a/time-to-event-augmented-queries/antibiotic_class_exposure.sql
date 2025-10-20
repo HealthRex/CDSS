@@ -22,4 +22,4 @@ WITH class_exposure AS (
 )
 SELECT *
 FROM class_exposure
-WHERE medication_time_to_culturetime > 0;
+WHERE medication_time_to_culturetime >= 1;
