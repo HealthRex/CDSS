@@ -4,13 +4,14 @@ Simple Python examples to make (read‑only) FHIR API calls to Epic at Stanford 
 
 *First compiled by François Grolleau (08/2025); later updated and expanded by Wenyuan (Sandy) Chen. Contributions and corrections welcome!*
 
-*Last revised: September 24, 2025.*
+*Last revised: October 24, 2025.*
 
 ## Table of Contents
 - [Setup and prerequisites](#setup-and-prerequisites)
 - [Get all identifiers from MRN or email](#get-all-identifiers-from-mrn-or-email)
 - [Get patient demographics from FHIR ID](#get-patient-demographics-from-fhir-id)
 - [Download patient discharge summaries](#download-patient-discharge-summaries)
+- [Download CV Cath Procedure reports](#download-cv-cath-procedure-reports)
 - [Contribute new endpoints](#contribute-new-endpoints)
 
 
@@ -109,7 +110,22 @@ from fhir_fun import download_discharge_summaries
 res = download_discharge_summaries(mrn="1234567", save_directory="dc_summaries", start_date="2025-01-01", end_date="2025-12-31", doc_type="text/html")
 ```
 
-This will dowload all discharge summaries between the specified dates as HTML files in save_directory. See [docstring](https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/FHIR/fhir_fun.py#L95) for more information.
+This will download all discharge summaries between the specified dates as HTML files in save_directory. See [docstring](https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/FHIR/fhir_fun.py#L94) for more information.
+
+## Download CV Cath Procedure reports
+
+You can automatically download CV Cath Procedure PDF reports for a patient by providing their MRN and an optional date range. The reports will be saved in your chosen directory, with filenames that include both the MRN and the report date.
+
+**Note:** Only final/signed reports are accessible via DocumentReference. Preliminary reports may not be available through this method.
+
+Example usage:
+```python
+from fhir_fun import download_cv_cath_reports
+
+res = download_cv_cath_reports(mrn="1234567", save_directory="cv_cath", start_date="2025-01-01", end_date="2025-12-31")
+```
+
+This will download all CV Cath Procedure reports between the specified dates as PDF files in save_directory. See [docstring](https://github.com/HealthRex/CDSS/blob/master/scripts/DevWorkshop/FHIR/fhir_fun.py#L199) for more information.
 
 
 ## Contribute new endpoints
@@ -124,9 +140,9 @@ If your code is longer than 10 lines, please define it as a function with a well
 🚨 **IMPORTANT:** Do not include any protected health information (PHI), or secret credentials in your examples. This documentation is public.
 
 Suggested endpoints to document:
-- Retrieving radiology reports
 - Accessing progress notes
 - Fetching lab results
+- Retrieving other radiology reports
 - Other useful FHIR resources
 
 For more details on available FHIR endpoints, check out the Stanford FHIR docs: [https://vendorservices.epic.com/Sandbox/Index](https://vendorservices.epic.com/Sandbox/Index).
