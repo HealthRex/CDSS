@@ -1,7 +1,3 @@
--- This query is the main query for creating a table named microbiology_cultures_cohort_peds that forms the basis of the microbiology cultures cohort for pediatrics. 
--- The table is generated through a series of steps, each designed to filter and enrich the dataset. 
--- Once the main cohort table is created, additional features will be added to this table to complete the dataset for analysis.
-
 ######################################################################################## 
 -- Create or replace the cohort table named microbiology_cultures_cohort_peds
 ######################################################################################## 
@@ -31,6 +27,7 @@ WITH microbiology_cultures AS (
     WHERE
         op.order_type LIKE "Microbiology%"
         AND (op.description LIKE "%URINE%" OR op.description LIKE "%RESPIRATORY%" OR op.description LIKE "%BLOOD%")
+        AND not op.order_status like any ('Discontinued','Canceled')
 ),
 
 
@@ -98,26 +95,45 @@ included_microbiology_cultures AS (
         pmc.order_proc_id_coded NOT IN (SELECT order_proc_id_coded FROM order_in_prior_two_weeks)
 ),
 
-
+   
 ###########################################################################################################
--- Step 5: Flag cultures as positive if they have corresponding entries in the culture_sensitivity table
-###########################################################################################################    
+-- Step 5: Growth-based positivity using lab result interpretation + organism
+###########################################################################################################
 
-all_cultures_with_flag AS (
-    SELECT 
-        imc.anon_id, 
-        imc.pat_enc_csn_id_coded, 
-        imc.order_proc_id_coded, 
-        imc.order_time_jittered_utc, 
-        imc.ordering_mode,
-        imc.culture_description,
-        IF(cs.order_proc_id_coded IS NOT NULL, 1, 0) AS was_positive
-    FROM 
-        included_microbiology_cultures imc
-    LEFT JOIN 
-        (SELECT DISTINCT order_proc_id_coded FROM `som-nero-phi-jonc101.lpch_core_2024.lpch_culture_sensitivity`) cs
-    ON 
-        imc.order_proc_id_coded = cs.order_proc_id_coded
+growth_based_positivity AS (
+  SELECT DISTINCT
+    imc.anon_id,
+    imc.pat_enc_csn_id_coded,
+    imc.order_proc_id_coded,
+    imc.order_time_jittered_utc,
+    imc.ordering_mode,
+    imc.culture_description,
+    CASE
+      WHEN cs.organism IS NOT NULL 
+       AND NOT LOWER(lr.ord_value) LIKE ANY ('%no%grow%', '%not%detect%', '%negative%')
+       AND (lr.extended_value_comment IS NULL OR 
+            NOT UPPER(COALESCE(lr.extended_value_comment, lr.extended_comp_comment)) LIKE ANY (
+                '%NO GROWTH%',
+                '%CONTAMIN%',
+                '%NORMAL RESP%',
+                '%MIXED%',
+                '%COAG% NEG%',
+                '%GRAM%POS%RODS%',
+                '%GRAM%+%RODS%'
+            )
+           )
+      THEN 1 ELSE 0 END AS was_positive
+  FROM included_microbiology_cultures imc
+  LEFT JOIN `som-nero-phi-jonc101.lpch_core_2024.lpch_lab_result` lr
+    ON imc.order_proc_id_coded = lr.order_id_coded
+   AND imc.pat_enc_csn_id_coded = lr.pat_enc_csn_id_coded
+   AND imc.anon_id = lr.anon_id
+  LEFT JOIN (
+    SELECT DISTINCT order_proc_id_coded, organism
+    FROM `som-nero-phi-jonc101.lpch_core_2024.lpch_culture_sensitivity`
+    WHERE organism IS NOT NULL AND TRIM(organism) != ''
+  ) cs
+    ON imc.order_proc_id_coded = cs.order_proc_id_coded
 ),
 
 
@@ -263,6 +279,7 @@ positive_culture_details AS (
             OR cs.antibiotic LIKE '%VIM%'  
             OR cs.antibiotic LIKE '%Method%'  
             OR cs.antibiotic LIKE '%INH%'   
+            OR cs.antibiotic LIKE '%Inh%'  
             OR cs.antibiotic LIKE '%Polymyxin B%' 
             OR cs.antibiotic LIKE '%Nalidixic%'   
             OR cs.antibiotic LIKE '%Flucytosine%' 
@@ -271,7 +288,45 @@ positive_culture_details AS (
             OR cs.antibiotic LIKE '%Pyrazinamide%' 
             OR cs.antibiotic LIKE '%Clofazimine%' 
             OR cs.antibiotic LIKE '%Rifabutin%' 
-            OR cs.antibiotic IN ('Posaconazole','Penicillin/Ampicillin','Omadacycline', 'Amphotericin B', 'Polymixin B', 'Fluconazole', 'Itraconazole', 'Caspofungin', 'Voriconazole', 'Anidulafungin', 'Micafungin', 'Isavuconazole', 'Antibiotic', 'OXA48-LIKE PCR', 'ESBL confirmation test', 'Oxacillin Screen')
+            OR cs.antibiotic LIKE '%Fluconazole%' 
+            OR cs.antibiotic LIKE '%Dtest%' 
+            OR cs.antibiotic LIKE '%Strep%' 
+            OR cs.antibiotic LIKE '%Genta%'
+            OR cs.antibiotic LIKE '%D-Test%' OR
+            LOWER(cs.antibiotic) LIKE '%inbasket%' OR
+    LOWER(cs.antibiotic) LIKE '%beta lactamase%' OR
+    LOWER(cs.antibiotic) LIKE '%blaz%' OR
+    LOWER(cs.antibiotic) LIKE '%carbapenemase%' OR
+    LOWER(cs.antibiotic) LIKE '%dtest%' OR
+    LOWER(cs.antibiotic) LIKE '%d-test%' OR
+    LOWER(cs.antibiotic) LIKE '%esbl%' OR
+    LOWER(cs.antibiotic) LIKE '%ermpcr%' OR
+    LOWER(cs.antibiotic) LIKE '%mupirocin%' OR
+    LOWER(cs.antibiotic) LIKE '%internal control%' OR
+    LOWER(cs.antibiotic) LIKE '%kpc%' OR
+    LOWER(cs.antibiotic) LIKE '%meca%' OR
+    LOWER(cs.antibiotic) LIKE '%ndm%' OR
+    LOWER(cs.antibiotic) LIKE '%oxa%' OR
+    LOWER(cs.antibiotic) LIKE '%vim%' OR
+    LOWER(cs.antibiotic) LIKE '%method%' OR
+    LOWER(cs.antibiotic) LIKE '%inh%' OR
+    LOWER(cs.antibiotic) LIKE '%nalidixic%' OR
+    LOWER(cs.antibiotic) LIKE '%flucytosine%' OR
+    LOWER(cs.antibiotic) LIKE '%rifampin%' OR
+    LOWER(cs.antibiotic) LIKE '%ethambutol%' OR
+    LOWER(cs.antibiotic) LIKE '%pyrazinamide%' OR
+    LOWER(cs.antibiotic) LIKE '%clofazimine%' OR
+    LOWER(cs.antibiotic) LIKE '%rifabutin%' OR
+    LOWER(cs.antibiotic) LIKE '%fluconazole%' OR
+    LOWER(cs.antibiotic) LIKE '%voriconazole%' OR
+    LOWER(cs.antibiotic) LIKE '%itraconazole%' OR
+    LOWER(cs.antibiotic) LIKE '%caspofungin%' OR
+    LOWER(cs.antibiotic) LIKE '%micafungin%' OR
+    LOWER(cs.antibiotic) LIKE '%anidulafungin%' OR
+    LOWER(cs.antibiotic) LIKE '%isavuconazole%' OR
+    LOWER(cs.antibiotic) LIKE '%amphotericin%' OR
+    LOWER(cs.antibiotic) LIKE '%ticarcillin/clavulanate%' OR
+    LOWER(cs.antibiotic) LIKE '%ticarcillin/clavulanic acid%' OR cs.antibiotic IN ('Posaconazole','Penicillin/Ampicillin','Omadacycline', 'Amphotericin B', 'Polymixin B', 'Fluconazole', 'Itraconazole', 'Caspofungin', 'Voriconazole', 'Anidulafungin', 'Micafungin', 'Isavuconazole', 'Antibiotic', 'OXA48-LIKE PCR', 'ESBL confirmation test', 'Oxacillin Screen','Amphotericin B', 'Ticarcillin/Clavulanate','Ticarcillin/Clavulanic Acid','Inh','Esbl Check','Dtest','Imipenem/Ebactam')
         )
 )
 
@@ -299,7 +354,7 @@ SELECT
         ELSE 'Unknown'  -- Mark unexpected values as Unknown
     END AS susceptibility
 FROM
-    all_cultures_with_flag acwf
+    growth_based_positivity acwf
 LEFT JOIN
     positive_culture_details pcd
 ON
