@@ -1,0 +1,61 @@
+{
+  "specialty": "Orthopedics",
+  "condition": "hand_wrist_pain",
+  "template_name": "orthopedics_hand_wrist_pain",
+  "sections": [
+    {
+      "My Clinical Question (condition: Hand/Wrist pain)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Hand dominance": "***"
+          },
+          {
+            "Precipitating injury/trauma, occupational activities, change in function": "***"
+          },
+          {
+            "Localization and timing of pain": "***"
+          },
+          {
+            "Joint swelling/effusion": "***"
+          },
+          {
+            "Neurovascular assessment": "***"
+          },
+          {
+            "Previous treatment (PT, injection, bracing, etc.)": "***"
+          },
+          {
+            "Imaging studies": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "X-ray of the hand is generally indicated in patient with joint pain and inflammation, a history of trauma, or the presence of a deformity": [
+              {
+                "X-ray Hand": "***"
+              }
+            ]
+          },
+          {
+            "Standard plain radiographs of the wrist is often necessary to make a definitive diagnosis": [
+              {
+                "X-ray Wrist": "***"
+              }
+            ]
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "If pain is associated with any systemic symptoms (eg fever, nightsweats) or occurs in both hands/wrists or in other joints in addition, consider systemic illness and more urgent evaluation": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

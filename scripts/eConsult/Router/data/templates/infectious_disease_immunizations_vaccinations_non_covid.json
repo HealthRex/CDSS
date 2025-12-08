@@ -1,0 +1,75 @@
+{
+  "specialty": "Infectious",
+  "condition": "disease_immunizations_vaccinations_non_covid",
+  "template_name": "infectious_disease_immunizations_vaccinations_non_covid",
+  "sections": [
+    {
+      "My Clinical Question (condition: immunizations/vaccinations \u2013 non-COVID)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "If relevant, what prior vaccinations did the patient receive?": "***"
+            },
+            {
+              "Has the patient had any adverse reactions to past vaccinations?": "***"
+            },
+            {
+              "Does the patient have any co-morbidities?": "***"
+            },
+            {
+              "Is the patient immunocompromised?": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Relevant Serologies": "***"
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": []
+        },
+        "Clinical Pearls": [
+          {
+            "An updated adult vaccine schedule can be found at: https://www.cdc.gov/vaccines/schedules/hcp/imz/adult.html": "***"
+          },
+          {
+            "Vaccines have minimum intervals between doses (which can be found at http://www.cdc.gov/vaccines/pubs/pinkbook/downloads/appendices/a/age-interval-table.pdf) but no maximum intervals. There is no need to restart a series due to delayed administration of a vaccine in a series (except in some cases related to the oral typhoid vaccine)": "***"
+          },
+          {
+            "Live-attenuated vaccines (MMR and VAR) can be given the same day but if not given the same day, they should be separated by at least 4 weeks": "***"
+          },
+          {
+            "Multiple vaccines can be given at the same visit, with 2 notable exceptions": [
+              {
+                "PCV13 and PPSV23 should not be given together and need to be spaced apart": "***"
+              },
+              {
+                "PCV13 and Menactra (not on formulary at Stanford Health Care) should not be given together to asplenic patients. Menveo (on formulary at Stanford Health Care) can be given at the same visit as PCV13": "***"
+              }
+            ]
+          },
+          {
+            "Vaccine contraindications and precautions can be found at http://www.cdc.gov/vaccines/hcp/acip-recs/general-recs/contraindications.html": "***"
+          },
+          {
+            "Vaccines supplied in vials or syringes containing latex can be found at http://www.cdc.gov/vaccines/pubs/pinkbook/downloads/appendices/B/latex-table.pdf": "***"
+          },
+          {
+            "Administration of blood products and immunoglobulins can reduce the effectiveness of MMR and VAR. Specific recommendations on this topic can be found in Table 2-04 of http://wwwnc.cdc.gov/travel/yellowbook/2018/the-pre-travel-consultation/general-recommendations-for-vaccination-immunoprophylaxis": "***"
+          },
+          {
+            "In general, patient self-reporting of vaccination history should not be accepted as valid. If documentation of a vaccine is not available, the individual should be assumed to be unvaccinated for that dose. (An exception is that patient self-report can be accepted as valid for influenza and pneumococcal polysaccharide vaccines)": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

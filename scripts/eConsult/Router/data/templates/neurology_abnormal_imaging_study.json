@@ -1,0 +1,59 @@
+{
+  "specialty": "Neurology",
+  "condition": "abnormal_imaging_study",
+  "template_name": "neurology_abnormal_imaging_study",
+  "sections": [
+    {
+      "My Clinical Question (condition: Abnormal Imaging Study)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Description of the abnormal finding": "***"
+            },
+            {
+              "Films and imaging report available for review (if done outside of Stanford)": "***"
+            },
+            {
+              "Relevant details related to the initial reason for the study": "***"
+            },
+            {
+              "Previous imaging for comparison": "***"
+            },
+            {
+              "Neurologic symptoms": "***"
+            },
+            {
+              "Examination of cranial nerves, strength, reflexes, sensation, and gait": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Prior neurological evaluations": "***"
+            }
+          ]
+        },
+        "Diagnostics": [],
+        "Clinical Pearls": [
+          {
+            "In the setting of a normal neurologic exam, nonspecific white matter disease on MRI brain, with one spot per decade of life, can be normal": "***"
+          },
+          {
+            "Patients with migraine tend to have more \u201cnonspecific white matter changes\u201d on MRI brain": "***"
+          },
+          {
+            "On MRI spine, mild to moderate neural foraminal narrowing or central canal narrowing may not necessarily cause symptoms. Mild to moderate degenerative changes become more common with age, and can be asymptomatic": "***"
+          },
+          {
+            "Multiple sclerosis, or other demyelinating conditions, cannot be diagnosed based on MRI findings alone. Clinical symptoms and exam findings must correlate to imaging": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

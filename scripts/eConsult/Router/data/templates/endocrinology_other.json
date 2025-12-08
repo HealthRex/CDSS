@@ -1,0 +1,41 @@
+{
+  "specialty": "Endocrinology",
+  "condition": "other",
+  "template_name": "endocrinology_other",
+  "sections": [
+    {
+      "specialist": "Endocrinology"
+    },
+    {
+      "template": "Other"
+    },
+    {
+      "My Clinical Question (condition: other)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Pertinent labs": "***"
+            },
+            {
+              "Pertinent medications": "***"
+            },
+            {
+              "Pertinent physical exam features": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": []
+        }
+      }
+    }
+  ]
+}

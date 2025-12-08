@@ -1,0 +1,74 @@
+{
+  "specialty": "Hematology",
+  "condition": "isolated_leukopenia",
+  "template_name": "hematology_isolated_leukopenia",
+  "sections": [
+    {
+      "My Clinical Question (condition: Isolated Leukopenia)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Patient nationality": "***"
+            },
+            {
+              "EtOH use": "***"
+            },
+            {
+              "Spleen and lymph node exam": "***"
+            },
+            {
+              "Updated medications, including non-prescription supplements": "***"
+            },
+            {
+              "Ultrasound spleen if no other cross-sectional imaging during documented leukopenia": "{yes/no}"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "CMP": "***"
+            },
+            {
+              "LDH": "***"
+            },
+            {
+              "Vitamin B12": "***"
+            },
+            {
+              "HIV": "***"
+            },
+            {
+              "Hepatitis C antibody": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Clinical Pearls": [
+          {
+            "A note about constitutional neutropenia (WBC > 2.5 K/mcL): Many individuals maintain consistently low WBC counts without evidence of increased susceptibility to infection or any other adverse effects. Please consider this diagnosis prior to consulting Hematology": "***"
+          },
+          {
+            "Please screen for copper deficiency especially if there is a history of bariatric surgery or malabsorption": "***"
+          },
+          {
+            "Please send an ANA and rheumatoid factor if there is concern for autoimmune disease": "***"
+          },
+          {
+            "For most asymptomatic neutropenias in which the ANC > 1000 and there has been demonstrated stability over years, the patient can be monitored annually on CBC with differential without hematology referral": "***"
+          },
+          {
+            "If the patient has a lymphopenia with an ALC between 500 and 1000, a quantitative immunoglobulin panel should be sent. We generally do not intervene for patients with asymptomatic lymphocytopenia without an associated illness": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

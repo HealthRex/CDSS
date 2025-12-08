@@ -1,0 +1,60 @@
+{
+  "specialty": "Pain",
+  "condition": "medicine_neck_pain",
+  "template_name": "pain_medicine_neck_pain",
+  "sections": [
+    {
+      "My Clinical Question (condition: neck pain)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Inciting event? Quality? Timing? Location? Alleviating/aggravating factors?": "***"
+          },
+          {
+            "Radicular/axial/both/unsure?": "***"
+          },
+          {
+            "Does the pt have neurologic symptoms or deficits? Headaches?": "***"
+          },
+          {
+            "Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?": "***"
+          },
+          {
+            "Pertinent comorbidities?": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "Cervical MRI": "***"
+          },
+          {
+            "Nerve conduction studies/Electromyography": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "Broad categories of neck pain": [
+              {
+                "Muscle: tenderness in the soft tissue; associated with stress/overuse (ie, heavy computer use)": "***"
+              },
+              {
+                "Bone: arthritis at the facet joints; local evoked by rotation/flexion of the head; can refer to head and mimic headaches": "***"
+              },
+              {
+                "Nerve: compression of cervical nerve roots or terminal branches; can be evoked by movement of the head, particularly lateral flexion to stress nerve roots; pain extends into shoulder, arms, hands in dermatomal pattern": "***"
+              }
+            ]
+          },
+          {
+            "Red flag symptoms include weakness or loss of muscle bulk in the upper extremity": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

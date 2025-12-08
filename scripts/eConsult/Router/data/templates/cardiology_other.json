@@ -1,0 +1,33 @@
+{
+  "specialty": "Cardiology",
+  "condition": "other",
+  "template_name": "cardiology_other",
+  "sections": [
+    {
+      "My Clinical Question (condition: other)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Description of specific cardiac symptoms with details regarding time since onset, frequency, duration, relation to exertion, exacerbating or relieving factors": "***"
+          },
+          {
+            "Pertinent physical exam features": "***"
+          },
+          {
+            "Pertinent labs": "***"
+          },
+          {
+            "Pertinent medications": "***"
+          }
+        ],
+        "Diagnostics": [],
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}

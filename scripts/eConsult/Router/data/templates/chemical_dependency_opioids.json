@@ -1,0 +1,100 @@
+{
+  "specialty": "Chemical",
+  "condition": "dependency_opioids",
+  "template_name": "chemical_dependency_opioids",
+  "sections": [
+    {
+      "specialist": "Chemical Dependency"
+    },
+    {
+      "template": "Opioids"
+    },
+    {
+      "My Clinical Question (condition: opioids)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "Assessments": {
+        "Required": [
+          {
+            "Is your concern chronic opioids for pain and a desire to help taper the patient? Or does this person have an opioid use disorder or heroin use disorder?": "***"
+          },
+          {
+            "Are you interested in starting buprenorphine for this patient?": "***"
+          },
+          {
+            "Do you already have an X-waiver to prescribe buprenorphine for an opioid use disorder? NOTE: for pain, you do not need an X-waiver to prescribe or continue buprenorphine.": "***"
+          },
+          {
+            "If you are interested in buprenorphine transition using the patch form as a bridge off of their full agonist opioid, let us know and we will walk you through that process.": "***"
+          },
+          {
+            "Is the patient pregnant or planning to become pregnant?": "***"
+          },
+          {
+            "Is the patient using tobacco, is it combustible or vaped, and are they interested in cutting back or stopping?": "***"
+          },
+          {
+            "Type, route, amount, frequency of opioid usage?": "***"
+          },
+          {
+            "Total daily Morphine Equivalents: http://www.agencymeddirectors.wa.gov/Calculator/DoseCalculator.htm": "***"
+          },
+          {
+            "Treatment history? History of buprenorphine treatment? How about methadone clinic history?": "***"
+          },
+          {
+            "Effects on occupational, academic or social functioning?": "***"
+          },
+          {
+            "Suspected/known other substance use disorders? Psychiatric diagnoses?": "***"
+          },
+          {
+            "Other medical comorbidities (esp cardiopulmonary disease including OSA, CKD4 or above)?": "***"
+          },
+          {
+            "Polypharmacy? Co-prescribed benzodiazepines?": "***"
+          },
+          {
+            "Family history of SUD?": "***"
+          },
+          {
+            "Most recent CURES report appropriate?": "***"
+          },
+          {
+            "Any history of opioid overdose, either accidental or intentional?": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "UTox": "***"
+          },
+          {
+            "CMP": "***"
+          },
+          {
+            "Not required for consult but recommended: STD Screening if not done recently \u2014 HIV, RPR/VDRL, GC, Chlamydia, HCV for all SUD patients": "***"
+          },
+          {
+            "EKG results in past since starting methadone if on this opioid (QTc interval)": "***"
+          }
+        ]
+      },
+      "Clinical Pearls": [
+        "For help with buprenorphine inductions: https://www.chcf.org/publication/buprenorphine-overview-clinicians/",
+        "Chronic pain is often better managed with multimodal treatment including non-opioid medications (systemic/topical), pacing, physical activity, CBT, patient education, and tools like the Curable app.",
+        "For a variety of resources about risks of chronic opioid use and tapering: https://www.oregonpainguidance.org/",
+        "Golden rule of opioid tapers: 'never go back up.' After reducing a dose (by 5\u201310%), maintain for at least 4 weeks. Patients may hold the dose an additional 4\u20136 weeks but should not increase again.",
+        "Determine taper schedule by reviewing the patient's daily dosing pattern. Example: if the patient takes 8 Norco 5 mg per day, ask them which dose they are most willing to taper (e.g., reduce 3 pm dose from 2 tabs to 1.5 tabs). Then prescribe based on new total (e.g., 210 tabs for 4 weeks if daily dose becomes 7.5).",
+        "Prescribe in 7-day increments (max 28 days) to monitor use and avoid weekend refills.",
+        "To reduce the temptation to increase the dose, refill only 2 weeks at a time and conduct pill counts or avoid early refills.",
+        "Adjunctive medications for withdrawal: gabapentin, pregabalin, clonidine, tylenol, dicyclomine. Optimize other pain meds like duloxetine, nortriptyline.",
+        "For smaller incremental tapers, compounding pharmacies may be used:\n- https://www.koshlandpharm.com/\n- https://www.sjcpharmacy.com/\n- https://www.pharmacarx.com/\n- https://www.marinerpharmacy.com/\n- https://www.safeway.com/pharmacy/pharmacy-services/compounding-services.html",
+        "Limited evidence supports chronic opioid use in chronic pain. Review harms/benefits: https://www.acpjournals.org/doi/full/10.7326/M14-2559",
+        "Slow, individualized opioid tapers may maintain or improve pain/function: https://www.acpjournals.org/doi/full/10.7326/M17-0598"
+      ]
+    }
+  ]
+}

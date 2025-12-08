@@ -1,0 +1,40 @@
+{
+  "specialty": "Pain",
+  "condition": "medicine_medication_review_recommendations",
+  "template_name": "pain_medicine_medication_review_recommendations",
+  "sections": [
+    {
+      "My Clinical Question (condition: medication review/recommendations)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Brief pain history?": "***"
+          },
+          {
+            "Are you looking for new medications or to reduce the current number of medications?": "***"
+          },
+          {
+            "Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?": "***"
+          },
+          {
+            "Pertinent comorbidities (can include liver/kidney disease, dementia, psychiatric disease)?": "***"
+          },
+          {
+            "Is the goal to start new medications or reduce the current number of medications?": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "Relevant imaging": "***"
+          }
+        ],
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}

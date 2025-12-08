@@ -1,0 +1,44 @@
+{
+  "specialty": "Pulmonology",
+  "condition": "copd",
+  "template_name": "pulmonology_copd",
+  "sections": [
+    {
+      "My Clinical Question (condition: COPD)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "GOLD Stage (FEV1)": "***"
+          },
+          {
+            "Any recent hospitalizations": "***"
+          },
+          {
+            "Medications tried": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "CXR": "***"
+          },
+          {
+            "PFT's": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "Choose the cheapest long-acting inhaler from any class - complete MMRC to determine appropriate meds": "***"
+          },
+          {
+            "Assess inhaler techniques if med appears ineffective. Consider spacer": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

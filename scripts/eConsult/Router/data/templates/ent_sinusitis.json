@@ -1,0 +1,80 @@
+{
+  "specialty": "Ent",
+  "condition": "sinusitis",
+  "template_name": "ent_sinusitis",
+  "sections": [
+    {
+      "specialist": "ENT"
+    },
+    {
+      "template": "Sinusitis"
+    },
+    {
+      "My Clinical Question (condition: sinusitis)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Nasal stuffiness or congestion? Nasal blockage or obstruction? Which side is worse?": "***"
+            },
+            {
+              "Facial pain/pressure? Decreased smell? Mucopurulent nasal drainage?": "***"
+            },
+            {
+              "Are the symptoms occurring every day, all day, or they come and go?": "***"
+            },
+            {
+              "Is the length of time of symptoms less than 1 month or more than 3 months?": "***"
+            },
+            {
+              "History of prior surgeries?": "***"
+            },
+            {
+              "History of prior imaging?": "***"
+            },
+            {
+              "History of prior trauma?": "***"
+            },
+            {
+              "History of allergy testing?": "***"
+            },
+            {
+              "Have saline sprays been tried? Saline irrigations? How frequently?": "***"
+            },
+            {
+              "Change in symptoms?": "***"
+            },
+            {
+              "Nasal steroid sprays? Nasal steroid irrigations such as budesonide?": "***"
+            },
+            {
+              "Antibiotics and if so which ones and for how long?": "***"
+            },
+            {
+              "Other medications?": "***"
+            }
+          ]
+        }
+      },
+      "Diagnostics": [
+        {
+          "None for acute symptoms (less than 1 month)": "***"
+        },
+        {
+          "For sinus symptoms that have lasted longer than 3 months, should obtain a non-contrast CT Sinus for objective confirmation.": "***"
+        }
+      ]
+    },
+    {
+      "Clinical Pearls": [
+        "Consider migraine headache as common mimic of chronic sinusitis especially if main symptom is pain with lack of nasal symptoms.",
+        "Trial of saline irrigation twice a day for at least one month and nasal steroids for at least one month prior to referral."
+      ]
+    }
+  ]
+}

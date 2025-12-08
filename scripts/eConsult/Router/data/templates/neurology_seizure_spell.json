@@ -1,0 +1,93 @@
+{
+  "specialty": "Neurology",
+  "condition": "seizure_spell",
+  "template_name": "neurology_seizure_spell",
+  "sections": [
+    {
+      "My Clinical Question (condition: seizure/spell)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Description of event (including duration, semiology, associated symptoms such as tongue biting, bowel/bladder incontinence, postictal confusion)": "***"
+            },
+            {
+              "New medications? Substance or alcohol use? Recent head trauma?": "***"
+            },
+            {
+              "Most recent EEG and conclusion (if available)": "***"
+            },
+            {
+              "Most recent brain imaging (if available)": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Does the patient have a history of alcohol abuse?": "***"
+            },
+            {
+              "Does the patient have a history of recent infectious symptoms/illness? If yes, please describe": "***"
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": [
+            {
+              "Brain Imaging (CT or MRI)": "***"
+            },
+            {
+              "Calcium (Ca)": "***"
+            },
+            {
+              "Complete Blood Count (CBC)": "***"
+            },
+            {
+              "Comprehensive Metabolic Panel (CMP)": "***"
+            },
+            {
+              "Electroencephalogram (EEG)": "***"
+            },
+            {
+              "Magnesium (Mg)": "***"
+            },
+            {
+              "Thyroid Stimulating Hormone (TSH)": "***"
+            },
+            {
+              "Drug screen, Urine (if appropriate)": "***"
+            },
+            {
+              "Alcohol & Drug Toxicology screen (if appropriate)": "***"
+            },
+            {
+              "EKG": "***"
+            },
+            {
+              "Holter Monitor (if cardiac arrhythmia is suspected)": "***"
+            },
+            {
+              "Orthostatic vital signs": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "American Academy of Neurology (AAN) guideline on Evaluation of First seizure": "***"
+          },
+          {
+            "Events of alteration or loss of consciousness are required to be reported to the DMV by CA law, regardless of whether they are neurologic in nature or not. For additional information on DMV regulations, please refer to the information on their website: https://www.dmv.ca.gov/portal/dmv/detail/dl/driversafety/lapes": "***"
+          },
+          {
+            "Reporting form can be found here: https://www.sccgov.org/sites/phd-p/report/Documents/morb-110c.pdf": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

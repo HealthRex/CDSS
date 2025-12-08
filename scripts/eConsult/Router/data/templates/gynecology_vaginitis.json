@@ -1,0 +1,84 @@
+{
+  "specialty": "Gynecology",
+  "condition": "vaginitis",
+  "template_name": "gynecology_vaginitis",
+  "sections": [
+    {
+      "specialist": "Gynecology"
+    },
+    {
+      "template": "Vaginitis"
+    },
+    {
+      "My Clinical Question (condition: vaginitis)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include the following assessments and/or diagnostics": {
+        "Assessments": {
+          "Required": [
+            {
+              "What are the symptoms?": "***"
+            },
+            {
+              "How long have the symptoms been present?": "***"
+            },
+            {
+              "Has any treatment been used and was it effective?": "***"
+            },
+            {
+              "Is the patient sexually active?": "***"
+            },
+            {
+              "If yes, any new sexual partner in the past year?": "***"
+            },
+            {
+              "If partner(s) has a penis, any current contraceptive method?": "***"
+            },
+            {
+              "Any recent antibiotic use or hygiene changes?": "***"
+            },
+            {
+              "Is this problem recurrent (>4 times/year)?": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "Pelvic exam": "***"
+            },
+            {
+              "GC/Chlamydia (CT)": "***"
+            },
+            {
+              "Urinalysis with microscopy and reflex culture": "***"
+            },
+            {
+              "Urine or serum pregnancy test": "***"
+            },
+            {
+              "Wet mount with pH and microscopy or equivalent (e.g. Affirm/genital culture)": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Yeast culture": "***"
+            },
+            {
+              "Trichomonas": "***"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Clinical Pearls": [
+        "Vaginal discharge without other symptoms can be physiologic."
+      ]
+    }
+  ]
+}

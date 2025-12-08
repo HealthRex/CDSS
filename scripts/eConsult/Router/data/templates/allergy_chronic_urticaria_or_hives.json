@@ -1,0 +1,36 @@
+{
+  "specialty": "Allergy",
+  "condition": "chronic_urticaria_or_hives",
+  "template_name": "allergy_chronic_urticaria_or_hives",
+  "sections": [
+    {
+      "My Clinical Question (condition: Chronic Urticaria/Hives)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": [
+        {
+          "Use of H1 and H2 receptor antagonists": "***"
+        },
+        {
+          "Names, durations and doses": "***"
+        }
+      ]
+    },
+    {
+      "Tests recommended by Allergy": []
+    },
+    {
+      "Clinical Pearls": [
+        {
+          "Chronic hives are defined as pruritic lesions occurring for greater than 6 weeks, typically with central raised \u201cwheal\u201d and surrounding erythema, \u201cflare\u201d. There is a variant that can appear more as a papular lesion. If rash differs from this description, consider referral to dermatology": "***"
+        },
+        {
+          "Consider a trial of long acting H1-receptor antagonist (fexofenadine, or cetirizine) twice daily. Patients should take a picture of the lesions in the event a future visit is needed": "***"
+        }
+      ]
+    }
+  ]
+}

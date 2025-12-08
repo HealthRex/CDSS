@@ -1,0 +1,43 @@
+{
+  "specialty": "Allergy",
+  "condition": "anaphylaxis",
+  "template_name": "allergy_anaphylaxis",
+  "sections": [
+    {
+      "My Clinical Question (condition: Anaphylaxis)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": [
+        {
+          "Most recent reaction": "***"
+        },
+        {
+          "First reaction": "***"
+        },
+        {
+          "Total number of reactions": "***"
+        },
+        {
+          "Suspected trigger(s)": "***"
+        }
+      ]
+    },
+    {
+      "Tests recommended by Allergy": [
+        {
+          "Tryptase (within 3 hours of an acute reaction and/or a baseline level)": "***"
+        }
+      ]
+    },
+    {
+      "Clinical Pearls": [
+        {
+          "Anaphylaxis is a severe allergic reaction involving multiple organ systems. Symptoms can include lightheadedness/dizziness (from low blood pressure), nausea/vomiting/diarrhea, hives, angioedema, and/or shortness of breath/wheezing. If multiple organ systems are not involved, classification as anaphylaxis may not be appropriate": "***"
+        }
+      ]
+    }
+  ]
+}

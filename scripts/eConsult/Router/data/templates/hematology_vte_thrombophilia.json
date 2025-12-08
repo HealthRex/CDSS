@@ -1,0 +1,97 @@
+{
+  "specialty": "Hematology",
+  "condition": "vte_thrombophilia",
+  "template_name": "hematology_vte_thrombophilia",
+  "sections": [
+    {
+      "The following situations are generally inappropriate for VTE/Thrombophilia eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]": [
+        "Recurrent VTE",
+        "Cancer-associated thrombosis",
+        "Pregnancy",
+        "Autoimmune disease",
+        "History of both arterial and venous thrombosis",
+        "Presence of an IVC Filter"
+      ]
+    },
+    {
+      "My Clinical Question (condition: VTE/Thrombophilia)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Risk factors for VTE present (make sure to document all: family history, weight, prior VTE, lower extremity exam, updated medication list, age-appropriate cancer screening)": "***"
+            },
+            {
+              "Imaging or radiology report of VTE": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "CBC with diff (on two consecutive checks at least one week apart)": "***"
+            },
+            {
+              "CMP": "***"
+            },
+            {
+              "Ferritin": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Clinical Pearls": [
+          {
+            "Therapy guideline:  https://depts.washington.edu/anticoag/home/": [
+              {
+                "Superficial thrombophlebitis \u2013 prophylactic dose for 6 weeks if high-risk": "***"
+              },
+              {
+                "Line-associated DVT \u2013 3 months or until line out, whichever longer": "***"
+              },
+              {
+                "Distal DVT \u2013 3 months (unless anticoagulation-averse, asymptomatic, low-risk, then serial US)": "***"
+              },
+              {
+                "Proximal DVT \u2013 3-6 months at the minimum": "***"
+              }
+            ]
+          },
+          {
+            "In most circumstances, we do not perform thrombophilia screening or specific management for patients > 45 years old": "***"
+          },
+          {
+            "Avoid testing antithrombin, protein C, protein S during acute thrombosis or active anticoagulation": "***"
+          },
+          {
+            "Uncommon causes of hypercoagulability (especially if presenting with splanchnic vein thrombosis or cerebral venous sinus thrombosis) include JAK2 mutation and paroxysmal nocturnal hemoglobinuria": "***"
+          },
+          {
+            "Consider screening for proteinuria for nephrotic syndrome": "***"
+          },
+          {
+            "Consider testing for antiphospholipid syndrome": "***"
+          },
+          {
+            "We generally recommend that incidental PE or subsegmental PE be treated as a standard PE": "***"
+          },
+          {
+            "For provoked VTE due to a surgical risk factor, we recommend finite anticoagulation due to low risk of recurrence": "***"
+          },
+          {
+            "Unprovoked VTE are generally treated indefinitely assuming the bleeding risk is low although should be discussed with hematology further": "***"
+          },
+          {
+            "The superficial femoral vein is a deep vein!": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

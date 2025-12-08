@@ -1,0 +1,56 @@
+{
+  "specialty": "Cardiology",
+  "condition": "hyperlipidemia",
+  "template_name": "cardiology_hyperlipidemia",
+  "sections": [
+    {
+      "My Clinical Question (condition: HLD)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "CAD Risk factors (HTN, HLP, DM, smoking, etc.)": "***"
+          },
+          {
+            "Family history of hyperlipidemia or family history of CAD/Stroke/TIA": "***"
+          },
+          {
+            "Any prior or recent lipid tests not available in SHC results/Care Everywhere": "***"
+          },
+          {
+            "Current and/or previous treatment, any adverse effects to prior statin therapy": "***"
+          },
+          {
+            "ASCVD 10 year risk score": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "Lipid Profile - fasting lab, if triglycerides need to be tested as well": "***"
+          },
+          {
+            "TSH": "***"
+          },
+          {
+            "HbA1c": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "AHA/ACC Guideline for Blood Cholesterol Management http://www.onlinejacc.org/guidelines/cholesterol?_ga=2.146139956.168493292.1580535163-1148947974.1580535163": "***"
+          },
+          {
+            "ACC ASCVD Risk Estimator Plus http://tools.acc.org/ASCVD-Risk-Estimator-Plus/#!/calculate/estimate/": "***"
+          },
+          {
+            "ACC/AHA Guideline for Primary Prevention of CVD http://www.onlinejacc.org/guidelines/prevention?_ga=2.111978244.168493292.1580535163-1148947974.1580535163": "***"
+          }
+        ]
+      }
+    }
+  ]
+}
