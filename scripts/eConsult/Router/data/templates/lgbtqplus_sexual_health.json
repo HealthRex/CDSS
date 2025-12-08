@@ -1,0 +1,61 @@
+{
+  "specialty": "Lgbtqplus",
+  "condition": "sexual_health",
+  "template_name": "lgbtqplus_sexual_health",
+  "sections": [
+    {
+      "My Clinical Question (condition: sexual health)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": [
+            {
+              "CMP": "***"
+            },
+            {
+              "HIV Antigen/Antibody Screen": "***"
+            },
+            {
+              "HIV RNA Quant (viral load)": "***"
+            },
+            {
+              "Hep C Ab IgG": "***"
+            },
+            {
+              "Hepatitis B Surface Antigen (HBsAg)": "***"
+            },
+            {
+              "Syphilis Treponemal Screen (STSS)": "***"
+            },
+            {
+              "Chlamydia/GC NAAT (Urine, Oropharyngeal Swab, Rectal Swab)": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "Detailed information about PrEP for clinicians can be found at https://www.cdc.gov/hiv/clinicians/prevention/prep.html for details regarding PrEP": "***"
+          },
+          {
+            "Patients on PrEP should have HIV testing every 3 months to screen for breakthrough cases of HIV": "***"
+          },
+          {
+            "Patients on PrEP with FTC-TDF (Truvada) should have a BMP/Cystatin-C every 3 months to monitor renal function": "***"
+          },
+          {
+            "Consider STI testing for syphilis, gonorrhea, and chlamydia every 3 months for patients who state that they are at risk. Remember that gonorrhea and chlamydia must be tested by site": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "specialty": "Psychiatry",
+  "condition": "psychiatric_medication_questions",
+  "template_name": "psychiatry_psychiatric_medication_questions",
+  "sections": [
+    {
+      "My Clinical Question (condition: Psychiatric Medication Questions)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Current psychiatric diagnosis": "***"
+          },
+          {
+            "Current and past medications, which were effective, duration of trial": "***"
+          },
+          {
+            "Are there specific side-effects the patient is concerned about": "***"
+          },
+          {
+            "Relevant co-morbid conditions (insomnia, substance use include tobacco and caffeine, OSA, hyper/hypothyroidism, neurological disorders)": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "Screenings: PHQ9/GAD7": "***"
+          },
+          {
+            "CBC, TSH, CMP, vitamin D, vitamin B12, folate if applicable": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "Many psychiatric medications have several CYP interactions \u2013 would recommend running a medication interaction check if your patient is on several medical medications as well as psychiatric medications": "***"
+          },
+          {
+            "Would not recommend duloxetine use in patients with CrCl <60": "***"
+          },
+          {
+            "Duloxetine and low-dose TCAs such as amytriptyline/nortryptline and desipramine may be useful for co-management of mood and functional disorders such as CFS, fibromyalgia, IBS": "***"
+          },
+          {
+            "Venlafaxine and paroxetine have more intolerable withdrawal if stopped abruptly than other SSRIs/SNRIs": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "specialty": "Psychiatry",
+  "condition": "anxiety_depression",
+  "template_name": "psychiatry_anxiety_depression",
+  "sections": [
+    {
+      "My Clinical Question (condition: Anxiety and/or Depression)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Onset, duration and timing of symptoms": "***"
+          },
+          {
+            "Co-morbid conditions (insomnia, substance use include tobacco and caffeine, OSA, hyper/hypothyroidism, neurological disorders, chronic pain, diabetes mellitus, HF)": "***"
+          },
+          {
+            "Any current/historical psychiatric medications": "***"
+          },
+          {
+            "Any current psychiatric providers/therapists?": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "Screening: GAD7, PHQ9": "***"
+          },
+          {
+            "Labs: CBC, Serum Iron, Serum Ferritin, Iron/TIBC with Saturation, vit B12, vit D folate, TSH w/reflex T4": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "For mild-to-moderate anxiety (GAD 5-15), Cognitive Behavioral Therapy (CBT) is better than medications": "***"
+          },
+          {
+            "For moderate-to-severe anxiety (GAD >15), CBT and medications are more effective than medications alone": "***"
+          },
+          {
+            "Start a low dose SSRI or SNRI, start bupropion for depression if patient has less anxiety and is concerned about sexual/weight side effects or has more fatigue/concentration symptoms": "***"
+          },
+          {
+            "6-8 week SSRI trial needed to determine effectiveness": "***"
+          },
+          {
+            "50% of patients who do not respond to the initial SSRI will respond to another": "***"
+          },
+          {
+            "Before using a benzodiazepine because of potential dependency, consider starting hydroxyzine 25mg every 4-6 hours as needed. Also consider PRN gabapentin": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

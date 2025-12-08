@@ -1,0 +1,65 @@
+{
+  "specialty": "Cardiology",
+  "condition": "atrial_fibrillation_atrial_flutter",
+  "template_name": "cardiology_atrial_fibrillation_atrial_flutter",
+  "sections": [
+    {
+      "My Clinical Question (condition: atrial fibrillation/atrial flutter)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "When and how diagnosed - If prior Holter or Ziopatch - please include % burden of atrial fib/atrial flutter and average HR in arrhythmia": "***"
+          },
+          {
+            "History of alcohol use, obesity, OSA": "***"
+          },
+          {
+            "Symptoms and severity": "***"
+          },
+          {
+            "CHADS2-VASc score": "***"
+          },
+          {
+            "Current anticoagulation": "***"
+          },
+          {
+            "Previous attempts at rhythm control (e.g. cardioversion) (cases with prior cardioversions, antiarrhythmic therapy or prior ablations should be referred to Cardiology)": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "EKG": "***"
+          },
+          {
+            "Echo": "***"
+          },
+          {
+            "Ziopatch": "***"
+          },
+          {
+            "CBC": "***"
+          },
+          {
+            "BMP": "***"
+          },
+          {
+            "TSH": "***"
+          },
+          {
+            "Sleep study if indicated": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "ACC/AHA/HRS Guideline for Atrial Fibrillation http://www.onlinejacc.org/guidelines/atrial-fibrillation?_ga=2.182889510.168493292.1580535163-1148947974.1580535163": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

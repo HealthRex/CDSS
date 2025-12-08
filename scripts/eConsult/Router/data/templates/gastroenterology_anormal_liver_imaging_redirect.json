@@ -1,0 +1,12 @@
+{
+  "specialty": "Gastroenterology",
+  "condition": "anormal_liver_imaging_redirect",
+  "template_name": "gastroenterology_anormal_liver_imaging_redirect",
+  "sections": [
+    {
+      "specialist": "Gastroenterology",
+      "template": "Abnormal Liver Imaging",
+      "text": "DO NOT place a GI eConsult order for 'abnormal liver imaging'. This question is more appropriate for Hepatology. Please instead use the Hepatology eConsult order."
+    }
+  ]
+}

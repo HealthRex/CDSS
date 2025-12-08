@@ -1,0 +1,68 @@
+{
+  "specialty": "Rheumatology",
+  "condition": "inflammatory_back_pain",
+  "template_name": "rheumatology_inflammatory_back_pain",
+  "sections": [
+    {
+      "My Clinical Question (condition: Inflammatory Back Pain)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "SPECIAL NOTE": "Please do NOT order an eConsult for fibromyalgia. This should instead be referred."
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [],
+          "Optional": [
+            {
+              "Age at which back pain developed": "***"
+            },
+            {
+              "Whether back pain worsens with activity or with rest? Whether it wakes patient up from sleep in the second half of the night and/or is associated with AM stiffness? Length of AM stiffness?": "***"
+            },
+            {
+              "Prior medical history of inflammatory eye disease, psoriasis or IBD?": "***"
+            },
+            {
+              "Medications tried": "***"
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "CBC with diff": "***"
+            },
+            {
+              "CMP": "***"
+            },
+            {
+              "ESR": "***"
+            },
+            {
+              "CRP": "***"
+            },
+            {
+              "HLA-B27": "***"
+            },
+            {
+              "X-ray of affected area of spine (if applicable)": "***"
+            },
+            {
+              "X-ray SI joints": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Clinical Pearls": [
+          {
+            "Patients who develop back pain > 45 years of age are unlikely to have an axial spondyloarthropathy": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "specialty": "Gastroenterology",
+  "template_name": "IBS",
+  "Required": [
+    "Symptoms (Diarrhea? Constipation? Mixed? Duration? Abdominal pain?)",
+    "Triggers",
+    "Current/previous treatment, response"
+  ],
+  "Optional": [
+    "None"
+  ],
+  "diagnostics_required": [
+    "CBC",
+    "CMP",
+    "TSH"
+  ],
+  "diagnostics_optional": [
+    "GI PCR (diarrhea only)",
+    "Fecal Calprotectin (diarrhea only)",
+    "TTG IgA and IgA (diarrhea only)",
+    "CRP",
+    "ESR"
+  ],
+  "clinical_pearls": [
+    "None"
+  ]
+}

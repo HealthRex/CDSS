@@ -1,0 +1,103 @@
+{
+  "specialty": "Infectious",
+  "condition": "disease_latent_tuberculosis",
+  "template_name": "infectious_disease_latent_tuberculosis",
+  "sections": [
+    {
+      "My Clinical Question (condition: Latent Tuberculosis (TB))": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Prior history of TB or latent TB or prior treatment with antimycobacterial medications": "***"
+            },
+            {
+              "Signs or symptoms which could be consistent with pulmonary or extrapulmonary TB": [
+                {
+                  "Cough": "***"
+                },
+                {
+                  "Fever": "***"
+                },
+                {
+                  "Night sweats": "***"
+                },
+                {
+                  "Weight loss Anorexia": "***"
+                },
+                {
+                  "Other": "***"
+                }
+              ]
+            },
+            {
+              "When was the last PPD? Include date, measurement in mm and reading (pos/neg)": "***"
+            },
+            {
+              "Risk factors for TB reactivation (immunocompromising conditions, ESRD, low body weight, diabetes mellitus, intestinal bypass or gastrectomy, etc)": "***"
+            },
+            {
+              "Risk factors for TB infection (birth in endemic country, known TB contact, etc)": "***"
+            },
+            {
+              "Any abnormal imaging which could be consistent with extrapulmonary TB": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "Chest imaging/results": "***"
+            },
+            {
+              "Most recent HIV test": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "QuantiFERON (Interferon-Gamma Release Assays)(IGRAs)": "***"
+            },
+            {
+              "T-SPOT. TB Test (Interferon Gamma Release Assay/IGRA)": "***"
+            },
+            {
+              "PPD": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "Tests for latent tuberculosis infection (LTBI) include the tuberculin skin test and the Mycobacterium tuberculosis (MTB) interferon-gamma release assay (IGRA). The MTB IGRA test used at this institution is the QuantiFERON-TB Plus test": "***"
+          },
+          {
+            "Further information about LTBI testing and treatment can be found at https://www.cdc.gov/tb/publications/ltbi/default.htm": "***"
+          },
+          {
+            "Like all laboratory tests, the QuantiFERON-TB Plus test is subject to false-positive results. For this reason, some experts recommend further evaluation of patients without significant epidemiologic risk factors for MTB infection with low QuantiFERON-TB Plus Ag-Nil results (for example, less than 0.7 IU/mL)": "***"
+          },
+          {
+            "MTB IGRA tests cannot differentiate LTBI from active TB. Therefore, any patient with a positive MTB IGRA result needs evaluation to determine whether they may have active TB (pulmonary or extrapulmonary) before considering treatment for LTBI. This evaluation includes radiographic evaluation (a chest X-ray) and clinical evaluation (history and examination). If there are abnormalities on either chest X-ray or on history or exam that may be consistent with TB, further evaluation (such as sputum cultures) is needed. For example, a patient with a positive MTB IGRA and a chronic cough needs sputum cultures obtained to rule out active TB before considering treatment for LTBI even if this patient has a normal chest X-ray": "***"
+          },
+          {
+            "Treatment regimens for LTBI can be found at https://www.cdc.gov/tb/topic/treatment/ltbi.htm. Four months of daily rifampin is a regimen preferred by many experts for patients without drug interactions or other contraindications to rifampin use": "***"
+          },
+          {
+            "All patients diagnosed with LTBI or TB disease should be screened for HIV infection with an HIV test": "***"
+          },
+          {
+            "Baseline liver tests or other laboratory tests are not routinely indicated, except in select individuals such as those on potentially hepatotoxic medications, those who regularly consume alcohol, or those with underlying liver disease": "***"
+          },
+          {
+            "Patients undergoing treatment for LTBI should be evaluated every 1-2 months to assess adherence and evaluate for signs or symptoms of toxicity. Only select patients should undergo routine laboratory monitoring": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

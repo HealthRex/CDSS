@@ -1,0 +1,73 @@
+{
+  "specialty": "Endocrinology",
+  "condition": "pituitary_mass",
+  "template_name": "endocrinology_pituitary_mass",
+  "sections": [
+    {
+      "specialist": "Endocrinology"
+    },
+    {
+      "template": "Pituitary Mass"
+    },
+    {
+      "My Clinical Question (condition: pituitary mass)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Does the patient have headache?": "***"
+            },
+            {
+              "Does the patient have vision abnormalities? (If yes, please describe.)": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "Brain MRI - pituitary protocol (not just brain MRI)": "***"
+            },
+            {
+              "Prolactin": "***"
+            },
+            {
+              "IGF-1": "***"
+            },
+            {
+              "TSH": "***"
+            },
+            {
+              "Free T4": "***"
+            },
+            {
+              "LH": "***"
+            },
+            {
+              "FSH": "***"
+            },
+            {
+              "FSH, LH, morning testosterone for men": "***"
+            },
+            {
+              "8am non fasting ACTH": "***"
+            },
+            {
+              "8am non fasting Cortisol": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "24 hour urine free cortisol (only if suspecting Cushing's); 1 mg DST would be another option": "***"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

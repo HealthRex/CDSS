@@ -1,0 +1,85 @@
+{
+  "specialty": "Interventional",
+  "condition": "pulmonology_pneumonitis_drug_induced",
+  "template_name": "interventional_pulmonology_pneumonitis_drug_induced",
+  "sections": [
+    {
+      "My Clinical Question (condition: pneumonitis)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "SPECIAL NOTE": [
+        {
+          "i. Is this consult for a patient with suspected drug induced pneumonitis with an abnormal CT Chest?": "***"
+        },
+        {
+          "ii. Is the patient symptomatic with new/worsening shortness of breath or cough?": "***"
+        },
+        {
+          "iii. Is the patient requiring new/increasing amounts of home oxygen?": "***"
+        },
+        {
+          "Based on the above 3 questions, can the e-consult page do the following": [
+            {
+              "If they answer yes to i and no to ii and iii: allow them to continue the e-consult": "***"
+            },
+            {
+              "If they answer yes to i and ii but no to iii: You stated this patient has an abnormal CT Chest with symptoms but no new/increasing oxygen need. Please close this e-consult and send a formal referral to IP clinic for \"drug induced pneumonitis\" instead": "***"
+            },
+            {
+              "If they answer yes to i, ii, and iii: You stated this patient has an abnormal CT Chest with symptoms and new/increasing oxygen need. Please close this e-consult and consider admitting patient to hospital for expedited workup instead": "***"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Symptoms and duration (cough, dyspnea, etc)": "***"
+          },
+          {
+            "Disease being treated and (suspected) offending agent": "***"
+          },
+          {
+            "Has the offending drug been stopped? Have concomitant DMARDs been stopped?": "***"
+          },
+          {
+            "Glucocorticoids or other immunosuppressive medications to treat pneumonitis started? If so, when and what dose?": "***"
+          },
+          {
+            "Any prior history of drug-induced pneumonitis": "***"
+          },
+          {
+            "Does patient have a history of Interstitial lung disease or autoimmune disease?": "***"
+          },
+          {
+            "Describe current inhaler regimen, home oxygen regimen and if any recent changes to this regimen": "***"
+          },
+          {
+            "Please include most recent Echo and PFT information (if available)": "***"
+          }
+        ],
+        "Diagnostics": {
+          "Required": [
+            {
+              "Chest CT (without contrast) in the past 6 weeks": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "PFT\u2019s": "***"
+            },
+            {
+              "TTE": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}

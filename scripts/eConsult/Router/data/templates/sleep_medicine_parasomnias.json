@@ -1,0 +1,49 @@
+{
+  "specialty": "Sleep",
+  "condition": "medicine_parasomnias",
+  "template_name": "sleep_medicine_parasomnias",
+  "sections": [
+    {
+      "My Clinical Question (condition: parasomnias)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Description of parasomnia": "***"
+          },
+          {
+            "Onset, frequency, duration (initial, middle or later part of the night)": "***"
+          },
+          {
+            "Is it secondary to dreams?": "***"
+          },
+          {
+            "Assessment of patient/family safety (e.g. worst episode and has the pt even hurt themselves or hurt others? Are their any weapons in the home? Has the pt engaged in any unexplained sexual, eating or driving behavior? Is there any pending legal action with regard to the parasomnia?)": "***"
+          },
+          {
+            "Medications that may cause parasomnias (e.g. zolpidem, zaleplon, eszopiclone)": "***"
+          },
+          {
+            "STOP Bang score": "***"
+          },
+          {
+            "Prior evaluation/treatment": "***"
+          },
+          {
+            "RLS or PLMD diagnosis": "***"
+          }
+        ],
+        "Diagnostics": [],
+        "Clinical Pearls": [
+          {
+            "Parasomnias are in the differential diagnosis of seizures and psychiatric dissociative conditions. Have these been considered?": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

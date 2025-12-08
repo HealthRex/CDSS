@@ -1,0 +1,62 @@
+{
+  "specialty": "Cardiology",
+  "condition": "hypertension",
+  "template_name": "cardiology_hypertension",
+  "sections": [
+    {
+      "My Clinical Question (condition: HTN)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "1 - 2 week home BP log maintained by the patient (ideally twice daily) - if available": "***"
+          },
+          {
+            "Current and/or previous medications": "***"
+          },
+          {
+            "EtOH? Obesity? Snoring? OSA? CPAP? Renal disorder?": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "EKG": "***"
+          },
+          {
+            "Echocardiogram if indicated": "***"
+          },
+          {
+            "Stress testing or coronary CTA if indicated": "***"
+          },
+          {
+            "CBC": "***"
+          },
+          {
+            "TSH": "***"
+          },
+          {
+            "CMP": "***"
+          },
+          {
+            "Urinalysis": "***"
+          },
+          {
+            "Tests for secondary causes of hypertension if indicated": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "2017 ACC/AHA Guideline for the Prevention, Detection, Evaluation, and Management of High Blood Pressure in Adults http://www.onlinejacc.org/guidelines/highbloodpressure?_ga=2.115731206.168493292.1580535163-1148947974.1580535163": "***"
+          },
+          {
+            "ACC/AHA Guideline for Primary Prevention of CVD http://www.onlinejacc.org/guidelines/prevention?_ga=2.111978244.168493292.1580535163-1148947974.1580535163": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

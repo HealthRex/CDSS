@@ -1,0 +1,53 @@
+{
+  "specialty": "Cardiology",
+  "condition": "syncope",
+  "template_name": "cardiology_syncope",
+  "sections": [
+    {
+      "My Clinical Question (condition: syncope)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Onset, number, frequency, duration": "***"
+          },
+          {
+            "Provocative factors": "***"
+          },
+          {
+            "Prodromal symptoms": "***"
+          },
+          {
+            "Associated symptoms following event": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "EKG": "***"
+          },
+          {
+            "Orthostatic vitals": "***"
+          },
+          {
+            "Echocardiogram vs Stress Echocardiogram (to assess for ischemia, arrhythmia or conduction system disease)": "***"
+          },
+          {
+            "Ziopatch/Cardiac Monitor": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "Sudden unexplained syncope without any prodromal or preceding symptoms, (particularly if injuries occurred as a result of the event) should be an urgent referral to cardiology": "***"
+          },
+          {
+            "ACC/AHA/HRS Guideline for Syncope https://www.acc.org/guidelines/hubs/syncope": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

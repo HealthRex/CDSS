@@ -1,0 +1,51 @@
+{
+  "specialty": "Dermatology",
+  "condition": "rash_dermatitis",
+  "template_name": "dermatology_rash_dermatitis",
+  "sections": [
+    {
+      "My Clinical Question (condition: Rash/Dermatitis)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Photo (see clinical pearls)": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": []
+        },
+        "Clinical Pearls": [
+          {
+            "Instructions for attached photo(s)": [
+              {
+                "Upload representative photos of the patient\u2019s skin condition and if there are different morphologies please try to capture them. Label the photos with location": "***"
+              },
+              {
+                "Photo tips": [
+                  {
+                    "Use daylight ideally or similar lighting": "***"
+                  },
+                  {
+                    "Make sure the photo is in focus and touch the part of the image/skin you want to be in focus on the screen": "***"
+                  },
+                  {
+                    "Do not use zoom": "***"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

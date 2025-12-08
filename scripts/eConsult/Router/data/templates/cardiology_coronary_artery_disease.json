@@ -1,0 +1,62 @@
+{
+  "specialty": "Cardiology",
+  "condition": "coronary_artery_disease",
+  "template_name": "cardiology_coronary_artery_disease",
+  "sections": [
+    {
+      "My Clinical Question (condition: Coronary artery disease)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "When and how diagnosed - history of prior MI, positive stress test; coronary CTA or angiogram with CAD": "***"
+          },
+          {
+            "CAD Risk factors (HTN, HLP, DM, family history of premature CAD, smoking, etc.)": "***"
+          },
+          {
+            "Symptoms and severity - relation to exertion, symptoms similar to prior angina or anginal equivalent (similar to before stents or MI), duration, frequency, use of NTG": "***"
+          },
+          {
+            "Current and/or previous treatment - history of stents, CABG, or medical management": "***"
+          },
+          {
+            "Home BP and HR log if available": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "EKG": "***"
+          },
+          {
+            "CBC": "***"
+          },
+          {
+            "TSH": "***"
+          },
+          {
+            "BMP": "***"
+          },
+          {
+            "Lipid profile": "***"
+          },
+          {
+            "HbA1c": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "ACCF/AHA Guideline for Diagnosis and Management of Patients with Stable Ischemic Heart Disease http://www.onlinejacc.org/content/60/24/e44?_ga=2.108380930.168493292.1580535163-1148947974.1580535163": "***"
+          },
+          {
+            "ACC/AHA Guideline Focused Update on Duration of Dual Antiplatelet Therapy in Patients With Coronary Artery Disease https://www.acc.org/latest-in-cardiology/ten-points-to-remember/2016/03/25/14/56/2016-acc-aha-guideline-focused-update-on-duration-of-dapt": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

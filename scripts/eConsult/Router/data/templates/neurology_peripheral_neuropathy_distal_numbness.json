@@ -1,0 +1,113 @@
+{
+  "specialty": "Neurology",
+  "condition": "peripheral_neuropathy_distal_numbness",
+  "template_name": "neurology_peripheral_neuropathy_distal_numbness",
+  "sections": [
+    {
+      "My Clinical Question (condition: peripheral neuropathy or distal numbness)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Distribution": "***"
+            },
+            {
+              "Onset (Gradual? Rapidly progressive?)": "***"
+            },
+            {
+              "Exacerbating and relieving factors": "***"
+            },
+            {
+              "Other medical history including diabetes and alcohol history": "***"
+            },
+            {
+              "Does the patient have any of the following symptoms: Numbness, Paresthesias, Pain, Weakness, Muscle wasting?": "***"
+            },
+            {
+              "Examination of strength, reflexes, sensation, and gait": "***"
+            },
+            {
+              "Prior neurological evaluations": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Does the patient take vitamins or supplements?": "***"
+            },
+            {
+              "Has the patient had a trial of any of the following medications for painful polyneuropathy? If yes, please describe dose, when the trial was and if patient is currently taking the medication": [
+                {
+                  "Gabapentin": "***"
+                },
+                {
+                  "Nortriptyline": "***"
+                },
+                {
+                  "Ultram": "***"
+                },
+                {
+                  "Lyrica": "***"
+                },
+                {
+                  "Cymbalta": "***"
+                },
+                {
+                  "Valproic acid": "***"
+                },
+                {
+                  "Lidocaine patch": "***"
+                },
+                {
+                  "Capsaicin cream": "***"
+                }
+              ]
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "B12": "***"
+            },
+            {
+              "A1c": "***"
+            },
+            {
+              "Fasting glucose": "***"
+            },
+            {
+              "Oral glucose tolerance test (OGTT)": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Serum Protein Immunoelectrophoresis (SPIE - if above are negative and neuropathy is suspected)": "***"
+            },
+            {
+              "Serum Free Light Chains (FLC - if above are negative and neuropathy is suspected)": "***"
+            },
+            {
+              "Methylmalonic Acid (MMA)": "***"
+            },
+            {
+              "Has the patient had an EMG/NCS test? If so, please provide results": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "Mild distal, symmetric polyneuropathy (DSPN) often presents as slowly progressive toe and foot numbness without weakness. DSPN is often related to impaired glucose tolerance or diabetes, alcohol use, B12 deficiency, or monoclonal gammopathy. Many cases are idiopathic. See AAN Practice Parameters for workup (PubMed ID 19056666)": "***"
+          },
+          {
+            "EMG/NCS testing is not necessary in all cases": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

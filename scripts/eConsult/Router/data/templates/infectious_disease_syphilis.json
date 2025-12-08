@@ -1,0 +1,53 @@
+{
+  "specialty": "Infectious",
+  "condition": "disease_syphilis",
+  "template_name": "infectious_disease_syphilis",
+  "sections": [
+    {
+      "My Clinical Question (condition: syphilis)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Signs or symptoms potentially consistent with syphilis and/or neurosyphilis": "***"
+            },
+            {
+              "Sexual exposure history/risk": "***"
+            },
+            {
+              "Please describe past and current treatment": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "RPR titer history": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Clinical Pearls": [
+          {
+            "Treponemal tests (Treponemal EIA/ELISA, TP-PA, and FTA-ABS) are specific for syphilis (and more rarely endemic trepanematoses). They generally remain positive for life after initial infection, even with successful treatment, and therefore cannot be used to track treatment response": "***"
+          },
+          {
+            "Non-treponemal tests (RPR and VDRL) are not specific for syphilis and are occasionally false-positives. They are useful to track serologic response to syphilis treatment": "***"
+          },
+          {
+            "Labs today typically utilize a \u201creverse\u201d screening algorithm starting with automated treponemal tests and reflexing to a manual RPR if positive. This testing approach occasionally identifies individuals with confirmed positive treponemal tests with a negative RPR. These individuals, assuming they are asymptomatic, have late latent syphilis and, assuming they have not previously received treatment, should be treated as such": "***"
+          },
+          {
+            "Appropriate serological response to syphilis treatment is at least a four-fold decline in RPR (that is, a two-fold decrease in dilutions). For example, an appropriate serologic response to treatment would be a decrease in RPR from 1:128 to 1:32. RPR often eventually decreases to the point of seroreversion but a \u201cserofast\u201d state sometimes exists where an RPR stays positive at low levels. Particularly when RPR titers are low at diagnosis (1:1, 1:2, or 1:4), titers may not decline, which does not necessarily reflect treatment failure": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

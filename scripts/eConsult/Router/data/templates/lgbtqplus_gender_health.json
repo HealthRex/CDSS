@@ -1,0 +1,56 @@
+{
+  "specialty": "Lgbtqplus",
+  "condition": "gender_health",
+  "template_name": "lgbtqplus_gender_health",
+  "sections": [
+    {
+      "My Clinical Question (condition: gender health)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [],
+          "Optional": [
+            {
+              "Patient\u2019s lived name/pronouns/gender identity": "***"
+            },
+            {
+              "Does pt have a history of hypertension, thrombophilia, estrogen dependent tumors/cancer or testosterone-sensitive tumors, polycythemia, or severe liver dysfunction": "***"
+            },
+            {
+              "Has the pt undergone any gender-affirming hormone therapy? If so, please provide medications and duration": "***"
+            },
+            {
+              "Has the pt undergone any gender-affirming surgeries? If so, please provide surgeries, surgeons, and approximate dates": "***"
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": [
+            {
+              "CMP": "***"
+            },
+            {
+              "Testosterone": "***"
+            },
+            {
+              "Estradiol": "***"
+            },
+            {
+              "CBC": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "https://prevention.ucsf.edu/transhealth/resources": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

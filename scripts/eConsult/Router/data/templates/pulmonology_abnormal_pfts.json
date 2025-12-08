@@ -1,0 +1,41 @@
+{
+  "specialty": "Pulmonology",
+  "condition": "abnormal_pfts",
+  "template_name": "pulmonology_abnormal_pfts",
+  "sections": [
+    {
+      "My Clinical Question (condition: abnormal PFT\u2019s)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Indication for having PFT done and PFT abnormality": "***"
+          },
+          {
+            "Prior PFT results (if applicable)": "***"
+          },
+          {
+            "Current respiratory symptoms, including exertional capacity": "***"
+          },
+          {
+            "Prior chest imaging results (if applicable)": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "PFT's": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "Assess inhaler technique and compliance first if meds are ineffective": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

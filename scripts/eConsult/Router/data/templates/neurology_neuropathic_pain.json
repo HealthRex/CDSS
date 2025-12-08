@@ -1,0 +1,128 @@
+{
+  "specialty": "Neurology",
+  "condition": "neuropathic_pain",
+  "template_name": "neurology_neuropathic_pain",
+  "sections": [
+    {
+      "My Clinical Question (condition: neuropathic pain)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Characteristics of pain": "***"
+            },
+            {
+              "Distribution": "***"
+            },
+            {
+              "Onset": "***"
+            },
+            {
+              "Exacerbating and relieving factors": "***"
+            },
+            {
+              "Other medical history including diabetes and alcohol history": "***"
+            },
+            {
+              "Examination of strength, reflexes, sensation, and gait": "***"
+            },
+            {
+              "Prior neurological evaluations": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Current and previous medications for neuropathic pain": "***"
+            },
+            {
+              "Abnormalities in kidney or liver function": "***"
+            },
+            {
+              "Has the patient had an EMG/NCS test? If so, please provide results": "***"
+            },
+            {
+              "Does the patient take vitamins or supplements?": "***"
+            },
+            {
+              "Has the patient had a trial of any of the following medications for painful polyneuropathy? If yes, please describe dose, when the trial was and if patient is currently taking the medication": [
+                {
+                  "Gabapentin": "***"
+                },
+                {
+                  "Nortriptyline": "***"
+                },
+                {
+                  "Ultram": "***"
+                },
+                {
+                  "Lyrica": "***"
+                },
+                {
+                  "Cymbalta": "***"
+                },
+                {
+                  "Valproic acid": "***"
+                },
+                {
+                  "Lidocaine patch": "***"
+                },
+                {
+                  "Capsaicin cream": "***"
+                }
+              ]
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": [
+            {
+              "BMP": "***"
+            },
+            {
+              "B12": "***"
+            },
+            {
+              "HgbA1c": "***"
+            },
+            {
+              "Fasting glucose": "***"
+            },
+            {
+              "Oral glucose tolerance test (OGTT)": "***"
+            },
+            {
+              "SPEP": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "Pain without any focal neurologic features is rarely secondary to a well-defined neurologic condition and neurologic consultation rarely will be helpful. Pain consultation may be more appropriate": "***"
+          },
+          {
+            "Neurology Consultation is most likely helpful for": [
+              {
+                "Pain with neuropathic features (burning, tingling, foreign body sensation, very short attacks/paroxysmal), or when other neurologic symptoms/signs are present. If this is the case, and depending on the severity of symptoms, treatment for neuropathic pain (e.g. gabapentin, pregabalin, duloxetine, amitriptyline, nortriptyline) should be started by the PCP team. Full consultation may not be needed if the etiology is clear (e.g. diabetes, postherpetic)": "***"
+              }
+            ]
+          },
+          {
+            "Radicular pain originates in the neck or back and radiates in a dermatomal distribution into the limbs. Weakness is an additional clue. If weakness is present, consider spinal imaging.  New onset weakness should be referred for consultation": "***"
+          },
+          {
+            "Procedural treatment of radicular pain is done by PM&R (through ortho or neurosurgery) or Pain Clinic rather than neurology": "***"
+          },
+          {
+            "EMG/NCS testing is not necessary in all cases": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

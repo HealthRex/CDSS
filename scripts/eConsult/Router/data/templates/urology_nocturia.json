@@ -1,0 +1,53 @@
+{
+  "specialty": "Urology",
+  "condition": "nocturia",
+  "template_name": "urology_nocturia",
+  "sections": [
+    {
+      "My Clinical Question (condition: Nocturia)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Other urinary tract symptoms present?": "***"
+          },
+          {
+            "Duration, frequency and burden of symptoms": "***"
+          },
+          {
+            "Fluid intake patterns": "***"
+          },
+          {
+            "Medications": "***"
+          },
+          {
+            "Comorbid conditions (OSA, DM, CHF)": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "BMP": "***"
+          },
+          {
+            "Urinalysis": "***"
+          },
+          {
+            "[Urine culture \u2013 if UTI suspected]": "***"
+          },
+          {
+            "[PSA \u2013 men]": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "All patients with hematuria or pelvic pain should be referred to Urology for evaluation": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

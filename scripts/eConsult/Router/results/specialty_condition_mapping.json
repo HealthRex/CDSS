@@ -1,0 +1,221 @@
+{
+  "Infectious": [
+    "infectious_disease_latent_tuberculosis",
+    "infectious_disease_parasites",
+    "infectious_disease_serologies",
+    "infectious_disease_lyme",
+    "infectious_disease_cdi",
+    "infectious_disease_immunizations_vaccinations_non_covid",
+    "infectious_disease_hiv_prep",
+    "infectious_disease_recurrent_skin_soft_tissue_infection_mrsa",
+    "infectious_disease_simple_cystitis_uti_recurrent_uti",
+    "infectious_disease_syphilis",
+    "infectious_disease_covid_positive_patients",
+    "infectious_disease_other",
+    "infectious_disease_herpes_simplex",
+    "infectious_disease_covid_vaccines_and_antibodies"
+  ],
+  "Nephrology": [
+    "nephrology_ckd",
+    "nephrology_other",
+    "nephrology_proteinuria",
+    "nephrology_creatinine_rise",
+    "nephrology_kidney_cysts",
+    "nephrology_hematuria",
+    "nephrology_hyponatremia"
+  ],
+  "Pulmonology": [
+    "pulmonology_asthma",
+    "pulmonology_abnormal_pfts",
+    "pulmonology_chronic_cough",
+    "pulmonology_other",
+    "pulmonology_pulmonary_nodule",
+    "pulmonology_osa",
+    "pulmonology_abnormal_imaging",
+    "pulmonology_copd"
+  ],
+  "Allergy": [
+    "allergy_other",
+    "allergy_drug_allergy",
+    "allergy_chronic_urticaria_or_hives",
+    "allergy_stinging_insect_allergy",
+    "allergy_angioedema",
+    "allergy_anaphylaxis",
+    "allergy_rhinitis_and_environmental_allergies",
+    "allergy_asthma",
+    "allergy_immunodeficiency",
+    "allergy_food_allergy"
+  ],
+  "Chemical": [
+    "chemical_dependency_alcohol",
+    "chemical_dependency_cannabis",
+    "chemical_dependency_opioids",
+    "chemical_dependency_other",
+    "chemical_dependency_benzodiazepines"
+  ],
+  "Gastroenterology": [
+    "gastroenterology_gerd_dyspepsia",
+    "gastroenterology_anemia",
+    "Other",
+    "IBS",
+    "gastroenterology_abnormal_abdominal_imaging",
+    "gastroenterology_anormal_liver_imaging_redirect",
+    "gastroenterology_abnormal_lfts_redirect",
+    "gastroenterology_abdominal_pain",
+    "Nausea/Vomiting",
+    "gastroenterology_alcohol_redirect",
+    "gastroenterology_diarrhea",
+    "gastroenterology_constipation"
+  ],
+  "Neurology": [
+    "neurology_peripheral_neuropathy_distal_numbness",
+    "neurology_known_epilepsy",
+    "neurology_abnormal_imaging_study",
+    "neurology_seizure_spell",
+    "neurology_other_sensory_symptoms",
+    "neurology_cognitive_impairment_memory_loss",
+    "neurology_neuropathic_pain",
+    "neurology_headache",
+    "neurology_vertigo_dizziness",
+    "neurology_abnormal_movements_tremor",
+    "neurology_stroke_cva"
+  ],
+  "Pain": [
+    "pain_medicine_pain_psychology",
+    "pain_medicine_abdominal_pelvic_genital_pain",
+    "pain_medicine_persistent_post_op_pain",
+    "pain_medicine_chronic_back_pain",
+    "pain_medicine_neuropathy_neuralgia_neuritis",
+    "pain_medicine_headache",
+    "pain_medicine_opioid_tapering",
+    "pain_medicine_neck_pain",
+    "pain_medicine_other",
+    "pain_medicine_fybromialgia_myofascial_diffuse_body_pain",
+    "pain_medicine_crps_rsd",
+    "pain_medicine_cancer_pain",
+    "pain_medicine_facial_pain",
+    "pain_medicine_medication_review_recommendations"
+  ],
+  "Rheumatology": [
+    "rheumatology_gout",
+    "rheumatology_lupus",
+    "rheumatology_rheumatoid_arthritis",
+    "rheumatology_polymyalgia_rheumatica",
+    "rheumatology_inflammatory_back_pain",
+    "rheumatology_joint_pain",
+    "rheumatology_other",
+    "rheumatology_osteoarthritis"
+  ],
+  "Endocrinology": [
+    "endocrinology_hyperprolactinemia",
+    "endocrinology_hypercalcemia",
+    "endocrinology_hyperthyroidism",
+    "endocrinology_hypothyroidism",
+    "endocrinology_adrenal_insufficiency",
+    "endocrinology_hyperparathyroidism",
+    "endocrinology_pituitary_mass",
+    "endocrinology_vitamin_d_deficiency",
+    "endocrinology_adrenal_mass",
+    "endocrinology_diabetes_mellitus",
+    "endocrinology_thyroid_nodule",
+    "endocrinology_hyperaldosteronism",
+    "endocrinology_osteoporosis",
+    "endocrinology_other"
+  ],
+  "Gynecology": [
+    "gynecology_abnormal_pap_smear",
+    "gynecology_contraceptive_issues",
+    "gynecology_vaginitis",
+    "gynecology_other"
+  ],
+  "Urology": [
+    "urology_void_trial_catheter_questions",
+    "urology_nocturia",
+    "urology_ejaculatory_dysfunction_hematospermia",
+    "urology_renal_cyst",
+    "urology_dysuria",
+    "urology_recurrent_uti",
+    "urology_overactive_bladder",
+    "urology_testicular_pain",
+    "urology_microscopic_hematuria",
+    "urology_other"
+  ],
+  "Cardiology": [
+    "cardiology_hypertension",
+    "cardiology_arrhythmia_palpitations",
+    "cardiology_abnormal_ekg",
+    "cardiology_atrial_fibrillation_atrial_flutter",
+    "cardiology_hyperlipidemia",
+    "cardiology_coronary_artery_disease",
+    "cardiology_heart_failure",
+    "cardiology_valvular_disease",
+    "cardiology_syncope",
+    "cardiology_other",
+    "cardiology_cardiac_imaging_stress_test_cac",
+    "cardiology_chest_pain",
+    "cardiology_bradycardia"
+  ],
+  "Psychiatry": [
+    "psychiatry_substance_use_disorder",
+    "psychiatry_other",
+    "psychiatry_anxiety_depression",
+    "psychiatry_psychiatric_medication_questions",
+    "psychiatry_psychiatric_resources",
+    "psychiatry_bipolar_disorder",
+    "psychiatry_adhd",
+    "psychiatry_psychiatric_diagnosis_clarification"
+  ],
+  "Orthopedics": [
+    "orthopedics_back_hip_pain",
+    "orthopedics_hand_wrist_pain",
+    "orthopedics_neck_pain",
+    "orthopedics_other",
+    "orthopedics_knee_pain",
+    "orthopedics_shoulder_pain"
+  ],
+  "Ent": [
+    "ent_tinnitus",
+    "ent_sinusitis",
+    "ent_other"
+  ],
+  "Interventional": [
+    "interventional_pulmonology_pneumonitis_drug_induced",
+    "interventional_pulmonology_pulmonary_nodule",
+    "interventional_pulmonology_unspecified"
+  ],
+  "Hematology": [
+    "hematology_anemia",
+    "hematology_elevated_ferritin",
+    "hematology_thrombocytopenia",
+    "hematology_vte_thrombophilia",
+    "hematology_thrombocytosis",
+    "hematology_mgus_paraproteinemia",
+    "hematology_isolated_leukocytosis",
+    "hematology_isolated_leukopenia",
+    "hematology_isolated_erythrocytosis"
+  ],
+  "Sleep": [
+    "sleep_medicine_parasomnias",
+    "sleep_medicine_rls",
+    "sleep_medicine_other",
+    "sleep_medicine_osa",
+    "sleep_medicine_insomnia"
+  ],
+  "Oncology": [
+    "oncology_trial_eligibility"
+  ],
+  "Hepatology": [
+    "hepatology_oncology_other",
+    "hepatology_oncology_chemotherapy_immunotherapy_hepatotoxicity"
+  ],
+  "Dermatology": [
+    "dermatology_growth_lesion",
+    "dermatology_other",
+    "dermatology_rash_dermatitis"
+  ],
+  "Lgbtqplus": [
+    "lgbtqplus_other",
+    "lgbtqplus_sexual_health",
+    "lgbtqplus_gender_health"
+  ]
+}

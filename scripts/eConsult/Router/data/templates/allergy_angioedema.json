@@ -1,0 +1,56 @@
+{
+  "specialty": "Allergy",
+  "condition": "angioedema",
+  "template_name": "allergy_angioedema",
+  "sections": [
+    {
+      "My Clinical Question (condition: Angioedema)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": [
+        {
+          "Any identifying causes (i.e. NSAIDs, ACEs/ARBs, estrogens, new or significant increases in medications)": "***"
+        },
+        {
+          "Presence of signs/symptoms of allergic reaction/mast cell activation (i.e. urticaria, flushing, generalized pruritis, bronchospasm, throat tightness, and/or hypotension)": "***"
+        },
+        {
+          "Previous episodes of angioedema": "***"
+        },
+        {
+          "Family h/o similar cutaneous or laryngeal symptoms, or recurrent abdominal pain": "***"
+        }
+      ]
+    },
+    {
+      "Tests recommended by Allergy": [
+        {
+          "CBC w/ Diff": "***"
+        },
+        {
+          "C4 Complement": "***"
+        }
+      ]
+    },
+    {
+      "Clinical Pearls": [
+        {
+          "Angioedema is localized swelling of skin or mucosal membranes (upper respiratory or GI tracts) due to loss of vascular integrity and is subdivided into three categories": [
+            {
+              "Histamine mediated: allergic reactions and reactions to NSAIDs, usually associated with urticaria and/or pruritis": "***"
+            },
+            {
+              "Bradykinin-mediated generation: induced by ACE-I, hereditary angioedema and acquired C1 inhibitor (C1NH) deficiency": "***"
+            },
+            {
+              "Unknown/idiopathic": "***"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
