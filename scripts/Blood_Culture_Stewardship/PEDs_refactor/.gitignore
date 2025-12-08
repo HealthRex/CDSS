@@ -1,0 +1,8 @@
+data/*
+src/*.csv
+src/*.pkl
+src/*.parquet
+src/*.json
+src/*.npz
+src/*.env
+src/*.DS_Store
