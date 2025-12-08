@@ -1,0 +1,74 @@
+import os
+import logging
+import asyncio
+import dspy
+from data.loader_dspy import load_data, load_codebook
+from util.DSPy_modules_dspy import ErrorIdentifierModule
+from batch_runner_DSPy_dspy import batch_pipeline_runner  # <--- import your runner
+from llm.dspy_adapter import HealthRexDSPyLM
+import time
+
+async def main_single_run(BASE_PATH, with_reference=False, size=20, sleep_per_task = 1.5, temp=True, colbert=False, model="gpt-5"):
+    start = time.time()
+    os.makedirs(BASE_PATH, exist_ok=True)
+
+    identifier_path_output = os.path.join(BASE_PATH, "identifier_results.jsonl")
+    labeler_path_output = os.path.join(BASE_PATH, "labeler_results.jsonl")
+    log_path = os.path.join(BASE_PATH, "llm_judge_debug.log")
+
+    # Logging setup
+    for h in logging.root.handlers[:]:
+        logging.root.removeHandler(h)
+    logging.basicConfig(
+        filename=log_path,
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    console.setFormatter(formatter)
+    logging.getLogger().addHandler(console)
+
+    # Configure DSPy LM
+    lm = HealthRexDSPyLM(model_name=model)
+    dspy.settings.configure(lm=lm)
+
+    logging.info(f"Running with model: {model}")
+    logging.info(f"Running with reference: {with_reference}")
+    logging.info(f"Running with size: {size}")
+    logging.info(f"Running with temp: {temp}")
+    logging.info("Loading codebook...")
+    codebook = load_codebook()
+    logging.info(f"Codebook loaded with {len(codebook)} entries.")
+
+    logging.info("Loading sample data...")
+    sample_data = load_data(size=size, random_state=42,cache= True, force_resample= False, temp=temp, colbert=colbert)
+    logging.info(f"Sample data loaded with {len(sample_data)} rows.")
+
+    identifier = ErrorIdentifierModule()
+    logging.info("Starting batch async process...")
+
+    await batch_pipeline_runner(
+        sample_data, codebook, identifier, with_reference,
+        identifier_path_output, labeler_path_output,
+        batch_size=10, delay_between_batches=4, sleep_per_task=sleep_per_task, model=model
+    )
+
+    elapsed = time.time() - start
+    logging.info(f"Batch run completed in {elapsed:.1f} seconds.")
+
+async def main():
+    size = 100
+    model = "gemini-2.5-pro"
+    
+    # model = "gemini-2.0-flash"
+
+    # model = "o3-mini"
+    # await main_single_run(BASE_PATH=f"src/DSPy_results_batch_previously_labeled_100_dedup_with_prev_msg", with_reference=False, size=size, sleep_per_task=1.2, temp=True)
+    await main_single_run(BASE_PATH=f"src/DSPy_results_batch_previously_labeled_100_dedup_with_prev_msg_w_ref_colbert_{model}_optimized", with_reference=True, size=size, sleep_per_task=1.6, temp=True, colbert=True, model=model)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
