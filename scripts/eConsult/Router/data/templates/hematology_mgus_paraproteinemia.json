@@ -1,0 +1,70 @@
+{
+  "specialty": "Hematology",
+  "condition": "mgus_paraproteinemia",
+  "template_name": "hematology_mgus_paraproteinemia",
+  "sections": [
+    {
+      "The following situations are generally inappropriate for MGUS/paraproteinemia eConsult [PLEASE PLACE AN IN-PERSON REFERRAL INSTEAD]": [
+        "Unexplained anemia, cardiomyopathy, bone pain/fractures, hepatosplenomegaly, hypercalcemia, lytic lesions, macroglossia, nephrotic syndrome/proteinuria, renal insufficiency, neuropathy, purpura, B symptoms",
+        "M-protein > 1.5 g/dL",
+        "Isolated FLC ratio > 8",
+        "IgA MGUS"
+      ]
+    },
+    {
+      "My Clinical Question (condition: MGUS/paraproteinemia)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Documentation of a complete ROS and Physical Examination (see criteria inappropriate for e-consult)": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "CBC with diff": "***"
+            },
+            {
+              "CMP": "***"
+            },
+            {
+              "SPIE": "***"
+            },
+            {
+              "Serum free light chain ratio": "***"
+            },
+            {
+              "UPEP (if SPIE or FLC ratio is abnormal)": "***"
+            },
+            {
+              "Quantitative Immunoglobulins (if SPIE or FLC ratio is abnormal)": "***"
+            },
+            {
+              "Random urine protein-creatinine ratio and microalbumin-creatinine ratio (if UPEP ordered)": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Clinical Pearls": [
+          {
+            "The sensitivity of screening for paraproteinemia is up to 98% combining the serum protein electrophoresis, serum protein immunofixation, and serum free light chain assay.": "***"
+          },
+          {
+            "Classical \u201cCRAB criteria\u201d are hypercalcemia, renal insufficiency, anemia, or bone lesions": "***"
+          },
+          {
+            "If M-spike < 1.5 g/dL, IgG subtype, K/L ratio is normal, then they meet criteria for low-risk MGUS. Repeat labs in 6 months and if stable, then annual labwork for paraproteinemia is recommended for patients. Laboratory surveillance can be discontinued for patients with a life expectancy of <5 years and among those >80 years old. The risk of progression for MGUS is usually at most 1% per year to a symptomatic plasma cell proliferative disorder or lymphoproliferative disorder": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

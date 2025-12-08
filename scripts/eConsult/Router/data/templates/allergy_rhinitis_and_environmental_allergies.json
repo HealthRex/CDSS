@@ -1,0 +1,36 @@
+{
+  "specialty": "Allergy",
+  "condition": "rhinitis_and_environmental_allergies",
+  "template_name": "allergy_rhinitis_and_environmental_allergies",
+  "sections": [
+    {
+      "My Clinical Question (condition: Rhinitis and Environmental Allergies)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": [
+        {
+          "Onset, duration, frequency, trigger(s) of symptoms": "***"
+        },
+        {
+          "History of eczema or asthma": "***"
+        }
+      ]
+    },
+    {
+      "Tests recommended by Allergy": []
+    },
+    {
+      "Clinical Pearls": [
+        {
+          "Chronic rhinitis may be allergic or non-allergic": "***"
+        },
+        {
+          "Persistent, unilateral nasal obstruction should be referred to ENT (rhinitis is always bilateral)": "***"
+        }
+      ]
+    }
+  ]
+}

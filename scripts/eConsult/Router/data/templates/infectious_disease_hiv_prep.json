@@ -1,0 +1,93 @@
+{
+  "specialty": "Infectious",
+  "condition": "disease_hiv_prep",
+  "template_name": "infectious_disease_hiv_prep",
+  "sections": [
+    {
+      "My Clinical Question (condition: HIV PrEP)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [],
+          "Optional": [
+            {
+              "What are the patient\u2019s risk factors for HIV infection? (regular HIV-positive partner, recent bacterial STI, high number of sexual partners, inconsistent or no condom use, commercial sex work, injection drug use. Describe the patient\u2019s sexual history and/or related behaviors in detail": "***"
+            },
+            {
+              "Has the patient had a sexually transmitted infection before? If so, what condition and when was this diagnosed?": "***"
+            },
+            {
+              "Does the patient have any co-morbidities or other relevant medical conditions?": "***"
+            },
+            {
+              "What is the patient\u2019s pregnancy status?": "***"
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": [
+            {
+              "BMP": "***"
+            },
+            {
+              "HIV Antigen/Antibody Screen": "***"
+            },
+            {
+              "Hep C Ab IgG": "***"
+            },
+            {
+              "Hepatitis B Surface Antigen (HBsAg)": "***"
+            },
+            {
+              "Syphilis Treponemal Screen (RPR)": "***"
+            },
+            {
+              "Chlamydia/GC NAAT (Urine, Swab)": "***"
+            },
+            {
+              "GC Culture (Rectal, Oral)": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "Detailed information about PrEP for clinicians can be found at: https://www.cdc.gov/hiv/clinicians/prevention/prep.html for details regarding PrEP": "***"
+          },
+          {
+            "Assuming PrEP is indicated for your patient and your patient is interested in pursuing this intervention after discussing risks and benefits, the following steps should be undertaken": [
+              {
+                "Obtain a negative HIV test within the week before initiation PrEP": "***"
+              },
+              {
+                "Ensure the patient does not currently have signs or symptoms that could be consistent with acute HIV infection in which case additional testing may be needed": "***"
+              },
+              {
+                "Ensure stable renal function and lack of infection with HBV and HCV with chemistries, HBsAg, and HCV serologies": "***"
+              },
+              {
+                "Screen for syphilis, gonorrhea, and chlamydia. MSM should be tested by collecting pharyngeal, rectal, and urine specimens": "***"
+              },
+              {
+                "Educate the patient about medications, HIV risk-reduction behaviors, and contraception (if relevant)": "***"
+              }
+            ]
+          },
+          {
+            "Patients on PrEP should be seen at least very 3 months for repeat HIV testing and clinical assessment for possible acute HIV infection; pregnancy tests (for women who may become pregnant); refill for a maximum of 90 days; assessment of and counseling on side effects, adherence, and HIV risk behaviors; and STI screening for asymptomatic MSM at high risk for bacterial STIs": "***"
+          },
+          {
+            "Every 6 months monitor creatinine and conduct STI screening for sexually active individuals": "***"
+          },
+          {
+            "Every 12 months evaluate need to continue PrEP": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

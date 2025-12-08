@@ -1,0 +1,109 @@
+{
+  "specialty": "Chemical",
+  "condition": "dependency_benzodiazepines",
+  "template_name": "chemical_dependency_benzodiazepines",
+  "sections": [
+    {
+      "My Clinical Question (condition: benzodiazepines)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Is your concern chronic benzodiazepines for anxiety, insomnia, or pain and a desire to help taper the patient? Or does this person have a benzodiazepine use disorder (e.g. using street xanax or taking more than you are prescribing)?": "***"
+          },
+          {
+            "Is the patient pregnant or planning to become pregnant?": "***"
+          },
+          {
+            "Is the patient using tobacco, is it combustible or vaped, and are they interested in cutting back or stopping?": "***"
+          },
+          {
+            "Type, amount, frequency of benzodiazepine usage?": "***"
+          },
+          {
+            "Suspected/known other substance use disorders? Psychiatric diagnoses?": "***"
+          },
+          {
+            "Other medical comorbidities?": "***"
+          },
+          {
+            "Most recent CURES report appropriate? (You may go under COMPACT MESSAGING under patient\u2019s CURES report and message a physician of any concerns of co-prescribing)": "***"
+          },
+          {
+            "Does the patient wish to taper?": "***"
+          },
+          {
+            "Or are you concerned about safety, especially if it is co-prescribed with opioids?": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "UTox - recall the active metabolites of diazepam include temazepam": "***"
+          },
+          {
+            "Not necessary for consult, but recommend STD Screening if not done recently: HIV, RPR/VDRL, GC, Chlamydia, HCV for all SUD patients": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "N.B: Long-term benzodiazepine exposure results in downregulation of the GABA/inhibitory response and upregulation of the excitatory neurotransmitter system, benzodiazepine withdrawal is often painful, difficult and tapering may take many months to years. Withdrawal can include severe, chronic paresthesias, photosensitivity, tinnitus, anxiety, insomnia, to name a few": "***"
+          },
+          {
+            "For a very helpful manual on all things benzodiazepines including sample taper schedules: Ashton Manual:  https://www.benzo.org.uk/manual/": "***"
+          },
+          {
+            "Helpful phrasing for counseling patients about long term benzodiazepine use: \u201cTolerance to anxiolytic effects of benzodiazepines seems to develop more slowly, but there is little evidence that benzodiazepines retain their effectiveness after 4 months of regular treatment and clinical observations suggest that long-term benzodiazepine use over the years does little to control, and may even aggravate, anxiety states.\u201d (From the Ashton Manual)": "***"
+          },
+          {
+            "Withdrawal from benzodiazepines are similar to alcohol withdrawal, and may include seizures. Benzodiazepine withdrawals may occur in as rapidly as two (2) weeks of treatment, and severity depends on the potency, half-life and length of treatment": "***"
+          },
+          {
+            "Benzodiazepines should always be tapered with care and driven by the patient\u2019s readiness": "***"
+          },
+          {
+            "Golden Rule of Benzo tapers: \u201cnever go back up\u201d once a small incremental drop in dose has taken place (sometimes no more than 5-10% at a time), stay at that same dose for at least 4 weeks. A patient may hold a dose for an additional 4-6 weeks if they do not feel ready to drop the dose again, however, do not increase the dose back up": "***"
+          },
+          {
+            "In order to reduce the temptation to increase the dose, refill only 2 weeks at a time and conduct pill counts or do not refill early": "***"
+          },
+          {
+            "Adjunctive medications such as gapapentinoids (gabapentin, pregabalin), or other anti-convulsants such as carbamazepine may be used to help ameliorate withdrawal symptoms": "***"
+          },
+          {
+            "For smaller incremental tapers that are not available in the standard formulary, compounding pharmacies may be used": [
+              {
+                "https://www.koshlandpharm.com/": "***"
+              },
+              {
+                "https://www.sjcpharmacy.com/": "***"
+              },
+              {
+                "https://www.pharmacarx.com/": "***"
+              },
+              {
+                "https://www.marinerpharmacy.com/": "***"
+              },
+              {
+                "https://www.safeway.com/pharmacy/pharmacy-services/compounding-services.html": "***"
+              }
+            ]
+          },
+          {
+            "Another method of reduction instead of tapering the original benzodiazepine that is likely shorter acting such as lorazepam, alprazolam, or clonazepam, is to swap out one of the doses taken during a BID, TID or QID dosing schedule with a longer acting benzodiazepine such as chlordiazepoxide (Librium) or diazepam (Valium) which self tapers into active metabolites such as nor-diazepam and oxazepam": [
+              {
+                "After all doses are transitioned to chlordiazepoxide or diazepam, then this may be tapered relatively safely and effectively because it is so long acting": "***"
+              }
+            ]
+          },
+          {
+            "As a patient tapers, be sure to monitor and openly discuss other substance use, which may restart or increase (e.g. alcohol, cannabis, opioids), and ask about \u201cnatural\u201d treatments they may try (e.g. valerian root, kratom)": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "specialty": "Urology",
+  "condition": "dysuria",
+  "template_name": "urology_dysuria",
+  "sections": [
+    {
+      "My Clinical Question (condition: dysuria)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Sexual history and risk factors": "***"
+          },
+          {
+            "Presence of other urinary and/or systemic symptoms": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "[For women with classic symptoms of cystitis, no additional testing is warranted]": "***"
+          },
+          {
+            "Urinalysis": "***"
+          },
+          {
+            "Urine culture": "***"
+          },
+          {
+            "GC/CT": "***"
+          }
+        ],
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}

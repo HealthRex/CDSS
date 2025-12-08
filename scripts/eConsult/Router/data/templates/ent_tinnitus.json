@@ -1,0 +1,86 @@
+{
+  "specialty": "Ent",
+  "condition": "tinnitus",
+  "template_name": "ent_tinnitus",
+  "sections": [
+    {
+      "specialist": "ENT"
+    },
+    {
+      "template": "Tinnitus"
+    },
+    {
+      "My Clinical Question (condition: tinnitus)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Tinnitus is any sound that the patient hears that can be heard by others (objective) vs only heard by patient (subjective)": "***"
+            },
+            {
+              "Which side?": "***"
+            },
+            {
+              "Constant or comes and goes?": "***"
+            },
+            {
+              "Pulsatile?": "***"
+            },
+            {
+              "Does the pulsations correlate with patient\u2019s heartbeat?": "***"
+            },
+            {
+              "What makes the tinnitus worse or better?": "***"
+            },
+            {
+              "Does it correlate with breathing?": "***"
+            },
+            {
+              "Associated hearing loss?": "***"
+            },
+            {
+              "Ototoxic medications?": "***"
+            },
+            {
+              "Trauma?": "***"
+            },
+            {
+              "Foreign body in ear?": "***"
+            },
+            {
+              "Drainage?": "***"
+            },
+            {
+              "Ear pain?": "***"
+            },
+            {
+              "Describe pain?": "***"
+            },
+            {
+              "Vertigo (illusion of motion)?": "***"
+            },
+            {
+              "Hearing aids?": "***"
+            }
+          ]
+        },
+        "Diagnostics": [
+          {
+            "Audiogram": "***"
+          }
+        ]
+      }
+    },
+    {
+      "Clinical Pearls": [
+        "If no hearing loss, consider referral to audiology alone.",
+        "For sudden sensorineural hearing loss, call ENT for urgent eval and consider high dose steroid burst (60 mg/day prednisone)."
+      ]
+    }
+  ]
+}

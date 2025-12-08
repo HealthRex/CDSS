@@ -1,0 +1,42 @@
+{
+  "specialty": "Allergy",
+  "condition": "stinging_insect_allergy",
+  "template_name": "allergy_stinging_insect_allergy",
+  "sections": [
+    {
+      "My Clinical Question (condition: Rhinitis and Environmental Allergies)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": [
+        {
+          "Reaction to sting (for skin symptoms, indicate whether only at site of sting)": "***"
+        },
+        {
+          "When the last sting occurred": "***"
+        },
+        {
+          "Number of times the reaction has occurred": "***"
+        },
+        {
+          "Treatment with epinephrine and where the pt has been treated previously (home, outpatient clinic, urgent care, EMS, ED, inpatient": "***"
+        }
+      ]
+    },
+    {
+      "Tests recommended by Allergy": []
+    },
+    {
+      "Clinical Pearls": [
+        {
+          "Reactions to insect stings can vary from local to systemic reactions. Please address whether any of the following were part of the reaction: lightheadedness/dizziness (from low blood pressure), nausea/vomiting/diarrhea, hives, angioedema, and/or SOB/wheezing": "***"
+        },
+        {
+          "For skin symptoms, please indicate whether at site of sting or elsewhere on the body": "***"
+        }
+      ]
+    }
+  ]
+}

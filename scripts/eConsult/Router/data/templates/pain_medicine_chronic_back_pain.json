@@ -1,0 +1,86 @@
+{
+  "specialty": "Pain",
+  "condition": "medicine_chronic_back_pain",
+  "template_name": "pain_medicine_chronic_back_pain",
+  "sections": [
+    {
+      "My Clinical Question (condition: chronic back pain)": "***"
+    },
+    {
+      "(If pt meeting any of the following: New bowel or bladder dysfunction, saddle anesthesia, rapidly evolving progressive neurologic deficits. Send pt to the emergency Department ASAP. An eConsult is not appropriate.)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Etiology? Location? Radicular/axial/both/unsure?": "***"
+          },
+          {
+            "Does the pt have neurologic symptoms or deficits?": "***"
+          },
+          {
+            "Red flag symptoms (constitutional symptoms, h/o cancer, night/rest pain, pain in the extremity greater than in the spine, new bowel/bladder dysfunction)?": "***"
+          },
+          {
+            "Results of any prior PT or OT attempts?": "***"
+          },
+          {
+            "Any prior and current medications, treatments, interventions/procedures, or surgeries to treat this pain? If so, when and what was the result (better, worse, no different, allergy/side effect)?": "***"
+          },
+          {
+            "Any movements that worsen or improve the pain (leaning forward, walking up stairs, walking down stairs, twisting at the hips, etc)?": "***"
+          },
+          {
+            "Working with any behavioral or mental health specialist(s)?": "***"
+          },
+          {
+            "Type and location of any imaging results? If performed externally, please have images uploaded/available for viewing by the consultant, then place the eConsult": "***"
+          },
+          {
+            "Pertinent comorbidities?": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "If your question is regarding the utility of a procedure-based intervention, advanced imaging is required (e.g. MRI or CT \u2013 preferably MRI \u2013 within 2 years)": "***"
+          },
+          {
+            "Chronic spine pain without neurologic deficits: Xray is required": "***"
+          },
+          {
+            "Chronic spine pain with neurologic deficits: MRI is required (or CT, if MRI is contraindicated)": [
+              {
+                "Thoracic Spine 2 Views": "***"
+              },
+              {
+                "Lumbosacral Spine 3 Views": "***"
+              },
+              {
+                "Lumbosacral Spine 2 Views": "***"
+              },
+              {
+                "MRI Thoracic WO Contrast": "***"
+              },
+              {
+                "MRI Thoracic WWO Contrast": "***"
+              },
+              {
+                "MRI Lumbar WO Contrast": "***"
+              },
+              {
+                "MRI Lumbar WWO Contrast": "***"
+              },
+              {
+                "MRI Lumbar WO Contrast Tethered Cord": "***"
+              }
+            ]
+          }
+        ],
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}

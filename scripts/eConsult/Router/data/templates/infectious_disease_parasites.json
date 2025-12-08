@@ -1,0 +1,34 @@
+{
+  "specialty": "Infectious",
+  "condition": "disease_parasites",
+  "template_name": "infectious_disease_parasites",
+  "sections": [
+    {
+      "My Clinical Question (condition: parasites)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "What are the patient\u2019s clinical signs and symptoms?": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": [
+            {
+              "Ova and Parasite Stool (O&P stool)": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}

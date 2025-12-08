@@ -1,0 +1,44 @@
+{
+  "specialty": "Allergy",
+  "condition": "asthma",
+  "template_name": "allergy_asthma",
+  "sections": [
+    {
+      "My Clinical Question (condition: Asthma)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": [
+        {
+          "Duration of symptoms": "***"
+        },
+        {
+          "Medications tried/on, level of control achieved": "***"
+        },
+        {
+          "Frequency of exacerbations": "***"
+        },
+        {
+          "Number of oral steroid courses in the last 12 months": "***"
+        },
+        {
+          "Number of ED/ urgent care visits for asthma exacerbations in the last 12 months": "***"
+        }
+      ]
+    },
+    {
+      "Tests recommended by Allergy": [
+        {
+          "PFT's": "***"
+        }
+      ]
+    },
+    {
+      "Clinical Pearls": {
+        "Assess inhaler technique (and advise use of spacer if applicable) and compliance first if meds are ineffective": "***"
+      }
+    }
+  ]
+}

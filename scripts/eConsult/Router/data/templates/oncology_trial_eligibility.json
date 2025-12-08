@@ -1,0 +1,42 @@
+{
+  "specialty": "Oncology",
+  "condition": "trial_eligibility",
+  "template_name": "oncology_trial_eligibility",
+  "sections": [
+    {
+      "Cancer Type Requesting Eligibility for": "***"
+    },
+    {
+      "My most current assessment of this problem (including prior therapies) can be found in the note dated": "{Today/***}"
+    },
+    {
+      "Please include the following either, in the note or here": {
+        "Assessments": [
+          {
+            "Stage at diagnosis": "***"
+          },
+          {
+            "Date of diagnosis": "***"
+          },
+          {
+            "Date of disease recurrence, if applicable": "***"
+          },
+          {
+            "Histologic type, biomarkers": "***"
+          },
+          {
+            "Current sites of disease": "***"
+          },
+          {
+            "Prior systemic therapies": "***"
+          },
+          {
+            "Reason for referral": "***"
+          }
+        ],
+        "Diagnostics": [],
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}

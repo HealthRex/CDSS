@@ -1,0 +1,46 @@
+{
+  "specialty": "Neurology",
+  "condition": "vertigo_dizziness",
+  "template_name": "neurology_vertigo_dizziness",
+  "sections": [
+    {
+      "My Clinical Question (condition: vertigo/dizziness)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "Red Flags \u2013 Do NOT place eConsult and consider urgent/inpatient evaluation if vertigo is accompanied by focal neurologic findings (weakness, sensory changes, facial droop), strongly consider an expedited workup for stroke/TIA": "***"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Time course (single episode/recurrent, duration)": "***"
+          },
+          {
+            "Associated symptoms (nausea/vomiting, vision changes, headache, etc)": "***"
+          },
+          {
+            "Please include whether there is vertigo (spinning/swaying/moving sensation or lightheadedness (feeling like going to pass out)": "***"
+          },
+          {
+            "Neurologic exam findings": "***"
+          }
+        ],
+        "Diagnostics": {
+          "Required": [],
+          "Optional": []
+        },
+        "Clinical Pearls": [
+          {
+            "Consider ENT consultation for brief (less than a minute), well-defined attacks of isolated dizziness, and/or if other ear symptoms (e.g. tinnitus, ear fullness) are present": "***"
+          },
+          {
+            "If symptoms are recurrent, consider PT for vestibular rehab": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

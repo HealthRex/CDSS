@@ -1,0 +1,59 @@
+{
+  "specialty": "Gynecology",
+  "condition": "abnormal_pap_smear",
+  "template_name": "gynecology_abnormal_pap_smear",
+  "sections": [
+    {
+      "specialist": "Gynecology"
+    },
+    {
+      "template": "Abnormal Pap Smear"
+    },
+    {
+      "My Clinical Question (condition: abnormal pap smear)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include the following assessments and/or diagnostics": {
+        "Assessments": {
+          "Required": [
+            {
+              "Is there any past history of abnormal pap smears or confirmed cervical dysplasia? If yes, list all pap smear, HPV, and/or biopsy results in the last 5 years.": "***"
+            },
+            {
+              "Is the patient immunocompromised? If yes, why?": "***"
+            },
+            {
+              "Does the patient have any history of treatment such as LEEP, cold knife cone, or cervical ablation? If yes, state when, which treatment, and pathology results if available.": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Exam findings (appearance of cervix, any palpable findings, etc.)": "***"
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "Most recent pap smear cytology, as applicable": "***"
+            },
+            {
+              "Most recent high risk HPV results, as applicable": "***"
+            }
+          ],
+          "Optional": []
+        }
+      }
+    },
+    {
+      "Clinical Pearls": [
+        "Below is the link to the ASCCP (American Society for Colposcopy and Cervical Pathology) guideline on abnormal pap smears",
+        "http://www.asccp.org/Assets/51b17a58-7af9-4667-879a-3f48472d6dc6/635912165077730000/asccp-management-guidelines-august-2014-pdf",
+        "Access guidelines through the ASCCP app: https://www.asccp.org/mobile-app"
+      ]
+    }
+  ]
+}

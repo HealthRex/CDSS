@@ -1,0 +1,69 @@
+{
+  "specialty": "Orthopedics",
+  "condition": "knee_pain",
+  "template_name": "orthopedics_knee_pain",
+  "sections": [
+    {
+      "My Clinical Question (condition: Knee pain)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Precipitating injury": "***"
+          },
+          {
+            "Duration of symptoms": "***"
+          },
+          {
+            "Location of pain (anterior, medial, lateral, posterior)": "***"
+          },
+          {
+            "Change in function": "***"
+          },
+          {
+            "Effusion": "***"
+          },
+          {
+            "Previous treatment (PT, injection, bracing, etc.)": "***"
+          },
+          {
+            "Imaging studies": "***"
+          },
+          {
+            "Most recent BMI": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "If the patient is greater than 50 years of age with knee pain, consider obtaining the following X-rays": [
+              {
+                "X-ray Knee 3 Views (When placing these orders, in the comments field, ass the following to ensure the correct views are obtained: \u201cAP bilateral standing (weightbearing), Lateral and Sunrise\u201d)": "***"
+              },
+              {
+                "If X-rays demonstrate signs of arthritis (significant joint space narrowing), an MRI is typically not helpful for initial evaluation": "***"
+              }
+            ]
+          },
+          {
+            "If arthritis is NOT suspected (the patient is less than 45 years of age ) and the patient has an acute injury": [
+              {
+                "X-rays are NOT required": "***"
+              },
+              {
+                "An MRI may be helpful: MRI Knee w/o Contrast": "***"
+              }
+            ]
+          },
+          {
+            "Acute pain and symptoms including locking, catching/mechanical symptoms, effusion, and instability benefit from an MRI": "***"
+          }
+        ],
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}

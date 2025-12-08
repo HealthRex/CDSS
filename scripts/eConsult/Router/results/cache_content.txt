@@ -1,0 +1,1410 @@
+=== TEMPLATES ===
+
+Specialty: Infectious
+Condition: infectious_disease_latent_tuberculosis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Nephrology
+Condition: nephrology_ckd
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_parasites
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pulmonology
+Condition: pulmonology_asthma
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Allergy
+Condition: allergy_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Chemical
+Condition: chemical_dependency_alcohol
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: gastroenterology_gerd_dyspepsia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pulmonology
+Condition: pulmonology_abnormal_pfts
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_serologies
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Chemical
+Condition: chemical_dependency_cannabis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_peripheral_neuropathy_distal_numbness
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Allergy
+Condition: allergy_drug_allergy
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_pain_psychology
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: 
+Required Info: 
+Diagnostics: 
+Clinical Pearls: ['Iron deficiency without anemia does not require endoscopy', 'Normocytic anemia with normal iron stores does not necessarily require endoscopy', 'Anemia of chronic disease without other factors does not require endoscopy', 'Indications for referral:', '  - Anemia with low iron stores (e.g. low ferritin, Fe, Fe sat or high TIBC)', '  - Anemia with overt GI blood loss (e.g. black stools, blood per rectum)']
+
+
+
+Specialty: Rheumatology
+Condition: rheumatology_gout
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_hyperprolactinemia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pulmonology
+Condition: pulmonology_chronic_cough
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gynecology
+Condition: gynecology_abnormal_pap_smear
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Urology
+Condition: urology_void_trial_catheter_questions
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_hypercalcemia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_abdominal_pelvic_genital_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Urology
+Condition: urology_nocturia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: Other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: ['None']
+
+
+
+Specialty: Allergy
+Condition: allergy_chronic_urticaria_or_hives
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_hyperthyroidism
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_lyme
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pulmonology
+Condition: pulmonology_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_hypertension
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Psychiatry
+Condition: psychiatry_substance_use_disorder
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gynecology
+Condition: gynecology_contraceptive_issues
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Allergy
+Condition: allergy_stinging_insect_allergy
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pulmonology
+Condition: pulmonology_pulmonary_nodule
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_known_epilepsy
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_abnormal_imaging_study
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_cdi
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Chemical
+Condition: chemical_dependency_opioids
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Orthopedics
+Condition: orthopedics_back_hip_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_arrhythmia_palpitations
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Psychiatry
+Condition: psychiatry_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_immunizations_vaccinations_non_covid
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Ent
+Condition: ent_tinnitus
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Urology
+Condition: urology_ejaculatory_dysfunction_hematospermia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pulmonology
+Condition: pulmonology_osa
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Nephrology
+Condition: nephrology_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Psychiatry
+Condition: psychiatry_anxiety_depression
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_persistent_post_op_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_hypothyroidism
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Orthopedics
+Condition: orthopedics_hand_wrist_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Urology
+Condition: urology_renal_cyst
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Allergy
+Condition: allergy_angioedema
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Interventional
+Condition: interventional_pulmonology_pneumonitis_drug_induced
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_abnormal_ekg
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: IBS
+Required Info: 
+Diagnostics: 
+Clinical Pearls: ['None']
+
+
+
+Specialty: Interventional
+Condition: interventional_pulmonology_pulmonary_nodule
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hematology
+Condition: hematology_anemia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Sleep
+Condition: sleep_medicine_parasomnias
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Rheumatology
+Condition: rheumatology_lupus
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Nephrology
+Condition: nephrology_proteinuria
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hematology
+Condition: hematology_elevated_ferritin
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_chronic_back_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_neuropathy_neuralgia_neuritis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Oncology
+Condition: oncology_trial_eligibility
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_seizure_spell
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_headache
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hepatology
+Condition: hepatology_oncology_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_other_sensory_symptoms
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hematology
+Condition: hematology_thrombocytopenia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Sleep
+Condition: sleep_medicine_rls
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_hiv_prep
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Chemical
+Condition: chemical_dependency_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_adrenal_insufficiency
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Psychiatry
+Condition: psychiatry_psychiatric_medication_questions
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Psychiatry
+Condition: psychiatry_psychiatric_resources
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_opioid_tapering
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Chemical
+Condition: chemical_dependency_benzodiazepines
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pulmonology
+Condition: pulmonology_abnormal_imaging
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Rheumatology
+Condition: rheumatology_rheumatoid_arthritis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_cognitive_impairment_memory_loss
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_neuropathic_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hematology
+Condition: hematology_vte_thrombophilia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_headache
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Rheumatology
+Condition: rheumatology_polymyalgia_rheumatica
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_neck_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: gastroenterology_abnormal_abdominal_imaging
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Orthopedics
+Condition: orthopedics_neck_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_hyperparathyroidism
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_atrial_fibrillation_atrial_flutter
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Rheumatology
+Condition: rheumatology_inflammatory_back_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Nephrology
+Condition: nephrology_creatinine_rise
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Orthopedics
+Condition: orthopedics_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Orthopedics
+Condition: orthopedics_knee_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: gastroenterology_anormal_liver_imaging_redirect
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hematology
+Condition: hematology_thrombocytosis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Urology
+Condition: urology_dysuria
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_hyperlipidemia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_recurrent_skin_soft_tissue_infection_mrsa
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: gastroenterology_abnormal_lfts_redirect
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Urology
+Condition: urology_recurrent_uti
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: 
+Required Info: 
+Diagnostics: 
+Clinical Pearls: []
+
+
+
+Specialty: Urology
+Condition: urology_overactive_bladder
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_pituitary_mass
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_fybromialgia_myofascial_diffuse_body_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Nephrology
+Condition: nephrology_kidney_cysts
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Psychiatry
+Condition: psychiatry_bipolar_disorder
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gynecology
+Condition: gynecology_vaginitis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Urology
+Condition: urology_testicular_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: Nausea/Vomiting
+Required Info: 
+Diagnostics: 
+Clinical Pearls: ['None']
+
+
+
+Specialty: Gastroenterology
+Condition: gastroenterology_alcohol_redirect
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_coronary_artery_disease
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Allergy
+Condition: allergy_anaphylaxis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_simple_cystitis_uti_recurrent_uti
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_heart_failure
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: 
+Required Info: 
+Diagnostics: 
+Clinical Pearls: ['None']
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_vitamin_d_deficiency
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_syphilis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Psychiatry
+Condition: psychiatry_adhd
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Dermatology
+Condition: dermatology_growth_lesion
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Urology
+Condition: urology_microscopic_hematuria
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Nephrology
+Condition: nephrology_hematuria
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_valvular_disease
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hematology
+Condition: hematology_mgus_paraproteinemia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Psychiatry
+Condition: psychiatry_psychiatric_diagnosis_clarification
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hematology
+Condition: hematology_isolated_leukocytosis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Rheumatology
+Condition: rheumatology_joint_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Dermatology
+Condition: dermatology_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Ent
+Condition: ent_sinusitis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Orthopedics
+Condition: orthopedics_shoulder_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hematology
+Condition: hematology_isolated_leukopenia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Lgbtqplus
+Condition: lgbtqplus_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Urology
+Condition: urology_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Allergy
+Condition: allergy_rhinitis_and_environmental_allergies
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_syncope
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_crps_rsd
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_adrenal_mass
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_cancer_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_covid_positive_patients
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_diabetes_mellitus
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Sleep
+Condition: sleep_medicine_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_facial_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Dermatology
+Condition: dermatology_rash_dermatitis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Sleep
+Condition: sleep_medicine_osa
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Lgbtqplus
+Condition: lgbtqplus_sexual_health
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pain
+Condition: pain_medicine_medication_review_recommendations
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_cardiac_imaging_stress_test_cac
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Interventional
+Condition: interventional_pulmonology_unspecified
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Rheumatology
+Condition: rheumatology_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Allergy
+Condition: allergy_asthma
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Allergy
+Condition: allergy_immunodeficiency
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_herpes_simplex
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hepatology
+Condition: hepatology_oncology_chemotherapy_immunotherapy_hepatotoxicity
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Rheumatology
+Condition: rheumatology_osteoarthritis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gastroenterology
+Condition: 
+Required Info: 
+Diagnostics: 
+Clinical Pearls: ['Bristol Stool Chart is used to classify stool consistency and infer GI motility:', 'Type 1: Separate hard lumps – SEVERE CONSTIPATION', 'Type 2: Lumpy and sausage like – MILD CONSTIPATION', 'Type 3: A sausage shape with cracks in the surface – NORMAL', 'Type 4: Like a smooth, soft sausage or snake – NORMAL', 'Type 5: Soft blobs with clear-cut edges – LACKING FIBER', 'Type 6: Mushy consistency with ragged edges – MILD DIARRHEA', 'Type 7: Liquid consistency with no solid pieces – SEVERE DIARRHEA', 'Image reference: http://cdn.intechopen.com/pdfs-wm/46082.pdf']
+
+
+
+Specialty: Ent
+Condition: ent_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_thyroid_nodule
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_vertigo_dizziness
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Infectious
+Condition: infectious_disease_covid_vaccines_and_antibodies
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_chest_pain
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Allergy
+Condition: allergy_food_allergy
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_hyperaldosteronism
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_abnormal_movements_tremor
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_osteoporosis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Sleep
+Condition: sleep_medicine_insomnia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Pulmonology
+Condition: pulmonology_copd
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Neurology
+Condition: neurology_stroke_cva
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Hematology
+Condition: hematology_isolated_erythrocytosis
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Gynecology
+Condition: gynecology_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Nephrology
+Condition: nephrology_hyponatremia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Lgbtqplus
+Condition: lgbtqplus_gender_health
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Cardiology
+Condition: cardiology_bradycardia
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+
+Specialty: Endocrinology
+Condition: endocrinology_other
+Required Info: 
+Diagnostics: 
+Clinical Pearls: 
+
+
+=== SPECIALTY MAPPINGS ===
+
+Infectious: infectious_disease_latent_tuberculosis, infectious_disease_parasites, infectious_disease_serologies, infectious_disease_lyme, infectious_disease_cdi, infectious_disease_immunizations_vaccinations_non_covid, infectious_disease_hiv_prep, infectious_disease_recurrent_skin_soft_tissue_infection_mrsa, infectious_disease_simple_cystitis_uti_recurrent_uti, infectious_disease_syphilis...
+Nephrology: nephrology_ckd, nephrology_other, nephrology_proteinuria, nephrology_creatinine_rise, nephrology_kidney_cysts, nephrology_hematuria, nephrology_hyponatremia...
+Pulmonology: pulmonology_asthma, pulmonology_abnormal_pfts, pulmonology_chronic_cough, pulmonology_other, pulmonology_pulmonary_nodule, pulmonology_osa, pulmonology_abnormal_imaging, pulmonology_copd...
+Allergy: allergy_other, allergy_drug_allergy, allergy_chronic_urticaria_or_hives, allergy_stinging_insect_allergy, allergy_angioedema, allergy_anaphylaxis, allergy_rhinitis_and_environmental_allergies, allergy_asthma, allergy_immunodeficiency, allergy_food_allergy...
+Chemical: chemical_dependency_alcohol, chemical_dependency_cannabis, chemical_dependency_opioids, chemical_dependency_other, chemical_dependency_benzodiazepines...
+Gastroenterology: gastroenterology_gerd_dyspepsia, gastroenterology_anemia, Other, IBS, gastroenterology_abnormal_abdominal_imaging, gastroenterology_anormal_liver_imaging_redirect, gastroenterology_abnormal_lfts_redirect, gastroenterology_abdominal_pain, Nausea/Vomiting, gastroenterology_alcohol_redirect...
+Neurology: neurology_peripheral_neuropathy_distal_numbness, neurology_known_epilepsy, neurology_abnormal_imaging_study, neurology_seizure_spell, neurology_other_sensory_symptoms, neurology_cognitive_impairment_memory_loss, neurology_neuropathic_pain, neurology_headache, neurology_vertigo_dizziness, neurology_abnormal_movements_tremor...
+Pain: pain_medicine_pain_psychology, pain_medicine_abdominal_pelvic_genital_pain, pain_medicine_persistent_post_op_pain, pain_medicine_chronic_back_pain, pain_medicine_neuropathy_neuralgia_neuritis, pain_medicine_headache, pain_medicine_opioid_tapering, pain_medicine_neck_pain, pain_medicine_other, pain_medicine_fybromialgia_myofascial_diffuse_body_pain...
+Rheumatology: rheumatology_gout, rheumatology_lupus, rheumatology_rheumatoid_arthritis, rheumatology_polymyalgia_rheumatica, rheumatology_inflammatory_back_pain, rheumatology_joint_pain, rheumatology_other, rheumatology_osteoarthritis...
+Endocrinology: endocrinology_hyperprolactinemia, endocrinology_hypercalcemia, endocrinology_hyperthyroidism, endocrinology_hypothyroidism, endocrinology_adrenal_insufficiency, endocrinology_hyperparathyroidism, endocrinology_pituitary_mass, endocrinology_vitamin_d_deficiency, endocrinology_adrenal_mass, endocrinology_diabetes_mellitus...
+Gynecology: gynecology_abnormal_pap_smear, gynecology_contraceptive_issues, gynecology_vaginitis, gynecology_other...
+Urology: urology_void_trial_catheter_questions, urology_nocturia, urology_ejaculatory_dysfunction_hematospermia, urology_renal_cyst, urology_dysuria, urology_recurrent_uti, urology_overactive_bladder, urology_testicular_pain, urology_microscopic_hematuria, urology_other...
+Cardiology: cardiology_hypertension, cardiology_arrhythmia_palpitations, cardiology_abnormal_ekg, cardiology_atrial_fibrillation_atrial_flutter, cardiology_hyperlipidemia, cardiology_coronary_artery_disease, cardiology_heart_failure, cardiology_valvular_disease, cardiology_syncope, cardiology_other...
+Psychiatry: psychiatry_substance_use_disorder, psychiatry_other, psychiatry_anxiety_depression, psychiatry_psychiatric_medication_questions, psychiatry_psychiatric_resources, psychiatry_bipolar_disorder, psychiatry_adhd, psychiatry_psychiatric_diagnosis_clarification...
+Orthopedics: orthopedics_back_hip_pain, orthopedics_hand_wrist_pain, orthopedics_neck_pain, orthopedics_other, orthopedics_knee_pain, orthopedics_shoulder_pain...
+Ent: ent_tinnitus, ent_sinusitis, ent_other...
+Interventional: interventional_pulmonology_pneumonitis_drug_induced, interventional_pulmonology_pulmonary_nodule, interventional_pulmonology_unspecified...
+Hematology: hematology_anemia, hematology_elevated_ferritin, hematology_thrombocytopenia, hematology_vte_thrombophilia, hematology_thrombocytosis, hematology_mgus_paraproteinemia, hematology_isolated_leukocytosis, hematology_isolated_leukopenia, hematology_isolated_erythrocytosis...
+Sleep: sleep_medicine_parasomnias, sleep_medicine_rls, sleep_medicine_other, sleep_medicine_osa, sleep_medicine_insomnia...
+Oncology: oncology_trial_eligibility...
+Hepatology: hepatology_oncology_other, hepatology_oncology_chemotherapy_immunotherapy_hepatotoxicity...
+Dermatology: dermatology_growth_lesion, dermatology_other, dermatology_rash_dermatitis...
+Lgbtqplus: lgbtqplus_other, lgbtqplus_sexual_health, lgbtqplus_gender_health...

@@ -1,0 +1,53 @@
+{
+  "specialty": "Urology",
+  "condition": "ejaculatory_dysfunction_hematospermia",
+  "template_name": "urology_ejaculatory_dysfunction_hematospermia",
+  "sections": [
+    {
+      "My Clinical Question (condition: Ejaculatory dysfunction/Hematospermia)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "A recent  prostate biopsy (within past six weeks)  or treatment (within past six weeks) for prostate cancer": "***"
+          },
+          {
+            "Symptoms of urethritis such as dysuria or urethral discharge": "***"
+          },
+          {
+            "History of GU malignancy": "***"
+          },
+          {
+            "Use of anticoagulants or antiplatelet agents": "***"
+          },
+          {
+            "Travel to, or either current or past residence in, an area endemic for schistosomiasis": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "Urinalysis": "***"
+          },
+          {
+            "[GC/CG \u2013 if urethritis or pyuria without bacteria]": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "Hematospermia, while alarming to patients, is almost always a benign condition and will usually resolve spontaneously": "***"
+          },
+          {
+            "Most commonly, prostate biopsy causes hematospermia in 80% of men, lasting 3-4 weeks on average": "***"
+          },
+          {
+            "Persistent unexplained hematospermia (>1 month) should be referred to Urology": "***"
+          }
+        ]
+      }
+    }
+  ]
+}
