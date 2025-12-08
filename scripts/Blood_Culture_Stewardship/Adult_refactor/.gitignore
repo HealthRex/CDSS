@@ -3,7 +3,7 @@ src/data/*
 *.pkl
 src/cohort_generation_2024/*.pkl
 src/cohort_generation_2024/*.parquet
-src/catboost_info/*
+src/cohort_generation_2024/catboost_info/*
 src/*.json
 src/*.npz
 .env
