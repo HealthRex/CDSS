@@ -1,4 +1,5 @@
 # Virtual environment
+inbasket_colbert_env/
 inbasket_env/
 venv/
 .env
@@ -8,10 +9,12 @@ __pycache__/
 *.pyc
 
 # Results and outputs
-DSPy_results_*/
+src/DSPy_results_*/
+src/data/*
+src/analysis/*
 
 # Jupyter
-.ipynb_checkpoints
+src/notebook/.ipynb_checkpoints
 
 # OS
 .DS_Store
@@ -19,3 +22,5 @@ Thumbs.db
 
 # Logs
 *.log
+*.zip
+*.json
