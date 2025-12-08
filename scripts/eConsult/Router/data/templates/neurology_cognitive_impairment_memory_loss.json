@@ -1,0 +1,94 @@
+{
+  "specialty": "Neurology",
+  "condition": "cognitive_impairment_memory_loss",
+  "template_name": "neurology_cognitive_impairment_memory_loss",
+  "sections": [
+    {
+      "My Clinical Question (condition: cognitive impairment/memory loss)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Onset of symptoms, duration, and whether progression is noted": "***"
+            },
+            {
+              "Impairment of any IADL\u2019s (such as keeping track of appointments, adherence with medications, managing finances, driving)": "***"
+            },
+            {
+              "Objective evidence for cognitive decline and/or personality change (such as family history, difficulties at work)?": "***"
+            },
+            {
+              "Past medical history (please summarize)": "***"
+            },
+            {
+              "Psychiatric history": "***"
+            },
+            {
+              "Any available collateral information": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "History of stroke?": "***"
+            },
+            {
+              "List all current medications": "***"
+            },
+            {
+              "MMSE or MoCA": "***"
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "B12": "***"
+            },
+            {
+              "TSH": "***"
+            },
+            {
+              "Folate": "***"
+            },
+            {
+              "CBC": "***"
+            },
+            {
+              "CMP": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Thiamine (if history of excessive alcohol intake)": "***"
+            },
+            {
+              "HgbA1c": "***"
+            },
+            {
+              "CT head": "***"
+            },
+            {
+              "MRI Brain w/wo contrast": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "Complete a Montreal Cognitive Assessment (MOCA) for objective assessment of function": "***"
+          },
+          {
+            "Review medications for possible contributors to memory loss: benzodiazepines, anticholinergics, and sedative hypnotics": "***"
+          },
+          {
+            "Screen for depression, anxiety, and poor sleep- all can cause memory loss": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

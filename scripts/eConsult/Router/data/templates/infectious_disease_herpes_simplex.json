@@ -1,0 +1,77 @@
+{
+  "specialty": "Infectious",
+  "condition": "disease_herpes_simplex",
+  "template_name": "infectious_disease_herpes_simplex",
+  "sections": [
+    {
+      "My Clinical Question (condition: herpes simplex)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Please describe current and past antiviral treatment and/or prophylaxis (including dosing, duration and response)": "***"
+            },
+            {
+              "What signs or symptoms does the patient have?": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": [
+            {
+              "HSV 1 and HSV 2 IgG": "***"
+            },
+            {
+              "HSV DNA PCR Qual (Lesion)": "***"
+            },
+            {
+              "Viral Culture": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "If there is uncertainty as to the diagnosis of herpes simplex, diagnostic tests can be pursued for clarification": [
+              {
+                "Ulcerative lesions can be swabbed with a polyester-, rayon- or nylon-tipped flocked swab and placed in viral transport medium. (Do not use calcium alginate swabs, cotton swabs, or wooden-shafted swabs)": "***"
+              },
+              {
+                "HSV 1 and HSV 2 IgG antibodies can diagnose presence of infection if ulcerative lesions are not actively present. There is no established role for HSV IgM tests": "***"
+              }
+            ]
+          },
+          {
+            "Recurrent (subsequent) episodes of herpes simplex in non-immunocompromised patients can be treated with these regimens": [
+              {
+                "Genital herpes: valacyclovir (Valtrex) 1 g daily for 5 days or 500 mg twice daily for 3 days": "***"
+              },
+              {
+                "Oral herpes: valacyclovir (Valtrex) 2 g twice daily for 1 day": "***"
+              },
+              {
+                "Famciclovir and acyclovir are alternatives though regimens differ from those above": "***"
+              }
+            ]
+          },
+          {
+            "Chronic suppression for those with frequent oral or genital herpes simplex episodes can be accomplished with": [
+              {
+                "Acyclovir 400 mg twice daily": "***"
+              },
+              {
+                "Valacyclovir (Valtrex) 500 mg to 1 g daily": "***"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

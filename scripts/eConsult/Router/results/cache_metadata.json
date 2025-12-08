@@ -1,0 +1,9 @@
+{
+  "content_hash": "20b0a143",
+  "template_count": 173,
+  "cached_template_count": 173,
+  "specialty_count": 23,
+  "created_at": "2025-12-03T02:40:20.923717",
+  "api_endpoint": "https://apim.stanfordhealthcare.org/openai-eastus2/deployments/gpt-5/chat/completions?api-version=2024-12-01-preview",
+  "model": "gpt-5"
+}

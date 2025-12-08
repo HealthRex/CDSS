@@ -1,0 +1,33 @@
+{
+  "specialty": "Pulmonology",
+  "condition": "other",
+  "template_name": "pulmonology_other",
+  "sections": [
+    {
+      "My Clinical Question (condition: other)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Description of pertinent symptoms": "***"
+          },
+          {
+            "Pertinent physical exam features": "***"
+          },
+          {
+            "Pertinent labs and imaging findings": "***"
+          },
+          {
+            "Pertinent medications": "***"
+          }
+        ],
+        "Diagnostics": [],
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}

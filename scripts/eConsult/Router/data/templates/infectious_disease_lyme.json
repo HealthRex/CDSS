@@ -1,0 +1,83 @@
+{
+  "specialty": "Infectious",
+  "condition": "disease_lyme",
+  "template_name": "infectious_disease_lyme",
+  "sections": [
+    {
+      "My Clinical Question (condition: Lyme Disease)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Reason patient was tested (signs, symptoms, or exam findings that prompted test, such as rash consistent with erythema migrans, arthralgia, fever, or headache)": "***"
+            },
+            {
+              "Recent travel and/or tick exposure": "***"
+            },
+            {
+              "Treatments": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "Lyme titers": "***"
+            },
+            {
+              "Lyme Western Blots (Only required if Total Lyme titer or Lyme IgG and IgM titers are positive or equivocal)": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Clinical Pearls": [
+          {
+            "Updated information for healthcare providers about diagnosis and treatment of Lyme disease can be found at https://www.cdc.gov/lyme/healthcare/index.html": "***"
+          },
+          {
+            "Post-exposure prophylaxis with doxycycline after a tick bite is NOT recommended in California because of low incidence of Lyme disease here": "***"
+          },
+          {
+            "Lyme disease is generally uncommon in California": "***"
+          },
+          {
+            "Do not perform serologic testing as a \u201ctest of cure\u201d": "***"
+          },
+          {
+            "Stages of infection": [
+              {
+                "Localized (early) stage (within 3-30 days of exposure)": [
+                  {
+                    "Characterized by erythema migrans (expanding erythematous rash), flu-like symptoms, and lymphadenopathy": "***"
+                  },
+                  {
+                    "Serologies are insensitive; diagnosis is typically made clinically": "***"
+                  },
+                  {
+                    "Treatment typically involves doxycycline, cefuroxime axetil, or amoxicillin, each typically given for 14 days": "***"
+                  }
+                ]
+              },
+              {
+                "Disseminated stage": [
+                  {
+                    "Characterized by multiple secondary annular rashes, flu-like symptoms, and lymphadenopathy": "***"
+                  },
+                  {
+                    "Other manifestations include migratory arthritis, cardiac conduction abnormalities, myocarditis or pericarditis, Bell\u2019s palsy or cranial neuropathy, meningitis, and radiculopathy or neuropathy": "***"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

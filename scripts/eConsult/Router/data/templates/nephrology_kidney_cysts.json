@@ -1,0 +1,40 @@
+{
+  "specialty": "Nephrology",
+  "condition": "kidney_cysts",
+  "template_name": "nephrology_kidney_cysts",
+  "sections": [
+    {
+      "My Clinical Question (condition: kidney cysts)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "No additional imaging necessary if simple cyst. If the lesion appears to be other than a simple cyst, rec CT w contrast": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": []
+        },
+        "Clinical Pearls": [
+          {
+            "Further evaluation of < 2 cm small, benign-appearing cysts (Bosniak category 1-2) is not required. Masses or Bosniak category 3-4 cysts should be referred to Urology": "***"
+          },
+          {
+            "Large kidneys with multiple cysts consistent with PCKD should be referred to Nephrology": "***"
+          },
+          {
+            "With questionable ultrasound findings, consider a radiology consult": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

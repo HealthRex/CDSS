@@ -1,0 +1,59 @@
+{
+  "specialty": "Endocrinology",
+  "condition": "thyroid_nodule",
+  "template_name": "endocrinology_thyroid_nodule",
+  "sections": [
+    {
+      "specialist": "Endocrinology"
+    },
+    {
+      "template": "Thyroid Nodule"
+    },
+    {
+      "My Clinical Question (condition: thyroid nodule)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Does the patient have symptoms of hyper- or hypothyroidism? If yes, please list.": "***"
+            },
+            {
+              "Has the patient had any prior FNAs; if so, what were the results / when were they done": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Does the patient have a history of neck irradiation?": "***"
+            },
+            {
+              "Does the patient have dysphagia?": "***"
+            },
+            {
+              "Does the patient have dysphonia?": "***"
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "Thyroid Ultrasound": "***"
+            },
+            {
+              "Thyroid Stimulating Hormone (TSH)": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Pathology Report (if prior FNAs)": "***"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

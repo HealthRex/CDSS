@@ -1,0 +1,64 @@
+{
+  "specialty": "Infectious",
+  "condition": "disease_cdi",
+  "template_name": "infectious_disease_cdi",
+  "sections": [
+    {
+      "My Clinical Question (condition: CDI)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Timeline of C. difficile diagnoses and treatments": "***"
+            },
+            {
+              "Signs, symptoms, or other features of C. difficile infection (leukocytosis, abdominal pain, soft stool, watery stool)": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "Clostridioides difficile Toxin B Gene, Qualitative Real-Time PCR with Reflex to C. difficle toxin EIA \u2013 (Arista only has C difficile, and C difficile stool antigen test)": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Basic Metabolic Panel (BMP)": "***"
+            },
+            {
+              "Complete Blood Count (CBC)": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "Only test patients with signs or symptoms consistent with C. difficile infection, typically those with unexplained and new-onset development of at least 3 unformed stools over 24 hours": "***"
+          },
+          {
+            "Do not re-test patients after treatment as a \u201ctest of cure\u201d": "***"
+          },
+          {
+            "Treatment recommendations vary by clinical scenario": [
+              {
+                "Initial episode: vancomycin 125 mg PO 4x/day for 10 days OR fidaxomicin 200 mg PO bid for 10 days": "***"
+              },
+              {
+                "First recurrence (i.e. second episode): prolonged tapered/pulsed vancomycin regimen OR fidaxomicin 200 mg PO bid for 10 days": "***"
+              },
+              {
+                "Second or subsequent recurrence (i.e. third or subsequent episode): prolonged tapered/pulsed vancomycin regimen OR fidaxomicin 200 mg PO bid for 10 days OR vancomycin 125 mg PO 4x/day for 10 days followed by rifaximin 400 mg PO tid for 20 days OR fecal microbiota transplantation": "***"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

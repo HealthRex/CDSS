@@ -1,0 +1,40 @@
+{
+  "specialty": "Psychiatry",
+  "condition": "psychiatric_resources",
+  "template_name": "psychiatry_psychiatric_resources",
+  "sections": [
+    {
+      "My Clinical Question (condition: Psychiatric Resources)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Type of resources requested": "***"
+          },
+          {
+            "Current psychiatric diagnosis": "***"
+          },
+          {
+            "Current and past medications": "***"
+          },
+          {
+            "Comorbidities": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "PHQ9": "***"
+          },
+          {
+            "CBC, TSH, CMP, vitamin D, vitamin B12, folate": "***"
+          }
+        ],
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}

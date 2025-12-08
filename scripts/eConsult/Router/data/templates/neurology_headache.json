@@ -1,0 +1,125 @@
+{
+  "specialty": "Neurology",
+  "condition": "headache",
+  "template_name": "neurology_headache",
+  "sections": [
+    {
+      "My Clinical Question (condition: headache)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "Red Flags: Consider urgent/inpatient evaluation": [
+        {
+          "Systemic symptoms/signs/disease: Fever, chills, rash myalgia, night sweats, weight loss, comorbid systemic disease, pregnancy or postpartum": "***"
+        },
+        {
+          "Neurologic symptoms/signs: Change in mental status or level of consciousness, diplopia, abnormal cranial nerve function, pulsatile tinnitus, loss of sensation, weakness, ataxia, history of seizure/collapse/loss of consciousness": "***"
+        },
+        {
+          "Onset sudden: Onset sudden or first ever, severe or \u201cworst\u201d headache of life, thunderclap headache (pain reaches maximal intensity instantly after onset)": "***"
+        },
+        {
+          "Older Onset: Onset after 50 years of age": "***"
+        },
+        {
+          "Pattern change: Progressive headache, precipitated by Valsalva maneuver, postural aggravation, papilledema": "***"
+        }
+      ]
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Onset of headache (days/weeks/months/years ago), frequency, duration, location, type of pain and severity": "***"
+            },
+            {
+              "Medications or other strategies tried abortively and/or preventively": "***"
+            },
+            {
+              "Exacerbating and alleviating factors  (including presence of thunderclap, association with orgasm or autonomic signs \u2013 such as sweating/tearing/conjunctival injection)": "***"
+            },
+            {
+              "Other associated symptoms (photophobia, nausea, etc)": "***"
+            },
+            {
+              "Is the headache disabling i.e. interfering with work or daily life": "***"
+            },
+            {
+              "Full neurologic exam": "***"
+            },
+            {
+              "What is your working diagnosis for this patient's headache?": [
+                {
+                  "Migraine (Severe, recurrent, disabling, nauseating)": "***"
+                },
+                {
+                  "Suspected migrainous neurological accompaniments (History of migraine or other migrainous accompaniments including photo/phonophobia and nausea, PLUS vision or sensory changes, vertigo and/or weakness)": "***"
+                },
+                {
+                  "Vestibular migraine (episodic vertigo with history of migraine)": "***"
+                },
+                {
+                  "Tension-type headache (non-descript, non-nauseating)": "***"
+                },
+                {
+                  "Cluster headache (severe, unilateral, generally periorbital, brief < 2 hours, with automatic features \u2013 unilateral eye redness, tearing, etc)": "***"
+                },
+                {
+                  "Medication overuse headache": "***"
+                },
+                {
+                  "Other": "***"
+                }
+              ]
+            }
+          ],
+          "Optional": [
+            {
+              "Imaging (if available)": "***"
+            },
+            {
+              "Previous neurology evaluation (if available)": "***"
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [],
+          "Optional": [
+            {
+              "CT Head w/o contrast": "***"
+            },
+            {
+              "MRI Brain w/w/o contrast": "***"
+            }
+          ]
+        },
+        "Clinical Pearls": [
+          {
+            "Good sleep, hydration, exercise, and avoidance of problematic habits are crucial for chronic headache management": "***"
+          },
+          {
+            "Reassuring signs that suggest no need for imaging are: intense form of typical headache, normal neurologic exam, typical triggers, and response to appropriate therapy": "***"
+          },
+          {
+            "Patients with stable, episodic disabling headache (without alarm signs) may be considered to have migraine and given a trial of appropriate medication": "***"
+          },
+          {
+            "Consider use of amitriptyline (age < 65) or nortriptyline, topiramate, or vascular agents (e.g. amlodipine, nadolol, losartan) as first line for migraine prophylaxis, and assess effectiveness at 6-8 weeks": "***"
+          },
+          {
+            "75% of Medication Overuse Headache (abortive medication used more than 3 days per week) will improve within 2 months after taper/cessation of offending medications": "***"
+          },
+          {
+            "Avoid frequent use (more than 3x/wk) of abortive agents-- Excedrin, ibuprofen, and triptans. Avoid high risk medications like narcotics altogether": "***"
+          },
+          {
+            "If patient is requiring abortive medications more than 3x per week, consider preventive medications": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

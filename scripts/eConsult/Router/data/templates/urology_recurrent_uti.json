@@ -1,0 +1,50 @@
+{
+  "specialty": "Urology",
+  "condition": "recurrent_uti",
+  "template_name": "urology_recurrent_uti",
+  "sections": [
+    {
+      "My Clinical Question (condition: Recurrent UTI)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": [
+          {
+            "Symptoms (Typical? Nonspecific? Chronic or recurrent?)": "***"
+          },
+          {
+            "Antibiotic usage": "***"
+          }
+        ],
+        "Diagnostics": [
+          {
+            "BMP": "***"
+          },
+          {
+            "UA and micro": "***"
+          },
+          {
+            "Urine culture": "***"
+          }
+        ],
+        "Clinical Pearls": [
+          {
+            "Please see recommended the algorithm and/or suggested guidelines for management here: https://www.auanet.org/guidelines/recurrent-uti": "***"
+          },
+          {
+            "Post-coital antibiotic prophylaxis (Ciprofloxacin, Bactrim) is as effective as continuous antibiotic prophylaxis": "***"
+          },
+          {
+            "Consider imaging with repeated episodes of pyelonephritis": "***"
+          },
+          {
+            "Do not treat asymptomatic bacteriuria (with or without indwelling catheter) with antibiotics. Males with UTI should be referred to Urology for evaluation": "***"
+          }
+        ]
+      }
+    }
+  ]
+}

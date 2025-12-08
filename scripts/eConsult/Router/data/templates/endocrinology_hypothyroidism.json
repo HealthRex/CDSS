@@ -1,0 +1,78 @@
+{
+  "specialty": "Endocrinology",
+  "condition": "hypothyroidism",
+  "template_name": "endocrinology_hypothyroidism",
+  "sections": [
+    {
+      "specialist": "Endocrinology"
+    },
+    {
+      "template": "Hypothyroidism"
+    },
+    {
+      "My Clinical Question (condition: hypothyroidism)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [
+            {
+              "Is the patient symptomatic (fatigue, weight gain, constipation, cold intolerance, etc)?": "***"
+            },
+            {
+              "Is the patient pregnant?": "***"
+            },
+            {
+              "Is the patient trying to conceive?": "***"
+            },
+            {
+              "Please list thyroid medications (types, dosing)": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Has dose titration of thyroid medication been difficult in this patient?": "***"
+            },
+            {
+              "Does the patient have a medication history of": [
+                {
+                  "Immunotherapy for chemo (such as pembrolizumab)": "***"
+                },
+                {
+                  "Amiodarone": "***"
+                },
+                {
+                  "Supplements": "***"
+                },
+                {
+                  "Thyroid medications": "***"
+                }
+              ]
+            },
+            {
+              "Do you suspect central hypothyroidism?": "***"
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "Thyroid Stimulating Hormone (TSH)": "***"
+            },
+            {
+              "Free Thyroxine (Free T4)": "***"
+            }
+          ],
+          "Optional": [
+            {
+              "Thyroid peroxidase antibody (TPO)": "***"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

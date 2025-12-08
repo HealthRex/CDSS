@@ -1,0 +1,86 @@
+{
+  "specialty": "Rheumatology",
+  "condition": "lupus",
+  "template_name": "rheumatology_lupus",
+  "sections": [
+    {
+      "My Clinical Question (condition: lupus)": "***"
+    },
+    {
+      "My most current assessment of this problem can be found in the note dated": "{Today/***}"
+    },
+    {
+      "SPECIAL NOTE": "Please do NOT order an eConsult for fibromyalgia. This should instead be referred."
+    },
+    {
+      "In your clinical question, or current note, please include information on": {
+        "Assessments": {
+          "Required": [],
+          "Optional": [
+            {
+              "Does the patient have any of the following signs or symptoms? (Please select all that apply)": [
+                {
+                  "Characteristic rash for > 1 month": "***"
+                },
+                {
+                  "Polyarticular small joint pain": "***"
+                },
+                {
+                  "Oral or nasal ulcers": "***"
+                },
+                {
+                  "Pleuritic chest pain": "***"
+                },
+                {
+                  "Proteinuria": "***"
+                },
+                {
+                  "Hematuria": "***"
+                }
+              ]
+            }
+          ]
+        },
+        "Diagnostics": {
+          "Required": [
+            {
+              "Anti-Nuclear Antibody (ANA)": "***"
+            },
+            {
+              "Complement 3 (C3)": "***"
+            },
+            {
+              "Complement 4 (C4)": "***"
+            },
+            {
+              "C-reactive protein (CRP)": "***"
+            },
+            {
+              "Complete Blood Count with Differential (CBC with diff.)": "***"
+            },
+            {
+              "Complete Metabolic Panel (CMP)": "***"
+            },
+            {
+              "dsDNA Ab": "***"
+            },
+            {
+              "Erythrocyte Sedimentation Rate (ESR)": "***"
+            },
+            {
+              "Urinalysis with Microscopy": "***"
+            },
+            {
+              "Urine with protein/creatinine": "***"
+            },
+            {
+              "Thyroid Stimulating Hormone (TSH)": "***"
+            }
+          ],
+          "Optional": []
+        },
+        "Clinical Pearls": []
+      }
+    }
+  ]
+}
