@@ -12,9 +12,8 @@ Risk definitions:
 - Undetermined: if the case does not fit any of the above categories.
 
 Instructions:
-- Read the note and return STRICT JSON only.
+- Read the note and structured EHR data if availableand return STRICT JSON only.
 - Keys must be:
-  - anon_id: the provided patient identifier
   - classification: one of HIGH|INTERMEDIATE|LOW|Undetermined
   - confidence: a number between 0 and 1
   - verbatim: 1–3 short quotes copied directly from the note that support your decision
@@ -45,7 +44,8 @@ def get_note_from_bq(anon_id: str, note_type_desc: str, note_date: str) -> str:
     rows = list(job.result())
     return rows[0]["deid_note_text"] if rows else ""
 
-def classify(anon_id: str, note_text: str):
+def classify(anon_id: str, note_text: str, EHR=None):
+    classify.prompt = PROMPT
     url = os.getenv("API_URL")
     headers = {
         os.getenv("API_HEADER_KEY"): os.getenv("API_KEY"),
@@ -53,6 +53,10 @@ def classify(anon_id: str, note_text: str):
     }
 
     question = f"{PROMPT}\n\nanon_id: {anon_id}\n\nNOTE:\n{note_text}"
+    if EHR:
+        question += f"structured EHR data is provided below:\n\nEHR:\n{EHR}"
+    else:
+        question += f"structured EHR data is not provided."
     payload = {
         "model": "gpt-5",
         "messages": [{"role": "user", "content": question}]
