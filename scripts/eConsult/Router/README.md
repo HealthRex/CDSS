@@ -7,7 +7,7 @@ This repo contains a small FastAPI service that routes **primary-care eConsult q
 
 using a pre-computed cache of SAGE eConsult templates and an LLM call through **SecureGPT**.
 
-The UI is a simple HTML form (for manual testing). The same logic is available via a JSON API (`/api/route`) for integration into other services.
+The UI is an HTML form. The same logic is available via a JSON API (`/api/route`) for integration into other services.
 
 ---
 
