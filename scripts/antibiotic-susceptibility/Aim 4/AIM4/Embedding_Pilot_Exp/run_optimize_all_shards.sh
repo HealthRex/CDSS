@@ -49,7 +49,6 @@ fi
 
 echo "Starting ${#SHARDS[@]} shards with MODEL_NAME=${MODEL_NAME}, SHARD_SIZE=${SHARD_SIZE}, MAX_PAR=${MAX_PAR}"
 
-pids=()
 idx=1
 running=0
 for shard_codes in "${SHARDS[@]}"; do
@@ -57,7 +56,6 @@ for shard_codes in "${SHARDS[@]}"; do
   echo "Shard ${idx}: codes=$(echo "${shard_codes}" | tr ',' ' '), OUTPUT_DIR=${outdir}"
   CODE_FILTER="${shard_codes}" OUTPUT_DIR="${outdir}" MODEL_NAME="${MODEL_NAME}" \
     python "${SCRIPT_DIR}/src/optimize_dspy.py" > "${SCRIPT_DIR}/shard${idx}.log" 2>&1 &
-  pids+=($!)
   running=$((running+1))
   idx=$((idx+1))
 
@@ -69,9 +67,7 @@ for shard_codes in "${SHARDS[@]}"; do
 done
 
 echo "Waiting for remaining shards to complete..."
-for pid in "${pids[@]}"; do
-  wait "$pid"
-done
+wait
 
 echo "All shards finished."
 echo "Logs: ${SCRIPT_DIR}/shard*.log"

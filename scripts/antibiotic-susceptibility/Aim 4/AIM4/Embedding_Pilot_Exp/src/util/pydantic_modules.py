@@ -1,5 +1,5 @@
 
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Literal
 import re
 from pydantic import BaseModel, Field, model_validator, confloat
 
@@ -7,6 +7,35 @@ from pydantic import BaseModel, Field, model_validator, confloat
 class ErrorHighlight(BaseModel):
     excerpt: str = Field(..., description="Verbatim span from the LLM response; never truncated.")
     explanation: str = Field(..., description="Clinical reasoning for why this span evidences an error.")
+
+    class Config:
+        extra = "forbid"
+
+
+class ErrorCheckOutput(BaseModel):
+    error_present: Literal[True, False] = Field(
+        ...,
+        description="True if the specific error is found in the LLM response, otherwise False."
+    )
+    rationale: str = Field(
+        ...,
+        description="Brief explanation for the classification decision."
+    )
+    verbatim_excerpt: str = Field(
+        ...,
+        description="Exact quote from the llm_response that demonstrates the error. Use 'Not Applicable' when error_present is False."
+    )
+
+    @model_validator(mode="after")
+    def _enforce_excerpt_rules(self):
+        if self.error_present:
+            if not self.verbatim_excerpt or self.verbatim_excerpt.strip() in {"Not Applicable", ""}:
+                raise ValueError("error_present=True requires a non-empty verbatim_excerpt.")
+        else:
+            # Normalize to the canonical placeholder when no error is present
+            if self.verbatim_excerpt.strip() == "":
+                self.verbatim_excerpt = "Not Applicable"
+        return self
 
     class Config:
         extra = "forbid"
