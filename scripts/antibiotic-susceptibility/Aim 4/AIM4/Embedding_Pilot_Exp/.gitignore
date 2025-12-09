@@ -24,3 +24,6 @@ Thumbs.db
 *.log
 *.zip
 *.json
+*.jsonl
+
+optimized_classifiers_*/
