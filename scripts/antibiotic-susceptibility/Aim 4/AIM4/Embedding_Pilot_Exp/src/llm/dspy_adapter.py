@@ -3,8 +3,10 @@ import asyncio
 import logging
 import os
 import sys
+import threading
 import nest_asyncio
 from .llm_client import generate_response
+from .model_registry import MODEL_CONFIGS
 
 # Apply nest_asyncio to allow nested event loops (crucial for calling async code from sync DSPy)
 try:
@@ -12,22 +14,41 @@ try:
 except Exception:
     pass
 
-# Enable verbose logging via environment variable: DSPY_VERBOSE=1
-VERBOSE = os.environ.get("DSPY_VERBOSE", "0") == "1"
+# Thread-local storage for logging context (index, code_key, etc.)
+_log_context = threading.local()
 
-# Optional: Log prompts to a file
-PROMPT_LOG_FILE = os.environ.get("DSPY_PROMPT_LOG", None)
+def set_log_context(index=None, code_key=None):
+    """Set the current logging context (called before classifier runs)."""
+    _log_context.index = index
+    _log_context.code_key = code_key
+
+def get_log_context_str() -> str:
+    """Get formatted context string for logging."""
+    parts = []
+    if hasattr(_log_context, 'index') and _log_context.index is not None:
+        parts.append(f"Index={_log_context.index}")
+    if hasattr(_log_context, 'code_key') and _log_context.code_key is not None:
+        parts.append(f"Code={_log_context.code_key}")
+    return f" ({', '.join(parts)})" if parts else ""
 
 def _log_prompt(prefix: str, content: str):
     """Log prompt to console and optionally to file."""
-    if VERBOSE:
+    # Read env vars dynamically (they may be set after module import)
+    verbose = os.environ.get("DSPY_VERBOSE", "0") == "1"
+    prompt_log_file = os.environ.get("DSPY_PROMPT_LOG", None)
+    
+    # Add context (index, code_key) to prefix
+    context_str = get_log_context_str()
+    full_prefix = f"{prefix}{context_str}"
+    
+    if verbose:
         # Truncate for console (first 500 chars)
         truncated = content[:500] + "..." if len(content) > 500 else content
-        print(f"\n{'='*60}\n[{prefix}]\n{truncated}\n{'='*60}", file=sys.stderr)
+        print(f"\n{'='*60}\n[{full_prefix}]\n{truncated}\n{'='*60}", file=sys.stderr)
     
-    if PROMPT_LOG_FILE:
-        with open(PROMPT_LOG_FILE, "a", encoding="utf-8") as f:
-            f.write(f"\n{'='*60}\n[{prefix}]\n{content}\n")
+    if prompt_log_file:
+        with open(prompt_log_file, "a", encoding="utf-8") as f:
+            f.write(f"\n{'='*60}\n[{full_prefix}]\n{content}\n")
 
 
 class HealthRexDSPyLM(dspy.LM):
@@ -46,13 +67,6 @@ class HealthRexDSPyLM(dspy.LM):
         """
         # Merge init kwargs with call kwargs
         merged_kwargs = {**self.kwargs, **kwargs}
-        
-        # Log raw input
-        if VERBOSE or PROMPT_LOG_FILE:
-            if prompt:
-                _log_prompt("RAW PROMPT INPUT", prompt)
-            if messages:
-                _log_prompt("RAW MESSAGES INPUT", str(messages))
         
         # Handle DSPy 3.0 calling convention where it passes messages list
         final_prompt = prompt
@@ -76,8 +90,12 @@ class HealthRexDSPyLM(dspy.LM):
         if final_prompt is None:
              final_prompt = ""
 
+        # Read env vars dynamically
+        verbose = os.environ.get("DSPY_VERBOSE", "0") == "1"
+        prompt_log_file = os.environ.get("DSPY_PROMPT_LOG", None)
+
         # Log finalized prompt
-        if VERBOSE or PROMPT_LOG_FILE:
+        if verbose or prompt_log_file:
             _log_prompt("FINALIZED PROMPT TO LLM", final_prompt)
 
         # Handle event loop safely
@@ -93,15 +111,15 @@ class HealthRexDSPyLM(dspy.LM):
             import nest_asyncio
             nest_asyncio.apply(loop)
             response = loop.run_until_complete(
-                generate_response(model=self.model_name, prompt=final_prompt, logger=sys.stdout if VERBOSE else None)
+                generate_response(model=self.model_name, prompt=final_prompt, logger=sys.stdout if verbose else None)
             )
         else:
             response = loop.run_until_complete(
-                generate_response(model=self.model_name, prompt=final_prompt, logger=sys.stdout if VERBOSE else None)
+                generate_response(model=self.model_name, prompt=final_prompt, logger=sys.stdout if verbose else None)
             )
 
         # Log response
-        if VERBOSE or PROMPT_LOG_FILE:
+        if verbose or prompt_log_file:
             _log_prompt("LLM RESPONSE", response if response else "(empty)")
 
         # DSPy expects a list of strings (completions)

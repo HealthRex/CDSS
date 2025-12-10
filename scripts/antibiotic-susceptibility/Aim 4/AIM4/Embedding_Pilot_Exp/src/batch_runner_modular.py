@@ -30,21 +30,38 @@ from util.modular_error_pipeline import (
     build_error_code_map,
 )
 from util.DSPy_results_helpers import save_jsonl_line, load_processed_indices
-from llm.dspy_adapter import HealthRexDSPyLM
+from llm.dspy_adapter import HealthRexDSPyLM, set_log_context
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 # ---------- Configuration ----------
 ROOT = Path(__file__).resolve().parent.parent
-CHECKPOINT_DIR = ROOT / "optimized_classifiers_gpt-5"
 MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-5")
 
+def _get_default_checkpoint_dir() -> Path:
+    """Get default checkpoint directory based on MODEL_NAME."""
+    # Check for model-specific output structure first (output_<model>/checkpoints)
+    safe_name = MODEL_NAME.replace("/", "_").replace(" ", "_").replace(".", "_")
+    model_output_dir = ROOT / f"output_{safe_name}" / "checkpoints"
+    if model_output_dir.exists():
+        return model_output_dir
+    # Fall back to legacy structure (optimized_classifiers_<model>)
+    return ROOT / f"optimized_classifiers_{MODEL_NAME}"
 
-def init_lm():
-    """Initialize the DSPy language model using HealthRex's secure adapter."""
-    lm = HealthRexDSPyLM(model_name=MODEL_NAME)
+CHECKPOINT_DIR = _get_default_checkpoint_dir()
+
+
+def init_lm(model_name: str = None):
+    """Initialize the DSPy language model using HealthRex's secure adapter.
+    
+    Args:
+        model_name: Model alias to use. If None, uses MODEL_NAME env var or default.
+    """
+    # Use provided model_name, or fall back to env var / default
+    actual_model = model_name or os.environ.get("MODEL_NAME", "gpt-5")
+    lm = HealthRexDSPyLM(model_name=actual_model)
     dspy.configure(lm=lm)
-    logging.info("Configured DSPy with HealthRexDSPyLM: %s", MODEL_NAME)
+    logging.info("Configured DSPy with HealthRexDSPyLM: %s", actual_model)
     return lm
 
 
@@ -105,8 +122,11 @@ def run_single_classifier(
     clinical_notes: str,
     previous_messages: str,
     retrieved_pairs: str,
+    case_index: int = None,
 ) -> Tuple[str, dict]:
     """Run a single classifier and return (code_key, assessment_dict)."""
+    # Set logging context for this classifier call
+    set_log_context(index=case_index, code_key=code_key)
     try:
         result = classifier(
             patient_message=patient_message,
@@ -158,6 +178,7 @@ async def run_all_classifiers_for_case(
                 clinical_notes,
                 previous_messages,
                 retrieved_pairs,
+                case_index,  # Pass index for logging context
             )
             completed[0] += 1
             print(f"\r  [Index {case_index}] Classifiers: {completed[0]}/{total_classifiers}", end="", flush=True)
