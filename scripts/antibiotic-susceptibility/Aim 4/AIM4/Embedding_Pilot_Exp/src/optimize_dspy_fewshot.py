@@ -137,8 +137,9 @@ def optimize_all(error_code_map: Dict[str, str], train_df: pd.DataFrame):
     # Optional: filter codes via env CODE_FILTER (comma-separated). Empty set => run all.
     code_filter_env = os.getenv("CODE_FILTER", "").strip()
     code_filter = {c.strip() for c in code_filter_env.split(",") if c.strip()} if code_filter_env else set()
-
-    for code_key, definition in list(error_code_map.items()):
+    
+    # For the quick run, only use the first 2 codes ToDo: remove this later
+    for code_key, definition in list(error_code_map.items())[:2]:
         if code_filter and code_key not in code_filter:
             continue
         ckpt_path = OUTPUT_DIR / f"optimized_classifier_{code_key}.json"
@@ -181,7 +182,8 @@ def main():
 
     if not TRAIN_PATH.exists():
         raise FileNotFoundError(f"Training CSV not found at {TRAIN_PATH}")
-    train_df = pd.read_csv(TRAIN_PATH)
+    # For the quick run, only use the first 5 rows of the training data ToDo: remove this later
+    train_df = pd.read_csv(TRAIN_PATH)[:5]
     logging.info("Loaded training data with shape %s from %s", train_df.shape, TRAIN_PATH)
 
     optimize_all(error_code_map, train_df)
