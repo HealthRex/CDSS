@@ -9,7 +9,7 @@ This script runs the full modular error classification pipeline:
 2. Run inference on input data using the optimized classifiers
 
 Each model gets its own output directory structure:
-    output_<model>/
+    output_<model>__<run_tag>/   # run_tag is optional; omit for default
     ├── checkpoints/       # Optimized classifier checkpoints
     ├── logs/              # Prompt logs, optimization logs
     └── results/           # Inference results (.jsonl)
@@ -19,6 +19,7 @@ Usage:
     python src/run_pipeline_v2.py --model claude-3.7-sonnet --input data.csv --output results.jsonl
     python src/run_pipeline_v2.py --list-models
     python src/run_pipeline_v2.py --test-model gpt-5
+    python src/run_pipeline_v2.py --model gpt-5 --skip-optimize --run-tag baseline_noopt --input data.csv --output results_baseline.jsonl
 """
 import argparse
 import asyncio
@@ -48,32 +49,45 @@ from llm.model_registry import MODEL_CONFIGS, get_model_config, list_available_m
 
 # ---------- Directory Helpers ----------
 
-def get_model_output_dir(model_alias: str) -> Path:
+def _safe_dir_component(name: str) -> str:
+    """Sanitize a string to be filesystem-friendly."""
+    return name.replace("/", "_").replace(" ", "_").replace(".", "_")
+
+
+def _safe_tag(tag: str | None) -> str:
+    """Normalize a run tag into a suffix like '__baseline' or ''."""
+    if not tag:
+        return ""
+    cleaned = _safe_dir_component(tag.strip())
+    return f"__{cleaned}" if cleaned else ""
+
+
+def get_model_output_dir(model_alias: str, run_tag: str | None = None) -> Path:
     """Get the output directory for a model (contains checkpoints, logs, results)."""
-    safe_name = model_alias.replace("/", "_").replace(" ", "_").replace(".", "_")
-    return ROOT / f"output_{safe_name}"
+    safe_name = _safe_dir_component(model_alias)
+    return ROOT / f"output_{safe_name}{_safe_tag(run_tag)}"
 
 
-def get_checkpoint_dir(model_alias: str) -> Path:
+def get_checkpoint_dir(model_alias: str, run_tag: str | None = None) -> Path:
     """Get the checkpoint directory for a model."""
-    return get_model_output_dir(model_alias) / "checkpoints"
+    return get_model_output_dir(model_alias, run_tag=run_tag) / "checkpoints"
 
 
-def get_logs_dir(model_alias: str) -> Path:
+def get_logs_dir(model_alias: str, run_tag: str | None = None) -> Path:
     """Get the logs directory for a model."""
-    return get_model_output_dir(model_alias) / "logs"
+    return get_model_output_dir(model_alias, run_tag=run_tag) / "logs"
 
 
-def get_results_dir(model_alias: str) -> Path:
+def get_results_dir(model_alias: str, run_tag: str | None = None) -> Path:
     """Get the results directory for a model."""
-    return get_model_output_dir(model_alias) / "results"
+    return get_model_output_dir(model_alias, run_tag=run_tag) / "results"
 
 
-def setup_model_dirs(model_alias: str) -> None:
+def setup_model_dirs(model_alias: str, run_tag: str | None = None) -> None:
     """Create all directories for a model."""
-    get_checkpoint_dir(model_alias).mkdir(parents=True, exist_ok=True)
-    get_logs_dir(model_alias).mkdir(parents=True, exist_ok=True)
-    get_results_dir(model_alias).mkdir(parents=True, exist_ok=True)
+    get_checkpoint_dir(model_alias, run_tag=run_tag).mkdir(parents=True, exist_ok=True)
+    get_logs_dir(model_alias, run_tag=run_tag).mkdir(parents=True, exist_ok=True)
+    get_results_dir(model_alias, run_tag=run_tag).mkdir(parents=True, exist_ok=True)
 
 
 # ---------- Model Testing ----------
@@ -92,16 +106,22 @@ def test_model(model_alias: str) -> bool:
 
 # ---------- Optimization ----------
 
-def run_optimization(model_alias: str, shard_size: int = 4, max_parallel: int = 4, use_mipro: bool = False):
+def run_optimization(
+    model_alias: str,
+    shard_size: int = 4,
+    max_parallel: int = 4,
+    use_mipro: bool = False,
+    run_tag: str | None = None,
+):
     """
     Run prompt optimization for all 59 error codes.
     Uses the shard runner for parallel optimization.
     """
     config = get_model_config(model_alias)
-    checkpoint_dir = get_checkpoint_dir(model_alias)
-    logs_dir = get_logs_dir(model_alias)
+    checkpoint_dir = get_checkpoint_dir(model_alias, run_tag=run_tag)
+    logs_dir = get_logs_dir(model_alias, run_tag=run_tag)
     
-    setup_model_dirs(model_alias)
+    setup_model_dirs(model_alias, run_tag=run_tag)
     
     logging.info("="*60)
     logging.info("STEP 1: Prompt Optimization")
@@ -162,13 +182,13 @@ def run_optimization(model_alias: str, shard_size: int = 4, max_parallel: int = 
     return checkpoint_dir
 
 
-def merge_shard_outputs(model_alias: str):
+def merge_shard_outputs(model_alias: str, run_tag: str | None = None):
     """Merge checkpoints from shard directories into main checkpoint dir."""
-    checkpoint_dir = get_checkpoint_dir(model_alias)
+    checkpoint_dir = get_checkpoint_dir(model_alias, run_tag=run_tag)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     
     # Find shard directories (they use MODEL_NAME which is the alias)
-    safe_name = model_alias.replace("/", "_").replace(" ", "_").replace(".", "_")
+    safe_name = _safe_dir_component(model_alias)
     patterns = [
         f"optimized_classifiers_{model_alias}_shard*",
         f"optimized_classifiers_{safe_name}_shard*",
@@ -204,6 +224,7 @@ async def run_inference(
     max_classifiers: int = 5,
     with_reference: bool = True,
     verbose: bool = False,
+    run_tag: str | None = None,
 ):
     """Run inference using the optimized classifiers."""
     # IMPORTANT: Set model name BEFORE importing batch_runner_modular
@@ -218,11 +239,11 @@ async def run_inference(
     import pandas as pd
     
     config = get_model_config(model_alias)
-    checkpoint_dir = get_checkpoint_dir(model_alias)
-    results_dir = get_results_dir(model_alias)
-    logs_dir = get_logs_dir(model_alias)
+    checkpoint_dir = get_checkpoint_dir(model_alias, run_tag=run_tag)
+    results_dir = get_results_dir(model_alias, run_tag=run_tag)
+    logs_dir = get_logs_dir(model_alias, run_tag=run_tag)
     
-    setup_model_dirs(model_alias)
+    setup_model_dirs(model_alias, run_tag=run_tag)
     
     # If output_path is just a filename, put it in results_dir
     output_file = Path(output_path)
@@ -313,6 +334,15 @@ Examples:
     # Model selection
     parser.add_argument("--model", "-m", choices=list(MODEL_CONFIGS.keys()), default="gpt-5",
                         help="Model to use (default: gpt-5)")
+    parser.add_argument(
+        "--run-tag",
+        default="",
+        help=(
+            "Optional tag to create a separate output folder per model, e.g. "
+            "'baseline_noopt' or 'mipro'. Outputs go to output_<model>__<run_tag>/. "
+            "This lets you run a true baseline with an empty checkpoints/ folder without overwriting existing runs."
+        ),
+    )
     parser.add_argument("--list-models", action="store_true", help="List available models and exit")
     parser.add_argument("--test-model", metavar="MODEL", help="Test a model's configuration and exit")
     
@@ -354,7 +384,7 @@ Examples:
     # Step 1: Optimization
     if not args.skip_optimize:
         if args.force_optimize:
-            checkpoint_dir = get_checkpoint_dir(args.model)
+            checkpoint_dir = get_checkpoint_dir(args.model, run_tag=args.run_tag)
             if checkpoint_dir.exists():
                 logging.info("Clearing existing checkpoints for forced re-optimization...")
                 shutil.rmtree(checkpoint_dir)
@@ -364,6 +394,7 @@ Examples:
             shard_size=args.shard_size,
             max_parallel=args.max_parallel,
             use_mipro=args.mipro,
+            run_tag=args.run_tag,
         )
     else:
         logging.info("Skipping optimization (--skip-optimize)")
@@ -379,6 +410,7 @@ Examples:
             max_classifiers=args.max_classifiers,
             with_reference=not args.no_reference,
             verbose=args.verbose,
+            run_tag=args.run_tag,
         ))
 
 
