@@ -1,0 +1,10 @@
+# This directory stores antibiotic model .pkl files
+# Each .pkl file should contain:
+# {
+#     'model': trained_model_object,
+#     'expected_features': ['feature1', 'feature2', ...],
+#     'metadata': {'antibiotic': 'name', 'created': 'date', ...}
+# }
+
+
+
