@@ -19,7 +19,7 @@ Simple Python examples to make (read‑only) FHIR API calls to Epic at Stanford 
 
 - Python 3.6+ with `requests` installed (`pip install requests`)
 - Stanford VPN running on Full traffic, non–split tunnel (setup [here](https://uit.stanford.edu/service/vpn)).
-- `env_vars.sh` file: To obtain this file, first email *Jonathan* to request access and receive written permission. Once you have permission, forward the email to *Ruoqi* or *François*, who will SECURE:email you the file. **Keep this file confidential.**
+- `env_vars.sh` file: To obtain this file, first email *Jonathan* to request access and receive written permission. Once you have permission, forward the email to *Ruoqi* or *François* or *Fateme*, who will SECURE:email you the file. **Keep this file confidential.**
 
 Load all login environment variables in the current shell before running Python:
 ```bash
