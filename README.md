@@ -12,6 +12,10 @@ General Guidelines for Code Repo:
 * For one-off or very project specific files and scripts, basically do whatever you want in the workspace areas under the /scripts directory (but again, avoid big data files and also avoid any private / patient information, including analysis results that include individual patient items, as this repo will publicly accessible).
 * Avoid creating new / separate repos for your work, unless meant to be a completely independent package. Instead create sub-folders within this common repository.
 * Promote reusable components and packages to the medinfo core application modules.
+* Do not commit any secrets or credentials (API keys, DB keys, connection strings). Use environment variables / secrets managers instead.
+* Work-in-progress code and any sensitive materials must go in HealthRex/CDSS-private.
+Only move code into this public HealthRex/CDSS repository once it has been reviewed and is ready for the “public phase” (no credentials/secrets, no PHI, no sensitive configs/data).
+
 
 
 Broad description of core application directories
