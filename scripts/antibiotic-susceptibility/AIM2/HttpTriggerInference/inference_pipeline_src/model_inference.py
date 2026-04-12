@@ -12,6 +12,7 @@ Architecture:
 - Only required features are selected for each model's prediction
 """
 
+import json
 import os
 import pickle
 import logging
@@ -56,58 +57,120 @@ class AntibioticModelInference:
         self,
         model_dir: str,
         antibiotics: Optional[List[str]] = None,
+        culture_type: Optional[str] = None,
+        setting: Optional[str] = None,
         credentials: Optional[Dict[str, str]] = None,
         databricks_endpoint: Optional[str] = None,
     ):
         """
         Initialize the antibiotic model inference engine.
-        
+
         Args:
-            model_dir: Path to directory containing .pkl model files.
-                       Each file should be named {antibiotic}.pkl
-            antibiotics: List of antibiotic names to load. If None, loads DEFAULT_ANTIBIOTICS.
+            model_dir: Path to directory containing model files.
+                       Supports two layouts:
+                       - Flat: {antibiotic}.pkl files
+                       - Subdirectory: {antibiotic}_{culture}_{setting}/model.pkl
+            antibiotics: List of antibiotic names to load. If None, auto-discovers
+                        from directory (when culture_type/setting provided) or uses DEFAULT_ANTIBIOTICS.
+            culture_type: Culture type filter (e.g., 'urine', 'blood', 'resp').
+                         When provided with setting, auto-discovers matching model subdirectories.
+            setting: Clinical setting filter (e.g., 'inpatient', 'outpatient').
             credentials: Optional credentials dict for Databricks endpoint.
             databricks_endpoint: Optional Databricks endpoint URL. If provided,
                                 predictions will be fetched from Databricks instead of local models.
         """
         self.model_dir = model_dir
-        self.antibiotics = antibiotics or self.DEFAULT_ANTIBIOTICS
+        self.culture_type = culture_type
+        self.setting = setting
         self.credentials = credentials
         self.databricks_endpoint = databricks_endpoint
-        
+
+        # Auto-discover models from subdirectories when culture_type and setting are provided
+        if antibiotics:
+            self.antibiotics = antibiotics
+        elif culture_type and setting:
+            self.antibiotics = self._discover_models(culture_type, setting)
+        else:
+            self.antibiotics = self.DEFAULT_ANTIBIOTICS
+
         # Storage for loaded models and their metadata
         self.models: Dict[str, Any] = {}
         self.expected_features: Dict[str, List[str]] = {}
         self.metadata: Dict[str, Dict] = {}
-        
+        self.feature_defaults: Dict[str, Dict[str, Any]] = {}
+
         # Load models from local .pkl files (skip if using Databricks)
         if self.databricks_endpoint is None:
             self._load_models()
         else:
             logger.info(f"Using Databricks endpoint: {databricks_endpoint}")
     
+    def _discover_models(self, culture_type: str, setting: str) -> List[str]:
+        """Discover model subdirectories matching culture_type and setting."""
+        suffix = f"_{culture_type}_{setting}"
+        discovered = []
+        for entry in sorted(os.listdir(self.model_dir)):
+            entry_path = os.path.join(self.model_dir, entry)
+            if os.path.isdir(entry_path) and entry.endswith(suffix):
+                model_pkl = os.path.join(entry_path, "model.pkl")
+                if os.path.exists(model_pkl):
+                    discovered.append(entry)
+        logger.info(
+            f"Discovered {len(discovered)} models for "
+            f"culture_type={culture_type}, setting={setting}: {discovered}"
+        )
+        return discovered
+
     def _load_models(self) -> None:
-        """Load all antibiotic models from .pkl files."""
+        """Load all antibiotic models from .pkl files.
+
+        Supports two directory layouts:
+        - Subdirectory: {model_dir}/{antibiotic_culture_setting}/model.pkl (Stanford format)
+        - Flat: {model_dir}/{antibiotic}.pkl (legacy format)
+        """
         for antibiotic in self.antibiotics:
-            pkl_path = os.path.join(self.model_dir, f"{antibiotic}.pkl")
-            
-            if not os.path.exists(pkl_path):
-                logger.warning(f"Model file not found: {pkl_path}")
+            # Try subdirectory layout first (Stanford format)
+            subdir_path = os.path.join(self.model_dir, antibiotic, "model.pkl")
+            flat_path = os.path.join(self.model_dir, f"{antibiotic}.pkl")
+
+            if os.path.exists(subdir_path):
+                pkl_path = subdir_path
+            elif os.path.exists(flat_path):
+                pkl_path = flat_path
+            else:
+                logger.warning(f"Model file not found for {antibiotic}")
                 continue
-            
+
             try:
                 model_dict = self._load_pickle(pkl_path)
-                
-                # Extract components from the pickle
+
+                # Extract components — handle both Stanford and legacy key names
                 self.models[antibiotic] = model_dict.get('model')
-                self.expected_features[antibiotic] = model_dict.get('expected_features', [])
-                self.metadata[antibiotic] = model_dict.get('metadata', {})
-                
+                self.expected_features[antibiotic] = (
+                    model_dict.get('expected_features')
+                    or model_dict.get('feature_names', [])
+                )
+                self.metadata[antibiotic] = model_dict.get('metadata', {
+                    'scale_pos_weight': model_dict.get('scale_pos_weight'),
+                    'params': model_dict.get('params'),
+                })
+
+                # Load feature defaults from feature_metadata.json if available
+                metadata_json_path = os.path.join(
+                    os.path.dirname(pkl_path), "feature_metadata.json"
+                )
+                if os.path.exists(metadata_json_path):
+                    with open(metadata_json_path) as f:
+                        feat_meta = json.load(f)
+                    self.feature_defaults[antibiotic] = feat_meta.get(
+                        'all_defaults', {}
+                    )
+
                 logger.info(
                     f"Loaded model for {antibiotic}: "
                     f"{len(self.expected_features[antibiotic])} features"
                 )
-                
+
             except Exception as e:
                 logger.error(f"Failed to load model for {antibiotic}: {e}")
                 raise
@@ -232,6 +295,22 @@ class AntibioticModelInference:
                 continue
             
             try:
+                # Backfill missing features with training defaults
+                required = set(self.expected_features.get(antibiotic, []))
+                missing = required - set(feature_df.columns)
+                if missing:
+                    defaults = self.feature_defaults.get(antibiotic, {})
+                    for feat in sorted(missing):
+                        default_val = defaults.get(feat, 0.0)
+                        # Categorical group defaults are strings — treat as 0 (no match)
+                        if isinstance(default_val, str):
+                            default_val = 0.0
+                        feature_df[feat] = default_val
+                        logger.warning(
+                            f"Backfilled '{feat}' with default {default_val} "
+                            f"for {antibiotic}"
+                        )
+
                 # Validate and select features
                 self._validate_features(feature_df, antibiotic)
                 selected_features = self._select_features(feature_df, antibiotic)

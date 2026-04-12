@@ -110,6 +110,61 @@ class FeatureEngineer:
         'prior_med_Vancomycin',
     ]
     
+    # Renames applied at end of generate_features() to match model feature names
+    FEATURE_RENAMES = {
+        # Demographics
+        'gender': 'demographics_gender',
+        # Vitals — add vitals_ prefix
+        'Q25_diasbp': 'vitals_Q25_diasbp',
+        'Q25_heartrate': 'vitals_Q25_heartrate',
+        'Q25_resprate': 'vitals_Q25_resprate',
+        'Q25_sysbp': 'vitals_Q25_sysbp',
+        'Q25_temp': 'vitals_Q25_temp',
+        'Q75_diasbp': 'vitals_Q75_diasbp',
+        'Q75_heartrate': 'vitals_Q75_heartrate',
+        'Q75_resprate': 'vitals_Q75_resprate',
+        'Q75_sysbp': 'vitals_Q75_sysbp',
+        'Q75_temp': 'vitals_Q75_temp',
+        'first_diasbp': 'vitals_first_diasbp',
+        'first_heartrate': 'vitals_first_heartrate',
+        'first_resprate': 'vitals_first_resprate',
+        'first_sysbp': 'vitals_first_sysbp',
+        'first_temp': 'vitals_first_temp',
+        'last_diasbp': 'vitals_last_diasbp',
+        'last_heartrate': 'vitals_last_heartrate',
+        'last_resprate': 'vitals_last_resprate',
+        'last_sysbp': 'vitals_last_sysbp',
+        'last_temp': 'vitals_last_temp',
+        'mean_diasbp': 'vitals_mean_diasbp',
+        'mean_heartrate': 'vitals_mean_heartrate',
+        'mean_resprate': 'vitals_mean_resprate',
+        'mean_sysbp': 'vitals_mean_sysbp',
+        'mean_temp': 'vitals_mean_temp',
+        'median_diasbp': 'vitals_median_diasbp',
+        'median_heartrate': 'vitals_median_heartrate',
+        'median_resprate': 'vitals_median_resprate',
+        'median_sysbp': 'vitals_median_sysbp',
+        'median_temp': 'vitals_median_temp',
+        'max_diasbp': 'vitals_max_diasbp',
+        'max_heartrate': 'vitals_max_heartrate',
+        'max_resprate': 'vitals_max_resprate',
+        'max_sysbp': 'vitals_max_sysbp',
+        'max_temp': 'vitals_max_temp',
+        'min_diasbp': 'vitals_min_diasbp',
+        'min_heartrate': 'vitals_min_heartrate',
+        'min_resprate': 'vitals_min_resprate',
+        'min_sysbp': 'vitals_min_sysbp',
+        'min_temp': 'vitals_min_temp',
+        # Ward — add ward_info_ prefix
+        'hosp_ward_IP': 'ward_info_hosp_ward_IP',
+        'hosp_ward_OP': 'ward_info_hosp_ward_OP',
+        'hosp_ward_ER': 'ward_info_hosp_ward_ER',
+        # ADI
+        'adi_score': 'adi_scores_adi_score',
+        # Procedures
+        'cvc_within_6mo': 'priorprocedures_procedure_description__cvc',
+    }
+
     # Lab name mappings (base name -> display name)
     LAB_MAP = {
         "wbc": "WBC",
@@ -350,8 +405,11 @@ class FeatureEngineer:
             self._features.update(
                 self._get_prior_organism_resistance(lookback_days=resistance_lookback_days)
             )
-        
-        return pd.DataFrame([self._features])
+
+        # Rename features to match model expectations
+        df = pd.DataFrame([self._features])
+        df.rename(columns=self.FEATURE_RENAMES, inplace=True)
+        return df
     
     def _get_demographics(self) -> Dict[str, Any]:
         """

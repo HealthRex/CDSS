@@ -207,51 +207,55 @@ def get_susceptibility_scores(
     api_prefix: Optional[str] = None,
     client_id: Optional[str] = None,
     model_dir: Optional[str] = None,
+    culture_type: Optional[str] = None,
+    setting: Optional[str] = None,
 ) -> Dict[str, float]:
     """
     Main entry point: Get antibiotic susceptibility scores for a patient.
-    
+
     This function orchestrates the full inference pipeline:
     1. Fetches patient data from FHIR APIs
     2. Constructs patient_data dictionary
     3. Generates feature vector via FeatureEngineer
     4. Runs inference on all antibiotic models
     5. Returns susceptibility scores
-    
+
     Args:
         patient_fhir_id: The patient's FHIR R4 ID
         credentials: Optional dict with 'username' and 'password'
         api_prefix: Optional Epic FHIR API base URL
         client_id: Optional Epic Client ID
         model_dir: Optional path to model files directory
-        
+        culture_type: Culture type filter (e.g., 'urine', 'blood', 'resp')
+        setting: Clinical setting filter (e.g., 'inpatient', 'outpatient')
+
     Returns:
         Dict mapping antibiotic name to susceptibility score (0.0 to 1.0)
         e.g., {'ciprofloxacin': 0.85, 'ceftriaxone': 0.72, ...}
     """
     logger.info(f"Starting susceptibility inference for patient: {patient_fhir_id}")
-    
+
     # Initialize FHIR client
     fhir_client = FHIRClient(
         api_prefix=api_prefix,
         client_id=client_id,
         credentials=credentials,
     )
-    
+
     # Step 1: Fetch patient demographics
     logger.info("Fetching patient data...")
     patient_data = fhir_client.get_patient(patient_fhir_id)
     logger.info(f"Patient data retrieved: DOB={patient_data.get('DOB')}, gender={patient_data.get('gender')}")
-    
+
     # NOTE: Encounter fetching skipped - pipeline assumes inpatient (hosp_ward_IP=1)
     # Hospital ward features are hardcoded in feature_engineering.py
-    
+
     # Step 2: Fetch procedures
     logger.info("Fetching procedure data...")
     procedures = fhir_client.get_procedures(patient_fhir_id)
     patient_data['procedures'] = procedures
     logger.info(f"Found {len(procedures)} procedures")
-    
+
     # Step 4: Initialize feature engineer and generate features
     logger.info("Generating feature vector...")
     feature_engineer = FeatureEngineer(
@@ -260,19 +264,25 @@ def get_susceptibility_scores(
         api_prefix=api_prefix or fhir_client.api_prefix,
         client_id=client_id or fhir_client.client_id,
     )
-    
+
     feature_df = feature_engineer.generate_features()
     logger.info(f"Generated {len(feature_df.columns)} features")
-    
+
     # Step 5: Initialize model inference and predict
     logger.info("Running model inference...")
     if model_dir is None:
-        # Default to models directory relative to this file
-        model_dir = os.path.join(os.path.dirname(__file__), "models")
-    
-    inference = AntibioticModelInference(model_dir=model_dir)
+        model_dir = os.environ.get(
+            'MODEL_DIR',
+            os.path.join(os.path.dirname(__file__), "models"),
+        )
+
+    inference = AntibioticModelInference(
+        model_dir=model_dir,
+        culture_type=culture_type,
+        setting=setting,
+    )
     scores = inference.predict(feature_df)
-    
+
     logger.info(f"Inference complete. Scores: {scores}")
     return scores
 
@@ -283,28 +293,30 @@ def get_susceptibility_scores_with_details(
     api_prefix: Optional[str] = None,
     client_id: Optional[str] = None,
     model_dir: Optional[str] = None,
+    culture_type: Optional[str] = None,
+    setting: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Extended version that returns scores along with feature data for debugging.
-    
+
     Returns:
         Dict with 'scores', 'features', and 'patient_data' keys
     """
     logger.info(f"Starting susceptibility inference for patient: {patient_fhir_id}")
-    
+
     # Initialize FHIR client
     fhir_client = FHIRClient(
         api_prefix=api_prefix,
         client_id=client_id,
         credentials=credentials,
     )
-    
+
     # Fetch patient and procedure data
     # NOTE: Encounter fetching skipped - pipeline assumes inpatient (hosp_ward_IP=1)
     patient_data = fhir_client.get_patient(patient_fhir_id)
     procedures = fhir_client.get_procedures(patient_fhir_id)
     patient_data['procedures'] = procedures
-    
+
     # Generate features
     feature_engineer = FeatureEngineer(
         patient_data=patient_data,
@@ -312,16 +324,23 @@ def get_susceptibility_scores_with_details(
         api_prefix=api_prefix or fhir_client.api_prefix,
         client_id=client_id or fhir_client.client_id,
     )
-    
+
     feature_df = feature_engineer.generate_features()
-    
+
     # Run inference
     if model_dir is None:
-        model_dir = os.path.join(os.path.dirname(__file__), "models")
-    
-    inference = AntibioticModelInference(model_dir=model_dir)
+        model_dir = os.environ.get(
+            'MODEL_DIR',
+            os.path.join(os.path.dirname(__file__), "models"),
+        )
+
+    inference = AntibioticModelInference(
+        model_dir=model_dir,
+        culture_type=culture_type,
+        setting=setting,
+    )
     scores = inference.predict(feature_df)
-    
+
     return {
         'scores': scores,
         'features': feature_df.to_dict(orient='records')[0],
@@ -329,7 +348,7 @@ def get_susceptibility_scores_with_details(
             'fhir_id': patient_fhir_id,
             'gender': patient_data.get('gender'),
             'dob': patient_data.get('DOB'),
-            'encounter_class': 'Inpatient (hardcoded)',  # Pipeline assumes inpatient
+            'encounter_class': 'Inpatient (hardcoded)',
             'procedure_count': len(procedures),
         }
     }

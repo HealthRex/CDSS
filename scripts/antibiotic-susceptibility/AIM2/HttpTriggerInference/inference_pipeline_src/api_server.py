@@ -51,22 +51,28 @@ app = FastAPI(
 class PredictRequest(BaseModel):
     """Request model for prediction endpoints."""
     patient_id: str  # Required: FHIR ID or MRN
-    
+
+    # Model selection parameters
+    culture_type: Optional[str] = "urine"  # urine, blood, resp
+    setting: Optional[str] = "inpatient"   # inpatient, outpatient
+
     # Optional lookback parameters (with defaults)
     vitals_lookback_hours: Optional[int] = 48
     procedures_lookback_days: Optional[int] = 180
     abx_lookback_days: Optional[int] = 180
     resistance_lookback_days: Optional[int] = 180
-    
+
     # Optional feature flags
     include_vitals: Optional[bool] = True
     include_antibiotics: Optional[bool] = True
     include_prior_resistance: Optional[bool] = True
-    
+
     class Config:
         json_schema_extra = {
             "example": {
                 "patient_id": "5003122495",
+                "culture_type": "urine",
+                "setting": "inpatient",
                 "vitals_lookback_hours": 48,
                 "procedures_lookback_days": 180,
                 "abx_lookback_days": 180,
@@ -234,6 +240,8 @@ def log_inference_results(patient_id: str, result: dict) -> None:
 
 def run_inference(
     patient_id: str,
+    culture_type: str = "urine",
+    setting: str = "inpatient",
     vitals_lookback_hours: int = 48,
     procedures_lookback_days: int = 180,
     abx_lookback_days: int = 180,
@@ -245,9 +253,11 @@ def run_inference(
 ) -> dict:
     """
     Run the full inference pipeline for a patient.
-    
+
     Args:
         patient_id: Patient FHIR ID or MRN
+        culture_type: Culture type (e.g., 'urine', 'blood', 'resp')
+        setting: Clinical setting (e.g., 'inpatient', 'outpatient')
         vitals_lookback_hours: Hours to look back for vital signs (default: 48)
         procedures_lookback_days: Days to look back for procedures (default: 180)
         abx_lookback_days: Days to look back for prior antibiotics (default: 180)
@@ -256,12 +266,14 @@ def run_inference(
         include_antibiotics: Whether to include prior antibiotic features (default: True)
         include_prior_resistance: Whether to include prior resistance features (default: True)
         log_details: If True, log detailed results to console
-        
+
     Returns:
         Dict with 'scores', 'features', 'patient_data', and 'parameters_used'
     """
     # Store parameters for response
     parameters_used = {
+        'culture_type': culture_type,
+        'setting': setting,
         'vitals_lookback_hours': vitals_lookback_hours,
         'procedures_lookback_days': procedures_lookback_days,
         'abx_lookback_days': abx_lookback_days,
@@ -270,18 +282,18 @@ def run_inference(
         'include_antibiotics': include_antibiotics,
         'include_prior_resistance': include_prior_resistance,
     }
-    
+
     logger.info(f"Running inference with parameters: {parameters_used}")
-    
+
     fhir_client = FHIRClient()
-    
+
     # Fetch patient data
     patient_data, patient_fhir_id = fhir_client.get_patient(patient_id)
-    
+
     # Fetch procedures with configurable lookback
     procedures = fhir_client.get_procedures(patient_fhir_id, days_back=procedures_lookback_days)
     patient_data['procedures'] = procedures
-    
+
     # Generate features with configurable parameters
     logger.info("Generating features...")
     fe = FeatureEngineer(
@@ -299,13 +311,17 @@ def run_inference(
         resistance_lookback_days=resistance_lookback_days,
     )
     logger.info(f"Generated {len(feature_df.columns)} features")
-    
+
     # Run model inference
     logger.info("Running model inference...")
-    model_dir = os.path.join(_this_dir, "models")
-    inference = AntibioticModelInference(model_dir=model_dir)
+    model_dir = os.environ.get('MODEL_DIR', os.path.join(_this_dir, "models"))
+    inference = AntibioticModelInference(
+        model_dir=model_dir,
+        culture_type=culture_type,
+        setting=setting,
+    )
     scores = inference.predict(feature_df)
-    
+
     result = {
         'scores': scores,
         'features': feature_df.to_dict(orient='records')[0],
@@ -316,14 +332,14 @@ def run_inference(
         },
         'parameters_used': parameters_used,
     }
-    
+
     # Log detailed results if requested
     if log_details:
         log_inference_results(patient_id, result)
     else:
         # Just log the scores summary
         logger.info(f"Scores: {scores}")
-    
+
     return result
 
 # ============================================================================
@@ -364,6 +380,8 @@ def predict(request: PredictRequest):
         logger.info(f"Predict request for patient: {request.patient_id}")
         result = run_inference(
             patient_id=request.patient_id,
+            culture_type=request.culture_type,
+            setting=request.setting,
             vitals_lookback_hours=request.vitals_lookback_hours,
             procedures_lookback_days=request.procedures_lookback_days,
             abx_lookback_days=request.abx_lookback_days,
@@ -404,6 +422,8 @@ def predict_with_details(request: PredictRequest):
         logger.info(f"Predict (details) request for patient: {request.patient_id}")
         result = run_inference(
             patient_id=request.patient_id,
+            culture_type=request.culture_type,
+            setting=request.setting,
             vitals_lookback_hours=request.vitals_lookback_hours,
             procedures_lookback_days=request.procedures_lookback_days,
             abx_lookback_days=request.abx_lookback_days,
