@@ -14,6 +14,7 @@ Example:
       -H "Content-Type: application/json" \
       -d '{"patient_id": "5003122495"}'
 """
+import json
 import os
 import sys
 import logging
@@ -185,6 +186,12 @@ class FHIRClient:
             elif id_type in ('INTERNAL', 'EXTERNAL'):
                 patient_data['MRN'] = id_value.strip()
 
+        # Extract postal code from home address for ADI lookup
+        for address in resource.get('address', []):
+            if address.get('use') == 'home' and address.get('postalCode'):
+                patient_data['postalCode'] = address['postalCode']
+                break
+
         logger.info(f"Patient data: gender={gender}, DOB={patient_data['DOB']}, FHIR STU3={patient_data.get('FHIR STU3', 'N/A')}")
         return patient_data, patient_fhir_id
     
@@ -197,7 +204,11 @@ class FHIRClient:
                 {"patient": patient_fhir_id, "date": f"ge{cutoff}"}, 
                 timeout=60
             )
-            procedures = [e.get('resource', {}) for e in data.get('entry', [])]
+            procedures = [
+                e.get('resource', {}) for e in data.get('entry', [])
+                if e.get('resource', {}).get('resourceType') == 'Procedure'
+            ]
+            logger.info(f"Found {len(procedures)} procedures")
             return procedures
         except Exception as e:
             logger.warning(f"Error fetching procedures: {e}")
