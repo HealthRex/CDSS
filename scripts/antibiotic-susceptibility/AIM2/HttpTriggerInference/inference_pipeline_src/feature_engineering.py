@@ -165,19 +165,21 @@ class FeatureEngineer:
         'cvc_within_6mo': 'priorprocedures_procedure_description__cvc',
     }
 
-    # Lab name mappings (base name -> display name)
+    # Lab name mappings (Epic API base-name -> model feature base name)
+    # The key is what Epic's API expects, the value is what appears in model feature names.
+    # e.g., Epic base-name "lac" maps to model feature "labs_Q25_lactate"
     LAB_MAP = {
-        "wbc": "WBC",
-        "neut": "Neutrophils",
-        "lymph": "Lymphocytes",
-        "hgb": "HGB",
-        "plt": "PLT",
-        "hco3": "Bicarbonate",
-        "na": "Sodium",
-        "lac": "Lactate",
-        "cr": "Creatinine",
-        "bun": "BUN",
-        "pct": "Procalcitonin",
+        "wbc": "wbc",
+        "neut": "neut",
+        "lymph": "lymph",
+        "hgb": "hgb",
+        "plt": "plt",
+        "hco3": "hco3",
+        "na": "na",
+        "lac": "lactate",
+        "cr": "cr",
+        "bun": "bun",
+        "pct": "pct",
     }
     
     # Antibiotic class/subtype lookup
@@ -345,57 +347,52 @@ class FeatureEngineer:
     def generate_features(
         self,
         include_vitals: bool = True,
+        include_labs: bool = True,
         include_antibiotics: bool = True,
         include_prior_resistance: bool = True,
         vitals_lookback_hours: int = 48,
+        labs_lookback_days: int = 14,
         abx_lookback_days: int = 180,
         resistance_lookback_days: int = 180,
     ) -> pd.DataFrame:
         """
         Generate all features as a DataFrame with named columns.
-        
-        Produces a 67-dimension feature vector including:
-        - Demographics (age, gender)
-        - Hospital ward (IP/OP/ER one-hot)
-        - ADI score
-        - Procedures within 6 months
-        - Vitals (25 features)
-        - Prior antibiotics and classes
-        - Prior organism infections
-        
+
         Args:
             include_vitals: Whether to include vital sign features.
+            include_labs: Whether to include lab value features.
             include_antibiotics: Whether to include prior antibiotic features.
             include_prior_resistance: Whether to include prior organism/resistance features.
             vitals_lookback_hours: Hours to look back for vitals.
+            labs_lookback_days: Days to look back for labs.
             abx_lookback_days: Days to look back for prior antibiotics.
             resistance_lookback_days: Days to look back for prior resistance.
-            
+
         Returns:
             DataFrame with one row containing all features.
         """
         self._features = {}
-        
+
         # Demographics (age, gender)
         self._features.update(self._get_demographics())
-        
+
         # Hospital ward (IP/OP/ER one-hot encoded)
         self._features.update(self._get_hospital_ward())
-        
+
         # ADI score (Area Deprivation Index - dummy value)
         self._features.update(self._get_adi_score())
-        
+
         # Procedure-related features within 6 months
         self._features.update(self._get_procedures_within_6mo())
-        
+
         # Vitals (25 features)
         if include_vitals:
             self._features.update(self._get_vitals(lookback_hours=vitals_lookback_hours))
-        
-        # Labs - COMMENTED OUT (not used by models)
-        # if include_labs:
-        #     self._features.update(self._get_labs(lookback_days=labs_lookback_days))
-        
+
+        # Labs (Q25, Q75, median, etc. for each lab type)
+        if include_labs:
+            self._features.update(self._get_labs(lookback_days=labs_lookback_days))
+
         # Prior antibiotics (medication names and classes)
         if include_antibiotics:
             self._features.update(self._get_prior_antibiotics(lookback_days=abx_lookback_days))
@@ -688,35 +685,52 @@ class FeatureEngineer:
             Dict with lab value features.
         """
         features = {}
-        
+
         if not self.credentials or not self.api_prefix:
             logger.warning("No credentials/API configured, skipping labs")
             return features
-        
-        for base_name, display_name in self.LAB_MAP.items():
+
+        # Labs that need unit conversion (Epic returns g/dL, models expect ×1000)
+        UNIT_SCALE = {'hgb': 1000}
+
+        for epic_name, model_name in self.LAB_MAP.items():
             try:
-                lab_values = self._fetch_lab_values(base_name, lookback_days)
-                
+                lab_values = self._fetch_lab_values(epic_name, lookback_days)
+
+                # Apply unit conversion if needed
+                scale = UNIT_SCALE.get(epic_name, 1)
+                if scale != 1 and lab_values:
+                    lab_values = [v * scale for v in lab_values]
+
                 if lab_values:
-                    features[f"first_{display_name}"] = lab_values[0]
-                    features[f"last_{display_name}"] = lab_values[-1]
-                    features[f"mean_{display_name}"] = np.mean(lab_values)
-                    features[f"median_{display_name}"] = np.median(lab_values)
-                    features[f"max_{display_name}"] = np.max(lab_values)
-                    features[f"min_{display_name}"] = np.min(lab_values)
-                    features[f"Q25_{display_name}"] = np.percentile(lab_values, 25)
-                    features[f"Q75_{display_name}"] = np.percentile(lab_values, 75)
-                    
+                    features[f"labs_first_{model_name}"] = lab_values[0]
+                    features[f"labs_last_{model_name}"] = lab_values[-1]
+                    features[f"labs_mean_{model_name}"] = np.mean(lab_values)
+                    features[f"labs_median_{model_name}"] = np.median(lab_values)
+                    features[f"labs_max_{model_name}"] = np.max(lab_values)
+                    features[f"labs_min_{model_name}"] = np.min(lab_values)
+                    features[f"labs_Q25_{model_name}"] = np.percentile(lab_values, 25)
+                    features[f"labs_Q75_{model_name}"] = np.percentile(lab_values, 75)
+
+                # Null indicators for specific labs (1 if no values found)
+                if model_name in ('hco3', 'wbc'):
+                    features[f"labs_last_{model_name}__Null"] = 0 if lab_values else 1
+
             except Exception as e:
-                logger.warning(f"Error fetching lab {base_name}: {e}")
-        
+                logger.warning(f"Error fetching lab {epic_name}: {e}")
+                # Still set null indicators on error
+                if model_name in ('hco3', 'wbc'):
+                    features[f"labs_last_{model_name}__Null"] = 1
+
         return features
     
     def _fetch_lab_values(self, base_name: str, lookback_days: int) -> List[float]:
         """Fetch lab values from Epic API for a specific lab type."""
+        patient_id = self.patient_data.get("FHIR STU3") or self.patient_data.get("FHIR")
+        id_type = "FHIR STU3" if self.patient_data.get("FHIR STU3") else "FHIR"
         lab_packet = {
-            "PatientID": self.patient_data.get("FHIR STU3"),
-            "PatientIDType": "FHIR STU3",
+            "PatientID": patient_id,
+            "PatientIDType": id_type,
             "UserID": self.credentials.get("username", "")[4:],
             "UserIDType": "External",
             "NumberDaysToLookBack": lookback_days,
@@ -741,8 +755,8 @@ class FeatureEngineer:
         
         lab_response = response.json()
         values = []
-        
-        for component in lab_response.get("ResultComponents", []):
+
+        for component in lab_response.get("ResultComponents") or []:
             raw_value = component.get("Value")
             if raw_value:
                 # Extract numeric value

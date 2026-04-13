@@ -58,6 +58,7 @@ class PredictRequest(BaseModel):
 
     # Optional lookback parameters (with defaults)
     vitals_lookback_hours: Optional[int] = 48
+    labs_lookback_days: Optional[int] = 14
     procedures_lookback_days: Optional[int] = 180
     abx_lookback_days: Optional[int] = 180
     resistance_lookback_days: Optional[int] = 180
@@ -74,6 +75,7 @@ class PredictRequest(BaseModel):
                 "culture_type": "urine",
                 "setting": "inpatient",
                 "vitals_lookback_hours": 48,
+                "labs_lookback_days": 14,
                 "procedures_lookback_days": 180,
                 "abx_lookback_days": 180,
                 "resistance_lookback_days": 180,
@@ -173,8 +175,17 @@ class FHIRClient:
             'gender': gender,
             'DOB': resource.get('birthDate'),
         }
-        
-        logger.info(f"Patient data: gender={gender}, DOB={patient_data['DOB']}")
+
+        # Extract additional identifiers (FHIR STU3, MRN) needed by lab API
+        for identifier in resource.get('identifier', []):
+            id_type = identifier.get('type', {}).get('text', '')
+            id_value = identifier.get('value', '')
+            if id_type == 'FHIR STU3':
+                patient_data['FHIR STU3'] = id_value
+            elif id_type in ('INTERNAL', 'EXTERNAL'):
+                patient_data['MRN'] = id_value.strip()
+
+        logger.info(f"Patient data: gender={gender}, DOB={patient_data['DOB']}, FHIR STU3={patient_data.get('FHIR STU3', 'N/A')}")
         return patient_data, patient_fhir_id
     
     def get_procedures(self, patient_fhir_id: str, days_back: int = 180) -> list:
@@ -243,6 +254,7 @@ def run_inference(
     culture_type: str = "urine",
     setting: str = "inpatient",
     vitals_lookback_hours: int = 48,
+    labs_lookback_days: int = 14,
     procedures_lookback_days: int = 180,
     abx_lookback_days: int = 180,
     resistance_lookback_days: int = 180,
@@ -275,6 +287,7 @@ def run_inference(
         'culture_type': culture_type,
         'setting': setting,
         'vitals_lookback_hours': vitals_lookback_hours,
+        'labs_lookback_days': labs_lookback_days,
         'procedures_lookback_days': procedures_lookback_days,
         'abx_lookback_days': abx_lookback_days,
         'resistance_lookback_days': resistance_lookback_days,
@@ -304,9 +317,11 @@ def run_inference(
     )
     feature_df = fe.generate_features(
         include_vitals=include_vitals,
+        include_labs=True,
         include_antibiotics=include_antibiotics,
         include_prior_resistance=include_prior_resistance,
         vitals_lookback_hours=vitals_lookback_hours,
+        labs_lookback_days=labs_lookback_days,
         abx_lookback_days=abx_lookback_days,
         resistance_lookback_days=resistance_lookback_days,
     )
@@ -383,6 +398,7 @@ def predict(request: PredictRequest):
             culture_type=request.culture_type,
             setting=request.setting,
             vitals_lookback_hours=request.vitals_lookback_hours,
+            labs_lookback_days=request.labs_lookback_days,
             procedures_lookback_days=request.procedures_lookback_days,
             abx_lookback_days=request.abx_lookback_days,
             resistance_lookback_days=request.resistance_lookback_days,
@@ -425,6 +441,7 @@ def predict_with_details(request: PredictRequest):
             culture_type=request.culture_type,
             setting=request.setting,
             vitals_lookback_hours=request.vitals_lookback_hours,
+            labs_lookback_days=request.labs_lookback_days,
             procedures_lookback_days=request.procedures_lookback_days,
             abx_lookback_days=request.abx_lookback_days,
             resistance_lookback_days=request.resistance_lookback_days,
