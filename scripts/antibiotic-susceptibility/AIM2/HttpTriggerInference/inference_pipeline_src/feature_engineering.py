@@ -165,6 +165,28 @@ class FeatureEngineer:
         'cvc_within_6mo': 'priorprocedures_procedure_description__cvc',
     }
 
+    # Target antibiotics for per-antibiotic resistance history features.
+    # Cleaned names (as returned by _clean_medication_name) -> feature suffix used in the
+    # per-antibiotic variants (lowercase, underscore-separated) that match model naming.
+    # Used to generate prior_resistance_same_abx_within_365d__<suffix> variants.
+    # If a new antibiotic model is added, add its cleaned name here.
+    SAME_ABX_TARGETS = {
+        'Amoxicillin-Pot Clavulanate': 'amoxicillin_clavulanic_acid',
+        'Ampicillin': 'ampicillin',
+        'Cefazolin': 'cefazolin',
+        'Cefepime': 'cefepime',
+        'Cefpodoxime': 'cefpodoxime',
+        'Ceftriaxone': 'ceftriaxone',
+        'Ciprofloxacin': 'ciprofloxacin',
+        'Gentamicin': 'gentamicin',
+        'Levofloxacin': 'levofloxacin',
+        'Meropenem': 'meropenem',
+        'Nitrofurantoin': 'nitrofurantoin',
+        'Piperacillin-Tazobactam': 'piperacillin_tazobactam',
+        'Sulfamethoxazole-Trimethoprim': 'trimethoprim_sulfamethoxazole',
+        'Vancomycin': 'vancomycin',
+    }
+
     # Lab name mappings (Epic API base-name -> model feature base name)
     # The key is what Epic's API expects, the value is what appears in model feature names.
     # e.g., Epic base-name "lac" maps to model feature "labs_Q25_lactate"
@@ -350,10 +372,12 @@ class FeatureEngineer:
         include_labs: bool = True,
         include_antibiotics: bool = True,
         include_prior_resistance: bool = True,
+        include_comorbidities: bool = True,
         vitals_lookback_hours: int = 48,
         labs_lookback_days: int = 14,
-        abx_lookback_days: int = 180,
+        medication_lookback_days: int = 180,
         resistance_lookback_days: int = 180,
+        culture_time: Optional[datetime] = None,
     ) -> pd.DataFrame:
         """
         Generate all features as a DataFrame with named columns.
@@ -363,15 +387,19 @@ class FeatureEngineer:
             include_labs: Whether to include lab value features.
             include_antibiotics: Whether to include prior antibiotic features.
             include_prior_resistance: Whether to include prior organism/resistance features.
+            include_comorbidities: Whether to include comorbidity features.
             vitals_lookback_hours: Hours to look back for vitals.
             labs_lookback_days: Days to look back for labs.
-            abx_lookback_days: Days to look back for prior antibiotics.
+            medication_lookback_days: Days to look back for prior medications (all types, not just antibiotics).
             resistance_lookback_days: Days to look back for prior resistance.
+            culture_time: Reference point for time-to-culture features.
+                Defaults to datetime.now() for real-time prediction.
 
         Returns:
             DataFrame with one row containing all features.
         """
         self._features = {}
+        self._culture_time = culture_time or datetime.now()
 
         # Demographics (age, gender)
         self._features.update(self._get_demographics())
@@ -395,7 +423,11 @@ class FeatureEngineer:
 
         # Prior antibiotics (medication names and classes)
         if include_antibiotics:
-            self._features.update(self._get_prior_antibiotics(lookback_days=abx_lookback_days))
+            self._features.update(self._get_prior_antibiotics(lookback_days=medication_lookback_days))
+
+        # Comorbidities (from FHIR Condition problem-list-item)
+        if include_comorbidities:
+            self._features.update(self._get_comorbidities())
         
         # Prior organism infections
         if include_prior_resistance:
@@ -573,6 +605,26 @@ class FeatureEngineer:
 
         # No prior procedures flag
         features['priorprocedures_procedure_description__None'] = 1 if len(procedures) == 0 else 0
+
+        # Time since last procedure (days) — uses culture_time as reference point
+        culture_time = getattr(self, '_culture_time', None) or datetime.now()
+        procedure_dates: List[datetime] = []
+        for proc in procedures:
+            performed = proc.get('performedDateTime') or proc.get('performedPeriod', {}).get('start')
+            if not performed:
+                continue
+            try:
+                proc_dt = datetime.strptime(performed, "%Y-%m-%dT%H:%M:%SZ")
+            except ValueError:
+                try:
+                    proc_dt = datetime.strptime(performed, "%Y-%m-%d")
+                except ValueError:
+                    continue
+            procedure_dates.append(proc_dt)
+
+        if procedure_dates:
+            most_recent = max(procedure_dates)
+            features['priorprocedures_procedure_time_to_culturetime'] = (culture_time - most_recent).days
         
 
         # Skip for now as no access to procedure endpoint response's sub-resource
@@ -618,6 +670,92 @@ class FeatureEngineer:
         
         return features
     
+    def _get_comorbidities(self) -> Dict[str, Any]:
+        """
+        Fetch patient comorbidities from FHIR Condition problem-list-item category.
+
+        Computes:
+        - comorbidity_comorbidity_component_start_days_culture: days from earliest
+          active condition onset to culture_time
+        - comorbidity_comorbidity_component__None: 1 if no comorbidities, else 0
+
+        NOTE: Only Condition - Problem List is accessible. Encounter Diagnosis
+        and Health Concerns sub-resources return OperationOutcome warnings.
+        """
+        features = {}
+
+        if not self.credentials or not self.api_prefix:
+            logger.warning("No credentials/API configured, skipping comorbidities")
+            return features
+
+        try:
+            resp = requests.get(
+                f"{self.api_prefix}api/FHIR/R4/Condition",
+                params={
+                    "patient": self.patient_data.get("FHIR"),
+                    "category": "problem-list-item",
+                },
+                headers={
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Accept": "application/json",
+                    "Epic-Client-ID": self.client_id,
+                },
+                auth=HTTPBasicAuth(
+                    self.credentials.get("username", ""),
+                    self.credentials.get("password", ""),
+                ),
+                timeout=60,
+            )
+
+            data = resp.json()
+            culture_time = getattr(self, '_culture_time', None) or datetime.now()
+            onset_dates: List[datetime] = []
+
+            for entry in data.get('entry', []):
+                resource = entry.get('resource', {})
+                if resource.get('resourceType') != 'Condition':
+                    continue
+
+                # Only active conditions
+                clinical_status = resource.get('clinicalStatus', {})
+                status_code = ''
+                for coding in clinical_status.get('coding', []):
+                    status_code = coding.get('code', '')
+                    break
+                if status_code and status_code != 'active':
+                    continue
+
+                # Parse onset date (fall back to recordedDate)
+                onset = resource.get('onsetDateTime') or resource.get('recordedDate')
+                if not onset:
+                    continue
+
+                try:
+                    onset_dt = datetime.strptime(onset, "%Y-%m-%dT%H:%M:%SZ")
+                except ValueError:
+                    try:
+                        onset_dt = datetime.strptime(onset, "%Y-%m-%d")
+                    except ValueError:
+                        continue
+
+                onset_dates.append(onset_dt)
+
+            if onset_dates:
+                earliest = min(onset_dates)
+                features['comorbidity_comorbidity_component_start_days_culture'] = (
+                    culture_time - earliest
+                ).days
+                features['comorbidity_comorbidity_component__None'] = 0
+                logger.info(f"Found {len(onset_dates)} active comorbidities")
+            else:
+                features['comorbidity_comorbidity_component__None'] = 1
+                logger.info("No active comorbidities found")
+
+        except Exception as e:
+            logger.warning(f"Error fetching comorbidities: {e}")
+
+        return features
+
     def _get_vitals(self, lookback_hours: int = 48) -> Dict[str, Any]:
         """
         Extract vital sign features from FHIR observations.
@@ -846,6 +984,17 @@ class FeatureEngineer:
             features[feat] = 0
         for feat in self.PRIOR_MED_FEATURES:
             features[feat] = 0
+
+        # Initialize Phase 4 medication category and exposure flags so they're present
+        # even when the medication API returns nothing.
+        features.update({
+            'prior_med_medication_category__CEP': 0,
+            'prior_med_medication_category__NIT': 0,
+            'prior_med_medication_category__None': 1,  # default: no prior meds
+            'antibiotic_subtype_exposure_antibiotic_subtype__Beta Lactam Combo': 0,
+            'antibiotic_subtype_exposure_antibiotic_subtype__Cephalosporin Gen1': 0,
+            'antibiotic_class_exposure_antibiotic_class__Combination Antibiotic': 0,
+        })
         
         if not self.credentials or not self.api_prefix:
             logger.warning("No credentials/API configured, returning default antibiotics")
@@ -875,15 +1024,85 @@ class FeatureEngineer:
             entries = med_dict["Bundle"].get("entry", [])
             if isinstance(entries, collections.OrderedDict):
                 entries = [entries]
-            
+
+            # Track most recent order time per category
+            # (for time-to-culture features)
+            med_order_times: List[datetime] = []
+            class_order_times: Dict[str, List[datetime]] = {}
+            subtype_order_times: Dict[str, List[datetime]] = {}
+            seen_categories = set()  # e.g., 'CEP', 'NIT'
+
             for entry in entries:
-                # print(f'entry: ${entry}')
-                self._process_medication_entry(entry, now, max_delta, features)
-                
+                result = self._process_medication_entry(entry, now, max_delta, features)
+                if result is None:
+                    continue
+                order_dt, abx_class, abx_subtype = result
+                med_order_times.append(order_dt)
+                if abx_class:
+                    class_order_times.setdefault(abx_class, []).append(order_dt)
+                if abx_subtype:
+                    subtype_order_times.setdefault(abx_subtype, []).append(order_dt)
+                # Classify into medication categories for model features
+                category = self._medication_category(abx_class, abx_subtype)
+                if category:
+                    seen_categories.add(category)
+
+            # Compute time-to-culture features (days from most recent event to culture_time)
+            culture_time = getattr(self, '_culture_time', None) or datetime.now()
+
+            logger.info(
+                f"Medications: {len(entries)} total, {len(med_order_times)} within lookback "
+                f"(classes={len(class_order_times)}, subtypes={len(subtype_order_times)})"
+            )
+
+            if med_order_times:
+                most_recent = max(med_order_times)
+                features['prior_med_medication_time_to_culturetime'] = (
+                    culture_time - most_recent
+                ).days
+
+            if subtype_order_times:
+                # Most recent across all subtypes
+                most_recent = max(t for times in subtype_order_times.values() for t in times)
+                features['antibiotic_subtype_exposure_medication_time_to_cultureTime'] = (
+                    culture_time - most_recent
+                ).days
+
+            if class_order_times:
+                most_recent = max(t for times in class_order_times.values() for t in times)
+                features['antibiotic_class_exposure_time_to_culturetime'] = (
+                    culture_time - most_recent
+                ).days
+
+            # Medication category binary flags
+            features['prior_med_medication_category__CEP'] = 1 if 'CEP' in seen_categories else 0
+            features['prior_med_medication_category__NIT'] = 1 if 'NIT' in seen_categories else 0
+            features['prior_med_medication_category__None'] = 1 if not seen_categories else 0
+
+            # Specific antibiotic exposure binary flags used by specific models
+            features['antibiotic_subtype_exposure_antibiotic_subtype__Beta Lactam Combo'] = (
+                1 if 'Beta Lactam Combo' in subtype_order_times else 0
+            )
+            features['antibiotic_subtype_exposure_antibiotic_subtype__Cephalosporin Gen1'] = (
+                1 if 'Cephalosporin Gen1' in subtype_order_times else 0
+            )
+            features['antibiotic_class_exposure_antibiotic_class__Combination Antibiotic'] = (
+                1 if 'Combination Antibiotic' in class_order_times else 0
+            )
+
         except Exception as e:
             logger.error(f"Error fetching prior antibiotics: {e}")
-        
+
         return features
+
+    @staticmethod
+    def _medication_category(abx_class: Optional[str], abx_subtype: Optional[str]) -> Optional[str]:
+        """Map antibiotic class/subtype to medication category code used in model features."""
+        if abx_subtype and 'Cephalosporin' in abx_subtype:
+            return 'CEP'
+        if abx_class == 'Nitrofuran' or (abx_subtype and 'Nitrofuran' in abx_subtype):
+            return 'NIT'
+        return None
     
     def _process_medication_entry(
         self,
@@ -891,17 +1110,20 @@ class FeatureEngineer:
         now: datetime,
         max_delta: timedelta,
         features: Dict[str, Any],
-    ) -> None:
-        """Process a single medication entry and update features."""
+    ) -> Optional[Tuple[datetime, Optional[str], Optional[str]]]:
+        """Process a single medication entry and update features.
+
+        Returns: (order_dt, abx_class, abx_subtype) if processed, None otherwise.
+        """
         try:
             resource = entry.get("resource", {}).get("MedicationRequest", {})
             if not resource:
-                return
-            
+                return None
+
             # Get medication name
             med_ref = resource.get("medicationReference", {})
-            med_name = med_ref.get("display", {}).get("@value", "") # e.g. 'cephalexin (Keflex) 500 mg capsule'
-            
+            med_name = med_ref.get("display", {}).get("@value", "")
+
             # Get order time
             order_time = resource.get("authoredOn", {}).get("@value", "")
             try:
@@ -910,29 +1132,32 @@ class FeatureEngineer:
                 try:
                     order_dt = datetime.strptime(order_time, "%Y-%m-%d")
                 except ValueError:
-                    return
-            
+                    return None
+
             # Check if within lookback window
             if now - order_dt > max_delta:
-                return
-            
+                return None
+
             # Clean medication name and get class/subtype
             cleaned_name, abx_class, abx_subtype = self._clean_medication_name(med_name)
-            # print(cleaned_name, abx_class, abx_subtype)
-            if cleaned_name:
-                # Use model-expected feature names with prefixes
-                # prior_med_{MedName} for specific medications
+            # Only generate prior_med_{DrugName} for known antibiotics (cleaned_name must have
+            # a known class/subtype in ANTIBIOTIC_LOOKUP). Non-antibiotic meds produce garbage
+            # names from the regex and aren't used by any model.
+            if cleaned_name and abx_class:
+                # prior_med_{MedName} for specific antibiotic medications
                 med_key = f"prior_med_{cleaned_name}"
                 features[med_key] = features.get(med_key, 0) + 1
-                
+
                 # prior_abx_class_{ClassName} for antibiotic classes
                 if abx_class:
-                    # Replace spaces with underscores for feature name
                     class_key = f"prior_abx_class_{abx_class.replace(' ', '_')}"
                     features[class_key] = features.get(class_key, 0) + 1
-                    
+
+            return order_dt, abx_class, abx_subtype
+
         except Exception as e:
             logger.debug(f"Error processing medication entry: {e}")
+            return None
     
     def _clean_medication_name(
         self, 
@@ -1005,6 +1230,19 @@ class FeatureEngineer:
         """
         # Initialize ALL expected prior infected features to 0
         features = {feat: 0 for feat in self.PRIOR_INFECTED_FEATURES}
+
+        # Initialize Phase 4 resistance/infection history features to 0
+        # so they're present even if the API returns no cultures.
+        features.update({
+            'prior_resistance_event_count': 0,
+            'prior_resistance_any_within_365d': 0,
+            'prior_infect_org_event_count': 0,
+            'prior_infect_org_any_within_365d': 0,
+            'prior_infect_org_any_within_90d': 0,
+        })
+        # Initialize per-antibiotic same_abx variants to 0
+        for _, suffix in self.SAME_ABX_TARGETS.items():
+            features[f'prior_resistance_same_abx_within_365d__{suffix}'] = 0
         
         if not self.credentials or not self.api_prefix:
             logger.warning("No credentials/API configured, returning default prior resistance")
@@ -1038,13 +1276,15 @@ class FeatureEngineer:
             
             data = resp.json()
             observation_ids = []
-            
+            # Map observation_id -> culture effective datetime (for time-to-culture features)
+            obs_id_to_date: Dict[str, datetime] = {}
+
             for entry in data.get('entry', []):
                 resource = entry.get('resource', {})
                 order_time = resource.get('effectiveDateTime', None)
                 if order_time is None:
                     continue
-                
+
                 try:
                     order_date_time = datetime.strptime(order_time, "%Y-%m-%dT%H:%M:%SZ")
                 except ValueError:
@@ -1052,41 +1292,73 @@ class FeatureEngineer:
                         order_date_time = datetime.strptime(order_time, "%Y-%m-%d")
                     except ValueError:
                         continue
-                
+
                 if datetime.now() - order_date_time > max_time_delta:
                     continue
-                
+
                 for result in resource.get('result', []):
                     ref = result.get('reference', '')
                     if 'Observation/' in ref:
-                        observation_ids.append(ref.split('Observation/')[1])
-            
+                        obs_id = ref.split('Observation/')[1]
+                        observation_ids.append(obs_id)
+                        obs_id_to_date[obs_id] = order_date_time
+
             if len(observation_ids) == 0:
-                # print(f'No observation IDs found')
+                logger.info(
+                    f"No culture observations found within {lookback_days} days — "
+                    "resistance/infection features will be 0"
+                )
                 return features
-            
+
             # Get culture results from observations
             historical_microbiality = self._get_culture_order_results(observation_ids)
-            
+
+            # Track timestamps for time-to-culture features
+            culture_time = getattr(self, '_culture_time', None) or datetime.now()
+            infection_dates: List[datetime] = []
+            resistance_dates: List[datetime] = []
+
+            # Track which antibiotics showed resistance in past cultures within 365 days.
+            # Produces prior_resistance_same_abx_within_365d__<antibiotic> variants (one per
+            # antibiotic). model_inference.py resolves the correct variant per model by
+            # extracting the target antibiotic from the model name, then aliases it to the
+            # generic feature name prior_resistance_same_abx_within_365d that models expect.
+            SAME_ABX_TARGETS = self.SAME_ABX_TARGETS
+            same_abx_resistance_dates: Dict[str, List[datetime]] = {
+                abx: [] for abx in SAME_ABX_TARGETS
+            }
+
             for idx, row in historical_microbiality.iterrows():
                 if row['Organism'] is None:
                     continue
-                
+
                 # Map organism to feature name using ORGANISM_TO_FEATURE mapping
                 organism_full = row['Organism'].upper()
                 organism_feature_name = None
-                
-                # Find matching organism pattern
+
                 for pattern, feature_name in self.ORGANISM_TO_FEATURE.items():
                     if pattern in organism_full:
                         organism_feature_name = feature_name
                         break
-                
+
                 if organism_feature_name:
-                    # Create prior_infected_* feature (matches model expected features)
                     key = f"prior_infected_{organism_feature_name}"
                     features[key] = 1
-                
+
+                # Get the culture date for this result
+                culture_date = row.get('CultureeffectiveDateTime')
+                if isinstance(culture_date, str):
+                    try:
+                        culture_date = datetime.strptime(culture_date, "%Y-%m-%dT%H:%M:%SZ")
+                    except ValueError:
+                        try:
+                            culture_date = datetime.strptime(culture_date, "%Y-%m-%d")
+                        except ValueError:
+                            culture_date = None
+
+                if culture_date:
+                    infection_dates.append(culture_date)
+
                 # Process susceptibility results
                 if 'Susceptibility' in row and isinstance(row['Susceptibility'], list):
                     for abx in row['Susceptibility']:
@@ -1094,7 +1366,7 @@ class FeatureEngineer:
                         if abx_clean and organism_feature_name:
                             key = f"{organism_feature_name}_{abx_clean}_S"
                             features[key] = features.get(key, 0) + 1
-                
+
                 # Process resistance results
                 if 'Resistant' in row and isinstance(row['Resistant'], list):
                     for abx in row['Resistant']:
@@ -1102,10 +1374,55 @@ class FeatureEngineer:
                         if abx_clean and organism_feature_name:
                             key = f"{organism_feature_name}_{abx_clean}_R"
                             features[key] = features.get(key, 0) + 1
-                            
+                        # Track resistance against specific target antibiotics
+                        if abx_clean in SAME_ABX_TARGETS and culture_date:
+                            same_abx_resistance_dates[abx_clean].append(culture_date)
+                    if row['Resistant'] and culture_date:
+                        resistance_dates.append(culture_date)
+
+            # Compute resistance history features
+            if resistance_dates:
+                most_recent_r = max(resistance_dates)
+                days_since_r = (culture_time - most_recent_r).days
+                features['microbial_resistance_resistant_time_to_culturetime'] = days_since_r
+                features['prior_resistance_event_count'] = len(resistance_dates)
+                features['prior_resistance_any_within_365d'] = 1 if days_since_r <= 365 else 0
+                features['prior_resistance_min_days'] = min(
+                    (culture_time - d).days for d in resistance_dates
+                )
+            else:
+                features['prior_resistance_event_count'] = 0
+                features['prior_resistance_any_within_365d'] = 0
+
+            # Same-drug resistance within 365d — produce one variant per antibiotic.
+            # model_inference.py selects the right variant for each model.
+            # Initialize all variants to 0 so every antibiotic always has a value.
+            for _, suffix in SAME_ABX_TARGETS.items():
+                features[f'prior_resistance_same_abx_within_365d__{suffix}'] = 0
+            for target_abx, dates in same_abx_resistance_dates.items():
+                if any((culture_time - d).days <= 365 for d in dates):
+                    suffix = SAME_ABX_TARGETS[target_abx]
+                    features[f'prior_resistance_same_abx_within_365d__{suffix}'] = 1
+
+            # Compute prior infection features
+            if infection_dates:
+                most_recent_i = max(infection_dates)
+                days_since_i = (culture_time - most_recent_i).days
+                features['prior_infect_org_event_count'] = len(infection_dates)
+                features['prior_infect_org_min_days'] = min(
+                    (culture_time - d).days for d in infection_dates
+                )
+                features['prior_infect_org_any_within_365d'] = 1 if days_since_i <= 365 else 0
+                features['prior_infect_org_any_within_90d'] = 1 if days_since_i <= 90 else 0
+                features['prior_infecting_organism_prior_infecting_organism_days_to_culutre'] = days_since_i
+            else:
+                features['prior_infect_org_event_count'] = 0
+                features['prior_infect_org_any_within_365d'] = 0
+                features['prior_infect_org_any_within_90d'] = 0
+
         except Exception as e:
             logger.error(f"Error fetching prior organism resistance: {e}")
-        
+
         return features
     
     def _get_culture_order_results(

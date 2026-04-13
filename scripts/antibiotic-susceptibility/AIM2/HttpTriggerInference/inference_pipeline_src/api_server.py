@@ -61,7 +61,7 @@ class PredictRequest(BaseModel):
     vitals_lookback_hours: Optional[int] = 48
     labs_lookback_days: Optional[int] = 14
     procedures_lookback_days: Optional[int] = 180
-    abx_lookback_days: Optional[int] = 180
+    medication_lookback_days: Optional[int] = 180
     resistance_lookback_days: Optional[int] = 180
 
     # Optional feature flags
@@ -78,7 +78,7 @@ class PredictRequest(BaseModel):
                 "vitals_lookback_hours": 48,
                 "labs_lookback_days": 14,
                 "procedures_lookback_days": 180,
-                "abx_lookback_days": 180,
+                "medication_lookback_days": 180,
                 "resistance_lookback_days": 180,
                 "include_vitals": True,
                 "include_antibiotics": True,
@@ -267,7 +267,7 @@ def run_inference(
     vitals_lookback_hours: int = 48,
     labs_lookback_days: int = 14,
     procedures_lookback_days: int = 180,
-    abx_lookback_days: int = 180,
+    medication_lookback_days: int = 180,
     resistance_lookback_days: int = 180,
     include_vitals: bool = True,
     include_antibiotics: bool = True,
@@ -283,7 +283,7 @@ def run_inference(
         setting: Clinical setting (e.g., 'inpatient', 'outpatient')
         vitals_lookback_hours: Hours to look back for vital signs (default: 48)
         procedures_lookback_days: Days to look back for procedures (default: 180)
-        abx_lookback_days: Days to look back for prior antibiotics (default: 180)
+        medication_lookback_days: Days to look back for prior medications (default: 180)
         resistance_lookback_days: Days to look back for prior resistance (default: 180)
         include_vitals: Whether to include vital sign features (default: True)
         include_antibiotics: Whether to include prior antibiotic features (default: True)
@@ -300,7 +300,7 @@ def run_inference(
         'vitals_lookback_hours': vitals_lookback_hours,
         'labs_lookback_days': labs_lookback_days,
         'procedures_lookback_days': procedures_lookback_days,
-        'abx_lookback_days': abx_lookback_days,
+        'medication_lookback_days': medication_lookback_days,
         'resistance_lookback_days': resistance_lookback_days,
         'include_vitals': include_vitals,
         'include_antibiotics': include_antibiotics,
@@ -333,7 +333,7 @@ def run_inference(
         include_prior_resistance=include_prior_resistance,
         vitals_lookback_hours=vitals_lookback_hours,
         labs_lookback_days=labs_lookback_days,
-        abx_lookback_days=abx_lookback_days,
+        medication_lookback_days=medication_lookback_days,
         resistance_lookback_days=resistance_lookback_days,
     )
     logger.info(f"Generated {len(feature_df.columns)} features")
@@ -393,7 +393,7 @@ def predict(request: PredictRequest):
             - patient_id (required): FHIR ID or MRN
             - vitals_lookback_hours (optional): Hours to look back for vitals (default: 48)
             - procedures_lookback_days (optional): Days to look back for procedures (default: 180)
-            - abx_lookback_days (optional): Days to look back for antibiotics (default: 180)
+            - medication_lookback_days (optional): Days to look back for medications (default: 180)
             - resistance_lookback_days (optional): Days to look back for resistance (default: 180)
             - include_vitals (optional): Include vital features (default: True)
             - include_antibiotics (optional): Include antibiotic features (default: True)
@@ -411,7 +411,7 @@ def predict(request: PredictRequest):
             vitals_lookback_hours=request.vitals_lookback_hours,
             labs_lookback_days=request.labs_lookback_days,
             procedures_lookback_days=request.procedures_lookback_days,
-            abx_lookback_days=request.abx_lookback_days,
+            medication_lookback_days=request.medication_lookback_days,
             resistance_lookback_days=request.resistance_lookback_days,
             include_vitals=request.include_vitals,
             include_antibiotics=request.include_antibiotics,
@@ -436,7 +436,7 @@ def predict_with_details(request: PredictRequest):
             - patient_id (required): FHIR ID or MRN
             - vitals_lookback_hours (optional): Hours to look back for vitals (default: 48)
             - procedures_lookback_days (optional): Days to look back for procedures (default: 180)
-            - abx_lookback_days (optional): Days to look back for antibiotics (default: 180)
+            - medication_lookback_days (optional): Days to look back for medications (default: 180)
             - resistance_lookback_days (optional): Days to look back for resistance (default: 180)
             - include_vitals (optional): Include vital features (default: True)
             - include_antibiotics (optional): Include antibiotic features (default: True)
@@ -454,7 +454,7 @@ def predict_with_details(request: PredictRequest):
             vitals_lookback_hours=request.vitals_lookback_hours,
             labs_lookback_days=request.labs_lookback_days,
             procedures_lookback_days=request.procedures_lookback_days,
-            abx_lookback_days=request.abx_lookback_days,
+            medication_lookback_days=request.medication_lookback_days,
             resistance_lookback_days=request.resistance_lookback_days,
             include_vitals=request.include_vitals,
             include_antibiotics=request.include_antibiotics,

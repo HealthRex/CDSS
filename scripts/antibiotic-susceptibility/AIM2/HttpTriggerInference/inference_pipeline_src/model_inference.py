@@ -201,6 +201,43 @@ class AntibioticModelInference:
             else:
                 raise pickle_error
     
+    # Generic feature names that have per-antibiotic variants (e.g., __ampicillin suffix).
+    # Maps the generic feature name -> the variant prefix to look up.
+    # If a new target-specific feature is added in feature_engineering.py, register it here.
+    _TARGET_SPECIFIC_FEATURES = {
+        'prior_resistance_same_abx_within_365d': 'prior_resistance_same_abx_within_365d__',
+    }
+
+    @staticmethod
+    def _extract_target_antibiotic(model_name: str) -> str:
+        """Strip culture_type and setting from model name to get the antibiotic.
+
+        e.g. 'ampicillin_blood_inpatient' -> 'ampicillin'
+        e.g. 'amoxicillin_clavulanic_acid_urine_outpatient' -> 'amoxicillin_clavulanic_acid'
+        """
+        # Model names end with _{culture}_{setting}; split off the last two segments.
+        parts = model_name.rsplit('_', 2)
+        return parts[0] if len(parts) == 3 else model_name
+
+    def _alias_target_specific_features(
+        self,
+        feature_df: pd.DataFrame,
+        model_name: str,
+    ) -> None:
+        """Copy per-antibiotic feature variants into the generic feature name for this model.
+
+        Mutates feature_df in place. Only applies when the model requires the generic feature
+        name and the matching variant is available in the DataFrame.
+        """
+        target_abx = self._extract_target_antibiotic(model_name)
+        required = set(self.expected_features.get(model_name, []))
+        for generic_name, variant_prefix in self._TARGET_SPECIFIC_FEATURES.items():
+            if generic_name not in required:
+                continue
+            variant_name = f"{variant_prefix}{target_abx}"
+            if variant_name in feature_df.columns:
+                feature_df[generic_name] = feature_df[variant_name]
+
     def _validate_features(
         self, 
         feature_df: pd.DataFrame, 
@@ -295,6 +332,11 @@ class AntibioticModelInference:
                 continue
             
             try:
+                # Alias per-antibiotic feature variants to generic names that models expect.
+                # E.g., feature engineering produces prior_resistance_same_abx_within_365d__ampicillin;
+                # for the ampicillin_* model, copy that value into prior_resistance_same_abx_within_365d.
+                self._alias_target_specific_features(feature_df, antibiotic)
+
                 # Backfill missing features with training defaults
                 required = set(self.expected_features.get(antibiotic, []))
                 missing = required - set(feature_df.columns)
