@@ -69,6 +69,9 @@ class PredictRequest(BaseModel):
     include_antibiotics: Optional[bool] = True
     include_prior_resistance: Optional[bool] = True
 
+    # Opt-in flag to persist results to CosmosDB (requires COSMOS_* env vars)
+    write_to_cosmos: Optional[bool] = False
+
     class Config:
         json_schema_extra = {
             "example": {
@@ -272,6 +275,7 @@ def run_inference(
     include_vitals: bool = True,
     include_antibiotics: bool = True,
     include_prior_resistance: bool = True,
+    write_to_cosmos: bool = False,
     log_details: bool = False
 ) -> dict:
     """
@@ -309,44 +313,68 @@ def run_inference(
 
     logger.info(f"Running inference with parameters: {parameters_used}")
 
-    fhir_client = FHIRClient()
+    try:
+        fhir_client = FHIRClient()
 
-    # Fetch patient data
-    patient_data, patient_fhir_id = fhir_client.get_patient(patient_id)
+        # Fetch patient data
+        patient_data, patient_fhir_id = fhir_client.get_patient(patient_id)
 
-    # Fetch procedures with configurable lookback
-    procedures = fhir_client.get_procedures(patient_fhir_id, days_back=procedures_lookback_days)
-    patient_data['procedures'] = procedures
+        # Fetch procedures with configurable lookback
+        procedures = fhir_client.get_procedures(patient_fhir_id, days_back=procedures_lookback_days)
+        patient_data['procedures'] = procedures
 
-    # Generate features with configurable parameters
-    logger.info("Generating features...")
-    fe = FeatureEngineer(
-        patient_data=patient_data,
-        credentials=fhir_client.credentials,
-        api_prefix=fhir_client.api_prefix,
-        client_id=fhir_client.client_id,
-    )
-    feature_df = fe.generate_features(
-        include_vitals=include_vitals,
-        include_labs=True,
-        include_antibiotics=include_antibiotics,
-        include_prior_resistance=include_prior_resistance,
-        vitals_lookback_hours=vitals_lookback_hours,
-        labs_lookback_days=labs_lookback_days,
-        medication_lookback_days=medication_lookback_days,
-        resistance_lookback_days=resistance_lookback_days,
-    )
-    logger.info(f"Generated {len(feature_df.columns)} features")
+        # Generate features with configurable parameters
+        logger.info("Generating features...")
+        fe = FeatureEngineer(
+            patient_data=patient_data,
+            credentials=fhir_client.credentials,
+            api_prefix=fhir_client.api_prefix,
+            client_id=fhir_client.client_id,
+        )
+        feature_df = fe.generate_features(
+            include_vitals=include_vitals,
+            include_labs=True,
+            include_antibiotics=include_antibiotics,
+            include_prior_resistance=include_prior_resistance,
+            vitals_lookback_hours=vitals_lookback_hours,
+            labs_lookback_days=labs_lookback_days,
+            medication_lookback_days=medication_lookback_days,
+            resistance_lookback_days=resistance_lookback_days,
+        )
+        logger.info(f"Generated {len(feature_df.columns)} features")
 
-    # Run model inference
-    logger.info("Running model inference...")
-    model_dir = os.environ.get('MODEL_DIR', os.path.join(_this_dir, "models"))
-    inference = AntibioticModelInference(
-        model_dir=model_dir,
-        culture_type=culture_type,
-        setting=setting,
-    )
-    scores = inference.predict(feature_df)
+        # Run model inference
+        logger.info("Running model inference...")
+        model_dir = os.environ.get('MODEL_DIR', os.path.join(_aim2_dir, "stanford_models"))
+        inference = AntibioticModelInference(
+            model_dir=model_dir,
+            culture_type=culture_type,
+            setting=setting,
+        )
+        scores = inference.predict(feature_df)
+
+    except Exception as e:
+        logger.exception("Inference failed")
+        if write_to_cosmos:
+            try:
+                from cosmos_writer import write_inference_error
+                record_id = write_inference_error(
+                    patient_id=patient_id,
+                    culture_type=culture_type,
+                    setting=setting,
+                    error=e,
+                )
+                logger.info(f"Wrote error to CosmosDB: id={record_id}")
+            except Exception as cosmos_err:
+                logger.exception(f"Failed to write error to CosmosDB: {cosmos_err}")
+        raise
+
+    # Serialize patient_data for persistence: drop non-JSON-serializable keys like 'procedures'
+    # (list of FHIR resources) — keep only identifier/demographic fields.
+    serializable_patient = {
+        k: v for k, v in patient_data.items()
+        if k != 'procedures'
+    }
 
     result = {
         'scores': scores,
@@ -358,6 +386,22 @@ def run_inference(
         },
         'parameters_used': parameters_used,
     }
+
+    # Persist inference result to CosmosDB if requested
+    if write_to_cosmos:
+        try:
+            from cosmos_writer import write_inference_result
+            record_id = write_inference_result(
+                patient_data=serializable_patient,
+                scores=scores,
+                features=result['features'],
+                culture_type=culture_type,
+                setting=setting,
+            )
+            result['cosmos_record_id'] = record_id
+        except Exception as cosmos_err:
+            logger.exception(f"Failed to write inference to CosmosDB: {cosmos_err}")
+            result['cosmos_error'] = str(cosmos_err)
 
     # Log detailed results if requested
     if log_details:
@@ -416,6 +460,7 @@ def predict(request: PredictRequest):
             include_vitals=request.include_vitals,
             include_antibiotics=request.include_antibiotics,
             include_prior_resistance=request.include_prior_resistance,
+            write_to_cosmos=request.write_to_cosmos,
             log_details=True
         )
         return PredictResponse(
@@ -459,6 +504,7 @@ def predict_with_details(request: PredictRequest):
             include_vitals=request.include_vitals,
             include_antibiotics=request.include_antibiotics,
             include_prior_resistance=request.include_prior_resistance,
+            write_to_cosmos=request.write_to_cosmos,
             log_details=True
         )
         return PredictDetailsResponse(
