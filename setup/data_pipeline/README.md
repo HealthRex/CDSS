@@ -71,4 +71,4 @@ Historical documentation kept for reference:
 
 ## Questions
 
-Contact [pipeline owner / your name] or post in `#devops`.
+Contact [jonc101@stanford.edu/fnateghi@stanford.edu] or post in `#devops`.
