@@ -29,7 +29,7 @@ Run the per-table conversion SQL from [`../BigQueryDataUpdateGuide.MD`](../BigQu
 
 See [`02_apply_conversions.md`](./02_apply_conversions.md) for how to use the guide.
 
-⚠️ **Do not use auto-detection** to decide which columns to convert. A previous attempt at this misclassified columns like `lab_result.ord_value` (which contains lab result text, not dates) as datetimes, silently destroying data. Always use the explicit per-table column lists from the guide.
+⚠️ **Do not use auto-detection** to decide which columns to convert. 
 
 ### Step 3 — Validate
 
