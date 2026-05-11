@@ -70,4 +70,4 @@ Zero counts on a clinical table indicate a failed build. Reference tables (`zip`
 
 ## Next step
 
-Once all tables are built and row counts look correct, proceed to [Step 2 — Run conversions](./02_run_conversions.py).
+Once all tables are built and row counts look correct, proceed to [Step 2 — Apply conversions](./02_apply_conversions.md).
