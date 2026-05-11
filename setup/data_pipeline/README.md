@@ -25,7 +25,7 @@ Output: `shc_core_YYYY` and `lpch_core_YYYY` populated with raw data.
 
 ### Step 2 — Apply conversions
 
-Run the per-table conversion SQL from [`BigQueryDataUpdateGuide.MD`](./BigQueryDataUpdateGuide.MD). The guide lists, for every table, the exact columns that should be converted from STRING to DATETIME/DATE and the columns that should get a parallel `_utc` version.
+Run the per-table conversion SQL from [`../BigQueryDataUpdateGuide.MD`](../BigQueryDataUpdateGuide.MD). The guide lists, for every table, the exact columns that should be converted from STRING to DATETIME/DATE and the columns that should get a parallel `_utc` version.
 
 See [`02_apply_conversions.md`](./02_apply_conversions.md) for how to use the guide.
 
@@ -61,13 +61,14 @@ Once validation passes:
 
 Before running the conversion in Step 2, always back up the freshly-built yearly datasets. Create `copy_shc_core_YYYY` and `copy_lpch_core_YYYY` datasets first, then copy each table. Keep backups for at least 2 weeks after announcing the new datasets. Drop them only after validation passes and no researchers have flagged issues.
 
-## What's in `archive/`
+## Related files in `setup/`
 
-Historical documentation kept for reference:
+The following files in the parent `setup/` folder are part of the annual data pipeline workflow:
 
-- `shc_lpch_conversions.md` — Original notes describing the rationale for the conversion process.
-- `new_SHCdata_Organize_DateTime.ipynb` — Original notebook used for the 2024 update.
-- `lpch_conversion.py` — Original auto-detection script. **Do not use for new updates.** Kept only as a historical artifact. Auto-detection of which STRING columns are "dates" produces silent bugs on columns like `lab_result.ord_value` where some values coincidentally parse as dates.
+- [`../BigQueryDataUpdateGuide.MD`](../BigQueryDataUpdateGuide.MD) — Per-table conversion SQL. The authoritative reference for Step 2.
+- `../shc_lpch_conversions.md` — Original notes describing the rationale for the conversion process.
+- `../new_SHCdata_Organize_DateTime.ipynb` — Original notebook used for past annual updates.
+- `../lpch_conversion.py` — Original auto-detection script. **Do not use for new updates.** Auto-detection of which STRING columns are "dates" produces silent bugs on columns like `lab_result.ord_value` where some values coincidentally parse as dates. Kept only as a historical artifact.
 
 ## Future work
 
@@ -75,5 +76,4 @@ Historical documentation kept for reference:
 - **Schema drift handling.** Each year, source schemas may change (new columns, renamed tables). The current process surfaces these as errors during conversion; a more robust pipeline would detect drift up front and flag it for human review.
 
 ## Questions
-
 Contact [jonc101@stanford.edu/fnateghi@stanford.edu] or post in `#devops`.
