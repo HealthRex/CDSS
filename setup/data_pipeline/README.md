@@ -55,4 +55,4 @@ These are historical references, not the current procedure:
 
 ## Questions
 
-Contact [pipeline owner / your name] or post in `#devops`.
+Contact [fnateghi@stanford.edu/jonc101@stanford.edu] or post in `#devops`.
