@@ -54,4 +54,5 @@ These are historical references, not the current procedure:
 - `../lpch_conversion.py` — Auto-detection script. **Do not use.** Kept for historical reference only.
 
 ## Questions
-Contact [jonc101@stanford.edu/fnateghi@stanford.edu] or post in `#devops`.
+
+Contact [pipeline owner / your name] or post in `#devops`.
