@@ -1,0 +1,67 @@
+# Table and Column Mappings for UTI Phenotyping
+# This file documents the mapping logic from CSV to BigQuery
+
+# =============================================================================
+# Input CSV Structure
+# =============================================================================
+input_csv:
+  columns:
+    mrn: "mrn"
+    order_time: "Urine Culture_Order Date & Time"
+    note_time: "Note Date/Time"
+
+# =============================================================================
+# Mapping Pipeline
+# =============================================================================
+
+# Step 1: MRN to anon_id mapping
+mrn_mapping:
+  table: "som-nero-phi-jonc101-secure.starr_map.shc_map_2025-07-17"
+  query: |
+    SELECT mrn, anon_id, jitter 
+    FROM `som-nero-phi-jonc101-secure.starr_map.shc_map_2025-07-17` 
+    WHERE mrn = @mrn
+  output:
+    - mrn
+    - anon_id
+    - jitter  # jitter value in days for time de-jittering
+
+# Step 2: UTI Cohort data
+cohort_data:
+  table: "som-nero-phi-jonc101.uti_prediction.cohort"
+  query: |
+    SELECT * 
+    FROM `som-nero-phi-jonc101.uti_prediction.cohort` 
+    WHERE anon_id = @anon_id
+  notes: "May return multiple rows per patient"
+
+# Step 3: Lab results (to union with cohort)
+lab_results:
+  table: "som-nero-phi-jonc101.shc_core_2024.lab_result"
+  query: |
+    SELECT DISTINCT anon_id, order_time_jittered_utc, taken_time_jittered 
+    FROM `som-nero-phi-jonc101.shc_core_2024.lab_result` 
+    WHERE anon_id = @anon_id
+  time_filter:
+    column: "taken_time_jittered"
+    logic: "taken_time_jittered - jitter = input Urine Culture_Order Date & Time"
+
+# Step 4: Clinical notes
+notes_data:
+  table: "som-nero-phi-jonc101.uti_prediction.notes"
+  query: |
+    SELECT * 
+    FROM `som-nero-phi-jonc101.uti_prediction.notes` 
+    WHERE anon_id = @anon_id
+  time_filter:
+    column: "notedatetime_utc"  # adjust if column name differs
+    logic: "notedatetime_utc - jitter = input Note Date/Time"
+
+# =============================================================================
+# Output: Curated Dataset
+# =============================================================================
+output:
+  description: "Concatenation of cohort rows and notes for each patient"
+  files:
+    - mapping_summary.csv    # Summary of MRN to anon_id mappings
+    - curated_dataset.csv    # Combined cohort + notes data

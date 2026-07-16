@@ -1,0 +1,16 @@
+google-cloud-bigquery>=3.0.0
+pandas>=1.5.0
+pyarrow>=10.0.0
+db-dtypes>=1.0.0
+pyyaml>=6.0
+python-dotenv>=1.0.0
+requests>=2.28.0
+numpy>=1.23.0
+scikit-learn>=1.0.0
+scipy>=1.9.0
+matplotlib>=3.6.0
+
+# Vertex AI LLM SDKs (PHI-safe; auth via gcloud ADC, no API keys)
+google-genai>=1.0.0
+anthropic[vertex]>=0.39.0
+openai>=1.30.0

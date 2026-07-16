@@ -1,0 +1,27 @@
+# ─────────────────────────────────────────────────────────────
+# Self-contained ignores for the UTI phenotyping project. These hold even when the
+# parent repo's root .gitignore differs (e.g. when this folder lives in the lab repo).
+# Commit CODE, never DATA or PHI.
+# ─────────────────────────────────────────────────────────────
+
+# Data / PHI (any depth) — never commit
+data/
+*.csv
+*.jsonl
+*.parquet
+*.npz
+*.env
+*.html
+*.pkl
+
+# Virtual environment (machine-specific, ~744 MB)
+uti_phenotyping_env/
+
+# Run logs — may contain prompts/notes (PHI)
+logs/
+
+# OS / editor cruft & caches
+.DS_Store
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
