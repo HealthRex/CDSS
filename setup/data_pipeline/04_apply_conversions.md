@@ -1,48 +1,43 @@
 # Step 4 — Apply Conversions
 
-The yearly datasets now have raw data with DATETIME/DATE columns already correctly typed (the secure project delivers proper types now). The only transformation needed is **adding parallel `_utc` columns** for every DATETIME column. Source times are in `America/Los_Angeles`; `_utc` columns let researchers do timezone-correct analysis.
+Two transformations after the raw build:
 
-## Why this approach
+1. **Add `_utc` columns** for every DATETIME column (source times are `America/Los_Angeles`)
+2. **Extract numerical values** from `flowsheet.meas_value` into FLOAT64 columns
 
-Previous versions of this pipeline used auto-detection — a Python script that inspected each STRING column, flagged any with at least one date-parseable value as a "datetime" column, and converted it. This was unsafe: columns like `lab_result.ord_value` (containing values like `"5.2"`, `"negative"`, `"<0.1"`) had some values that coincidentally parsed as dates, so the whole column got reformatted, silently destroying the text data.
+⚠️ Both use `CREATE OR REPLACE TABLE`. [Step 3 backup](./03_backup.md) must be done first.
 
-The correct approach is to **use last year's schema as the source of truth**. Last year's `shc_core_YYYY-1` has been in production for a year and is known-good. Every column that was DATETIME in last year's schema should be DATETIME in this year's. Every column with a `_utc` version in last year's schema needs the same `_utc` in this year's.
+## Why explicit column lists, never auto-detection
 
-## 1. Derive the column list from last year's schema
+The column lists below were derived by querying `INFORMATION_SCHEMA.COLUMNS` on the previous known-good dataset. **Never auto-detect which STRING columns are dates.**
 
-Run this against last year's dataset to see exactly which columns need conversion:
+A previous version of this pipeline used a script that flagged any STRING column with at least one date-parseable value as a datetime column, then converted it. `lab_result.ord_value` holds lab result text (`"5.2"`, `"negative"`, `"<0.1"`), a few of which parse as dates — so the whole column was converted to DATETIME and the text was destroyed. The same bug hit `lpch_allergy.reaction`, `lpch_flowsheet.meas_value`, and `lpch_order_comment.ordering_comment` in the 2024 build.
 
-```sql
-SELECT table_name, column_name, data_type
-FROM `som-nero-phi-jonc101.shc_core_2024.INFORMATION_SCHEMA.COLUMNS`
-WHERE data_type IN ('DATETIME', 'DATE', 'TIMESTAMP')
-ORDER BY table_name, ordinal_position;
-```
+## Deriving the column list for a new year
 
-The DATETIME entries are what to convert. The TIMESTAMP entries (already `_utc` columns from last year) tell you which `_utc` columns to recreate. DATE columns don't need `_utc` versions.
-
-Same for LPCH using `lpch_core_2024`.
-
-## 2. Confirm current state of this year's dataset
+If a table's schema has changed or you're starting a new yearly dataset:
 
 ```sql
 SELECT table_name, column_name, data_type
 FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.COLUMNS`
 WHERE data_type IN ('DATETIME', 'DATE', 'TIMESTAMP')
-   OR column_name LIKE '%date%'
-   OR column_name LIKE '%time%'
 ORDER BY table_name, ordinal_position;
 ```
 
-The DATETIME/DATE columns should match last year's. If anything is STRING that should be a datetime, the secure project may have regressed — investigate before proceeding.
+DATETIME columns need `_utc`. DATE columns do not (no time component). Existing TIMESTAMP columns are already-created `_utc` columns.
 
-## 3. Apply SHC conversions
+Also confirm nothing regressed to STRING:
 
 ```sql
--- ============================================================
--- shc_core_2025 — Add _utc columns to existing DATETIME columns
--- ============================================================
+SELECT table_name, column_name, data_type
+FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.COLUMNS`
+WHERE column_name LIKE '%date%' OR column_name LIKE '%time%'
+ORDER BY table_name, ordinal_position;
+```
 
+## 1. SHC `_utc` conversions
+
+```sql
 -- adt
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.adt` AS
 SELECT *,
@@ -75,6 +70,12 @@ CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.allergy` AS
 SELECT *,
   TIMESTAMP(date_noted_jittered, "America/Los_Angeles") AS date_noted_jittered_utc
 FROM `som-nero-phi-jonc101.shc_core_2025.allergy`;
+
+-- alt_com_action (added Aug 2026)
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.alt_com_action` AS
+SELECT *,
+  TIMESTAMP(contact_date_jittered, "America/Los_Angeles") AS contact_date_jittered_utc
+FROM `som-nero-phi-jonc101.shc_core_2025.alt_com_action`;
 
 -- clinical_doc_meta
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.clinical_doc_meta` AS
@@ -194,6 +195,12 @@ SELECT *,
   TIMESTAMP(last_stand_perf_tm_jittered, "America/Los_Angeles") AS last_stand_perf_tm_jittered_utc
 FROM `som-nero-phi-jonc101.shc_core_2025.order_proc`;
 
+-- order_quest (added Aug 2026)
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.order_quest` AS
+SELECT *,
+  TIMESTAMP(ord_quest_date_jittered, "America/Los_Angeles") AS ord_quest_date_jittered_utc
+FROM `som-nero-phi-jonc101.shc_core_2025.order_quest`;
+
 -- pharmacy_mar
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.pharmacy_mar` AS
 SELECT *,
@@ -209,7 +216,9 @@ SELECT *,
   TIMESTAMP(adm_date_time_jittered, "America/Los_Angeles") AS adm_date_time_jittered_utc
 FROM `som-nero-phi-jonc101.shc_core_2025.procedure`;
 
--- smrtdta: DATETIME but no UTC in 2024 schema — skip
+-- smrtdta: has cur_value_datetime_jittered (DATETIME) but no _utc in the
+-- established SHC convention — skip. (LPCH does have one; the asymmetry is
+-- inherited from 2024 and preserved deliberately.)
 
 -- social_hx: all DATE columns, no UTC needed — skip
 
@@ -221,13 +230,9 @@ SELECT *,
 FROM `som-nero-phi-jonc101.shc_core_2025.treatment_team`;
 ```
 
-## 4. Apply LPCH conversions
+## 2. LPCH `_utc` conversions
 
 ```sql
--- ============================================================
--- lpch_core_2025 — Add _utc columns to existing DATETIME columns
--- ============================================================
-
 -- lpch_adt
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.lpch_adt` AS
 SELECT *,
@@ -261,7 +266,7 @@ SELECT *,
   TIMESTAMP(date_noted_jittered, "America/Los_Angeles") AS date_noted_jittered_utc
 FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_allergy`;
 
--- lpch_alt_com_action (NEW table in 2025)
+-- lpch_alt_com_action
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.lpch_alt_com_action` AS
 SELECT *,
   TIMESTAMP(contact_date_jittered, "America/Los_Angeles") AS contact_date_jittered_utc
@@ -385,7 +390,7 @@ SELECT *,
   TIMESTAMP(last_stand_perf_tm_jittered, "America/Los_Angeles") AS last_stand_perf_tm_jittered_utc
 FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_order_proc`;
 
--- lpch_order_quest (NEW table in 2025)
+-- lpch_order_quest
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.lpch_order_quest` AS
 SELECT *,
   TIMESTAMP(ord_quest_date_jittered, "America/Los_Angeles") AS ord_quest_date_jittered_utc
@@ -406,7 +411,7 @@ SELECT *,
   TIMESTAMP(adm_date_time_jittered, "America/Los_Angeles") AS adm_date_time_jittered_utc
 FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_procedure`;
 
--- lpch_smrtdta
+-- lpch_smrtdta (LPCH does get a _utc here, unlike SHC — inherited from 2024)
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.lpch_smrtdta` AS
 SELECT *,
   TIMESTAMP(cur_value_datetime_jittered, "America/Los_Angeles") AS cur_value_datetime_jittered_utc
@@ -422,23 +427,24 @@ SELECT *,
 FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_treatment_team`;
 ```
 
-## 5. Extract numerical values from `flowsheet.meas_value`
+## 3. Flowsheet numerical extraction
 
-The `flowsheet` table has a STRING column called `meas_value` that holds whatever was recorded during a measurement. Because it's text, the values can be many different things:
+`flowsheet.meas_value` is a STRING holding whatever was recorded — a number (`"98.6"`), a blood pressure (`"120/80"`), a range (`"100-120"`), a value with units (`"5.2 mEq/L"`), or plain text (`"refused"`, `"unable to obtain"`).
 
-- A simple number: `"98.6"` (temperature)
-- A blood pressure reading: `"120/80"` (two numbers in one cell)
-- A range: `"100-120"`
-- A value with units in the text: `"5.2 mEq/L"`
-- Non-numeric text: `"refused"`, `"unable to obtain"`, `"see comment"`
+Because it's STRING, researchers can't aggregate or filter numerically on it. This step extracts every number found and pivots them into four FLOAT64 columns. `"120/80"` → `numerical_val_1 = 120`, `numerical_val_2 = 80`. Text-only values produce all NULLs. **`meas_value` itself is preserved unchanged.**
 
-Because `meas_value` is STRING, researchers can't do math on it directly (no `AVG`, no `WHERE meas_value > 100`, no use as a feature in ML models). To make the numeric content usable, we extract every number found in `meas_value` and pivot the results into four parallel FLOAT64 columns: `numerical_val_1`, `numerical_val_2`, `numerical_val_3`, `numerical_val_4`.
+⚠️ **This step gets wiped by every rebuild.** Easy to forget — it's the last thing in the pipeline.
 
-A blood pressure value of `"120/80"` becomes `numerical_val_1 = 120`, `numerical_val_2 = 80`. A temperature of `"98.6"` becomes `numerical_val_1 = 98.6`. Text like `"refused"` produces all NULLs.
+First confirm the column list still matches (a refresh could add columns, and the explicit list would silently drop them):
 
-The original `meas_value` column is preserved unchanged — nothing is lost.
+```sql
+SELECT column_name, data_type
+FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.COLUMNS`
+WHERE table_name = 'flowsheet'
+ORDER BY ordinal_position;
+```
 
-### SHC flowsheet extraction
+### SHC
 
 ```sql
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.flowsheet` AS
@@ -462,7 +468,7 @@ SELECT * FROM (
 PIVOT (MIN(num) AS numerical_val FOR offset IN (1, 2, 3, 4));
 ```
 
-### LPCH flowsheet extraction
+### LPCH
 
 ```sql
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.lpch_flowsheet` AS
@@ -486,55 +492,31 @@ SELECT * FROM (
 PIVOT (MIN(num) AS numerical_val FOR offset IN (1, 2, 3, 4));
 ```
 
-### Important details to get right
+### Details that matter
 
-These details matter — getting any wrong will produce silently bad output:
-
-- **List columns explicitly, not `SELECT A.*`.** The pivot needs an unambiguous grouping. If you use `SELECT A.*`, columns added by future schema changes can break the pivot grouping and inflate row counts. Always enumerate the columns.
-- **Use `SAFE_CAST(num AS FLOAT64)`.** `REGEXP_EXTRACT_ALL` returns STRING. Without the cast, the resulting `numerical_val_*` columns are STRING — which defeats the purpose. `SAFE_CAST` returns NULL on failure (e.g., on `"."` alone) rather than erroring.
-- **The pivot's `IN (1, 2, 3, 4)`** caps extraction at the first 4 numbers found. This covers virtually all real measurements; values with more than 4 numbers (extremely rare) get truncated.
-
-### Verify row count is unchanged
-
-The extraction rewrites columns, not rows. Row count should match the source exactly. Confirm:
-
-```sql
-SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.flowsheet`;
--- Should match the row count from the backup: copy_shc_core_2025.flowsheet
-```
-
-If the count is wildly different (e.g., 10× larger), the pivot grouping is broken — restore from backup and check the column list in the inner SELECT.
-
-### Verify column types
-
-```sql
-SELECT column_name, data_type
-FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.COLUMNS`
-WHERE table_name = 'flowsheet'
-  AND column_name LIKE '%numerical_val%';
-```
-
-All four `numerical_val_*` columns should be `FLOAT64`. If they're `STRING`, you forgot the `SAFE_CAST`.
+- **List columns explicitly, never `SELECT A.*`.** The pivot needs an unambiguous grouping; `A.*` can break it.
+- **Use `SAFE_CAST(num AS FLOAT64)`.** `REGEXP_EXTRACT_ALL` returns STRING. Without the cast the columns come out as STRING, defeating the purpose. `SAFE_CAST` returns NULL on failure rather than erroring.
+- **`IN (1, 2, 3, 4)`** caps at the first 4 numbers. Covers essentially all real measurements.
 
 ### Known caveats
 
-- **Date-shaped values get split into 3 numbers.** A `meas_value` of `"05/04/2022"` becomes `numerical_val_1 = 5`, `numerical_val_2 = 4`, `numerical_val_3 = 2022`. Dates shouldn't normally appear in measurement fields, but if they do, this is what happens. Researchers can filter by `row_disp_name` to scope to known numeric measurement types (temperature, BP, etc.) and avoid this.
-- **Extreme values may overflow FLOAT64.** Some `meas_value` strings contain very long digit sequences (often malformed IDs or test data) that exceed FLOAT64's range, producing `Infinity` or `-Infinity`. To filter these out: `WHERE numerical_val_1 BETWEEN -1e10 AND 1e10` or similar.
-- **The `flowsheet` table is huge** (several billion rows). These queries take 10–30 minutes each. Run when you have time.
+- **Date-shaped values split into 3 numbers.** `"05/04/2022"` → `5`, `4`, `2022`. Researchers should filter by `row_disp_name` to scope to known numeric measurement types.
+- **Extreme values can overflow FLOAT64**, producing `Infinity`. Filter with `WHERE numerical_val_1 BETWEEN -1e10 AND 1e10` if needed.
+- **flowsheet is the largest table in the dataset** (7.5B rows SHC, 2.9B LPCH as of Aug 2026). These queries take 10–30 minutes.
 
-## What if a STRING column needs parsing?
+## What if a column regresses to STRING?
 
-If a future year's secure data delivers STRING columns where the previous year had DATETIME (regression), use this pattern instead of plain `TIMESTAMP(col, ...)`:
+If a future refresh delivers STRING where DATETIME is expected:
 
 ```sql
-CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_YYYY.<table>` AS
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.<table>` AS
 SELECT * EXCEPT(<col>),
   PARSE_DATETIME('%Y-%m-%d %H:%M:%S', NULLIF(<col>, '')) AS <col>,
   TIMESTAMP(NULLIF(<col>, ''), "America/Los_Angeles") AS <col>_utc
-FROM `som-nero-phi-jonc101.shc_core_YYYY.<table>`;
+FROM `som-nero-phi-jonc101.shc_core_2025.<table>`;
 ```
 
-Use `NULLIF(col, '')` rather than `CASE WHEN col <> '' THEN col ELSE NULL END` — BigQuery handles the typing correctly with `NULLIF`.
+Use `NULLIF(col, '')`, not `CASE WHEN col <> '' THEN col ELSE NULL END` — BigQuery's type inference handles `NULLIF` correctly and errors on the `CASE` form.
 
 ## Next step
 

@@ -1,27 +1,53 @@
 # Step 3 — Backup Before Transforming
 
-The conversion in Step 4 uses `CREATE OR REPLACE TABLE` which overwrites tables. **The `copy_*` backup datasets are the only rollback path** if anything goes wrong. Don't skip this step.
+⚠️ **This is a mandatory gate.** Both the build (Step 2) and the conversions (Step 4) use `CREATE OR REPLACE TABLE`, which overwrites with no rollback. The `copy_*` datasets are the only recovery path beyond BigQuery's 7-day time travel.
 
-BigQuery's 7-day time-travel can recover from accidents but is awkward to use, and the window expires quickly. An explicit backup dataset is cleaner and lasts as long as you want.
+In May 2026 this step was skipped and a conversion bug destroyed text columns with no way back — the datasets had to be rebuilt from source. Don't skip it.
 
-## 1. Create backup datasets
+## When to run this
 
-In the BigQuery console, in `som-nero-phi-jonc101`, create two empty datasets:
+**For a mid-year refresh into an existing dataset:** back up *before* Step 2, since the build itself overwrites live tables.
 
-- `copy_shc_core_YYYY` (e.g., `copy_shc_core_2025`)
-- `copy_lpch_core_YYYY` (e.g., `copy_lpch_core_2025`)
+**For a brand-new yearly dataset:** back up after Step 2, before Step 4. There's nothing to lose until the raw build is done.
 
-Set location to `US`.
+## 1. Delete stale backups
 
-## 2. Copy every table to backup
+If `copy_*` datasets exist from a previous refresh, they hold outdated data and will be misleading. Drop them first.
 
 ```sql
--- Backup SHC
+SELECT schema_name, creation_time
+FROM `som-nero-phi-jonc101.INFORMATION_SCHEMA.SCHEMATA`
+WHERE schema_name LIKE 'copy_%';
+```
+
+```sql
+DROP SCHEMA IF EXISTS `som-nero-phi-jonc101.copy_shc_core_2025` CASCADE;
+DROP SCHEMA IF EXISTS `som-nero-phi-jonc101.copy_lpch_core_2025` CASCADE;
+```
+
+## 2. Create empty backup datasets
+
+```sql
+CREATE SCHEMA IF NOT EXISTS `som-nero-phi-jonc101.copy_shc_core_2025`
+OPTIONS (location = 'US');
+
+CREATE SCHEMA IF NOT EXISTS `som-nero-phi-jonc101.copy_lpch_core_2025`
+OPTIONS (location = 'US');
+```
+
+## 3. Copy tables
+
+Note: this list reflects the Aug 2026 table set. If the current dataset has tables not listed here, add them — a missing backup table means no rollback for that table.
+
+### SHC
+
+```sql
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.adt` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.adt`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.alert` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.alert`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.alert_history` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.alert_history`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.alerts_orders` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.alerts_orders`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.allergy` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.allergy`;
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.alt_com_action` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.alt_com_action`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.clinical_doc_meta` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.clinical_doc_meta`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.culture_sensitivity` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.culture_sensitivity`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.demographic` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.demographic`;
@@ -43,6 +69,7 @@ CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.new_pats` AS SE
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.order_comment` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.order_comment`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.order_med` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.order_med`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.order_proc` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.order_proc`;
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.order_quest` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.order_quest`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.pharmacy_mar` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.pharmacy_mar`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.proc_orderset` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.proc_orderset`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.procedure` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.procedure`;
@@ -51,8 +78,11 @@ CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.smrtdta` AS SEL
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.social_hx` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.social_hx`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.treatment_team` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.treatment_team`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_shc_core_2025.zip` AS SELECT * FROM `som-nero-phi-jonc101.shc_core_2025.zip`;
+```
 
--- Backup LPCH
+### LPCH
+
+```sql
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_lpch_core_2025.lpch_adt` AS SELECT * FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_adt`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_lpch_core_2025.lpch_alert` AS SELECT * FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_alert`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_lpch_core_2025.lpch_alert_history` AS SELECT * FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_alert_history`;
@@ -92,19 +122,32 @@ CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_lpch_core_2025.mom_baby` AS S
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.copy_lpch_core_2025.prov_map` AS SELECT * FROM `som-nero-phi-jonc101.lpch_core_2025.prov_map`;
 ```
 
-## 3. Verify backup counts
+## 4. Verify — mandatory gate
 
 ```sql
-SELECT COUNT(*) AS table_count
-FROM `som-nero-phi-jonc101.copy_shc_core_2025.INFORMATION_SCHEMA.TABLES`;
--- Should equal the table count in shc_core_2025 (34 in 2025)
-
-SELECT COUNT(*) AS table_count
-FROM `som-nero-phi-jonc101.copy_lpch_core_2025.INFORMATION_SCHEMA.TABLES`;
--- Should equal the table count in lpch_core_2025 (37 in 2025)
+SELECT COUNT(*) AS n FROM `som-nero-phi-jonc101.copy_shc_core_2025.INFORMATION_SCHEMA.TABLES`;
+SELECT COUNT(*) AS n FROM `som-nero-phi-jonc101.copy_lpch_core_2025.INFORMATION_SCHEMA.TABLES`;
 ```
 
-**Do not proceed to Step 4 until backup counts match.** If a backup table is missing, the next step would overwrite the original with no recovery.
+Compare against the source dataset counts:
+
+```sql
+SELECT COUNT(*) AS n FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.TABLES`;
+SELECT COUNT(*) AS n FROM `som-nero-phi-jonc101.lpch_core_2025.INFORMATION_SCHEMA.TABLES`;
+```
+
+**Counts must match. Do not proceed until they do.** As of Aug 2026: SHC 36, LPCH 37.
+
+## Restoring from backup
+
+Single table:
+
+```sql
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.<table>` AS
+SELECT * FROM `som-nero-phi-jonc101.copy_shc_core_2025.<table>`;
+```
+
+Note that restoring puts the table back to its pre-conversion state — you'll need to re-run the Step 4 conversions (including flowsheet extraction) for that table.
 
 ## Next step
 

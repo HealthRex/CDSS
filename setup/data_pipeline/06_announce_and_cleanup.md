@@ -1,50 +1,60 @@
 # Step 6 — Announce & Clean Up
 
-Final step. Get the new data in front of researchers and tidy up.
-
 ## 1. Slack announcement
 
-Post to `#general` first, then `#devops`. Slack uses single asterisks for bold (not double — `*bold*` not `**bold**`), and triple backticks for code blocks.
+Post to `#general`, then `#devops`. Slack uses single asterisks for bold (`*bold*`, not `**bold**`).
 
-### #general (researcher-friendly)
+Lead with anything that could break existing queries — changed column values, big size changes, removed tables. Those matter more to researchers than the fact that a refresh happened.
 
-```
-📢 STAAR Data Update — YYYY data is live
-
-1. The YYYY data is now available in `som-nero-phi-jonc101`:
-   • shc_core_YYYY (adult)
-   • lpch_core_YYYY (pediatric)
-
-Datetime conversions and _utc columns have been applied per the standard process.
-shc_core_YYYY-1 and lpch_core_YYYY-1 are unchanged and still available for reproducibility.
-
-Note: a few new tables this year in LPCH: lpch_alt_com_action, lpch_mapped_meds,
-lpch_order_quest, mom_baby.
-
-Open to recommendations on the cleanup process, naming conventions, or how we should
-handle this going forward — drop thoughts here.
-```
-
-### #devops (more technical)
+Template, from the Aug 2026 refresh:
 
 ```
-STAAR data refresh — som-nero-phi-jonc101
+STAAR data refresh — shc_core_2025 / lpch_core_2025 updated
 
-shc_core_YYYY and lpch_core_YYYY are live. _utc columns added per the standard pipeline.
-Backups in copy_shc_core_YYYY / copy_lpch_core_YYYY (will drop in ~2 weeks once validated).
+Loaded the FY26 refresh #2 (Clarity data cut: Aug 9, 2026). Both datasets are validated and live.
 
-New tables in lpch_core_YYYY not present in YYYY-1: lpch_alt_com_action, lpch_mapped_meds,
-lpch_order_quest, mom_baby. Excluded from transfer: lpch_myc_mesg (stays in secure project).
+What's new:
+• ~3-5% more data across clinical tables
+• SmartData is now unfiltered — smrtdta went 6.2M → 479.6M rows (SHC) and 0 → 102.5M (LPCH). Heads up if you query it without a concept_id filter, you'll scan a lot more than before.
+• data_source for LPCH tables is fixed — was incorrectly "CLARITY SHC", now "CLARITY_LPCH". Update any queries filtering on that string.
+• New SHC tables: alt_com_action, order_quest
 
-Production datasets untouched: shc_core_*, lpch_core_*, shc_access_log, wui_omop*,
-starr_datalake2018.
+Still pending: deid notes (data team expects end of month).
+
+Backups in copy_shc_core_2025 / copy_lpch_core_2025 for ~2 weeks. Flag anything that looks off.
 ```
 
-## 2. Optional: cleanup announcement for old datasets
+Worth calling out explicitly when relevant:
 
-If you're also retiring old personal/project datasets (recommended every couple of years), post a separate message after the data update has settled (~1 week later). Include the list of datasets scheduled for deletion and a deadline (typically 2 weeks).
+- **Column value changes** — anything that breaks a `WHERE` clause
+- **Large table size changes** — researchers pay for what they scan
+- **New or removed tables**
+- **Anything still pending** from the data team
 
-Run this to find candidate datasets — anything not modified in 3+ years:
+## 2. Update the changelog
+
+Add an entry to [`CHANGELOG.md`](./CHANGELOG.md) while it's fresh: data cut date, what the data team changed, tables added/excluded, growth numbers, and any open questions. This is what makes the next refresh faster.
+
+## 3. Reply to the data team
+
+Confirm the load worked and close any open questions from their delivery email. If they asked something the lab didn't answer (like the SmartData element IDs in Aug 2026), say who's following up and by when — otherwise they'll make the decision for you next time.
+
+## 4. Drop backups
+
+Wait 1–2 weeks after announcing. If nobody has reported problems:
+
+```sql
+DROP SCHEMA `som-nero-phi-jonc101.copy_shc_core_2025` CASCADE;
+DROP SCHEMA `som-nero-phi-jonc101.copy_lpch_core_2025` CASCADE;
+```
+
+With refreshes every 4–6 weeks, don't let this slip — stale backups get confusing, and Step 3 drops them anyway at the start of the next run.
+
+## Periodic: old dataset cleanup
+
+Not part of every refresh. Worth doing every year or two.
+
+Find datasets untouched for 3+ years:
 
 ```sql
 SELECT
@@ -57,35 +67,27 @@ WHERE DATE(last_modified_time) < DATE_SUB(CURRENT_DATE(), INTERVAL 3 YEAR)
 ORDER BY last_modified_time;
 ```
 
-Manually filter the result before announcing:
+Then:
 
-- **Exclude from cleanup:** `shc_core_*`, `lpch_core_*`, `shc_access_log`, `wui_omop*`, `starr_datalake2018`, `wui_datalake`, and anything else in active research use
-- **Get PI sign-off** on the filtered list before posting
-- **Allow 2 weeks** for people to claim datasets they still want
-- **Document deletions** somewhere (Notion page or markdown file) so you have a record
-
-## 3. Drop backups after validation
-
-Wait at least 1–2 weeks after announcing the new data. If no researchers have flagged issues:
+1. **Filter manually.** Exclude `shc_core_*`, `lpch_core_*`, `shc_access_log`, `wui_omop*`, `starr_datalake2018`, `wui_datalake`, and anything in active use. Dataset `last_modified_time` reflects metadata changes, not queries — a dataset can look stale while being actively read.
+2. **Get PI sign-off** on the filtered list.
+3. **Announce** in `#general` and `#devops` with a 2-week claim window.
+4. **Delete** unclaimed datasets after the deadline:
 
 ```sql
-DROP SCHEMA `som-nero-phi-jonc101.copy_shc_core_YYYY` CASCADE;
-DROP SCHEMA `som-nero-phi-jonc101.copy_lpch_core_YYYY` CASCADE;
+DROP SCHEMA IF EXISTS `som-nero-phi-jonc101.<dataset>` CASCADE;
 ```
 
-BigQuery's 7-day time-travel provides an additional fallback even after dropping backups.
+You may lack owner permission on datasets you didn't create — those need the project admin.
 
-## 4. Document this year's update
+5. **Record what was deleted** (date, list, who claimed what) so there's an answer if someone asks months later.
 
-Before closing out, note any changes for next year's run:
+## Onboarding note for new GCP users
 
-- New tables added or removed compared to last year
-- Any schema drift you had to work around
-- Any tables in the source that aren't in this year's dataset (and why)
-- Any tables in this year's dataset carried forward from the prior year (like `zip`)
+Worth sending when someone gets project access:
 
-Add these notes to the README or as a CHANGELOG entry in this folder. Next year's runner will thank you.
+> Welcome to the lab's GCP project (som-nero-phi-jonc101)! Quick housekeeping note: please create your own dataset (e.g., yourname_db) for any tables you generate or extract, and avoid modifying or deleting anything outside of it — the shc_core_* and lpch_core_* datasets in particular are shared production data.
+>
+> Let me know if you have any questions getting set up!
 
-## You're done
-
-The annual update is complete. Researchers can use the new `shc_core_YYYY` and `lpch_core_YYYY` datasets immediately.
+Anything involving clinical notes or identifiers belongs in `som-nero-phi-jonc101-secure`, not the working project.

@@ -1,38 +1,80 @@
 # Step 5 — Validate
 
-After Step 4, run these checks before announcing the dataset to the lab. Replace `YYYY` with the year you're processing.
+Run all seven checks before announcing. Each has caught a real problem at least once.
 
-## Check 1 — `_utc` columns exist
+## Check 1 — PHI hasn't leaked into the working project
+
+Most important check. Run it first.
+
+```sql
+SELECT table_name
+FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.TABLES`
+WHERE table_name IN ('patients', 'myc_mesg', 'lpch_geolocation_from_omop', 'lpch_prov_map');
+```
+
+```sql
+SELECT table_name
+FROM `som-nero-phi-jonc101.lpch_core_2025.INFORMATION_SCHEMA.TABLES`
+WHERE table_name IN ('lpch_myc_mesg', 'shc_lpch_prov_map');
+```
+
+Both should return **zero rows**. If a table appears, drop it and check the build SQL.
+
+Also scan for identifier columns anywhere in either dataset:
+
+```sql
+SELECT table_name, column_name
+FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.COLUMNS`
+WHERE LOWER(column_name) IN ('mrn', 'ssn', 'patient_name', 'address', 'phone')
+UNION ALL
+SELECT table_name, column_name
+FROM `som-nero-phi-jonc101.lpch_core_2025.INFORMATION_SCHEMA.COLUMNS`
+WHERE LOWER(column_name) IN ('mrn', 'ssn', 'patient_name', 'address', 'phone');
+```
+
+Zero rows expected. Anything here is a compliance issue — raise it with the PI immediately rather than quietly dropping the table.
+
+## Check 2 — `_utc` columns present
+
+```sql
+SELECT COUNT(*) AS utc_columns
+FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.COLUMNS`
+WHERE column_name LIKE '%_utc';
+
+SELECT COUNT(*) AS utc_columns
+FROM `som-nero-phi-jonc101.lpch_core_2025.INFORMATION_SCHEMA.COLUMNS`
+WHERE column_name LIKE '%_utc';
+```
+
+**As of Aug 2026: SHC 68, LPCH 69.** If a refresh adds tables with datetime columns, expect the count to rise by that many. A count that *drops* means a conversion was skipped.
+
+To see which table is missing one:
 
 ```sql
 SELECT table_name, column_name, data_type
-FROM `som-nero-phi-jonc101.shc_core_YYYY.INFORMATION_SCHEMA.COLUMNS`
+FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.COLUMNS`
 WHERE column_name LIKE '%_utc'
 ORDER BY table_name, column_name;
 ```
 
-The count should match (or roughly match, if there are new tables) the previous year's count. In 2025: 66 for SHC, 69 for LPCH.
+## Check 3 — Text columns stayed STRING
 
-Run the same against `lpch_core_YYYY`.
-
-## Check 2 — Confirm text columns stayed STRING
-
-This is the check that would have caught the auto-detection bug. For SHC:
+The check that catches the auto-detection regression.
 
 ```sql
 SELECT table_name, column_name, data_type
-FROM `som-nero-phi-jonc101.shc_core_YYYY.INFORMATION_SCHEMA.COLUMNS`
+FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.COLUMNS`
 WHERE table_name = 'lab_result'
   AND column_name IN ('ord_value', 'reference_low', 'reference_high',
                       'extended_value_comment', 'extended_comp_comment')
 ORDER BY column_name;
 ```
 
-All five should be `STRING`. For LPCH:
+All five must be `STRING`.
 
 ```sql
 SELECT table_name, column_name, data_type
-FROM `som-nero-phi-jonc101.lpch_core_YYYY.INFORMATION_SCHEMA.COLUMNS`
+FROM `som-nero-phi-jonc101.lpch_core_2025.INFORMATION_SCHEMA.COLUMNS`
 WHERE (table_name = 'lpch_lab_result' AND column_name = 'ord_value')
    OR (table_name = 'lpch_flowsheet' AND column_name = 'meas_value')
    OR (table_name = 'lpch_allergy' AND column_name = 'reaction')
@@ -40,107 +82,119 @@ WHERE (table_name = 'lpch_lab_result' AND column_name = 'ord_value')
 ORDER BY table_name, column_name;
 ```
 
-All four should be `STRING`. If any are DATE/DATETIME/TIMESTAMP, **stop and restore from backup** — something converted a text column.
+All four must be `STRING`. (These four were typed DATE in `lpch_core_2024` due to the auto-detection bug — do not replicate that.)
 
-## Check 3 — Spot-check a converted DATETIME
+Sample the values to confirm they look like text:
 
 ```sql
-SELECT
-  hosp_admsn_time_jittered,
-  hosp_admsn_time_jittered_utc
-FROM `som-nero-phi-jonc101.shc_core_YYYY.encounter`
+SELECT DISTINCT ord_value
+FROM `som-nero-phi-jonc101.shc_core_2025.lab_result`
+WHERE ord_value IS NOT NULL
+LIMIT 20;
+```
+
+## Check 4 — Reported bug fixes landed
+
+Whatever the data team said they fixed, verify. Example from Aug 2026:
+
+```sql
+SELECT DISTINCT data_source
+FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_encounter`;
+```
+
+Expected `CLARITY_LPCH` only. If both old and new values appear, only new rows were fixed.
+
+## Check 5 — Flowsheet numerical extraction
+
+```sql
+SELECT column_name, data_type
+FROM `som-nero-phi-jonc101.shc_core_2025.INFORMATION_SCHEMA.COLUMNS`
+WHERE table_name = 'flowsheet' AND column_name LIKE '%numerical_val%'
+ORDER BY column_name;
+```
+
+Four rows, all `FLOAT64`. `STRING` means the `SAFE_CAST` was missed. Missing entirely means the extraction wasn't run after the rebuild.
+
+Spot-check:
+
+```sql
+SELECT meas_value, numerical_val_1, numerical_val_2
+FROM `som-nero-phi-jonc101.shc_core_2025.flowsheet`
+WHERE meas_value LIKE '%/%' AND numerical_val_1 IS NOT NULL
+LIMIT 10;
+```
+
+Blood-pressure values should split into two numbers. Repeat for `lpch_flowsheet`.
+
+## Check 6 — Spot-check a converted DATETIME
+
+```sql
+SELECT hosp_admsn_time_jittered, hosp_admsn_time_jittered_utc
+FROM `som-nero-phi-jonc101.shc_core_2025.encounter`
 WHERE hosp_admsn_time_jittered IS NOT NULL
 LIMIT 10;
 ```
 
-The two columns should show times that differ by 7 or 8 hours (LA → UTC, depending on daylight saving). Both should display as proper datetime values, not as quoted strings.
+The `_utc` value should be 7 or 8 hours ahead (depending on daylight saving).
 
-## Check 4 — Row count growth makes sense
+## Check 7 — Growth is positive and plausible
 
-Compare 2025 to 2024 on the high-volume clinical tables:
+Compare against the backup, which holds the pre-refresh state.
 
 ```sql
 SELECT 'encounter' AS t,
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2024.encounter`) AS shc_2024,
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.encounter`) AS shc_2025,
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.lpch_core_2024.lpch_encounter`) AS lpch_2024,
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_encounter`) AS lpch_2025
-UNION ALL
-SELECT 'order_proc',
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2024.order_proc`),
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.order_proc`),
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.lpch_core_2024.lpch_order_proc`),
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_order_proc`)
-UNION ALL
-SELECT 'lab_result',
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2024.lab_result`),
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.lab_result`),
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.lpch_core_2024.lpch_lab_result`),
-  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_lab_result`);
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.copy_shc_core_2025.encounter`) AS before,
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.encounter`) AS after
+UNION ALL SELECT 'order_proc',
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.copy_shc_core_2025.order_proc`),
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.order_proc`)
+UNION ALL SELECT 'lab_result',
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.copy_shc_core_2025.lab_result`),
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.lab_result`)
+UNION ALL SELECT 'flowsheet',
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.copy_shc_core_2025.flowsheet`),
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.flowsheet`)
+UNION ALL SELECT 'order_med',
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.copy_shc_core_2025.order_med`),
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.order_med`)
+UNION ALL SELECT 'diagnosis',
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.copy_shc_core_2025.diagnosis`),
+  (SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.diagnosis`)
+ORDER BY t;
 ```
 
-2025 should be larger than 2024 (cumulative data) by roughly 10–25%. If a table shrank or growth is dramatically outside that range, investigate.
+Same for LPCH with `copy_lpch_core_2025` and the `lpch_*` table names.
 
-For reference, 2025 growth was:
+**Expected growth depends on the interval:**
 
-| Table | SHC growth | LPCH growth |
-|---|---|---|
-| `encounter` | +13% | +11% |
-| `order_proc` | +16% | +12% |
-| `lab_result` | +12% | +9% |
+| Interval | Expected growth on clinical tables |
+|---|---|
+| 4–6 week refresh | +3% to +5% |
+| Full year | +10% to +25% |
 
-## Check 5 — Row counts unchanged by conversion
+**Any table that shrank is a red flag** — cumulative data should never lose rows. Don't drop the backups; investigate.
 
-The conversion in Step 4 rewrites columns, not rows, so row counts should match the backup exactly:
+Tables affected by an upstream filter change (e.g. `smrtdta` in Aug 2026) will be wildly outside these ranges. That's expected when you know about it from Step 1, and should be noted in the changelog rather than treated as an anomaly.
+
+## If a check fails
+
+| Symptom | Fix |
+|---|---|
+| Missing `_utc` on one table | Re-run that table's Step 4 statement |
+| Text column typed as DATE/DATETIME | Restore that table from backup, re-run its conversion |
+| `numerical_val_*` missing or STRING | Re-run flowsheet extraction with `SAFE_CAST` |
+| Row count shrank | Restore from backup, check whether the source was delta-only |
+| Table missing entirely | Re-run its Step 2 build statement, then its Step 4 conversion |
+| PHI table present | Drop it, notify the PI, add to the README exclusion list |
+
+Restore a single table:
 
 ```sql
-SELECT 'encounter' AS t, COUNT(*) AS backup_n FROM `som-nero-phi-jonc101.copy_shc_core_YYYY.encounter`
-UNION ALL SELECT 'encounter (converted)', COUNT(*) FROM `som-nero-phi-jonc101.shc_core_YYYY.encounter`
-UNION ALL SELECT 'order_proc', COUNT(*) FROM `som-nero-phi-jonc101.copy_shc_core_YYYY.order_proc`
-UNION ALL SELECT 'order_proc (converted)', COUNT(*) FROM `som-nero-phi-jonc101.shc_core_YYYY.order_proc`
-UNION ALL SELECT 'lab_result', COUNT(*) FROM `som-nero-phi-jonc101.copy_shc_core_YYYY.lab_result`
-UNION ALL SELECT 'lab_result (converted)', COUNT(*) FROM `som-nero-phi-jonc101.shc_core_YYYY.lab_result`;
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.<table>` AS
+SELECT * FROM `som-nero-phi-jonc101.copy_shc_core_2025.<table>`;
 ```
 
-Each pair should be identical.
-
-## Check 6 — Flowsheet numerical extraction worked
-
-```sql
--- Confirm numerical_val columns exist and are FLOAT64
-SELECT column_name, data_type
-FROM `som-nero-phi-jonc101.shc_core_YYYY.INFORMATION_SCHEMA.COLUMNS`
-WHERE table_name = 'flowsheet'
-  AND column_name LIKE '%numerical_val%'
-ORDER BY column_name;
-```
-
-Expect 4 rows, all type `FLOAT64`. If type is `STRING`, the `SAFE_CAST` was missed in Step 4 — restore from backup and re-run.
-
-```sql
--- Spot-check: some real measurements should produce numeric values
-SELECT meas_value, numerical_val_1, numerical_val_2
-FROM `som-nero-phi-jonc101.shc_core_YYYY.flowsheet`
-WHERE meas_value LIKE '%/%'
-  AND numerical_val_1 IS NOT NULL
-LIMIT 10;
-```
-
-Blood-pressure-style values like `"120/80"` should split into `120` and `80`. Repeat for `lpch_flowsheet`.
-
-## What to do if a check fails
-
-- **`_utc` column missing on a table** → re-run the conversion query for just that table from Step 4
-- **A text column is wrongly typed as DATE/DATETIME** → restore the affected table from `copy_*` backup, then re-run the conversion query for just that table
-- **Row count regression** → likely a conversion query truncated something; restore from backup
-- **A whole table missing from the dataset** → re-run the Step 2 build query for that table
-
-Restore a single table from backup:
-
-```sql
-CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_YYYY.<table>` AS
-SELECT * FROM `som-nero-phi-jonc101.copy_shc_core_YYYY.<table>`;
-```
+Then re-run its Step 4 conversion — restoring reverts to the pre-conversion state.
 
 ## Next step
 

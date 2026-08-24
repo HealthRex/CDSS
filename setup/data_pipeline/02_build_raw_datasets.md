@@ -1,27 +1,18 @@
 # Step 2 — Build Raw Datasets
 
-Copy raw tables from `som-nero-phi-jonc101-secure` into new yearly datasets in `som-nero-phi-jonc101`.
+Copy raw tables from `som-nero-phi-jonc101-secure` into the working project.
 
-## 1. Create destination datasets
+⚠️ **If the destination dataset already exists and is in use, do Step 3 (backup) first.** Mid-year refreshes are destructive rebuilds. The SQL below overwrites tables researchers are actively querying.
 
-In the BigQuery console, in `som-nero-phi-jonc101`:
+## 1. Create destination datasets (new year only)
 
-- Create `shc_core_YYYY` (e.g., `shc_core_2025`)
-- Create `lpch_core_YYYY` (e.g., `lpch_core_2025`)
+If starting a new yearly dataset, create it in the BigQuery console with location `US`. For a mid-year refresh into an existing dataset, skip this.
 
-Set location to `US` (must match source).
+## 2. SHC build
 
-## 2. Build SHC tables
-
-Adapt the SQL below for the current year. The 2025 version is shown — change `shc_core_2025` to the current year throughout.
+Current as of the Aug 2026 refresh — 36 tables.
 
 ```sql
--- ============================================================
--- shc_core_2025 — REBUILD raw tables from secure project
--- Source: som-nero-phi-jonc101-secure.shc_core_updates
--- Destination: som-nero-phi-jonc101.shc_core_2025
--- ============================================================
-
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.adt` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_adt`;
 
@@ -36,6 +27,10 @@ SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_alerts_orders`;
 
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.allergy` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_allergy`;
+
+-- added Aug 2026
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.alt_com_action` AS
+SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_alt_com_action`;
 
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.clinical_doc_meta` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_clinical_doc_meta`;
@@ -67,7 +62,7 @@ SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_family_hx`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.flowsheet` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_flowsheet`;
 
--- NOTE: source has NO shc_ prefix
+-- source has NO shc_ prefix
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.geolocation_from_omop` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.geolocation_from_omop`;
 
@@ -101,6 +96,10 @@ SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_order_med`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.order_proc` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_order_proc`;
 
+-- added Aug 2026
+CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.order_quest` AS
+SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_order_quest`;
+
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.pharmacy_mar` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_pharmacy_mar`;
 
@@ -110,10 +109,11 @@ SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_proc_orderset`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.procedure` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_procedure`;
 
--- prov_map: source has NO shc_ prefix
+-- source has NO shc_ prefix
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.prov_map` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.prov_map`;
 
+-- NOTE: 479.6M rows as of Aug 2026 (was 6.2M) — unfiltered SmartData elements
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.smrtdta` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_smrtdta`;
 
@@ -123,21 +123,23 @@ SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_social_hx`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.treatment_team` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.shc_core_updates.shc_treatment_team`;
 
--- zip: carried forward from last year (no fresh source in shc_core_updates)
-CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_2025.zip` AS
-SELECT * FROM `som-nero-phi-jonc101.shc_core_2024.zip`;
+-- zip: no fresh source. Leave existing table untouched.
+-- If building a brand-new yearly dataset, carry it forward:
+--   CREATE OR REPLACE TABLE `som-nero-phi-jonc101.shc_core_YYYY.zip` AS
+--   SELECT * FROM `som-nero-phi-jonc101.shc_core_YYYY-1.zip`;
+
+-- EXCLUDED — stay in secure (see README):
+--   shc_patients (contains mrn)
+--   shc_myc_mesg
+--   shc_lpch_geolocation_from_omop
+--   shc_lpch_prov_map
 ```
 
-## 3. Build LPCH tables
+## 3. LPCH build
+
+37 tables.
 
 ```sql
--- ============================================================
--- lpch_core_2025 — REBUILD raw tables from secure project
--- Source: som-nero-phi-jonc101-secure.lpch_core_updates
--- Destination: som-nero-phi-jonc101.lpch_core_2025
--- LPCH tables retain the lpch_* prefix.
--- ============================================================
-
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.lpch_adt` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.lpch_core_updates.lpch_adt`;
 
@@ -222,6 +224,7 @@ SELECT * FROM `som-nero-phi-jonc101-secure.lpch_core_updates.lpch_order_proc`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.lpch_order_quest` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.lpch_core_updates.lpch_order_quest`;
 
+-- NOTE: check for mrn column before including (see README exclusions)
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.lpch_patients` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.lpch_core_updates.lpch_patients`;
 
@@ -234,6 +237,7 @@ SELECT * FROM `som-nero-phi-jonc101-secure.lpch_core_updates.lpch_proc_orderset`
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.lpch_procedure` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.lpch_core_updates.lpch_procedure`;
 
+-- NOTE: 102.5M rows as of Aug 2026 (was empty) — unfiltered SmartData elements
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.lpch_smrtdta` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.lpch_core_updates.lpch_smrtdta`;
 
@@ -249,28 +253,26 @@ SELECT * FROM `som-nero-phi-jonc101-secure.lpch_core_updates.mom_baby`;
 CREATE OR REPLACE TABLE `som-nero-phi-jonc101.lpch_core_2025.prov_map` AS
 SELECT * FROM `som-nero-phi-jonc101-secure.lpch_core_updates.prov_map`;
 
--- INTENTIONALLY EXCLUDED:
--- lpch_myc_mesg (stays in secure project)
--- shc_lpch_prov_map (decided not to copy this year)
+-- EXCLUDED — stay in secure (see README):
+--   lpch_myc_mesg
+--   shc_lpch_prov_map
 ```
 
-## 4. Quick row-count check
-
-After both builds finish, confirm tables populated:
+## 4. Quick check
 
 ```sql
 SELECT COUNT(*) FROM `som-nero-phi-jonc101.shc_core_2025.encounter`;
 SELECT COUNT(*) FROM `som-nero-phi-jonc101.lpch_core_2025.lpch_encounter`;
 ```
 
-Should match the source row counts.
+Full growth validation comes in Step 5.
 
 ## Common issues
 
-- **`Not found: Table ...`** — the source name in the `FROM` clause is wrong. Check `shc_core_updates` in the BigQuery console for actual names. Common cases: table doesn't have the expected `shc_` / `lpch_` prefix, or table name has changed.
-- **Permission denied** — check IAM on both projects (Data Viewer on secure, Data Editor on working).
+- **`Not found: Table ...`** — source name is wrong. Check the actual names in `shc_core_updates` / `lpch_core_updates`. Watch for the tables with no prefix.
+- **Permission denied** — need Data Viewer on secure, Data Editor on working.
 - **Wrong location** — destination dataset must be in the same region as the source (`US`).
 
 ## Next step
 
-[Step 3 — Backup before transforming](./03_backup.md).
+[Step 4 — Apply conversions](./04_apply_conversions.md) (Step 3 backup should already be done).
