@@ -114,8 +114,8 @@ async function makePrediction(features, showLoading = true) {
         const chartStyles = {
             "Patient Prediction": { color: "#2ABEC0", width: 3, dash: "solid" },
             "Median": { color: "#0D2551", width: 2, dash: "dash" },
-            "High Risk": { color: "#5B55C4", width: 2, dash: "dot" },
-            "Low Risk": { color: "#8FA3BF", width: 2, dash: "dot" }
+            "High Risk": { color: "#C62828", width: 2, dash: "dash" },
+            "Low Risk": { color: "#2E7D32", width: 2, dash: "dash" }
         };
 
         graphData.data.forEach((trace) => {
@@ -311,6 +311,53 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', event => {
             event.preventDefault();
             event.stopPropagation();
+        });
+    });
+
+    // Accessible sidebar information dialogs. These do not affect form state
+    // or prediction behavior.
+    let activeDialogTrigger = null;
+
+    document.querySelectorAll('[data-dialog-target]').forEach(trigger => {
+        const dialogId = trigger.getAttribute('data-dialog-target');
+        const dialog = document.getElementById(dialogId);
+
+        trigger.setAttribute('aria-controls', dialogId);
+        trigger.setAttribute('aria-expanded', 'false');
+
+        trigger.addEventListener('click', () => {
+            if (!dialog) {
+                return;
+            }
+
+            document.querySelectorAll('.info-dialog[open]').forEach(openDialog => {
+                openDialog.close();
+            });
+
+            activeDialogTrigger = trigger;
+            trigger.setAttribute('aria-expanded', 'true');
+            dialog.showModal();
+        });
+    });
+
+    document.querySelectorAll('.info-dialog').forEach(dialog => {
+        const closeButton = dialog.querySelector('.dialog-close');
+
+        closeButton?.addEventListener('click', () => dialog.close());
+
+        dialog.addEventListener('click', event => {
+            if (event.target === dialog) {
+                dialog.close();
+            }
+        });
+
+        dialog.addEventListener('close', () => {
+            document.querySelectorAll('[data-dialog-target]').forEach(trigger => {
+                trigger.setAttribute('aria-expanded', 'false');
+            });
+
+            activeDialogTrigger?.focus();
+            activeDialogTrigger = null;
         });
     });
 });
