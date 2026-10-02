@@ -66,6 +66,8 @@ textarea:focus-visible {
 }
 
 .app-sidebar {
+    display: flex;
+    flex-direction: column;
     position: sticky;
     top: 0;
     align-self: start;
@@ -114,6 +116,38 @@ textarea:focus-visible {
 
 .brand-byline a:hover {
     color: var(--white);
+}
+
+.sidebar-nav {
+    display: grid;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgb(250 255 255 / 18%);
+}
+
+.sidebar-link {
+    width: 100%;
+    padding: 11px 12px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--white);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 150ms ease, color 150ms ease;
+}
+
+.sidebar-link:hover,
+.sidebar-link[aria-expanded="true"] {
+    background: rgb(42 190 192 / 16%);
+}
+
+.sidebar-link:focus-visible {
+    outline: 3px solid var(--teal);
+    outline-offset: 2px;
 }
 
 .main-area {
@@ -373,6 +407,13 @@ form {
     display: block;
 }
 
+/* Reveal feature help on pointer hover and keyboard focus while preserving
+   the existing click-to-toggle behavior for touch devices. */
+.form-field:has(.info-button:hover) > .info-panel,
+.form-field:has(.info-button:focus-visible) > .info-panel {
+    display: block;
+}
+
 .submit-field {
     margin-top: 8px;
 }
@@ -484,6 +525,96 @@ form {
     font-weight: 600;
 }
 
+.info-dialog {
+    width: min(640px, calc(100vw - 32px));
+    max-height: min(760px, calc(100vh - 48px));
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--bg);
+    color: var(--ink);
+    box-shadow: 0 24px 70px rgb(13 35 71 / 24%);
+}
+
+.info-dialog::backdrop {
+    background: rgb(13 35 71 / 58%);
+    backdrop-filter: blur(2px);
+}
+
+.dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--line);
+}
+
+.dialog-header h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 21px;
+    line-height: 1.25;
+}
+
+.dialog-close {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.dialog-close:hover {
+    border-color: var(--teal);
+    color: var(--ink);
+}
+
+.dialog-content {
+    padding: 22px;
+    overflow-y: auto;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.dialog-content p {
+    margin: 0;
+}
+
+.dialog-content p + p {
+    margin-top: 14px;
+}
+
+.citation-list {
+    display: grid;
+    gap: 18px;
+}
+
+.citation-list article {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #F8FAFC;
+}
+
+.citation-list a {
+    display: inline-block;
+    margin-top: 10px;
+    color: var(--teal-dark);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    text-underline-offset: 3px;
+}
+
 .text-muted-foreground {
     color: var(--muted);
 }
@@ -571,6 +702,21 @@ form {
     .brand-byline {
         margin-top: 2px;
         font-size: 12px;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        gap: 4px;
+        margin-top: 10px;
+        padding-top: 10px;
+        overflow-x: auto;
+    }
+
+    .sidebar-link {
+        flex: 0 0 auto;
+        width: auto;
+        padding: 8px 10px;
+        font-size: 12.5px;
     }
 
     .main-area {

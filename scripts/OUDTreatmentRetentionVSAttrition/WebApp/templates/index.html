@@ -29,6 +29,12 @@
                     <div class="brand-byline">from <a href="https://www.healthrexlab.com/">HealthRex</a></div>
                 </div>
             </div>
+
+            <nav class="sidebar-nav" aria-label="Tool information">
+                <button type="button" class="sidebar-link" data-dialog-target="about-dialog">About This Tool</button>
+                <button type="button" class="sidebar-link" data-dialog-target="citation-dialog">Citations</button>
+                <button type="button" class="sidebar-link" data-dialog-target="disclaimer-dialog">Disclaimer</button>
+            </nav>
         </aside>
 
         <main class="main-area">
@@ -345,6 +351,51 @@
             </div>
         </main>
     </div>
+
+    <dialog id="about-dialog" class="info-dialog" aria-labelledby="about-dialog-title">
+        <div class="dialog-header">
+            <h2 id="about-dialog-title">About This Tool</h2>
+            <button type="button" class="dialog-close" aria-label="Close About This Tool dialog">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="dialog-content">
+            <p>This tool estimates a patient's probability of remaining in buprenorphine-naloxone treatment over time using a random survival forest model developed from de-identified electronic health record data.</p>
+            <p>The chart compares the patient prediction with high-risk, low-risk, and median reference curves. The research underlying this tool is described in the publications listed under Citations.</p>
+        </div>
+    </dialog>
+
+    <dialog id="citation-dialog" class="info-dialog" aria-labelledby="citation-dialog-title">
+        <div class="dialog-header">
+            <h2 id="citation-dialog-title">Citations</h2>
+            <button type="button" class="dialog-close" aria-label="Close Citations dialog">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="dialog-content citation-list">
+            <article>
+                <p>Nateghi Haredasht F, Fouladvand S, Tate S, et al. Predictability of buprenorphine-naloxone treatment retention: A multi-site analysis combining electronic health records and machine learning. <em>Addiction</em>. 2024;119(10):1792–1802.</p>
+                <a href="https://doi.org/10.1111/add.16587" target="_blank" rel="noopener noreferrer">https://doi.org/10.1111/add.16587</a>
+            </article>
+            <article>
+                <p>Nateghi Haredasht F, Lopez I, Tate S, et al. Predicting treatment retention in medication for opioid use disorder: a machine learning approach using NLP and LLM-derived clinical features. <em>Journal of the American Medical Informatics Association</em>. 2025;32(12):1865–1876.</p>
+                <a href="https://doi.org/10.1093/jamia/ocaf157" target="_blank" rel="noopener noreferrer">https://doi.org/10.1093/jamia/ocaf157</a>
+            </article>
+        </div>
+    </dialog>
+
+    <dialog id="disclaimer-dialog" class="info-dialog" aria-labelledby="disclaimer-dialog-title">
+        <div class="dialog-header">
+            <h2 id="disclaimer-dialog-title">Disclaimer</h2>
+            <button type="button" class="dialog-close" aria-label="Close Disclaimer dialog">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="dialog-content">
+            <p>This tool is intended for research and educational purposes only. It is not a medical device and does not provide medical advice, diagnosis, or treatment recommendations.</p>
+            <p>Predictions are estimates based on the model and available inputs and may not generalize to every patient or care setting. Do not use this tool as the sole basis for clinical decisions. Qualified health professionals should use independent clinical judgment and complete patient information.</p>
+        </div>
+    </dialog>
 
 
     <!-- Link to the external app.js file -->
