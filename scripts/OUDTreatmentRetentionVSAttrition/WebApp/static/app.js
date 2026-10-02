@@ -110,49 +110,93 @@ async function makePrediction(features, showLoading = true) {
         // Parse the graphJSON from the response
         const graphData = JSON.parse(result.graphJSON);
 
-        // Check if user prefers dark mode
-        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        // Customize the layout for better visualization
+        // Apply brand styling without changing any chart data.
+        const chartStyles = {
+            "Patient Prediction": { color: "#2ABEC0", width: 3, dash: "solid" },
+            "Median": { color: "#0D2551", width: 2, dash: "dash" },
+            "High Risk": { color: "#5B55C4", width: 2, dash: "dot" },
+            "Low Risk": { color: "#8FA3BF", width: 2, dash: "dot" }
+        };
+
+        graphData.data.forEach((trace) => {
+            const traceStyle = chartStyles[trace.name];
+            if (!traceStyle) {
+                return;
+            }
+
+            trace.line = {
+                ...(trace.line || {}),
+                color: traceStyle.color,
+                width: traceStyle.width,
+                dash: traceStyle.dash
+            };
+
+            if (trace.marker) {
+                trace.marker = {
+                    ...trace.marker,
+                    color: traceStyle.color
+                };
+            }
+        });
+
+        // Customize chart presentation only; axes and prediction data are unchanged.
         graphData.layout.hovermode = 'closest';
-        graphData.layout.xaxis.title = 'Time (Days in Treatment)';
-        graphData.layout.yaxis.title = 'Retention Probability';
         graphData.layout.title = {
             text: 'Predicted Retention Probability Over Time',
-            font: { 
-                size: 18, 
-                color: isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)' 
+            x: 0.02,
+            xanchor: 'left',
+            font: {
+                family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                size: 18,
+                color: '#0D2347'
             }
         };
-        graphData.layout.margin = { l: 50, r: 50, t: 60, b: 120 };
-        graphData.layout.font = { 
-            family: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif', 
-            size: 12, 
-            color: isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)' 
+        graphData.layout.margin = { l: 64, r: 24, t: 68, b: 108 };
+        graphData.layout.font = {
+            family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            size: 12,
+            color: '#5B6B85'
         };
-        graphData.layout.paper_bgcolor = isDarkMode ? 'hsl(217.2 32.6% 17.5%)' : 'hsl(0 0% 100%)';
-        graphData.layout.plot_bgcolor = isDarkMode ? 'hsl(217.2 32.6% 17.5%)' : 'hsl(0 0% 100%)';
+        graphData.layout.paper_bgcolor = '#FFFFFF';
+        graphData.layout.plot_bgcolor = '#FFFFFF';
         graphData.layout.showlegend = true;
         graphData.layout.legend = {
             orientation: 'h',
-            yanchor: 'bottom',
-            y: -0.4,
+            yanchor: 'top',
+            y: -0.24,
             xanchor: 'center',
             x: 0.5,
             font: {
-                color: isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)'
+                family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                size: 11,
+                color: '#5B6B85'
             }
         };
-        
-        // Update axis styling for dark mode
-        if (isDarkMode) {
-            graphData.layout.xaxis.tickcolor = 'hsl(217.2 32.6% 35%)';
-            graphData.layout.xaxis.gridcolor = 'hsl(217.2 32.6% 25%)';
-            graphData.layout.xaxis.linecolor = 'hsl(217.2 32.6% 35%)';
-            graphData.layout.yaxis.tickcolor = 'hsl(217.2 32.6% 35%)';
-            graphData.layout.yaxis.gridcolor = 'hsl(217.2 32.6% 25%)';
-            graphData.layout.yaxis.linecolor = 'hsl(217.2 32.6% 35%)';
-        }
+
+        graphData.layout.xaxis = {
+            ...graphData.layout.xaxis,
+            title: {
+                text: 'Time (Days in Treatment)',
+                font: { color: '#5B6B85', size: 12 }
+            },
+            gridcolor: '#E3E8F0',
+            linecolor: '#E3E8F0',
+            tickcolor: '#E3E8F0',
+            tickfont: { color: '#5B6B85' },
+            zeroline: false
+        };
+        graphData.layout.yaxis = {
+            ...graphData.layout.yaxis,
+            title: {
+                text: 'Retention Probability',
+                font: { color: '#5B6B85', size: 12 }
+            },
+            gridcolor: '#E3E8F0',
+            linecolor: '#E3E8F0',
+            tickcolor: '#E3E8F0',
+            tickfont: { color: '#5B6B85' },
+            zeroline: false
+        };
 
         // Clear the result div completely before rendering
         resultDiv.innerHTML = '';
@@ -231,50 +275,19 @@ function toggleInfo(infoId) {
     allInfoPanels.forEach(panel => {
         panel.classList.remove('show');
     });
+    document.querySelectorAll('.info-button').forEach(button => {
+        button.setAttribute('aria-expanded', 'false');
+    });
     
     // Toggle the current panel (only show if it wasn't already visible)
     if (!isCurrentlyVisible) {
         infoElement.classList.add('show');
-    }
-}
-
-// Function to update chart styling when theme changes
-function updateChartTheme() {
-    console.log('Theme change detected, updating chart...');
-    const resultDiv = document.getElementById('result');
-    
-    if (!resultDiv) {
-        console.log('Result div not found');
-        return;
-    }
-    
-    // Check if there's a Plotly chart
-    if (resultDiv._fullLayout || (resultDiv.children.length > 0 && resultDiv.children[0]._fullLayout)) {
-        const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        console.log('Dark mode:', isDarkMode);
-        
-        const updateLayout = {
-            'title.font.color': isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)',
-            'font.color': isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)',
-            'plot_bgcolor': isDarkMode ? 'hsl(217.2 32.6% 17.5%)' : 'hsl(0 0% 100%)',
-            'paper_bgcolor': isDarkMode ? 'hsl(217.2 32.6% 17.5%)' : 'hsl(0 0% 100%)',
-            'legend.font.color': isDarkMode ? 'hsl(210 40% 98%)' : 'hsl(222.2 84% 4.9%)',
-            'xaxis.tickcolor': isDarkMode ? 'hsl(217.2 32.6% 35%)' : '#333',
-            'xaxis.gridcolor': isDarkMode ? 'hsl(217.2 32.6% 25%)' : '#eee',
-            'xaxis.linecolor': isDarkMode ? 'hsl(217.2 32.6% 35%)' : '#333',
-            'yaxis.tickcolor': isDarkMode ? 'hsl(217.2 32.6% 35%)' : '#333',
-            'yaxis.gridcolor': isDarkMode ? 'hsl(217.2 32.6% 25%)' : '#eee',
-            'yaxis.linecolor': isDarkMode ? 'hsl(217.2 32.6% 35%)' : '#333'
-        };
-        
-        try {
-            Plotly.relayout('result', updateLayout);
-            console.log('Chart theme updated successfully');
-        } catch (error) {
-            console.error('Error updating chart theme:', error);
+        const controllingButton = Array.from(document.querySelectorAll('.info-button')).find(button =>
+            button.getAttribute('aria-controls') === infoId
+        );
+        if (controllingButton) {
+            controllingButton.setAttribute('aria-expanded', 'true');
         }
-    } else {
-        console.log('No Plotly chart found');
     }
 }
 
@@ -285,12 +298,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (ageInput) {
         ageInput.focus();
     }
-    
-    // Listen for theme changes
-    if (window.matchMedia) {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        mediaQuery.addEventListener('change', updateChartTheme);
-        console.log('Theme change listener registered');
-    }
-});
 
+    // Keep the existing help controls keyboard-accessible without toggling
+    // a checkbox when its nested information button is activated.
+    document.querySelectorAll('.info-button').forEach(button => {
+        const handler = button.getAttribute('onclick') || '';
+        const match = handler.match(/toggleInfo\('([^']+)'\)/);
+        if (match) {
+            button.setAttribute('aria-controls', match[1]);
+            button.setAttribute('aria-expanded', 'false');
+        }
+        button.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+    });
+});
